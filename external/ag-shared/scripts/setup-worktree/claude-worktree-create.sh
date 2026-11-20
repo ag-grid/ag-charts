@@ -33,17 +33,28 @@ WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 # Agents run in parallel, so only worktrees idle for this long count as stale.
 STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
 
+# True when find matches a path modified within the stale window, or its scan failed other than on a vanished path.
+find_recent() {
+    local err_file found='' status=0
+    err_file=$(mktemp)
+    found=$(LC_ALL=C find "$@" -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -print -quit 2>"$err_file") || status=$?
+    if [[ -z "$found" && $status -ne 0 ]] && { [[ ! -s "$err_file" ]] || grep -qv 'No such file or directory$' "$err_file"; }; then
+        found=incomplete
+    fi
+    rm -f "$err_file"
+    [[ -n "$found" ]]
+}
+
 # True when any of the given paths was modified within the stale window; batched to stay under ARG_MAX.
 modified_recently() {
     local i
     for ((i = 1; i <= $#; i += 500)); do
-        [[ -n $(find "${@:i:500}" -maxdepth 0 -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" 2>/dev/null) ]] && return 0
+        find_recent "${@:i:500}" -maxdepth 0 && return 0
     done
     return 1
 }
 
-# True when the worktree, its git metadata or a file it changed was touched within the stale window.
-# When git cannot list the changed files, every file in the worktree is checked instead.
+# True when the worktree, its git metadata or any file in it was touched within the stale window.
 recently_active() {
     local candidate=$1 git_dir='' status_file entry path
     local paths=("$candidate")
@@ -61,18 +72,17 @@ recently_active() {
 
     status_file=$(mktemp)
     # GIT_OPTIONAL_LOCKS=0 stops status refreshing the index, which would make the worktree look active.
-    if [[ -z "$git_dir" ]] || ! GIT_OPTIONAL_LOCKS=0 git -C "$candidate" status --porcelain -z --no-renames --untracked-files=all >"$status_file" 2>/dev/null; then
-        rm -f "$status_file"
-        [[ -n $(find "$candidate" -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -print -quit 2>/dev/null) ]]
-        return
-    fi
     paths=()
-    while IFS= read -r -d '' entry; do
-        path="$candidate/${entry:3}"
-        [[ -e "$path" ]] && paths+=("$path")
-    done <"$status_file"
+    if [[ -n "$git_dir" ]] && GIT_OPTIONAL_LOCKS=0 git -C "$candidate" status --porcelain -z --no-renames --untracked-files=all >"$status_file" 2>/dev/null; then
+        while IFS= read -r -d '' entry; do
+            path="$candidate/${entry:3}"
+            [[ -e "$path" ]] && paths+=("$path")
+        done <"$status_file"
+    fi
     rm -f "$status_file"
-    ((${#paths[@]})) && modified_recently "${paths[@]}"
+    ((${#paths[@]})) && modified_recently "${paths[@]}" && return 0
+    # Ignored files edited in place change no timestamp checked above.
+    find_recent "$candidate"
 }
 
 # Clean up stale agent worktrees from previous runs.
