@@ -798,6 +798,7 @@ jobs:
                   node-version: 24
 
             - name: Review translations
+              id: review
               env:
                   LOCALE_SRC_DIR: packages/ag-charts-locale/src
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -817,6 +818,8 @@ jobs:
                   node "$RUNNER_TEMP/review-translations.mjs"
 
             - name: Build L10n section
+              env:
+                  VERDICT: ${{ steps.review.outputs.verdict }}
               run: |
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
@@ -824,11 +827,17 @@ jobs:
                       # Keep the `<!-- l10n-translation-review -->` marker the generator leads with:
                       # the AI Workflow pipeline reads a section whose content starts with a review
                       # marker as that review. Prepend our section heading.
-                      # [warn]: the reviewer flagged translations to read before merge.
-                      { echo '## [warn] Translation review'; echo; cat l10n-review.md; } > "$out"
+                      # [ok] only on an explicit clean verdict; otherwise [warn]: the reviewer
+                      # flagged translations to read before merge.
+                      status=warn
+                      [ "$VERDICT" = clean ] && status=ok
+                      { echo "## [$status] Translation review"; echo; cat l10n-review.md; } > "$out"
+                  elif [ "$VERDICT" = skipped ]; then
+                      # [ok]: no translated locale files changed, so nothing to review.
+                      printf '## [ok] Translation review\n\nNo translated locale files changed.\n' > "$out"
                   else
-                      # [ok]: nothing to action.
-                      printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
+                      # [warn]: the review did not run, so nothing was checked.
+                      printf '## [warn] Translation review\n\nThe translation review did not run. See the L10n Review job log.\n' > "$out"
                   fi
 
             - name: Check the PR head is current
