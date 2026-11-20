@@ -672,10 +672,7 @@ export abstract class HierarchySeries<
         ]);
     }
 
-    /**
-     * The shadow on one copy of a node, in `fillShadow`. The highlight copy casts none: its glow is cast by a glow-only copy, see
-     * {@link resolveNodeGlow}, and the hovered in-place copy casts the node's shadow.
-     */
+    /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast by a glow-only copy. */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
@@ -685,11 +682,7 @@ export abstract class HierarchySeries<
         return itemShadow == null ? shadow : this.mergeItemShadow(shadow, itemShadow);
     }
 
-    /**
-     * The glow on one copy of a node, in `fillGlow`. The in-place copies cast theirs in the root's overlay, where the hovered one
-     * cuts it only if the highlight copy glows. The glow-only copy casts the glow of the highlight copy above the overlay, and
-     * the highlight copy itself has none.
-     */
+    /** The glow on one copy of a node, in `fillGlow`: the glow-only copy casts that of the highlight copy, which has none itself. */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
