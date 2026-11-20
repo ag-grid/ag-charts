@@ -13,7 +13,7 @@ import {
     sectorBox,
 } from '../util/sector';
 import { Path } from './path';
-import type { CanvasContext } from './shape';
+import type { CanvasContext, MitreApex } from './shape';
 
 class Arc {
     constructor(
@@ -192,6 +192,42 @@ export class Sector<D = unknown> extends Path<D> {
         return true;
     }
 
+    /**
+     * A pie's point, where its straight edges meet, with the angles of the edges from it. A sector with an inner radius or a
+     * clip has none, nor does one whose inset edges end in rounded outer corners.
+     */
+    protected override getMitreApex(out: MitreApex): boolean {
+        const { radialEdgeInset, clipSector, centerX, centerY } = this;
+        if (this.innerRadius > 0 || clipSector != null) return false;
+        if (radialEdgeInset > 0 && (this.startOuterCornerRadius > 0 || this.endOuterCornerRadius > 0)) return false;
+
+        const { outerRadius } = this.normalizedRadii();
+        if (outerRadius <= 0) return false;
+
+        const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
+        const sweep = endAngle - startAngle;
+        const apexRadius = this.concentricEdgeInset > 0 ? this.getInsetApexRadius(sweep, outerRadius, 0) : 0;
+        const midAngle = startAngle + sweep / 2;
+        const x = centerX + apexRadius * Math.cos(midAngle);
+        const y = centerY + apexRadius * Math.sin(midAngle);
+
+        // Each edge runs to the end of the outer arc, which is inset from the sector's own angles.
+        const offset = this.getAngleOffset(outerRadius);
+        const edgeStart = Math.atan2(
+            centerY + outerRadius * Math.sin(startAngle + offset) - y,
+            centerX + outerRadius * Math.cos(startAngle + offset) - x
+        );
+        const edgeEnd = Math.atan2(
+            centerY + outerRadius * Math.sin(endAngle - offset) - y,
+            centerX + outerRadius * Math.cos(endAngle - offset) - x
+        );
+        out.x = x;
+        out.y = y;
+        out.start = edgeStart;
+        out.end = clockwiseAngle(edgeEnd, edgeStart);
+        return out.end > out.start && out.end - out.start < Math.PI;
+    }
+
     private clipOutBeside(
         ctx: CanvasContext,
         reach: number,
@@ -355,9 +391,36 @@ export class Sector<D = unknown> extends Path<D> {
         return arc;
     }
 
+    /** How far from the centre the point of a pie is, once the inset of its radial edges has moved it along the bisector of its sweep. */
+    private getInsetApexRadius(sweepAngle: number, outerRadius: number, innerRadius: number) {
+        const { radialEdgeInset } = this;
+        // Inset from bottom - i.e. y = innerRadius
+        // Inset the top - i.e. y = (x - x0) * tan(sweep)
+        // Form a right angle from the wedge with hypotenuse x0 and an opposite side of innerRadius
+        // Gives x0 = inset * sin(sweep)
+        // y = inset = (x - inset * sin(sweep)) * tan(sweep) - solve for x
+        // This formula has limits (i.e. sweep being >= a quarter turn),
+        // but the bounds for x should be [innerRadius, outerRadius)
+        const x =
+            sweepAngle < Math.PI * 0.5
+                ? (radialEdgeInset * (1 + Math.cos(sweepAngle))) / Math.sin(sweepAngle)
+                : Number.NaN;
+        // r = sqrt(x**2 + y**2)
+        let r: number;
+        if (x > 0 && x < outerRadius) {
+            // Even within the formula limits, floating point precision isn't always enough,
+            // so ensure we never go less than the inner radius
+            r = Math.max(Math.hypot(radialEdgeInset, x), innerRadius);
+        } else {
+            // Formula limits exceeded - just use the inner radius
+            r = radialEdgeInset;
+        }
+        return Math.max(r, innerRadius);
+    }
+
     override updatePath(): void {
         const delta = 1e-6;
-        const { path, centerX, centerY, concentricEdgeInset, radialEdgeInset } = this;
+        const { path, centerX, centerY, concentricEdgeInset } = this;
         let { startOuterCornerRadius, endOuterCornerRadius, startInnerCornerRadius, endInnerCornerRadius } = this;
         const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
         const { innerRadius, outerRadius } = this.normalizedRadii();
@@ -573,28 +636,7 @@ export class Sector<D = unknown> extends Path<D> {
             // spike to the inner radius.
         } else if (innerAngleExceeded) {
             // Draw a wedge for pie charts (no inner radius) on a cartesian co-ordinate with radius `sweep`
-            // Inset from bottom - i.e. y = innerRadius
-            // Inset the top - i.e. y = (x - x0) * tan(sweep)
-            // Form a right angle from the wedge with hypotenuse x0 and an opposite side of innerRadius
-            // Gives x0 = inset * sin(sweep)
-            // y = inset = (x - inset * sin(sweep)) * tan(sweep) - solve for x
-            // This formula has limits (i.e. sweep being >= a quarter turn),
-            // but the bounds for x should be [innerRadius, outerRadius)
-            const x =
-                sweepAngle < Math.PI * 0.5
-                    ? (radialEdgeInset * (1 + Math.cos(sweepAngle))) / Math.sin(sweepAngle)
-                    : Number.NaN;
-            // r = sqrt(x**2 + y**2)
-            let r: number;
-            if (x > 0 && x < outerRadius) {
-                // Even within the formula limits, floating point precision isn't always enough,
-                // so ensure we never go less than the inner radius
-                r = Math.max(Math.hypot(radialEdgeInset, x), innerRadius);
-            } else {
-                // Formula limits exceeded - just use the inner radius
-                r = radialEdgeInset;
-            }
-            r = Math.max(r, innerRadius);
+            const r = this.getInsetApexRadius(sweepAngle, outerRadius, innerRadius);
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
         } else if (startInnerArc?.isValid() === true || innerArc?.isValid() === true) {

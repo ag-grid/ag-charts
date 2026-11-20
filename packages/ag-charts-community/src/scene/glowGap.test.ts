@@ -369,25 +369,34 @@ describe('glow gap', () => {
             });
         });
 
-        // A pie or donut slice has a miter limit of 1e9, which the glow's dilation must not follow, but the cut must clear.
+        // A pie or donut slice has a miter limit of 1e9: the glow follows the spike that its stroke paints, which is bounded by that spike.
         describe('around a thin stroked sector with a miter limit of 1e9', () => {
             const GAP = 3;
             const SPREAD = 10;
             const SECTOR_WINDOW: PixelWindow = { left: 0, right: 320, top: CENTRE_Y - 50, bottom: CENTRE_Y + 50 };
+            // The sector is 0.03 radians across and its stroke 2 wide, so its mitre is a half-stroke over the sine of half that.
+            const SPIKE_TIP = CENTRE_X - 1 / Math.sin(0.015);
 
-            // A point sharper than 11.5 degrees is a gap clear up to the bevel of a mitre of 10, and past it the cut ends at the spike.
-            it('should keep the glow a gap clear of the sector, and no further than a spread and a gap out from it', () => {
+            const glowFor = (miterLimit: number) => {
+                const { pixelAt } = draw(route, thinSector({ miterLimit }, redGlow(GAP)));
+                return (x: number, y: number) => pixelAt(x, y)[0] > 0;
+            };
+
+            it('should keep the glow a gap clear of the sector, and no further than a spread and a gap past its spike', () => {
                 const stroke = { miterLimit: 1e9 };
                 const bare = draw(route, thinSector(stroke)).pixelAt;
                 const { pixelAt } = draw(route, thinSector(stroke, redGlow(GAP)));
 
                 const beside = glowDistances(bare, pixelAt, { ...SECTOR_WINDOW, left: CENTRE_X });
-                const all = glowDistances(bare, pixelAt, SECTOR_WINDOW);
-
                 expect(beside.length).toBeGreaterThan(0);
                 expect(Math.min(...beside)).toBeGreaterThanOrEqual(GAP - 1);
-                // No further out than a gap and a spread, or that along the diagonal at the mitred corners: no needle behind the point.
-                expect(Math.max(...all)).toBeLessThanOrEqual((GAP + SPREAD) * Math.SQRT2 + 1);
+                // No glow past the spike's round tip, or further than a gap and a spread out beside the sector.
+                expect(Math.max(...beside)).toBeLessThanOrEqual((GAP + SPREAD) * Math.SQRT2 + 1);
+                for (let y = SECTOR_WINDOW.top; y <= SECTOR_WINDOW.bottom; y++) {
+                    for (let x = SECTOR_WINDOW.left; x < SPIKE_TIP - GAP - SPREAD - 1; x++) {
+                        expect(pixelAt(x, y)[0], `the pixel at ${x}, ${y}`).toBe(0);
+                    }
+                }
             });
 
             it('should cut the whole spike that the stroke paints out of the glow', () => {
@@ -407,20 +416,20 @@ describe('glow gap', () => {
                 expect(painted).toBeGreaterThan(40);
             });
 
-            it('should cast the glow beyond the point of the stroke as it does with a miter limit of 10', () => {
-                const glowAt = (miterLimit: number) => {
-                    const { pixelAt } = draw(route, thinSector({ miterLimit }, redGlow(GAP)));
-                    const lit: boolean[] = [];
-                    // Rows clear of the point that the limit of the sector paints, which is in the cut.
-                    for (const y of [CENTRE_Y - 20, CENTRE_Y - 8, CENTRE_Y + 8, CENTRE_Y + 20]) {
-                        for (let x = 100; x <= 320; x += 2) lit.push(pixelAt(x, y)[0] > 0);
-                    }
-                    return lit;
-                };
-
-                const limited = glowAt(10);
+            it('should cast the glow beside the sector as it does with a miter limit of 10, and round the tip of the spike', () => {
+                const beside: [number, number][] = [];
+                for (const y of [CENTRE_Y - 20, CENTRE_Y - 8, CENTRE_Y + 8, CENTRE_Y + 20]) {
+                    for (let x = CENTRE_X; x <= 320; x += 2) beside.push([x, y]);
+                }
+                const [limit10, limit1e9] = [glowFor(10), glowFor(1e9)];
+                const limited = beside.map(([x, y]) => limit10(x, y));
                 expect(limited.some(Boolean)).toBe(true);
-                expect(glowAt(1e9)).toEqual(limited);
+                expect(beside.map(([x, y]) => limit1e9(x, y))).toEqual(limited);
+
+                // Just past the tip of the spike, where the limit of 10 bevelled the point off, the glow reaches round it.
+                const pastTip = Math.round(SPIKE_TIP - GAP - 3);
+                expect(limit10(pastTip, CENTRE_Y)).toBe(false);
+                expect(limit1e9(pastTip, CENTRE_Y)).toBe(true);
             });
         });
 
