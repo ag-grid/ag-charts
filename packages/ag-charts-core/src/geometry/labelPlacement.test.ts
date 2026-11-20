@@ -607,6 +607,35 @@ describe('placeLabels', () => {
         expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
     });
 
+    it('forgets earlier obstacles after a pass with a non-finite obstacle', () => {
+        const place = (obstacles: LabelObstacle[]) => {
+            const datum: PointLabelDatum = {
+                point: { x: 300, y: 200, size: 0 },
+                label: { text: 'A', width: 100, height: 20 },
+                anchor: undefined,
+                placement: 'top',
+                placements: ['top', 'bottom'],
+                gap: 10,
+                alwaysShow: true,
+            };
+            return placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get('s');
+        };
+        const blocksTop: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 250, y: 165, width: 100, height: 20 },
+            category: 'label',
+        };
+        const nonFinite: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 0, y: Number.NaN, width: 10, height: Number.NaN },
+            category: 'shape',
+        };
+
+        expect(place([blocksTop])).toMatchObject([{ placement: 'bottom' }]);
+        place([nonFinite]);
+        expect(place([])).toMatchObject([{ placement: 'top' }]);
+    });
+
     describe('kept candidate when every placement collides', () => {
         // The label sits at (300, 200) with a 100x20 box and a 10px gap, so its `top` candidate spans
         // x 250..350 / y 165..185 and its `left` candidate x 185..285 / y 190..210.

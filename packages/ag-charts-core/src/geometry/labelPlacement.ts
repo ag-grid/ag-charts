@@ -1243,18 +1243,24 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
     let extentCount = 0;
     for (const { datums } of data.values()) {
         for (const d of datums) {
-            extentSum += d.label.width + d.label.height;
-            extentCount += 2;
+            const labelExtent = d.label.width + d.label.height;
+            if (Number.isFinite(labelExtent)) {
+                extentSum += labelExtent;
+                extentCount += 2;
+            }
             const markerSize = markerSizeOf(d);
-            if (markerSize > 0) {
+            if (markerSize > 0 && Number.isFinite(markerSize)) {
                 extentSum += markerSize;
                 extentCount += 1;
             }
         }
     }
     for (const o of obstacles) {
-        extentSum += o.box.width + o.box.height;
-        extentCount += 2;
+        const obstacleExtent = o.box.width + o.box.height;
+        if (Number.isFinite(obstacleExtent)) {
+            extentSum += obstacleExtent;
+            extentCount += 2;
+        }
     }
     return gridCellSize(extentSum, extentCount);
 }
