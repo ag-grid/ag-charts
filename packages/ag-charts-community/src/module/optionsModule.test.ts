@@ -5730,6 +5730,70 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('malformed var() colour values (AG-19346)', () => {
+        const isInvalidColourWarning = (value: string) => (args: unknown[]) =>
+            String(args[0]).includes(`CSS property [${value}] is not a valid color, ignoring.`);
+
+        it('drops a malformed or upper-case var() in colour options with a warning', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--brand': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const malformed = [
+                'var(--brand) red',
+                'VAR(--brand)',
+                'var(--brand)junk',
+                'var(--brand, red) var(--other)',
+                'var(--ag-charts-accent-color) red',
+            ];
+            const node: any = {
+                fill: malformed[0],
+                stroke: malformed[1],
+                fills: [malformed[2], '#ff0000'],
+                textColor: malformed[3],
+                backgroundColor: malformed[4],
+            };
+
+            expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({});
+            expect(node).toEqual({ fills: [undefined, '#ff0000'] });
+            for (const value of malformed) {
+                expect((console.warn as Mock).mock.calls.some(isInvalidColourWarning(value))).toBe(true);
+            }
+        });
+
+        it('resolves a complete var() with whitespace inside the parentheses', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--brand': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var( --brand )', stroke: 'var(--missing, var( --brand))' };
+
+            expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({
+                'var( --brand )': '#00ff00',
+                'var(--missing, var( --brand))': '#00ff00',
+            });
+        });
+
+        it('leaves var() text outside colour options and internal variables untouched', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--brand': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = {
+                text: 'prefix var(--brand) suffix',
+                yName: 'VAR(--brand)',
+                fill: 'var(--ag-charts-accent-color)',
+            };
+            const expected = { ...node };
+
+            expect(chartOptions.processCSSVariablesPartial(node, container)).toEqual({});
+            expect(node).toEqual(expected);
+            expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
+                false
+            );
+        });
+    });
+
     describe('var() on a detached container', () => {
         // jsdom's style declaration rejects a `var()` as a colour, so these go through `ontoColor`, whose own
         // validator admits one.
