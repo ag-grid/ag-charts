@@ -1063,7 +1063,7 @@ describe('Chart highlighting', () => {
             'follows tooltip.mode when highlight.mode is unset on %i bar series (tooltip.mode %s)',
             async (count, tooltipMode, expected) => {
                 const options = twoBarSeriesOptions();
-                if (tooltipMode) options.tooltip = { mode: tooltipMode };
+                if (tooltipMode != null) options.tooltip = { mode: tooltipMode };
                 options.series = Array.from({ length: count }, (_, i) => ({
                     type: 'bar',
                     xKey: 'category',
