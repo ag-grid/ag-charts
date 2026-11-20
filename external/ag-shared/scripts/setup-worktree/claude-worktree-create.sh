@@ -30,6 +30,139 @@ DIR_NAME=$(echo "$NAME" | tr '/' '-')
 WORKTREE_ROOT="$HOME/.worktrees"
 WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 
+# Agents run in parallel, so only worktrees idle for this long count as stale.
+STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
+# Per-worktree file in its git dir naming the Claude Code process that created it.
+OWNER_FILE_NAME=claude-owner
+
+# Prints the pid of the Claude Code process running this hook, if found.
+claude_owner() {
+    local pid=$PPID args claude_re='(^|/)claude( |$)'
+    while [[ -n "$pid" && "$pid" -gt 1 ]]; do
+        args=$(ps -o args= -p "$pid" 2>/dev/null) || return 1
+        if [[ "$args" =~ $claude_re || "$args" == *claude-code/cli.js* ]]; then
+            echo "$pid"
+            return 0
+        fi
+        pid=$(ps -o ppid= -p "$pid" | tr -d ' ')
+    done
+    return 1
+}
+
+# Prints alive, exited or unknown for the Claude Code process recorded in the owner file.
+# Any process holding the pid counts as alive, so pid reuse keeps the worktree rather than risking it.
+owner_state() {
+    local owner_file=$1 pid=''
+    [[ -f "$owner_file" ]] && { read -r pid <"$owner_file" || [[ -n "$pid" ]]; } && [[ "$pid" =~ ^[0-9]+$ ]] || {
+        echo unknown
+        return
+    }
+    if ps -o pid= -p "$pid" >/dev/null 2>&1; then
+        echo alive
+    # Only a working ps that no longer lists the process proves it exited.
+    elif ps -o pid= -p $$ >/dev/null 2>&1; then
+        echo exited
+    else
+        echo unknown
+    fi
+}
+
+# Prints the working directory and open files of each of the user's processes; fails unless every live one was read.
+process_paths() {
+    local proc uid mine fd
+    if [[ -d /proc/self ]]; then
+        mine=$(id -u)
+        for proc in /proc/[0-9]*; do
+            # Ownership comes from the process credentials: /proc/<pid> can be root-owned for a non-dumpable process.
+            # A process that exited mid-listing is fine; a live one whose user or cwd cannot be read is not.
+            # Zombies have no cwd to read and cannot be using a worktree.
+            uid=$(awk -v u="$mine" '/^State:/ { z = ($2 == "Z") } /^Uid:/ { print z ? "zombie" : ($2 == u || $3 == u) ? "mine" : "other"; exit }' "$proc/status" 2>/dev/null) || uid=''
+            if [[ -z "$uid" ]]; then
+                [[ -e "$proc" ]] && return 1
+                continue
+            fi
+            [[ "$uid" == mine ]] || continue
+            readlink "$proc/cwd" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
+            [[ -r "$proc/fd" ]] || [[ ! -e "$proc" ]] || return 1
+            for fd in "$proc"/fd/*; do
+                readlink "$fd" 2>/dev/null
+            done
+        done
+        return 0
+    fi
+    command -v lsof >/dev/null || return 1
+    local listing
+    listing=$(lsof -n -P -w -u "$(id -u)" -Fpn 2>/dev/null) || return 1
+    # Each process record (p) must be followed by at least its cwd name (n).
+    awk '/^p/ { if (open) bad = 1; open = 1; next } /^n/ { print substr($0, 2); open = 0 } END { exit bad || open }' <<<"$listing"
+}
+
+# True when a running process of the user has its working directory or an open file inside the path, or the processes cannot all be read.
+in_use() {
+    local real_path paths
+    real_path=$(cd -P "$1" && pwd) || return 0
+    paths=$(process_paths) || return 0
+    awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$paths"
+}
+
+# Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
+find_recent() {
+    local err_file found='' status=0
+    err_file=$(mktemp)
+    found=$(LC_ALL=C find "$@" \( -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -o -cmin "-${STALE_AGENT_WORKTREE_MINUTES}" \) -print -quit 2>"$err_file") || status=$?
+    if [[ -n "$found" ]]; then
+        status=0
+    elif [[ $status -ne 0 ]] && { [[ ! -s "$err_file" ]] || grep -qv 'No such file or directory$' "$err_file"; }; then
+        status=2
+    else
+        status=1
+    fi
+    rm -f "$err_file"
+    return $status
+}
+
+# Prints why the worktree must be kept, or nothing when its owner has exited and its git metadata is old.
+keep_reason() {
+    local candidate=$1 git_dir=''
+    if [[ ! -e "$candidate/.git" ]] || ! git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
+        echo "unknown owner, remove it by hand if unused"
+        return
+    fi
+    case $(owner_state "$git_dir/$OWNER_FILE_NAME") in
+    alive) echo "owner running" && return ;;
+    unknown) echo "unknown owner, remove it by hand if unused" && return ;;
+    esac
+    # Absent metadata files are skipped by find_recent; inaccessible ones fail the probe.
+    # The root and .git are checked here because the move aside changes their timestamps.
+    if find_recent "$candidate" "$candidate/.git" "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
+        echo "recently active"
+    fi
+}
+
+# As keep_reason, for a worktree already moved aside: checks processes inside it and walks every file once.
+moved_keep_reason() {
+    local moved=$1
+    if in_use "$moved"; then
+        echo "in use by a running process, or processes could not all be read"
+        return
+    fi
+    # The move itself touches only the worktree directory and its .git file. A failed scan counts as active.
+    if find_recent "$moved" -mindepth 1 ! -path "$moved/.git" || (($? == 2)); then
+        echo "recently active"
+    fi
+}
+
+# Moves a worktree with git, failing unless git now has it at the destination.
+move_worktree() {
+    local from=$1 to=$2 top
+    git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || return 1
+    top=$(git -C "$to" rev-parse --show-toplevel 2>/dev/null) && [[ "$(cd -P "$top" && pwd)" == "$(cd -P "$to" && pwd)" ]]
+}
+
+restore_worktree() {
+    move_worktree "$1" "$2" || log "WARNING: could not move $1 back to $2; move it back by hand with git worktree move"
+}
+
 # Clean up stale agent worktrees from previous runs.
 # Claude Code does not trigger the WorktreeRemove hook for Agent subagent
 # worktrees, so we clean them up opportunistically here.
@@ -37,16 +170,63 @@ cleanup_stale_agent_worktrees() {
     local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
     [[ -d "$repo_wt_dir" ]] || return 0
 
-    local remove_script
+    # One cleanup at a time per repo, so each removal owns its worktree from check to delete.
+    local lock="$repo_wt_dir/.cleanup.lock" holder=''
+    if ! mkdir "$lock" 2>/dev/null; then
+        holder=$(cat "$lock/pid" 2>/dev/null) || holder=''
+        # A lock whose holder has exited is cleared for the next hook; this one skips cleanup either way.
+        if [[ "$holder" =~ ^[0-9]+$ ]] && ! ps -o pid= -p "$holder" >/dev/null 2>&1 && ps -o pid= -p $$ >/dev/null 2>&1; then
+            rm -rf "$lock"
+        fi
+        log "Skipping stale agent worktree cleanup: another hook holds $lock"
+        return 0
+    fi
+    echo $$ >"$lock/pid"
+    cleanup_locked "$repo_wt_dir" || true
+    rm -rf "$lock"
+}
+
+cleanup_locked() {
+    local repo_wt_dir=$1 remove_script candidate moved original reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
+
+    # Restore worktrees left aside by an interrupted run.
+    for moved in "$repo_wt_dir"/.removing-agent-*; do
+        [[ -d "$moved" ]] || continue
+        original="$repo_wt_dir/${moved##*/.removing-}"
+        [[ -e "$original" ]] || restore_worktree "$moved" "$original"
+    done
 
     for candidate in "$repo_wt_dir"/agent-*; do
         [[ -d "$candidate" ]] || continue
         # Never clean up the worktree we're about to create.
         [[ "$candidate" == "$WT_PATH" ]] && continue
+        reason=$(keep_reason "$candidate")
+        if [[ -n "$reason" ]]; then
+            log "Keeping agent worktree ($reason): $candidate"
+            continue
+        fi
+
+        # Move the worktree off its path before the file walk, so no new session can start in it and the
+        # walk sees every write made before removal.
+        moved="$repo_wt_dir/.removing-${candidate##*/}"
+        if ! move_worktree "$candidate" "$moved"; then
+            [[ -d "$moved" && ! -e "$candidate" ]] && restore_worktree "$moved" "$candidate"
+            log "Keeping agent worktree (could not move it aside for removal): $candidate"
+            continue
+        fi
+        reason=$(moved_keep_reason "$moved")
+        if [[ -n "$reason" ]]; then
+            restore_worktree "$moved" "$candidate"
+            log "Keeping agent worktree ($reason): $candidate"
+            continue
+        fi
 
         log "Cleaning up stale agent worktree: $candidate"
-        echo "{\"worktree_path\": \"$candidate\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
+        if ! echo "{\"worktree_path\": \"$moved\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done; then
+            [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
+            log "WARNING: removal failed; kept $candidate"
+        fi
     done
 }
 
@@ -69,6 +249,11 @@ elif git -C "$CWD" show-ref --verify --quiet "refs/remotes/origin/${NAME}" 2>/de
 else
     log "Creating new branch '${NAME}' from origin/latest..."
     git -C "$CWD" worktree add "$WT_PATH" -b "$NAME" origin/latest >&2
+fi
+
+# Record the owning Claude Code process so cleanup keeps this worktree while it runs.
+if ! { OWNER=$(claude_owner) && WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null) && echo "$OWNER" 2>/dev/null >"$WT_GIT_DIR/$OWNER_FILE_NAME"; }; then
+    log "WARNING: could not record the owning Claude Code process; stale cleanup will keep this worktree"
 fi
 
 # Set up the worktree (COW clone when possible, else yarn install). ROOT_WORKTREE_PATH
