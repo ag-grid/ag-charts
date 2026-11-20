@@ -190,3 +190,26 @@ export function bezier2DDistance(
 }
 
 const bezierCandidateCmp = (a: BezierCandidate, b: BezierCandidate) => b.minDistance - a.minDistance;
+
+/** Radius of curvature `|B'|³ / |B' × B''|` of a cubic at `t`, or `Infinity` where it is straight or has no direction. */
+export function bezier2DRadiusOfCurvature(
+    p0x: number,
+    p0y: number,
+    p1x: number,
+    p1y: number,
+    p2x: number,
+    p2y: number,
+    p3x: number,
+    p3y: number,
+    t: number
+): number {
+    const mt = 1 - t;
+    const dx = 3 * (mt * mt * (p1x - p0x) + 2 * mt * t * (p2x - p1x) + t * t * (p3x - p2x));
+    const dy = 3 * (mt * mt * (p1y - p0y) + 2 * mt * t * (p2y - p1y) + t * t * (p3y - p2y));
+    const ddx = 6 * (mt * (p2x - 2 * p1x + p0x) + t * (p3x - 2 * p2x + p1x));
+    const ddy = 6 * (mt * (p2y - 2 * p1y + p0y) + t * (p3y - 2 * p2y + p1y));
+    const speed = Math.hypot(dx, dy);
+    const cross = Math.abs(dx * ddy - dy * ddx);
+    if (speed < 1e-9 || cross === 0) return Infinity;
+    return (speed * speed * speed) / cross;
+}

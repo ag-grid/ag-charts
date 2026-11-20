@@ -3099,6 +3099,44 @@ describe('BarSeries', () => {
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
+        it('should paint curved pattern shapes solid out to the outer edge of a wide stroke', async () => {
+            const patterns = ['circles', 'polka-dots', 'hearts'] as const;
+            const options: AgCartesianChartOptions = {
+                data: [{ x: 'A', p0: 40, p1: 40, p2: 40 }],
+                series: patterns.map((pattern, index) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: `p${index}`,
+                    fill: {
+                        type: 'pattern',
+                        pattern,
+                        width: 20,
+                        height: 20,
+                        scale: 5,
+                        fill: 'green',
+                        stroke: 'red',
+                        strokeWidth: 20,
+                    },
+                    strokeWidth: 0,
+                })),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            chart = await createChart(options);
+            const internal = deproxy(chart);
+            const { pixelRatio } = internal.ctx.scene.canvas;
+            const [bar] = getSeriesContextNodeData<{ x: number; y: number; width: number }>(internal).nodeData;
+            expect(bar.width).toBeGreaterThan(100);
+            // One 100px tile is anchored at the bar's corner; this point is inside its circle's stroke but outside its fill.
+            const x = internal.seriesRect!.x + bar.x + 50;
+            const y = internal.seriesRect!.y + bar.y + 25;
+            expect(chartPixelAt(chart, x * pixelRatio, y * pixelRatio)).toEqual([255, 0, 0, 255]);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
         it('should default the polka-dots tile to 8x8 and the waves tile to 14x10', async () => {
             const patternBars = (
                 polka: Partial<AgPatternColor>,
