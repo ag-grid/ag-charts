@@ -10,6 +10,7 @@ import {
     canvasImage,
     deproxy,
     differingBytes,
+    endHover,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
@@ -714,9 +715,7 @@ describe('series-level glow (enterprise series)', () => {
             const before = glowOf();
             expect(before).toBeDefined();
 
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id);
-            await waitForChartStability(chart);
+            await endHover(chart);
             expect(glowOf()).toBe(before);
 
             await chart.update({
@@ -742,13 +741,74 @@ describe('series-level glow (enterprise series)', () => {
             const spies = connectors.map((shape) => vi.spyOn(shape, 'markDirty'));
 
             await raiseSeriesHighlight();
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id);
-            await waitForChartStability(chart);
+            await endHover(chart);
 
             for (const [i, shape] of connectors.entries()) expect(shape.fillGlow).toBe(before[i]);
             expect(spies.map((spy) => spy.mock.calls.length)).toEqual(connectors.map(() => 0));
             expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
+        });
+
+        // A series that draws several nodes for one item has each of them restyled when the hover leaves or reaches the item.
+        // The glow that every node casts is compared with a chart hovered at the item the move reached: a node of the item
+        // left that is not restyled keeps a stale glow there.
+        describe.each(
+            ['hlc markers', 'range-area markers', 'candlestick', 'ohlc', 'range-bar', 'waterfall'].map((name) => ({
+                name,
+                testCase: fromCase(ENTERPRISE_GLOW_SERIES.find((c) => c.name === name)!),
+            }))
+        )('$name, after moves between items', ({ testCase }) => {
+            const highlight = { unhighlightedItem: { glow: { blur: 11 } } };
+            const items = () => {
+                const nodeData = getSeriesNodeData<HighlightNodeDatum>(chart);
+                const indices = [...new Set(nodeData.map((datum) => datum.datumIndex))];
+                expect(indices.length).toBeGreaterThan(2);
+                return indices.map((index) => nodeData.find((datum) => datum.datumIndex === index)!);
+            };
+            const inPlaceGlows = () => collectShapes(getSeriesAt(chart).contentGroup).map((shape) => shape.fillGlow);
+
+            const moveThrough = async (reached: number[]) => {
+                for (const index of reached) await hoverNode(chart, items()[index]);
+                return inPlaceGlows();
+            };
+
+            const freshAt = async (index: number) => {
+                chart.destroy();
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                await hoverNode(chart, items()[index]);
+                return inPlaceGlows();
+            };
+
+            it('casts on every node the glow of a chart hovered at the item reached', async () => {
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                const moved = await moveThrough([0, 1, 2]);
+
+                const fresh = await freshAt(2);
+                expect(moved.length).toBeGreaterThan(0);
+                expect(moved).toEqual(fresh);
+                // The nodes that the hover left cast the glow of the other items, so the check above can tell a stale node.
+                expect(moved.filter((glow) => glow?.enabled && glow.blur === 11).length).toBeGreaterThan(0);
+            });
+
+            it('casts on every node the glow of a chart hovered at the item reached, when one frame draws the moves', async () => {
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                await hoverNode(chart, items()[0]);
+                const { ctx, id } = deproxy(chart);
+                ctx.highlightManager.updateHighlight(id, items()[1]);
+                ctx.highlightManager.updateHighlight(id, items()[2]);
+                await waitForChartStability(chart);
+                const moved = inPlaceGlows();
+
+                expect(moved).toEqual(await freshAt(2));
+            });
+
+            it('casts the glow at rest on every node when the hover ends after moves', async () => {
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                const atRest = inPlaceGlows();
+                await moveThrough([0, 1, 2]);
+                await endHover(chart);
+
+                expect(inPlaceGlows()).toEqual(atRest);
+            });
         });
 
         // Only the highlight layer's copy casts the hovered item's glow, so a move redraws no in-place node.

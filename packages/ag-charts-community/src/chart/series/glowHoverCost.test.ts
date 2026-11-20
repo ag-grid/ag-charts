@@ -4,10 +4,16 @@ import { Rect } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { endHover, hoverDatum } from '../test/glowRender';
-import { getSeriesAt, getSeriesHasChangesOnHighlight } from '../test/seriesAccessors';
+import {
+    getItemsStyledDuring,
+    getSeriesAt,
+    getSeriesHasChangesOnHighlight,
+    getSeriesNodeData,
+} from '../test/seriesAccessors';
 import { SERIES_GLOW, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
@@ -32,6 +38,8 @@ interface SeriesCase {
     /** Whether `highlight.mode: 'shared'` lights the item that shares the hovered category in the other series. */
     sharesCategory: boolean;
 }
+
+const sortedIndices = (indices: number[]) => [...indices].sort((a, b) => a - b);
 
 const SERIES: SeriesCase[] = [
     {
@@ -75,31 +83,22 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
 
     const hover = (seriesIndex: number, datumIndex: number) => hoverDatum(chart, seriesIndex, datumIndex);
 
-    /** The datum indices of the items that the styling pass of a series visits while `action` runs, in the order visited. */
-    const visitedDuring = async (seriesIndex: number, action: () => Promise<void>) => {
-        const series = getSeriesAt(chart, seriesIndex) as any;
-        const update = series.updateDatumNodes;
-        const visited: number[] = [];
-        vi.spyOn(series, 'updateDatumNodes').mockImplementation(function (this: unknown, opts: any) {
-            const { datumSelection } = opts;
-            const own = Object.getOwnPropertyDescriptor(datumSelection, 'each');
-            const each = datumSelection.each;
-            datumSelection.each = function (this: unknown, iterate: (...args: any[]) => void) {
-                return each.call(this, (node: unknown, datum: any, index: number) => {
-                    if (!opts.isHighlight) visited.push(datum.datumIndex);
-                    iterate(node, datum, index);
-                });
-            };
-            try {
-                return update.call(this, opts);
-            } finally {
-                if (own) Object.defineProperty(datumSelection, 'each', own);
-                else delete datumSelection.each;
-            }
-        });
-        await action();
-        return visited;
+    /** Raises the highlight on an item of the first series without waiting for the chart to draw, as a pointer moving faster than the frames does. */
+    const raiseHighlight = (datumIndex: number) => {
+        const { ctx, id } = chart;
+        ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum>(chart)[datumIndex]);
     };
+
+    /** The glows that the items of the first series cast in a chart hovered at `datumIndex`, which replaces the chart. */
+    const glowsOfFreshChartHoveredAt = async (seriesOptions: object[], datumIndex: number) => {
+        chart.destroy();
+        await create(seriesOptions);
+        await hover(0, datumIndex);
+        return inPlace().map((shape) => shape.fillGlow);
+    };
+
+    const visitedDuring = (seriesIndex: number, action: () => Promise<void>) =>
+        getItemsStyledDuring(chart, seriesIndex, action);
 
     describe('a glow that a state leaves as the series casts it', () => {
         // The theme dims the other items and series, so those nodes are restyled for their opacity. What a state that casts
@@ -172,7 +171,7 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             const visited = await visitedDuring(0, () => hover(0, 1));
 
             expect(DATA.length).toBeGreaterThan(2);
-            expect(visited.sort()).toEqual([0, 1]);
+            expect(sortedIndices(visited)).toEqual([0, 1]);
         });
 
         it('restyles every item where the hover ends, which the check above would otherwise not tell from no visit', async () => {
@@ -181,7 +180,7 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
 
             const visited = await visitedDuring(0, () => endHover(chart));
 
-            expect(visited.sort()).toEqual(DATA.map((_, i) => i));
+            expect(sortedIndices(visited)).toEqual(DATA.map((_, i) => i));
         });
 
         it('casts the glows of the states after the move, as a chart hovered at that item does', async () => {
@@ -201,6 +200,45 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             for (const [i, glow] of moved.entries()) {
                 if (i === 3) expect(glow?.enabled).not.toBe(true);
                 else expect(glow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 11 }));
+            }
+        });
+
+        it('restyles the items of every move that one frame draws, not only those of the last', async () => {
+            const options = [series('v', SERIES_GLOW, { highlight })];
+            await create(options);
+            await hover(0, 0);
+
+            const visited = await visitedDuring(0, async () => {
+                raiseHighlight(1);
+                raiseHighlight(2);
+                await waitForChartStability(chart);
+            });
+            const moved = inPlace().map((shape) => shape.fillGlow);
+
+            // Items 0 and 1 are left behind, and 2 is reached.
+            expect(sortedIndices(visited)).toEqual([0, 1, 2]);
+            expect(await glowsOfFreshChartHoveredAt(options, 2)).toEqual(moved);
+            expect(moved[0]).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 11 }));
+            expect(moved[1]).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 11 }));
+        });
+
+        it('redraws the whole series when the move follows, in the same frame, a hover that entered it', async () => {
+            const options = [series('v', SERIES_GLOW, { highlight })];
+            await create(options);
+
+            // The entry restyles every item for the glow of the other items. A move that the same frame draws must not
+            // narrow that to the two items it involves, or the items between keep the glow they had at rest.
+            const visited = await visitedDuring(0, async () => {
+                raiseHighlight(0);
+                raiseHighlight(1);
+                await waitForChartStability(chart);
+            });
+            const moved = inPlace().map((shape) => shape.fillGlow);
+
+            expect(sortedIndices(visited)).toEqual(DATA.map((_, i) => i));
+            expect(await glowsOfFreshChartHoveredAt(options, 1)).toEqual(moved);
+            for (const [i, glow] of moved.entries()) {
+                if (i !== 1) expect(glow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 11 }));
             }
         });
 
@@ -228,9 +266,6 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(true);
             expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(true);
             for (const shape of inPlace(0))
-                expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 13 }));
-            // The third series is in the state it was in, so its glow is the one it cast already.
-            for (const shape of inPlace(2))
                 expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 13 }));
         });
 
