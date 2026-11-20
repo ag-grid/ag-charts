@@ -920,6 +920,35 @@ describe('Annotations', () => {
             expect(getAnnotationToolbarsEnabled(chart).optionsToolbar).toBe(true);
         });
 
+        it('warns once for each custom toolbar button that sets none of ariaLabel, tooltip or label', async () => {
+            const options = withAnnotations({
+                enabled: true,
+                toolbar: {
+                    buttons: [
+                        { icon: 'text-annotation', value: 'text-menu' },
+                        { label: 'Lines', value: 'line-menu' },
+                    ],
+                },
+                optionsToolbar: {
+                    buttons: [
+                        { ariaLabel: 'Delete', value: 'delete' },
+                        { icon: 'delete', value: 'delete' },
+                    ],
+                },
+            });
+            await prepareChart(undefined, options);
+            await chart.update(prepareEnterpriseTestOptions(options));
+
+            expectWarningsCalls().toEqual([
+                [
+                    'AG Charts - Option `annotations.toolbar.buttons[0]` has no accessible name; set one of `ariaLabel`, `tooltip` or `label`.',
+                ],
+                [
+                    'AG Charts - Option `annotations.optionsToolbar.buttons[1]` has no accessible name; set one of `ariaLabel`, `tooltip` or `label`.',
+                ],
+            ]);
+        });
+
         it('keeps the options toolbar enabled when only the toolbar is disabled', async () => {
             await prepareChart();
 
