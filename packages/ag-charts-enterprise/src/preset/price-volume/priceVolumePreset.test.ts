@@ -971,7 +971,7 @@ describe('priceVolumePreset', () => {
                     lastPriceLine: {
                         stroke: 'orange',
                         strokeWidth: 3,
-                        lineStyle: 'dashed',
+                        lineDash: 'dash',
                         axisLabel: { fill: 'purple' },
                     },
                 },
