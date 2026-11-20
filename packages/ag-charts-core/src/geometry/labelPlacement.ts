@@ -28,7 +28,7 @@ import {
 import type { Point, SizedPoint } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, isFiniteBox } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
 import {
@@ -1243,16 +1243,20 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
     let extentCount = 0;
     for (const { datums } of data.values()) {
         for (const d of datums) {
-            extentSum += d.label.width + d.label.height;
-            extentCount += 2;
+            const labelExtent = d.label.width + d.label.height;
+            if (Number.isFinite(labelExtent)) {
+                extentSum += labelExtent;
+                extentCount += 2;
+            }
             const markerSize = markerSizeOf(d);
-            if (markerSize > 0) {
+            if (markerSize > 0 && Number.isFinite(markerSize)) {
                 extentSum += markerSize;
                 extentCount += 1;
             }
         }
     }
     for (const o of obstacles) {
+        if (!isFiniteBox(o.box)) continue;
         extentSum += o.box.width + o.box.height;
         extentCount += 2;
     }
@@ -1385,7 +1389,8 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
     const obstacles = typeof obstacleSource === 'function' ? obstacleSource() : obstacleSource;
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
-        obstacleIndex.insert(o.box, o);
+        // An invalid datum can yield a NaN or infinite box, which would otherwise block every label in its row.
+        if (isFiniteBox(o.box)) obstacleIndex.insert(o.box, o);
     }
     insertMarkerObstacles(data);
 }
