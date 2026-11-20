@@ -54,7 +54,6 @@ import type {
 } from 'ag-charts-types';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
-    lineStyle: union('solid', 'dashed', 'dotted'),
     ...lineDashOptionsDef,
 };
 

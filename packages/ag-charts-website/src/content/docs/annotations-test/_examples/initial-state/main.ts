@@ -105,7 +105,7 @@ const options: AgChartOptions = {
                     alignment: 'center',
                 },
                 value: 79.03092783505156,
-                lineStyle: 'dotted',
+                lineDash: 'dot',
             },
             {
                 type: 'text',
@@ -142,7 +142,7 @@ const options: AgChartOptions = {
                     y: 81,
                 },
                 extendEnd: true,
-                lineStyle: 'dashed',
+                lineDash: 'dash',
             },
             {
                 type: 'arrow-up',
@@ -192,7 +192,7 @@ const options: AgChartOptions = {
                     x: 265,
                     y: 69,
                 },
-                lineStyle: 'dotted',
+                lineDash: 'dot',
                 strokeWidth: 6,
             },
         ],

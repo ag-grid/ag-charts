@@ -104,7 +104,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         rotation: 0,
         outerRadiusOffset: 0,
         outerRadiusRatio: 1,
-        sectorSpacing: 1,
+        gap: 1,
         hideZeroValueSectorsInLegend: false,
         shadow: SHADOW_THEME_DEFAULTS,
         glow: GLOW_THEME_DEFAULTS,

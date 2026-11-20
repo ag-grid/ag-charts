@@ -59,9 +59,6 @@ const options: AgCartesianChartOptions = {
             placement: 'right',
             yOffset: -55,
         },
-        gradient: {
-            preferredLength: 240,
-        },
         scale: {
             padding: 6,
             interval: {

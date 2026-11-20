@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { DatalistWidget, type DynamicContext, EventEmitter } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
@@ -6,6 +6,7 @@ import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import { getDefaultColor, getDefaultOpacity } from '../annotationDatums';
 import {
     type AnnotationContext,
+    type AnnotationLineStyleType,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
@@ -32,6 +33,7 @@ import {
     resolveCoordinate,
 } from '../utils/coordinates';
 import { hasBackground, hasExtendable } from '../utils/has';
+import { getLineStyle } from '../utils/line';
 import { isChannelType, isFibonacciType } from '../utils/types';
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
@@ -44,7 +46,7 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeHideFillColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideLineColor: Required<ColorPickerOptions>['onChangeHide'];
-    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => void;
+    onChangeLineStyleType: (lineStyleType: AnnotationLineStyleType) => void;
     onChangeLineStyleWidth: (strokeWidth: number) => void;
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
@@ -139,10 +141,12 @@ export class AnnotationSettingsDialog extends Dialog {
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
-        this.hideFns.push(() => {
-            this.refreshCoordinateInputs = undefined;
-            this.events.emit('hidden', null);
-        });
+    }
+
+    protected override onHide() {
+        this.refreshCoordinateInputs = undefined;
+        this.events.emit('hidden', null);
+        super.onHide();
     }
 
     /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
@@ -210,7 +214,7 @@ export class AnnotationSettingsDialog extends Dialog {
         );
 
         const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
-        const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
+        const lineStyle = this.createLineStyleRadioGroup(getLineStyle(datum.lineDash), options.onChangeLineStyleType);
 
         groupOne.addChild(lineColorPicker);
 
@@ -500,15 +504,15 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createLineStyleRadioGroup(
-        lineStyle: AgAnnotationLineStyleType,
-        onChange: (value: AgAnnotationLineStyleType) => void
+        lineStyle: AnnotationLineStyleType,
+        onChange: (value: AnnotationLineStyleType) => void
     ) {
         return this.createRadioGroup({
             label: 'dialogInputLineStyle',
             options: [
                 { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
-                { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
-                { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },
+                { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dash' },
+                { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dot' },
             ],
             value: lineStyle,
             onChange,

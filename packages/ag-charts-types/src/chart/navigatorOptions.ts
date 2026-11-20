@@ -294,7 +294,7 @@ export interface AgNavigatorHandleOptions {
     height?: PixelSize;
     /** The corner radius of the handle. */
     cornerRadius?: PixelSize;
-    /** Whether to enable the grip dots. */
+    /** Whether to enable the grip dots. The grip scales with the handle size. */
     grip?: boolean;
 }
 

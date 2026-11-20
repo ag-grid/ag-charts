@@ -62,12 +62,12 @@ const options: AgChartOptions = {
             {
                 type: 'vertical-line',
                 value: 'May',
-                lineStyle: 'dotted',
+                lineDash: 'dot',
             },
             {
                 type: 'vertical-line',
                 value: 'Sep',
-                lineStyle: 'dotted',
+                lineDash: 'dot',
             },
             {
                 type: 'callout',
@@ -88,7 +88,7 @@ const options: AgChartOptions = {
                 axisLabel: {
                     fillOpacity: 0.5,
                 },
-                lineStyle: 'dotted',
+                lineDash: 'dot',
             },
             {
                 type: 'line',

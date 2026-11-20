@@ -59,6 +59,7 @@ import type { DataLoadWindow, UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
+import { migrateLineStyle } from './annotation/annotationManager';
 import { Background } from './background/background';
 import { ChartBorder } from './background/chartBorder';
 import { ChartAxes } from './chartAxes';
@@ -744,6 +745,8 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
     private performTeardown(keepTransferableResources: boolean): void {
         this.performUpdateType = ChartUpdateType.NONE;
+        // Animation stop callbacks read the scene and series, so they must run before either is destroyed.
+        this.ctx.animationManager.stop();
 
         this.cleanup.flush();
         for (const p of this.processors) {
@@ -1721,7 +1724,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
                 .filter((annotation) => isObject(annotation))
                 .map((annotation) => {
                     const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
-                    return mergeDefaults(annotation, annotationTheme);
+                    return mergeDefaults(migrateLineStyle(annotation), annotationTheme);
                 });
 
             stateManager.setState(annotationManager, annotations);
