@@ -75,7 +75,8 @@ process_cwds() {
         for proc in /proc/[0-9]*; do
             # Ownership comes from the process credentials: /proc/<pid> can be root-owned for a non-dumpable process.
             # A process that exited mid-listing is fine; a live one whose user or cwd cannot be read is not.
-            uid=$(awk -v u="$mine" '/^Uid:/ { print ($2 == u || $3 == u) ? "mine" : "other"; exit }' "$proc/status" 2>/dev/null) || uid=''
+            # Zombies have no cwd to read and cannot be using a worktree.
+            uid=$(awk -v u="$mine" '/^State:/ { z = ($2 == "Z") } /^Uid:/ { print z ? "zombie" : ($2 == u || $3 == u) ? "mine" : "other"; exit }' "$proc/status" 2>/dev/null) || uid=''
             if [[ -z "$uid" ]]; then
                 [[ -e "$proc" ]] && return 1
                 continue
@@ -116,7 +117,7 @@ find_recent() {
     return $status
 }
 
-# Prints why the worktree must be kept, or nothing when its owner has exited and nothing in it changed within the stale window.
+# Prints why the worktree must be kept, or nothing when its owner has exited and its git metadata is old.
 keep_reason() {
     local candidate=$1 git_dir=''
     if [[ ! -e "$candidate/.git" ]] || ! git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
@@ -130,17 +131,31 @@ keep_reason() {
     # Absent metadata files are skipped by find_recent; inaccessible ones fail the probe.
     if find_recent "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
-        return
     fi
-    # One walk of the worktree, ignored files included. A failed scan counts as active.
-    if find_recent "$candidate" || (($? == 2)); then
-        echo "recently active"
-        return
-    fi
-    # Checked last, just before removal, to catch sessions started in the worktree after its owner exited.
-    if in_use "$candidate"; then
+}
+
+# As keep_reason, for a worktree already moved aside: checks processes inside it and walks every file once.
+moved_keep_reason() {
+    local moved=$1
+    if in_use "$moved"; then
         echo "in use by a running process, or processes could not all be read"
+        return
     fi
+    # The move itself touches only the worktree directory and its .git file. A failed scan counts as active.
+    if find_recent "$moved" -mindepth 1 ! -path "$moved/.git" || (($? == 2)); then
+        echo "recently active"
+    fi
+}
+
+# Moves a worktree with git, failing unless git now has it at the destination.
+move_worktree() {
+    local from=$1 to=$2 top
+    git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || return 1
+    top=$(git -C "$to" rev-parse --show-toplevel 2>/dev/null) && [[ "$(cd -P "$top" && pwd)" == "$(cd -P "$to" && pwd)" ]]
+}
+
+restore_worktree() {
+    move_worktree "$1" "$2" || log "WARNING: could not move $1 back to $2; move it back by hand with git worktree move"
 }
 
 # Clean up stale agent worktrees from previous runs.
@@ -150,8 +165,17 @@ cleanup_stale_agent_worktrees() {
     local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
     [[ -d "$repo_wt_dir" ]] || return 0
 
-    local remove_script candidate claimed reason
+    local remove_script candidate moved original reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
+
+    # Restore worktrees left aside by an interrupted removal. Ones touched in the last 10 minutes may still be
+    # mid-removal by a concurrent hook, which has a 5 minute timeout.
+    for moved in "$repo_wt_dir"/.removing-agent-*; do
+        [[ -d "$moved" ]] || continue
+        [[ -z "$(find "$moved" -maxdepth 0 \( -mmin -10 -o -cmin -10 \) 2>/dev/null)" ]] || continue
+        original="$repo_wt_dir/${moved##*/.removing-}"
+        [[ -e "$original" ]] || restore_worktree "$moved" "$original"
+    done
 
     for candidate in "$repo_wt_dir"/agent-*; do
         [[ -d "$candidate" ]] || continue
@@ -163,21 +187,26 @@ cleanup_stale_agent_worktrees() {
             continue
         fi
 
-        # Move the worktree off its path first, so no new session can start in it, then recheck the
-        # sessions already inside before handing it to the remover.
-        claimed="$repo_wt_dir/.removing-${candidate##*/}"
-        if ! git -C "$CWD" worktree move "$candidate" "$claimed" >/dev/null 2>&1; then
+        # Move the worktree off its path before the file walk, so no new session can start in it and the
+        # walk sees every write made before removal.
+        moved="$repo_wt_dir/.removing-${candidate##*/}"
+        if ! move_worktree "$candidate" "$moved"; then
+            [[ -d "$moved" && ! -e "$candidate" ]] && restore_worktree "$moved" "$candidate"
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
             continue
         fi
-        if in_use "$claimed"; then
-            git -C "$CWD" worktree move "$claimed" "$candidate" >/dev/null 2>&1 || log "WARNING: could not move $claimed back to $candidate"
-            log "Keeping agent worktree (in use by a running process, or processes could not all be read): $candidate"
+        reason=$(moved_keep_reason "$moved")
+        if [[ -n "$reason" ]]; then
+            restore_worktree "$moved" "$candidate"
+            log "Keeping agent worktree ($reason): $candidate"
             continue
         fi
 
         log "Cleaning up stale agent worktree: $candidate"
-        echo "{\"worktree_path\": \"$claimed\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
+        if ! echo "{\"worktree_path\": \"$moved\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done; then
+            [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
+            log "WARNING: removal failed; kept $candidate"
+        fi
     done
 }
 
