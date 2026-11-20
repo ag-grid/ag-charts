@@ -16,8 +16,12 @@
 //   BASE_SHA           base ref to diff against (PR base, or origin/latest for dispatch)
 //   HEAD_SHA           head ref (defaults to HEAD)
 //   REPORT_PATH        where to write the Markdown report (default ./l10n-review.md)
+//
+// Outputs (when GITHUB_OUTPUT is set):
+//   verdict            `clean` when the reviewer found nothing to flag, else `issues`
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 const SRC_DIR = process.env.LOCALE_SRC_DIR;
 const MODEL = 'claude-opus-5-5';
@@ -25,6 +29,19 @@ const REPORT_PATH = process.env.REPORT_PATH || 'l10n-review.md';
 // Locale file names are BCP 47 tags: language (2–3 letters), optional script (e.g. Latn), region.
 // Covers sr-Latn-RS.ts and fil-PH.ts as well as the common xx-YY.ts shape.
 const LOCALE_FILE = /\/[a-z]{2,3}(-[A-Z][a-z]{3})?-[A-Z]{2}\.ts$/;
+
+const VERDICT_LINE = /^\W*verdict:\s*(clean|issues)\W*$/i;
+
+/**
+ * Split the reviewer's leading `VERDICT: clean|issues` line from the review body. A missing or
+ * unrecognised verdict reads as `issues`, so an unclear review is never shown as clean.
+ */
+export function splitVerdict(text) {
+    const lines = text.replace(/\r\n/g, '\n').trim().split('\n');
+    const m = VERDICT_LINE.exec(lines[0] ?? '');
+    if (!m) return { verdict: 'issues', review: text.trim() };
+    return { verdict: m[1].toLowerCase(), review: lines.slice(1).join('\n').trim() };
+}
 
 function git(args) {
     return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trimEnd();
@@ -118,12 +135,13 @@ async function main() {
         'Review ONLY the changed lines shown in the diffs, using en-US.ts for context.',
         'Flag: mistranslations or wrong meaning; altered, missing, or mistranslated placeholders/formatters; inappropriate tone or register for product UI / screen-reader text; obviously unnatural phrasing.',
         'Do NOT flag stylistic preferences where the translation is correct, or anything outside the changed lines.',
-        'Output concise GitHub-flavoured Markdown. If nothing is concerning across all locales, respond with a single line stating translations look correct. Otherwise, add a `### <locale>` section ONLY for locales that have issues, each finding as a bullet citing the key; then end with one line listing all the locales with no issues together, e.g. "No issues found in: de-DE, fr-FR, ja-JP." Never give a clean locale its own heading.',
+        'Start your response with exactly one line: `VERDICT: clean` if nothing is concerning across all locales, otherwise `VERDICT: issues`.',
+        'After that line, output concise GitHub-flavoured Markdown. If nothing is concerning across all locales, respond with a single line stating translations look correct. Otherwise, add a `### <locale>` section ONLY for locales that have issues, each finding as a bullet citing the key; then end with one line listing all the locales with no issues together, e.g. "No issues found in: de-DE, fr-FR, ja-JP." Never give a clean locale its own heading.',
     ].join('\n');
 
     const userText = `## en-US.ts (source of truth, for context)\n\n\`\`\`typescript\n${enUs}\n\`\`\`\n\n## Changed translations to review\n\n${diffs}`;
 
-    const review = await callAnthropic(apiKey, system, userText);
+    const { verdict, review } = splitVerdict(await callAnthropic(apiKey, system, userText));
 
     const report = [
         '<!-- l10n-translation-review -->',
@@ -138,11 +156,15 @@ async function main() {
     ].join('\n');
 
     writeFileSync(REPORT_PATH, report);
-    console.log(`Wrote review to ${REPORT_PATH}`);
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${verdict}\n`);
+    console.log(`Wrote review to ${REPORT_PATH} (verdict: ${verdict})`);
 }
 
-main().catch((err) => {
-    // Advisory job — log and exit 0 so the build is never blocked.
-    console.error('Translation review failed:', err.message);
-    process.exit(0);
-});
+// Run only when executed directly, so tests can import splitVerdict.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+    main().catch((err) => {
+        // Advisory job — log and exit 0 so the build is never blocked.
+        console.error('Translation review failed:', err.message);
+        process.exit(0);
+    });
+}
