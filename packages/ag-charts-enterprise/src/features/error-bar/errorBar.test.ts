@@ -887,6 +887,30 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('keeps a configured cap option below the stroke that the itemStyler returns', async () => {
+        chart = await createEnterpriseChart({
+            data: [
+                { x: 'a', y: 5, lo: 3, hi: 7 },
+                { x: 'b', y: 6, lo: 4, hi: 8 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    errorBar: {
+                        yLowerKey: 'lo',
+                        yUpperKey: 'hi',
+                        cap: { stroke: 'blue' },
+                        itemStyler: () => ({ stroke: 'red', cap: { length: 20 } }),
+                    },
+                },
+            ],
+        });
+        const strokes = collectShapes(getSeriesAt(chart).annotationGroup).map((shape) => shape.stroke);
+        expect(new Set(strokes)).toEqual(new Set(['red']));
+    });
+
     it('AG-14263 should set itemStyler seriesId', async () => {
         type TDatum = { x: string; y: number; yLower: number; yUpper: number };
         const barSeriesItemStyler = vi.fn((_p: AgBarSeriesItemStylerParams<TDatum>): AgBarSeriesStyle => {

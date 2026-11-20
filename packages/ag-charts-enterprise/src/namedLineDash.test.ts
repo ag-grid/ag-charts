@@ -413,6 +413,32 @@ describe('named line dash patterns in enterprise options', () => {
             [DOT, DASH],
         ];
 
+        const errorBarCapWidth: Row = [
+            'error bar cap of its own width',
+            {
+                data: [
+                    { x: 'a', y: 5, lower: 3, upper: 7 },
+                    { x: 'b', y: 6, lower: 4, upper: 8 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        errorBar: {
+                            yLowerKey: 'lower',
+                            yUpperKey: 'upper',
+                            strokeWidth: 2,
+                            cap: { strokeWidth: 4 },
+                            // The name scales by the width of the line that it draws, not the whisker's.
+                            itemStyler: () => ({ lineDash: 'dot' }),
+                        },
+                    },
+                ],
+            },
+            [DOT, [4, 6]],
+        ];
+
         it.each([
             flow('sankey nodes'),
             flow('sankey links'),
@@ -422,6 +448,7 @@ describe('named line dash patterns in enterprise options', () => {
             organization('link'),
             organization('expander'),
             errorBar,
+            errorBarCapWidth,
         ])('resolves a stock dash name returned for %s', async (_, options, expected) => {
             chart = await createEnterpriseChart({
                 width: 600,

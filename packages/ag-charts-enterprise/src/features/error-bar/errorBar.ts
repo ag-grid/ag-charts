@@ -18,10 +18,10 @@ import {
     mergeDefaults,
     readDatumKey,
 } from 'ag-charts-core';
-import type { Node, PlainObject } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import type { Caller, ErrorBarNodeDatum, ErrorBarStylingOptions, NormalisedErrorBarStyles } from './errorBarNode';
+import type { ErrorBarNodeDatum, ErrorBarStylingOptions, NormalisedErrorBarStyles } from './errorBarNode';
 import {
     ErrorBarGroup,
     ErrorBarNode,
@@ -66,18 +66,6 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private processedData?: AnyProcessedData;
     // Resolved while the series anchors its labels, then drawn by the `data-update` that follows.
     private readonly anchoredStyles = new Map<ErrorBarNodeDatum, NormalisedErrorBarStyles>();
-
-    /**
-     * Calls the `itemStyler` and resolves its result against the series' `errorBar` options, so that a stock `lineDash`
-     * name in it becomes its array.
-     */
-    private readonly stylerCaller: Caller = {
-        callWithContext: (callback: (params: unknown) => PlainObject | undefined, params: unknown) =>
-            this.ctx.optionsGraphService.resolvePartial(
-                ['series', `${this.cartesianSeries.declarationOrder}`, 'errorBar'],
-                this.cartesianSeries.callWithContext(callback, params)
-            ),
-    };
 
     constructor(private readonly ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
@@ -311,7 +299,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             datum,
             this.getDefaultStyle(),
             this.options,
-            this.stylerCaller,
+            series,
             series.getHighlightStateString(active, isHighlight, datum.datumIndex),
             series.getSelectionStateString(datum.datumIndex),
             series.getCandidateStateString(datum.datumIndex)
@@ -513,7 +501,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
                     ?.update(
                         style,
                         this.options,
-                        this.stylerCaller,
+                        this.cartesianSeries,
                         highlighted ? 'highlighted-item' : 'unhighlighted-item',
                         dataSelectionState,
                         dataCandidateState
