@@ -157,7 +157,7 @@ describe('shadow and glow render', () => {
                     highlight: { [state]: { glow: GLOWS[state] } },
                 })),
                 COLUMNS,
-                { ...RENDER_OPTIONS, legend: { enabled: true, position: 'bottom' } }
+                { ...RENDER_OPTIONS, highlight: { mode: 'shared' }, legend: { enabled: true, position: 'bottom' } }
             );
             if (state === 'highlightedSeries') await hoverLegendItem(chart(), 0);
             else await hoverDatum(chart(), 0, 1);

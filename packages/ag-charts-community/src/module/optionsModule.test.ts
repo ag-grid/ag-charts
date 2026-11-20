@@ -1132,13 +1132,13 @@ describe('ChartOptions', () => {
             expect(optionAt(options, 'highlight.mode')).toBe(expected);
         });
 
-        it('follows an invalid tooltip.mode with the series-count default', () => {
+        it('falls back to single highlighting for an invalid tooltip.mode', () => {
             const options = prepareOptions({
                 series: bar(2),
                 tooltip: { mode: invalidOption('invalid') },
             } as AgChartOptions);
 
-            expect(optionAt(options, 'highlight.mode')).toBe('shared');
+            expect(optionAt(options, 'highlight.mode')).toBe('single');
         });
     });
 
