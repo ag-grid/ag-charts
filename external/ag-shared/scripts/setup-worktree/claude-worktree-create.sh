@@ -164,7 +164,8 @@ mtime_of() {
 # As keep_reason, for a worktree already moved aside: checks processes inside it and walks every file once.
 # Renaming leaves the root's mtime alone, so a change since root_mtime means its entries changed around the move.
 moved_keep_reason() {
-    local moved=$1 root_mtime=$2 git_dir
+    local moved=$1 root_mtime=$2 git_dir entry
+    local entries=()
     if [[ -z "$root_mtime" || "$(mtime_of "$moved")" != "$root_mtime" ]]; then
         echo "recently active"
         return
@@ -180,8 +181,17 @@ moved_keep_reason() {
         echo "in use by a running process, or processes could not all be read"
         return
     fi
-    # The move itself touches only the worktree directory and its .git file. A failed scan counts as active.
-    if find_recent "$moved" -mindepth 1 ! -path "$moved/.git" || (($? == 2)); then
+    # The move itself touches only the worktree directory and its .git file, so the walk starts from every other
+    # top-level entry (listed by glob, not a find -path pattern the directory name could disturb). A failed
+    # scan counts as active.
+    if [[ ! -r "$moved" || ! -x "$moved" ]]; then
+        echo "recently active"
+        return
+    fi
+    for entry in "$moved"/* "$moved"/.[!.]* "$moved"/..?*; do
+        [[ -e "$entry" || -L "$entry" ]] && [[ "$entry" != "$moved/.git" ]] && entries+=("$entry")
+    done
+    if ((${#entries[@]})) && { find_recent "${entries[@]}" || (($? == 2)); }; then
         echo "recently active"
     fi
 }
@@ -199,8 +209,12 @@ move_worktree() {
     [[ ! -e "$to" && ! -L "$to" ]] || return 1
     git_dir=$(git -C "$from" rev-parse --absolute-git-dir 2>/dev/null) || return 1
     git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || true
-    # The git dir's gitdir file names the worktree's .git file at its registered location.
-    MOVED_TO=$(dirname "$(cat "$git_dir/gitdir" 2>/dev/null)")
+    # The git dir's gitdir file names the worktree's .git file at its registered location, relative to the git
+    # dir when worktree.useRelativePaths is set.
+    local link
+    link=$(cat "$git_dir/gitdir" 2>/dev/null) || link=''
+    [[ -z "$link" || "$link" == /* ]] || link="$git_dir/$link"
+    MOVED_TO=$(dirname "$link")
     same_path "$MOVED_TO" "$to"
 }
 
@@ -254,6 +268,8 @@ cleanup_locked() {
         [[ -d "$candidate" ]] || continue
         # Never clean up the worktree we're about to create.
         [[ "$candidate" == "$WT_PATH" ]] && continue
+        # Taken before the age checks, so the post-move comparison covers everything from here to the move.
+        root_mtime=$(mtime_of "$candidate") || root_mtime=''
         reason=$(keep_reason "$candidate")
         if [[ -n "$reason" ]]; then
             log "Keeping agent worktree ($reason): $candidate"
@@ -272,7 +288,6 @@ cleanup_locked() {
         # Move the worktree off its path before the file walk, so no new session can start in it and the
         # walk sees every write made before removal.
         moved="$repo_wt_dir/.removing-${candidate##*/}"
-        root_mtime=$(mtime_of "$candidate") || root_mtime=''
         if ! move_worktree "$candidate" "$moved"; then
             [[ -n "$MOVED_TO" && "$MOVED_TO" != . ]] && ! same_path "$MOVED_TO" "$candidate" && restore_worktree "$MOVED_TO" "$candidate"
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
@@ -287,7 +302,9 @@ cleanup_locked() {
 
         log "Cleaning up stale agent worktree: $candidate"
         # The remover runs git hooks, which must not inherit the lock descriptor.
-        if ! echo "{\"worktree_path\": \"$moved\"}" | bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done; then
+        # The remover reports a missing path as success, so success is judged by the path being gone.
+        jq -n --arg path "$moved" '{worktree_path: $path}' | bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done || true
+        if [[ -e "$moved" || -L "$moved" ]]; then
             [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
             log "WARNING: removal failed; kept $candidate"
         fi
