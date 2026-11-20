@@ -30,6 +30,7 @@ mcp.json
 !/rules/data-model.md
 !/rules/defaults.md
 !/rules/demo-ports.md
+!/rules/dom-graph.md
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
 !/rules/module-definitions.md
