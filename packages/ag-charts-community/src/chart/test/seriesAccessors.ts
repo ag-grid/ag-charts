@@ -86,11 +86,7 @@ interface DatumSelectionHost {
     each: (iterate: (node: unknown, datum: { datumIndex: number }, index: number) => void) => unknown;
 }
 
-/**
- * The datum indices of the in-place items that the styling pass of a series visits while `action` runs, in the order
- * visited. The pass of the highlight layer is not counted. A pass over the whole series visits every item, so a test can
- * tell a redraw of the whole series from a redraw of the items a move involves.
- */
+/** The datum indices of the in-place items that the styling pass of a series visits while `action` runs. */
 export async function getItemsStyledDuring(
     chartOrProxy: ChartOrProxy<any>,
     seriesIndex: number,

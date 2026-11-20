@@ -226,8 +226,6 @@ describe.each(SERIES)('the cost of a hover with a series glow ($name)', ({ serie
             const options = [series('v', SERIES_GLOW, { highlight })];
             await create(options);
 
-            // The entry restyles every item for the glow of the other items. A move that the same frame draws must not
-            // narrow that to the two items it involves, or the items between keep the glow they had at rest.
             const visited = await visitedDuring(0, async () => {
                 raiseHighlight(0);
                 raiseHighlight(1);

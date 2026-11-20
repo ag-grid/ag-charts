@@ -748,9 +748,6 @@ describe('series-level glow (enterprise series)', () => {
             expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
 
-        // A series that draws several nodes for one item has each of them restyled when the hover leaves or reaches the item.
-        // The glow that every node casts is compared with a chart hovered at the item the move reached: a node of the item
-        // left that is not restyled keeps a stale glow there.
         describe.each(
             ['hlc markers', 'range-area markers', 'candlestick', 'ohlc', 'range-bar', 'waterfall'].map((name) => ({
                 name,
@@ -771,6 +768,13 @@ describe('series-level glow (enterprise series)', () => {
                 return inPlaceGlows();
             };
 
+            const moveInOneFrame = async (reached: number[]) => {
+                const { ctx, id } = deproxy(chart);
+                for (const index of reached) ctx.highlightManager.updateHighlight(id, items()[index]);
+                await waitForChartStability(chart);
+                return inPlaceGlows();
+            };
+
             const freshAt = async (index: number) => {
                 chart.destroy();
                 await create(testCase, SERIES_GLOW, undefined, highlight);
@@ -778,27 +782,18 @@ describe('series-level glow (enterprise series)', () => {
                 return inPlaceGlows();
             };
 
-            it('casts on every node the glow of a chart hovered at the item reached', async () => {
-                await create(testCase, SERIES_GLOW, undefined, highlight);
-                const moved = await moveThrough([0, 1, 2]);
-
-                const fresh = await freshAt(2);
-                expect(moved.length).toBeGreaterThan(0);
-                expect(moved).toEqual(fresh);
-                // The nodes that the hover left cast the glow of the other items, so the check above can tell a stale node.
-                expect(moved.filter((glow) => glow?.enabled && glow.blur === 11).length).toBeGreaterThan(0);
-            });
-
-            it('casts on every node the glow of a chart hovered at the item reached, when one frame draws the moves', async () => {
+            it.each([
+                { when: 'each move is drawn', move: moveThrough },
+                { when: 'one frame draws the moves', move: moveInOneFrame },
+            ])('casts on every node the glow of a chart hovered at the item reached, when $when', async ({ move }) => {
                 await create(testCase, SERIES_GLOW, undefined, highlight);
                 await hoverNode(chart, items()[0]);
-                const { ctx, id } = deproxy(chart);
-                ctx.highlightManager.updateHighlight(id, items()[1]);
-                ctx.highlightManager.updateHighlight(id, items()[2]);
-                await waitForChartStability(chart);
-                const moved = inPlaceGlows();
+                const moved = await move([1, 2]);
 
+                expect(moved.length).toBeGreaterThan(0);
                 expect(moved).toEqual(await freshAt(2));
+                // The nodes that the hover left cast the glow of the other items, so the check above can tell a stale node.
+                expect(moved.filter((glow) => glow?.enabled && glow.blur === 11).length).toBeGreaterThan(0);
             });
 
             it('casts the glow at rest on every node when the hover ends after moves', async () => {
