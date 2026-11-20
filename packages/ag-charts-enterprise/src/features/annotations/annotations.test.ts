@@ -1423,6 +1423,20 @@ describe('Annotations', () => {
             await press(CONFIRM);
         }
 
+        async function editTextTab(value: string) {
+            await typeText(value);
+            expect(panelControls('select.ag-charts-dialog__select')).toHaveLength(1);
+            expect(panelControls('.ag-charts-dialog__color-picker-button')[0].getAttribute('aria-label')).toBe(
+                'Text Color'
+            );
+            await pickFontSize('28');
+            await pickDialogColor(0, GREEN);
+        }
+        async function editCoordinate(label: string, value: string) {
+            await openTab('Coordinates');
+            await commitInput(chartBody(), label, value);
+        }
+
         // Each is edited on every tab it has, and sits apart from the others so that a click selects only it.
         const families: Array<{
             annotation: AgAnnotation;
@@ -1436,15 +1450,8 @@ describe('Annotations', () => {
                 at: ['2024-02-01', 85],
                 tabs: ['Text', 'Coordinates'],
                 async edit() {
-                    await typeText('Edited text');
-                    expect(panelControls('select.ag-charts-dialog__select')).toHaveLength(1);
-                    expect(panelControls('.ag-charts-dialog__color-picker-button')[0].getAttribute('aria-label')).toBe(
-                        'Text Color'
-                    );
-                    await pickFontSize('28');
-                    await pickDialogColor(0, GREEN);
-                    await openTab('Coordinates');
-                    await commitInput(chartBody(), 'Y', '70');
+                    await editTextTab('Edited text');
+                    await editCoordinate('Y', '70');
                 },
                 expected: { type: 'text', text: 'Edited text', fontSize: 28, color: GREEN, y: 70 },
             },
@@ -1456,8 +1463,7 @@ describe('Annotations', () => {
                     await typeText('Edited comment');
                     await openTab('Style');
                     await pickDialogColor(0, GREEN);
-                    await openTab('Coordinates');
-                    await commitInput(chartBody(), 'Y', '70');
+                    await editCoordinate('Y', '70');
                 },
                 expected: { type: 'comment', text: 'Edited comment', fill: GREEN, y: 70 },
             },
@@ -1466,14 +1472,11 @@ describe('Annotations', () => {
                 at: ['2024-07-01', 85],
                 tabs: ['Text', 'Style', 'Coordinates'],
                 async edit() {
-                    await typeText('Edited note');
-                    await pickFontSize('28');
-                    await pickDialogColor(0, GREEN);
+                    await editTextTab('Edited note');
                     await openTab('Style');
                     expect(panelControls('.ag-charts-dialog__color-picker-button')).toHaveLength(1);
                     await pickDialogColor(0, BLUE);
-                    await openTab('Coordinates');
-                    await commitInput(chartBody(), 'Y', '70');
+                    await editCoordinate('Y', '70');
                 },
                 expected: { type: 'note', text: 'Edited note', fontSize: 28, color: GREEN, fill: BLUE, y: 70 },
             },
@@ -1496,8 +1499,7 @@ describe('Annotations', () => {
                     ).toEqual(['Line Color', 'Fill Color']);
                     await pickDialogColor(0, GREEN);
                     await pickDialogColor(1, BLUE);
-                    await openTab('Coordinates');
-                    await commitInput(chartBody(), 'End: Y', '70');
+                    await editCoordinate('End: Y', '70');
                 },
                 expected: {
                     type: 'callout',
@@ -1507,28 +1509,21 @@ describe('Annotations', () => {
                     end: { y: 70 },
                 },
             },
-            {
-                annotation: { type: 'arrow-up', x: date('2024-02-01'), y: 35 },
-                at: ['2024-02-01', 35],
+            ...(
+                [
+                    ['arrow-up', '2024-02-01'],
+                    ['arrow-down', '2024-04-15'],
+                ] as const
+            ).map(([type, anchor]) => ({
+                annotation: { type, x: date(anchor), y: 35 },
+                at: [anchor, 35] as [string, number],
                 tabs: ['Style', 'Coordinates'],
                 async edit() {
                     await pickDialogColor(0, GREEN);
-                    await openTab('Coordinates');
-                    await commitInput(chartBody(), 'Y', '25');
+                    await editCoordinate('Y', '25');
                 },
-                expected: { type: 'arrow-up', fill: GREEN, y: 25 },
-            },
-            {
-                annotation: { type: 'arrow-down', x: date('2024-04-15'), y: 35 },
-                at: ['2024-04-15', 35],
-                tabs: ['Style', 'Coordinates'],
-                async edit() {
-                    await pickDialogColor(0, GREEN);
-                    await openTab('Coordinates');
-                    await commitInput(chartBody(), 'Y', '25');
-                },
-                expected: { type: 'arrow-down', fill: GREEN, y: 25 },
-            },
+                expected: { type, fill: GREEN, y: 25 },
+            })),
         ];
 
         it('opens from the options toolbar with the tabs of each annotation, and edits it from every tab', async () => {
