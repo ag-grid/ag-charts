@@ -2432,6 +2432,7 @@ describe('Annotations', () => {
 
                 const lockSwitch = body().querySelector<HTMLElement>('button[aria-checked]');
                 expect(lockSwitch?.getAttribute('aria-checked')).toBe('true');
+                expect(lockSwitch?.getAttribute('aria-label')).toBe('Unlock');
             });
         });
 
