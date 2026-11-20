@@ -9,6 +9,7 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { SettingsDialogDatumType } from '../annotationsSuperTypes';
 import { calloutDatum } from '../callout/calloutDatum';
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
+import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
 import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
@@ -99,6 +100,23 @@ describe('AnnotationSettingsDialog coordinates', () => {
         commit(startY, '');
         expect(startY.value).toBe('4366.28');
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows the heights of a parallel and a disjoint channel at the decimals of the y axis crosshair label', () => {
+        const yScale = new LinearScale();
+        yScale.domain = [0, 5000];
+        const context = createAxesContext(new CategoryScale(), yScale, (value) => Number(value).toFixed(1));
+
+        show(context, { ...parallelChannelDatum.create(), height: 12.34567 });
+        expect(inputs().at(-1)!.value).toBe('12.3');
+        dialog.hide();
+
+        show(context, { ...disjointChannelDatum.create(), startHeight: 1.98765, endHeight: 20 });
+        expect(
+            inputs()
+                .slice(-2)
+                .map((input) => input.value)
+        ).toEqual(['2.0', '20']);
     });
 
     it('follows the annotation when it changes behind the dialog', () => {

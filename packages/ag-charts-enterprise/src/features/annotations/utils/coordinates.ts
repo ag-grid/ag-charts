@@ -252,7 +252,7 @@ export function getCoordinateFields(datum: SettingsDialogDatumType, context: Ann
 
     // A channel's offset is a distance along the y axis, which only a numeric axis can measure.
     if (y?.kind === 'number') {
-        fields.push(...getHeightFields(datum));
+        fields.push(...getHeightFields(datum, y));
     }
 
     return fields;
@@ -401,14 +401,14 @@ function getPointRows(datum: Exclude<SettingsDialogDatumType, CrossLineDatum>): 
     return rows;
 }
 
-function getHeightFields(datum: SettingsDialogDatumType): CoordinateField[] {
+function getHeightFields(datum: SettingsDialogDatumType, y: CoordinateAxis): CoordinateField[] {
     if (parallelChannelDatum.is(datum)) {
-        return [createHeightField('height', datum.height, 'height')];
+        return [createHeightField('height', datum.height, 'height', y)];
     }
     if (disjointChannelDatum.is(datum)) {
         return [
-            createHeightField('startHeight', datum.startHeight, 'startHeight'),
-            createHeightField('endHeight', datum.endHeight, 'endHeight'),
+            createHeightField('startHeight', datum.startHeight, 'startHeight', y),
+            createHeightField('endHeight', datum.endHeight, 'endHeight', y),
         ];
     }
     return [];
@@ -417,13 +417,16 @@ function getHeightFields(datum: SettingsDialogDatumType): CoordinateField[] {
 function createHeightField(
     row: CoordinateRow,
     current: AgNumericValue,
-    key: 'height' | 'startHeight' | 'endHeight'
+    key: 'height' | 'startHeight' | 'endHeight',
+    { context, kind }: CoordinateAxis
 ): CoordinateField {
     return {
         row,
         axis: 'y',
         kind: 'number',
         value: String(current),
+        // A height is a distance along the y axis, so it is shown at the decimals of that axis's crosshair label.
+        fractionDigits: getFractionDigits(kind, current, context),
         toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
     };
 }
