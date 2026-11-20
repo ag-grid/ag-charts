@@ -28,7 +28,7 @@ import {
 import type { Point, SizedPoint } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, isFiniteBox } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
 import {
@@ -1261,10 +1261,6 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
         extentCount += 2;
     }
     return gridCellSize(extentSum, extentCount);
-}
-
-function isFiniteBox({ x, y, width, height }: BoxBounds): boolean {
-    return Number.isFinite(x + y + width + height);
 }
 
 // Anchor-adjusted marker centre, written into the shared scratch (allocation-free). Marker-obstacle

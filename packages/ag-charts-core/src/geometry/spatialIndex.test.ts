@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getSpatialIndexCellCount } from '../test/coreAccessors';
 import { type BoxBounds, boxCollides } from './boxBounds';
-import { SpatialIndex, anyOverlap, gridCellSize } from './spatialIndex';
+import { SpatialIndex, anyOverlap, gridCellSize, gridCellsAcross } from './spatialIndex';
 
 function makeBoxes(count: number, bounds: BoxBounds): BoxBounds[] {
     // Deterministic pseudo-random spread so the test is reproducible.
@@ -89,8 +89,6 @@ describe('SpatialIndex', () => {
     it.each([
         { name: 'a NaN cell size', first: { x: 0, y: 0, width: 100, height: 100 }, cellSize: Number.NaN },
         { name: 'NaN bounds', first: { x: 0, y: 0, width: Number.NaN, height: 100 }, cellSize: 10 },
-        { name: 'infinitely wide bounds', first: { x: 0, y: 0, width: Infinity, height: 100 }, cellSize: 10 },
-        { name: 'infinitely wide, flat bounds', first: { x: 0, y: 0, width: Infinity, height: 0 }, cellSize: 10 },
     ])('stays usable at a larger grid after a reset with $name', ({ first, cellSize }) => {
         const index = new SpatialIndex<BoxBounds>();
         index.reset(first, cellSize);
@@ -99,6 +97,15 @@ describe('SpatialIndex', () => {
         const corner = { x: 700, y: 550, width: 5, height: 5 };
         index.insert(corner, corner);
         expect(index.query(corner, () => true)).toBe(true);
+    });
+
+    it.each(['x', 'y'] as const)('finds an overlap within bounds whose %s origin is NaN', (axis) => {
+        const index = new SpatialIndex<BoxBounds>();
+        index.reset({ x: 0, y: 0, width: 100, height: 100, [axis]: Number.NaN }, 10);
+
+        const stored = { x: 40, y: 40, width: 10, height: 10 };
+        index.insert(stored, stored);
+        expect(index.query(stored, () => true)).toBe(true);
     });
 
     it('stops early when the visitor returns true', () => {
@@ -131,6 +138,17 @@ describe('gridCellSize', () => {
             expect(gridCellSize(extentSum, extentCount)).toBe(expected);
         }
     );
+});
+
+describe('gridCellsAcross', () => {
+    it.each([
+        { name: 'an infinite extent', origin: 0, extent: Infinity },
+        { name: 'a NaN extent', origin: 0, extent: Number.NaN },
+        { name: 'a NaN origin', origin: Number.NaN, extent: 100 },
+        { name: 'an infinite origin', origin: -Infinity, extent: 100 },
+    ])('collapses to one cell for $name', ({ origin, extent }) => {
+        expect(gridCellsAcross(origin, extent, 10)).toBe(1);
+    });
 });
 
 describe('anyOverlap', () => {
@@ -182,6 +200,22 @@ describe('anyOverlap', () => {
         expect(anyOverlap([hitA], [{ box: hitB, ref: hitB }], collidesExactly)).toBe(true);
         expect(anyOverlap([hitA], [{ box: far, ref: far }], collidesExactly)).toBe(false);
         expect(anyOverlap([hitA], [{ box: hitB, ref: hitB }], collidesExactly)).toBe(true);
+    });
+
+    it.each(['x', 'y'] as const)('finds a finite overlap and still prunes along %s beside a NaN obstacle', (axis) => {
+        const query: BoxBounds = { x: 0, y: 0, width: 10, height: 10 };
+        const hit: BoxBounds = { x: 5, y: 5, width: 10, height: 10 };
+        const invalid: BoxBounds = { ...query, [axis]: Number.NaN };
+        const distant = Array.from({ length: 20 }, (_, i): BoxBounds => ({ ...query, [axis]: 100 * (i + 1) }));
+        const obstacles = [invalid, ...distant, hit].map((box) => ({ box, ref: box }));
+
+        let exactCalls = 0;
+        const found = anyOverlap([query], obstacles, (a, b) => {
+            exactCalls++;
+            return collidesExactly(a, b);
+        });
+        expect(found).toBe(true);
+        expect(exactCalls).toBe(1);
     });
 
     it('only reports a collision the exact predicate confirms, not merely a cell co-residency', () => {

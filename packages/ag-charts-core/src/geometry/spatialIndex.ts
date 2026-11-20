@@ -1,4 +1,4 @@
-import type { BoxBounds } from './boxBounds';
+import { type BoxBounds, isFiniteBox } from './boxBounds';
 
 /** Return `true` to stop the query early (a match was found). */
 export type SpatialIndexVisitor<R> = (ref: R) => boolean | void;
@@ -31,10 +31,11 @@ export class SpatialIndex<R> {
             clampedCellSize = Math.sqrt(area / MAX_CELLS);
         }
         this.invCellSize = 1 / clampedCellSize;
-        this.originX = bounds.x;
-        this.originY = bounds.y;
-        this.cols = cellsAcross(bounds.width, clampedCellSize);
-        this.rows = cellsAcross(bounds.height, clampedCellSize);
+        this.cols = gridCellsAcross(bounds.x, bounds.width, clampedCellSize);
+        this.rows = gridCellsAcross(bounds.y, bounds.height, clampedCellSize);
+        // A single-cell axis ignores its origin, so a non-finite one can't turn every lookup into NaN.
+        this.originX = this.cols > 1 ? bounds.x : 0;
+        this.originY = this.rows > 1 ? bounds.y : 0;
 
         const count = this.cols * this.rows;
         const clearTo = Math.max(this.cellCount, count);
@@ -89,10 +90,10 @@ export class SpatialIndex<R> {
     }
 }
 
-// Non-finite bounds collapse to one cell: a NaN or infinite count would leave the shared index unusable.
-function cellsAcross(extent: number, cellSize: number): number {
+/** Grid cells along one axis; non-finite bounds collapse to one cell so the shared index stays usable. */
+export function gridCellsAcross(origin: number, extent: number, cellSize: number): number {
     const cells = Math.ceil(extent / cellSize);
-    return cells > 1 && cells < Infinity ? cells : 1;
+    return Number.isFinite(origin) && cells > 1 && cells < Infinity ? cells : 1;
 }
 
 /**
@@ -130,6 +131,7 @@ export function anyOverlap<R>(
     let extentSum = 0;
     let extentCount = 0;
     const extend = (b: BoxBounds) => {
+        if (!isFiniteBox(b)) return;
         minX = Math.min(minX, b.x);
         minY = Math.min(minY, b.y);
         maxX = Math.max(maxX, b.x + b.width);
@@ -148,12 +150,13 @@ export function anyOverlap<R>(
     const index = overlapIndex as SpatialIndex<R>;
     index.reset(bounds, gridCellSize(extentSum, extentCount));
     for (const obstacle of obstacles) {
-        index.insert(obstacle.box, obstacle.ref);
+        if (isFiniteBox(obstacle.box)) index.insert(obstacle.box, obstacle.ref);
     }
 
     let queryBox: BoxBounds | null = null;
     const visit: SpatialIndexVisitor<R> = (ref) => queryBox != null && exact(queryBox, ref);
     for (const box of queryBoxes) {
+        if (!isFiniteBox(box)) continue;
         queryBox = box;
         if (index.query(box, visit)) {
             return true;
