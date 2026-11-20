@@ -1,7 +1,13 @@
 ---
 targets: ['*']
 description: 'Redirect, caching and header changes to the docs .htaccess: keep the production edge tests in ag-devops in step'
-globs: ['packages/ag-charts-website/src/utils/htaccess/**/*', 'packages/ag-charts-website/plugins/agHtaccessGen.ts']
+globs:
+    [
+        'packages/ag-charts-website/src/utils/htaccess/**/*',
+        'packages/ag-charts-website/plugins/agHtaccessGen.ts',
+        'packages/ag-charts-website/src/pages/robots.txt.ts',
+        'packages/ag-charts-website/src/pages/robots-disallow.json.ts',
+    ]
 ---
 
 # Redirects and the production edge tests
@@ -34,8 +40,21 @@ that no ticket names needs no edge-test rows.
 From `ag-devops/edge-tests`:
 
 - `npm run check`: type check, lint and the offline tests.
-- `npx tsx src/main.ts --only redirects --pending`: the live redirect checks (GET/HEAD only, no AWS
-  profile needed). New rows show `PENDING` until the release deploys; a `FAIL` is a regression.
+- `npx tsx src/main.ts --pending --only <areas>`: the live checks for every area the change touches
+  (GET/HEAD only). Run it before the release, when new rows show `PENDING`, and again once it is
+  live, when they show `NOW LIVE`. A `FAIL` is a regression.
+
+| Change | Areas |
+| --- | --- |
+| Redirects | `redirects` |
+| Caching rules for pages or redirects | `caching,headers` |
+| Other response headers | `headers` |
+| `robots.txt` | `crawler-policy` |
+
+Without the `ddos-report-readonly` AWS profile, checks that need an AWS read report `SKIP`, among
+them the markdown cache checks and the WAF side of `crawler-policy`. A CloudFront cache-key change
+also needs the `cloudfront` area, which does need the profile. The edge-tests README describes each
+area.
 
 Say in the PR body which edge-test areas you ran.
 
