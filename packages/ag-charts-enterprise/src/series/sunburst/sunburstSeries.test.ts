@@ -81,6 +81,17 @@ function distanceToSegment(a: { x: number; y: number }, b: { x: number; y: numbe
     return Math.hypot(a.x + t * dx, a.y + t * dy);
 }
 
+/** Which placement, and which half of the circle, a label drawn at `rotation` on `sector` takes. */
+function labelPlacementOf(sector: Sector, rotation: number) {
+    if (sector.endAngle - sector.startAngle >= 2 * Math.PI) return 'centre-circle';
+    const midAngle = (sector.startAngle + sector.endAngle) / 2;
+    // Parallel text turns square to the mid-angle; perpendicular text runs along it.
+    if (Math.abs(Math.sin(rotation - midAngle)) > 0.5) {
+        return Math.sin(midAngle) >= 0 ? 'parallel (top half)' : 'parallel (bottom half)';
+    }
+    return Math.cos(midAngle) >= 0 ? 'perpendicular (right half)' : 'perpendicular (left half)';
+}
+
 describe('SunburstSeries', () => {
     setupMockConsole();
     let chart: any;
@@ -1198,6 +1209,55 @@ describe('SunburstSeries', () => {
                 }
             }
             expect(overruns).toEqual([]);
+        });
+
+        /** Each visible label box's canvas centre, keyed by datum and line, with the placement and half it sits in. */
+        const labelBoxCentres = async (padding: { top?: number; right?: number; bottom?: number; left?: number }) => {
+            const label = { ...parallelStackSeries.label, padding };
+            chart = await createEnterpriseChart({ data: centreData, series: [{ ...parallelStackSeries, label }] });
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const groups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const centres = new Map<string, { x: number; y: number; at: string }>();
+            for (const group of groups) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const texts = Selection.selectByClass(group, TransformableText).filter((text) => text.visible);
+                for (const [line, text] of texts.entries()) {
+                    const corners = canvasCorners(text);
+                    const x = corners.reduce((sum, { canvasX }) => sum + canvasX, 0) / corners.length;
+                    const y = corners.reduce((sum, { canvasY }) => sum + canvasY, 0) / corners.length;
+                    const at = labelPlacementOf(sector, text.rotation);
+                    centres.set(`${group.datum?.datum?.name}/${line}/${String(text.text)}`, { x, y, at });
+                }
+            }
+            chart.destroy();
+            chart = undefined;
+            return centres;
+        };
+
+        // Any placement or half that shifted its box the wrong way would part it from the evenly padded one.
+        const everyPlacement = [
+            'centre-circle',
+            'parallel (top half)',
+            'parallel (bottom half)',
+            'perpendicular (right half)',
+            'perpendicular (left half)',
+        ];
+        it.each([
+            { side: 'left', padding: { left: 24, right: 0 }, even: { left: 12, right: 12 } },
+            { side: 'right', padding: { left: 0, right: 24 }, even: { left: 12, right: 12 } },
+            { side: 'top', padding: { top: 8, bottom: 0 }, even: { top: 4, bottom: 4 } },
+            { side: 'bottom', padding: { top: 0, bottom: 8 }, even: { top: 4, bottom: 4 } },
+        ])('centres a $side-padded label box where an evenly padded one sits', async ({ padding, even }) => {
+            const evenCentres = await labelBoxCentres(even);
+            const centres = await labelBoxCentres(padding);
+            expect([...centres.keys()]).toEqual([...evenCentres.keys()]);
+            expect(new Set([...centres.values()].map(({ at }) => at))).toEqual(new Set(everyPlacement));
+            const shifts = [...centres].map(([key, { x, y }]) => ({
+                key,
+                dx: x - evenCentres.get(key)!.x,
+                dy: y - evenCentres.get(key)!.y,
+            }));
+            expect(shifts).toEqual(shifts.map(({ key }) => ({ key, dx: expect.closeTo(0), dy: expect.closeTo(0) })));
         });
     });
 

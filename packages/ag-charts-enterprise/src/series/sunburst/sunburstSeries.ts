@@ -228,6 +228,57 @@ enum TextNodeTag {
     Secondary,
 }
 
+/** Translates `text` by `radial` along the direction `(cos, sin)` and `tangential` along its normal towards increasing angle. */
+function setPolarTranslation(text: TransformableText, cos: number, sin: number, radial: number, tangential: number) {
+    text.translationX = cos * radial - sin * tangential;
+    text.translationY = sin * radial + cos * tangential;
+}
+
+/** Positions and rotates `text` on its sector for the layout's placement. */
+function placeLabelText(text: TransformableText, label: LabelLayout, primary: boolean, contentHeight: number) {
+    const { labelPlacement, circleQuarter, radius: textRadius, theta } = label;
+    // Uneven padding grows the box off its fitted footprint; each case shifts the text back along its own axes.
+    const { top, right, bottom, left } = label.boxPadding;
+    const boxOffsetX = (left - right) * 0.5;
+    switch (labelPlacement) {
+        case LabelPlacement.CenterCircle:
+            // No precedence to arbitrate against the inner labels: this placement is only
+            // chosen when no hole is carved, which is exactly when no centre circle resolves.
+            text.textAlign = 'center';
+            text.textBaseline = 'top';
+            text.translationX = boxOffsetX;
+            text.translationY = (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5 + top;
+            text.rotation = 0;
+            break;
+        case LabelPlacement.Parallel: {
+            const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
+            const outerEdge = primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
+            const translationRadius = outerEdge - (topHalf ? bottom : top);
+            // The text's x-axis runs against the tangent in the top half and along it in the bottom half.
+            const tangential = topHalf ? -boxOffsetX : boxOffsetX;
+            text.textAlign = 'center';
+            text.textBaseline = topHalf ? 'bottom' : 'top';
+            setPolarTranslation(text, Math.cos(theta), Math.sin(theta), translationRadius, tangential);
+            text.rotation = topHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+            break;
+        }
+        case LabelPlacement.Perpendicular: {
+            const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
+            const stackOffset =
+                primary === !rightHalf ? (contentHeight - label.height) * 0.5 : (label.height - contentHeight) * 0.5;
+            // The text's axes are the radial and tangent in the right half, both reversed in the left half.
+            const direction = rightHalf ? 1 : -1;
+            const radial = textRadius + direction * boxOffsetX;
+            const tangential = stackOffset + direction * (top - bottom) * 0.5;
+            text.textAlign = 'center';
+            text.textBaseline = 'middle';
+            setPolarTranslation(text, Math.cos(theta), Math.sin(theta), radial, tangential);
+            text.rotation = rightHalf ? theta : theta + Math.PI;
+            break;
+        }
+    }
+}
+
 type ItemStyle = Required<NormalisedSunburstSeriesStyle> & { opacity: number };
 
 export class SunburstSeries extends HierarchySeries<
@@ -922,8 +973,6 @@ export class SunburstSeries extends HierarchySeries<
                 return;
             }
 
-            const { labelPlacement, circleQuarter, radius: textRadius, theta } = label;
-
             const highlightState = this.getHierarchyHighlightState(highlighted, highlightedNode, node);
 
             const { opacity: highlightOpacity } =
@@ -943,50 +992,7 @@ export class SunburstSeries extends HierarchySeries<
             text.fill = style.color;
             text.setBoxing(style);
 
-            switch (labelPlacement) {
-                case LabelPlacement.CenterCircle:
-                    // No precedence to arbitrate against the inner labels: this placement is only
-                    // chosen when no hole is carved, which is exactly when no centre circle resolves.
-                    text.textAlign = 'center';
-                    text.textBaseline = 'top';
-                    text.translationX = 0;
-                    text.translationY =
-                        (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5 + label.boxPadding.top;
-                    text.rotation = 0;
-                    break;
-                case LabelPlacement.Parallel: {
-                    const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
-                    const outerEdge = primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
-                    const translationRadius = outerEdge - (topHalf ? label.boxPadding.bottom : label.boxPadding.top);
-                    text.textAlign = 'center';
-                    text.textBaseline = topHalf ? 'bottom' : 'top';
-                    text.translationX = Math.cos(theta) * translationRadius;
-                    text.translationY = Math.sin(theta) * translationRadius;
-                    text.rotation = topHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
-                    break;
-                }
-                case LabelPlacement.Perpendicular: {
-                    const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
-                    const translation =
-                        primary === !rightHalf
-                            ? (contentHeight - label.height) * 0.5
-                            : (label.height - contentHeight) * 0.5;
-                    text.textAlign = 'center';
-                    text.textBaseline = 'middle';
-                    text.translationX = Math.cos(theta) * textRadius + Math.cos(theta + Math.PI / 2) * translation;
-                    text.translationY = Math.sin(theta) * textRadius + Math.sin(theta + Math.PI / 2) * translation;
-                    text.rotation = rightHalf ? theta : theta + Math.PI;
-                    break;
-                }
-            }
-            // The box grows around the aligned glyphs, so uneven padding moves it off its fitted footprint.
-            const { top, right, bottom, left } = label.boxPadding;
-            const offsetX = (left - right) * 0.5;
-            const offsetY = labelPlacement === LabelPlacement.Perpendicular ? (top - bottom) * 0.5 : 0;
-            const cos = Math.cos(text.rotation);
-            const sin = Math.sin(text.rotation);
-            text.translationX += offsetX * cos - offsetY * sin;
-            text.translationY += offsetX * sin + offsetY * cos;
+            placeLabelText(text, label, primary, contentHeight);
             text.visible = true;
         };
         for (const text of this.labelSelection.selectByClass(TransformableText)) {
