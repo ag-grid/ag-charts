@@ -31,6 +31,7 @@ export interface AnnotationsDOMProxyListener {
     onMoveKeyUp(sourceEvent: KeyboardEvent): void;
     onMoveEnd(): void;
     onMoveBlur(): void;
+    onFocusLost(): void;
 }
 
 /** The root owns the other widgets, so destroying it destroys them all. */
@@ -185,14 +186,18 @@ export class AnnotationsDOMProxy {
     private syncButtons(list: ListWidget, items: AnnotationsDOMProxyItem[]) {
         const { buttons } = this;
         const ids = new Set(items.map((item) => item.id));
+        let removedFocus = false;
         for (const [id, button] of buttons) {
             if (!ids.has(id)) {
+                removedFocus ||= button.isFocused();
                 button.destroy();
                 buttons.delete(id);
             }
         }
 
-        if (!this.isInOrder(items)) {
+        if (this.isInOrder(items)) {
+            this.createButtons(list, items);
+        } else {
             const focusedId = this.getFocusedId();
             for (const button of buttons.values()) {
                 button.destroy();
@@ -200,10 +205,9 @@ export class AnnotationsDOMProxy {
             buttons.clear();
             this.createButtons(list, items);
             if (focusedId != null) this.focus(focusedId);
-            return;
         }
 
-        this.createButtons(list, items);
+        if (removedFocus && !this.focusList()) this.listener.onFocusLost();
     }
 
     /** Whether the listed annotations are in the order of `items`, so any new ones can be appended. */
