@@ -26,6 +26,7 @@ import {
 } from 'ag-charts-core';
 import type { RenderContext, ResolvedDropShadowOptions, ShadowKey, Shape } from 'ag-charts-core';
 
+import { differingBytes } from '../chart/test/expectSamePixels';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
 
@@ -3151,8 +3152,8 @@ describe('Group shadow compositor', () => {
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'layer')).toBe(false);
         });
 
-        // A key's mask is cut down to the union of its casters' silhouettes, where it was the layer and its pads. A caster that
-        // can't be bounded fails open to the whole mask, so that is the reference: no pixel may differ from it.
+        // A key's mask is cleared and blurred over the union of its casters' silhouettes. A caster that can't be bounded fails
+        // open to the whole mask, so that is the reference: no pixel may differ from it.
         describe('a mask bounded to its casters', () => {
             const LAYER = { width: 400, height: 300 };
             const BLURRED = { enabled: true, fill: 'rgba(0, 0, 255, 1)', xOffset: 10, yOffset: 6, blur: 6 };
@@ -3173,6 +3174,8 @@ describe('Group shadow compositor', () => {
                 overlay?: boolean;
                 /** Whether the key is cast directly on the layer, so that its mask is blurred onto the layer. */
                 direct?: boolean;
+                /** Whether a key has more than 16 casters, which is bounded on a kept cast only: a direct cast clears and blurs it whole. */
+                crowded?: boolean;
                 /** The size of the part of each key's casters that is on the layer, which its mask holds, in css pixels. */
                 held: { width: number; height: number };
                 /** The size of the layer in css pixels, if not {@link LAYER}. A large one is compared by a digest of its pixels. */
@@ -3221,6 +3224,7 @@ describe('Group shadow compositor', () => {
                     {
                         keys: () => [shadowKey(grid(20, 'fillShadow', BLURRED))],
                         direct: true,
+                        crowded: true,
                         held: GRID,
                     },
                 ],
@@ -3280,6 +3284,7 @@ describe('Group shadow compositor', () => {
                             const casters = grid(20, 'fillGlow', glow);
                             return [{ ...glowKeyOf(casters[0], glow), casters }];
                         },
+                        crowded: true,
                         held: GRID,
                     },
                 ],
@@ -3333,13 +3338,9 @@ describe('Group shadow compositor', () => {
                 /** A digest of the pixels of the layer, and how many of its bytes are not zero. */
                 digest: string;
                 painted: number;
-                /** The sizes of the rectangles that the scratch canvas was cleared at. */
-                clears: Array<[number, number]>;
-                /** The sizes of the mask drawn from the scratch canvas onto the layer, for a key cast directly on it. */
-                blurs: Array<[number, number]>;
-                /** The rectangles that the scratch canvas was cleared at, as x, y, width and height. */
-                clearRects: number[][];
-                /** The source and destination rectangles of the mask drawn from the scratch canvas onto the layer. */
+                /** The rectangles that a mask was cleared at on the scratch canvas, as x, y, width and height. */
+                masks: number[][];
+                /** The source and destination rectangles of the masks blurred from the scratch canvas, onto the layer or a cache. */
                 sources: number[][];
                 /** What the last cast cleared and drew from the scratch canvas, which for a kept cast is a blit of the cache. */
                 last: { clears: number; sources: number };
@@ -3347,12 +3348,10 @@ describe('Group shadow compositor', () => {
                 scratch: [number, number];
             }
 
-            /** How many bytes of the pixels differ, which is reported in place of a diff of arrays too large to print. */
+            /** The count of differing bytes is reported in place of a diff of arrays too large to print. */
             const expectEqualPixels = (actual: Cast, expected: Cast) => {
                 expect(actual.pixels).toHaveLength(expected.pixels.length);
-                let differing = 0;
-                for (let i = 0; i < actual.pixels.length; i++) if (actual.pixels[i] !== expected.pixels[i]) differing++;
-                expect(differing).toBe(0);
+                expect(differingBytes({ data: actual.pixels }, { data: expected.pixels })).toBe(0);
                 expect(actual.digest).toBe(expected.digest);
             };
 
@@ -3367,10 +3366,13 @@ describe('Group shadow compositor', () => {
                 return { digest: hash.toString(16), painted };
             };
 
-            /**
-             * Casts the scenario on a layer of its own. A direct cast is of a user that has cast nothing before, as the first of
-             * a cast that repeats is. A kept one is the third of the same cast, which the cache blits.
-             */
+            /** The clears of the scratch canvas at a rect that a blur then draws from, which a stamp's clear is not. */
+            const maskClears = (clears: unknown[][], blurs: unknown[][]) =>
+                clears
+                    .map((args) => args.map(Number))
+                    .filter((rect) => blurs.some((blur) => rect.every((value, i) => value === blur[i + 1])));
+
+            /** Casts the scenario on a layer of its own: a direct cast is of a user that has cast nothing, a kept one is its third cast. */
             const castScenario = (scenario: Scenario, unbounded: boolean, kept = false): Cast => {
                 const dpr = scenario.devicePixelRatio ?? 1;
                 const { width: layerWidth, height: layerHeight } = scenario.layer ?? LAYER;
@@ -3416,8 +3418,12 @@ describe('Group shadow compositor', () => {
                 const [scratch] = inUse(createdSince(before));
                 const scratchContext = scratch.getContext('2d')! as unknown as CanvasRenderingContext2D;
                 const clearRect = vi.spyOn(scratchContext, 'clearRect');
-                const drawImage = vi.spyOn(context, 'drawImage');
-                const sourcesOf = () => drawImage.mock.calls.filter(([source]) => source === scratch);
+                const drawImage = vi.spyOn(Object.getPrototypeOf(context), 'drawImage');
+                // A blur draws its mask displaced by its shadow's offset, which a stamp of the scratch canvas does not.
+                const sourcesOf = () =>
+                    drawImage.mock.calls.filter(
+                        ([source, sx, sy, , , dx, dy]) => source === scratch && (dx !== sx || dy !== sy)
+                    );
                 let last = { clears: 0, sources: 0 };
                 if (kept) {
                     const casts = scenario.casts ?? 3;
@@ -3436,9 +3442,7 @@ describe('Group shadow compositor', () => {
                 const result: Cast = {
                     pixels: scenario.layer == null ? Array.from(data) : [],
                     ...digestOf(data),
-                    clears: clearRect.mock.calls.map(([, , w, h]) => [w, h]),
-                    blurs: sourcesOf().map((args) => [args[7], args[8]]),
-                    clearRects: clearRect.mock.calls.map((args) => [...args]),
+                    masks: maskClears(clearRect.mock.calls, sourcesOf()),
                     sources: sourcesOf().map((args) => args.slice(1) as number[]),
                     last,
                     scratch: [scratch.width, scratch.height],
@@ -3476,61 +3480,45 @@ describe('Group shadow compositor', () => {
                     expect(keptBounded.last).toEqual({ clears: 0, sources: 0 });
                 });
 
-                it('should clear a mask that holds the casters and not the layer, where the whole mask clears the layer', () => {
-                    expect(full.clears.length).toBeGreaterThan(0);
-                    for (const [clearWidth, clearHeight] of full.clears) {
-                        expect(clearWidth).toBeGreaterThanOrEqual(LAYER.width * dpr);
-                        expect(clearHeight).toBeGreaterThanOrEqual(LAYER.height * dpr);
-                    }
+                if (scenario.crowded === true) {
+                    it('should clear and blur the whole mask for a direct cast', () => {
+                        expectWhole(bounded, full);
+                    });
+                } else {
+                    it('should clear a mask that holds the casters and not the layer, where the whole mask clears the layer', () => {
+                        expect(full.masks.length).toBeGreaterThan(0);
+                        for (const [, , clearWidth, clearHeight] of full.masks) {
+                            expect(clearWidth).toBeGreaterThanOrEqual(LAYER.width * dpr);
+                            expect(clearHeight).toBeGreaterThanOrEqual(LAYER.height * dpr);
+                        }
 
+                        const { held } = scenario;
+                        expect(bounded.masks).toHaveLength(full.masks.length);
+                        for (const [, , clearWidth, clearHeight] of bounded.masks) {
+                            expect(clearWidth * clearHeight).toBeLessThan(full.scratch[0] * full.scratch[1]);
+                            expect(clearWidth).toBeGreaterThanOrEqual(Math.floor(held.width * dpr));
+                            expect(clearHeight).toBeGreaterThanOrEqual(Math.floor(held.height * dpr));
+                        }
+                    });
+
+                    it('should blur the rect of the mask that it cleared, from its source rect', () => {
+                        expectBounded(bounded, full);
+                    });
+                }
+
+                it('should clear and blur a part of the mask for a kept cast', () => {
+                    const keptBounded = castScenario(scenario, false, true);
+                    const keptFull = castScenario(scenario, true, true);
+                    expectBounded(keptBounded, keptFull);
                     const { held } = scenario;
-                    expect(bounded.clears.length).toBeGreaterThan(0);
-                    // An overlay also clears its glows' canvas, which holds all the keys, where it stamps the cutouts.
-                    const inLayer = bounded.clears.filter(
-                        ([clearWidth, clearHeight]) =>
-                            clearWidth < LAYER.width * dpr || clearHeight < LAYER.height * dpr
-                    );
-                    expect(inLayer.length).toBeGreaterThan(0);
-                    if (scenario.overlay !== true) expect(inLayer).toEqual(bounded.clears);
-                    for (const [clearWidth, clearHeight] of inLayer) {
+                    for (const [, , clearWidth, clearHeight] of keptBounded.masks) {
                         expect(clearWidth).toBeGreaterThanOrEqual(Math.floor(held.width * dpr));
                         expect(clearHeight).toBeGreaterThanOrEqual(Math.floor(held.height * dpr));
                     }
                 });
-
-                if (scenario.direct === true) {
-                    it('should blur a source no larger than the mask that it cleared', () => {
-                        expect(full.blurs.length).toBeGreaterThan(0);
-                        expect(bounded.blurs.length).toBe(full.blurs.length);
-                        for (const [i, [blurWidth, blurHeight]] of bounded.blurs.entries()) {
-                            expect(blurWidth).toBeLessThan(full.blurs[i][0]);
-                            expect(blurHeight).toBeLessThan(full.blurs[i][1]);
-                            expect(blurWidth).toBeLessThanOrEqual(bounded.clears[i][0]);
-                            expect(blurHeight).toBeLessThanOrEqual(bounded.clears[i][1]);
-                        }
-                    });
-
-                    // The arguments of drawImage are the image, the source rect (x, y, width, height), then the destination's.
-                    it('should blur the rect of the mask that it cleared, from its source rect', () => {
-                        expect(bounded.sources.length).toBe(full.sources.length);
-                        for (const [i, [sx, sy, sw, sh, , , dw, dh]] of bounded.sources.entries()) {
-                            // The source is the rect that was cleared, and is drawn at its own size.
-                            expect(bounded.clearRects).toContainEqual([sx, sy, sw, sh]);
-                            expect([dw, dh]).toEqual([sw, sh]);
-                            // It is a part of the whole mask, which is drawn from its origin.
-                            const [fx, fy, fw, fh] = full.sources[i];
-                            expect([fx, fy]).toEqual([0, 0]);
-                            expect(sw).toBeLessThan(fw);
-                            expect(sh).toBeLessThan(fh);
-                            expect(sx + sw).toBeLessThanOrEqual(fw);
-                            expect(sy + sh).toBeLessThanOrEqual(fh);
-                        }
-                    });
-                }
             });
 
-            // The tests above and below compare a bounded mask with the whole one, so these helpers read both casts.
-            const expectSamePixels = (bounded: Cast, full: Cast) => {
+            const expectSameCast = (bounded: Cast, full: Cast) => {
                 expect(full.painted).toBeGreaterThan(0);
                 expect(bounded.digest).toBe(full.digest);
                 expectEqualPixels(bounded, full);
@@ -3540,28 +3528,42 @@ describe('Group shadow compositor', () => {
             const expectBounded = (bounded: Cast, full: Cast) => {
                 expect(full.sources.length).toBeGreaterThan(0);
                 expect(bounded.sources).toHaveLength(full.sources.length);
-                expect(bounded.clearRects).toHaveLength(full.clearRects.length);
-                for (const [i, [x, y, w, h]] of bounded.clearRects.entries()) {
-                    expect(x + w).toBeLessThanOrEqual(full.clearRects[i][2]);
-                    expect(y + h).toBeLessThanOrEqual(full.clearRects[i][3]);
-                    expect(w * h).toBeLessThan(full.clearRects[i][2] * full.clearRects[i][3]);
+                expect(bounded.masks).toHaveLength(full.masks.length);
+                for (const [i, [x, y, w, h]] of bounded.masks.entries()) {
+                    const [, , wholeWidth, wholeHeight] = full.masks[i];
+                    expect(x + w).toBeLessThanOrEqual(wholeWidth);
+                    expect(y + h).toBeLessThanOrEqual(wholeHeight);
+                    expect(w * h).toBeLessThan(wholeWidth * wholeHeight);
                 }
                 for (const [i, [sx, sy, sw, sh, , , dw, dh]] of bounded.sources.entries()) {
-                    expect(bounded.clearRects).toContainEqual([sx, sy, sw, sh]);
+                    expect(bounded.masks).toContainEqual([sx, sy, sw, sh]);
                     expect([dw, dh]).toEqual([sw, sh]);
                     expect(sw * sh).toBeLessThan(full.sources[i][2] * full.sources[i][3]);
                 }
             };
 
             /** A key is not cut down: it clears the whole mask, and blurs all of it, as the whole mask does. */
-            const expectWhole = (bounded: Cast, full: Cast, direct = true) => {
-                expect(full.clearRects.length).toBeGreaterThan(0);
-                expect(bounded.clearRects).toEqual(full.clearRects);
-                // A kept cast is blurred onto its cache, which is not the layer.
-                if (direct) {
-                    expect(full.sources.length).toBeGreaterThan(0);
-                    expect(bounded.sources).toEqual(full.sources);
+            const expectWhole = (bounded: Cast, full: Cast) => {
+                expect(full.sources.length).toBeGreaterThan(0);
+                expect(bounded.masks).toEqual(full.masks);
+                expect(bounded.sources).toEqual(full.sources);
+            };
+
+            /** Expects the pixels of the whole mask. A key of more than 16 casters is whole on a direct cast, bounded on a kept one. */
+            const expectSameAsWhole = (scenario: Scenario) => {
+                const bounded = castScenario(scenario, false);
+                const full = castScenario(scenario, true);
+                expectSameCast(bounded, full);
+                if (scenario.crowded !== true) {
+                    expectBounded(bounded, full);
+                    return bounded;
                 }
+                expectWhole(bounded, full);
+                const keptBounded = castScenario(scenario, false, true);
+                const keptFull = castScenario(scenario, true, true);
+                expectSameCast(keptBounded, keptFull);
+                expectBounded(keptBounded, keptFull);
+                return keptBounded;
             };
 
             const hovered = (shadow: Partial<ResolvedDropShadowOptions>, over: Partial<Scenario> = {}): Scenario => ({
@@ -3592,6 +3594,7 @@ describe('Group shadow compositor', () => {
                     return [shadowKey(casters, full)];
                 },
                 direct: true,
+                crowded: true,
                 held: GRID,
                 ...over,
             });
@@ -3636,7 +3639,7 @@ describe('Group shadow compositor', () => {
                     const full = castScenario(scenario, true, true);
 
                     expect(bounded.painted).toBeGreaterThan(0);
-                    expectWhole(bounded, full, false);
+                    expectWhole(bounded, full);
                 });
             });
 
@@ -3669,15 +3672,10 @@ describe('Group shadow compositor', () => {
                 ];
 
                 it.each(WHOLE)('should clear and blur a part of the mask for %s', (_name, scenario) => {
-                    const bounded = castScenario(scenario, false);
-                    const full = castScenario(scenario, true);
-
-                    expectSamePixels(bounded, full);
-                    expectBounded(bounded, full);
+                    expectSameAsWhole(scenario);
                 });
 
-                // The blurs here are far wider than the extent that the mask is cut to, and the extents differ in how far they
-                // reach past the casters, so the crop that skia blurs from differs between the cases.
+                // The blurs are wider than the extent that the mask is cut to, so skia blurs from a different crop in each case.
                 const BLURS = [12, 20, 30, 40, 60];
                 const SPREADS = [0, 5];
                 const OFFSETS = [
@@ -3694,11 +3692,7 @@ describe('Group shadow compositor', () => {
                 it.each(LARGE)(
                     'should draw the pixels of the whole mask for 20 casters of a blur of $blur, a spread of $spread and an offset of $xOffset, $yOffset',
                     (shadow) => {
-                        const bounded = castScenario(crowd(shadow), false);
-                        const full = castScenario(crowd(shadow), true);
-
-                        expectSamePixels(bounded, full);
-                        expectBounded(bounded, full);
+                        expectSameAsWhole(crowd(shadow));
                     }
                 );
 
@@ -3711,18 +3705,13 @@ describe('Group shadow compositor', () => {
                             direct: true,
                             held: HOVERED,
                         };
-                        const bounded = castScenario(scenario, false);
-                        const full = castScenario(scenario, true);
-
-                        expectSamePixels(bounded, full);
-                        expectBounded(bounded, full);
+                        expectSameAsWhole(scenario);
                     }
                 );
             });
 
-            // The premise of the whole-pixel condition, in skia alone: a part of a canvas, from a source rect of any size around
-            // the casters, blurs to the pixels that the whole canvas does. The sizes include those that differed by one alpha
-            // for an offset by part of a pixel.
+            // The premise of the whole-pixel condition, in skia alone: a source rect of any size around the casters blurs to
+            // the pixels that the whole canvas does. The sizes include those that differed by one alpha for a part of a pixel.
             describe('a source rect of a canvas blurred with a shadow', () => {
                 const PAD_X = 14;
                 const PAD_Y = 12;
@@ -3777,8 +3766,7 @@ describe('Group shadow compositor', () => {
                                 110 + 2 * margin,
                             ];
                             const part = blurred(source, rect, offset, blur);
-                            let differing = 0;
-                            for (let i = 0; i < part.length; i++) if (part[i] !== whole[i]) differing++;
+                            const differing = differingBytes({ data: part }, { data: whole });
                             expect({ margin, differing }).toEqual({ margin, differing: 0 });
                         }
                     }
@@ -3814,11 +3802,7 @@ describe('Group shadow compositor', () => {
                 it.each([true, false])(
                     'should draw the pixels of the whole mask for a glow with no fill, where tinting is %s',
                     (canTint) => {
-                        const bounded = castScenario(tinted(canTint), false);
-                        const full = castScenario(tinted(canTint), true);
-
-                        expectSamePixels(bounded, full);
-                        expectBounded(bounded, full);
+                        expectSameAsWhole(tinted(canTint));
                     }
                 );
 
@@ -3838,11 +3822,7 @@ describe('Group shadow compositor', () => {
                         direct: true,
                         held: { width: 120, height: 90 },
                     };
-                    const bounded = castScenario(scenario, false);
-                    const full = castScenario(scenario, true);
-
-                    expectSamePixels(bounded, full);
-                    expectBounded(bounded, full);
+                    expectSameAsWhole(scenario);
                 });
 
                 // A key of 512 casters or more at different strengths is cast as a mask of each strength, and each is cut to the
@@ -3860,18 +3840,13 @@ describe('Group shadow compositor', () => {
                             }
                             return [{ ...glowKeyOf(casters[0], glow), casters }];
                         },
+                        crowded: true,
                         held: { width: 360, height: 117 },
                     };
-                    const bounded = castScenario(scenario, false);
-                    const full = castScenario(scenario, true);
-
-                    expectSamePixels(bounded, full);
-                    // One mask for each strength, and each is cleared at the extent of the key.
-                    const masks = bounded.clearRects.filter(([, , w, h]) => w < LAYER.width || h < LAYER.height);
-                    const sameRect = masks.filter(
-                        (rect) => masks.filter((other) => other.join() === rect.join()).length >= 2
-                    );
-                    expect(sameRect.length).toBeGreaterThanOrEqual(2);
+                    // One mask for each strength, and a kept cast clears each at the extent of the key.
+                    const { masks } = expectSameAsWhole(scenario);
+                    expect(masks).toHaveLength(2);
+                    expect(masks[0]).toEqual(masks[1]);
                 });
 
                 it('should draw the pixels of the whole mask for an overlay glow cut by an item that casts none', () => {
@@ -3888,12 +3863,8 @@ describe('Group shadow compositor', () => {
                         },
                         held: HOVERED,
                     };
-                    const bounded = castScenario(scenario, false);
-                    const full = castScenario(scenario, true);
-
-                    expectSamePixels(bounded, full);
-                    // The key that casts is cleared at less than the layer, and the cutter casts no mask of its own.
-                    expect(bounded.clearRects.some(([, , w, h]) => w < LAYER.width && h < LAYER.height)).toBe(true);
+                    // The cutter casts no mask of its own, so the one mask is that of the key that casts.
+                    expect(expectSameAsWhole(scenario).masks).toHaveLength(1);
                 });
 
                 it('should clear one pixel across of a mask whose casters are all off it', () => {
@@ -3908,8 +3879,8 @@ describe('Group shadow compositor', () => {
                     expect(bounded.digest).toBe(full.digest);
                     expectEqualPixels(bounded, full);
                     // It is one pixel wide where it is off the mask, and is as tall as the caster where it is on it.
-                    expect(bounded.clearRects).toEqual([[0, expect.any(Number), 1, expect.any(Number)]]);
-                    expect(bounded.clearRects[0][3]).toBeLessThan(LAYER.height);
+                    expect(bounded.masks).toEqual([[0, expect.any(Number), 1, expect.any(Number)]]);
+                    expect(bounded.masks[0][3]).toBeLessThan(LAYER.height);
                 });
 
                 it.each([
@@ -3929,7 +3900,7 @@ describe('Group shadow compositor', () => {
                     const bounded = castScenario(scenario, false);
                     const full = castScenario(scenario, true);
 
-                    expectSamePixels(bounded, full);
+                    expectSameCast(bounded, full);
                     expectWhole(bounded, full);
                 });
 
@@ -3940,7 +3911,7 @@ describe('Group shadow compositor', () => {
                     const bounded = castScenario(scenario, false);
                     const full = castScenario(scenario, true);
 
-                    expectSamePixels(bounded, full);
+                    expectSameCast(bounded, full);
                     expectWhole(bounded, full);
                     expect(bounded.scratch[0] * bounded.scratch[1]).toBeLessThanOrEqual(4096 * 4096);
                 });
@@ -3962,13 +3933,11 @@ describe('Group shadow compositor', () => {
                     const bounded = castScenario(scenario, false, true);
                     const full = castScenario(scenario, true, true);
 
-                    expectSamePixels(bounded, full);
+                    expectSameCast(bounded, full);
                     // The last cast was made directly, since the cache was refused, and it cleared and blurred whole masks.
                     expect(full.last.sources).toBeGreaterThan(0);
                     expect(bounded.last).toEqual(full.last);
-                    expect(bounded.clearRects.slice(-bounded.last.clears)).toEqual(
-                        full.clearRects.slice(-full.last.clears)
-                    );
+                    expect(bounded.masks.slice(-bounded.last.clears)).toEqual(full.masks.slice(-full.last.clears));
                     expect(bounded.sources.slice(-bounded.last.sources)).toEqual(
                         full.sources.slice(-full.last.sources)
                     );
