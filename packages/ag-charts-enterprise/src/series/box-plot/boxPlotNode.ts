@@ -7,6 +7,7 @@ import {
     SceneArrayChangeDetection,
     SceneChangeDetection,
     clippedRoundRect as baseClippedRoundRect,
+    strokeOpenLineEnds,
 } from 'ag-charts-core';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -257,7 +258,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         ctx.lineWidth = wickStrokeWidth + growth;
         ctx.stroke(wickPath.getPath2D());
         // A gap's cut only has butt caps where the wicks are butt-capped, and then ends a half-growth past each of their ends.
-        if (ctx.lineCap === 'butt') wickPath.strokeOpenLineEnds(ctx, growth / 2);
+        if (ctx.lineCap === 'butt') strokeOpenLineEnds(wickPath, ctx, growth / 2);
     }
 
     protected override hasButtEnds(): boolean {
@@ -266,7 +267,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
 
     protected override strokeButtEnds(ctx: CanvasContext, reach: number) {
         // The wicks that are in the main path, and the line of a body with no height, have open ends of their own.
-        this.path.strokeOpenLineEnds(ctx, reach);
+        strokeOpenLineEnds(this.path, ctx, reach);
     }
 
     private wickColour?: unknown;

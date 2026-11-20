@@ -29,15 +29,15 @@ export class ExtendedPath2D {
     private previousClosedPath: boolean = false;
     commands: Command[] = [];
     params: number[] = [];
-    private commandsLength: number = 0;
+    commandsLength: number = 0;
     private paramsLength: number = 0;
 
     // The end segments (from x, y, to x, y) of the open runs of lines, found once per build of the path.
     // Only a path that has a gapped butt-end cut drawn allocates it.
-    private openEnds?: number[];
-    private openEndsLength = 0;
+    openEnds?: number[];
+    openEndsLength = 0;
     // The commands length the ends were found at, or -1 while they are stale. Commands are only ever appended between clears.
-    private openEndsAt = -1;
+    openEndsAt = -1;
 
     cx = Number.NaN;
     cy = Number.NaN;
@@ -459,91 +459,6 @@ export class ExtendedPath2D {
         this.openEndsAt = -1;
     }
 
-    /**
-     * Strokes `reach` further along each end of every open subpath of straight lines, with the width and cap the context has,
-     * so that a butt-capped dilation ends `reach` past the ends as it does at the sides. Closed, curved and zero-length
-     * subpaths have no such end and are skipped.
-     */
-    strokeOpenLineEnds(
-        ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo' | 'stroke'>,
-        reach: number
-    ) {
-        if (reach <= 0) return;
-
-        if (this.openEndsAt !== this.commandsLength) this.findOpenLineEnds();
-
-        const { openEnds, openEndsLength } = this;
-        if (openEnds == null) return;
-
-        let began = false;
-        for (let i = 0; i < openEndsLength; i += 4) {
-            began = extendLineEnd(ctx, openEnds[i], openEnds[i + 1], openEnds[i + 2], openEnds[i + 3], reach, began);
-        }
-        if (began) ctx.stroke();
-    }
-
-    private findOpenLineEnds() {
-        const { commands, params, commandsLength } = this;
-        let openEnds = this.openEnds;
-        let n = 0;
-        // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
-        let x0 = 0;
-        let y0 = 0;
-        let x1 = 0;
-        let y1 = 0;
-        let px = 0;
-        let py = 0;
-        let x = 0;
-        let y = 0;
-        let lines = 0;
-        let plain = false;
-
-        let pi = 0;
-        // The final pass, with no command, ends the last subpath as a move would.
-        for (let ci = 0; ci <= commandsLength; ci++) {
-            switch (ci < commandsLength ? commands[ci] : Command.Move) {
-                case Command.Move:
-                    if (plain && lines > 0) {
-                        openEnds ??= this.openEnds = [];
-                        openEnds[n++] = x1;
-                        openEnds[n++] = y1;
-                        openEnds[n++] = x0;
-                        openEnds[n++] = y0;
-                        openEnds[n++] = px;
-                        openEnds[n++] = py;
-                        openEnds[n++] = x;
-                        openEnds[n++] = y;
-                    }
-                    if (ci === commandsLength) break;
-                    x0 = x = params[pi++];
-                    y0 = y = params[pi++];
-                    lines = 0;
-                    plain = true;
-                    break;
-                case Command.Line:
-                    if (lines === 0) {
-                        x1 = params[pi];
-                        y1 = params[pi + 1];
-                    }
-                    px = x;
-                    py = y;
-                    x = params[pi++];
-                    y = params[pi++];
-                    lines++;
-                    break;
-                case Command.Curve:
-                    pi += 6;
-                    plain = false;
-                    break;
-                case Command.ClosePath:
-                    plain = false;
-                    break;
-            }
-        }
-        this.openEndsLength = n;
-        this.openEndsAt = commandsLength;
-    }
-
     isPointInPath(x: number, y: number): boolean {
         const commands = this.commands;
         const params = this.params;
@@ -798,6 +713,92 @@ export class ExtendedPath2D {
         if (current.length > 0) polygons.push(current);
         return polygons;
     }
+}
+
+/**
+ * Strokes `reach` further along each end of every open subpath of straight lines, with the width and cap the context has,
+ * so that a butt-capped dilation ends `reach` past the ends as it does at the sides. Closed, curved and zero-length
+ * subpaths have no such end and are skipped.
+ */
+export function strokeOpenLineEnds(
+    path: ExtendedPath2D,
+    ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo' | 'stroke'>,
+    reach: number
+) {
+    if (reach <= 0) return;
+
+    if (path.openEndsAt !== path.commandsLength) findOpenLineEnds(path);
+
+    const { openEnds, openEndsLength } = path;
+    if (openEnds == null) return;
+
+    let began = false;
+    for (let i = 0; i < openEndsLength; i += 4) {
+        began = extendLineEnd(ctx, openEnds[i], openEnds[i + 1], openEnds[i + 2], openEnds[i + 3], reach, began);
+    }
+    if (began) ctx.stroke();
+}
+
+function findOpenLineEnds(path: ExtendedPath2D) {
+    const { commands, params, commandsLength } = path;
+    let openEnds = path.openEnds;
+    let n = 0;
+    // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
+    let x0 = 0;
+    let y0 = 0;
+    let x1 = 0;
+    let y1 = 0;
+    let px = 0;
+    let py = 0;
+    let x = 0;
+    let y = 0;
+    let lines = 0;
+    let plain = false;
+
+    let pi = 0;
+    // The final pass, with no command, ends the last subpath as a move would.
+    for (let ci = 0; ci <= commandsLength; ci++) {
+        switch (ci < commandsLength ? commands[ci] : Command.Move) {
+            case Command.Move:
+                if (plain && lines > 0) {
+                    openEnds ??= path.openEnds = [];
+                    openEnds[n++] = x1;
+                    openEnds[n++] = y1;
+                    openEnds[n++] = x0;
+                    openEnds[n++] = y0;
+                    openEnds[n++] = px;
+                    openEnds[n++] = py;
+                    openEnds[n++] = x;
+                    openEnds[n++] = y;
+                }
+                if (ci === commandsLength) break;
+                x0 = x = params[pi++];
+                y0 = y = params[pi++];
+                lines = 0;
+                plain = true;
+                break;
+            case Command.Line:
+                if (lines === 0) {
+                    x1 = params[pi];
+                    y1 = params[pi + 1];
+                }
+                px = x;
+                py = y;
+                x = params[pi++];
+                y = params[pi++];
+                lines++;
+                break;
+            case Command.Curve:
+                pi += 6;
+                plain = false;
+                break;
+            case Command.ClosePath:
+                plain = false;
+                break;
+        }
+    }
+    path.openEndsLength = n;
+    path.openEndsAt = commandsLength;
 }
 
 /**

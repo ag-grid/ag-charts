@@ -1,6 +1,6 @@
 import { describe, expect, it, test } from 'vitest';
 
-import { ExtendedPath2D } from 'ag-charts-core';
+import { ExtendedPath2D, strokeOpenLineEnds } from 'ag-charts-core';
 
 const square = (path: ExtendedPath2D, half: number, reverse = false) => {
     const corners = [
@@ -20,7 +20,8 @@ const square = (path: ExtendedPath2D, half: number, reverse = false) => {
 /** The segments that `strokeOpenLineEnds` draws, as `[x, y, x, y]`. */
 const openLineEnds = (path: ExtendedPath2D, reach: number) => {
     const segments: number[][] = [];
-    path.strokeOpenLineEnds(
+    strokeOpenLineEnds(
+        path,
         {
             beginPath: () => {},
             moveTo: (x, y) => segments.push([x, y]),
