@@ -907,7 +907,9 @@ describe('TreemapSeries', () => {
                 return texts;
             };
 
-            expect(await groupLabelTexts(false)).toEqual(await groupLabelTexts(true));
+            const shown = await groupLabelTexts(false);
+            expect(shown).toContain('HEALTHCARE');
+            expect(shown).toEqual(await groupLabelTexts(true));
         });
 
         it('keeps the group header within maxHeight when the label shrinks', async () => {
