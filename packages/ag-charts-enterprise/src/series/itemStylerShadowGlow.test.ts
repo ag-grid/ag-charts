@@ -394,7 +394,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(inPlace[0].fillShadow).toMatchObject(ITEM_SHADOW);
         });
 
-        it('casts the glow of the styler from the highlight copy, with every field the styler sets', async () => {
+        it('casts the glow of the styler from the glow-only copy, with every field the styler sets', async () => {
             const { highlighted } = await create({
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
