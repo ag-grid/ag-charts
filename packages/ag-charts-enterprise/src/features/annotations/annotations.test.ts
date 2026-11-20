@@ -1577,11 +1577,11 @@ describe('Annotations', () => {
             expect(alpha?.value).toBe('0.4');
         });
 
-        it('opens from the keyboard, moves between the tabs with the arrow keys and returns focus on Escape', async () => {
+        it('opens from the focused Settings button, moves between the tabs with the arrow keys and returns focus on Escape', async () => {
             await prepareChart({ annotations: [families[1].annotation] });
             await clickAt(pointOn(...families[1].at));
 
-            // Activating a focused button from the keyboard is a click.
+            // jsdom does not turn Enter or Space into a click, so the focused button is clicked.
             const settings = chartBody().querySelector<HTMLElement>('button[title="Settings"]')!;
             settings.focus();
             await press('button[title="Settings"]');
