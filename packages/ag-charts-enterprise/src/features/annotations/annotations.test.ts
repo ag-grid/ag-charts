@@ -1566,6 +1566,22 @@ describe('Annotations', () => {
             expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
         });
 
+        it('keeps cleared text as a draft while the dialog is open and deletes the annotation when it closes empty', async () => {
+            const [text] = families;
+            await prepareChart({ annotations: [text.annotation] });
+            await clickAt(pointOn(...text.at));
+            await press('button[title="Settings"]');
+
+            await typeText('');
+            expect(chart.getState().annotations).toHaveLength(1);
+            await typeText('Replaced');
+            expect(chart.getState().annotations).toMatchObject([{ type: 'text', text: 'Replaced' }]);
+
+            await typeText('');
+            await press('.ag-charts-dialog__close-button');
+            expect(chart.getState().annotations ?? []).toHaveLength(0);
+        });
+
         it('opens the text colour picker at the transparency of the annotation', async () => {
             const [text] = families;
             await prepareChart({

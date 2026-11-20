@@ -127,6 +127,7 @@ export class Annotations extends AbstractModuleInstance {
     // State
     private readonly state: AnnotationsStateMachine;
     private annotationData: AnnotationDatum[] = [];
+    private settingsTextDatum?: TextualDatumType;
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -476,6 +477,8 @@ export class Annotations extends AbstractModuleInstance {
 
                 if (!hasSettings(datum) || isEphemeralType(datum)) return;
 
+                this.settingsTextDatum = isTextType(datum) ? datum : undefined;
+
                 const onChangeColor =
                     (colorType: AnnotationOptionsColorPickerType) =>
                     (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => {
@@ -656,6 +659,7 @@ export class Annotations extends AbstractModuleInstance {
             // Settings Dialog
             settingsDialog.events.on('hidden', () => {
                 this.optionsToolbar.clearActiveButton();
+                this.deleteTextClearedInSettings();
             })
         );
     }
@@ -1354,6 +1358,22 @@ export class Annotations extends AbstractModuleInstance {
 
     private delete() {
         this.state.transition('delete');
+    }
+
+    /** As the inline editor does, deletes a text annotation left empty once the settings dialog closes. */
+    private deleteTextClearedInSettings() {
+        const datum = this.settingsTextDatum;
+        this.settingsTextDatum = undefined;
+        if (datum?.text !== '') return;
+
+        const index = this.annotationData.indexOf(datum);
+        if (index < 0) return;
+
+        const wasActive = this.state.isActive(index);
+        this.annotationData.splice(index, 1);
+        this.recordActionAfterNextUpdate(`Delete ${datum.type} annotation`);
+        if (wasActive) this.reset();
+        this.update();
     }
 
     private deleteAll() {
