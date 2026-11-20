@@ -1050,10 +1050,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.lineTo(cornerBX, cornerBY);
         ctx.closePath();
         ctx.fill();
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        ctx.lineWidth = reach * 2;
-        ctx.stroke();
+        if (reach > 0) {
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = reach * 2;
+            ctx.stroke();
+        }
     }
 
     /** Sets into `out` the vertex of the item, if it has a sharp one, at which its stroke's mitre can outgrow a gapped dilation's, and returns true. */
