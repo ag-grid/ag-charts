@@ -1708,9 +1708,9 @@ export function castShadows(
     const resolution = fitMask(maskWidth, maskHeight);
     const scratchWidth = Math.max(1, Math.floor(maskWidth * resolution));
     const scratchHeight = Math.max(1, Math.floor(maskHeight * resolution));
+    const keptCast = cache != null && repeated && !isDeclined(cache, scene);
     // A mask that is scaled down is cleared whole, since a part of it would not be drawn to the pixels that the whole is. So is
     // that of a cast that was refused room, whose casters are large, so measuring them would only cost.
-    const keptCast = cache != null && repeated && !isDeclined(cache, scene);
     const bounded = resolution === 1 && !(cache != null && isDeclined(cache, scene));
     const plans = masks.map((mask): KeyPlan => {
         const canvasWidth = Math.max(1, Math.floor(mask.maskWidth * resolution));
@@ -1721,7 +1721,8 @@ export function castShadows(
             canvasHeight,
             scaleX: canvasWidth / mask.maskWidth,
             scaleY: canvasHeight / mask.maskHeight,
-            // A direct cast of a key of many casters is cleared whole, so that an animating layer measures no more than the base.
+            // A key of many casters is measured only for a kept cast, which measures them all for its cache anyway. A direct cast
+            // may be a frame that changes every caster, so measuring them would cost more than clearing the mask whole.
             extent:
                 bounded && (keptCast || sourceOf(mask.key).casters.length <= MAX_BOUNDED_CASTERS)
                     ? getMaskExtent(mask, transform, measured)
