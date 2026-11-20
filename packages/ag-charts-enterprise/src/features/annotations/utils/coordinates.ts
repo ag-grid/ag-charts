@@ -73,6 +73,8 @@ export interface CoordinateField {
     fractionDigits?: number;
     /** The input's granularity in seconds, so that a time shows the precision of its value. */
     step?: number;
+    /** The bounds of a number input, which its spinner stays within. */
+    range?: { min: number; max: number };
     /** The axis's categories for the input to suggest, read once as the input is created. */
     suggestions?: () => string[];
     /** The datum change for a parsed value, or `undefined` when the field cannot take it. */
@@ -341,6 +343,7 @@ function createOffsetPointFields(
             axis,
             kind: 'offset',
             value: String(Math.round(((groupPercentage - centre) / stepInUnits) * 1e4) / 100),
+            range: { min: -OFFSET_LIMIT, max: OFFSET_LIMIT },
             toProps: (parsed) =>
                 typeof parsed === 'number'
                     ? toProps({ value, groupPercentage: centre + (parsed / 100) * stepInUnits })

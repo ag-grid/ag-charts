@@ -175,7 +175,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
     });
 
-    it('lays out the x and y of a point on one row with labels above, a single value or offset with its label alongside, and a height with its label above', () => {
+    it('lays out the x and y of a point on one row with labels above, a single value, offset or height with its label alongside', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         const context = createAxesContext(new CategoryScale(), yScale);
@@ -189,6 +189,8 @@ describe('AnnotationSettingsDialog coordinates', () => {
 
         show(context);
         expect(inputs()[2].getAttribute('aria-label')).toBe('Start offset: X (%)');
+        expect(inputs()[2].min).toBe('-50');
+        expect(inputs()[2].max).toBe('50');
         expect(layout()).toEqual([
             [
                 { label: 'Start: X', inline: false },
@@ -208,7 +210,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         dialog.hide();
 
         show(context, { ...parallelChannelDatum.create(), height: 10 });
-        expect(layout().at(-1)).toEqual([{ label: 'Height', inline: false }]);
+        expect(layout().at(-1)).toEqual([{ label: 'Height', inline: true }]);
     });
 
     it('labels every input of a point on two category axes, so that no label is a missing locale key', () => {
