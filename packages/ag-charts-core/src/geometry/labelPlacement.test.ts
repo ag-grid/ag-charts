@@ -2080,6 +2080,38 @@ describe('placeLabels sole positioned candidate', () => {
         expect(place()).toEqual([]);
         expect(place(true)).toMatchObject([{ x: 190, y: -5 }]);
     });
+
+    it.each([
+        { edge: 'near', axis: 'y', min: 243.79875896039962, extent: 13.798828125, size: 13.798828125 },
+        { edge: 'near', axis: 'x', min: 0.1, extent: 7.7, size: 7.7 },
+        { edge: 'far', axis: 'x', min: 321.8701364108688, extent: 78.55700019214163, size: 22.206326980634202 },
+        { edge: 'far', axis: 'y', min: -17.3, extent: 7.7, size: 7.6999923 },
+    ])(
+        'flushes a droppable box inside its region where rounding would push it past the $edge edge ($axis)',
+        ({ axis, min, extent, size }) => {
+            const wideBounds: BoxBounds = { x: -50, y: -50, width: 500, height: 500 };
+            const region =
+                axis === 'x'
+                    ? { x: min, y: 0, width: extent, height: 20 }
+                    : { x: 0, y: min, width: 20, height: extent };
+            const contained = [min - extent, min + extent].map((offer) => {
+                const box =
+                    axis === 'x'
+                        ? { x: offer, y: 5, width: size, height: 10 }
+                        : { x: 5, y: offer, width: 10, height: size };
+                const label: PointLabelDatum = { ...movableLabel(), positionedCandidates: [{ box, region }] };
+                const placed = placeLabels(
+                    new Map([['s', seriesLabels([label], { alwaysShow: false })]]),
+                    wideBounds,
+                    5
+                );
+                const [placedLabel] = placed.get('s') ?? [];
+                return placedLabel != null && boxContains(region, placedLabel.x, placedLabel.y, box.width, box.height);
+            });
+
+            expect(contained).toEqual([true, true]);
+        }
+    );
 });
 
 describe('placeLabels rotated labels', () => {
@@ -3431,7 +3463,16 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
 
 function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    let far = min + extent - size;
+    while (far > min && far + size > min + extent) far = nextDownOracle(far);
+    return Math.min(Math.max(pos, min), Math.max(min, far));
+}
+
+function nextDownOracle(value: number): number {
+    if (value === 0) return -Number.MIN_VALUE;
+    const bits = new BigInt64Array(new Float64Array([value]).buffer);
+    bits[0] += value > 0 ? -1n : 1n;
+    return new Float64Array(bits.buffer)[0];
 }
 
 function regionOverflowOracle(region: BoxBounds, x: number, y: number, w: number, h: number): number {
