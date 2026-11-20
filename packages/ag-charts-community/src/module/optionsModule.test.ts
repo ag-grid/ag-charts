@@ -1084,21 +1084,19 @@ describe('ChartOptions', () => {
         });
 
         it.each([
-            ['1 bar series', bar(1), 'single'],
-            ['2 bar series', bar(2), 'shared'],
-            ['3 bar series', bar(3), 'shared'],
-            ['4 bar series', bar(4), 'single'],
-            ['5 bar series', bar(5), 'single'],
-            ['2 scatter series', scatter(2), 'single'],
-            ['1 pie series', pie(1), 'single'],
-            ['2 pie series', pie(2), 'shared'],
-            ['4 pie series', pie(4), 'single'],
-        ])('resolves both modes from the series count when neither is set: %s', (_, series, expected) => {
+            ['1 bar series', bar(1)],
+            ['2 bar series', bar(2)],
+            ['3 bar series', bar(3)],
+            ['4 bar series', bar(4)],
+            ['2 scatter series', scatter(2)],
+            ['1 pie series', pie(1)],
+            ['2 pie series', pie(2)],
+        ])('resolves both modes to single when neither is set: %s', (_, series) => {
             const options = prepareOptions({ series } as AgChartOptions);
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(optionAt(options, 'tooltip.mode')).toBe(expected);
-            expect(optionAt(options, 'highlight.mode')).toBe(expected);
+            expect(optionAt(options, 'tooltip.mode')).toBe('single');
+            expect(optionAt(options, 'highlight.mode')).toBe('single');
         });
 
         it.each([

@@ -1056,31 +1056,36 @@ describe('Chart highlighting', () => {
         });
 
         it.each([
-            [2, 'highlighted-item'],
-            [4, 'unhighlighted-series'],
-        ])('defaults to the tooltip mode when highlight.mode is unset on %i bar series', async (count, expected) => {
-            const options = twoBarSeriesOptions();
-            options.series = Array.from({ length: count }, (_, i) => ({
-                type: 'bar',
-                xKey: 'category',
-                yKey: i % 2 === 0 ? 'apples' : 'oranges',
-                yName: `series ${i}`,
-            }));
-            chart = deproxy(await createChart(options));
+            [2, undefined, 'unhighlighted-series'],
+            [4, undefined, 'unhighlighted-series'],
+            [2, 'shared', 'highlighted-item'],
+        ] as const)(
+            'follows tooltip.mode when highlight.mode is unset on %i bar series (tooltip.mode %s)',
+            async (count, tooltipMode, expected) => {
+                const options = twoBarSeriesOptions();
+                if (tooltipMode) options.tooltip = { mode: tooltipMode };
+                options.series = Array.from({ length: count }, (_, i) => ({
+                    type: 'bar',
+                    xKey: 'category',
+                    yKey: i % 2 === 0 ? 'apples' : 'oranges',
+                    yName: `series ${i}`,
+                }));
+                chart = deproxy(await createChart(options));
 
-            const hoveredDatum = defaultHighlightDatum(chart, {
-                name: 'q2-apples',
-                options,
-                seriesIndex: 0,
-                datumIndex: 1,
-            });
-            expect(hoveredDatum).toBeDefined();
+                const hoveredDatum = defaultHighlightDatum(chart, {
+                    name: 'q2-apples',
+                    options,
+                    seriesIndex: 0,
+                    datumIndex: 1,
+                });
+                expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
-            await waitForChartStability(chart);
+                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                await waitForChartStability(chart);
 
-            expect(stateAt(chart, 1, 1)).toBe(expected);
-        });
+                expect(stateAt(chart, 1, 1)).toBe(expected);
+            }
+        );
 
         it('repaints the previously-matched item when the hover moves to a different category (no itemStyler)', async () => {
             const options = twoBarSeriesOptions('shared');
