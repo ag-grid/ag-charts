@@ -606,9 +606,11 @@ describe('itemStyler glow params of a treemap tile', () => {
         seen.clear();
         await hoverNode(chart, group);
 
-        const tiles = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).filter(
-            (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
-        );
+        // The glow of a tile in the hovered group is cast by its glow-only copy, not by the tile drawn in place.
+        const tiles = visible(
+            getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'highlightGlowSelection'),
+            Rect
+        ).filter((shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren);
         expect(tiles.length).toBeGreaterThan(1);
         for (const tile of tiles) {
             const name = (tile as Shape<{ datum: { name: string } }>).datum?.datum?.name ?? '';
