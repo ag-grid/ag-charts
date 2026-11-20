@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { random } from './randomHelpers';

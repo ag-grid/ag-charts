@@ -12444,6 +12444,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/clone@npm:2.1.4":
+  version: 2.1.4
+  resolution: "@types/clone@npm:2.1.4"
+  checksum: 10c0/89a18c96be125417b21191baa9a7eb7e1e80734b1a7e00dc1e32b268d0da616d6f5ec873dce8f2d36f9640a694d20039f419232f81c56a1bd4e94f07d04bc490
+  languageName: node
+  linkType: hard
+
 "@types/connect-history-api-fallback@npm:^1.5.4":
   version: 1.5.4
   resolution: "@types/connect-history-api-fallback@npm:1.5.4"
@@ -14728,6 +14735,7 @@ __metadata:
     "@swc/core": "npm:1.16.2"
     "@swc/helpers": "npm:0.5.23"
     "@trivago/prettier-plugin-sort-imports": "npm:^6.0.2"
+    "@types/clone": "npm:2.1.4"
     "@types/glob": "npm:^9.0.0"
     "@types/jest-image-snapshot": "npm:^6.4.2"
     "@types/jscodeshift": "npm:^17.3.0"

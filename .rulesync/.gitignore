@@ -32,6 +32,7 @@ mcp.json
 !/rules/demo-ports.md
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
+!/rules/generated-examples.md
 !/rules/module-definitions.md
 !/rules/module-support.md
 !/rules/numeric-values.md

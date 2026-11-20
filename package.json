@@ -53,6 +53,7 @@
     "@swc/cli": "0.8.2",
     "@swc/core": "1.16.2",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/clone": "2.1.4",
     "@types/glob": "^9.0.0",
     "@types/jest-image-snapshot": "^6.4.2",
     "@types/jscodeshift": "^17.3.0",
