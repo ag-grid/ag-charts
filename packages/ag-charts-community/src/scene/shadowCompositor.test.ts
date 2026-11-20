@@ -1737,8 +1737,8 @@ describe('Group shadow compositor', () => {
         it('should grow the scratch canvas to fit layers of different proportions', () => {
             const wideLayer = new OffscreenCanvas(400, 200);
             const tallLayer = new OffscreenCanvas(200, 400);
-            const wide = createGroup([box(0, 0, 400, 200, { fillShadow: RED_HALF })]);
-            const tall = createGroup([box(0, 0, 200, 400, { fillShadow: RED_HALF })]);
+            const wide = createGroup([shadowed(10, 10), shadowed(10, 80)]);
+            const tall = createGroup([shadowed(10, 10), shadowed(10, 80)]);
             const before = offscreenCanvases();
 
             drawOnLayer(wide, wideLayer);
@@ -1746,9 +1746,9 @@ describe('Group shadow compositor', () => {
 
             // The canvas that fits the wide layer is replaced by one that fits both, which neither group replaces again.
             const [scratch] = inUse(createdSince(before));
-            // The mask is as large as its caster, with a margin of 2 where the layer has room for it: 402 across the wide
-            // one, and 202 across the tall one.
-            expect(scratch.width).toBe(402);
+            // The mask reaches 100 further than a layer, for the offset of the shadow, so 500 across the wide one and
+            // 300 across the tall one.
+            expect(scratch.width).toBe(500);
             expect(scratch.height).toBe(400);
 
             drawOnLayer(wide, wideLayer);
@@ -3324,8 +3324,6 @@ describe('Group shadow compositor', () => {
                 clears: Array<[number, number]>;
                 /** The sizes of the mask drawn from the scratch canvas onto the layer, for a key cast directly on it. */
                 blurs: Array<[number, number]>;
-                /** The area of the scratch canvas, in device pixels. */
-                scratchArea: number;
             }
 
             /**
@@ -3379,7 +3377,6 @@ describe('Group shadow compositor', () => {
                     blurs: drawImage.mock.calls
                         .filter(([source]) => source === scratch)
                         .map((args) => [args[7], args[8]]),
-                    scratchArea: scratch.width * scratch.height,
                 };
                 for (const user of users) destroyShadowScratch(user);
                 destroyShadowScratch(scene);
@@ -3430,11 +3427,6 @@ describe('Group shadow compositor', () => {
                         expect(clearWidth).toBeGreaterThanOrEqual(Math.floor(held.width * dpr));
                         expect(clearHeight).toBeGreaterThanOrEqual(Math.floor(held.height * dpr));
                     }
-                });
-
-                it('should keep a scratch canvas smaller than that of the whole mask', () => {
-                    expect(full.scratchArea).toBeGreaterThan(0);
-                    expect(bounded.scratchArea).toBeLessThan(full.scratchArea);
                 });
 
                 if (scenario.direct === true) {
@@ -3492,26 +3484,20 @@ describe('Group shadow compositor', () => {
                 long: [20, 240],
             };
 
-            const SCRATCH_LAYERS: Record<Size, LayerSize> = {
-                large: { width: 1000, height: 800 },
-                small: { width: 200, height: 100 },
-                wide: { width: 400, height: 100 },
-                tall: { width: 100, height: 400 },
-                wider: { width: 440, height: 100 },
-                narrow: { width: 20, height: 400 },
-                long: { width: 100, height: 600 },
-            };
-
             const PATHS: Array<[string, ShrinkPath]> = [
                 [
                     'scratch',
                     {
-                        layers: SCRATCH_LAYERS,
-                        // The mask is as large as the casters, so each is as large as its layer.
-                        keys: (size) => {
-                            const { width, height } = SCRATCH_LAYERS[size];
-                            return [keyOf(box(0, 0, width, height, { fillShadow: RED_HALF }), RED_HALF)];
+                        layers: {
+                            large: { width: 1000, height: 800 },
+                            small: { width: 200, height: 100 },
+                            wide: { width: 400, height: 100 },
+                            tall: { width: 100, height: 400 },
+                            wider: { width: 440, height: 100 },
+                            narrow: { width: 20, height: 400 },
+                            long: { width: 100, height: 450 },
                         },
+                        keys: () => [keyOf(box(20, 20, 40, 40, { fillShadow: RED_HALF }), RED_HALF)],
                         overlay: false,
                         scratch: true,
                         shapes: true,
@@ -3521,11 +3507,7 @@ describe('Group shadow compositor', () => {
                     'gap',
                     {
                         layers: { large: GAP_LAYER, small: GAP_LAYER },
-                        // A shadow as large as the layer keeps the scratch canvas at that size, so that only the gap canvas shrinks and grows.
-                        keys: (size) => [
-                            keyOf(box(0, 0, GAP_LAYER.width, GAP_LAYER.height, { fillShadow: RED_HALF }), RED_HALF),
-                            glowKey(10, 10, ...GAP_SHAPES[size]),
-                        ],
+                        keys: (size) => [GAP_SHAPES[size]].map(([width, height]) => glowKey(10, 10, width, height)),
                         overlay: false,
                         scratch: false,
                         shapes: true,
