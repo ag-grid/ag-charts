@@ -44,11 +44,12 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
-        this.hideFns.push(() => {
-            this.i18nUpdater = undefined;
-            if (this.hasChanged) this.onChangeHide?.(this.cancelled);
-        });
         this.cleanup.register(this.ctx.eventsHub.on('locale:change', () => this.i18nUpdater?.()));
+    }
+
+    protected override onHide() {
+        this.i18nUpdater = undefined;
+        if (this.hasChanged) this.onChangeHide?.(this.cancelled);
     }
 
     public show(options: ColorPickerOptions) {

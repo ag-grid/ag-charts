@@ -7,13 +7,12 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { magnetTranslation, translate } from '../utils/coords';
-import { isMovable } from '../utils/datum';
+import { isWriteable } from '../utils/datum';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
-import { type PointType, getGroupingValue } from '../utils/scale';
+import { getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineDatum, horizontalLineDatum } from './crossLineDatum';
-import { isFollowing, resolveCrossLineValue } from './followValue';
 
 export class CrossLineScene extends AnnotationScene<never> {
     static override is(value: unknown): value is CrossLineScene {
@@ -48,13 +47,10 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
-        const value = resolveCrossLineValue(datum, context);
-        const coords = this.convertCrossLine(value, this.isHorizontal, axisContext);
+        const coords = this.convertCrossLine(datum, axisContext);
 
         if (coords == null) {
             this.visible = false;
-            // The axis label is attached to the axis rather than to this node, and is made visible before every update.
-            if (this.axisLabel) this.axisLabel.visible = false;
             return;
         }
 
@@ -64,7 +60,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.updateLine(datum, coords);
         this.updateHandle(datum, coords);
         this.updateText(datum, coords);
-        this.updateAxisLabel(datum, value, axisContext, coords);
+        this.updateAxisLabel(datum, axisContext, coords);
     }
 
     private updateLine(datum: CrossLineDatum, coords: Bounds4) {
@@ -106,8 +102,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, ...handlePosition });
 
-        // A followed line cannot be dragged, so its handle takes the locked look
-        middle.toggleLocked((locked ?? false) || isFollowing(datum));
+        middle.toggleLocked(locked ?? false);
     }
 
     private updateText(datum: CrossLineDatum, coords: Bounds4) {
@@ -122,12 +117,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         return axisLabel;
     }
 
-    private updateAxisLabel(
-        datum: CrossLineDatum,
-        value: PointType | undefined,
-        axisContext: AnnotationAxisContext,
-        coords: Bounds4
-    ) {
+    private updateAxisLabel(datum: CrossLineDatum, axisContext: AnnotationAxisContext, coords: Bounds4) {
         this.axisLabel ??= this.createAxisLabel(axisContext);
 
         const { axisLabel, seriesRect } = this;
@@ -143,9 +133,10 @@ export class CrossLineScene extends AnnotationScene<never> {
                 return;
             }
 
+            const value = getGroupingValue(datum.value);
             axisLabel.update({
                 ...Vec2.add(labelCorner, Vec2.required(seriesRect)),
-                value: getGroupingValue(value),
+                value,
                 styles: datum.axisLabel,
                 context: axisContext,
             });
@@ -180,8 +171,6 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public dragStart(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
-        if (!isMovable(datum)) return;
-
         const middle = horizontalLineDatum.is(datum)
             ? { x: target.x, y: convert(datum.value, context.yAxis) }
             : { x: convert(datum.value, context.xAxis), y: target.y };
@@ -195,7 +184,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     public drag(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
-        if (!isMovable(datum) || !dragState) return;
+        if (!isWriteable(datum) || !dragState) return;
 
         if (activeHandle != null) {
             this[activeHandle].toggleDragging(true);
@@ -211,7 +200,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public translate(datum: CrossLineDatum, translation: Point, context: AnnotationContext) {
-        if (!isMovable(datum)) return;
+        if (!isWriteable(datum)) return;
 
         const vector = horizontalLineDatum.is(datum)
             ? Vec2.from(0, convert(datum.value, context.yAxis))
@@ -236,13 +225,10 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public copy<D extends CrossLineDatum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
-        // A copy of a followed line would sit exactly on top of it
-        if (isFollowing(datum)) return;
-
         const isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = isHorizontal ? context.yAxis : context.xAxis;
 
-        const coords = this.convertCrossLine(datum.value, isHorizontal, axisContext);
+        const coords = this.convertCrossLine(datum, axisContext);
         if (!coords) {
             return;
         }
@@ -293,17 +279,17 @@ export class CrossLineScene extends AnnotationScene<never> {
         return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'right' as const };
     }
 
-    private convertCrossLine(value: PointType | undefined, isHorizontal: boolean, context: AnnotationAxisContext) {
-        if (value == null) return;
+    private convertCrossLine(datum: CrossLineDatum, context: AnnotationAxisContext) {
+        if (datum.value == null) return;
 
         let x1 = 0;
         let y1 = 0;
         let x2: number, y2: number;
 
         const { bounds } = context;
-        const scaledValue = convert(value, context);
+        const scaledValue = convert(datum.value, context);
 
-        if (isHorizontal) {
+        if (horizontalLineDatum.is(datum)) {
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;

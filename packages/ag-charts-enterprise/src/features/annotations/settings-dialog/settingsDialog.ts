@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { DatalistWidget, type DynamicContext, EventEmitter } from 'ag-charts-core';
-import type { AgAnnotationFollowName } from 'ag-charts-types';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -17,8 +16,6 @@ import {
 } from '../annotationTypes';
 import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type { LinearDialogDatumType } from '../annotationsSuperTypes';
-import { horizontalLineDatum } from '../cross-line/crossLineDatum';
-import { normaliseFollow } from '../cross-line/followValue';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
 import {
     type CoordinateChangeProps,
@@ -66,8 +63,6 @@ export interface LinearSettingsDialogLineChangeProps {
     reverse?: boolean;
     showFill?: boolean;
     bands?: FibonacciBands;
-    /** Make a horizontal line follow the first or last datum of a series, or `'none'` to stop it following. */
-    follow?: AgAnnotationFollowName | 'none';
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -146,10 +141,12 @@ export class AnnotationSettingsDialog extends Dialog {
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
-        this.hideFns.push(() => {
-            this.refreshCoordinateInputs = undefined;
-            this.events.emit('hidden', null);
-        });
+    }
+
+    protected override onHide() {
+        this.refreshCoordinateInputs = undefined;
+        this.events.emit('hidden', null);
+        super.onHide();
     }
 
     /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
@@ -251,14 +248,6 @@ export class AnnotationSettingsDialog extends Dialog {
 
         panel.addChild(groupOne);
         panel.addChild(groupTwo);
-
-        if (horizontalLineDatum.is(datum)) {
-            panel.addChild(
-                this.createFollowSelect(normaliseFollow(datum.follow)?.follow ?? 'none', (follow) =>
-                    options.onChangeLine({ follow })
-                )
-            );
-        }
 
         if (isFibonacciType(datum)) {
             panel.addChild(
@@ -511,24 +500,6 @@ export class AnnotationSettingsDialog extends Dialog {
             options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(bands),
             onChange: (value) => onChange(Number(value) as FibonacciBands),
-        });
-    }
-
-    private createFollowSelect(
-        follow: AgAnnotationFollowName | 'none',
-        onChange: (value: AgAnnotationFollowName | 'none') => void
-    ) {
-        const { localeManager } = this.ctx;
-        return this.createSelect({
-            label: 'dialogInputFollow',
-            altText: 'dialogInputFollowAltText',
-            options: [
-                { label: localeManager.t('dialogInputFollowNone'), value: 'none' },
-                { label: localeManager.t('dialogInputFollowFirst'), value: 'first' },
-                { label: localeManager.t('dialogInputFollowLast'), value: 'last' },
-            ],
-            value: follow,
-            onChange: (value) => onChange(value as AgAnnotationFollowName | 'none'),
         });
     }
 

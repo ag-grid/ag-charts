@@ -1,5 +1,11 @@
 import type { CanvasContext, Logger } from 'ag-charts-core';
-import { BBox, DeclaredSceneChangeDetection, ExtendedPath2D, SceneArrayChangeDetection } from 'ag-charts-core';
+import {
+    BBox,
+    DeclaredSceneChangeDetection,
+    ExtendedPath2D,
+    SceneArrayChangeDetection,
+    strokeOpenLineEnds,
+} from 'ag-charts-core';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
 
@@ -180,6 +186,17 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
 
         ctx.lineWidth = wickStrokeWidth + growth;
         ctx.stroke(wickPath.getPath2D());
+        // A gap's cut only has butt caps where the wicks are butt-capped, and then ends a half-growth past each of their ends.
+        if (ctx.lineCap === 'butt') strokeOpenLineEnds(wickPath, ctx, growth / 2);
+    }
+
+    protected override hasButtEnds(): boolean {
+        return true;
+    }
+
+    protected override strokeButtEnds(ctx: CanvasContext, reach: number) {
+        // The wicks that are in the main path, and the line of a body with no height, have open ends of their own.
+        strokeOpenLineEnds(this.path, ctx, reach);
     }
 
     private wickColour?: unknown;

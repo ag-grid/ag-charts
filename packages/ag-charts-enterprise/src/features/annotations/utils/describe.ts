@@ -3,7 +3,6 @@ import { toPlainText } from 'ag-charts-core';
 import { type AnnotationAxisContext, type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { getAnnotationLabel } from '../annotationsMenuOptions';
 import type { AnnotationDatum } from '../annotationsSuperTypes';
-import { resolveCrossLineValue } from '../cross-line/followValue';
 import { getGroupingValue } from './scale';
 import type { PointType } from './scale';
 import { isCrossLineType, isTextType } from './types';
@@ -21,7 +20,7 @@ export function describeAnnotationAxis(datum: AnnotationDatum, context: Annotati
     if (isCrossLineType(datum)) {
         const isHorizontal = datum.type === AnnotationType.HorizontalLine;
         if (isHorizontal !== (axis === 'y')) return;
-        return formatValue(resolveCrossLineValue(datum, context), axisContext);
+        return formatValue(datum.value, axisContext);
     }
     if ('start' in datum) {
         const start = formatValue(datum.start[axis], axisContext);
@@ -60,10 +59,10 @@ function valueKey(point: PointType | undefined) {
 }
 
 /** Changes with the datum's inputs to `describeAnnotation()`; the caller must track the axis formats and locale. */
-export function getDescriptionKey(datum: AnnotationDatum, context: AnnotationContext) {
+export function getDescriptionKey(datum: AnnotationDatum) {
     const text = isTextType(datum) ? datum.text : '';
     if (isCrossLineType(datum)) {
-        return `${datum.type}|${valueKey(resolveCrossLineValue(datum, context))}`;
+        return `${datum.type}|${valueKey(datum.value)}`;
     }
     if ('start' in datum) {
         const { start, end } = datum;

@@ -1,7 +1,5 @@
 import { SKIP_JS_BUILTINS, deepClone, isPlainObject } from 'ag-charts-core';
 
-import { AnnotationType } from '../annotationTypes';
-
 type OptionsRecord = Record<string, unknown>;
 
 /** Apply options onto a datum, merging into nested option objects so unspecified nested keys keep their values. */
@@ -46,9 +44,4 @@ export function serialiseAnnotation<T extends { id: string }>(datum: T): Omit<T,
 
 export function isWriteable(datum: { locked?: boolean; readOnly?: boolean }) {
     return !datum.locked && !datum.readOnly;
-}
-
-/** Whether translating the annotation, as dragging it or moving it with the keyboard does, changes it. */
-export function isMovable(datum: { type: AnnotationType; locked?: boolean; readOnly?: boolean; follow?: unknown }) {
-    return isWriteable(datum) && !(datum.type === AnnotationType.HorizontalLine && datum.follow != null);
 }

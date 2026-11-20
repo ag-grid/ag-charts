@@ -36,7 +36,7 @@ const options: AgStandaloneChartOptions = {
             calloutLabelKey: 'segment',
             sectorLabelKey: 'revenue',
             angleKey: 'revenue',
-            sectorSpacing: 3,
+            gap: 3,
             calloutLabel: {
                 minAngle: 30,
                 formatter: ({ datum }) => [

@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import type { BoxBounds } from '../../geometry/boxBounds';
-import { boxOverlapsSector, clockwiseAngles, isBoxInSector, isPointInSector } from './sector';
+import {
+    boxOverlapsSector,
+    clampSectorCornerRadii,
+    clockwiseAngles,
+    isBoxInSector,
+    isPointInSector,
+    radiiScalingFactor,
+} from './sector';
 
 const TAU = 2 * Math.PI;
 
@@ -199,4 +206,65 @@ describe('isBoxInSector', () => {
         expect(boxInSectorBySampling(box, reflex)).toBe(true);
         expect(isBoxInSector(box, reflex)).toBe(true);
     });
+});
+
+describe('isPointInSector with a radialEdgeInset', () => {
+    const quarter: Sector = {
+        startAngle: 0,
+        endAngle: Math.PI / 2,
+        innerRadius: 0,
+        outerRadius: 100,
+        radialEdgeInset: 5,
+    };
+
+    it.each([
+        { point: [50, 3], inside: false, at: 'within the inset of the start edge' },
+        { point: [50, 6], inside: true, at: 'clear of the start edge' },
+        { point: [3, 50], inside: false, at: 'within the inset of the end edge' },
+        { point: [6, 50], inside: true, at: 'clear of the end edge' },
+        { point: [6, 6], inside: true, at: 'clear of both edges near the centre' },
+        { point: [4, 4], inside: false, at: 'within the inset of both edges near the centre' },
+    ])('treats a point $at as inside: $inside', ({ point: [x, y], inside }) => {
+        expect(isPointInSector(x, y, quarter)).toBe(inside);
+    });
+
+    it('insets only along each edge, not across the line it lies on', () => {
+        // Three quarters of a turn: (-50, 3) is within 5px of the line through the start edge, but on the far
+        // side of the centre from the edge itself.
+        const reflex: Sector = { ...quarter, endAngle: Math.PI * 1.5 };
+        expect(isPointInSector(-50, 3, reflex)).toBe(true);
+    });
+});
+
+describe('radiiScalingFactor with no inset', () => {
+    it.each([
+        { r: 30, sweep: Math.PI / 2, a: -7, b: -7, expected: 1 },
+        { r: 30, sweep: Math.PI, a: 0, b: 0, expected: 0 },
+        { r: 30, sweep: 0.3, a: -7, b: -7, expected: 0.5546875 },
+        { r: 15, sweep: 0.3, a: 7, b: 7, expected: 0.375 },
+        { r: 20, sweep: 0.05, a: -5, b: -2, expected: 0.13671875 },
+        { r: 30, sweep: 0.5, a: -10, b: 0, expected: 0.96875 },
+    ])('scales corners $a and $b at radius $r over $sweep rad by $expected', ({ r, sweep, a, b, expected }) => {
+        expect(radiiScalingFactor(r, sweep, a, b)).toBe(expected);
+    });
+});
+
+describe('clampSectorCornerRadii with no inset', () => {
+    it.each([
+        { corners: [3, 3, 3, 3], sweep: Math.PI / 2, innerRadius: 0, expected: [3, 3, 0, 0] },
+        { corners: [100, 100, 100, 100], sweep: Math.PI / 2, innerRadius: 0, expected: [12.421875, 12.421875, 0, 0] },
+        { corners: [8, 8, 8, 8], sweep: Math.PI / 2, innerRadius: 15, expected: [7, 7, 7, 7] },
+        { corners: [100, 100, 100, 100], sweep: 1.5 * Math.PI, innerRadius: 15, expected: [7, 7, 7, 7] },
+        { corners: [7, 7, 7, 7], sweep: 0.3, innerRadius: 15, expected: [3.890625, 3.890625, 2, 2] },
+        { corners: [12, 12, 12, 12], sweep: 0.8, innerRadius: 5, expected: [8.37890625, 8.37890625, 1, 1] },
+        { corners: [10, 2, 4, 0], sweep: 1, innerRadius: 10, expected: [10, 2, 4, 0] },
+    ])(
+        'fits corners $corners over $sweep rad from radius $innerRadius to 30',
+        ({ corners, sweep, innerRadius, expected }) => {
+            const [startOuter, endOuter, startInner, endInner] = corners;
+            const radii = { startOuter, endOuter, startInner, endInner };
+            clampSectorCornerRadii(radii, sweep, innerRadius, 30, 0, innerRadius > 0);
+            expect([radii.startOuter, radii.endOuter, radii.startInner, radii.endInner]).toEqual(expected);
+        }
+    );
 });

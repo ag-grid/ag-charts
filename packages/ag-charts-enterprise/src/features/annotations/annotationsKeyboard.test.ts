@@ -116,12 +116,6 @@ describe('Annotations keyboard navigation', () => {
             expect(items().map((item) => item.textContent)).toEqual(['50, Horizontal Line annotation']);
         });
 
-        it('describes a line that follows a series at the value it is drawn at', async () => {
-            await prepareChart([{ type: 'horizontal-line', follow: 'last' }]);
-
-            expect(items().map((item) => item.textContent)).toEqual(['95, Horizontal Line annotation']);
-        });
-
         it('has no tab stop without annotations', async () => {
             await prepareChart([]);
 
@@ -278,14 +272,6 @@ describe('Annotations keyboard navigation', () => {
 
         it('disables Move Annotation for a locked annotation', async () => {
             await prepareChart([{ type: 'horizontal-line', value: 50, locked: true }]);
-
-            await openOptions();
-
-            expect(moveButton()?.getAttribute('aria-disabled')).toBe('true');
-        });
-
-        it('disables Move Annotation for a line that follows a series', async () => {
-            await prepareChart([{ type: 'horizontal-line', follow: 'last' }]);
 
             await openOptions();
 
