@@ -61,7 +61,7 @@ set_owner() { echo "$2" >"$(git -C "$WTS/$1" rev-parse --absolute-git-dir)/$OWNE
 DEAD_PID=99999
 while ps -o pid= -p "$DEAD_PID" >/dev/null 2>&1; do DEAD_PID=$((DEAD_PID + 1)); done
 
-for n in stale live legacy chmod ignored openfile inuse dirty interrupted; do make_wt "agent-$n"; done
+for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed; do make_wt "agent-$n"; done
 for n in stale chmod ignored openfile inuse dirty; do set_owner "agent-$n" "$DEAD_PID"; done
 sleep 600 &
 PIDS+=($!)
@@ -69,8 +69,11 @@ set_owner agent-live "$!"
 mkdir -p "$WTS/agent-nogit/x"
 echo 1 >"$WTS/agent-nogit/x/f"
 echo changed >"$WTS/agent-dirty/f"
-# An interrupted move: renamed on disk, git still registering the old path.
+# An interrupted move: the hook's record written, renamed on disk, git still registering the old path.
+echo "$(cd -P "$WTS" && pwd)/agent-interrupted" >"$(git -C "$WTS/agent-interrupted" rev-parse --absolute-git-dir)/claude-moved-from"
 mv "$WTS/agent-interrupted" "$WTS/.removing-agent-interrupted"
+# A manual rename to the hidden name, with no record from the hook.
+mv "$WTS/agent-renamed" "$WTS/.removing-agent-renamed"
 
 sleep 70
 
@@ -94,7 +97,7 @@ sleep 1
 # Unrelated processes starting or exiting on a busy machine make the listing unstable, which keeps every worktree.
 # The scenarios pin the process-id check; the turnover test below exercises it.
 real_user_pids=$(declare -f user_pids)
-user_pids() { echo stable; }
+user_pids() { :; }
 cleanup_stale_agent_worktrees
 eval "$real_user_pids"
 
@@ -113,6 +116,7 @@ expect "open file from a process elsewhere keeps the worktree" kept agent-openfi
 expect "rejected safety commit reached the remover" test -e "$T/hook-ran"
 expect "failed safety commit restores the worktree" registered agent-dirty
 expect "interrupted move is recovered and registered" registered agent-interrupted
+expect "manual rename without the hook's record is left alone" kept .removing-agent-renamed
 expect "lock is released after cleanup" bash -c "exec 9>>'$WTS/.cleanup.lock'; perl -MFcntl=:flock -e 'open(my \$fh, \">&=\", 9) or exit 1; flock(\$fh, LOCK_EX | LOCK_NB) or exit 1'"
 
 # move_worktree refuses an occupied destination and leaves the worktree registered where it was.
@@ -137,6 +141,13 @@ git clone -q "$CWD" "$WTS/.removing-agent-other"
 remove "$WTS/agent-other"
 expect "unrelated checkout at the hidden name is kept" kept .removing-agent-other
 
+# Git's refusal to remove a locked worktree leaves it intact.
+git -C "$CWD" worktree add -q "$WTS/agent-locked" -b agent-locked 2>/dev/null
+git -C "$CWD" worktree lock "$WTS/agent-locked"
+if remove "$WTS/agent-locked"; then fail "git's refusal fails the remover"; else pass "git's refusal fails the remover"; fi
+expect "a locked worktree is left intact" registered agent-locked
+git -C "$CWD" worktree unlock "$WTS/agent-locked"
+
 # The remover refuses a worktree whose git status cannot be read.
 git -C "$CWD" worktree add -q "$WTS/agent-badindex" -b agent-badindex 2>/dev/null
 echo garbage >"$(git -C "$WTS/agent-badindex" rev-parse --absolute-git-dir)/index"
@@ -144,15 +155,23 @@ if remove "$WTS/agent-badindex"; then fail "unreadable git status fails the remo
 expect "the failure is the status check" grep -q "Cannot read git status of $WTS/agent-badindex" "$LOG"
 expect "unreadable git status blocks removal" kept agent-badindex
 
-# A process started or exited during the listing makes it incomplete. Run from a separate process tree, since the
-# hook's own descendants are left out of the check.
-(while :; do /bin/sleep 0.05; done) </dev/null >/dev/null 2>&1 &
-PIDS+=($!)
-if bash -c "$(declare -f process_paths user_pids stable_process_paths); stable_process_paths >/dev/null"; then
-    fail "process turnover makes the listing incomplete"
-else
-    pass "process turnover makes the listing incomplete"
-fi
+# stable_process_paths accepts a listing only when the process ids match before and after, retrying three times.
+# user_pids runs in a command substitution, so its call count is kept in a file.
+turnover_test() {
+    local mode=$1
+    (
+        : >"$T/pid-calls"
+        user_pids() {
+            echo x >>"$T/pid-calls"
+            if [[ $mode == same ]]; then echo 1; else wc -l <"$T/pid-calls"; fi
+        }
+        process_paths() { echo /x; }
+        stable_process_paths >/dev/null
+    )
+}
+if turnover_test changing; then fail "process turnover makes the listing incomplete"; else pass "process turnover makes the listing incomplete"; fi
+expect "turnover exhausts all three attempts" test "$(wc -l <"$T/pid-calls" | tr -d ' ')" = 6
+expect "a stable listing is accepted" turnover_test same
 
 if ((FAILED)); then
     echo "--- log"

@@ -73,7 +73,13 @@ repo_git() {
 }
 
 log "Removing worktree: ${WT_PATH}"
-if ! repo_git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
+# Git's refusal stands for a registered checkout (a locked one, say), leaving it intact for the caller to restore.
+if [[ -n "$WT_GIT_DIR" ]]; then
+    if ! repo_git worktree remove --force "$WT_PATH" >&2; then
+        log "git refused to remove ${WT_PATH}; leaving it in place"
+        exit 1
+    fi
+elif ! git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
     log "git worktree remove failed, falling back to rm + prune..."
     rm -rf "$WT_PATH"
     repo_git worktree prune >&2 2>/dev/null || true

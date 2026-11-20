@@ -14,6 +14,10 @@ CWD=$(echo "$INPUT" | jq -r '.cwd')
 
 log() { echo "[claude-wt] $*" >&2; }
 
+# Git can start hooks and helpers (an fsmonitor daemon, say) that outlive this hook; they must not inherit the
+# cleanup lock descriptor.
+git() { command git "$@" 9>&-; }
+
 # Detect repo name from git remote origin URL.
 detect_repo_name() {
     local remote_url
@@ -94,7 +98,12 @@ process_paths() {
     local listing
     # lsof lists mapped files too. Every process (p) and every file (f) record must resolve to a name (n).
     # lsof prints a backslash as \\, undone below; in_use avoids paths with control characters, which it escapes too.
+    local sampled
+    sampled=$(user_pids) || return 1
     listing=$(lsof -n -P -w -u "$(id -u)" -Fpfn 2>/dev/null) || return 1
+    # Every process sampled just before must have a record; stable_process_paths rules out ones that exited.
+    awk -v sampled="$sampled" 'BEGIN { n = split(sampled, want, "\n") } /^p/ { seen[substr($0, 2)] = 1 }
+        END { for (i = 1; i <= n; i++) if (want[i] != "" && !(want[i] in seen)) exit 1 }' <<<"$listing" || return 1
     awk '
         /^p/ { if (file || (proc && !named)) bad = 1; proc = 1; named = 0; file = 0; next }
         /^f/ { if (file) bad = 1; file = 1; next }
@@ -315,11 +324,15 @@ cleanup_locked() {
     # gets a fresh one.
     PROCESS_PATHS='' PROCESS_PATHS_READ='' local listed=''
 
-    # Restore worktrees left aside by an interrupted run.
+    # Restore worktrees left aside by an interrupted run: only those whose record in their git dir says this hook
+    # moved them from the matching path.
     for moved in "$repo_wt_dir"/.removing-agent-*; do
         [[ -d "$moved" ]] || continue
         original="$repo_wt_dir/${moved##*/.removing-}"
-        [[ -e "$original" ]] || restore_worktree "$moved" "$original"
+        [[ ! -e "$original" ]] || continue
+        git_dir=$(git -C "$moved" rev-parse --absolute-git-dir 2>/dev/null) || continue
+        [[ "$(cat "$git_dir/claude-moved-from" 2>/dev/null)" == "$(cd -P "$repo_wt_dir" && pwd)/${original##*/}" ]] || continue
+        restore_worktree "$moved" "$original"
     done
 
     for candidate in "$repo_wt_dir"/agent-*; do
