@@ -91,6 +91,7 @@ interface LabelLayout {
     theta: number;
     width: number;
     height: number;
+    boxPadding: Required<PaddingOptions>;
 }
 
 /** The annular sector a node's labels are fitted to, in the series' centred frame. */
@@ -172,8 +173,7 @@ function sectorLabelRadius(
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
-            const nearSide = parallelNearSide(ring);
-            const minimumRadius = nearSide > innerRadius ? nearSide + padding + height : 0;
+            const minimumRadius = parallelNearSide(ring) + padding + height;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
             return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
@@ -872,6 +872,7 @@ export class SunburstSeries extends HierarchySeries<
                 theta,
                 width: fitted.width,
                 height: fitted.height + box.top + box.bottom,
+                boxPadding: box,
             };
             if (primary) {
                 node.label = layout;
@@ -949,13 +950,14 @@ export class SunburstSeries extends HierarchySeries<
                     text.textAlign = 'center';
                     text.textBaseline = 'top';
                     text.translationX = 0;
-                    text.translationY = (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5;
+                    text.translationY =
+                        (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5 + label.boxPadding.top;
                     text.rotation = 0;
                     break;
                 case LabelPlacement.Parallel: {
                     const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
-                    const translationRadius =
-                        primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
+                    const outerEdge = primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
+                    const translationRadius = outerEdge - (topHalf ? label.boxPadding.bottom : label.boxPadding.top);
                     text.textAlign = 'center';
                     text.textBaseline = topHalf ? 'bottom' : 'top';
                     text.translationX = Math.cos(theta) * translationRadius;

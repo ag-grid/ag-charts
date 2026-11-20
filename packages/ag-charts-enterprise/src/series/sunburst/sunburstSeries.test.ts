@@ -62,6 +62,25 @@ import {
 import type { HierarchyNode } from '../hierarchy/hierarchySeries';
 import { SunburstSeries } from './sunburstSeries';
 
+/** The corners of a text's box, in drawing order, on the canvas. */
+function canvasCorners(text: TransformableText) {
+    const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
+    return [
+        [x, y],
+        [x + width, y],
+        [x + width, y + height],
+        [x, y + height],
+    ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
+}
+
+/** How far the segment from `a` to `b` comes to the origin. */
+function distanceToSegment(a: { x: number; y: number }, b: { x: number; y: number }) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const t = Math.min(1, Math.max(0, -(a.x * dx + a.y * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(a.x + t * dx, a.y + t * dy);
+}
+
 describe('SunburstSeries', () => {
     setupMockConsole();
     let chart: any;
@@ -1090,6 +1109,47 @@ describe('SunburstSeries', () => {
         it('renders large labels beside a parallel label stack in the ring inside it', async () => {
             chart = await createEnterpriseChart(parallelStackOptions);
             await compare();
+        });
+
+        it.each([
+            { placement: 'parallel', data },
+            { placement: 'centre-circle', data: [{ name: 'Worldwide', gdpChange: 0.07, children: data }] },
+        ])('keeps every $placement label box inside its sector', async ({ data: sectorData }) => {
+            chart = await createEnterpriseChart({ ...parallelStackOptions, data: sectorData });
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const overruns: Array<{ text: string; overrun: number }> = [];
+            for (const group of getSeriesSelectionNodes<Group>(chart, 'labelSelection')) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const centre = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY);
+                const inner = sector.innerRadius + sector.innerEdgeInset;
+                const outer = sector.outerRadius - sector.outerEdgeInset;
+                const full = sector.endAngle - sector.startAngle >= 2 * Math.PI;
+                const [start, end] = [sector.startAngle, sector.endAngle].map((angle) => ({
+                    x: Math.cos(angle),
+                    y: Math.sin(angle),
+                }));
+                for (const text of Selection.selectByClass(group, TransformableText).filter((node) => node.visible)) {
+                    const corners = canvasCorners(text).map(({ canvasX, canvasY }) => ({
+                        x: canvasX - centre.canvasX,
+                        y: canvasY - centre.canvasY,
+                    }));
+                    // The nearest point of the box can lie mid-edge; the farthest is always a corner.
+                    const nearest = Math.min(
+                        ...corners.map((a, i) => distanceToSegment(a, corners[(i + 1) % corners.length]))
+                    );
+                    // Square to each straight edge; every sector here but the centre is narrower than half a turn.
+                    const edgeClearances = corners.map(({ x, y }) =>
+                        full ? Infinity : Math.min(start.x * y - start.y * x, end.y * x - end.x * y)
+                    );
+                    const overrun = Math.max(
+                        inner - nearest,
+                        ...corners.map(({ x, y }) => Math.hypot(x, y) - outer),
+                        ...edgeClearances.map((clearance) => sector.radialEdgeInset - clearance)
+                    );
+                    if (overrun > 1e-6) overruns.push({ text: String(text.text), overrun });
+                }
+            }
+            expect(overruns).toEqual([]);
         });
     });
 
@@ -2346,14 +2406,7 @@ describe('SunburstSeries', () => {
                     placement === 'parallel' ? 1 : 0
                 );
 
-                const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
-                const corners = [
-                    [x, y],
-                    [x + width, y],
-                    [x, y + height],
-                    [x + width, y + height],
-                ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
-                for (const { canvasX, canvasY } of corners) {
+                for (const { canvasX, canvasY } of canvasCorners(text)) {
                     const dx = canvasX - centre.canvasX;
                     const dy = canvasY - centre.canvasY;
                     // Square to each straight edge, positive inside; from half a turn up the cut-out lies behind the centre.
