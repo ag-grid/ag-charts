@@ -1074,7 +1074,8 @@ function castOverlay(
     const lone = sources.size === 1;
     // Whether every glow was cut by the footprint of its own casters, dilated by its `gap`, before it merged.
     let cutWhole = true;
-    // The keys whose glow was cut by the footprint of their own casters alone, before it merged: no later cut touches them.
+    // The keys whose glow was cut by the footprint of their own casters before it merged: the cut after the merge doesn't erase
+    // that footprint again, but the footprints in `cuts`, the hovered node's among them, still cut these glows.
     const selfCut = new Set<ShadowKey>();
     let directKey: ShadowKey | undefined;
     for (let first = 0; first < plans.length;) {

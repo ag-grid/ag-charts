@@ -69,7 +69,7 @@ class SlotKeys {
     ) {
         const clips = pathClip == null ? frame.clips : [...frame.clips, [transformCorners(frame.matrix, pathClip)]];
         let key = this.last;
-        // A glow cut by the footprint of its own caster alone is cast by one key to a caster, as another's footprint is not its cut.
+        // A glow cut by the footprint of its own caster before it merges is cast by one key to a caster, so that cut is that caster's alone.
         const alone = shadow.selfCut === true;
         // The casters of a group follow one another, and rarely differ in shadow or clip.
         if (alone || key == null || frame !== this.lastFrame || pathClip != null || key.shadow !== shadow) {
@@ -219,7 +219,8 @@ function buildKeys(frames: readonly CollectedFrame[], glows: boolean, hoveredKey
             if (hovered != null && frame.hovered) {
                 hovered.add(child as ShadowCaster, shadow, frame, clip, keyOwner);
                 cuts = addCut(cuts, child, frame, cast);
-                // A glow cut by its own footprint alone is not cut by the others': its key does that before the merge.
+                // A glow cut by its own footprint before the merge doesn't add that footprint to `hoveredCuts`, which would cut it again;
+                // it is still cut by the footprints in `cuts`, and by the hovered node's own footprint in `hoveredCuts`.
                 if (cast.selfCut !== true) hoveredCuts = addCut(hoveredCuts, child, frame, cast);
             } else {
                 keys.add(child as ShadowCaster, shadow, frame, clip, keyOwner);

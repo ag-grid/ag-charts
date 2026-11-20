@@ -643,18 +643,18 @@ export class SunburstSeries extends HierarchySeries<
         // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
         const glowCopies: SunburstNode[] = highlightedNode == null ? [] : [highlightedNode];
         const branchSectors: Sector[] = [];
+        let glowing = false;
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
-            if (!this.castsBranchGlow(datum, sector.fillGlow, highlightedNode)) return;
-
-            glowCopies.push(datum);
-            branchSectors.push(sector);
+            if (this.castsBranchGlow(datum, sector.fillGlow, highlightedNode)) {
+                glowCopies.push(datum);
+                branchSectors.push(sector);
+            } else {
+                // A branch sector becomes cut-only below, so only the rest stay overlay casters.
+                glowing ||= sector.fillGlow?.enabled === true && sector.fillGlow.cutOnly !== true;
+            }
         });
         for (const sector of branchSectors) sector.fillGlow = CUT_ONLY_GLOW;
-        let glowing = false;
-        this.datumSelection.each((sector) => {
-            glowing ||= sector.fillGlow?.enabled === true && sector.fillGlow.cutOnly !== true;
-        });
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
         });
