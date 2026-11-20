@@ -175,7 +175,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
     });
 
-    it('lays out the x and y of a point on one row with labels above, a single value, offset or height with its label alongside', () => {
+    it('lays out the x and y of a point on one row with labels above, a single value, offset or height with its label alongside, and bounds the offset', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         const context = createAxesContext(new CategoryScale(), yScale);
