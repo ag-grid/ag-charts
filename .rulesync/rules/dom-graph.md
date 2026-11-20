@@ -15,6 +15,11 @@ globs:
     - 'packages/ag-charts-enterprise/src/features/**/*Popover*.ts'
     - 'packages/ag-charts-enterprise/src/features/**/*Dialog*.ts'
     - 'packages/ag-charts-enterprise/src/features/**/*Button*.ts'
+    - 'packages/ag-charts-enterprise/src/features/axis-interaction/axisInteraction.ts'
+    - 'packages/ag-charts-enterprise/src/features/ranges/ranges.ts'
+    - 'packages/ag-charts-enterprise/src/features/text-input/**'
+    - 'packages/ag-charts-community/src/**/*DOMProxy*.ts'
+    - 'packages/ag-charts-enterprise/src/**/*DOMProxy*.ts'
 ---
 
 # The DOM Graph
@@ -34,6 +39,7 @@ This is a living document. It describes a transition, so whoever changes what it
 ## Ownership (Rust-like)
 
 -   **Widgets own their children and their listeners, unless documented otherwise.** `destroy()` runs `destructor()`, detaches the element, destroys the children and releases `addListener()` listeners.
+-   **Adding a child links it in the widget tree and the DOM**, except under a `DOMManagerWidget`, whose `addChild()` leaves the DOM to `DOMManager` (see Known gaps).
 -   **One owner.** `addChild()` does not unlink a child from a previous parent, which would still destroy it. To move a child, `remove()` it (detaches without destroying), then `addChild()` it elsewhere.
 -   **Borrowing is the exception, and it is explicit:** the borrowing site says so in its JSDoc, and lets go with `remove()`, not `destroy()`.
 -   **`destroy()` releases only what the widget knows about.** Window or document listeners, observers and timers are released in the subclass `destructor()`. An expanded widget left undestroyed (e.g. in a test) keeps its global listeners.
@@ -45,7 +51,7 @@ An expandable widget owns what it expands (submenus, popovers, dialogs) and is r
 
 ## Widgets do the heavy lifting
 
-Put behaviour in a core widget (a method or subclass), not in the feature using it: roles and `aria-*` (`setAriaRole()`, `setAriaExpanded()`, …), roving tab index and arrow keys (e.g. `RovingTabContainerWidget`), hide hooks (e.g. `Popover.onHide()`) rather than collected hide callbacks, widget events via `addListener()` (they carry canvas-relative coordinates), and narrow semantic setters (`setCssOffset()`, `setCSSVariable()`, `toggleClass()`, …) rather than raw `style` or `setAttribute()`.
+Put behaviour in a core widget (a method or subclass), not in the feature using it: roles and `aria-*` (`setAriaRole()`, `setAriaExpanded()`, …), roving tab index and arrow keys (e.g. `RovingTabContainerWidget`), hide hooks (e.g. `Popover.onHide()`) rather than collected hide callbacks, widget events via `addListener()` (their `canvasX`/`canvasY` are `NaN` unless the widget or an ancestor has a canvas origin, see `setCanvasOrigin()`), and narrow semantic setters (`setCssOffset()`, `setCSSVariable()`, `toggleClass()`, …) rather than raw `style` or `setAttribute()`.
 
 ## Rules
 
