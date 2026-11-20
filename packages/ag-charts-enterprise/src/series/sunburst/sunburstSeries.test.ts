@@ -1112,13 +1112,25 @@ describe('SunburstSeries', () => {
         });
 
         it.each([
-            { placement: 'parallel', data },
-            { placement: 'centre-circle', data: [{ name: 'Worldwide', gdpChange: 0.07, children: data }] },
-        ])('keeps every $placement label box inside its sector', async ({ data: sectorData }) => {
+            { placement: 'parallel', data, name: 'United States', expected: ['United States', '0.06'] },
+            {
+                placement: 'centre-circle',
+                data: [{ name: 'Worldwide', gdpChange: 0.07, children: data }],
+                name: 'Worldwide',
+                expected: ['Worldwide', '0.07'],
+            },
+        ])('keeps every $placement label box inside its sector', async ({ data: sectorData, name, expected }) => {
             chart = await createEnterpriseChart({ ...parallelStackOptions, data: sectorData });
             const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const labelGroups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const named = labelGroups.find((group) => group.datum?.datum?.name === name)!;
+            expect(
+                Selection.selectByClass(named, TransformableText)
+                    .filter((text) => text.visible)
+                    .map((text) => text.text)
+            ).toEqual(expected);
             const overruns: Array<{ text: string; overrun: number }> = [];
-            for (const group of getSeriesSelectionNodes<Group>(chart, 'labelSelection')) {
+            for (const group of labelGroups) {
                 const sector = sectors.find((node) => node.datum === group.datum)!;
                 const centre = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY);
                 const inner = sector.innerRadius + sector.innerEdgeInset;
