@@ -30,6 +30,19 @@ DIR_NAME=$(echo "$NAME" | tr '/' '-')
 WORKTREE_ROOT="$HOME/.worktrees"
 WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 
+# Agents run in parallel, so only worktrees idle for this long count as stale.
+STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
+
+# True when the worktree was created, checked out, staged or committed within the stale window.
+recently_active() {
+    local candidate=$1 git_dir
+    local paths=("$candidate" "$candidate/.git")
+    if git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
+        paths+=("$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD")
+    fi
+    [[ -n $(find "${paths[@]}" -maxdepth 0 -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" 2>/dev/null) ]]
+}
+
 # Clean up stale agent worktrees from previous runs.
 # Claude Code does not trigger the WorktreeRemove hook for Agent subagent
 # worktrees, so we clean them up opportunistically here.
@@ -44,6 +57,10 @@ cleanup_stale_agent_worktrees() {
         [[ -d "$candidate" ]] || continue
         # Never clean up the worktree we're about to create.
         [[ "$candidate" == "$WT_PATH" ]] && continue
+        if recently_active "$candidate"; then
+            log "Keeping active agent worktree: $candidate"
+            continue
+        fi
 
         log "Cleaning up stale agent worktree: $candidate"
         echo "{\"worktree_path\": \"$candidate\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
