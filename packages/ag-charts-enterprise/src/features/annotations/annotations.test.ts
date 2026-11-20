@@ -1464,15 +1464,18 @@ describe('Annotations', () => {
             {
                 annotation: { type: 'note', text: 'Note', x: date('2024-07-01'), y: 85 },
                 at: ['2024-07-01', 85],
-                tabs: ['Text', 'Coordinates'],
+                tabs: ['Text', 'Style', 'Coordinates'],
                 async edit() {
                     await typeText('Edited note');
                     await pickFontSize('28');
                     await pickDialogColor(0, GREEN);
+                    await openTab('Style');
+                    expect(panelControls('.ag-charts-dialog__color-picker-button')).toHaveLength(1);
+                    await pickDialogColor(0, BLUE);
                     await openTab('Coordinates');
                     await commitInput(chartBody(), 'Y', '70');
                 },
-                expected: { type: 'note', text: 'Edited note', fontSize: 28, color: GREEN, y: 70 },
+                expected: { type: 'note', text: 'Edited note', fontSize: 28, color: GREEN, fill: BLUE, y: 70 },
             },
             {
                 annotation: {

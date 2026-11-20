@@ -231,7 +231,8 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createTextualTabs(datum: TextualDatumType | ShapeDatumType, options: LinearSettingsDialogOptions) {
         const textTab = isTextType(datum) ? this.createTextualTextTab(datum, options) : undefined;
-        const styleTab = hasFillColor(datum) ? this.createTextualStyleTab(datum, options) : undefined;
+        const styleTab =
+            hasFillColor(datum) || hasLineColor(datum) ? this.createTextualStyleTab(datum, options) : undefined;
         const coordinatesTab = this.createCoordinatesTab(datum, options);
         return {
             ...(textTab && { text: { label: 'dialogHeaderText', panel: textTab.panel, onShow: textTab.onShow } }),
@@ -285,17 +286,19 @@ export class AnnotationSettingsDialog extends Dialog {
                 )
             );
         }
-        inputGroupLine.addChild(
-            this.createColorPickerInput(
-                'fill-color',
-                getDefaultColor(datum, 'fill-color'),
-                getDefaultOpacity(datum, 'fill-color'),
-                false,
-                false,
-                options.onChangeFillColor,
-                options.onChangeHideFillColor
-            )
-        );
+        if (hasFillColor(datum)) {
+            inputGroupLine.addChild(
+                this.createColorPickerInput(
+                    'fill-color',
+                    getDefaultColor(datum, 'fill-color'),
+                    getDefaultOpacity(datum, 'fill-color'),
+                    false,
+                    false,
+                    options.onChangeFillColor,
+                    options.onChangeHideFillColor
+                )
+            );
+        }
         panel.addChild(inputGroupLine);
 
         return panel;
