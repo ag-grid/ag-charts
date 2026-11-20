@@ -11,8 +11,8 @@ import {
 } from 'ag-charts-community';
 import {
     BBox,
-    CUT_ONLY_GLOW,
     type BoxBounds,
+    CUT_ONLY_GLOW,
     type CallbackParamRules,
     type DeepPartial,
     type FittedLabelStack,
