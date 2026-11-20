@@ -436,73 +436,95 @@ describe('glow gap', () => {
 
         // The point of a stroked pie slice sharper than 11.5 degrees: the glow's outer edge and its cut follow the spike that the stroke paints.
         describe.each([
-            ['1.7 degrees', 0.03, 0],
-            ['9 degrees', 0.157, 0],
-            ['9 degrees, its edges inset by 2', 0.157, 2],
-        ])('around the spike of a stroked sector of %s with a miter limit of 1e9', (_name, sweep, inset) => {
-            const GAP = 3;
-            const SPREAD = 10;
-            const WINDOW: PixelWindow = { left: 60, right: 320, top: CENTRE_Y - 50, bottom: CENTRE_Y + 50 };
-            const sector = (paint: Partial<Shape>, gap?: number) =>
-                thinSector(
-                    { endAngle: sweep, strokeWidth: 4, miterLimit: 1e9, inset, ...paint } as Partial<Shape>,
-                    gap == null ? undefined : redGlow(gap)
-                );
+            ['1.7 degrees', 0.03, 0, 0],
+            ['9 degrees', 0.157, 0, 0],
+            ['9 degrees, its edges inset by 2', 0.157, 2, 0],
+            // The inset edges meet before they reach the hole, so the donut slice is drawn to a point.
+            ['9 degrees, with an inner radius of 20 and its edges inset by 2', 0.157, 2, 20],
+        ])(
+            'around the spike of a stroked sector of %s with a miter limit of 1e9',
+            (_name, sweep, inset, innerRadius) => {
+                const GAP = 3;
+                const SPREAD = 10;
+                const WINDOW: PixelWindow = { left: 60, right: 320, top: CENTRE_Y - 50, bottom: CENTRE_Y + 50 };
+                const sector = (paint: Partial<Shape>, gap?: number) =>
+                    thinSector(
+                        {
+                            endAngle: sweep,
+                            strokeWidth: 4,
+                            miterLimit: 1e9,
+                            inset,
+                            innerRadius,
+                            ...paint,
+                        } as Partial<Shape>,
+                        gap == null ? undefined : redGlow(gap)
+                    );
 
-            // The spike of the stroke runs out from the point of the sector, on its bisector, a half-stroke over the sine of half the sweep.
-            const half = sweep / 2;
-            const spikeLength = 2 / Math.sin(half);
-            // Inset edges meet an inset over the sine of half the sweep out from the centre, which moves the whole spike along.
-            const tipFromCentre = spikeLength - inset / Math.sin(half);
-            /** The pixel `distance` past the tip of the spike, along its axis, which is inside the spike if that is negative. */
-            const pastTip = (pixelAt: (x: number, y: number) => Pixel, distance: number) => {
-                const reach = tipFromCentre + distance;
-                return (
-                    pixelAt(
-                        Math.round(CENTRE_X - reach * Math.cos(half)),
-                        Math.round(CENTRE_Y - reach * Math.sin(half))
-                    )[0] > 0
-                );
-            };
+                // The spike of the stroke runs out from the point of the sector, on its bisector, a half-stroke over the sine of half the sweep.
+                const half = sweep / 2;
+                const spikeLength = 2 / Math.sin(half);
+                // Inset edges meet an inset over the sine of half the sweep out from the centre, or at the inner radius if that is further,
+                // which moves the whole spike along.
+                const tipFromCentre = spikeLength - Math.max(inset / Math.sin(half), innerRadius);
+                /** The pixel `distance` past the tip of the spike, along its axis, which is inside the spike if that is negative. */
+                const pastTip = (pixelAt: (x: number, y: number) => Pixel, distance: number) => {
+                    const reach = tipFromCentre + distance;
+                    return (
+                        pixelAt(
+                            Math.round(CENTRE_X - reach * Math.cos(half)),
+                            Math.round(CENTRE_Y - reach * Math.sin(half))
+                        )[0] > 0
+                    );
+                };
 
-            it('should light the glow past the tip of the spike, beyond the gap and no further than the spread', () => {
-                const { pixelAt } = draw(route, sector({}, GAP));
+                it('should light the glow past the tip of the spike, beyond the gap and no further than the spread', () => {
+                    const { pixelAt } = draw(route, sector({}, GAP));
 
-                // Just past the gap, where a mitre of 10 bevelled the point off, and to the edge of the spread: the ring is round at the tip.
-                expect(pastTip(pixelAt, GAP + 3), 'past the gap').toBe(true);
-                expect(pastTip(pixelAt, GAP + SPREAD - 2), 'just inside the spread').toBe(true);
-                expect(pastTip(pixelAt, GAP + SPREAD + 3), 'past the spread').toBe(false);
-                for (const distance of [-4, 0, GAP - 3])
-                    expect(pastTip(pixelAt, distance), `${distance} past the tip`).toBe(false);
-            });
+                    // Just past the gap, where a mitre of 10 bevelled the point off, and to the edge of the spread: the ring is round at the tip.
+                    expect(pastTip(pixelAt, GAP + 3), 'past the gap').toBe(true);
+                    expect(pastTip(pixelAt, GAP + SPREAD - 2), 'just inside the spread').toBe(true);
+                    expect(pastTip(pixelAt, GAP + SPREAD + 3), 'past the spread').toBe(false);
+                    for (const distance of [-4, 0, GAP - 3])
+                        expect(pastTip(pixelAt, distance), `${distance} past the tip`).toBe(false);
+                });
 
-            it('should light nothing within the gap of the painted spike, and keep the ring unbroken round it', () => {
-                const bare = draw(route, sector({})).pixelAt;
-                const { pixelAt } = draw(route, sector({}, GAP));
+                it('should light the glow right next to the spike with a gap of 0, as it is beside the sector', () => {
+                    const { pixelAt } = draw(route, sector({}, 0));
 
-                const distances = glowDistances(bare, pixelAt, WINDOW);
-                expect(distances.length).toBeGreaterThan(0);
-                // A pixel of the tip of the spike is faint, so that its distance can be a pixel more.
-                expect(Math.min(...distances)).toBeGreaterThanOrEqual(GAP - 1.5);
+                    // The spike is cut out with no stroke round it: a half-stroke of the item's own width must not be erased as well.
+                    expect(pastTip(pixelAt, 1), '1 past the tip').toBe(true);
+                    expect(pastTip(pixelAt, SPREAD - 2), 'inside the spread').toBe(true);
+                    expect(pastTip(pixelAt, SPREAD + 3), 'past the spread').toBe(false);
+                });
 
-                // The ring: at each column along the spike a glow lies on both sides of it.
-                const tip = Math.round(CENTRE_X - tipFromCentre * Math.cos(half));
-                for (let x = tip + 4; x < tip + 30; x++) {
-                    const above: boolean[] = [];
-                    const below: boolean[] = [];
-                    for (let y = CENTRE_Y - 12; y <= CENTRE_Y + 12; y++) {
-                        if (pixelAt(x, y)[0] > 0) (y < CENTRE_Y ? above : below).push(true);
+                it('should light nothing within the gap of the painted spike, and keep the ring unbroken round it', () => {
+                    const bare = draw(route, sector({})).pixelAt;
+                    const { pixelAt } = draw(route, sector({}, GAP));
+
+                    const distances = glowDistances(bare, pixelAt, WINDOW);
+                    expect(distances.length).toBeGreaterThan(0);
+                    // A pixel of the tip of the spike is faint, so that its distance can be a pixel more.
+                    expect(Math.min(...distances)).toBeGreaterThanOrEqual(GAP - 1.5);
+
+                    // The ring: at each column along the spike a glow lies on both sides of it.
+                    const tip = Math.round(CENTRE_X - tipFromCentre * Math.cos(half));
+                    for (let x = tip + 4; x < tip + 30; x++) {
+                        const above: boolean[] = [];
+                        const below: boolean[] = [];
+                        for (let y = CENTRE_Y - 12; y <= CENTRE_Y + 12; y++) {
+                            if (pixelAt(x, y)[0] > 0) (y < CENTRE_Y ? above : below).push(true);
+                        }
+                        expect(above.length, `above the spike at ${x}`).toBeGreaterThan(0);
+                        expect(below.length, `below the spike at ${x}`).toBeGreaterThan(0);
                     }
-                    expect(above.length, `above the spike at ${x}`).toBeGreaterThan(0);
-                    expect(below.length, `below the spike at ${x}`).toBeGreaterThan(0);
-                }
-            });
+                });
 
-            it('should leave the glow past the tip of a point that a miter limit of 10 bevels off as it was, with no spike to follow', () => {
-                const { pixelAt } = draw(route, sector({ miterLimit: 10 }, GAP));
-                expect(pastTip(pixelAt, GAP + 3)).toBe(false);
-            });
-        });
+                it('should leave the glow past the tip of a point that a miter limit of 10 bevels off as it was, with no spike to follow', () => {
+                    const { pixelAt } = draw(route, sector({ miterLimit: 10 }, GAP));
+                    expect(pastTip(pixelAt, GAP + 3)).toBe(false);
+                });
+            }
+        );
 
         // The cases for which the spike is not followed: the item bevels or rounds its own point, or paints one no sharper than 11.5 degrees.
         describe.each<[string, Partial<Shape>, [number, number], number]>([
@@ -510,6 +532,12 @@ describe('glow gap', () => {
             ['a bevel join', { lineJoin: 'bevel' }, [1e9, 10], 0.157],
             ['a round join', { lineJoin: 'round' }, [1e9, 10], 0.157],
             ['a point of 26 degrees', {}, [1e9, 10], 0.45],
+            [
+                'an inner radius of 20 and no inset, so that no point meets',
+                { innerRadius: 20 } as Partial<Shape>,
+                [1e9, 10],
+                0.157,
+            ],
         ])('around a stroked sector with %s', (_name, paint, [limit, capped], sweep) => {
             const GAP = 3;
             const WINDOW: PixelWindow = { left: 0, right: 320, top: CENTRE_Y - 90, bottom: CENTRE_Y + 90 };
@@ -526,6 +554,20 @@ describe('glow gap', () => {
                     }
                 }
             });
+        });
+
+        // The inset of a thin slice's edges can use it up, so that the path draws nothing: the glow has no spike or ring to follow.
+        it.each([0, 3])('should cast no glow round a slice that its inset uses up, with a gap of %s', (gap) => {
+            const used = thinSector(
+                { endAngle: 0.157, strokeWidth: 4, miterLimit: 1e9, inset: 10 } as Partial<Shape>,
+                redGlow(gap)
+            );
+            const { pixelAt } = draw(route, used);
+            for (let y = 0; y < GLOW_SCENE_SIZE.height; y++) {
+                for (let x = 0; x < GLOW_SCENE_SIZE.width; x++) {
+                    expect(pixelAt(x, y), `the pixel at ${x}, ${y}`).toEqual(CLEAR);
+                }
+            }
         });
 
         // The shape's own cast makes its silhouette canvas, then the canvas that the gap is cut on, which the browser can refuse.
