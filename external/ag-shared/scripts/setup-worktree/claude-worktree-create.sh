@@ -93,12 +93,13 @@ process_paths() {
     command -v lsof >/dev/null || return 1
     local listing
     # lsof lists mapped files too. Every process (p) and every file (f) record must resolve to a name (n).
+    # lsof prints a backslash as \\, undone below; in_use avoids paths with control characters, which it escapes too.
     listing=$(lsof -n -P -w -u "$(id -u)" -Fpfn 2>/dev/null) || return 1
     awk '
         /^p/ { if (file || (proc && !named)) bad = 1; proc = 1; named = 0; file = 0; next }
         /^f/ { if (file) bad = 1; file = 1; next }
         /^n/ { print substr($0, 2); file = 0; named = 1 }
-        END { exit bad || file || (proc && !named) }' <<<"$listing"
+        END { exit bad || file || (proc && !named) }' <<<"$listing" | sed 's/\\\\/\\/g'
 }
 
 # True when a running process of the user has its working directory or an open file inside the path, or the processes
@@ -106,13 +107,19 @@ process_paths() {
 in_use() {
     local real_path paths
     real_path=$(cd -P "$1" && pwd) || return 0
+    # lsof escapes control characters, so such a path cannot be matched reliably.
+    [[ "$real_path" != *[![:print:]]* ]] || return 0
     if [[ -n "${2:-}" ]]; then
         [[ -n "$PROCESS_PATHS_READ" ]] || return 0
         paths=$PROCESS_PATHS
     else
         paths=$(process_paths) || return 0
     fi
-    awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$paths"
+    # The path goes through the environment, which awk takes literally (-v would interpret backslashes).
+    # Only a clean no-match (exit 3) counts as unused; an awk failure counts as in use.
+    local status=0
+    P="$real_path" awk 'BEGIN { p = ENVIRON["P"] } $0 == p || index($0, p "/") == 1 { found = 1 } END { exit found ? 0 : 3 }' <<<"$paths" || status=$?
+    ((status != 3))
 }
 
 # Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
@@ -146,11 +153,6 @@ keep_reason() {
     # The root and .git are checked here because the move aside changes their timestamps.
     if find_recent "$candidate" "$candidate/.git" "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
-        return
-    fi
-    # Checked against the run's snapshot before the move, so a known user never sees the path vanish; rechecked fresh after it.
-    if in_use "$candidate" snapshot; then
-        echo "in use by a running process, or processes could not all be read"
     fi
 }
 
@@ -185,14 +187,25 @@ moved_keep_reason() {
 }
 
 # Moves a worktree with git, failing unless git now has it at the destination.
+same_path() {
+    [[ "$(cd -P "$1" 2>/dev/null && pwd)" == "$(cd -P "$2" 2>/dev/null && pwd)" ]]
+}
+
+# Moves a worktree with git to a vacant path (git would nest it inside an existing directory). Sets MOVED_TO to
+# where git has the worktree registered afterwards, and fails unless that is the destination.
 move_worktree() {
-    local from=$1 to=$2 top
-    git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || return 1
-    top=$(git -C "$to" rev-parse --show-toplevel 2>/dev/null) && [[ "$(cd -P "$top" && pwd)" == "$(cd -P "$to" && pwd)" ]]
+    local from=$1 to=$2 git_dir
+    MOVED_TO=$from
+    [[ ! -e "$to" && ! -L "$to" ]] || return 1
+    git_dir=$(git -C "$from" rev-parse --absolute-git-dir 2>/dev/null) || return 1
+    git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || true
+    # The git dir's gitdir file names the worktree's .git file at its registered location.
+    MOVED_TO=$(dirname "$(cat "$git_dir/gitdir" 2>/dev/null)")
+    same_path "$MOVED_TO" "$to"
 }
 
 restore_worktree() {
-    move_worktree "$1" "$2" || log "WARNING: could not move $1 back to $2; move it back by hand with git worktree move"
+    move_worktree "$1" "$2" || log "WARNING: could not move the worktree at $MOVED_TO back to $2; move it back by hand with git worktree move"
 }
 
 # Clean up stale agent worktrees from previous runs.
@@ -223,12 +236,12 @@ cleanup_stale_agent_worktrees() {
 }
 
 cleanup_locked() {
-    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime
+    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime MOVED_TO=
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
-    # One process listing for the pre-move checks; each moved worktree gets a fresh one.
-    PROCESS_PATHS='' PROCESS_PATHS_READ=''
-    PROCESS_PATHS=$(process_paths) && PROCESS_PATHS_READ=1
+    # One process listing for the pre-move checks, taken when the first candidate needs it; each moved worktree
+    # gets a fresh one.
+    PROCESS_PATHS='' PROCESS_PATHS_READ='' local listed=''
 
     # Restore worktrees left aside by an interrupted run.
     for moved in "$repo_wt_dir"/.removing-agent-*; do
@@ -246,13 +259,22 @@ cleanup_locked() {
             log "Keeping agent worktree ($reason): $candidate"
             continue
         fi
+        if [[ -z "$listed" ]]; then
+            listed=1
+            PROCESS_PATHS=$(process_paths) && PROCESS_PATHS_READ=1
+        fi
+        # Checked before the move, so a known user never sees the path vanish; rechecked fresh after it.
+        if in_use "$candidate" snapshot; then
+            log "Keeping agent worktree (in use by a running process, or processes could not all be read): $candidate"
+            continue
+        fi
 
         # Move the worktree off its path before the file walk, so no new session can start in it and the
         # walk sees every write made before removal.
         moved="$repo_wt_dir/.removing-${candidate##*/}"
         root_mtime=$(mtime_of "$candidate") || root_mtime=''
         if ! move_worktree "$candidate" "$moved"; then
-            [[ -d "$moved" && ! -e "$candidate" ]] && restore_worktree "$moved" "$candidate"
+            [[ -n "$MOVED_TO" && "$MOVED_TO" != . ]] && ! same_path "$MOVED_TO" "$candidate" && restore_worktree "$MOVED_TO" "$candidate"
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
             continue
         fi
