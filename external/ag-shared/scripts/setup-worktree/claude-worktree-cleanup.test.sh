@@ -61,8 +61,10 @@ set_owner() { echo "$2" >"$(git -C "$WTS/$1" rev-parse --absolute-git-dir)/$OWNE
 DEAD_PID=99999
 while ps -o pid= -p "$DEAD_PID" >/dev/null 2>&1; do DEAD_PID=$((DEAD_PID + 1)); done
 
-for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed; do make_wt "agent-$n"; done
-for n in stale chmod ignored openfile inuse dirty; do set_owner "agent-$n" "$DEAD_PID"; done
+for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed readonly; do make_wt "agent-$n"; done
+for n in stale chmod ignored openfile inuse dirty readonly; do set_owner "agent-$n" "$DEAD_PID"; done
+# A directory this user cannot empty, set before the wait so its ctime is old.
+chmod u-w "$WTS/agent-readonly/node_modules/p"
 sleep 600 &
 PIDS+=($!)
 set_owner agent-live "$!"
@@ -117,12 +119,21 @@ expect "rejected safety commit reached the remover" test -e "$T/hook-ran"
 expect "failed safety commit restores the worktree" registered agent-dirty
 expect "interrupted move is recovered and registered" registered agent-interrupted
 expect "manual rename without the hook's record is left alone" kept .removing-agent-renamed
-expect "lock is released after cleanup" bash -c "exec 9>>'$WTS/.cleanup.lock'; perl -MFcntl=:flock -e 'open(my \$fh, \">&=\", 9) or exit 1; flock(\$fh, LOCK_EX | LOCK_NB) or exit 1'"
+expect "a worktree with a directory it cannot empty is kept intact" test -e "$WTS/agent-readonly/node_modules/p/i.js"
+expect "lock is released after cleanup" bash -c 'exec 9>>"$1"; perl -MFcntl=:flock -e '"'"'open(my $fh, ">&=", 9) or exit 1; flock($fh, LOCK_EX | LOCK_NB) or exit 1'"'" _ "$WTS/.cleanup.lock"
 
 # move_worktree refuses an occupied destination and leaves the worktree registered where it was.
 mkdir "$WTS/.occupied"
 if move_worktree "$WTS/agent-legacy" "$WTS/.occupied"; then fail "move to an occupied destination is refused"; else pass "move to an occupied destination is refused"; fi
 expect "worktree stays put after a refused move" registered agent-legacy
+
+# A worktree locked while it was aside is still moved back.
+git -C "$CWD" worktree add -q "$WTS/agent-lockedaside" -b agent-lockedaside 2>/dev/null
+git -C "$CWD" worktree move "$WTS/agent-lockedaside" "$WTS/.removing-agent-lockedaside"
+git -C "$CWD" worktree lock "$WTS/.removing-agent-lockedaside"
+restore_worktree "$WTS/.removing-agent-lockedaside" "$WTS/agent-lockedaside"
+expect "a worktree locked while aside is restored" registered agent-lockedaside
+git -C "$CWD" worktree unlock "$WTS/agent-lockedaside"
 
 rm -f "$CWD/.git/hooks/pre-commit"
 remove() { jq -n --arg path "$1" '{worktree_path: $path}' | (cd / && bash "$REMOVE") 2>>"$LOG"; }

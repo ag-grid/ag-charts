@@ -161,11 +161,15 @@ in_use() {
     ((status != 3))
 }
 
+FIND_ALSO=()
+MOVE_FORCE=()
+
 # Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
 find_recent() {
     local err_file found='' status=0
     err_file=$(mktemp)
-    found=$(LC_ALL=C find "$@" \( -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -o -cmin "-${STALE_AGENT_WORKTREE_MINUTES}" \) -print -quit 2>"$err_file") || status=$?
+    # FIND_ALSO adds alternatives that also count as a match.
+    found=$(LC_ALL=C find "$@" \( -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -o -cmin "-${STALE_AGENT_WORKTREE_MINUTES}" ${FIND_ALSO[@]+"${FIND_ALSO[@]}"} \) -print -quit 2>"$err_file") || status=$?
     if [[ -n "$found" ]]; then
         status=0
     elif [[ $status -ne 0 ]] && { [[ ! -s "$err_file" ]] || grep -qv 'No such file or directory$' "$err_file"; }; then
@@ -241,17 +245,23 @@ moved_keep_reason() {
     # The move itself touches only the worktree directory and its .git file, so the walk starts from every other
     # top-level entry (listed by glob, not a find -path pattern the directory name could disturb). A failed
     # scan counts as active.
-    if [[ ! -r "$moved" || ! -x "$moved" ]]; then
-        echo "recently active"
+    if [[ ! -r "$moved" || ! -x "$moved" || ! -w "$moved" || ! -O "$moved" ]]; then
+        echo "recently active, or cannot be fully read or deleted"
         return
     fi
     for entry in "$moved"/* "$moved"/.[!.]* "$moved"/..?*; do
         [[ -e "$entry" || -L "$entry" ]] && [[ "$entry" != "$moved/.git" ]] && entries+=("$entry")
     done
     # Batched to stay within the platform's argument-size limit.
+    # The same walk finds directories this user cannot empty, so removal never stops partway through.
+    local status
     for ((i = 0; i < ${#entries[@]}; i += 200)); do
-        if find_recent "${entries[@]:i:200}" || (($? == 2)); then
-            echo "recently active"
+        status=0
+        FIND_ALSO=(-o -type d \( ! -user "$(id -u)" -o ! -perm -u+wx \))
+        find_recent "${entries[@]:i:200}" || status=$?
+        FIND_ALSO=()
+        if ((status != 1)); then
+            echo "recently active, or cannot be fully read or deleted"
             return
         fi
     done
@@ -271,7 +281,8 @@ move_worktree() {
     [[ ! -e "$to" && ! -L "$to" ]] || return 1
     git_dir=$(git -C "$from" rev-parse --absolute-git-dir 2>/dev/null) || return 1
     MOVED_GIT_DIR=$git_dir
-    git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || true
+    # MOVE_FORCE (-f -f) lets a restore move a worktree that was locked while it was aside.
+    git -C "$CWD" worktree move ${MOVE_FORCE[@]+"${MOVE_FORCE[@]}"} "$from" "$to" >/dev/null 2>&1 || true
     # The git dir's gitdir file names the worktree's .git file at its registered location, relative to the git
     # dir when worktree.useRelativePaths is set.
     local link
@@ -285,7 +296,11 @@ move_worktree() {
 # move left git's record at the old path.
 restore_worktree() {
     git -C "$CWD" worktree repair "$1" >/dev/null 2>&1 || true
-    move_worktree "$1" "$2" && rm -f "$MOVED_GIT_DIR/claude-moved-from" && return
+    local restored=0
+    MOVE_FORCE=(-f -f)
+    move_worktree "$1" "$2" && restored=1
+    MOVE_FORCE=()
+    ((restored)) && rm -f "$MOVED_GIT_DIR/claude-moved-from" && return
     log "WARNING: could not move the worktree at $MOVED_TO back to $2; move it back by hand with git worktree move"
 }
 
@@ -391,7 +406,7 @@ cleanup_locked() {
         jq -n --arg path "$moved" '{worktree_path: $path}' | CLAUDE_WT_CLEANUP_LOCKED=1 bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done || true
         if [[ -e "$moved" || -L "$moved" ]]; then
             [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
-            log "WARNING: removal failed; kept $candidate"
+            log "WARNING: removal of $candidate failed; moved what remains back, but files may already be gone"
         fi
     done
 }
