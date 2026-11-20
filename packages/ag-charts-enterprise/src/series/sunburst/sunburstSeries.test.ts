@@ -246,6 +246,28 @@ describe('SunburstSeries', () => {
                 await compare();
             });
         }
+
+        it('keeps the wider line of a wrapped label when narrowing to its sector would drop more', async () => {
+            const { options } = GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE;
+            const series = options.series![0] as AgSunburstSeriesOptions;
+            chart = await createEnterpriseChart({
+                ...options,
+                series: [
+                    {
+                        ...series,
+                        label: { ...series.label, wrapping: 'on-space' },
+                        secondaryLabel: { ...series.secondaryLabel, wrapping: 'on-space' },
+                    },
+                ],
+            });
+            const texts = getSeriesSelectionNodes<Group>(chart, 'labelSelection').flatMap((group) =>
+                Selection.selectByClass(group, TransformableText)
+                    .filter((text) => text.visible)
+                    .map((text) => text.text)
+            );
+            expect(texts).toEqual(expect.arrayContaining(['Telecom…', 'Application…']));
+            await compare();
+        });
     });
 
     describe('Label itemStyler', () => {

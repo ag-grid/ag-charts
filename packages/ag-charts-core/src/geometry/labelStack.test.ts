@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { ContentSegment } from 'ag-charts-types';
 
+import type { FitRegion } from './fitRegion';
 import { type LabelStack, type LabelStackBlock, fitLabelStack } from './labelStack';
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. Every character is 10px
@@ -61,5 +62,28 @@ describe('fitLabelStack', () => {
         const fitted = fitLabelStack(stack(block(segments)), { width: 40, height: 100 });
         const kept = fitted?.blocks[0]?.text;
         expect(Array.isArray(kept) && kept.some((segment) => segment.type === 'image')).toBe(true);
+    });
+
+    describe('in a shape that narrows as the stack grows taller', () => {
+        const wrapped = (text: string): LabelStackBlock => ({
+            fit: { text, policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' }, font: FONT },
+        });
+        // Half-widths by the number of 20px lines the stack spans.
+        const narrowing = (...halfWidths: number[]): FitRegion => ({
+            spanAt: (top, bottom) => {
+                const half = halfWidths[Math.ceil((bottom - top) / 20) - 1] ?? 0;
+                return [-half, half];
+            },
+            extentAbove: 100,
+            extentBelow: 100,
+        });
+
+        it.each([
+            { text: 'Information Technology Services', halfWidths: [80, 30, 30], expected: 'Information…' },
+            { text: 'Alpha Bravo Delta', halfWidths: [80, 50, 20], expected: 'Alpha Bravo…' },
+        ])('keeps the wider line when narrowing would drop more of "$text"', ({ text, halfWidths, expected }) => {
+            const fitted = fitLabelStack(stack(wrapped(text)), undefined, narrowing(...halfWidths));
+            expect(fitted?.blocks[0]?.text).toBe(expected);
+        });
     });
 });
