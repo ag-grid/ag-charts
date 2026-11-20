@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@fontsource/ibm-plex-sans": "5.3.0",
-    "@nx/devkit": "24.0.2",
+    "@nx/devkit": "24.0.6",
     "@swc/helpers": "0.5.23",
     "ag-charts-community": "14.3.0-beta.20261115",
     "ag-charts-enterprise": "14.3.0-beta.20261115",
