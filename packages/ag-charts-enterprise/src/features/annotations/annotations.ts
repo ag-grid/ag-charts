@@ -650,8 +650,6 @@ export class Annotations extends AbstractModuleInstance {
     private setupDOM() {
         const { ctx, toolbar, optionsToolbar } = this;
 
-        this.lastPriceLineContainer.append(this.lastPriceLineScene);
-
         this.cleanup.register(
             // Attached first, so that annotations are drawn over the line
             ctx.annotationManager!.attachNode(this.lastPriceLineContainer),
@@ -1050,6 +1048,9 @@ export class Annotations extends AbstractModuleInstance {
             scene.setAxisLabelVisible(false);
             return;
         }
+
+        // Attached when first drawn, so that a chart without a last price line has no node for it in the scene graph.
+        if (scene.parentNode == null) this.lastPriceLineContainer.append(scene);
 
         // The scene hides the axis label itself while the line is out of range.
         scene.setAxisLabelVisible(true);
