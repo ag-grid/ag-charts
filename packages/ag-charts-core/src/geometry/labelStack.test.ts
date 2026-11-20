@@ -54,14 +54,22 @@ describe('fitLabelStack', () => {
         expect(fitLabelStack(stack(block('Netflix')), { width: 15, height: 100 })).toBeUndefined();
     });
 
-    it('keeps a block whose text is truncated away but whose image still fits', () => {
+    it.each([
+        { width: 40, kept: undefined },
+        { width: 50, kept: undefined },
+        { width: 70, kept: undefined },
+        { width: 80, kept: ['image', 'Ne…'] },
+    ])('needs more than a character cut short beside its image, at width $width', ({ width, kept }) => {
         const segments: ContentSegment[] = [
             { type: 'image', url: 'https://example.com/logo.png', width: 30, height: 20, block: true },
             { text: 'Netflix' },
         ];
-        const fitted = fitLabelStack(stack(block(segments)), { width: 40, height: 100 });
-        const kept = fitted?.blocks[0]?.text;
-        expect(Array.isArray(kept) && kept.some((segment) => segment.type === 'image')).toBe(true);
+        const fitted = fitLabelStack(stack(block(segments)), { width, height: 100 })?.blocks[0]?.text;
+        expect(
+            Array.isArray(fitted)
+                ? fitted.map((segment) => (segment.type === 'image' ? 'image' : segment.text))
+                : fitted
+        ).toEqual(kept);
     });
 
     describe('in a shape that narrows as the stack grows taller', () => {
@@ -84,6 +92,12 @@ describe('fitLabelStack', () => {
         ])('keeps the wider line when narrowing would drop more of "$text"', ({ text, halfWidths, expected }) => {
             const fitted = fitLabelStack(stack(wrapped(text)), undefined, narrowing(...halfWidths));
             expect(fitted?.blocks[0]?.text).toBe(expected);
+        });
+
+        it('keeps the line of a later block when holding the wider line', () => {
+            const blocks = stack(wrapped('Information Technology Services'), wrapped('Alpha'));
+            const fitted = fitLabelStack(blocks, undefined, narrowing(80, 80, 30, 30));
+            expect(fitted?.blocks.map((b) => b?.text)).toEqual(['Information…', 'Alpha']);
         });
 
         it('keeps an image rather than holding more of the text without it', () => {

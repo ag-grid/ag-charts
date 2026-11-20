@@ -3,6 +3,7 @@ import type { PaddingOptions } from 'ag-charts-types';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
+import { toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -15,7 +16,7 @@ import {
     keptCharacters,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
-import type { FontOptions } from '../types/text';
+import { EllipsisChar, type FontOptions, LineSplitter } from '../types/text';
 import { type FitRegion, regionWidthAt } from './fitRegion';
 
 /** What a block is fitted with; a label's fit descriptor already carries it. */
@@ -191,22 +192,24 @@ function fitStackAtSizes(
         }
         maxWidth = Math.min(maxWidth, shapeWidthAt(shape, shapeAlign, estimate));
     }
-    const fitted = fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, maxHeight);
+    const fitted = fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, maxHeight, false);
     // An overflowing block already overruns its room, so the shape cannot bound it.
     if (fitted == null || shape == null || fitted.overflows) return fitted;
     // A wrapped block can make the stack taller than the estimate, and a shape narrower where it ends.
     const width = shapeWidthAt(shape, shapeAlign, fitted.height);
     if (fitted.width <= width) return fitted;
     const narrowed = withinShape(
-        fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight),
+        fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight, false),
         shape,
         shapeAlign
     );
-    // Above the floor nothing truncates, so a held fit could only repeat the fit the shape already rejected.
-    if (!atFloor || (narrowed != null && !narrowed.overflows && narrowed.dropped === 0)) return narrowed;
+    // Above the floor nothing truncates, and a room no taller than the estimate holds the stack no tighter, so a
+    // held fit could only repeat the fit the shape already rejected.
+    if (!atFloor || estimate >= maxHeight) return narrowed;
+    if (narrowed != null && !narrowed.overflows && narrowed.dropped === 0) return narrowed;
     // Narrowing can truncate more than holding the stack to its estimated height on the wider line.
     const held = withinShape(
-        fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate)),
+        fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, estimate, true),
         shape,
         shapeAlign
     );
@@ -235,13 +238,15 @@ function withinShape(fit: StackFit | undefined, shape: FitRegion, align: RegionA
     return fit.width > shapeWidthAt(shape, align, fit.height) ? undefined : fit;
 }
 
+/** `holdToLine` keeps each block to its one-line share of the estimate, so a wrapped block leaves the next its line. */
 function fitBlocksToWidth(
     stack: LabelStack,
     included: readonly number[],
     sizes: readonly number[],
     atFloor: boolean,
     maxWidth: number,
-    maxHeight: number
+    maxHeight: number,
+    holdToLine: boolean
 ): StackFit | undefined {
     const { blocks, spacing } = stack;
     const fitted: (FittedLabelBlock | undefined)[] = blocks.map(() => undefined);
@@ -259,7 +264,11 @@ function fitBlocksToWidth(
         const padding = fit.boxPadding ?? ZERO_PADDING;
         const font = fontWithSize(fit.font, sizes[i]);
         const glyphWidth = Math.min(policy.maxWidth ?? Infinity, maxWidth - boxWidth(padding));
-        const glyphHeight = Math.min(policy.maxHeight ?? Infinity, remaining - boxHeight(padding));
+        const glyphHeight = Math.min(
+            policy.maxHeight ?? Infinity,
+            remaining - boxHeight(padding),
+            holdToLine ? drawnLineHeight(font) : Infinity
+        );
         // Truncating is the last resort, once every block is at its minimum size.
         const overflowStrategy = atFloor ? policy.overflowStrategy : 'hide';
         const blockFit: LabelFit = {
@@ -269,8 +278,8 @@ function fitBlocksToWidth(
             overflowStrategy,
         };
         let fittedText = glyphWidth <= 0 || glyphHeight <= 0 ? '' : fitLabelText(text, blockFit, font);
-        // A bare ellipsis reads as an artefact rather than a label.
-        if (!showsContent(fittedText) && keptCharacters(text) > 0) fittedText = '';
+        // A bare ellipsis reads as an artefact rather than a label, even beside an image.
+        if (!showsText(fittedText) && keptCharacters(text) > 0) fittedText = '';
         const { fitOverflow } = fit;
         const overflows = isErased(fittedText) && atFloor && fitOverflow != null;
         if (overflows) {
@@ -300,8 +309,17 @@ function fitBlocksToWidth(
     return { blocks: fitted, width, height, dropped: Math.max(0, dropped), area, overflows: anyOverflows };
 }
 
-function showsContent(text: NormalisedTextOrSegments): boolean {
-    return hasRealChars(text) || (isArray(text) && text.some((segment) => segment.type === 'image'));
+/** Beside an image, a line cut short to a single character reads as an artefact too. */
+function showsText(text: NormalisedTextOrSegments): boolean {
+    if (!isArray(text) || !text.some((segment) => segment.type === 'image')) return hasRealChars(text);
+    let joined = '';
+    for (const segment of text) {
+        if (segment.type !== 'image') joined += toTextString(segment.text);
+    }
+    return joined.split(LineSplitter).some((line) => {
+        const kept = keptCharacters(line);
+        return kept > 1 || (kept === 1 && !line.includes(EllipsisChar));
+    });
 }
 
 function shapeWidthAt(shape: FitRegion, align: RegionAlign, height: number): number {
