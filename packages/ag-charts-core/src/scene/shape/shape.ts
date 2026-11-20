@@ -131,31 +131,7 @@ export interface MitreApex {
     end: number;
 }
 
-/** The mitre spike that an item's own stroke paints at a vertex: the vertex, the two corners of the spike's base, and its tip. */
-interface MitreSpike {
-    x: number;
-    y: number;
-    cornerAX: number;
-    cornerAY: number;
-    cornerBX: number;
-    cornerBY: number;
-    tipX: number;
-    tipY: number;
-    length: number;
-}
-
 const mitreApex: MitreApex = { x: 0, y: 0, start: 0, end: 0 };
-const mitreSpike: MitreSpike = {
-    x: 0,
-    y: 0,
-    cornerAX: 0,
-    cornerAY: 0,
-    cornerBX: 0,
-    cornerBY: 0,
-    tipX: 0,
-    tipY: 0,
-    length: 0,
-};
 
 /** The device-space bounds of the shape whose spread shadow is being drawn, reused to avoid a per-shape allocation. */
 const spreadBounds: SpreadBounds = {
@@ -1011,43 +987,31 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Works out into {@link mitreSpike} the spike that the item's own stroke paints at a sharp vertex, past where a gapped
-     * dilation's capped mitre bevels. Returns false if it paints none: a vertex the capped mitre covers, or one the item bevels too.
+     * The length of the spike that the item's own stroke paints at a sharp vertex, past where a gapped dilation's capped mitre
+     * bevels, from the vertex in {@link mitreApex}. Zero if it paints none: a vertex the capped mitre covers, or one the item bevels too.
      */
-    private getMitreSpike(): boolean {
-        if (!this.paintsLongerMitres() || !this.hasStrokeOutline() || !this.getMitreApex(mitreApex)) return false;
+    private getMitreSpikeLength(): number {
+        if (!this.paintsLongerMitres() || !this.hasStrokeOutline() || !this.getMitreApex(mitreApex)) return 0;
 
-        const { x, y, start, end } = mitreApex;
-        const halfSweep = (end - start) / 2;
+        const halfSweep = (mitreApex.end - mitreApex.start) / 2;
         const ratio = 1 / Math.sin(halfSweep);
-        if (!(halfSweep > 0 && ratio > GAP_MITER_LIMIT_CAP && ratio <= (this.__miterLimit ?? 10))) return false;
-
-        const halfStroke = this.__strokeWidth / 2;
-        const length = halfStroke * ratio;
-        const away = (start + end) / 2 + Math.PI;
-        const spike = mitreSpike;
-        spike.x = x;
-        spike.y = y;
-        spike.cornerAX = x + halfStroke * Math.cos(start - Math.PI / 2);
-        spike.cornerAY = y + halfStroke * Math.sin(start - Math.PI / 2);
-        spike.cornerBX = x + halfStroke * Math.cos(end + Math.PI / 2);
-        spike.cornerBY = y + halfStroke * Math.sin(end + Math.PI / 2);
-        spike.tipX = x + length * Math.cos(away);
-        spike.tipY = y + length * Math.sin(away);
-        spike.length = length;
-        return true;
+        const sharp = halfSweep > 0 && ratio > GAP_MITER_LIMIT_CAP && ratio <= (this.__miterLimit ?? 10);
+        return sharp ? (this.__strokeWidth / 2) * ratio : 0;
     }
 
-    /** Draws the spike from {@link getMitreSpike}, dilated by `reach` and round at its tip, which the capped mitre of a dilation bevels off. */
+    /** Draws the spike from {@link getMitreSpikeLength}, dilated by `reach` and round at its tip, which the capped mitre of a dilation bevels off. */
     private dilateMitreSpike(ctx: CanvasContext, reach: number) {
-        if (!this.getMitreSpike()) return;
+        const length = this.getMitreSpikeLength();
+        if (length <= 0) return;
 
-        const { x, y, cornerAX, cornerAY, tipX, tipY, cornerBX, cornerBY } = mitreSpike;
+        const { x, y, start, end } = mitreApex;
+        const halfStroke = this.__strokeWidth / 2;
+        const away = (start + end) / 2 + Math.PI;
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(cornerAX, cornerAY);
-        ctx.lineTo(tipX, tipY);
-        ctx.lineTo(cornerBX, cornerBY);
+        ctx.lineTo(x + halfStroke * Math.cos(start - Math.PI / 2), y + halfStroke * Math.sin(start - Math.PI / 2));
+        ctx.lineTo(x + length * Math.cos(away), y + length * Math.sin(away));
+        ctx.lineTo(x + halfStroke * Math.cos(end + Math.PI / 2), y + halfStroke * Math.sin(end + Math.PI / 2));
         ctx.closePath();
         ctx.fill();
         if (reach > 0) {
@@ -1225,7 +1189,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');
         const reach = squareCap ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;
         // A gapped glow follows the spike that the item's own stroke paints, which is as long as it paints it.
-        return gapped && this.getMitreSpike() ? Math.max(reach, mitreSpike.length + spread) : reach;
+        const spike = gapped ? this.getMitreSpikeLength() : 0;
+        return spike > 0 ? Math.max(reach, spike + spread) : reach;
     }
 
     /** Draws the shape off-canvas and shifts only its shadow back, so the stroke's shadow never lands on the fill. */
