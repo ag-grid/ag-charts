@@ -2,12 +2,14 @@ import {
     type NormalisedSeriesTooltipOptions,
     callWithContext,
     isDate,
+    isLineDashName,
     isNumber,
     isString,
     mergeDefaults,
+    scaleLineDashName,
     toTextString,
 } from 'ag-charts-core';
-import type { AgTooltipRendererResult, Renderer } from 'ag-charts-types';
+import type { AgLineDashName, AgTooltipRendererResult, PixelSize, Renderer } from 'ag-charts-types';
 
 import type { LegendLine, LegendMarker, LegendSymbolOptions } from '../legend/legendSymbol';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
@@ -16,21 +18,39 @@ const OVERRIDE_KEYS = ['heading', 'title', 'data'] as const;
 
 export type TooltipRenderer<P> = Renderer<P, AgTooltipRendererResult>;
 
+/** A renderer sets a stock dash name, which scales by the `strokeWidth` of the symbol; the series builds arrays. */
+function resolveLineDash(lineDash: PixelSize[] | AgLineDashName | undefined, strokeWidth: number | undefined) {
+    return isLineDashName(lineDash) ? scaleLineDashName(lineDash, strokeWidth) : lineDash;
+}
+
 function buildLineWithMarkerDefaults(
     line:
-        | { enabled?: boolean; stroke?: string; strokeWidth?: number; strokeOpacity?: number; lineDash?: number[] }
+        | {
+              enabled?: boolean;
+              stroke?: string;
+              strokeWidth?: number;
+              strokeOpacity?: number;
+              lineDash?: PixelSize[] | AgLineDashName;
+          }
         | undefined,
     marker: LegendMarker | undefined
 ): LegendLine | undefined {
     if (line == null) return undefined;
 
+    const strokeWidth = line.strokeWidth ?? marker?.strokeWidth ?? 1;
     return {
         enabled: line.enabled ?? true,
         stroke: (line.stroke ?? marker?.stroke ?? 'transparent') as string,
-        strokeWidth: line.strokeWidth ?? marker?.strokeWidth ?? 1,
+        strokeWidth,
         strokeOpacity: line.strokeOpacity ?? marker?.strokeOpacity ?? 1,
-        lineDash: line.lineDash ?? (marker?.lineDash as number[]) ?? [],
+        lineDash: resolveLineDash(line.lineDash, strokeWidth) ?? marker?.lineDash ?? [],
     };
+}
+
+/** The marker with a stock dash name from the renderer resolved to its array. */
+function resolveMarkerLineDash<M extends { lineDash?: unknown; strokeWidth?: number }>(marker: M | undefined) {
+    if (marker == null || !isLineDashName(marker.lineDash)) return marker;
+    return { ...marker, lineDash: scaleLineDashName(marker.lineDash, marker.strokeWidth) };
 }
 
 /** Applies the series tooltip `renderer` (if any) over the series-built `content`. */
@@ -45,7 +65,7 @@ export function formatSeriesTooltip<P>(
         return { type: 'raw', rawHtmlString: toTextString(overrides) };
     }
     if (overrides != null) {
-        const mergedMarker = mergeDefaults(overrides.symbol?.marker, content.symbol?.marker);
+        const mergedMarker = resolveMarkerLineDash(mergeDefaults(overrides.symbol?.marker, content.symbol?.marker));
         const mergedLineInput =
             (overrides.symbol?.line ?? content.symbol?.line)
                 ? mergeDefaults(overrides.symbol?.line, content.symbol?.line)

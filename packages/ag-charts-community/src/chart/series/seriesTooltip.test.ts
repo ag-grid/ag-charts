@@ -12,6 +12,43 @@ function format(renderer: (params: object) => unknown, base: object = content) {
 }
 
 describe('formatSeriesTooltip', () => {
+    describe('stock dash names in a renderer symbol', () => {
+        const symbolOf = (symbol: object, base: object = content) =>
+            format(() => ({ symbol }), base).symbol as {
+                marker: { lineDash?: unknown };
+                line?: { lineDash?: unknown };
+            };
+
+        it.each([
+            ['a marker at its own width', { marker: { lineDash: 'dash', strokeWidth: 3 } }, 'marker', [9, 6]],
+            ['a marker with no width', { marker: { lineDash: 'dash' } }, 'marker', [3, 2]],
+            ['a marker set to solid', { marker: { lineDash: 'solid', strokeWidth: 3 } }, 'marker', [0]],
+            ['a line at its own width', { line: { lineDash: 'dot', strokeWidth: 2 } }, 'line', [2, 3]],
+            [
+                'a line at the width of its marker',
+                { marker: { strokeWidth: 4 }, line: { lineDash: 'dash' } },
+                'line',
+                [12, 8],
+            ],
+            ['a line with no width', { line: { lineDash: 'dash' } }, 'line', [3, 2]],
+        ] as const)('resolves a name on %s to its array', (_, symbol, location, expected) => {
+            expect(symbolOf(symbol)[location]?.lineDash).toEqual(expected);
+        });
+
+        it('leaves an array in pixels', () => {
+            const symbol = symbolOf({ marker: { lineDash: [5, 5], strokeWidth: 4 }, line: { lineDash: [1, 2] } });
+
+            expect(symbol.marker.lineDash).toEqual([5, 5]);
+            expect(symbol.line?.lineDash).toEqual([1, 2]);
+        });
+
+        it('resolves a name over the dash that the series built', () => {
+            const base = { ...content, symbol: { marker: { lineDash: [1, 1], strokeWidth: 2 } } };
+
+            expect(symbolOf({ marker: { lineDash: 'dash' } }, base).marker.lineDash).toEqual([6, 4]);
+        });
+    });
+
     it('keeps raw HTML for string renderer results', () => {
         expect(format(() => '<b>x</b>')).toEqual({ type: 'raw', rawHtmlString: '<b>x</b>' });
     });
