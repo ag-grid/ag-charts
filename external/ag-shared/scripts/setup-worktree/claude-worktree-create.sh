@@ -56,13 +56,21 @@ claude_owner() {
     return 1
 }
 
-# True while the Claude Code process that created the worktree is still running.
-owner_alive() {
-    local owner_file=$1 pid started
-    [[ -f "$owner_file" ]] || return 1
-    read -r pid started <"$owner_file" || [[ -n "$pid" ]] || return 1
-    [[ "$pid" =~ ^[0-9]+$ ]] || return 1
-    [[ "$(start_time "$pid")" == "$started" ]]
+# Prints alive, exited or unknown for the Claude Code process recorded in the owner file.
+owner_state() {
+    local owner_file=$1 pid='' started=''
+    [[ -f "$owner_file" ]] && { read -r pid started <"$owner_file" || [[ -n "$pid" ]]; } && [[ "$pid" =~ ^[0-9]+$ && -n "$started" ]] || {
+        echo unknown
+        return
+    }
+    if [[ "$(start_time "$pid")" == "$started" ]]; then
+        echo alive
+    # Only a working ps that no longer lists the process proves it exited.
+    elif ps -o pid= -p $$ >/dev/null 2>&1; then
+        echo exited
+    else
+        echo unknown
+    fi
 }
 
 # Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
@@ -81,19 +89,29 @@ find_recent() {
     return $status
 }
 
-# True when the worktree's owner is running, or the worktree, its git metadata or any file in it was touched within the stale window. A failed scan counts as active.
-recently_active() {
+# Prints why the worktree must be kept, or nothing when its owner has exited and nothing in it changed within the stale window.
+keep_reason() {
     local candidate=$1 git_dir='' path
     local paths=()
-    if [[ -e "$candidate/.git" ]] && git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
-        owner_alive "$git_dir/$OWNER_FILE_NAME" && return 0
-        for path in "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD"; do
-            [[ -e "$path" ]] && paths+=("$path")
-        done
-        ((${#paths[@]})) && { find_recent "${paths[@]}" -maxdepth 0 || (($? == 2)); } && return 0
+    if [[ ! -e "$candidate/.git" ]] || ! git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
+        echo "unknown owner, remove it by hand if unused"
+        return
     fi
-    # One walk of the worktree, ignored files included; also covers leftovers without git metadata.
-    find_recent "$candidate" || (($? == 2))
+    case $(owner_state "$git_dir/$OWNER_FILE_NAME") in
+    alive) echo "owner running" && return ;;
+    unknown) echo "unknown owner, remove it by hand if unused" && return ;;
+    esac
+    for path in "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD"; do
+        [[ -e "$path" ]] && paths+=("$path")
+    done
+    if ((${#paths[@]})) && { find_recent "${paths[@]}" -maxdepth 0 || (($? == 2)); }; then
+        echo "recently active"
+        return
+    fi
+    # One walk of the worktree, ignored files included. A failed scan counts as active.
+    if find_recent "$candidate" || (($? == 2)); then
+        echo "recently active"
+    fi
 }
 
 # Clean up stale agent worktrees from previous runs.
@@ -103,15 +121,16 @@ cleanup_stale_agent_worktrees() {
     local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
     [[ -d "$repo_wt_dir" ]] || return 0
 
-    local remove_script
+    local remove_script candidate reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
     for candidate in "$repo_wt_dir"/agent-*; do
         [[ -d "$candidate" ]] || continue
         # Never clean up the worktree we're about to create.
         [[ "$candidate" == "$WT_PATH" ]] && continue
-        if recently_active "$candidate"; then
-            log "Keeping active agent worktree: $candidate"
+        reason=$(keep_reason "$candidate")
+        if [[ -n "$reason" ]]; then
+            log "Keeping agent worktree ($reason): $candidate"
             continue
         fi
 
@@ -144,6 +163,8 @@ fi
 # Record the owning Claude Code process so cleanup keeps this worktree while it runs.
 if OWNER=$(claude_owner) && WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null); then
     echo "$OWNER" >"$WT_GIT_DIR/$OWNER_FILE_NAME"
+else
+    log "WARNING: could not record the owning Claude Code process; stale cleanup will keep this worktree"
 fi
 
 # Set up the worktree (COW clone when possible, else yarn install). ROOT_WORKTREE_PATH
