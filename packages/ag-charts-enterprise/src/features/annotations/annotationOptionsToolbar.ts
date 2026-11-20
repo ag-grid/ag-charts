@@ -169,6 +169,7 @@ export class AnnotationOptionsToolbar {
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             // Menus close on a window mousedown before the click lands, so capture what was open first.
+            // eslint-disable-next-line aglint/widget-boundary -- Widget listeners offer no 'pointerdown' event.
             attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
                 this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
             }),

@@ -114,6 +114,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
     } else if ('list' === type) {
         return new ListWidget();
     } else if ('region' === type) {
+        // TODO: Phase 3 "Common Widget Ancestor" - a plain region has no Widget subclass of its own yet.
         return new NativeWidget<HTMLDivElement>(createElement('div'));
     } else if ('axis' === type) {
         return new AxisWidget();
@@ -129,7 +130,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
 function allocateMeta<T extends keyof ProxyMeta>(ctx: ChartRegistry, params: ProxyMeta[T]['params']): ProxyMeta[T] {
     const meta = { params, result: undefined } as unknown as ProxyMeta[T];
     meta.result = allocateResult(meta.params.type);
-    // TODO: AG−18361 Phase 3 "Common Widget Ancestor" - set result as a descendant of the DOM Manager root.
+    // TODO: Phase 3 "Common Widget Ancestor" - set result as a descendant of the DOM Manager root.
     meta.result.setCanvasOrigin(ctx.domManager);
     return meta;
 }
@@ -155,6 +156,8 @@ export class ProxyInteractionService {
         const meta: ProxyMeta[T] = allocateMeta(this.ctx, args);
         const { params, result } = meta;
 
+        // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should adopt the Widget rather than its element.
+        // eslint-disable-next-line aglint/widget-boundary -- DOMManager.addChild() takes a raw element (Phase 3).
         this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement());
         result.addClass(...params.classList, 'ag-charts-proxy-container');
         result.setAriaRole(params.role ?? params.type);
@@ -260,6 +263,8 @@ export class ProxyInteractionService {
             params.parent?.addChild(element);
         } else {
             const insert = { where: params.where, query: '.ag-charts-series-area-bounds' };
+            // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should adopt the Widget rather than its element.
+            // eslint-disable-next-line aglint/widget-boundary -- DOMManager.addChild() takes a raw element (Phase 3).
             this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
             element.destroyListener = () => {
                 this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);
