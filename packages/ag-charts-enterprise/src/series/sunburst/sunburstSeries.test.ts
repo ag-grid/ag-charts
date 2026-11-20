@@ -1074,12 +1074,17 @@ describe('SunburstSeries', () => {
 
         it("keeps a sector's labels beside a parallel label stack in the ring inside it", async () => {
             chart = await createEnterpriseChart(parallelStackOptions);
-            const texts = getSeriesSelectionNodes<Group>(chart, 'labelSelection').flatMap((group) =>
-                Selection.selectByClass(group, TransformableText)
+            const visibleTexts = (name: string) => {
+                const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(
+                    chart,
+                    'labelSelection'
+                ).find((node) => node.datum?.datum?.name === name)!;
+                return Selection.selectByClass(group, TransformableText)
                     .filter((text) => text.visible)
-                    .map((text) => text.text)
-            );
-            expect(texts).toEqual(expect.arrayContaining(['EU', '0.08', 'Germany', '0.09']));
+                    .map((text) => text.text);
+            };
+            expect(visibleTexts('EU')).toEqual(['EU', '0.08']);
+            expect(visibleTexts('Germany')).toEqual(['Germany', '0.09']);
         });
 
         it('renders large labels beside a parallel label stack in the ring inside it', async () => {
