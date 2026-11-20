@@ -1710,6 +1710,7 @@ export function castShadows(
     const scratchHeight = Math.max(1, Math.floor(maskHeight * resolution));
     // A mask that is scaled down is cleared whole, since a part of it would not be drawn to the pixels that the whole is. So is
     // that of a cast that was refused room, whose casters are large, so measuring them would only cost.
+    const keptCast = cache != null && repeated && !isDeclined(cache, scene);
     const bounded = resolution === 1 && !(cache != null && isDeclined(cache, scene));
     const plans = masks.map((mask): KeyPlan => {
         const canvasWidth = Math.max(1, Math.floor(mask.maskWidth * resolution));
@@ -1720,7 +1721,11 @@ export function castShadows(
             canvasHeight,
             scaleX: canvasWidth / mask.maskWidth,
             scaleY: canvasHeight / mask.maskHeight,
-            extent: bounded ? getMaskExtent(mask, transform, measured) : undefined,
+            // A direct cast of a key of many casters is cleared whole, so that an animating layer measures no more than the base.
+            extent:
+                bounded && (keptCast || sourceOf(mask.key).casters.length <= MAX_BOUNDED_CASTERS)
+                    ? getMaskExtent(mask, transform, measured)
+                    : undefined,
         };
     });
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
@@ -1734,7 +1739,7 @@ export function castShadows(
     let kept: SpreadCanvas | undefined;
     let keyExtents: Map<ShadowKey, Extent> | undefined;
     let keysExtent: Extent | undefined;
-    if (cache != null && repeated && !isDeclined(cache, scene)) {
+    if (cache != null && keptCast) {
         keyExtents = gapped ? new Map() : undefined;
         keysExtent = getShadowExtent(
             glowKeys,
