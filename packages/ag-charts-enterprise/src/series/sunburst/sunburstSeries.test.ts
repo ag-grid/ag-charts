@@ -248,17 +248,10 @@ describe('SunburstSeries', () => {
         }
 
         it('keeps the wider line of a wrapped label when narrowing to its sector would drop more', async () => {
-            const { options } = GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE;
-            const series = options.series![0] as AgSunburstSeriesOptions;
+            const wrapping = { wrapping: 'on-space' } as const;
             chart = await createEnterpriseChart({
-                ...options,
-                series: [
-                    {
-                        ...series,
-                        label: { ...series.label, wrapping: 'on-space' },
-                        secondaryLabel: { ...series.secondaryLabel, wrapping: 'on-space' },
-                    },
-                ],
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                theme: { overrides: { sunburst: { series: { label: wrapping, secondaryLabel: wrapping } } } },
             });
             const texts = getSeriesSelectionNodes<Group>(chart, 'labelSelection').flatMap((group) =>
                 Selection.selectByClass(group, TransformableText)

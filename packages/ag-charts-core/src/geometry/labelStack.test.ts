@@ -85,5 +85,20 @@ describe('fitLabelStack', () => {
             const fitted = fitLabelStack(stack(wrapped(text)), undefined, narrowing(...halfWidths));
             expect(fitted?.blocks[0]?.text).toBe(expected);
         });
+
+        it('keeps an image rather than holding more of the text without it', () => {
+            const withLogo: LabelStackBlock = {
+                fit: {
+                    text: [
+                        { type: 'image', url: 'https://example.com/logo.png', width: 30, height: 40, block: true },
+                        { text: 'Information Technology Services' },
+                    ],
+                    policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' },
+                    font: FONT,
+                },
+            };
+            const fitted = fitLabelStack(stack(withLogo), undefined, narrowing(100, 60, 60, 40));
+            expect(fitted?.blocks[0]?.text).toMatchObject([{ type: 'image' }, { text: 'Inform…' }]);
+        });
     });
 });

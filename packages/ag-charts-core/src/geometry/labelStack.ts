@@ -202,16 +202,31 @@ function fitStackAtSizes(
         shape,
         shapeAlign
     );
-    if (narrowed != null && !narrowed.overflows && narrowed.dropped === 0) return narrowed;
+    // Above the floor nothing truncates, so a held fit could only repeat the fit the shape already rejected.
+    if (!atFloor || (narrowed != null && !narrowed.overflows && narrowed.dropped === 0)) return narrowed;
     // Narrowing can truncate more than holding the stack to its estimated height on the wider line.
     const held = withinShape(
         fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, Math.min(maxHeight, estimate)),
         shape,
         shapeAlign
     );
-    if (narrowed == null || held == null) return narrowed ?? held;
+    if (held == null) return narrowed;
+    // Unfitted, the caller drops an optional block and retries, which beats keeping it beside an overrun.
+    if (narrowed == null) return held.overflows ? undefined : held;
     if (narrowed.overflows !== held.overflows) return narrowed.overflows ? held : narrowed;
-    return held.dropped < narrowed.dropped ? held : narrowed;
+    // `dropped` counts characters only, so the held fit must not win by losing an image.
+    return held.dropped < narrowed.dropped && keptImages(held) >= keptImages(narrowed) ? held : narrowed;
+}
+
+function keptImages(fit: StackFit): number {
+    let count = 0;
+    for (const block of fit.blocks) {
+        if (!isArray(block?.text)) continue;
+        for (const segment of block.text) {
+            if (segment.type === 'image') count++;
+        }
+    }
+    return count;
 }
 
 /** `undefined` when the fit is wider than the shape where it ends; an overflowing fit is not bounded by it. */
