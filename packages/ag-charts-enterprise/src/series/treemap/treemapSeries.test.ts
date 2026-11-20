@@ -892,6 +892,24 @@ describe('TreemapSeries', () => {
             expect(groups()[0].label).toBeDefined();
         });
 
+        it('keeps every group label alwaysShow would keep when it is off, however the header rounds', async () => {
+            const groupLabelTexts = async (alwaysShow: boolean) => {
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+                        theme: {
+                            overrides: { treemap: { series: { group: { label: { collision: { alwaysShow } } } } } },
+                        },
+                    })
+                );
+                const texts = groups().map(({ label }) => label?.text);
+                chart.destroy();
+                return texts;
+            };
+
+            expect(await groupLabelTexts(false)).toEqual(await groupLabelTexts(true));
+        });
+
         it('keeps the group header within maxHeight when the label shrinks', async () => {
             chart = deproxy(
                 await createEnterpriseChart(
