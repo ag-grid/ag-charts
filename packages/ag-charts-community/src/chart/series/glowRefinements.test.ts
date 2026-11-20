@@ -6,6 +6,7 @@ import type { AgGlowOptions } from 'ag-charts-types';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { expectSamePixels } from '../test/expectSamePixels';
+import { classRuns } from '../test/glowGapFixtures';
 import { HARD_GAP_GLOW, ROOM, canvasImage, endHover, hoverDatum, hoverSeries } from '../test/glowRender';
 import { expectSectorGlowJoins } from '../test/sectorGlowJoins';
 import { getSeriesAt } from '../test/seriesAccessors';
@@ -148,8 +149,8 @@ describe('glow refinements', () => {
         });
 
         describe('at the point of a star, which is sharper than 60 degrees', () => {
-            const createStar = (glow?: AgGlowOptions) =>
-                create({
+            const createStar = async (series: object, hover: boolean, stroke: object) => {
+                await create({
                     data: [{ x: 2, y: 4 }],
                     axes: CENTRED,
                     series: [
@@ -161,11 +162,13 @@ describe('glow refinements', () => {
                             size: 60,
                             fill: '#0000ff',
                             fillOpacity: 1,
-                            strokeWidth: 0,
-                            glow,
+                            ...stroke,
+                            ...series,
                         },
                     ],
                 });
+                if (hover) await hoverDatum(chart);
+            };
 
             /** The canvas y of the point of the star, found by scanning down its axis from above it, and the x of the axis. */
             const pointOfStar = () => {
@@ -177,29 +180,68 @@ describe('glow refinements', () => {
                 throw new Error('The star is not drawn');
             };
 
-            it('cuts the glow no further past the point than the gap, and leaves the glow unbroken across it', async () => {
-                await createStar();
-                const { axisX, tipY } = pointOfStar();
-                await createStar(GLOW);
-                expect(pixel(axisX, tipY + 3)).toEqual(BLUE);
+            // A pixel is the star (blue), the glow (red), or neither (the gap, or beyond the glow). A blended edge pixel reads as its nearest colour.
+            const classOf = ([red, green, blue]: number[]) => {
+                if (blue > 128 && red < 128 && green < 128) return 'star';
+                if (red > 128 && green < 128 && blue < 128) return 'glow';
+                return 'none';
+            };
 
-                // Each column over the point, and a little to either side of it: going up from the star, the cut ends, and the
-                // glow begins, no further than a gap from the point, and there is glow right up to the end of the spread.
-                for (const dx of [-12, -8, -4, 0, 4, 8, 12]) {
-                    let y = tipY;
-                    while (pixel(axisX + dx, y).toString() !== RED.toString() && y > tipY - gap - spread) y--;
-                    expect(
-                        tipY - y,
-                        `the glow of the column ${dx} from the axis begins within the gap`
-                    ).toBeLessThanOrEqual(gap);
-                    expect(
-                        pixel(axisX + dx, y - 1),
-                        `the glow of the column ${dx} from the axis is wider than a pixel`
-                    ).toEqual(RED);
-                }
+            /** The classes of the pixels going up a column from the point of the star, run by run, with the length of each run. */
+            const runsUp = (x: number, fromY: number, toY: number) =>
+                classRuns(Array.from({ length: fromY - toY + 1 }, (_, i) => classOf(pixel(x, fromY - i))));
 
-                // Beyond the reach of the glow there is none.
-                expect(pixel(axisX, tipY - gap - spread - 4)).toEqual(WHITE);
+            // The glow is cast three ways: for the series, by an itemStyler, and for the hovered item.
+            describe.each(PLACEMENTS)('from %s', (_name, placement, hover) => {
+                const UNSTROKED = { strokeWidth: 0 };
+                // A stroke of 6 with a miter join, whose spike reaches well past the vertex of the star.
+                const STROKED = { stroke: '#0000ff', strokeWidth: 6, strokeOpacity: 1 };
+
+                it.each([
+                    ['with no stroke', UNSTROKED],
+                    ['with a thick stroke', STROKED],
+                ])('leaves the glow unbroken across the point of a star %s', async (_stroke, stroke) => {
+                    await createStar({}, false, stroke);
+                    const { axisX, tipY } = pointOfStar();
+                    await createStar(placement, hover, stroke);
+                    expect(pixel(axisX, tipY + 3)).toEqual(BLUE);
+
+                    // Going up each column over the point there is the star, the gap, then the glow to its end: the spike doesn't break through.
+                    for (const dx of [-5, -3, 0, 3, 5]) {
+                        const runs = runsUp(axisX + dx, tipY + 20, tipY - 4 * (gap + spread));
+                        expect(runs.map((run) => run.class).join(), `the column ${dx} from the axis`).toBe(
+                            'star,none,glow,none'
+                        );
+                        // The gap is cut, and the glow starts, the gap from the item or more, and the glow is a spread or more.
+                        expect(runs[1].length, `the gap in the column ${dx} from the axis`).toBeGreaterThanOrEqual(
+                            gap - 1
+                        );
+                        expect(runs[2].length, `the glow in the column ${dx} from the axis`).toBeGreaterThanOrEqual(
+                            spread - 1
+                        );
+                    }
+                });
+
+                it('starts the glow a gap, within a pixel, from the point of a star with no stroke', async () => {
+                    await createStar({}, false, UNSTROKED);
+                    const { axisX, tipY } = pointOfStar();
+                    await createStar(placement, hover, UNSTROKED);
+
+                    // The glow begins no further than a gap from the point and, straight over it, no nearer.
+                    for (const dx of [-12, -8, -4, 0, 4, 8, 12]) {
+                        let y = tipY;
+                        while (pixel(axisX + dx, y).toString() !== RED.toString() && y > tipY - gap - spread) y--;
+                        expect(
+                            tipY - y,
+                            `the glow of the column ${dx} from the axis begins within the gap`
+                        ).toBeLessThanOrEqual(gap + 1);
+                        if (dx === 0) {
+                            expect(tipY - y, 'the glow over the point begins a gap from it').toBeGreaterThanOrEqual(
+                                gap - 1
+                            );
+                        }
+                    }
+                });
             });
         });
     });
