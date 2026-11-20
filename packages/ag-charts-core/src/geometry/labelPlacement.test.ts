@@ -639,6 +639,7 @@ describe('placeLabels', () => {
 
         expect(place([blocksTop])).toMatchObject([{ placement: 'bottom' }]);
         expect(place([nonFinite])).toMatchObject([{ placement: 'top' }]);
+        expect(place([nonFinite, blocksTop])).toMatchObject([{ placement: 'bottom' }]);
         expect(place([infinitelyWide])).toMatchObject([{ placement: 'top' }]);
         expect(place([])).toMatchObject([{ placement: 'top' }]);
     });
