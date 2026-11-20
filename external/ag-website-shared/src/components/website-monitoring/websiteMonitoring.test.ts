@@ -446,6 +446,19 @@ describe('slow interactions', () => {
 
         expect(reporter.stop).toHaveBeenCalledTimes(1);
     });
+
+    test('stop being reported before the session ends when GTM sends stop', async () => {
+        stubReload();
+        await initWebsiteMonitoring();
+        await fireGtmTag(WEBSITE_MONITORING_GTM_START_SCRIPT);
+
+        await fireGtmTag(WEBSITE_MONITORING_GTM_STOP_SCRIPT);
+
+        expect(reporter.stop).toHaveBeenCalledTimes(1);
+        expect(reporter.stop.mock.invocationCallOrder[0]).toBeLessThan(
+            dash0.terminateSession.mock.invocationCallOrder[0]
+        );
+    });
 });
 
 describe('trackMonitoringEvent and reportMonitoringError', () => {
