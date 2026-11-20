@@ -67,18 +67,30 @@ owner_state() {
     fi
 }
 
-# Prints the working directory of each of the user's processes; fails when they cannot be listed.
+# Prints the working directory of each of the user's processes; fails unless every live one was read.
 process_cwds() {
     local proc
     if [[ -d /proc/self ]]; then
         for proc in /proc/[0-9]*; do
-            [[ -O "$proc" ]] && readlink "$proc/cwd" 2>/dev/null
+            [[ -O "$proc" ]] || continue
+            # A process that exited mid-listing is fine; a live one hiding its cwd is not.
+            readlink "$proc/cwd" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
         done
         return 0
     fi
     command -v lsof >/dev/null || return 1
-    # lsof exits non-zero when some processes vanish mid-listing, so judge it by its output.
-    { lsof -a -d cwd -u "$(id -u)" -Fn 2>/dev/null || true; } | sed -n 's/^n//p' | grep .
+    local listing
+    listing=$(lsof -a -d cwd -u "$(id -u)" -Fpn 2>/dev/null) || return 1
+    # Each process record (p) must be followed by its cwd name (n).
+    awk '/^p/ { if (open) bad = 1; open = 1; next } /^n/ { print substr($0, 2); open = 0 } END { exit bad || open }' <<<"$listing"
+}
+
+# True when a running process of the user has its working directory inside the path, or the processes cannot all be read.
+in_use() {
+    local real_path cwds
+    real_path=$(cd -P "$1" && pwd) || return 0
+    cwds=$(process_cwds) || return 0
+    awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$cwds"
 }
 
 # Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
@@ -99,7 +111,7 @@ find_recent() {
 
 # Prints why the worktree must be kept, or nothing when its owner has exited and nothing in it changed within the stale window.
 keep_reason() {
-    local candidate=$1 git_dir='' real_path
+    local candidate=$1 git_dir=''
     if [[ ! -e "$candidate/.git" ]] || ! git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
         echo "unknown owner, remove it by hand if unused"
         return
@@ -108,19 +120,6 @@ keep_reason() {
     alive) echo "owner running" && return ;;
     unknown) echo "unknown owner, remove it by hand if unused" && return ;;
     esac
-    # Covers sessions started in the worktree after its owner exited.
-    if [[ -z "$CWDS_LISTED" ]]; then
-        echo "cannot list running processes"
-        return
-    fi
-    real_path=$(cd -P "$candidate" && pwd) || {
-        echo "cannot resolve path"
-        return
-    }
-    if awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$CWDS"; then
-        echo "in use by a running process"
-        return
-    fi
     # Absent metadata files are skipped by find_recent; inaccessible ones fail the probe.
     if find_recent "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
@@ -129,6 +128,11 @@ keep_reason() {
     # One walk of the worktree, ignored files included. A failed scan counts as active.
     if find_recent "$candidate" || (($? == 2)); then
         echo "recently active"
+        return
+    fi
+    # Checked last, just before removal, to catch sessions started in the worktree after its owner exited.
+    if in_use "$candidate"; then
+        echo "in use by a running process, or processes could not all be read"
     fi
 }
 
@@ -141,10 +145,6 @@ cleanup_stale_agent_worktrees() {
 
     local remove_script candidate reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
-
-    # Listed once per run; read by keep_reason.
-    CWDS='' CWDS_LISTED=''
-    CWDS=$(process_cwds) && CWDS_LISTED=1
 
     for candidate in "$repo_wt_dir"/agent-*; do
         [[ -d "$candidate" ]] || continue
