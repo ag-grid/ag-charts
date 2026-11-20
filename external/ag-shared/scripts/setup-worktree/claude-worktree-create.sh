@@ -161,9 +161,7 @@ else
 fi
 
 # Record the owning Claude Code process so cleanup keeps this worktree while it runs.
-if OWNER=$(claude_owner) && WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null); then
-    echo "$OWNER" >"$WT_GIT_DIR/$OWNER_FILE_NAME"
-else
+if ! { OWNER=$(claude_owner) && WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null) && echo "$OWNER" 2>/dev/null >"$WT_GIT_DIR/$OWNER_FILE_NAME"; }; then
     log "WARNING: could not record the owning Claude Code process; stale cleanup will keep this worktree"
 fi
 
