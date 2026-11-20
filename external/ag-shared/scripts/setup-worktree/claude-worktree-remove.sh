@@ -13,6 +13,22 @@ WT_PATH=$(echo "$INPUT" | jq -r '.worktree_path')
 
 log() { echo "[claude-wt-rm] $*" >&2; }
 
+# The create hook's cleanup may have this worktree moved aside to .removing-<name> while it holds this lock, so wait
+# for it before judging the path; the worktree is then either back in place or gone.
+LOCK="$(dirname "$WT_PATH")/.cleanup.lock"
+if [[ -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -e "$LOCK" ]]; then
+    exec 9>>"$LOCK"
+    if command -v flock >/dev/null; then
+        flock -w 120 9 || { log "Timed out waiting for $LOCK; not removing ${WT_PATH}"; exit 1; }
+    elif command -v perl >/dev/null; then
+        perl -MFcntl=:flock -e 'alarm 120; open(my $fh, ">&=", 9) or exit 1; flock($fh, LOCK_EX) or exit 1' ||
+            { log "Timed out waiting for $LOCK; not removing ${WT_PATH}"; exit 1; }
+    else
+        log "Cannot lock $LOCK; not removing ${WT_PATH}"
+        exit 1
+    fi
+fi
+
 if [[ -z "$WT_PATH" || ! -d "$WT_PATH" ]]; then
     log "Worktree path not found or empty: ${WT_PATH:-<none>}"
     exit 0

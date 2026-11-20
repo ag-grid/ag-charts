@@ -102,6 +102,36 @@ process_paths() {
         END { exit bad || file || (proc && !named) }' <<<"$listing" | sed 's/\\\\/\\/g'
 }
 
+# Prints the user's process ids, leaving out this hook and its descendants, whose short-lived helpers come and go.
+user_pids() {
+    ps -A -o pid=,ppid=,uid= | awk -v me=$$ -v u="$(id -u)" '
+        { parent[$1] = $2; owner[$1] = $3 }
+        END {
+            for (pid in parent) {
+                if (owner[pid] != u) continue
+                ours = 0
+                for (p = pid; p > 1 && (p in parent); p = parent[p]) if (p == me) { ours = 1; break }
+                if (!ours) print pid
+            }
+        }' | sort -n
+}
+
+# As process_paths, but only from a listing during which no process of the user started or exited, since a process
+# started mid-listing can hold an inherited handle the listing missed. Retries a few times, then fails.
+stable_process_paths() {
+    local attempt before after paths
+    for attempt in 1 2 3; do
+        before=$(user_pids) || return 1
+        paths=$(process_paths) || return 1
+        after=$(user_pids) || return 1
+        if [[ "$before" == "$after" ]]; then
+            printf '%s\n' "$paths"
+            return 0
+        fi
+    done
+    return 1
+}
+
 # True when a running process of the user has its working directory or an open file inside the path, or the processes
 # cannot all be read. Uses the PROCESS_PATHS snapshot when given a second argument, else a fresh listing.
 in_use() {
@@ -113,7 +143,7 @@ in_use() {
         [[ -n "$PROCESS_PATHS_READ" ]] || return 0
         paths=$PROCESS_PATHS
     else
-        paths=$(process_paths) || return 0
+        paths=$(stable_process_paths) || return 0
     fi
     # The path goes through the environment, which awk takes literally (-v would interpret backslashes).
     # Only a clean no-match (exit 3) counts as unused; an awk failure counts as in use.
@@ -284,7 +314,7 @@ cleanup_locked() {
         fi
         if [[ -z "$listed" ]]; then
             listed=1
-            PROCESS_PATHS=$(process_paths) && PROCESS_PATHS_READ=1
+            PROCESS_PATHS=$(stable_process_paths) && PROCESS_PATHS_READ=1
         fi
         # Checked before the move, so a known user never sees the path vanish; rechecked fresh after it.
         if in_use "$candidate" snapshot; then
@@ -315,7 +345,8 @@ cleanup_locked() {
         log "Cleaning up stale agent worktree: $candidate"
         # The remover runs git hooks, which must not inherit the lock descriptor.
         # The remover reports a missing path as success, so success is judged by the path being gone.
-        jq -n --arg path "$moved" '{worktree_path: $path}' | bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done || true
+        # The remover would otherwise wait for the lock this hook holds.
+        jq -n --arg path "$moved" '{worktree_path: $path}' | CLAUDE_WT_CLEANUP_LOCKED=1 bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done || true
         if [[ -e "$moved" || -L "$moved" ]]; then
             [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
             log "WARNING: removal failed; kept $candidate"
