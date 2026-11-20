@@ -53,20 +53,30 @@ export function describeAnnotation(datum: AnnotationDatum, context: AnnotationCo
     return localeManager.t('ariaLabelAnnotation', { description, type });
 }
 
-function valueKey(point: PointType | undefined) {
-    const value = getGroupingValue(point);
-    return value instanceof Date ? value.getTime() : String(value);
-}
-
-/** Changes with the datum's inputs to `describeAnnotation()`; the caller must track the axis formats and locale. */
-export function getDescriptionKey(datum: AnnotationDatum) {
-    const text = isTextType(datum) ? datum.text : '';
+/** The datum's inputs to `describeAnnotation()`; the caller must track the axis formats and locale. */
+export function getDescriptionInputs(datum: AnnotationDatum): unknown[] {
     if (isCrossLineType(datum)) {
-        return `${datum.type}|${valueKey(datum.value)}`;
+        return [datum.type, getGroupingValue(datum.value)];
     }
+    const text = isTextType(datum) ? datum.text : '';
     if ('start' in datum) {
         const { start, end } = datum;
-        return `${datum.type}|${text}|${valueKey(start.x)}|${valueKey(start.y)}|${valueKey(end.x)}|${valueKey(end.y)}`;
+        return [
+            datum.type,
+            text,
+            getGroupingValue(start.x),
+            getGroupingValue(start.y),
+            getGroupingValue(end.x),
+            getGroupingValue(end.y),
+        ];
     }
-    return `${datum.type}|${text}|${valueKey(datum.x)}|${valueKey(datum.y)}`;
+    return [datum.type, text, getGroupingValue(datum.x), getGroupingValue(datum.y)];
+}
+
+export function areDescriptionInputsEqual(a: unknown[], b: unknown[]) {
+    return a.length === b.length && a.every((value, index) => isSameValue(value, b[index]));
+}
+
+function isSameValue(a: unknown, b: unknown) {
+    return a === b || (a instanceof Date && b instanceof Date && a.getTime() === b.getTime());
 }

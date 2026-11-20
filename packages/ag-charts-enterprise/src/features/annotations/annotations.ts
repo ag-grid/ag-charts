@@ -58,7 +58,12 @@ import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, isWriteable, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
-import { describeAnnotation, describeAnnotationAxis, getDescriptionKey } from './utils/describe';
+import {
+    areDescriptionInputsEqual,
+    describeAnnotation,
+    describeAnnotationAxis,
+    getDescriptionInputs,
+} from './utils/describe';
 import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
@@ -148,6 +153,7 @@ export class Annotations extends AbstractModuleInstance {
         onMoveKeyUp: (sourceEvent) => this.onKeyUp({ sourceEvent }),
         onMoveEnd: () => this.endMove(),
         onMoveBlur: () => this.onMoveBlur(),
+        onFocusLost: () => this.ctx.widgets.seriesWidget.focus(),
     });
 
     /** Whether the Annotation Options Toolbar was opened with the keyboard, which adds its keyboard-only buttons. */
@@ -155,7 +161,7 @@ export class Annotations extends AbstractModuleInstance {
     /** The id of the annotation that the arrow keys move after the Move Annotation button is pressed, if any. */
     private movingId?: string;
     // OPTIMIZATION: reused while their key matches, as formatting a label runs the axis formatters.
-    private readonly labels = new Map<string, { key: string; label: string }>();
+    private readonly labels = new Map<string, { inputs: unknown[]; label: string }>();
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
@@ -649,7 +655,7 @@ export class Annotations extends AbstractModuleInstance {
                 if (keyboardOptions) {
                     // The deleted annotation's list item is removed on the next update, so focus moves on after it.
                     this.postUpdateFns.push(() => {
-                        if (!this.domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
+                        this.focusListOrSeries();
                     });
                 }
             }),
@@ -937,6 +943,7 @@ export class Annotations extends AbstractModuleInstance {
     private onPreRender() {
         if (!(this.opts.enabled ?? true)) {
             this.domProxy.clear();
+            if (this.movingId != null) this.abandonMove();
             return;
         }
         this.updateAnnotations();
@@ -1440,12 +1447,12 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private getLabel(datum: AnnotationDatum, context: AnnotationContext) {
-        const key = getDescriptionKey(datum);
+        const inputs = getDescriptionInputs(datum);
         const cached = this.labels.get(datum.id);
-        if (cached?.key === key) return cached.label;
+        if (cached != null && areDescriptionInputsEqual(cached.inputs, inputs)) return cached.label;
 
         const label = describeAnnotation(datum, context);
-        this.labels.set(datum.id, { key, label });
+        this.labels.set(datum.id, { inputs, label });
         return label;
     }
 
@@ -1462,12 +1469,19 @@ export class Annotations extends AbstractModuleInstance {
 
         // After the render, which the state changes must not interleave with.
         this.postUpdateFns.push(() => {
-            if (this.movingId !== movingId) return;
-            this.stopMove();
-            this.cancel();
-            this.reset();
-            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
+            if (this.movingId === movingId) this.abandonMove();
         });
+    }
+
+    private abandonMove() {
+        this.stopMove();
+        this.cancel();
+        this.reset();
+        this.focusListOrSeries();
+    }
+
+    private focusListOrSeries() {
+        if (!this.domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
     }
 
     private findIndexById(id: string) {

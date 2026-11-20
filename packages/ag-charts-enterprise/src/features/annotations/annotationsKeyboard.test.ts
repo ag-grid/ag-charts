@@ -135,6 +135,36 @@ describe('Annotations keyboard navigation', () => {
             const ratioX = chart.getState().zoom?.ratioX;
             expect(ratioX?.end).toBeGreaterThan(0.5);
         });
+
+        it('moves the focus to another annotation when an update stops listing the focused one', async () => {
+            await prepareChart([
+                { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 60 },
+            ]);
+            await focusItem(0);
+
+            await chart.setState({
+                ...chart.getState(),
+                annotations: [
+                    { type: 'horizontal-line', value: 30, readOnly: true },
+                    { type: 'horizontal-line', value: 60 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(items()).toHaveLength(1);
+            expect(activeElement()).toBe(items()[0]);
+        });
+
+        it('moves the focus to the series area when an update removes the only, focused, annotation', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await focusItem(0);
+
+            await chart.setState({ ...chart.getState(), annotations: [] });
+            await waitForChartStability(chart);
+
+            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
+        });
     });
 
     describe('panning', () => {
@@ -307,6 +337,22 @@ describe('Annotations keyboard navigation', () => {
 
             expect(activeElement()).toBe(items()[0]);
             expect(items()[0].textContent).toBe('60, Horizontal Line annotation');
+        });
+
+        it('ends the move when annotations are disabled, moving the focus to the series area', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await startMove();
+            const handle = activeElement();
+
+            await chart.updateDelta({ annotations: { enabled: false } });
+            await waitForChartStability(chart);
+            await keyDown(handle, 'ArrowUp');
+            await keyUp(handle, 'ArrowUp');
+
+            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
+            await chart.updateDelta({ annotations: { enabled: true } });
+            await waitForChartStability(chart);
+            expect(horizontalLineValue()).toBe(50);
         });
 
         it('records the move in the history, so that undo reverts it', async () => {
