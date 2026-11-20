@@ -3463,7 +3463,16 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
 
 function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    let far = min + extent - size;
+    while (far > min && far + size > min + extent) far = nextDownOracle(far);
+    return Math.min(Math.max(pos, min), Math.max(min, far));
+}
+
+function nextDownOracle(value: number): number {
+    if (value === 0) return -Number.MIN_VALUE;
+    const bits = new BigInt64Array(new Float64Array([value]).buffer);
+    bits[0] += value > 0 ? -1n : 1n;
+    return new Float64Array(bits.buffer)[0];
 }
 
 function regionOverflowOracle(region: BoxBounds, x: number, y: number, w: number, h: number): number {
