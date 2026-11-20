@@ -38,6 +38,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
             onChangeCoordinates,
             onChangeLine: noop,
             onChangeText: noop,
+            onChangeTextContent: noop,
             onChangeFillColor: noop,
             onChangeHideFillColor: noop,
             onChangeLineColor: noop,

@@ -64,11 +64,12 @@ import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { hasFontSize, hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
-import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
+import { isEphemeralType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
@@ -473,8 +474,7 @@ export class Annotations extends AbstractModuleInstance {
             showAnnotationSettings: (active: number, sourceEvent?: Event, initialTab: 'line' | 'text' = 'line') => {
                 const datum = this.annotationData.at(active);
 
-                if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
-                if (isEphemeralType(datum)) return;
+                if (!hasSettings(datum) || isEphemeralType(datum)) return;
 
                 const onChangeColor =
                     (colorType: AnnotationOptionsColorPickerType) =>
@@ -495,6 +495,7 @@ export class Annotations extends AbstractModuleInstance {
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
+                        if (!hasLineText(datum)) return;
                         if (props.follow != null) {
                             this.setFollow(datum, props.follow);
                             return;
@@ -508,6 +509,7 @@ export class Annotations extends AbstractModuleInstance {
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'showFill', props.showFill);
                     },
                     onChangeText: (props) => {
+                        if (!hasLineText(datum)) return;
                         this.state.transition('lineText', props);
                         if (props.alignment != null)
                             this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
@@ -519,11 +521,16 @@ export class Annotations extends AbstractModuleInstance {
                                 .join(', ')}`
                         );
                     },
+                    onChangeTextContent: (text) => {
+                        this.state.transition('textContent', text);
+                        this.recordActionAfterNextUpdate(`Change ${datum.type} text`);
+                    },
                     onChangeFillColor: onChangeColor('fill-color'),
                     onChangeHideFillColor: onChangeHideColor('fill-color'),
                     onChangeLineColor: onChangeColor('line-color'),
                     onChangeHideLineColor: onChangeHideColor('line-color'),
                     onChangeLineStyleType: (lineStyleType) => {
+                        if (!hasLineText(datum)) return;
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.optionsToolbar.updateLineStyleType(
                             LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
@@ -531,6 +538,7 @@ export class Annotations extends AbstractModuleInstance {
                         );
                     },
                     onChangeLineStyleWidth: (strokeWidth) => {
+                        if (!hasLineText(datum)) return;
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.optionsToolbar.updateStrokeWidth({
                             strokeWidth,
@@ -541,6 +549,7 @@ export class Annotations extends AbstractModuleInstance {
                     onChangeTextColor: onChangeColor('text-color'),
                     onChangeHideTextColor: onChangeHideColor('text-color'),
                     onChangeTextFontSize: (fontSize) => {
+                        if (!hasFontSize(datum) && !hasLineText(datum)) return;
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
                 };
