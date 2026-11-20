@@ -181,7 +181,7 @@ export function resolveErrorBarStyles(
         capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         // Each line scales a name by its own width, so the cap's is not the whisker's.
         whiskerStyle = resolveLineDashName(whiskerStyle);
-        capsStyle = capsStyle && resolveLineDashName(capsStyle);
+        capsStyle = resolveLineDashName(capsStyle);
     }
 
     // Colour refs are resolved at runtime before render, so the styles are concrete here.

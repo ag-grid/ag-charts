@@ -349,8 +349,9 @@ describe('named line dash patterns in enterprise options', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
-    // An `itemStyler` result is resolved against the options graph at the path that holds the dash defaults, so that a
-    // name in it reaches the canvas as an array rather than as a string `setLineDash` rejects.
+    // A name in an `itemStyler` result must reach the canvas as an array, not as a string `setLineDash` rejects. Series
+    // resolve it against the options graph at the path that holds the dash defaults; error bars resolve it themselves,
+    // after merging, at each line's own width.
     describe('itemStyler results', () => {
         /** A `dot` at the 2px width that the styler sets: `[1, 1.5]` in multiples of it. */
         const DOT = [2, 3];
@@ -389,8 +390,8 @@ describe('named line dash patterns in enterprise options', () => {
                 [DOT],
             ];
         };
-        const errorBar: Row = [
-            'error bar and cap',
+        const errorBar = (label: string, options: object, expected: number[][]): Row => [
+            label,
             {
                 data: [
                     { x: 'a', y: 5, lower: 3, upper: 7 },
@@ -401,42 +402,11 @@ describe('named line dash patterns in enterprise options', () => {
                         type: 'bar',
                         xKey: 'x',
                         yKey: 'y',
-                        errorBar: {
-                            yLowerKey: 'lower',
-                            yUpperKey: 'upper',
-                            // A cap of its own name, so that a cap left as a string cannot hide behind the whisker.
-                            itemStyler: () => ({ ...styled, cap: { lineDash: 'dash' } }),
-                        },
+                        errorBar: { yLowerKey: 'lower', yUpperKey: 'upper', ...options },
                     },
                 ],
             },
-            [DOT, DASH],
-        ];
-
-        const errorBarCapWidth: Row = [
-            'error bar cap of its own width',
-            {
-                data: [
-                    { x: 'a', y: 5, lower: 3, upper: 7 },
-                    { x: 'b', y: 6, lower: 4, upper: 8 },
-                ],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        errorBar: {
-                            yLowerKey: 'lower',
-                            yUpperKey: 'upper',
-                            strokeWidth: 2,
-                            cap: { strokeWidth: 4 },
-                            // The name scales by the width of the line that it draws, not the whisker's.
-                            itemStyler: () => ({ lineDash: 'dot' }),
-                        },
-                    },
-                ],
-            },
-            [DOT, [4, 6]],
+            expected,
         ];
 
         it.each([
@@ -447,8 +417,17 @@ describe('named line dash patterns in enterprise options', () => {
             organization('node'),
             organization('link'),
             organization('expander'),
-            errorBar,
-            errorBarCapWidth,
+            // A cap of its own name, so that a cap left as a string cannot hide behind the whisker.
+            errorBar('error bar and cap', { itemStyler: () => ({ ...styled, cap: { lineDash: 'dash' } }) }, [
+                DOT,
+                DASH,
+            ]),
+            // The name scales by the width of the line that it draws, not the whisker's.
+            errorBar(
+                'error bar cap of its own width',
+                { strokeWidth: 2, cap: { strokeWidth: 4 }, itemStyler: () => ({ lineDash: 'dot' }) },
+                [DOT, [4, 6]]
+            ),
         ])('resolves a stock dash name returned for %s', async (_, options, expected) => {
             chart = await createEnterpriseChart({
                 width: 600,
