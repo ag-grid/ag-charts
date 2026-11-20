@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelAnnotationsList: 'Oznake',
     ariaLabelAnnotation: '${description}, oznaka ${type}',
     ariaLabelAnnotationRange: '${start} do ${end}',
+    ariaLabelMovingAnnotation: 'Pomicanje oznake',
     ariaLabelAnnotationsToolbar: 'Oznake',
     ariaLabelColor: 'Boja',
     ariaLabelColorPicker: 'Birač boja',

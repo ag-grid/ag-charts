@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelAnnotationsList: 'Анотації',
     ariaLabelAnnotation: '${description}, анотація ${type}',
     ariaLabelAnnotationRange: 'від ${start} до ${end}',
+    ariaLabelMovingAnnotation: 'Переміщення анотації',
     ariaLabelAnnotationsToolbar: 'Анотації',
     ariaLabelColor: 'Колір',
     ariaLabelColorPicker: 'Вибір кольору',

@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     ariaLabelAnnotationsList: 'Mga Anotasyon',
     ariaLabelAnnotation: '${description}, ${type} na anotasyon',
     ariaLabelAnnotationRange: '${start} hanggang ${end}',
+    ariaLabelMovingAnnotation: 'Inililipat ang anotasyon',
     ariaLabelColor: 'Kulay',
     ariaLabelColorPicker: 'Tagapili ng Kulay',
     ariaLabelColorPickerAlpha: 'Kalinawan',

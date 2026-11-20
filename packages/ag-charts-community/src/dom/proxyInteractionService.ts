@@ -161,6 +161,10 @@ export class ProxyInteractionService {
 
         const insert = params.where == null ? undefined : { where: params.where, query: SERIES_AREA_BOUNDS_QUERY };
         this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement(), insert);
+        result.destroyListener = () => {
+            this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);
+            result.destroyListener = undefined;
+        };
         result.addClass(...params.classList, 'ag-charts-proxy-container');
         result.setAriaRole(params.role ?? params.type);
 

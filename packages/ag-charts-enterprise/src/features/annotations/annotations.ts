@@ -64,8 +64,8 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
-import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
-import { describeAnnotation, describeAnnotationPosition } from './utils/describe';
+import { applyAnnotationOptions, isMovable, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { describeAnnotation, describeAnnotationAxis, getDescriptionKey } from './utils/describe';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
@@ -154,6 +154,8 @@ export class Annotations extends AbstractModuleInstance {
     private keyboardOptions = false;
     /** The id of the annotation that the arrow keys move after the Move Annotation button is pressed, if any. */
     private movingId?: string;
+    // OPTIMIZATION: reused while their key matches, as formatting a label runs the axis formatters.
+    private readonly labels = new Map<string, { key: string; label: string }>();
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
@@ -593,6 +595,7 @@ export class Annotations extends AbstractModuleInstance {
             // Services
             ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.eventsHub.on('locale:change', () => this.labels.clear()),
             ctx.eventsHub.on('update:pre-scene-render', this.onPreRender.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', () => this.onResize()),
             ctx.eventsHub.on('dom:resize', () => this.onResize()),
@@ -873,6 +876,9 @@ export class Annotations extends AbstractModuleInstance {
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         if (!(this.opts.enabled ?? true)) return;
+
+        // The axis formats, which the labels use, can change with the layout, such as while zooming.
+        this.labels.clear();
 
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
@@ -1352,6 +1358,7 @@ export class Annotations extends AbstractModuleInstance {
         const { domProxy, optionsToolbar, movingId } = this;
         if (!showAnnotations) {
             domProxy.clear();
+            this.endMoveIfUnlisted();
             return;
         }
 
@@ -1370,14 +1377,50 @@ export class Annotations extends AbstractModuleInstance {
 
             items.push({
                 id: datum.id,
-                label: describeAnnotation(datum, context),
+                label: this.getLabel(datum, context),
                 bbox,
                 expanded: index === active && movingId == null,
             });
         });
 
+        if (this.labels.size > items.length) {
+            this.pruneLabels(items);
+        }
+
         domProxy.setHasPopup(optionsToolbar.isEnabled());
         domProxy.update(items, seriesRect);
+        this.endMoveIfUnlisted();
+    }
+
+    private getLabel(datum: AnnotationDatum, context: AnnotationContext) {
+        const key = getDescriptionKey(datum, context);
+        const cached = this.labels.get(datum.id);
+        if (cached?.key === key) return cached.label;
+
+        const label = describeAnnotation(datum, context);
+        this.labels.set(datum.id, { key, label });
+        return label;
+    }
+
+    private pruneLabels(items: AnnotationsDOMProxyItem[]) {
+        const ids = new Set(items.map((item) => item.id));
+        for (const id of this.labels.keys()) {
+            if (!ids.has(id)) this.labels.delete(id);
+        }
+    }
+
+    private endMoveIfUnlisted() {
+        const { movingId, domProxy } = this;
+        if (movingId == null || domProxy.isListed(movingId)) return;
+
+        // After the render, which the state changes must not interleave with.
+        this.postUpdateFns.push(() => {
+            if (this.movingId !== movingId) return;
+            this.stopMove();
+            this.cancel();
+            this.reset();
+            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
+        });
     }
 
     private findIndexById(id: string) {
@@ -1451,7 +1494,7 @@ export class Annotations extends AbstractModuleInstance {
     private startMove() {
         const active = this.state.getActive();
         const datum = active == null ? undefined : this.annotationData.at(active);
-        if (datum == null) return;
+        if (datum == null || !isMovable(datum)) return;
 
         this.movingId = datum.id;
         this.optionsToolbar.hide();
@@ -1468,8 +1511,9 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('translate', { translation });
 
         const datum = this.annotationData.at(active);
-        if (datum != null) {
-            this.domProxy.announce(describeAnnotationPosition(datum, context));
+        const change = datum && describeAnnotationAxis(datum, context, translation.x === 0 ? 'y' : 'x');
+        if (change != null) {
+            this.domProxy.announceMove(change);
         }
     }
 

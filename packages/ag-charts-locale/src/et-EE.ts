@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     ariaLabelAnnotationsList: 'Märkused',
     ariaLabelAnnotation: '${description}, märkus ${type}',
     ariaLabelAnnotationRange: '${start} kuni ${end}',
+    ariaLabelMovingAnnotation: 'Märkuse liigutamine',
     ariaLabelColor: 'Värv',
     ariaLabelColorPicker: 'Värvivalija',
     ariaLabelColorPickerAlpha: 'Läbipaistvus',

@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelAnnotationsList: 'Anteckningar',
     ariaLabelAnnotation: '${description}, anteckning ${type}',
     ariaLabelAnnotationRange: '${start} till ${end}',
+    ariaLabelMovingAnnotation: 'Flyttar anteckning',
     ariaLabelAnnotationsToolbar: 'Anteckningar',
     ariaLabelColor: 'Färg',
     ariaLabelColorPicker: 'Färgväljare',

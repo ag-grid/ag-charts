@@ -42,6 +42,7 @@ export const AG_CHARTS_LOCALE_BN_IN: Record<string, string> = {
     ariaLabelAnnotationsList: 'মন্তব্য',
     ariaLabelAnnotation: '${description}, ${type} মন্তব্য',
     ariaLabelAnnotationRange: '${start} থেকে ${end}',
+    ariaLabelMovingAnnotation: 'মন্তব্য সরানো হচ্ছে',
     ariaLabelColor: 'রঙ',
     ariaLabelColorPicker: 'রঙ নির্বাচক',
     ariaLabelColorPickerAlpha: 'স্বচ্ছতা',

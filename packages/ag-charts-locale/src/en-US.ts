@@ -56,6 +56,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotation: '${description}, ${type} annotation',
     // Screen reader text for the position of an annotation between two points
     ariaLabelAnnotationRange: '${start} to ${end}',
+    // Screen reader text for an annotation that the arrow keys move, before the first move
+    ariaLabelMovingAnnotation: 'Moving annotation',
     // Screen reader text for the color-code label in the picker dialog
     ariaLabelColor: 'Color',
     // Screen reader text for the color picker dialog

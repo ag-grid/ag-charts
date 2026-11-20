@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     ariaLabelAnnotationsList: 'คำอธิบายประกอบ',
     ariaLabelAnnotation: '${description}, คำอธิบายประกอบ ${type}',
     ariaLabelAnnotationRange: '${start} ถึง ${end}',
+    ariaLabelMovingAnnotation: 'กำลังย้ายคำอธิบายประกอบ',
     ariaLabelColor: 'สี',
     ariaLabelColorPicker: 'ตัวเลือกสี',
     ariaLabelColorPickerAlpha: 'ความโปร่งใส',

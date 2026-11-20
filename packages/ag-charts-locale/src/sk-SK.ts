@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelAnnotationsList: 'Poznámky',
     ariaLabelAnnotation: '${description}, anotácia ${type}',
     ariaLabelAnnotationRange: '${start} až ${end}',
+    ariaLabelMovingAnnotation: 'Presúvanie anotácie',
     ariaLabelAnnotationsToolbar: 'Poznámky',
     ariaLabelColor: 'Farba',
     ariaLabelColorPicker: 'Výber farby',

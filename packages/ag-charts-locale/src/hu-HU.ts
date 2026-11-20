@@ -42,6 +42,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelAnnotationsList: 'Megjegyzések',
     ariaLabelAnnotation: '${description}, ${type} jelölés',
     ariaLabelAnnotationRange: '${start} és ${end} között',
+    ariaLabelMovingAnnotation: 'Jelölés mozgatása folyamatban',
     ariaLabelAnnotationsToolbar: 'Megjegyzések',
     ariaLabelColor: 'Szín',
     ariaLabelColorPicker: 'Színválasztó',

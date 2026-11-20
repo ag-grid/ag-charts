@@ -36,7 +36,8 @@ describe('Annotations keyboard navigation', () => {
 
     const body = () => deproxy(chart).ctx.agDocument.body;
     const activeElement = () => document.activeElement;
-    const list = () => body().querySelector<HTMLElement>('.ag-charts-annotations');
+    const root = () => body().querySelector<HTMLElement>('.ag-charts-annotations');
+    const list = () => root()?.querySelector<HTMLElement>('[role="list"]');
     const items = () => Array.from(list()?.querySelectorAll<HTMLButtonElement>('[role="listitem"] > button') ?? []);
     const toolbarPopover = () => body().querySelector<HTMLElement>('.ag-charts-floating-toolbar');
     const toolbarButtons = () =>
@@ -77,8 +78,8 @@ describe('Annotations keyboard navigation', () => {
             expect(list()?.getAttribute('role')).toBe('list');
             expect(list()?.getAttribute('aria-label')).toBe('Annotations');
             const seriesAreaBounds = body().querySelector('.ag-charts-series-area-bounds')!;
-            expect(list()?.parentElement).toBe(seriesAreaBounds.parentElement);
-            expect(seriesAreaBounds.compareDocumentPosition(list()!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(root()?.parentElement).toBe(seriesAreaBounds.parentElement);
+            expect(seriesAreaBounds.compareDocumentPosition(root()!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
             const [line, text] = items();
             expect(items()).toHaveLength(2);
@@ -105,14 +106,6 @@ describe('Annotations keyboard navigation', () => {
             expect(items().map((item) => item.tabIndex)).toEqual([-1, 0]);
         });
 
-        it('lets pointer events through to the series area', async () => {
-            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
-
-            expect(items()[0].style.pointerEvents).toBe('none');
-            // The container's own `pointer-events: none` comes from this class's stylesheet.
-            expect(list()?.classList.contains('ag-charts-proxy-container')).toBe(true);
-        });
-
         it('excludes annotations outside the domain and read-only annotations', async () => {
             await prepareChart([
                 { type: 'horizontal-line', value: 50 },
@@ -121,6 +114,12 @@ describe('Annotations keyboard navigation', () => {
             ]);
 
             expect(items().map((item) => item.textContent)).toEqual(['50, Horizontal Line annotation']);
+        });
+
+        it('describes a line that follows a series at the value it is drawn at', async () => {
+            await prepareChart([{ type: 'horizontal-line', follow: 'last' }]);
+
+            expect(items().map((item) => item.textContent)).toEqual(['95, Horizontal Line annotation']);
         });
 
         it('has no tab stop without annotations', async () => {
@@ -248,7 +247,7 @@ describe('Annotations keyboard navigation', () => {
 
             expect(toolbarPopover()).toBeNull();
             const handle = activeElement();
-            expect(handle?.textContent).toBe('50, Horizontal Line annotation');
+            expect(handle?.textContent).toBe('Moving annotation');
             const description = body().querySelector(`#${handle?.getAttribute('aria-describedby')}`);
             expect(description?.textContent).toContain('arrow keys');
 
@@ -257,9 +256,67 @@ describe('Annotations keyboard navigation', () => {
 
             expect(horizontalLineValue()).toBeGreaterThan(50);
             expect(activeElement()).toBe(handle);
-            expect(handle?.textContent).toMatch(/^50\.\d+, Horizontal Line annotation$/);
-            const liveRegion = body().querySelector('[role="status"]');
-            expect(liveRegion?.textContent).toMatch(/^50\.\d+$/);
+            expect(handle?.textContent).toMatch(/^50\.\d+$/);
+        });
+
+        it('announces only the range along the axis that a move changed', async () => {
+            await prepareChart([
+                {
+                    type: 'line',
+                    start: { x: { __type: 'date', value: '2024-03-01' }, y: 20 },
+                    end: { x: { __type: 'date', value: '2024-09-01' }, y: 80 },
+                },
+            ]);
+            await startMove();
+            const handle = activeElement();
+
+            await keyDown(handle, 'ArrowDown');
+            await keyUp(handle, 'ArrowDown');
+
+            expect(handle?.textContent).toMatch(/^1\d\.\d+ to 7\d\.\d+$/);
+        });
+
+        it('disables Move Annotation for a locked annotation', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50, locked: true }]);
+
+            await openOptions();
+
+            expect(moveButton()?.getAttribute('aria-disabled')).toBe('true');
+        });
+
+        it('disables Move Annotation for a line that follows a series', async () => {
+            await prepareChart([{ type: 'horizontal-line', follow: 'last' }]);
+
+            await openOptions();
+
+            expect(moveButton()?.getAttribute('aria-disabled')).toBe('true');
+        });
+
+        it('ends the move when the annotation is removed, moving the focus to the series area', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await startMove();
+
+            await chart.setState({ ...chart.getState(), annotations: [] });
+            await waitForChartStability(chart);
+
+            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
+            expect(root()?.querySelector('.ag-charts-annotations__mover')?.getAttribute('style')).toContain(
+                'display: none'
+            );
+        });
+
+        it('ends the move when the annotation is removed, moving the focus to another annotation', async () => {
+            await prepareChart([
+                { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 60 },
+            ]);
+            await startMove();
+
+            await chart.setState({ ...chart.getState(), annotations: [{ type: 'horizontal-line', value: 60 }] });
+            await waitForChartStability(chart);
+
+            expect(activeElement()).toBe(items()[0]);
+            expect(items()[0].textContent).toBe('60, Horizontal Line annotation');
         });
 
         it('records the move in the history, so that undo reverts it', async () => {

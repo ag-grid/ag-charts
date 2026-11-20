@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaLabelAnnotationsList: 'Notater',
     ariaLabelAnnotation: '${description}, merknad ${type}',
     ariaLabelAnnotationRange: '${start} til ${end}',
+    ariaLabelMovingAnnotation: 'Flytter merknad',
     ariaLabelAnnotationsToolbar: 'Notater',
     ariaLabelColor: 'Farge',
     ariaLabelColorPicker: 'Fargevelger',

@@ -84,7 +84,7 @@ test.describe('annotations keyboard navigation', () => {
         await page.keyboard.press('Enter');
 
         await expect(optionsToolbar(page)).toHaveCount(0);
-        await expect(page.locator(':focus')).toHaveAccessibleName('30, Horizontal Line annotation');
+        await expect(page.locator(':focus')).toHaveAccessibleName('Moving annotation');
         await expect(page.locator(':focus')).toHaveAccessibleDescription(/arrow keys/);
 
         await page.keyboard.press('ArrowUp');
@@ -92,6 +92,8 @@ test.describe('annotations keyboard navigation', () => {
         const [moved, unmoved] = await getHorizontalLineValues(page);
         expect(moved).toBeGreaterThan(30);
         expect(unmoved).toBe(60);
+        // Only what the move changed is announced: the line's new value.
+        await expect(page.locator(':focus')).toHaveAccessibleName(/^3\d\.\d+$/);
 
         await page.keyboard.press('Escape');
 

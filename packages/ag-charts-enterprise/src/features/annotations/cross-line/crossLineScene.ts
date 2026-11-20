@@ -7,13 +7,13 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { magnetTranslation, translate } from '../utils/coords';
-import { isWriteable } from '../utils/datum';
+import { isMovable } from '../utils/datum';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
 import { type PointType, getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineDatum, horizontalLineDatum } from './crossLineDatum';
-import { isFollowing } from './followValue';
+import { isFollowing, resolveCrossLineValue } from './followValue';
 
 export class CrossLineScene extends AnnotationScene<never> {
     static override is(value: unknown): value is CrossLineScene {
@@ -48,7 +48,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.isHorizontal = horizontalLineDatum.is(datum);
         const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
-        const value = this.resolveValue(datum, context);
+        const value = resolveCrossLineValue(datum, context);
         const coords = this.convertCrossLine(value, this.isHorizontal, axisContext);
 
         if (coords == null) {
@@ -65,12 +65,6 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.updateHandle(datum, coords);
         this.updateText(datum, coords);
         this.updateAxisLabel(datum, value, axisContext, coords);
-    }
-
-    /** The value to draw at: the followed datum's value for a followed line, otherwise the stored `value`. */
-    private resolveValue(datum: CrossLineDatum, context: AnnotationContext): PointType | undefined {
-        if (isFollowing(datum)) return context.getFollowedValue(datum.follow);
-        return datum.value;
     }
 
     private updateLine(datum: CrossLineDatum, coords: Bounds4) {
@@ -186,7 +180,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public dragStart(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
-        if (!this.isMovable(datum)) return;
+        if (!isMovable(datum)) return;
 
         const middle = horizontalLineDatum.is(datum)
             ? { x: target.x, y: convert(datum.value, context.yAxis) }
@@ -201,7 +195,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     public drag(datum: CrossLineDatum, target: Point, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
-        if (!this.isMovable(datum) || !dragState) return;
+        if (!isMovable(datum) || !dragState) return;
 
         if (activeHandle != null) {
             this[activeHandle].toggleDragging(true);
@@ -217,17 +211,13 @@ export class CrossLineScene extends AnnotationScene<never> {
     }
 
     public translate(datum: CrossLineDatum, translation: Point, context: AnnotationContext) {
-        if (!this.isMovable(datum)) return;
+        if (!isMovable(datum)) return;
 
         const vector = horizontalLineDatum.is(datum)
             ? Vec2.from(0, convert(datum.value, context.yAxis))
             : Vec2.from(convert(datum.value, context.xAxis), 0);
 
         this.translatePoint(datum, vector, translation, context);
-    }
-
-    private isMovable(datum: CrossLineDatum) {
-        return isWriteable(datum) && !isFollowing(datum);
     }
 
     protected translatePoint(datum: CrossLineDatum, value: Point, translation: Point, context: AnnotationContext) {

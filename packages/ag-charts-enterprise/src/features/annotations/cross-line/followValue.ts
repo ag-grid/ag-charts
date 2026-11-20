@@ -1,6 +1,7 @@
 import { ChartAxisDirection, datumKeyReader } from 'ag-charts-core';
 import type { AgAnnotationFollow, AgAnnotationFollowName } from 'ag-charts-types';
 
+import type { AnnotationContext } from '../annotationTypes';
 import type { PointType } from '../utils/scale';
 import { type CrossLineDatum, type HorizontalLineDatum, horizontalLineDatum } from './crossLineDatum';
 
@@ -30,6 +31,15 @@ function isFollowName(value: unknown): value is AgAnnotationFollowName {
 /** Whether the line follows a series; `value` is ignored for such a line. */
 export function isFollowing(datum: CrossLineDatum): datum is HorizontalLineDatum & { follow: AgAnnotationFollow } {
     return horizontalLineDatum.is(datum) && datum.follow != null;
+}
+
+/** The value a cross line is drawn at: the followed datum's value for a followed line, otherwise the stored `value`. */
+export function resolveCrossLineValue(
+    datum: CrossLineDatum,
+    context: Pick<AnnotationContext, 'getFollowedValue'>
+): PointType | undefined {
+    if (isFollowing(datum)) return context.getFollowedValue(datum.follow);
+    return datum.value;
 }
 
 export function normaliseFollow(follow: AgAnnotationFollow | undefined): NormalisedFollow | undefined {

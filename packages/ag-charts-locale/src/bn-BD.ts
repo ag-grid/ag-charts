@@ -42,6 +42,7 @@ export const AG_CHARTS_LOCALE_BN_BD: Record<string, string> = {
     ariaLabelAnnotationsList: 'অ্যানোটেশন',
     ariaLabelAnnotation: '${description}, ${type} অ্যানোটেশন',
     ariaLabelAnnotationRange: '${start} থেকে ${end}',
+    ariaLabelMovingAnnotation: 'অ্যানোটেশন সরানো হচ্ছে',
     ariaLabelColor: 'রঙ',
     ariaLabelColorPicker: 'রঙ নির্বাচক',
     ariaLabelColorPickerAlpha: 'স্বচ্ছতা',

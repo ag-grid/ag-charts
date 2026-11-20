@@ -29,6 +29,7 @@ import {
     TEXT_SIZE_ITEMS,
 } from './annotationsMenuOptions';
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
+import { isMovable } from './utils/datum';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isFibonacciType, isTextType } from './utils/types';
@@ -556,7 +557,8 @@ export class AnnotationOptionsToolbar {
                     locked ? { ...UNSET_TOOLBAR_BUTTON, ...button.checkedOverrides } : button
                 );
             } else {
-                this.toolbar.toggleButtonEnabledByIndex(index, !locked);
+                const enabled = button.value === AnnotationOptions.Move ? isMovable(datum) : !locked;
+                this.toolbar.toggleButtonEnabledByIndex(index, enabled);
             }
         }
 
