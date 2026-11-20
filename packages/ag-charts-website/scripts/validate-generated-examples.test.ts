@@ -647,13 +647,13 @@ describe('checkVariants', () => {
         'fails a variant whose generation wrote an error.txt, even when the others are fine',
         async () => {
             const id = 'docs/zz-page/errored';
-            writeFileSync(
-                path.join(writeContents(id, 'plain', 'angular', { files: { 'main.ts': SOURCES[GOOD] } }), 'error.txt'),
-                'boom'
-            );
+            // Both Angular entry files, as for a valid variant, so `error.txt` is the only reason it can fail.
+            const files = Object.fromEntries(ENTRY_FILES.angular.map((name) => [name, SOURCES[GOOD]]));
+            writeFileSync(path.join(writeContents(id, 'plain', 'angular', { files }), 'error.txt'), 'boom');
             const { code, err } = await run(variantsOf([GOOD, id], ['angular']), ['angular']);
             expect(code).toBe(1);
             expect(err).toContain(`${id} [plain/angular]: generation failed`);
+            expect(err).not.toContain('lacks');
         },
         TSC_TIMEOUT
     );
