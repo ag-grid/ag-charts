@@ -67,7 +67,8 @@ owner_state() {
     fi
 }
 
-# Prints the working directory and open files of each of the user's processes; fails unless every live one was read.
+# Prints the working directory, open files and mapped files of each of the user's processes; fails unless every
+# live one was fully read.
 process_paths() {
     local proc uid mine fd
     if [[ -d /proc/self ]]; then
@@ -85,16 +86,23 @@ process_paths() {
             readlink "$proc/cwd" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
             [[ -r "$proc/fd" ]] || [[ ! -e "$proc" ]] || return 1
             for fd in "$proc"/fd/*; do
-                readlink "$fd" 2>/dev/null
+                # A descriptor closed mid-listing is fine; one still present that cannot be resolved is not.
+                readlink "$fd" 2>/dev/null || [[ ! -L "$fd" ]] || return 1
             done
+            # Mappings outlive their descriptors; the path starts at the first " /" since earlier fields hold no slash.
+            awk '{ i = index($0, " /"); if (i) print substr($0, i + 1) }' "$proc/maps" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
         done
         return 0
     fi
     command -v lsof >/dev/null || return 1
     local listing
-    listing=$(lsof -n -P -w -u "$(id -u)" -Fpn 2>/dev/null) || return 1
-    # Each process record (p) must be followed by at least its cwd name (n).
-    awk '/^p/ { if (open) bad = 1; open = 1; next } /^n/ { print substr($0, 2); open = 0 } END { exit bad || open }' <<<"$listing"
+    # lsof lists mapped files too. Every process (p) and every file (f) record must resolve to a name (n).
+    listing=$(lsof -n -P -w -u "$(id -u)" -Fpfn 2>/dev/null) || return 1
+    awk '
+        /^p/ { if (file || (proc && !named)) bad = 1; proc = 1; named = 0; file = 0; next }
+        /^f/ { if (file) bad = 1; file = 1; next }
+        /^n/ { print substr($0, 2); file = 0; named = 1 }
+        END { exit bad || file || (proc && !named) }' <<<"$listing"
 }
 
 # True when a running process of the user has its working directory or an open file inside the path, or the processes cannot all be read.
@@ -136,12 +144,27 @@ keep_reason() {
     # The root and .git are checked here because the move aside changes their timestamps.
     if find_recent "$candidate" "$candidate/.git" "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
+        return
+    fi
+    # Checked before the move so a known user never sees the path vanish; rechecked after it.
+    if in_use "$candidate"; then
+        echo "in use by a running process, or processes could not all be read"
     fi
 }
 
+# Prints a path's modification time to the precision the platform's stat offers.
+mtime_of() {
+    stat -c %y "$1" 2>/dev/null || stat -f %Fm "$1" 2>/dev/null
+}
+
 # As keep_reason, for a worktree already moved aside: checks processes inside it and walks every file once.
+# Renaming leaves the root's mtime alone, so a change since root_mtime means its entries changed around the move.
 moved_keep_reason() {
-    local moved=$1
+    local moved=$1 root_mtime=$2
+    if [[ -z "$root_mtime" || "$(mtime_of "$moved")" != "$root_mtime" ]]; then
+        echo "recently active"
+        return
+    fi
     if in_use "$moved"; then
         echo "in use by a running process, or processes could not all be read"
         return
@@ -170,24 +193,28 @@ cleanup_stale_agent_worktrees() {
     local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
     [[ -d "$repo_wt_dir" ]] || return 0
 
-    # One cleanup at a time per repo, so each removal owns its worktree from check to delete.
-    local lock="$repo_wt_dir/.cleanup.lock" holder=''
-    if ! mkdir "$lock" 2>/dev/null; then
-        holder=$(cat "$lock/pid" 2>/dev/null) || holder=''
-        # A lock whose holder has exited is cleared for the next hook; this one skips cleanup either way.
-        if [[ "$holder" =~ ^[0-9]+$ ]] && ! ps -o pid= -p "$holder" >/dev/null 2>&1 && ps -o pid= -p $$ >/dev/null 2>&1; then
-            rm -rf "$lock"
-        fi
-        log "Skipping stale agent worktree cleanup: another hook holds $lock"
-        return 0
+    # One cleanup at a time per repo, so each removal owns its worktree from check to delete. The kernel releases
+    # the flock when the hook exits, however it exits, so no stale lock is left to reclaim.
+    local lock="$repo_wt_dir/.cleanup.lock" locked=1
+    exec 9>>"$lock" || return 0
+    if command -v flock >/dev/null; then
+        flock -n 9 || locked=0
+    elif command -v perl >/dev/null; then
+        perl -MFcntl=:flock -e 'open(my $fh, ">&=", 9) or exit 1; flock($fh, LOCK_EX | LOCK_NB) or exit 1' || locked=0
+    else
+        locked=0
     fi
-    echo $$ >"$lock/pid"
-    cleanup_locked "$repo_wt_dir" || true
-    rm -rf "$lock"
+    if ((locked)); then
+        cleanup_locked "$repo_wt_dir" || true
+    else
+        log "Skipping stale agent worktree cleanup: could not take $lock (another hook is cleaning up, or no flock)"
+    fi
+    # Closing the descriptor releases the lock and keeps it out of processes started later.
+    exec 9>&-
 }
 
 cleanup_locked() {
-    local repo_wt_dir=$1 remove_script candidate moved original reason
+    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
     # Restore worktrees left aside by an interrupted run.
@@ -210,12 +237,13 @@ cleanup_locked() {
         # Move the worktree off its path before the file walk, so no new session can start in it and the
         # walk sees every write made before removal.
         moved="$repo_wt_dir/.removing-${candidate##*/}"
+        root_mtime=$(mtime_of "$candidate") || root_mtime=''
         if ! move_worktree "$candidate" "$moved"; then
             [[ -d "$moved" && ! -e "$candidate" ]] && restore_worktree "$moved" "$candidate"
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
             continue
         fi
-        reason=$(moved_keep_reason "$moved")
+        reason=$(moved_keep_reason "$moved" "$root_mtime")
         if [[ -n "$reason" ]]; then
             restore_worktree "$moved" "$candidate"
             log "Keeping agent worktree ($reason): $candidate"
