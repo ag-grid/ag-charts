@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { DatalistWidget, type DynamicContext, EventEmitter } from 'ag-charts-core';
+import { DatalistWidget, type DynamicContext, EventEmitter, type Widget } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -15,7 +15,12 @@ import {
     type LineTextPosition,
 } from '../annotationTypes';
 import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import type {
+    LinearDialogDatumType,
+    SettingsDialogDatumType,
+    ShapeDatumType,
+    TextualDatumType,
+} from '../annotationsSuperTypes';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
 import {
     type CoordinateChangeProps,
@@ -32,9 +37,9 @@ import {
     parseCoordinate,
     resolveCoordinate,
 } from '../utils/coordinates';
-import { hasBackground, hasExtendable } from '../utils/has';
+import { hasBackground, hasExtendable, hasFillColor, hasLineColor } from '../utils/has';
 import { getLineStyle } from '../utils/line';
-import { isChannelType, isFibonacciType } from '../utils/types';
+import { isChannelType, isFibonacciType, isShapeType, isTextType } from '../utils/types';
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
@@ -42,6 +47,7 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeCoordinates: (props: CoordinateChangeProps) => void;
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
+    onChangeTextContent: (text: string) => void;
     onChangeFillColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideFillColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
@@ -73,6 +79,12 @@ export interface LinearSettingsDialogTextChangeProps {
 
 // Each label is a whole string of its own, as a translation cannot assume the order its parts read in.
 const COORDINATE_LABELS = {
+    point: {
+        x: 'dialogInputCoordinatesPointX',
+        y: 'dialogInputCoordinatesPointY',
+        xOffset: 'dialogInputCoordinatesPointOffsetX',
+        yOffset: 'dialogInputCoordinatesPointOffsetY',
+    },
     start: {
         x: 'dialogInputCoordinatesStartX',
         y: 'dialogInputCoordinatesStartY',
@@ -130,6 +142,14 @@ const COORDINATE_INPUT_TYPES = {
     offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
+const COLOR_PICKER_ALT_TEXT = {
+    'line-color': 'toolbarAnnotationsLineColor',
+    'fill-color': 'dialogInputFillColorPickerAltText',
+    'text-color': 'dialogInputColorPickerAltText',
+} as const satisfies Record<AnnotationOptionsColorPickerType, string>;
+
+type SettingsTabs = Record<string, { label: string; panel: Widget; onShow?: () => void }>;
+
 interface EventMap {
     hidden: null;
 }
@@ -154,7 +174,25 @@ export class AnnotationSettingsDialog extends Dialog {
         this.refreshCoordinateInputs?.();
     }
 
-    public show(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
+    public show(datum: SettingsDialogDatumType, options: LinearSettingsDialogOptions) {
+        const tabsOptions: SettingsTabs =
+            isTextType(datum) || isShapeType(datum)
+                ? this.createTextualTabs(datum, options)
+                : this.createLinearTabs(datum, options);
+
+        const initial = options.initialSelectedTab in tabsOptions ? options.initialSelectedTab : undefined;
+        const { tabs, initialFocus } = this.createTabs(
+            'ariaLabelSettingsTabBar',
+            initial ?? Object.keys(tabsOptions)[0],
+            tabsOptions
+        );
+        options.initialFocus = initialFocus;
+
+        const popover = this.showWithChildren([tabs], options);
+        popover.addClass('ag-charts-dialog--annotation-settings');
+    }
+
+    private createLinearTabs(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
@@ -172,7 +210,7 @@ export class AnnotationSettingsDialog extends Dialog {
         }
 
         const coordinatesTab = this.createCoordinatesTab(datum, options);
-        const tabsOptions = {
+        return {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -184,16 +222,81 @@ export class AnnotationSettingsDialog extends Dialog {
             },
             ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
         };
+    }
 
-        const { tabs, initialFocus } = this.createTabs(
-            'ariaLabelSettingsTabBar',
-            options.initialSelectedTab,
-            tabsOptions
+    private createTextualTabs(datum: TextualDatumType | ShapeDatumType, options: LinearSettingsDialogOptions) {
+        const textTab = isTextType(datum) ? this.createTextualTextTab(datum, options) : undefined;
+        const styleTab =
+            hasFillColor(datum) || hasLineColor(datum) ? this.createTextualStyleTab(datum, options) : undefined;
+        const coordinatesTab = this.createCoordinatesTab(datum, options);
+        return {
+            ...(textTab && { text: { label: 'dialogHeaderText', panel: textTab.panel, onShow: textTab.onShow } }),
+            ...(styleTab && { style: { label: 'dialogHeaderStyle', panel: styleTab } }),
+            ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
+        };
+    }
+
+    private createTextualTextTab(datum: TextualDatumType, options: LinearSettingsDialogOptions) {
+        const panel = this.createTabPanel();
+
+        const textArea = this.createTextArea({
+            placeholder: 'inputTextareaPlaceholder',
+            value: datum.text,
+            onChange: options.onChangeTextContent,
+        });
+        panel.addChild(textArea);
+
+        const inputGroupLine = this.createInputGroupLine();
+        inputGroupLine.addChild(this.createFontSizeSelect(datum.fontSize, options.onChangeTextFontSize));
+        inputGroupLine.addChild(
+            this.createColorPickerInput(
+                'text-color',
+                getDefaultColor(datum, 'text-color'),
+                getDefaultOpacity(datum, 'text-color'),
+                false,
+                false,
+                options.onChangeTextColor,
+                options.onChangeHideTextColor
+            )
         );
-        options.initialFocus = initialFocus;
+        panel.addChild(inputGroupLine);
 
-        const popover = this.showWithChildren([tabs], options);
-        popover.addClass('ag-charts-dialog--annotation-settings');
+        return { panel, onShow: () => textArea.focusCursorAtEnd() };
+    }
+
+    private createTextualStyleTab(datum: TextualDatumType | ShapeDatumType, options: LinearSettingsDialogOptions) {
+        const panel = this.createTabPanel();
+        const inputGroupLine = this.createInputGroupLine();
+
+        if (hasLineColor(datum)) {
+            inputGroupLine.addChild(
+                this.createColorPickerInput(
+                    'line-color',
+                    getDefaultColor(datum, 'line-color'),
+                    getDefaultOpacity(datum, 'line-color'),
+                    false,
+                    false,
+                    options.onChangeLineColor,
+                    options.onChangeHideLineColor
+                )
+            );
+        }
+        if (hasFillColor(datum)) {
+            inputGroupLine.addChild(
+                this.createColorPickerInput(
+                    'fill-color',
+                    getDefaultColor(datum, 'fill-color'),
+                    getDefaultOpacity(datum, 'fill-color'),
+                    false,
+                    false,
+                    options.onChangeFillColor,
+                    options.onChangeHideFillColor
+                )
+            );
+        }
+        panel.addChild(inputGroupLine);
+
+        return panel;
     }
 
     private createLinearLineTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -358,7 +461,7 @@ export class AnnotationSettingsDialog extends Dialog {
         return { panel, onShow: () => textArea.focusCursorAtEnd() };
     }
 
-    private createCoordinatesTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
+    private createCoordinatesTab(datum: SettingsDialogDatumType, options: LinearSettingsDialogOptions) {
         const context = options.getContext();
         if (!context) {
             return;
@@ -469,8 +572,7 @@ export class AnnotationSettingsDialog extends Dialog {
         onChangeHide: Required<ColorPickerOptions>['onChangeHide']
     ) {
         const label = colorType === 'fill-color' ? 'dialogInputFillColorPicker' : 'dialogInputColorPicker';
-        const altText =
-            colorType === 'fill-color' ? 'dialogInputFillColorPickerAltText' : 'dialogInputColorPickerAltText';
+        const altText = COLOR_PICKER_ALT_TEXT[colorType];
         return this.createColorPicker({
             label,
             altText,

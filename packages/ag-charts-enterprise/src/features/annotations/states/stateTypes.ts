@@ -91,6 +91,7 @@ type ActionEvents = {
     lineProps: LinearSettingsDialogLineChangeProps;
     lineStyle: AnnotationLineStyle;
     lineText: LinearSettingsDialogTextChangeProps;
+    textContent: string;
     toolbarPressSettings: Event;
     updateTextInputBBox: BBox | undefined;
 };

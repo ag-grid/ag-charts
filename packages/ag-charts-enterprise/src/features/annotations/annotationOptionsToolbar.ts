@@ -29,7 +29,7 @@ import {
     TEXT_SIZE_ITEMS,
 } from './annotationsMenuOptions';
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
-import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
+import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasSettings, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isFibonacciType, isTextType } from './utils/types';
 
@@ -212,7 +212,7 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.TextColor]: hasTextColor(datum),
             [AnnotationOptions.FillColor]: hasFillColor(datum),
             [AnnotationOptions.TextSize]: hasFontSize(datum),
-            [AnnotationOptions.Settings]: hasLineText(datum),
+            [AnnotationOptions.Settings]: hasSettings(datum),
             [AnnotationOptions.Lock]: true,
             [AnnotationOptions.Delete]: true,
         };

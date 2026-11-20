@@ -53,6 +53,9 @@ export type LinearDialogDatumType = Exclude<
     EphemeralDatumType
 >;
 
+/** The annotations whose settings dialog has a Coordinates tab. */
+export type SettingsDialogDatumType = LinearDialogDatumType | TextualDatumType | ShapeDatumType;
+
 export type AnnotationScene =
     // Lines
     | LineScene
