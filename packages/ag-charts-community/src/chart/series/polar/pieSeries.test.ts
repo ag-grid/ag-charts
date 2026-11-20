@@ -718,12 +718,7 @@ describe('PieSeries', () => {
     });
 
     describe('tooltip mode', () => {
-        it.each([
-            [1, 'single'],
-            [2, 'shared'],
-            [3, 'shared'],
-            [4, 'single'],
-        ])('defaults to the right mode for %i donut series', async (count, mode) => {
+        it.each([1, 2, 3])('defaults both modes to single for %i donut series', async (count) => {
             chart = deproxy(
                 await createChart({
                     ...options,
@@ -736,7 +731,9 @@ describe('PieSeries', () => {
                 })
             );
 
-            expect(chart.chartOptions.processedOptions.tooltip?.mode).toBe(mode);
+            const { processedOptions } = chart.chartOptions;
+            expect(processedOptions.tooltip?.mode).toBe('single');
+            expect(processedOptions.highlight?.mode).toBe('single');
         });
     });
 

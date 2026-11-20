@@ -109,7 +109,7 @@ export interface StandaloneTestCase extends ChartTestCase {
 }
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
-/** Single highlighting with the shared tooltip a 2-3-series cartesian chart defaults to, for tests not about either mode. */
+/** Single highlighting with a shared tooltip, for tests not about either mode. */
 export const SINGLE_HIGHLIGHT_SHARED_TOOLTIP = {
     highlight: { mode: 'single' },
     tooltip: { mode: 'shared' },
