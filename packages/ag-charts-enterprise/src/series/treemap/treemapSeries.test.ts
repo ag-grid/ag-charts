@@ -892,6 +892,23 @@ describe('TreemapSeries', () => {
             expect(groups()[0].label).toBeDefined();
         });
 
+        it('keeps every group label alwaysShow would keep when it is off, however the header rounds', async () => {
+            const exampleOptions = (alwaysShow: boolean): AgChartOptions => ({
+                ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+                theme: { overrides: { treemap: { series: { group: { label: { collision: { alwaysShow } } } } } } },
+            });
+            const groupLabelTexts = () => groups().map(({ label }) => label?.text);
+
+            chart = deproxy(await createEnterpriseChart(exampleOptions(false)));
+            await compare();
+            const shown = groupLabelTexts();
+            expect(shown).toContain('HEALTHCARE');
+
+            chart.destroy();
+            chart = deproxy(await createEnterpriseChart(exampleOptions(true)));
+            expect(groupLabelTexts()).toEqual(shown);
+        });
+
         it('keeps the group header within maxHeight when the label shrinks', async () => {
             chart = deproxy(
                 await createEnterpriseChart(

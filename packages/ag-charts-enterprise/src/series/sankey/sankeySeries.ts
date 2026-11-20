@@ -1170,9 +1170,9 @@ export class SankeySeries extends FlowProportionSeries<
                     ? this.getNodeStyle(datum, datumIndex, true).shadow
                     : style.shadow;
             rect.fillShadow =
-                datum === focusedDatum
-                    ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow);
+                focusedDatum == null
+                    ? this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow)
+                    : undefined;
             rect.fillGlow =
                 focusedDatum == null
                     ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState, undefined, style.glow)
@@ -1291,9 +1291,9 @@ export class SankeySeries extends FlowProportionSeries<
                     ? this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, true).shadow
                     : style.shadow;
             link.fillShadow =
-                datum === focusedDatum
-                    ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow);
+                focusedDatum == null
+                    ? this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow)
+                    : undefined;
             link.fillGlow =
                 focusedDatum == null
                     ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow)

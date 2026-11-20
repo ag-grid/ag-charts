@@ -1380,6 +1380,33 @@ describe('ErrorBars', () => {
             await compare();
         });
 
+        it('avoids the other error bars when one whisker end is NaN', async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 1, y: 5, lo: 0, hi: 10, a: 3 },
+                    { x: 2, y: 5, lo: 0, hi: 10, a: 3 },
+                    { x: 3, y: 5, lo: 0, hi: Number.NaN, a: 3 },
+                ],
+                series: [
+                    { type: 'scatter', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' } },
+                    { type: 'line', xKey: 'x', yKey: 'a', label: { placement: ['top', 'right'], spacing: SPACING } },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 4 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+            });
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [number] for [ScatterSeries-1 / yValue-errors-upper] ignored:",
+    "[NaN]",
+  ],
+]
+`);
+            await compare();
+        });
+
         describe('collideWith.errorBars validation', () => {
             const withErrorBarsOption = (series: object): AgCartesianChartOptions =>
                 ({

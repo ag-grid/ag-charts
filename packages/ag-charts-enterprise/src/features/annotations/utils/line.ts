@@ -1,33 +1,61 @@
-import type { AgAnnotationLineStyleType, PixelSize } from 'ag-charts-community';
-import { type BBox, type Bounds4, type Point, type ShapeLineCap, Vec2 } from 'ag-charts-core';
+import type { PixelSize } from 'ag-charts-community';
+import {
+    type BBox,
+    type Bounds4,
+    type Point,
+    type ShapeLineCap,
+    Vec2,
+    isLineDashName,
+    scaleLineDashName,
+} from 'ag-charts-core';
+import type { AgLineDashName } from 'ag-charts-types';
 
-export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
-    return lineDash ? 'dashed' : (lineStyle ?? 'solid');
+import type { AnnotationLineStyleType } from '../annotationTypes';
+
+/**
+ * The line style that a `lineDash` shows as in the toolbar and settings dialog. A dash that draws a solid line counts
+ * as `solid`, and any dash other than `dot` counts as `dash`.
+ */
+export function getLineStyle(lineDash?: PixelSize[] | AgLineDashName): AnnotationLineStyleType {
+    if (lineDash == null || lineDash === 'solid') return 'solid';
+    if (Array.isArray(lineDash) && !hasGap(lineDash)) return 'solid';
+    return lineDash === 'dot' ? 'dot' : 'dash';
 }
 
-export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotationLineStyleType): PixelSize[] {
-    switch (styleType) {
-        case 'solid':
-            return [];
-        case 'dashed':
-            return [strokeWidth * 4, strokeWidth * 2];
-        case 'dotted':
-            return [0, strokeWidth * 2];
-    }
+/**
+ * Whether a dash array leaves a gap. Canvas repeats an odd-length array once, so that its entries alternate between a
+ * dash and a gap. Without a positive gap the stroke is continuous.
+ */
+function hasGap(lineDash: PixelSize[]) {
+    const pattern = lineDash.length % 2 === 0 ? lineDash : [...lineDash, ...lineDash];
+    return pattern.some((length, index) => index % 2 === 1 && length > 0);
 }
 
 export interface LineStyleSource {
-    lineDash?: PixelSize[];
-    lineStyle?: AgAnnotationLineStyleType;
+    lineDash?: PixelSize[] | AgLineDashName;
     strokeWidth?: number;
 }
 
-export function getLineDash({ lineDash, lineStyle, strokeWidth }: LineStyleSource): PixelSize[] {
-    return lineDash ?? getComputedLineDash(strokeWidth ?? 1, getLineStyle(lineDash, lineStyle));
+/**
+ * The dash to draw. A stock name is measured in multiples of the stroke width and an array in pixels. The annotation
+ * keeps the name, rather than its array, so that the dash follows a change of width.
+ *
+ * A `dot` is drawn with round caps (see `getLineCap`), which extend every dash by the line width. It is therefore drawn
+ * as a zero-length dash over the stock pattern's whole period, giving round dots at the same spacing as the stock dot.
+ */
+export function resolveLineDash(lineDash: PixelSize[] | AgLineDashName | undefined, strokeWidth: number | undefined) {
+    if (!isLineDashName(lineDash)) return lineDash ?? [];
+
+    const dash = scaleLineDashName(lineDash, strokeWidth);
+    return lineDash === 'dot' ? [0, dash.reduce((sum, length) => sum + length, 0)] : dash;
 }
 
-export function getLineCap({ lineDash, lineStyle }: LineStyleSource): ShapeLineCap | undefined {
-    return getLineStyle(lineDash, lineStyle) === 'dotted' ? 'round' : undefined;
+export function getLineDash({ lineDash, strokeWidth }: LineStyleSource): PixelSize[] {
+    return resolveLineDash(lineDash, strokeWidth);
+}
+
+export function getLineCap({ lineDash }: LineStyleSource): ShapeLineCap | undefined {
+    return lineDash === 'dot' ? 'round' : undefined;
 }
 
 /**

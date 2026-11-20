@@ -31,10 +31,10 @@ export interface PopoverOptions extends PopoverPanelOptions {
  * A non-modal element that overlays the chart.
  */
 export abstract class Popover<Options extends PopoverOptions = PopoverOptions> extends AbstractModuleInstance {
-    protected readonly hideFns: Array<() => void> = [];
-
     private readonly moduleId: string;
     private readonly widget: PopoverWidget;
+    // The `onHide` option of the current show only.
+    private hideCallback?: () => void;
 
     constructor(
         protected readonly ctx: DynamicContext<ChartRegistry>,
@@ -52,8 +52,6 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
             this.widget = new PopoverWidget(ctx.domManager.addChild(canvasOverlay, this.moduleId));
         }
 
-        // First, so that a menu panel is destroyed before the other hide functions and `onHide` callbacks run.
-        this.hideFns.push(() => this.widget.removePanel());
         this.cleanup.register(() => {
             this.widget.destroy();
             ctx.domManager.removeChild(canvasOverlay, this.moduleId);
@@ -73,10 +71,12 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
         // already hidden.
         if (!this.isVisible()) return;
-        for (const fn of this.hideFns) {
-            fn();
-        }
+        // First, so that a menu panel is destroyed before `onHide()` and the `onHide` option run.
         this.widget.removePanel();
+        this.onHide();
+        const { hideCallback } = this;
+        this.hideCallback = undefined;
+        hideCallback?.();
 
         if (opts?.lastFocus === null) {
             this.widget.forgetOpener();
@@ -94,9 +94,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
         controller.setControlled(owns);
         controller.expandControlled();
 
-        if (options.onHide) {
-            this.hideFns.push(options.onHide);
-        }
+        this.hideCallback = options.onHide;
     }
 
     /**
@@ -105,17 +103,18 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
      */
     protected showWithChildren(children: Widget[], options: Options): ContainerWidget {
         const container = this.widget.showChildren(children, options);
-
-        this.hideFns.push(() => this.widget.removePanel());
-        if (options.onHide) {
-            this.hideFns.push(options.onHide);
-        }
+        this.hideCallback = options.onHide;
 
         if (options.initialFocus && options.sourceEvent) {
             this.widget.setFocusOnOpen(options.sourceEvent, options.initialFocus);
         }
 
         return container;
+    }
+
+    /** Called when the popover hides, after its panel is removed and before the `onHide` option. */
+    protected onHide(): void {
+        // Nothing to clean up by default.
     }
 
     protected getPopoverWidget(): Widget | undefined {

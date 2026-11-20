@@ -28,7 +28,7 @@ import {
 import type { Point, SizedPoint } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, isFiniteBox } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
 import {
@@ -1243,16 +1243,20 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
     let extentCount = 0;
     for (const { datums } of data.values()) {
         for (const d of datums) {
-            extentSum += d.label.width + d.label.height;
-            extentCount += 2;
+            const labelExtent = d.label.width + d.label.height;
+            if (Number.isFinite(labelExtent)) {
+                extentSum += labelExtent;
+                extentCount += 2;
+            }
             const markerSize = markerSizeOf(d);
-            if (markerSize > 0) {
+            if (markerSize > 0 && Number.isFinite(markerSize)) {
                 extentSum += markerSize;
                 extentCount += 1;
             }
         }
     }
     for (const o of obstacles) {
+        if (!isFiniteBox(o.box)) continue;
         extentSum += o.box.width + o.box.height;
         extentCount += 2;
     }
@@ -1385,7 +1389,8 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
     const obstacles = typeof obstacleSource === 'function' ? obstacleSource() : obstacleSource;
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
-        obstacleIndex.insert(o.box, o);
+        // An invalid datum can yield a NaN or infinite box, which would otherwise block every label in its row.
+        if (isFiniteBox(o.box)) obstacleIndex.insert(o.box, o);
     }
     insertMarkerObstacles(data);
 }
@@ -2984,7 +2989,7 @@ function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolea
 }
 
 /** Width of the text's first character drawn with an ellipsis, in the font that character is drawn in. */
-function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
+export function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
     if (!isArray(text)) {
         const lead = leadCharacter(toTextString(text));
         return lead == null ? 0 : measureLabelText(appendEllipsis(lead), font).width;
@@ -3086,7 +3091,14 @@ function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | unde
 /** Slides a `size`-long span starting at `pos` flush inside `[min, min+extent]`; unchanged when it is too big to fit. */
 function clampAxis(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    const end = min + extent;
+    let far = end - size;
+    if (far + size > end) {
+        // A step no finer than the operands' precision clears the rounding overshoot in one or two.
+        const step = Math.max((Math.abs(end) + size) * Number.EPSILON, Number.MIN_VALUE);
+        while (far + size > end && far > min) far -= step;
+    }
+    return Math.min(Math.max(pos, min), Math.max(min, far));
 }
 
 /** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */
