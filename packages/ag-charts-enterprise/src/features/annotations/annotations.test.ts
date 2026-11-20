@@ -66,6 +66,9 @@ describe('Annotations', () => {
     const applyAnnotations = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
     const CANCEL = '.ag-charts-color-picker__cancel-button';
     const CONFIRM = '.ag-charts-color-picker__confirm-button';
+    const RED = '#ff0000';
+    const GREEN = '#00aa00';
+    const BLUE = '#0000ff';
     const chartBody = () => deproxy(chart).ctx.agDocument.body;
 
     async function clickAt({ x, y }: { x: number; y: number }) {
@@ -1377,7 +1380,6 @@ describe('Annotations', () => {
 
     describe('settings dialog of text and arrow marker annotations', () => {
         const date = (value: string) => ({ __type: 'date' as const, value });
-        const GREEN = '#00aa00';
 
         const pointAt = (value: string, y: number) => {
             const rect = getSeriesRect(chart);
@@ -1490,7 +1492,7 @@ describe('Annotations', () => {
                         )
                     ).toEqual(['Line Color', 'Fill Color']);
                     await pickDialogColor(0, GREEN);
-                    await pickDialogColor(1, '#0000ff');
+                    await pickDialogColor(1, BLUE);
                     await openTab('Coordinates');
                     await commitInput(chartBody(), 'End: Y', '70');
                 },
@@ -1498,7 +1500,7 @@ describe('Annotations', () => {
                     type: 'callout',
                     text: 'Edited callout',
                     stroke: GREEN,
-                    fill: '#0000ff',
+                    fill: BLUE,
                     end: { y: 70 },
                 },
             },
@@ -1824,10 +1826,6 @@ describe('Annotations', () => {
 
             await compare();
         });
-
-        const RED = '#ff0000';
-        const GREEN = '#00aa00';
-        const BLUE = '#0000ff';
 
         // The labels take the line colour and the shading the background, or the line colour where there is none.
         // Each case is snapshotted, as one annotation is selected at a time.

@@ -230,10 +230,12 @@ export function getCoordinateFields(datum: SettingsDialogDatumType, context: Ann
 
     const fields: CoordinateField[] = [];
     for (const [row, point] of getPointRows(datum)) {
-        const toXProps = (value: PointType): CoordinateChangeProps =>
-            row === 'point' ? { x: value } : { [row]: { x: value } };
-        const toYProps = (value: PointType): CoordinateChangeProps =>
-            row === 'point' ? { y: value } : { [row]: { y: value } };
+        const toProps =
+            (axis: 'x' | 'y') =>
+            (value: PointType): CoordinateChangeProps =>
+                row === 'point' ? { [axis]: value } : { [row]: { [axis]: value } };
+        const toXProps = toProps('x');
+        const toYProps = toProps('y');
         if (x) {
             fields.push(createPointField(row, x, point.x, toXProps));
         }
