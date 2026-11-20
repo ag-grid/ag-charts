@@ -60,11 +60,12 @@ import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './se
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, isWriteable, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { describeAnnotation, describeAnnotationAxis, getDescriptionKey } from './utils/describe';
+import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
-import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
+import { isEphemeralType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
@@ -122,6 +123,7 @@ export class Annotations extends AbstractModuleInstance {
     // State
     private readonly state: AnnotationsStateMachine;
     private annotationData: AnnotationDatum[] = [];
+    private settingsTextDatum?: TextualDatumType;
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -492,8 +494,9 @@ export class Annotations extends AbstractModuleInstance {
             showAnnotationSettings: (active: number, sourceEvent?: Event, initialTab: 'line' | 'text' = 'line') => {
                 const datum = this.annotationData.at(active);
 
-                if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
-                if (isEphemeralType(datum)) return;
+                if (!hasSettings(datum) || isEphemeralType(datum)) return;
+
+                this.settingsTextDatum = isTextType(datum) ? datum : undefined;
 
                 const onChangeColor =
                     (colorType: AnnotationOptionsColorPickerType) =>
@@ -514,6 +517,7 @@ export class Annotations extends AbstractModuleInstance {
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
+                        if (!hasLineText(datum)) return;
                         this.state.transition('lineProps', props);
                         if (props.bands != null)
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'bands', props.bands);
@@ -523,6 +527,7 @@ export class Annotations extends AbstractModuleInstance {
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'showFill', props.showFill);
                     },
                     onChangeText: (props) => {
+                        if (!hasLineText(datum)) return;
                         this.state.transition('lineText', props);
                         if (props.alignment != null)
                             this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
@@ -534,11 +539,16 @@ export class Annotations extends AbstractModuleInstance {
                                 .join(', ')}`
                         );
                     },
+                    onChangeTextContent: (text) => {
+                        this.state.transition('textContent', text);
+                        this.recordActionAfterNextUpdate(`Change ${datum.type} text`);
+                    },
                     onChangeFillColor: onChangeColor('fill-color'),
                     onChangeHideFillColor: onChangeHideColor('fill-color'),
                     onChangeLineColor: onChangeColor('line-color'),
                     onChangeHideLineColor: onChangeHideColor('line-color'),
                     onChangeLineStyleType: (lineStyleType) => {
+                        if (!hasLineText(datum)) return;
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.optionsToolbar.updateLineStyleType(
                             LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
@@ -546,6 +556,7 @@ export class Annotations extends AbstractModuleInstance {
                         );
                     },
                     onChangeLineStyleWidth: (strokeWidth) => {
+                        if (!hasLineText(datum)) return;
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.optionsToolbar.updateStrokeWidth({
                             strokeWidth,
@@ -556,6 +567,7 @@ export class Annotations extends AbstractModuleInstance {
                     onChangeTextColor: onChangeColor('text-color'),
                     onChangeHideTextColor: onChangeHideColor('text-color'),
                     onChangeTextFontSize: (fontSize) => {
+                        if (!isTextType(datum) && !hasLineText(datum)) return;
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
                 };
@@ -672,6 +684,7 @@ export class Annotations extends AbstractModuleInstance {
             // Settings Dialog
             settingsDialog.events.on('hidden', () => {
                 this.optionsToolbar.clearActiveButton();
+                this.deleteTextClearedInSettings();
             })
         );
     }
@@ -1588,6 +1601,22 @@ export class Annotations extends AbstractModuleInstance {
 
     private delete() {
         this.state.transition('delete');
+    }
+
+    /** As the inline editor does, deletes a text annotation left empty once the settings dialog closes. */
+    private deleteTextClearedInSettings() {
+        const datum = this.settingsTextDatum;
+        this.settingsTextDatum = undefined;
+        if (datum?.text !== '') return;
+
+        const index = this.annotationData.indexOf(datum);
+        if (index < 0) return;
+
+        const wasActive = this.state.isActive(index);
+        this.annotationData.splice(index, 1);
+        this.recordActionAfterNextUpdate(`Delete ${datum.type} annotation`);
+        if (wasActive) this.reset();
+        this.update();
     }
 
     private deleteAll() {

@@ -356,6 +356,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderText: 'Text',
     // Text for the annotation dialog's header coordinates tab label
     dialogHeaderCoordinates: 'Coordinates',
+    // Text for the annotation dialog's header style tab label, which holds the colours of a text or arrow marker annotation
+    dialogHeaderStyle: 'Style',
+    // Label and alt text for the annotation dialog's x coordinate input of an annotation anchored at a single point, e.g. a text or arrow marker annotation
+    dialogInputCoordinatesPointX: 'X',
+    // Label and alt text for the annotation dialog's y coordinate input of an annotation anchored at a single point, e.g. a text or arrow marker annotation
+    dialogInputCoordinatesPointY: 'Y',
+    // Label and alt text for the annotation dialog's input for the position of the x coordinate of an annotation anchored at a single point within its category, time band or bar, as a percentage, e.g. 'Offset: X (%)'
+    dialogInputCoordinatesPointOffsetX: 'Offset: X (%)',
+    // Label and alt text for the annotation dialog's input for the position of the y coordinate of an annotation anchored at a single point within its category, time band or bar, as a percentage, e.g. 'Offset: Y (%)'
+    dialogInputCoordinatesPointOffsetY: 'Offset: Y (%)',
     // Text for the annotation dialog's single value coordinate label, used by horizontal and vertical lines
     dialogInputCoordinatesValue: 'Value',
     // Text for the annotation dialog's channel height label

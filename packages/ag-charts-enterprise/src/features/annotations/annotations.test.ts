@@ -4,6 +4,7 @@ import type { AgAnnotation, AgAnnotationsEvent, AgCartesianChartOptions, AgChart
 import {
     clickAction,
     deproxy,
+    doubleClickAction,
     expectErrorsCalls,
     expectWarningsCalls,
     findAxis,
@@ -63,6 +64,38 @@ describe('Annotations', () => {
 
     const compare = () => compareAnnotationsSnapshot(chart, ctx);
     const applyAnnotations = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
+    const CANCEL = '.ag-charts-color-picker__cancel-button';
+    const CONFIRM = '.ag-charts-color-picker__confirm-button';
+    const RED = '#ff0000';
+    const GREEN = '#00aa00';
+    const BLUE = '#0000ff';
+    const chartBody = () => deproxy(chart).ctx.agDocument.body;
+
+    async function clickAt({ x, y }: { x: number; y: number }) {
+        await hoverAction(x, y)(chart);
+        await clickAction(x, y)(chart);
+        await waitForChartStability(chart);
+    }
+
+    const press = async (selector: string) => {
+        chartBody().querySelector<HTMLElement>(selector)!.click();
+        await waitForChartStability(chart);
+    };
+
+    const pickColor = async (color: string) => {
+        const input = chartBody().querySelector<HTMLInputElement>('.ag-charts-color-picker input[aria-label="Color"]')!;
+        input.value = color;
+        input.dispatchEvent(new Event('input'));
+        await waitForChartStability(chart);
+    };
+
+    async function commitInput(container: HTMLElement, label: string, value: string) {
+        const input = container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
+        input.value = value;
+        // A date-time input commits on blur, the others on change.
+        input.dispatchEvent(new Event(input.type === 'datetime-local' ? 'blur' : 'change'));
+        await waitForChartStability(chart);
+    }
 
     describe('theme defaults', () => {
         async function resolveAnnotationThemes(theme: AgCartesianChartOptions['theme']) {
@@ -1239,14 +1272,6 @@ describe('Annotations', () => {
             return body;
         }
 
-        async function commitInput(body: HTMLElement, label: string, value: string) {
-            const input = body.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
-            input.value = value;
-            // A date-time input commits on blur, the others on change.
-            input.dispatchEvent(new Event(input.type === 'datetime-local' ? 'blur' : 'change'));
-            await waitForChartStability(chart);
-        }
-
         describe('on a category axis', () => {
             const categoryOptions: AgCartesianChartOptions = {
                 ...ANNOTATIONS_EXAMPLE_OPTIONS,
@@ -1353,38 +1378,265 @@ describe('Annotations', () => {
         });
     });
 
-    describe('colour picker confirm and cancel', () => {
-        const body = () => deproxy(chart).ctx.agDocument.body;
-        const annotation = () => chart.getState().annotations?.[0] as Record<string, any>;
-        const CANCEL = '.ag-charts-color-picker__cancel-button';
-        const CONFIRM = '.ag-charts-color-picker__confirm-button';
+    describe('settings dialog of text and arrow marker annotations', () => {
+        const date = (value: string) => ({ __type: 'date' as const, value });
 
-        const press = async (selector: string) => {
-            body().querySelector<HTMLElement>(selector)!.click();
-            await waitForChartStability(chart);
+        const pointAt = (value: string, y: number) => {
+            const rect = getSeriesRect(chart);
+            return {
+                x: rect.x + findAxis(chart, 'bottom').scale.convert(new Date(value)),
+                y: rect.y + findAxis(chart, 'left').scale.convert(y),
+            };
         };
+        // A few pixels from the anchor, which every one of these annotations covers.
+        const pointOn = (value: string, y: number) => {
+            const point = pointAt(value, y);
+            return { x: point.x + 5, y: point.y - 5 };
+        };
+
+        const tabNames = () =>
+            Array.from(chartBody().querySelectorAll('.ag-charts-dialog__tab-button'), (button) => button.textContent);
+        const activePanel = () => chartBody().querySelector<HTMLElement>('.ag-charts-dialog__tab-panel--active')!;
+        const panelControls = (selector: string) => activePanel().querySelectorAll<HTMLElement>(selector);
+        const openTab = (name: string) => {
+            const tab = Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button')).find(
+                (button) => button.textContent === name
+            )!;
+            return press(`#${tab.id}`);
+        };
+        async function typeText(value: string) {
+            const textArea = activePanel().querySelector('textarea')!;
+            textArea.value = value;
+            textArea.dispatchEvent(new Event('input'));
+            await waitForChartStability(chart);
+        }
+        async function pickFontSize(value: string) {
+            const select = activePanel().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+            select.value = value;
+            select.dispatchEvent(new Event('change'));
+            await waitForChartStability(chart);
+        }
+        async function pickDialogColor(index: number, color: string) {
+            panelControls('.ag-charts-dialog__color-picker-button')[index].click();
+            await waitForChartStability(chart);
+            await pickColor(color);
+            await press(CONFIRM);
+        }
+
+        async function editTextTab(value: string) {
+            await typeText(value);
+            expect(panelControls('select.ag-charts-dialog__select')).toHaveLength(1);
+            expect(panelControls('.ag-charts-dialog__color-picker-button')[0].getAttribute('aria-label')).toBe(
+                'Text Color'
+            );
+            await pickFontSize('28');
+            await pickDialogColor(0, GREEN);
+        }
+        async function editCoordinate(label: string, value: string) {
+            await openTab('Coordinates');
+            await commitInput(chartBody(), label, value);
+        }
+
+        // Each is edited on every tab it has, and sits apart from the others so that a click selects only it.
+        const families: Array<{
+            annotation: AgAnnotation;
+            at: [string, number];
+            tabs: string[];
+            edit: () => Promise<void>;
+            expected: object;
+        }> = [
+            {
+                annotation: { type: 'text', text: 'Text', x: date('2024-02-01'), y: 85 },
+                at: ['2024-02-01', 85],
+                tabs: ['Text', 'Coordinates'],
+                async edit() {
+                    await editTextTab('Edited text');
+                    await editCoordinate('Y', '70');
+                },
+                expected: { type: 'text', text: 'Edited text', fontSize: 28, color: GREEN, y: 70 },
+            },
+            {
+                annotation: { type: 'comment', text: 'Comment', x: date('2024-04-15'), y: 85 },
+                at: ['2024-04-15', 85],
+                tabs: ['Text', 'Style', 'Coordinates'],
+                async edit() {
+                    await typeText('Edited comment');
+                    await openTab('Style');
+                    await pickDialogColor(0, GREEN);
+                    await editCoordinate('Y', '70');
+                },
+                expected: { type: 'comment', text: 'Edited comment', fill: GREEN, y: 70 },
+            },
+            {
+                annotation: { type: 'note', text: 'Note', x: date('2024-07-01'), y: 85 },
+                at: ['2024-07-01', 85],
+                tabs: ['Text', 'Style', 'Coordinates'],
+                async edit() {
+                    await editTextTab('Edited note');
+                    await openTab('Style');
+                    expect(panelControls('.ag-charts-dialog__color-picker-button')).toHaveLength(1);
+                    await pickDialogColor(0, BLUE);
+                    await editCoordinate('Y', '70');
+                },
+                expected: { type: 'note', text: 'Edited note', fontSize: 28, color: GREEN, fill: BLUE, y: 70 },
+            },
+            {
+                annotation: {
+                    type: 'callout',
+                    text: 'Callout',
+                    start: { x: date('2024-08-15'), y: 60 },
+                    end: { x: date('2024-10-01'), y: 85 },
+                },
+                at: ['2024-10-01', 85],
+                tabs: ['Text', 'Style', 'Coordinates'],
+                async edit() {
+                    await typeText('Edited callout');
+                    await openTab('Style');
+                    expect(
+                        Array.from(panelControls('.ag-charts-dialog__color-picker-button'), (button) =>
+                            button.getAttribute('aria-label')
+                        )
+                    ).toEqual(['Line Color', 'Fill Color']);
+                    await pickDialogColor(0, GREEN);
+                    await pickDialogColor(1, BLUE);
+                    await editCoordinate('End: Y', '70');
+                },
+                expected: {
+                    type: 'callout',
+                    text: 'Edited callout',
+                    stroke: GREEN,
+                    fill: BLUE,
+                    end: { y: 70 },
+                },
+            },
+            ...(
+                [
+                    ['arrow-up', '2024-02-01'],
+                    ['arrow-down', '2024-04-15'],
+                ] as const
+            ).map(([type, anchor]) => ({
+                annotation: { type, x: date(anchor), y: 35 },
+                at: [anchor, 35] as [string, number],
+                tabs: ['Style', 'Coordinates'],
+                async edit() {
+                    await pickDialogColor(0, GREEN);
+                    await editCoordinate('Y', '25');
+                },
+                expected: { type, fill: GREEN, y: 25 },
+            })),
+        ];
+
+        it('opens from the options toolbar with the tabs of each annotation, and edits it from every tab', async () => {
+            await prepareChart({ annotations: families.map(({ annotation }) => annotation) });
+
+            for (const [index, { at, tabs, edit, expected }] of families.entries()) {
+                const { type } = families[index].annotation;
+                await clickAt(pointOn(...at));
+                await press('button[title="Settings"]');
+
+                expect(tabNames(), type).toEqual(tabs);
+                await edit();
+                expect(chart.getState().annotations?.[index], type).toMatchObject(expected);
+                await press('.ag-charts-dialog__close-button');
+            }
+
+            await clickAt(pointAt('2024-12-01', 20));
+            await compare();
+        });
+
+        it('leaves a double-click to edit the text in place, rather than open the dialog', async () => {
+            await prepareChart({ annotations: [{ type: 'text', text: 'Text', x: date('2024-02-01'), y: 85 }] });
+            const point = pointOn('2024-02-01', 85);
+            await clickAt(point);
+
+            await doubleClickAction(point.x, point.y, { precedingClicks: false })(chart);
+            await waitForChartStability(chart);
+            expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+
+            await clickAt(pointAt('2024-12-01', 20));
+            await hoverAction(point.x, point.y)(chart);
+            await doubleClickAction(point.x, point.y)(chart);
+            await waitForChartStability(chart);
+            expect(chartBody().querySelector('.ag-charts-text-input__textarea')).not.toBeNull();
+            expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+        });
+
+        it('keeps cleared text as a draft while the dialog is open and deletes the annotation when it closes empty', async () => {
+            const [text] = families;
+            await prepareChart({ annotations: [text.annotation] });
+            await clickAt(pointOn(...text.at));
+            await press('button[title="Settings"]');
+
+            await typeText('');
+            expect(chart.getState().annotations).toHaveLength(1);
+            await typeText('Replaced');
+            expect(chart.getState().annotations).toMatchObject([{ type: 'text', text: 'Replaced' }]);
+
+            await typeText('');
+            await press('.ag-charts-dialog__close-button');
+            expect(chart.getState().annotations ?? []).toHaveLength(0);
+        });
+
+        it('opens the text colour picker at the transparency of the annotation', async () => {
+            const [text] = families;
+            await prepareChart({
+                annotations: [{ ...text.annotation, color: 'rgba(0, 170, 0, 0.4)' } as AgAnnotation],
+            });
+            await clickAt(pointOn(...text.at));
+            await press('button[title="Settings"]');
+            panelControls('.ag-charts-dialog__color-picker-button')[0].click();
+            await waitForChartStability(chart);
+
+            const alpha = chartBody().querySelector<HTMLInputElement>(
+                '.ag-charts-color-picker input[aria-label="Transparency"]'
+            );
+            expect(alpha?.value).toBe('0.4');
+        });
+
+        it('opens from the focused Settings button, moves between the tabs with the arrow keys and returns focus on Escape', async () => {
+            await prepareChart({ annotations: [families[1].annotation] });
+            await clickAt(pointOn(...families[1].at));
+
+            // jsdom does not turn Enter or Space into a click, so the focused button is clicked.
+            const settings = chartBody().querySelector<HTMLElement>('button[title="Settings"]')!;
+            settings.focus();
+            await press('button[title="Settings"]');
+            const [first, second] = Array.from(
+                chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button')
+            );
+            await vi.waitFor(() => expect(document.activeElement).toBe(first));
+
+            first.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+            expect(document.activeElement).toBe(second);
+            second.click();
+            expect(second.getAttribute('aria-selected')).toBe('true');
+
+            second.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            await waitForChartStability(chart);
+            expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+            expect(document.activeElement).toBe(settings);
+        });
+    });
+
+    describe('colour picker confirm and cancel', () => {
+        const annotation = () => chart.getState().annotations?.[0] as Record<string, any>;
+
         const pressEnterOn = async (selector: string) => {
             const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
-            body().querySelector(selector)!.dispatchEvent(event);
+            chartBody().querySelector(selector)!.dispatchEvent(event);
             await waitForChartStability(chart);
         };
         const pressEscape = async () => {
             const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
-            body().querySelector('.ag-charts-color-picker__palette')!.dispatchEvent(event);
+            chartBody().querySelector('.ag-charts-color-picker__palette')!.dispatchEvent(event);
             await waitForChartStability(chart);
         };
-        const pickColor = async (color: string) => {
-            const input = body().querySelector<HTMLInputElement>('.ag-charts-color-picker input[aria-label="Color"]')!;
-            input.value = color;
-            input.dispatchEvent(new Event('input'));
-            await waitForChartStability(chart);
-        };
-        const hasPicker = () => body().querySelector('.ag-charts-color-picker') != null;
+        const hasPicker = () => chartBody().querySelector('.ag-charts-color-picker') != null;
         const toolbarSwatch = () =>
-            body().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
+            chartBody().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
         const dialogSwatches = () =>
-            Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button')).map((button) =>
-                button.style.getPropertyValue('--color')
+            Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button')).map(
+                (button) => button.style.getPropertyValue('--color')
             );
 
         async function select(annotations: NonNullable<AgCartesianChartOptions['initialState']>['annotations']) {
@@ -1459,7 +1711,7 @@ describe('Annotations', () => {
             await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
             await press('button[title="Settings"]');
 
-            const strokeWidth = body().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+            const strokeWidth = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
             strokeWidth.value = '8';
             strokeWidth.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
@@ -1471,7 +1723,7 @@ describe('Annotations', () => {
             await press(CANCEL);
 
             expect(dialogSwatches()).toEqual(swatchesBefore);
-            expect(body().querySelector('.ag-charts-dialog')).not.toBeNull();
+            expect(chartBody().querySelector('.ag-charts-dialog')).not.toBeNull();
             await compare();
         });
 
@@ -1491,7 +1743,7 @@ describe('Annotations', () => {
             const swatchesBefore = dialogSwatches();
 
             // The line and fill pickers share the Channel tab; the text picker is on the Text tab.
-            const tabs = Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button'));
+            const tabs = Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button'));
             for (const [index, tab] of [
                 [0, 'Channel'],
                 [1, 'Channel'],
@@ -1499,7 +1751,7 @@ describe('Annotations', () => {
             ] as const) {
                 tabs.find((button) => button.textContent === tab)!.click();
                 await waitForChartStability(chart);
-                Array.from(body().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button'))[
+                Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button'))[
                     index
                 ].click();
                 await waitForChartStability(chart);
@@ -1588,10 +1840,6 @@ describe('Annotations', () => {
 
             await compare();
         });
-
-        const RED = '#ff0000';
-        const GREEN = '#00aa00';
-        const BLUE = '#0000ff';
 
         // The labels take the line colour and the shading the background, or the line colour where there is none.
         // Each case is snapshotted, as one annotation is selected at a time.
@@ -2189,14 +2437,8 @@ describe('Annotations', () => {
             );
         }
 
-        async function click({ x, y }: { x: number; y: number }) {
-            await hoverAction(x, y)(chart);
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
-        }
-
         async function selectAtCentre() {
-            await click(centre());
+            await clickAt(centre());
             // Guard: the click really selected the annotation, which shows its options toolbar.
             expect(body().querySelector('button[title="Settings"]')).not.toBeNull();
         }
@@ -2235,7 +2477,7 @@ describe('Annotations', () => {
             it('restores them after clicking the selected annotation again without dragging', async () => {
                 await prepareZoomableChart();
                 await selectAtCentre();
-                await click(centre());
+                await clickAt(centre());
 
                 expectRestored(await setRestoredState());
             });
@@ -2348,13 +2590,13 @@ describe('Annotations', () => {
             it('ignores it while typing in a text annotation, then applies it once that ends', async () => {
                 await prepareZoomableChart([textAnnotation]);
                 const text = at(0.5, 0.25);
-                await click(text); // selects it
-                await click(text); // starts editing its text
+                await clickAt(text); // selects it
+                await clickAt(text); // starts editing its text
                 expect(body().querySelector('.ag-charts-text-input__textarea')).not.toBeNull();
 
                 await expectIgnored();
 
-                await click(at(0.1, 0.9)); // saves the text and leaves the annotation
+                await clickAt(at(0.1, 0.9)); // saves the text and leaves the annotation
                 expect(body().querySelector('.ag-charts-text-input__textarea')).toBeNull();
                 expectRestored(await setRestoredState());
             });

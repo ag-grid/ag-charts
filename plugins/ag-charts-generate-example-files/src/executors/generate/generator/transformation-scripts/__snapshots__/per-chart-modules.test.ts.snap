@@ -3,7 +3,7 @@
 exports[`per-chart modules > generated output > inline angular 1`] = `
 "import { Component } from '@angular/core';
 import { AgCharts } from 'ag-charts-angular';
-import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgChartOptions, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
         ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
         
@@ -18,7 +18,7 @@ import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, 
     ></ag-charts>\`
             })
             class LineChart {
-                public lineOptions;
+                public lineOptions: AgChartOptions;
                 public lineOptionsModules = [LineSeriesModule];
 
                 constructor() {
@@ -39,7 +39,7 @@ import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, 
     ></ag-charts>\`
             })
             class BarChart {
-                public barOptions;
+                public barOptions: AgChartOptions;
                 public barOptionsModules = [BarSeriesModule];
 
                 constructor() {
@@ -111,7 +111,7 @@ exports[`per-chart modules > generated output > inline react typescript 1`] = `
             import React, { useState, Fragment } from 'react';
             import { createRoot } from 'react-dom/client';
             import { AgCharts } from 'ag-charts-react';
-            import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+            import { AgChartOptions, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
             ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
         
@@ -152,18 +152,18 @@ exports[`per-chart modules > generated output > inline react typescript 1`] = `
 `;
 
 exports[`per-chart modules > generated output > inline typescript 1`] = `
-"import { AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+"import { AgChartOptions, AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
 
-const lineOptions = {
+const lineOptions: AgChartOptions = {
     
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
 };
 
 lineOptions.container = document.getElementById('lineChart');
 
-const barOptions = {
+const barOptions: AgChartOptions = {
     
     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
 };
@@ -176,7 +176,7 @@ AgCharts.create(barOptions, { modules: [BarSeriesModule] });"
 
 exports[`per-chart modules > generated output > inline vue 1`] = `
 "
-            import { createApp, defineComponent, ref } from 'vue';
+            import { createApp, defineComponent, ref, type Ref } from 'vue';
 import { AgCharts } from 'ag-charts-vue3';
 import type { AgChartOptions } from 'ag-charts-types';
 import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
@@ -194,11 +194,11 @@ import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, 
                 components: {
                     'ag-charts': AgCharts
                 },
-                setup(props) {
-                    const lineOptions = ref({
+                setup() {
+                    const lineOptions = ref<AgChartOptions>({
     
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-});
+}) as Ref<AgChartOptions>;
                     const lineOptionsModules = [LineSeriesModule];
 
                     
@@ -221,11 +221,11 @@ import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, 
                 components: {
                     'ag-charts': AgCharts
                 },
-                setup(props) {
-                    const barOptions = ref({
+                setup() {
+                    const barOptions = ref<AgChartOptions>({
     
     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-});
+}) as Ref<AgChartOptions>;
                     const barOptionsModules = [BarSeriesModule];
 
                     
@@ -255,7 +255,7 @@ import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, 
 exports[`per-chart modules > generated output > variables angular 1`] = `
 "import { Component } from '@angular/core';
 import { AgCharts } from 'ag-charts-angular';
-import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import { AgChartOptions, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
         const lineModules = [LineSeriesModule]
 ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
@@ -271,7 +271,7 @@ ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
     ></ag-charts>\`
             })
             class LineChart {
-                public lineOptions;
+                public lineOptions: AgChartOptions;
                 public lineOptionsModules = lineModules;
 
                 constructor() {
@@ -292,7 +292,7 @@ ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
     ></ag-charts>\`
             })
             class BarChart {
-                public barOptions;
+                public barOptions: AgChartOptions;
                 public barOptionsModules = [BarSeriesModule];
 
                 constructor() {
@@ -365,7 +365,7 @@ exports[`per-chart modules > generated output > variables react typescript 1`] =
             import React, { useState, Fragment } from 'react';
             import { createRoot } from 'react-dom/client';
             import { AgCharts } from 'ag-charts-react';
-            import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+            import { AgChartOptions, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
             const lineModules = [LineSeriesModule]
             ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
@@ -407,19 +407,19 @@ exports[`per-chart modules > generated output > variables react typescript 1`] =
 `;
 
 exports[`per-chart modules > generated output > variables typescript 1`] = `
-"import { AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+"import { AgChartOptions, AgCharts, BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 const lineModules = [LineSeriesModule]
 ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
 
-const lineOptions = {
+const lineOptions: AgChartOptions = {
     
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
 };
 
 lineOptions.container = document.getElementById('lineChart');
 
-const barOptions = {
+const barOptions: AgChartOptions = {
     
     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
 };
@@ -432,7 +432,7 @@ AgCharts.create(barOptions, { modules: [BarSeriesModule] });"
 
 exports[`per-chart modules > generated output > variables vue 1`] = `
 "
-            import { createApp, defineComponent, ref } from 'vue';
+            import { createApp, defineComponent, ref, type Ref } from 'vue';
 import { AgCharts } from 'ag-charts-vue3';
 import type { AgChartOptions } from 'ag-charts-types';
 import { BarSeriesModule, CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
@@ -452,11 +452,11 @@ ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
                 components: {
                     'ag-charts': AgCharts
                 },
-                setup(props) {
-                    const lineOptions = ref({
+                setup() {
+                    const lineOptions = ref<AgChartOptions>({
     
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-});
+}) as Ref<AgChartOptions>;
                     const lineOptionsModules = lineModules;
 
                     
@@ -479,11 +479,11 @@ ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
                 components: {
                     'ag-charts': AgCharts
                 },
-                setup(props) {
-                    const barOptions = ref({
+                setup() {
+                    const barOptions = ref<AgChartOptions>({
     
     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-});
+}) as Ref<AgChartOptions>;
                     const barOptionsModules = [BarSeriesModule];
 
                     

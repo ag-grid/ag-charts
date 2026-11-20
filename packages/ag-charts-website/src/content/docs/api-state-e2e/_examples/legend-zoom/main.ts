@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgCartesianChartOptions, AgChartState, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';

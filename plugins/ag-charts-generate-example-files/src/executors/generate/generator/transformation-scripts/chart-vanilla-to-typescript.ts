@@ -1,4 +1,4 @@
-import { addBindingImports } from './parser-utils';
+import { addBindingImports, ensureNamedImport, getPropertyOptionsType, usesDefaultOptionsType } from './parser-utils';
 
 function processFunction(code: string): string {
     const updateCall = 'chart.update(options);';
@@ -40,10 +40,10 @@ function getFactory(bindings: any): string {
     return 'AgCharts.create';
 }
 
-function getCreateCall(bindings: any, propertyName: string, isPrimary: boolean): string {
+function getCreateCall(bindings: any, propertyName: string, isPrimary: boolean, optionsArg: string): string {
     const factory = getFactory(bindings);
     const modules = bindings.chartModules[propertyName];
-    const args = modules ? `${propertyName}, { modules: ${modules} }` : propertyName;
+    const args = modules ? `${optionsArg}, { modules: ${modules} }` : optionsArg;
 
     if (isPrimary) {
         return `const chart = ${factory}(${args});`;
@@ -56,7 +56,13 @@ export function vanillaToTypescript(bindings: any): string {
     const sections: string[] = [];
 
     const imports: string[] = [];
-    addBindingImports(bindings.imports, imports, false, false);
+    const bindingImports = bindings.imports.map((i) => ({ ...i, imports: [...i.imports] }));
+    if (usesDefaultOptionsType(bindings)) {
+        // Options the example leaves untyped are annotated, so that `container` can be assigned to them.
+        const packageName = bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'";
+        ensureNamedImport(bindingImports, packageName, 'AgChartOptions');
+    }
+    addBindingImports(bindingImports, imports, false, false);
     if (imports.length > 0) {
         sections.push(imports.join('\n'));
     }
@@ -72,8 +78,6 @@ export function vanillaToTypescript(bindings: any): string {
     const optionDefinitions: string[] = [];
     const createStatements: string[] = [];
 
-    const optionType = bindings.optionsTypeInfo?.typeStr;
-
     for (const id of Object.keys(bindings.chartProperties ?? {})) {
         const propertyName = bindings.chartProperties[id];
         const property = bindings.properties.find((p) => p.name === propertyName);
@@ -81,12 +85,13 @@ export function vanillaToTypescript(bindings: any): string {
         if (!property) continue;
 
         const isPrimary = propertyName === 'options';
-        const typeAnnotation = isPrimary && optionType ? `: ${optionType}` : '';
 
-        optionDefinitions.push(`const ${propertyName}${typeAnnotation} = ${property.value};`);
+        optionDefinitions.push(`const ${propertyName}: ${getPropertyOptionsType(property)} = ${property.value};`);
         optionDefinitions.push(`${propertyName}.container = document.getElementById('${id}');`);
 
-        createStatements.push(getCreateCall(bindings, propertyName, isPrimary));
+        // The example's own cast, if it made one, types the chart instance that its handlers then update
+        const optionsArg = bindings.chartCreateArgs?.[propertyName] ?? propertyName;
+        createStatements.push(getCreateCall(bindings, propertyName, isPrimary, optionsArg));
     }
 
     if (optionDefinitions.length > 0) {
