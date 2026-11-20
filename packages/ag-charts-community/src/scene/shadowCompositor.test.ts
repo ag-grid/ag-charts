@@ -3150,6 +3150,308 @@ describe('Group shadow compositor', () => {
             expect(joinsShadowKey(key, upper, BLUE, undefined, 'layer')).toBe(false);
         });
 
+        // A key's mask is cut down to the union of its casters' silhouettes, where it was the layer and its pads. A caster that
+        // can't be bounded fails open to the whole mask, so that is the reference: no pixel may differ from it.
+        describe('a mask bounded to its casters', () => {
+            const LAYER = { width: 400, height: 300 };
+            const BLURRED = { enabled: true, fill: 'rgba(0, 0, 255, 1)', xOffset: 10, yOffset: 6, blur: 6 };
+            const BLURRED_GLOW = { ...BLURRED, xOffset: 0, yOffset: 0, spread: 8, glow: true as const };
+
+            const shadowKey = (casters: Shape[], shadow: ResolvedDropShadowOptions = BLURRED): ShadowKey => ({
+                ...keyOf(casters[0], shadow),
+                casters,
+            });
+            const glowKeyOf = (node: Shape, glow: ResolvedDropShadowOptions): ShadowKey => ({
+                ...keyOf(node, glow),
+                slot: 'glow',
+            });
+
+            interface Scenario {
+                keys: () => ShadowKey[];
+                devicePixelRatio?: number;
+                overlay?: boolean;
+                /** Whether the key is cast directly on the layer, so that its mask is blurred onto the layer. */
+                direct?: boolean;
+                /** The size of the part of each key's casters that is on the layer, which its mask holds, in css pixels. */
+                held: { width: number; height: number };
+            }
+
+            const grid = (count: number, slot: 'fillShadow' | 'fillGlow', shadow: ResolvedDropShadowOptions) => {
+                const items: Shape[] = [];
+                for (let i = 0; i < count; i++) {
+                    const x = 100 + (i % 6) * 30;
+                    const y = 80 + Math.floor(i / 6) * 30;
+                    items.push(box(x, y, 20, 20, { [slot]: shadow }));
+                }
+                return items;
+            };
+
+            const HOVERED = { width: 40, height: 30 };
+            const GRID = { width: 170, height: 110 };
+
+            const SCENARIOS: Array<[string, Scenario]> = [
+                [
+                    'a hovered item',
+                    {
+                        keys: () => [shadowKey([box(150, 100, 40, 30, { fillShadow: BLURRED })])],
+                        direct: true,
+                        held: HOVERED,
+                    },
+                ],
+                [
+                    'a hovered item at twice the device pixel ratio',
+                    {
+                        keys: () => [shadowKey([box(150, 100, 40, 30, { fillShadow: BLURRED })])],
+                        devicePixelRatio: 2,
+                        direct: true,
+                        held: HOVERED,
+                    },
+                ],
+                [
+                    'a key of more than 16 casters',
+                    {
+                        keys: () => [shadowKey(grid(20, 'fillShadow', BLURRED))],
+                        direct: true,
+                        held: GRID,
+                    },
+                ],
+                [
+                    'a translucent caster',
+                    {
+                        keys: () => [
+                            shadowKey([box(150, 100, 40, 30, { fill: 'rgba(0, 0, 0, 0.5)', fillShadow: BLURRED })]),
+                        ],
+                        direct: true,
+                        held: HOVERED,
+                    },
+                ],
+                [
+                    'a caster that the layer clips at its left and top',
+                    {
+                        keys: () => [
+                            shadowKey([box(-15, -10, 40, 30, { fillShadow: BLURRED })], { ...BLURRED, xOffset: -20 }),
+                        ],
+                        direct: true,
+                        held: { width: 25, height: 20 },
+                    },
+                ],
+                [
+                    'a caster that the layer clips at its right and bottom',
+                    {
+                        keys: () => [shadowKey([box(380, 285, 40, 30, { fillShadow: BLURRED })])],
+                        direct: true,
+                        held: { width: 20, height: 15 },
+                    },
+                ],
+                [
+                    'a caster beside the layer whose shadow is carried onto it',
+                    {
+                        keys: () => [
+                            shadowKey([box(-60, 100, 40, 30, { fillShadow: BLURRED })], { ...BLURRED, xOffset: 80 }),
+                        ],
+                        direct: true,
+                        held: { width: 0, height: 0 },
+                    },
+                ],
+                [
+                    'a glow with a gap',
+                    {
+                        keys: () => {
+                            const glow = { ...BLURRED_GLOW, gap: 4 };
+                            return [glowKeyOf(box(150, 100, 40, 30, { fillGlow: glow }), glow)];
+                        },
+                        held: HOVERED,
+                    },
+                ],
+                [
+                    'a glow with a gap of more than 16 casters',
+                    {
+                        keys: () => {
+                            const glow = { ...BLURRED_GLOW, gap: 2 };
+                            const casters = grid(20, 'fillGlow', glow);
+                            return [{ ...glowKeyOf(casters[0], glow), casters }];
+                        },
+                        held: GRID,
+                    },
+                ],
+                [
+                    'an overlay glow',
+                    {
+                        keys: () => {
+                            const glow = { ...BLURRED_GLOW, fill: 'rgba(0, 0, 255, 0.6)' };
+                            return [
+                                glowKeyOf(box(100, 100, 40, 30, { fillGlow: glow }), glow),
+                                glowKeyOf(box(180, 140, 40, 30, { fillGlow: glow }), glow),
+                            ];
+                        },
+                        overlay: true,
+                        held: HOVERED,
+                    },
+                ],
+                [
+                    'an overlay glow with a gap',
+                    {
+                        keys: () => {
+                            const glow = { ...BLURRED_GLOW, gap: 0 };
+                            return [
+                                glowKeyOf(box(100, 100, 40, 30, { fillGlow: glow }), glow),
+                                glowKeyOf(box(180, 140, 40, 30, { fillGlow: glow }), glow),
+                            ];
+                        },
+                        overlay: true,
+                        held: HOVERED,
+                    },
+                ],
+                [
+                    'an overlay glow at the layer edge',
+                    {
+                        keys: () => {
+                            const glow = { ...BLURRED_GLOW, fill: 'rgba(0, 0, 255, 0.6)' };
+                            return [
+                                glowKeyOf(box(-10, 5, 40, 30, { fillGlow: glow }), glow),
+                                glowKeyOf(box(370, 270, 40, 30, { fillGlow: glow }), glow),
+                            ];
+                        },
+                        overlay: true,
+                        held: { width: 30, height: 30 },
+                    },
+                ],
+            ];
+
+            interface Cast {
+                pixels: number[];
+                /** The sizes of the rectangles that the scratch canvas was cleared at. */
+                clears: Array<[number, number]>;
+                /** The sizes of the mask drawn from the scratch canvas onto the layer, for a key cast directly on it. */
+                blurs: Array<[number, number]>;
+                /** The area of the scratch canvas, in device pixels. */
+                scratchArea: number;
+            }
+
+            /**
+             * Casts the scenario on a layer of its own. A direct cast is of a user that has cast nothing before, as the first of
+             * a cast that repeats is. A kept one is the third of the same cast, which the cache blits.
+             */
+            const castScenario = (scenario: Scenario, unbounded: boolean, kept = false): Cast => {
+                const dpr = scenario.devicePixelRatio ?? 1;
+                const layer = new OffscreenCanvas(LAYER.width * dpr, LAYER.height * dpr);
+                const context = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                const renderCtx = {
+                    ...renderContext(),
+                    ctx: context,
+                    width: layer.width,
+                    height: layer.height,
+                    devicePixelRatio: dpr,
+                };
+                const keys = scenario.keys();
+                for (const key of keys) {
+                    createGroup(key.casters).preRender(renderCtx);
+                    if (unbounded) {
+                        for (const caster of key.casters) {
+                            vi.spyOn(caster, 'getShadowSilhouetteBounds').mockReturnValue(false);
+                        }
+                    }
+                }
+                const scene = {};
+                const users = [{}, {}, {}];
+                const cast = (user: object) => {
+                    context.save();
+                    context.clearRect(0, 0, layer.width, layer.height);
+                    context.scale(dpr, dpr);
+                    const shadowCast = { scene, user, keys, index: 0, overlay: scenario.overlay };
+                    expect(castShadows(shadowCast, renderCtx)).toBe(true);
+                    context.restore();
+                };
+
+                // A cast of a scene makes the scratch canvas, which the casts after it clear and draw on.
+                const before = offscreenCanvases();
+                cast(users[0]);
+                const [scratch] = inUse(createdSince(before));
+                const scratchContext = scratch.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                const clearRect = vi.spyOn(scratchContext, 'clearRect');
+                const drawImage = vi.spyOn(context, 'drawImage');
+                if (kept) for (let i = 0; i < 2; i++) cast(users[0]);
+                else cast(users[1]);
+
+                const result: Cast = {
+                    pixels: Array.from(context.getImageData(0, 0, layer.width, layer.height).data),
+                    clears: clearRect.mock.calls.map(([, , w, h]) => [w, h]),
+                    blurs: drawImage.mock.calls
+                        .filter(([source]) => source === scratch)
+                        .map((args) => [args[7], args[8]]),
+                    scratchArea: scratch.width * scratch.height,
+                };
+                for (const user of users) destroyShadowScratch(user);
+                destroyShadowScratch(scene);
+                return result;
+            };
+
+            describe.each(SCENARIOS)('%s', (_name, scenario) => {
+                const dpr = scenario.devicePixelRatio ?? 1;
+                let bounded: Cast;
+                let full: Cast;
+                beforeEach(() => {
+                    bounded = castScenario(scenario, false);
+                    full = castScenario(scenario, true);
+                });
+
+                it('should draw the pixels that the whole mask draws', () => {
+                    expect(maxAlphaOf(full.pixels)).toBeGreaterThan(0);
+                    expect(bounded.pixels).toHaveLength(full.pixels.length);
+                    expect(bounded.pixels).toEqual(full.pixels);
+                });
+
+                it('should blit the pixels of a kept cast that the whole mask draws', () => {
+                    const keptBounded = castScenario(scenario, false, true);
+                    const keptFull = castScenario(scenario, true, true);
+                    expect(maxAlphaOf(keptFull.pixels)).toBeGreaterThan(0);
+                    expect(keptBounded.pixels).toEqual(keptFull.pixels);
+                    // The cast that was kept draws what a direct one does.
+                    expect(keptBounded.pixels).toEqual(bounded.pixels);
+                });
+
+                it('should clear a mask that holds the casters and not the layer, where the whole mask clears the layer', () => {
+                    expect(full.clears.length).toBeGreaterThan(0);
+                    for (const [clearWidth, clearHeight] of full.clears) {
+                        expect(clearWidth).toBeGreaterThanOrEqual(LAYER.width * dpr);
+                        expect(clearHeight).toBeGreaterThanOrEqual(LAYER.height * dpr);
+                    }
+
+                    const { held } = scenario;
+                    expect(bounded.clears.length).toBeGreaterThan(0);
+                    // An overlay also clears its glows' canvas, which holds all the keys, where it stamps the cutouts.
+                    const inLayer = bounded.clears.filter(
+                        ([clearWidth, clearHeight]) =>
+                            clearWidth < LAYER.width * dpr || clearHeight < LAYER.height * dpr
+                    );
+                    expect(inLayer.length).toBeGreaterThan(0);
+                    if (scenario.overlay !== true) expect(inLayer).toEqual(bounded.clears);
+                    for (const [clearWidth, clearHeight] of inLayer) {
+                        expect(clearWidth).toBeGreaterThanOrEqual(Math.floor(held.width * dpr));
+                        expect(clearHeight).toBeGreaterThanOrEqual(Math.floor(held.height * dpr));
+                    }
+                });
+
+                it('should keep a scratch canvas smaller than that of the whole mask', () => {
+                    expect(full.scratchArea).toBeGreaterThan(0);
+                    expect(bounded.scratchArea).toBeLessThan(full.scratchArea);
+                });
+
+                if (scenario.direct === true) {
+                    it('should blur a source no larger than the mask that it cleared', () => {
+                        expect(full.blurs.length).toBeGreaterThan(0);
+                        expect(bounded.blurs.length).toBe(full.blurs.length);
+                        for (const [i, [blurWidth, blurHeight]] of bounded.blurs.entries()) {
+                            expect(blurWidth).toBeLessThan(full.blurs[i][0]);
+                            expect(blurHeight).toBeLessThan(full.blurs[i][1]);
+                            expect(blurWidth).toBeLessThanOrEqual(bounded.clears[i][0]);
+                            expect(blurHeight).toBeLessThanOrEqual(bounded.clears[i][1]);
+                        }
+                    });
+                }
+            });
+        });
+
         // A canvas shrinks for the frames of a scene, so each cast here is of a frame, with a user of its own to keep no cache.
         describe('canvas shrinking', () => {
             // Wide and tall are small casts of different shapes, wider is one wider than both, and narrow is as tall as the canvas, and long is taller still.
