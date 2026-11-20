@@ -2,3 +2,21 @@
 @import url(./annotationsToolbar.css);
 @import url(./axisButton.css);
 @import url(./settings-dialog/settingsDialog.css);
+
+.ag-charts-annotations__item,
+.ag-charts-annotations__mover {
+    -webkit-appearance: none;
+    appearance: none;
+    background: none !important;
+    border: none !important;
+    color: transparent !important;
+    overflow: hidden;
+    padding: 0 !important;
+    position: absolute;
+}
+
+.ag-charts-annotations__item:focus-visible,
+.ag-charts-annotations__mover:focus-visible {
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    outline: var(--ag-charts-focus-border);
+}

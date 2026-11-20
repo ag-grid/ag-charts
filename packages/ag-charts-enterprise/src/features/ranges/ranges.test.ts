@@ -17,7 +17,11 @@ import type {
     Padding,
 } from 'ag-charts-types';
 
-import { getRangesDropdownMinWidth, setRangesDropdownMinWidth } from '../../test/featureAccessors';
+import {
+    getRangesDropdownMinWidth,
+    setRangesDropdownMinWidth,
+    setRangesToolbarWidths,
+} from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { Ranges } from './ranges';
 
@@ -195,7 +199,8 @@ describe('Ranges', () => {
                     proxy.ctx.agDocument.body.querySelector(`.ag-charts-range-buttons--${toolbar}`) as HTMLElement
             );
 
-            for (const toolbar of toolbars) toolbar.style.width = '999px';
+            setRangesToolbarWidths(chart, 999);
+            for (const toolbar of toolbars) expect(toolbar.style.width).toBe('999px');
             await chart.update({
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],

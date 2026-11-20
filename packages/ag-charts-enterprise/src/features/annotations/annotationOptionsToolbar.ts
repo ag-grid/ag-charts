@@ -55,6 +55,8 @@ interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
     'pressed-lock': { locked: boolean };
+    'pressed-move': null;
+    'pressed-escape': { sourceEvent: KeyboardEvent };
     'hid-overlays': null;
     'saved-color': {
         type: HasColorAnnotationType;
@@ -83,6 +85,12 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     strokeWidth?: number;
     isMultiColor?: boolean;
 }
+
+// Appended whenever the toolbar opens from the keyboard, whatever the `buttons` options say, since a keyboard user has
+// no other way to move an annotation.
+const KEYBOARD_ONLY_BUTTONS: AnnotationOptionsButtonOptions[] = [
+    { type: 'button', value: AnnotationOptions.Move, icon: 'drag-handle', tooltip: 'toolbarAnnotationsMove' },
+];
 
 // The checked state shows only what `checkedOverrides` sets; the unchecked button's own text and icon are cleared.
 const UNSET_TOOLBAR_BUTTON: ToolbarButton = {
@@ -172,6 +180,9 @@ export class AnnotationOptionsToolbar {
             attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
                 this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
             }),
+            this.toolbar.addListener('keydown', ({ sourceEvent }) => {
+                if (sourceEvent.key === 'Escape') this.events.emit('pressed-escape', { sourceEvent });
+            }),
             () => {
                 this.colorPicker.destroy();
                 this.toolbar.destroy();
@@ -193,16 +204,30 @@ export class AnnotationOptionsToolbar {
         }));
     }
 
+    public isEnabled() {
+        return this.enabled;
+    }
+
     public show() {
         if (!this.enabled) return;
-        this.toolbar.show();
+        this.toolbar.show({ role: 'dialog', ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationOptionsToolbar') });
     }
 
     public hide() {
         this.toolbar.hide();
     }
 
-    public updateButtons(datum: AnnotationDatum) {
+    public focusFirstButton() {
+        this.toolbar.getButtonWidget(0)?.focus();
+    }
+
+    public focusButton(value: AnnotationOptions) {
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        if (index >= 0) this.toolbar.getButtonWidget(index)?.focus();
+    }
+
+    /** `keyboard` appends the buttons that only a keyboard user needs, such as moving the annotation. */
+    public updateButtons(datum: AnnotationDatum, keyboard = false) {
         if (!this.enabled) return;
 
         const visible = {
@@ -215,8 +240,12 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.Settings]: hasSettings(datum),
             [AnnotationOptions.Lock]: true,
             [AnnotationOptions.Delete]: true,
+            [AnnotationOptions.Move]: false,
         };
         this.visibleButtons = this.buttons.filter((button) => visible[button.value]);
+        if (keyboard) {
+            this.visibleButtons.push(...KEYBOARD_ONLY_BUTTONS);
+        }
 
         this.toolbar.clearButtons();
         this.toolbar.updateButtons(this.visibleButtons);
@@ -421,6 +450,11 @@ export class AnnotationOptionsToolbar {
                 this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.events.emit('pressed-settings', event);
+                break;
+            }
+
+            case AnnotationOptions.Move: {
+                this.events.emit('pressed-move', null);
                 break;
             }
         }

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createElement } from '../dom/domElements';
 import type { ElementID } from '../identity/idBranding';
@@ -152,6 +152,57 @@ describe('Widget', () => {
 
             second.insertSiblingAfter(floating);
             expect(list.getElement().lastElementChild).toBe(floating.getElement());
+        });
+    });
+
+    describe('setBounds', () => {
+        it('skips the style writes when the bounds have not changed', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+            const setProperty = vi.spyOn(widget.getElement().style, 'setProperty');
+
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            expect(setProperty).not.toHaveBeenCalled();
+        });
+
+        it('writes bounds that have changed', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            widget.setBounds({ x: 4, y: 6, width: 30, height: 20 });
+
+            expect(widget.getBounds()).toEqual({ x: 4, y: 6, width: 30, height: 20 });
+        });
+
+        it('writes the same bounds again after clearWidth removed the width', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+            widget.clearWidth();
+
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 30, height: 20 });
+        });
+
+        it('writes the same bounds again after setCssOffset moved the widget', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+            widget.setCssOffset({ x: 40, y: 50 });
+
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 30, height: 20 });
+        });
+
+        it('writes the same bounds again after setWidth changed the width', () => {
+            const widget = makeWidget();
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+            widget.setWidth(80);
+
+            widget.setBounds({ x: 4, y: 5, width: 30, height: 20 });
+
+            expect(widget.getBounds()).toEqual({ x: 4, y: 5, width: 30, height: 20 });
         });
     });
 
