@@ -1057,6 +1057,35 @@ describe('SunburstSeries', () => {
             });
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
+
+        const parallelStackOptions: AgChartOptions = {
+            data,
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'gdp',
+                    secondaryLabelKey: 'gdpChange',
+                    label: { fill: 'olive', fontSize: 24, wrapping: 'on-space' },
+                    secondaryLabel: { fill: 'blue', fontSize: 24 },
+                },
+            ],
+        };
+
+        it("keeps a sector's labels beside a parallel label stack in the ring inside it", async () => {
+            chart = await createEnterpriseChart(parallelStackOptions);
+            const texts = getSeriesSelectionNodes<Group>(chart, 'labelSelection').flatMap((group) =>
+                Selection.selectByClass(group, TransformableText)
+                    .filter((text) => text.visible)
+                    .map((text) => text.text)
+            );
+            expect(texts).toEqual(expect.arrayContaining(['EU', '0.08', 'Germany', '0.09']));
+        });
+
+        it('renders large labels beside a parallel label stack in the ring inside it', async () => {
+            chart = await createEnterpriseChart(parallelStackOptions);
+            await compare();
+        });
     });
 
     describe('block-leading image segments (treemap parity)', () => {
