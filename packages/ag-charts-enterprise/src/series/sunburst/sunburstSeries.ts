@@ -979,6 +979,14 @@ export class SunburstSeries extends HierarchySeries<
                     break;
                 }
             }
+            // The box grows around the aligned glyphs, so uneven padding moves it off its fitted footprint.
+            const { top, right, bottom, left } = label.boxPadding;
+            const offsetX = (left - right) * 0.5;
+            const offsetY = labelPlacement === LabelPlacement.Perpendicular ? (top - bottom) * 0.5 : 0;
+            const cos = Math.cos(text.rotation);
+            const sin = Math.sin(text.rotation);
+            text.translationX += offsetX * cos - offsetY * sin;
+            text.translationY += offsetX * sin + offsetY * cos;
             text.visible = true;
         };
         for (const text of this.labelSelection.selectByClass(TransformableText)) {

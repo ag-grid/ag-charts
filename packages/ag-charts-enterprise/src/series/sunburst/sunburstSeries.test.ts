@@ -1077,19 +1077,15 @@ describe('SunburstSeries', () => {
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
 
-        const parallelStackOptions: AgChartOptions = {
-            data,
-            series: [
-                {
-                    type: 'sunburst',
-                    labelKey: 'name',
-                    sizeKey: 'gdp',
-                    secondaryLabelKey: 'gdpChange',
-                    label: { fill: 'olive', fontSize: 24, wrapping: 'on-space' },
-                    secondaryLabel: { fill: 'blue', fontSize: 24 },
-                },
-            ],
+        const parallelStackSeries: AgSunburstSeriesOptions = {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'gdp',
+            secondaryLabelKey: 'gdpChange',
+            label: { fill: 'olive', fontSize: 24, wrapping: 'on-space' },
+            secondaryLabel: { fill: 'blue', fontSize: 24 },
         };
+        const parallelStackOptions: AgChartOptions = { data, series: [parallelStackSeries] };
 
         it("keeps a sector's labels beside a parallel label stack in the ring inside it", async () => {
             chart = await createEnterpriseChart(parallelStackOptions);
@@ -1111,24 +1107,64 @@ describe('SunburstSeries', () => {
             await compare();
         });
 
+        const centreData = [{ name: 'Worldwide', gdpChange: 0.07, children: data }];
+        const leftPadding = { left: 24, right: 0 };
         it.each([
-            { placement: 'parallel', data, name: 'United States', expected: ['United States', '0.06'] },
+            {
+                placement: 'parallel',
+                form: 'parallel',
+                data,
+                name: 'United States',
+                expected: ['United States', '0.06'],
+            },
             {
                 placement: 'centre-circle',
-                data: [{ name: 'Worldwide', gdpChange: 0.07, children: data }],
+                form: 'centre-circle',
+                data: centreData,
                 name: 'Worldwide',
                 expected: ['Worldwide', '0.07'],
             },
-        ])('keeps every $placement label box inside its sector', async ({ data: sectorData, name, expected }) => {
-            chart = await createEnterpriseChart({ ...parallelStackOptions, data: sectorData });
+            {
+                placement: 'left-padded parallel',
+                form: 'parallel',
+                padding: leftPadding,
+                data,
+                name: 'United States',
+                expected: ['United States', '0.06'],
+            },
+            {
+                placement: 'left-padded centre-circle',
+                form: 'centre-circle',
+                padding: leftPadding,
+                data: centreData,
+                name: 'Worldwide',
+                expected: ['Worldwide', '0.07'],
+            },
+            {
+                placement: 'unevenly padded perpendicular',
+                form: 'perpendicular',
+                padding: { top: 0, bottom: 16, left: 24, right: 0 },
+                data,
+                name: 'Germany',
+                expected: ['Germany', '0.09'],
+            },
+        ])('keeps every $placement label box inside its sector', async (testCase) => {
+            const { form, padding, data: sectorData, name, expected } = testCase;
+            const label = { ...parallelStackSeries.label, padding };
+            chart = await createEnterpriseChart({ data: sectorData, series: [{ ...parallelStackSeries, label }] });
             const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
             const labelGroups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
             const named = labelGroups.find((group) => group.datum?.datum?.name === name)!;
+            const namedTexts = Selection.selectByClass(named, TransformableText).filter((text) => text.visible);
+            expect(namedTexts.map((text) => text.text)).toEqual(expected);
+            const namedSector = sectors.find((node) => node.datum === named.datum)!;
+            const midAngle = (namedSector.startAngle + namedSector.endAngle) / 2;
+            // Centre-circle text stays level; ring text turns square to (parallel) or along (perpendicular) the mid-angle.
             expect(
-                Selection.selectByClass(named, TransformableText)
-                    .filter((text) => text.visible)
-                    .map((text) => text.text)
-            ).toEqual(expected);
+                namedTexts.map((text) =>
+                    form === 'centre-circle' ? text.rotation : Math.abs(Math.sin(text.rotation - midAngle))
+                )
+            ).toEqual(namedTexts.map(() => expect.closeTo(form === 'parallel' ? 1 : 0)));
             const overruns: Array<{ text: string; overrun: number }> = [];
             for (const group of labelGroups) {
                 const sector = sectors.find((node) => node.datum === group.datum)!;
