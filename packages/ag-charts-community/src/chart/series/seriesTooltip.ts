@@ -43,7 +43,7 @@ function buildLineWithMarkerDefaults(
         stroke: (line.stroke ?? marker?.stroke ?? 'transparent') as string,
         strokeWidth,
         strokeOpacity: line.strokeOpacity ?? marker?.strokeOpacity ?? 1,
-        lineDash: resolveLineDash(line.lineDash, strokeWidth) ?? marker?.lineDash ?? [],
+        lineDash: resolveLineDash(line.lineDash ?? marker?.lineDash, strokeWidth) ?? [],
     };
 }
 
@@ -65,7 +65,7 @@ export function formatSeriesTooltip<P>(
         return { type: 'raw', rawHtmlString: toTextString(overrides) };
     }
     if (overrides != null) {
-        const mergedMarker = resolveMarkerLineDash(mergeDefaults(overrides.symbol?.marker, content.symbol?.marker));
+        const mergedMarker = mergeDefaults(overrides.symbol?.marker, content.symbol?.marker);
         const mergedLineInput =
             (overrides.symbol?.line ?? content.symbol?.line)
                 ? mergeDefaults(overrides.symbol?.line, content.symbol?.line)
@@ -74,7 +74,8 @@ export function formatSeriesTooltip<P>(
         const symbol: LegendSymbolOptions | undefined =
             content.symbol || overrides.symbol
                 ? {
-                      marker: mergedMarker,
+                      marker: resolveMarkerLineDash(mergedMarker),
+                      // The line takes the marker's dash before its name is resolved, to scale by the line's width.
                       line: buildLineWithMarkerDefaults(mergedLineInput, mergedMarker),
                   }
                 : undefined;

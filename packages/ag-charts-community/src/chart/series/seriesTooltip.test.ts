@@ -35,6 +35,19 @@ describe('formatSeriesTooltip', () => {
             expect(symbolOf(symbol)[location]?.lineDash).toEqual(expected);
         });
 
+        it('resolves a marker name that the line inherits at the width of the line', () => {
+            const symbol = symbolOf({ marker: { lineDash: 'dash', strokeWidth: 4 }, line: { strokeWidth: 2 } });
+
+            expect(symbol.marker.lineDash).toEqual([12, 8]);
+            expect(symbol.line?.lineDash).toEqual([6, 4]);
+        });
+
+        it('leaves a marker array that the line inherits in pixels', () => {
+            const symbol = symbolOf({ marker: { lineDash: [5, 5], strokeWidth: 4 }, line: { strokeWidth: 2 } });
+
+            expect(symbol.line?.lineDash).toEqual([5, 5]);
+        });
+
         it('leaves an array in pixels', () => {
             const symbol = symbolOf({ marker: { lineDash: [5, 5], strokeWidth: 4 }, line: { lineDash: [1, 2] } });
 
