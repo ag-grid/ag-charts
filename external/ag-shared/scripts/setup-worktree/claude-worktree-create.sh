@@ -69,11 +69,18 @@ owner_state() {
 
 # Prints the working directory of each of the user's processes; fails unless every live one was read.
 process_cwds() {
-    local proc
+    local proc uid mine
     if [[ -d /proc/self ]]; then
+        mine=$(id -u)
         for proc in /proc/[0-9]*; do
-            [[ -O "$proc" ]] || continue
-            # A process that exited mid-listing is fine; a live one hiding its cwd is not.
+            # Ownership comes from the process credentials: /proc/<pid> can be root-owned for a non-dumpable process.
+            # A process that exited mid-listing is fine; a live one whose user or cwd cannot be read is not.
+            uid=$(awk -v u="$mine" '/^Uid:/ { print ($2 == u || $3 == u) ? "mine" : "other"; exit }' "$proc/status" 2>/dev/null) || uid=''
+            if [[ -z "$uid" ]]; then
+                [[ -e "$proc" ]] && return 1
+                continue
+            fi
+            [[ "$uid" == mine ]] || continue
             readlink "$proc/cwd" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
         done
         return 0
@@ -143,7 +150,7 @@ cleanup_stale_agent_worktrees() {
     local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
     [[ -d "$repo_wt_dir" ]] || return 0
 
-    local remove_script candidate reason
+    local remove_script candidate claimed reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
     for candidate in "$repo_wt_dir"/agent-*; do
@@ -156,8 +163,21 @@ cleanup_stale_agent_worktrees() {
             continue
         fi
 
+        # Move the worktree off its path first, so no new session can start in it, then recheck the
+        # sessions already inside before handing it to the remover.
+        claimed="$repo_wt_dir/.removing-${candidate##*/}"
+        if ! git -C "$CWD" worktree move "$candidate" "$claimed" >/dev/null 2>&1; then
+            log "Keeping agent worktree (could not move it aside for removal): $candidate"
+            continue
+        fi
+        if in_use "$claimed"; then
+            git -C "$CWD" worktree move "$claimed" "$candidate" >/dev/null 2>&1 || log "WARNING: could not move $claimed back to $candidate"
+            log "Keeping agent worktree (in use by a running process, or processes could not all be read): $candidate"
+            continue
+        fi
+
         log "Cleaning up stale agent worktree: $candidate"
-        echo "{\"worktree_path\": \"$candidate\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
+        echo "{\"worktree_path\": \"$claimed\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
     done
 }
 
