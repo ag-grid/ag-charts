@@ -539,13 +539,14 @@ export interface RectObstacleSource {
 
 /**
  * Maps rect-shaped node data (bars, histogram bins) to `shape` label obstacles so that labels from
- * other series route around them. Skips phantom (stacking/feather) nodes and zero-area rects.
+ * other series route around them. Skips phantom (stacking/feather) nodes and zero-area or non-finite rects.
  */
 export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | undefined): LabelObstacle[] | undefined {
     if (nodeData == null || nodeData.length === 0) return undefined;
     const obstacles: LabelObstacle[] = [];
     for (const { x, y, width, height, phantom } of nodeData) {
-        if (phantom === true || width <= 0 || height <= 0) continue;
+        // Negated so an invalid datum's NaN rect is skipped too.
+        if (phantom === true || !(width > 0 && height > 0 && Number.isFinite(x + y + width + height))) continue;
         obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
     }
     return obstacles.length > 0 ? obstacles : undefined;

@@ -21,7 +21,8 @@ export class SpatialIndex<R> {
     private readonly cells: R[][] = [];
 
     reset(bounds: BoxBounds, cellSize: number) {
-        let clampedCellSize = Math.max(cellSize, 1);
+        // Written so NaN falls back to 1: a NaN cell count would leave this shared index unallocated for later charts.
+        let clampedCellSize = cellSize >= 1 ? cellSize : 1;
         // Cap total cells so a degenerate cell size can't build a per-pixel grid over large bounds. Cell size
         // affects query cost only, not correctness, so growing it here is safe.
         const MAX_CELLS = 1 << 14;
@@ -29,11 +30,13 @@ export class SpatialIndex<R> {
         if (area > MAX_CELLS * clampedCellSize * clampedCellSize) {
             clampedCellSize = Math.sqrt(area / MAX_CELLS);
         }
+        // Non-finite bounds index into one cell: unpruned, but still correct as the visitor makes the exact test.
+        const finite = Number.isFinite(bounds.x + bounds.y + bounds.width + bounds.height);
         this.invCellSize = 1 / clampedCellSize;
-        this.originX = bounds.x;
-        this.originY = bounds.y;
-        this.cols = Math.max(1, Math.ceil(bounds.width / clampedCellSize));
-        this.rows = Math.max(1, Math.ceil(bounds.height / clampedCellSize));
+        this.originX = finite ? bounds.x : 0;
+        this.originY = finite ? bounds.y : 0;
+        this.cols = finite ? Math.max(1, Math.ceil(bounds.width / clampedCellSize)) : 1;
+        this.rows = finite ? Math.max(1, Math.ceil(bounds.height / clampedCellSize)) : 1;
 
         const count = this.cols * this.rows;
         const clearTo = Math.max(this.cellCount, count);
