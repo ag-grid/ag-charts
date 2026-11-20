@@ -12,6 +12,7 @@ import {
 import {
     BBox,
     type BoxBounds,
+    CUT_ONLY_GLOW,
     type CallbackParamRules,
     type DeepPartial,
     type FittedLabelStack,
@@ -28,6 +29,7 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
     type PositionedLabelCandidate,
     Rect,
     type RequireOptional,
@@ -112,10 +114,8 @@ interface TreemapLabelCandidate extends PositionedLabelCandidate {
 /** The highlight cache slots (see `HierarchySeries.getHierarchyGlow`), as tiles and groups resolve a state to different options. */
 const TILE_SLOT = 0;
 const GROUP_SLOT = 1;
-/** Where a tile that casts no highlight glow of its own keeps the merges of an item styler's `glow`. */
-const STYLER_ONLY_TILE_SLOT = 2;
-
-const noGlow = () => undefined;
+/** Where a tile that casts no highlight glow of its own keeps its series-level glow, and the merges of an item styler's `glow`. */
+const SERIES_ONLY_TILE_SLOT = 2;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -213,6 +213,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     protected readonly datumSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect<TreemapNode>);
     private readonly labelSelection = Selection.select<Group<TreemapNode>>(this.labelGroup, Group<TreemapNode>);
     private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
+    /** Casts the glow of the highlight copy above every fill, in depth order: its rects paint nothing. */
+    private readonly highlightGlowGroup = this.contentGroup.appendChild(
+        new Group({ batchShadows: 'by-layer', castsHoveredGlows: true })
+    );
+    private readonly highlightGlowSelection = Selection.select<Rect<TreemapNode>>(this.highlightGlowGroup, Rect);
 
     protected override _data?: HierarchyDataSet<any>;
     protected override _chartData?: HierarchyDataSet<any>;
@@ -569,10 +574,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     private readonly resolveTileGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.tile.highlight);
+        this.getHierarchyHighlightGlow(highlightState, this.options.tile.highlight, this.options.tile.glow);
 
     private readonly resolveGroupGlow = (highlightState: HierarchyHighlightState) =>
         this.getGroupHighlightGlow(highlightState);
+
+    private readonly resolveSeriesOnlyTileGlow = () => this.options.tile.glow;
 
     /**
      * The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. Tile
@@ -586,18 +593,30 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         itemGlow?: AgGlowOptions
     ) {
         if (!isLeaf) {
-            // A glow from an item styler casts whether or not the group highlight is on, over the highlight state's.
-            if (!this.options.group.highlight.enabled && itemGlow == null) return;
+            // A series-level glow, or one from an item styler, casts whether or not the group highlight is on.
+            if (
+                !this.options.group.highlight.enabled &&
+                itemGlow == null &&
+                this.options.group.glow?.enabled !== true
+            ) {
+                return;
+            }
 
             const groupState = this.getGroupHighlightState(isHighlight, highlightedNode, node);
             return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow, itemGlow);
         }
 
         // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`), and it has
-        // no highlight glow with its tile highlight off. A glow from an item styler is then merged over the theme's alone.
+        // no highlight glow with its tile highlight off: it casts its series-level glow, under any glow from an item styler.
         if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) {
-            if (itemGlow == null) return;
-            return this.getHierarchyGlow(STYLER_ONLY_TILE_SLOT, HierarchyHighlightState.None, noGlow, itemGlow);
+            if (itemGlow == null && this.options.tile.glow?.enabled !== true) return;
+
+            return this.getHierarchyGlow(
+                SERIES_ONLY_TILE_SLOT,
+                HierarchyHighlightState.None,
+                this.resolveSeriesOnlyTileGlow,
+                itemGlow
+            );
         }
 
         const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
@@ -788,7 +807,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         };
 
         const highlightedNode = this.getActiveHighlightNode();
-        const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean) => {
+        const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean, glowOnly = false) => {
             const { bbox } = node;
             if (bbox == null) {
                 rect.visible = false;
@@ -809,18 +828,19 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(node, isLeaf, true) : undefined;
             rect.fillShadow = this.resolveNodeShadow(
                 (isLeaf ? tile : group).shadow,
-                glow,
-                isHighlight,
-                highlightedNode,
-                node,
+                isHighlight || glowOnly,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             rect.fillGlow = this.resolveNodeGlow(
                 glow,
                 isHighlight,
                 hoveredInPlace,
-                hoveredStyle != null && this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null
+                hoveredStyle != null &&
+                    this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null,
+                glowOnly
             );
+            rect.glowOnly = glowOnly;
+            if (glowOnly) rect.pointerEvents = PointerEvents.None;
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 
@@ -844,10 +864,23 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             rect.visible = true;
         };
 
-        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, false));
+        // The glow of the hovered node and of each node of its branch that glows is cast by a glow-only copy, which is in the
+        // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
+        const glowCopies: TreemapNode[] = highlightedNode == null ? [] : [highlightedNode];
+        const branchRects: Rect[] = [];
+        this.datumSelection.each((rect, datum) => {
+            updateRectFn(datum, rect, false);
+            if (!this.castsBranchGlow(datum, rect.fillGlow, highlightedNode)) return;
 
-        this.highlightSelection.each((rect, datum) => {
-            updateRectFn(datum, rect, true);
+            glowCopies.push(datum);
+            branchRects.push(rect);
+        });
+        for (const rect of branchRects) rect.fillGlow = CUT_ONLY_GLOW;
+
+        this.highlightSelection.each((rect, datum) => updateRectFn(datum, rect, true));
+        this.highlightGlowSelection.update(glowCopies, undefined, (node) => node.datumIndex);
+        this.highlightGlowSelection.each((rect, datum) => {
+            updateRectFn(datum, rect, datum.datumIndex === highlightedNode?.datumIndex, true);
         });
 
         if (!this.usesPlacedLabels) this.updateLabelNodes();
@@ -1241,7 +1274,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     private getGroupHighlightGlow(highlightState: HierarchyHighlightState) {
-        return mergeGlow(this.getGroupHighlightBucket(highlightState));
+        return mergeGlow(this.getGroupHighlightBucket(highlightState), { glow: this.options.group.glow });
     }
 
     public override isSelectionEnabled(): boolean {

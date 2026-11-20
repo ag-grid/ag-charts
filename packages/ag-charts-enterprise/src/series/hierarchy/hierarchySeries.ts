@@ -168,6 +168,18 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
     }
 }
 
+const selfCutGlows = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
+
+/** The glow of a glow-only copy, which the engine cuts by the footprint of its own node alone, so that it draws over the others. */
+function getSelfCutGlow(glow: NormalisedDropShadowOptions): NormalisedDropShadowOptions {
+    let selfCut = selfCutGlows.get(glow);
+    if (selfCut == null) {
+        selfCut = { ...glow, selfCut: true };
+        selfCutGlows.set(glow, selfCut);
+    }
+    return selfCut;
+}
+
 export abstract class HierarchySeries<
     TNodeClass extends HierarchyNode,
     TNode extends Node<TNodeClass>,
@@ -614,13 +626,13 @@ export abstract class HierarchySeries<
         return (style as TStyle | null) ?? undefined;
     }
 
-    /** The merged `glow` of the highlight styles of a node. */
+    /** The merged `glow` of the highlight styles of a node, over the `seriesGlow` of its part of the series. */
     protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
         highlightState: HierarchyHighlightState,
-        highlight: HierarchyHighlightBuckets<TStyle>
+        highlight: HierarchyHighlightBuckets<TStyle>,
+        seriesGlow: DeepPartial<AgGlowOptions> | undefined
     ): DeepPartial<AgGlowOptions> | undefined {
-        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
-        return style && mergeGlow(style);
+        return mergeGlow(this.getHierarchyHighlightBuckets(highlightState, highlight), { glow: seriesGlow });
     }
 
     private getHierarchyHighlightBuckets<TStyle extends object>(
@@ -672,34 +684,40 @@ export abstract class HierarchySeries<
         ]);
     }
 
-    /**
-     * The shadow on one copy of a node, in `fillShadow`: the highlight copy casts its `glow` as one, and a node that glows
-     * has none unless it is hovered in place, see {@link resolveNodeGlow}.
-     */
+    /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast by a glow-only copy. */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
-        glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
-        highlightedNode: TNodeClass | undefined,
-        nodeDatum: Pick<TNodeClass, 'datumIndex'>,
         itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
-        if (itemShadow != null) shadow = this.mergeItemShadow(shadow, itemShadow);
-        if (isHighlight) return glow;
-        if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
-        return glow == null ? shadow : undefined;
+        if (isHighlight) return;
+        return itemShadow == null ? shadow : this.mergeItemShadow(shadow, itemShadow);
     }
 
-    /**
-     * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay. The highlight copy has none there, and the
-     * hovered in-place copy cuts it only if the highlight copy glows.
-     */
+    /** Whether a node, drawn in place with `glow`, is a node of the hovered node's branch whose glow is cast by a glow-only copy. */
+    protected castsBranchGlow(
+        node: Pick<TNodeClass, 'datumIndex' | 'path'>,
+        glow: NormalisedDropShadowOptions | undefined,
+        highlightedNode: TNodeClass | undefined
+    ): boolean {
+        return (
+            glow?.enabled === true &&
+            highlightedNode != null &&
+            highlightedNode.datumIndex !== node.datumIndex &&
+            this.getHierarchyHighlightState(false, highlightedNode, node) === HierarchyHighlightState.Branch
+        );
+    }
+
+    /** The glow on one copy of a node, in `fillGlow`: the glow-only copy casts that of the highlight copy, which has none itself. */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
         hoveredInPlace: boolean,
-        hoveredGlows: boolean
+        hoveredGlows: boolean,
+        glowOnly: boolean
     ): NormalisedDropShadowOptions | undefined {
+        // The glow of the hovered node is cut by its footprint after the merge, as it cuts the glows of its branch; theirs are not.
+        if (glowOnly) return isHighlight || glow == null ? glow : getSelfCutGlow(glow);
         if (isHighlight) return;
         if (!hoveredInPlace) return glow;
         return hoveredGlows ? CUT_ONLY_GLOW : undefined;

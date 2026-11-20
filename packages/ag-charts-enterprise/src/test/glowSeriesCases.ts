@@ -3,6 +3,7 @@ import {
     type GlowSeriesCase,
     HIGHLIGHT_GLOW,
     type HighlightStep,
+    SERIES_SHADOW,
     onMarker,
     onSeries,
 } from 'ag-charts-community-test';
@@ -338,9 +339,8 @@ const HIERARCHY = {
     // Two top-level branches, so that hovering a leaf of A leaves B as the other branch.
     data: HIERARCHY_SHADOW_DATA[0].children,
     hoverable: true,
-    // A hierarchy takes a series shadow, and a glow in its highlight states only.
-    seriesShadowOnly: true,
     hoveredItem: { glow: HIGHLIGHT_GLOW },
+    hoveredPlacement: { shadow: SERIES_SHADOW },
 };
 const HIERARCHY_KEYS = { labelKey: 'name', sizeKey: 'size' };
 const withHighlight = (part?: 'tile' | 'group') => (placed: any, highlight: object) =>
@@ -355,19 +355,21 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         highlightSteps: HIERARCHY_STEPS,
         hoverDatum: nodeNamed('A1'),
         base: { type: 'sunburst', ...HIERARCHY_KEYS },
-        place: ({ shadow, itemStyler }) => ({ shadow, itemStyler }),
+        place: ({ shadow, glow, itemStyler }) => ({ shadow, glow, itemStyler }),
         placeHighlight: withHighlight(),
     },
     {
         ...HIERARCHY,
         name: 'treemap tile',
         stylerCastsOtherParts: true,
+        // The itemStyler glows the tiles only, so that its glow is compared with `tile.glow` and not with the groups' glows as well.
+        stylerGlowOnly: ({ datum }) => datum?.children == null,
         type: 'treemap',
         shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
         highlightSteps: HIERARCHY_STEPS,
         hoverDatum: nodeNamed('A1'),
         base: { type: 'treemap', ...HIERARCHY_KEYS },
-        place: ({ shadow, itemStyler }) => ({ tile: { shadow }, itemStyler }),
+        place: ({ shadow, glow, itemStyler }) => ({ tile: { shadow, glow }, itemStyler }),
         placeHighlight: withHighlight('tile'),
     },
     {
@@ -377,9 +379,11 @@ export const HIERARCHY_GLOW_SERIES: GlowSeriesCase[] = [
         shadowSnapshot: 'series/treemap/treemapSeries.test.ts',
         highlightSteps: GROUP_STEPS,
         stylerCastsOtherParts: true,
+        // The itemStyler glows the groups only, so that its glow is compared with `group.glow` and not with the tiles' glows as well.
+        stylerGlowOnly: ({ datum }) => datum?.children != null,
         hoverDatum: nodeNamed('A'),
         base: { type: 'treemap', ...HIERARCHY_KEYS },
-        place: ({ shadow, itemStyler }) => ({ group: { shadow }, itemStyler }),
+        place: ({ shadow, glow, itemStyler }) => ({ group: { shadow, glow }, itemStyler }),
         placeHighlight: withHighlight('group'),
     },
 ];

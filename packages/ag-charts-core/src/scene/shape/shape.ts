@@ -466,6 +466,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillGlow: NormalisedDropShadowOptions | undefined;
     declare __fillGlow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
+    /** Whether the shape only casts its {@link fillGlow}, and paints nothing: the glow of an item that is drawn elsewhere. */
+    @DeclaredSceneChangeDetection()
+    glowOnly: boolean = false;
+    declare __glowOnly: boolean; // optimised field accessor
+
     @DeclaredSceneChangeDetection({ changeCb: (s: Shape) => s.onShadowModeChange() })
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
@@ -515,6 +520,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this.renderShadowMask(shadowPass.slot, ctx, logger, path, bboxOverride, fillBBoxOverride);
             return;
         }
+        if (this.__glowOnly) return;
 
         if (this.__drawingMode === 'cutout') {
             // Opaque, so a sibling's fill style left on the context can't weaken the cutout.

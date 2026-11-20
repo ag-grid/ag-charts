@@ -6,6 +6,7 @@ import {
 } from 'ag-charts-community';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     type CallbackParamRules,
     type DynamicContext,
     type FitRegion,
@@ -244,7 +245,13 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer' })
+    );
+    /** Casts the glow of the highlight copy above every fill, in depth order: its sectors paint nothing. */
+    private readonly highlightGlowGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer', castsHoveredGlows: true })
+    );
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -256,6 +263,7 @@ export class SunburstSeries extends HierarchySeries<
     readonly datumSelection = Selection.select<Sector<SunburstNode>>(this.sectorGroup, Sector<SunburstNode>);
     private readonly labelSelection = Selection.select<Group<SunburstNode>>(this.sectorLabelGroup, Group);
     private readonly highlightSelection = Selection.select<Sector<SunburstNode>>(this.highlightSectorGroup, Sector);
+    private readonly highlightGlowSelection = Selection.select<Sector<SunburstNode>>(this.highlightGlowGroup, Sector);
     private readonly innerCircleSelection = Selection.select<Sector<{ radius: number }>>(
         this.innerCircleGroup,
         Sector<{ radius: number }>
@@ -359,7 +367,7 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(
@@ -368,8 +376,8 @@ export class SunburstSeries extends HierarchySeries<
         highlightedNode: SunburstNode | undefined,
         itemGlow?: AgGlowOptions
     ) {
-        // A glow from an item styler casts whether or not the highlight is on, over the highlight state's.
-        if (!this.options.highlight.enabled && itemGlow == null) return;
+        // A series-level glow, or one from an item styler, casts whether or not the highlight is on.
+        if (!this.options.highlight.enabled && itemGlow == null && this.options.glow?.enabled !== true) return;
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
         return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow, itemGlow);
@@ -583,7 +591,7 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         const highlightedNode = this.getActiveHighlightNode();
-        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
+        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean, glowOnly = false) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
@@ -604,18 +612,18 @@ export class SunburstSeries extends HierarchySeries<
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
-                glow,
-                highlighted,
-                highlightedNode,
-                nodeDatum,
+                highlighted || glowOnly,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             sector.fillGlow = this.resolveNodeGlow(
                 glow,
                 highlighted,
                 hoveredInPlace,
-                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null
+                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null,
+                glowOnly
             );
+            sector.glowOnly = glowOnly;
+            if (glowOnly) sector.pointerEvents = PointerEvents.None;
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -631,13 +639,28 @@ export class SunburstSeries extends HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
+        // The glow of the hovered node and of each node of its branch that glows is cast by a glow-only copy, which is in the
+        // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
+        const glowCopies: SunburstNode[] = highlightedNode == null ? [] : [highlightedNode];
+        const branchSectors: Sector[] = [];
         let glowing = false;
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
-            glowing ||= sector.fillGlow?.enabled === true;
+            if (this.castsBranchGlow(datum, sector.fillGlow, highlightedNode)) {
+                glowCopies.push(datum);
+                branchSectors.push(sector);
+            } else {
+                // A branch sector becomes cut-only below, so only the rest stay overlay casters.
+                glowing ||= sector.fillGlow?.enabled === true && sector.fillGlow.cutOnly !== true;
+            }
         });
+        for (const sector of branchSectors) sector.fillGlow = CUT_ONLY_GLOW;
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
+        });
+        this.highlightGlowSelection.update(glowCopies, undefined, (node) => node.datumIndex);
+        this.highlightGlowSelection.each((rect, datum) => {
+            updateSector(datum, rect, datum.datumIndex === highlightedNode?.datumIndex, true);
         });
         if (glowing) {
             this.updateGlowEnds(angleOffset);
