@@ -5,6 +5,7 @@ import {
     clickAction,
     deproxy,
     doubleClickAction,
+    dragAction,
     expectErrorsCalls,
     expectWarningsCalls,
     findAxis,
@@ -1355,16 +1356,23 @@ describe('Annotations', () => {
             });
         });
 
-        it('edits the selected annotation and follows an undo', async () => {
-            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50 }] });
+        // Selects the horizontal line through the middle of the series area, and opens its settings.
+        async function openHorizontalLineSettings(annotations: AgAnnotation[]) {
+            await prepareChart({ annotations });
             const { x, y, width, height } = getSeriesRect(chart);
-            await hoverAction(x + width / 2, y + height / 2)(chart);
-            await clickAction(x + width / 2, y + height / 2)(chart);
+            const at = { x: x + width / 2, y: y + height / 2 };
+            await hoverAction(at.x, at.y)(chart);
+            await clickAction(at.x, at.y)(chart);
             await waitForChartStability(chart);
 
             const { body } = deproxy(chart).ctx.agDocument;
             body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
             await waitForChartStability(chart);
+            return { at, body };
+        }
+
+        it('edits the selected annotation and follows an undo', async () => {
+            const { body } = await openHorizontalLineSettings([{ type: 'horizontal-line', value: 50 }]);
 
             const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
             input.value = '60';
@@ -1375,6 +1383,31 @@ describe('Annotations', () => {
             await pressKey(chart, 'z', { ctrlKey: true });
             expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
             expect(input.value).toBe('50');
+        });
+
+        it('stays open while its annotation is clicked or dragged, and closes on selecting another annotation', async () => {
+            const { at, body } = await openHorizontalLineSettings([
+                { type: 'horizontal-line', value: 50 },
+                { type: 'horizontal-line', value: 10 },
+            ]);
+            const dialog = () => body.querySelector('.ag-charts-dialog');
+            expect(dialog()).not.toBeNull();
+
+            await clickAction(at.x, at.y)(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).not.toBeNull();
+
+            await dragAction(at, { x: at.x, y: at.y - 40 })(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).not.toBeNull();
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
+            expect(Number(input.value)).toBeGreaterThan(50);
+
+            const otherY = getSeriesRect(chart).y + findAxis(chart, 'left').scale.convert(10);
+            await hoverAction(at.x, otherY)(chart);
+            await clickAction(at.x, otherY)(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).toBeNull();
         });
     });
 
