@@ -164,7 +164,7 @@ mtime_of() {
 # As keep_reason, for a worktree already moved aside: checks processes inside it and walks every file once.
 # Renaming leaves the root's mtime alone, so a change since root_mtime means its entries changed around the move.
 moved_keep_reason() {
-    local moved=$1 root_mtime=$2 git_dir entry
+    local moved=$1 root_mtime=$2 git_dir entry i
     local entries=()
     if [[ -z "$root_mtime" || "$(mtime_of "$moved")" != "$root_mtime" ]]; then
         echo "recently active"
@@ -191,9 +191,13 @@ moved_keep_reason() {
     for entry in "$moved"/* "$moved"/.[!.]* "$moved"/..?*; do
         [[ -e "$entry" || -L "$entry" ]] && [[ "$entry" != "$moved/.git" ]] && entries+=("$entry")
     done
-    if ((${#entries[@]})) && { find_recent "${entries[@]}" || (($? == 2)); }; then
-        echo "recently active"
-    fi
+    # Batched to stay within the platform's argument-size limit.
+    for ((i = 0; i < ${#entries[@]}; i += 200)); do
+        if find_recent "${entries[@]:i:200}" || (($? == 2)); then
+            echo "recently active"
+            return
+        fi
+    done
 }
 
 # Moves a worktree with git, failing unless git now has it at the destination.
@@ -218,7 +222,10 @@ move_worktree() {
     same_path "$MOVED_TO" "$to"
 }
 
+# Moves a worktree back. git worktree repair first re-registers it where it is on disk, in case an interrupted
+# move left git's record at the old path.
 restore_worktree() {
+    git -C "$CWD" worktree repair "$1" >/dev/null 2>&1 || true
     move_worktree "$1" "$2" || log "WARNING: could not move the worktree at $MOVED_TO back to $2; move it back by hand with git worktree move"
 }
 
@@ -289,7 +296,12 @@ cleanup_locked() {
         # walk sees every write made before removal.
         moved="$repo_wt_dir/.removing-${candidate##*/}"
         if ! move_worktree "$candidate" "$moved"; then
-            [[ -n "$MOVED_TO" && "$MOVED_TO" != . ]] && ! same_path "$MOVED_TO" "$candidate" && restore_worktree "$MOVED_TO" "$candidate"
+            # Put it back from wherever it is on disk: the destination if git renamed it but did not finish.
+            if [[ -d "$moved" && ! -e "$candidate" ]]; then
+                restore_worktree "$moved" "$candidate"
+            elif [[ -n "$MOVED_TO" && "$MOVED_TO" != . ]] && ! same_path "$MOVED_TO" "$candidate"; then
+                restore_worktree "$MOVED_TO" "$candidate"
+            fi
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
             continue
         fi
