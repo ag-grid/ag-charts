@@ -5,6 +5,7 @@ import {
     clickAction,
     deproxy,
     doubleClickAction,
+    dragAction,
     expectErrorsCalls,
     expectWarningsCalls,
     findAxis,
@@ -1375,6 +1376,36 @@ describe('Annotations', () => {
             await pressKey(chart, 'z', { ctrlKey: true });
             expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
             expect(input.value).toBe('50');
+        });
+
+        it('stays open while its annotation is clicked or dragged, and closes on a click elsewhere', async () => {
+            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50 }] });
+            const { x, y, width, height } = getSeriesRect(chart);
+            const at = { x: x + width / 2, y: y + height / 2 };
+            await hoverAction(at.x, at.y)(chart);
+            await clickAction(at.x, at.y)(chart);
+            await waitForChartStability(chart);
+
+            const { body } = deproxy(chart).ctx.agDocument;
+            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
+            await waitForChartStability(chart);
+            const dialog = () => body.querySelector('.ag-charts-dialog');
+            expect(dialog()).not.toBeNull();
+
+            await clickAction(at.x, at.y)(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).not.toBeNull();
+
+            await dragAction(at, { x: at.x, y: at.y - 40 })(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).not.toBeNull();
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
+            expect(Number(input.value)).toBeGreaterThan(50);
+
+            await hoverAction(x + 5, y + 5)(chart);
+            await clickAction(x + 5, y + 5)(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).toBeNull();
         });
     });
 
