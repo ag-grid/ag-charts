@@ -211,7 +211,7 @@ function fitStackAtSizes(
         shapeAlign
     );
     if (held == null) return narrowed;
-    // Unfitted, the caller drops an optional block and retries, which beats keeping it beside an overrun.
+    // Returning nothing lets the caller drop an optional block rather than keep it beside an overrun.
     if (narrowed == null) return held.overflows ? undefined : held;
     if (narrowed.overflows !== held.overflows) return narrowed.overflows ? held : narrowed;
     // `dropped` counts characters only, so the held fit must not win by losing an image.
