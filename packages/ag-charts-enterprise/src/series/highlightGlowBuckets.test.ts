@@ -157,18 +157,20 @@ describe('highlight glow on every hierarchy bucket', () => {
         it('casts highlightedBranch.glow from the hovered leaf and the other leaves of its branch, not the other branch', async () => {
             const { inPlace, highlighted } = await hover(series('highlightedBranch', HIGHLIGHT_GLOW));
 
-            expect(cast(highlighted, 'highlighted')).toEqual(['hovered']);
-            expect(cast(inPlace, 'inPlace')).toEqual(['sameBranch']);
-            for (const { shape } of inPlace.filter(({ role }) => role === 'sameBranch')) {
+            // The glow of each leaf of the branch is cast by its glow-only copy, and the in-place copy only cuts its footprint out.
+            expect(cast(highlighted, 'highlighted')).toEqual(['hovered', 'sameBranch']);
+            expect(cast(inPlace, 'inPlace')).toEqual([]);
+            for (const { shape } of highlighted.filter(({ role }) => role === 'sameBranch')) {
                 expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
+                expect(shape.fillGlow?.selfCut).toBe(true);
             }
         });
 
         it('casts unhighlightedItem.glow from the other leaves of the hovered branch only', async () => {
             const { inPlace, highlighted } = await hover(series('unhighlightedItem', HIGHLIGHT_GLOW));
 
-            expect(cast(highlighted, 'highlighted')).toEqual([]);
-            expect(cast(inPlace, 'inPlace')).toEqual(['sameBranch']);
+            expect(cast(highlighted, 'highlighted')).toEqual(['sameBranch']);
+            expect(cast(inPlace, 'inPlace')).toEqual([]);
         });
 
         it('casts unhighlightedBranch.glow from the leaves of the other branch only, in the base pass', async () => {
@@ -206,10 +208,12 @@ describe('highlight glow on every hierarchy bucket', () => {
             const hoveredInPlace = inPlace.find(({ role }) => role === 'hovered')!;
             expect(hoveredInPlace.shape.fillShadow).toMatchObject(SHADOW);
             expect(highlighted.find(({ role }) => role === 'hovered')!.shape.fillGlow).toMatchObject(GLOW_SHADOW);
-            // The other leaves of the branch have the glow beside their shadow.
+            // The other leaves of the branch keep their shadow in place, and have their glow cast by their glow-only copies.
             for (const { shape } of inPlace.filter(({ role }) => role === 'sameBranch')) {
-                expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
                 expect(shape.fillShadow).toMatchObject(SHADOW);
+            }
+            for (const { shape } of highlighted.filter(({ role }) => role === 'sameBranch')) {
+                expect(shape.fillGlow).toMatchObject(GLOW_SHADOW);
             }
         });
 

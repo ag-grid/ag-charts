@@ -6,6 +6,7 @@ import {
 } from 'ag-charts-community';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     type CallbackParamRules,
     type DynamicContext,
     type FitRegion,
@@ -297,7 +298,6 @@ export class SunburstSeries extends HierarchySeries<
         const highlightedNode = this.getActiveHighlightNode();
         const getDatumId = (node: SunburstNode) => node.datumIndex;
         this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
-        this.highlightGlowSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
 
         if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
@@ -612,7 +612,7 @@ export class SunburstSeries extends HierarchySeries<
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
-                highlighted,
+                highlighted || glowOnly,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             sector.fillGlow = this.resolveNodeGlow(
@@ -639,16 +639,28 @@ export class SunburstSeries extends HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
-        let glowing = false;
+        // The glow of the hovered node and of each node of its branch that glows is cast by a glow-only copy, which is in the
+        // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
+        const glowCopies: SunburstNode[] = highlightedNode == null ? [] : [highlightedNode];
+        const branchSectors: Sector[] = [];
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
-            glowing ||= sector.fillGlow?.enabled === true;
+            if (!this.castsBranchGlow(datum, sector.fillGlow, highlightedNode)) return;
+
+            glowCopies.push(datum);
+            branchSectors.push(sector);
+        });
+        for (const sector of branchSectors) sector.fillGlow = CUT_ONLY_GLOW;
+        let glowing = false;
+        this.datumSelection.each((sector) => {
+            glowing ||= sector.fillGlow?.enabled === true && sector.fillGlow.cutOnly !== true;
         });
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
         });
+        this.highlightGlowSelection.update(glowCopies, undefined, (node) => node.datumIndex);
         this.highlightGlowSelection.each((rect, datum) => {
-            updateSector(datum, rect, true, true);
+            updateSector(datum, rect, datum.datumIndex === highlightedNode?.datumIndex, true);
         });
         if (glowing) {
             this.updateGlowEnds(angleOffset);

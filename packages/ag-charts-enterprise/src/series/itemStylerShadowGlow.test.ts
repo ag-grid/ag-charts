@@ -553,7 +553,8 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
         );
         await waitForChartStability(chart);
 
-        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).find(
+        // The glow of a tile in the hovered group is cast by its glow-only copy.
+        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'highlightGlowSelection'), Rect).find(
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 

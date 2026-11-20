@@ -168,6 +168,18 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
     }
 }
 
+const selfCutGlows = new WeakMap<NormalisedDropShadowOptions, NormalisedDropShadowOptions>();
+
+/** The glow of a glow-only copy, which the engine cuts by the footprint of its own node alone, so that it draws over the others. */
+function getSelfCutGlow(glow: NormalisedDropShadowOptions): NormalisedDropShadowOptions {
+    let selfCut = selfCutGlows.get(glow);
+    if (selfCut == null) {
+        selfCut = { ...glow, selfCut: true };
+        selfCutGlows.set(glow, selfCut);
+    }
+    return selfCut;
+}
+
 export abstract class HierarchySeries<
     TNodeClass extends HierarchyNode,
     TNode extends Node<TNodeClass>,
@@ -682,6 +694,20 @@ export abstract class HierarchySeries<
         return itemShadow == null ? shadow : this.mergeItemShadow(shadow, itemShadow);
     }
 
+    /** Whether a node, drawn in place with `glow`, is a node of the hovered node's branch whose glow is cast by a glow-only copy. */
+    protected castsBranchGlow(
+        node: Pick<TNodeClass, 'datumIndex' | 'path'>,
+        glow: NormalisedDropShadowOptions | undefined,
+        highlightedNode: TNodeClass | undefined
+    ): boolean {
+        return (
+            glow?.enabled === true &&
+            highlightedNode != null &&
+            highlightedNode.datumIndex !== node.datumIndex &&
+            this.getHierarchyHighlightState(false, highlightedNode, node) === HierarchyHighlightState.Branch
+        );
+    }
+
     /** The glow on one copy of a node, in `fillGlow`: the glow-only copy casts that of the highlight copy, which has none itself. */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
@@ -690,7 +716,8 @@ export abstract class HierarchySeries<
         hoveredGlows: boolean,
         glowOnly: boolean
     ): NormalisedDropShadowOptions | undefined {
-        if (glowOnly) return glow;
+        // The glow of the hovered node is cut by its footprint after the merge, as it cuts the glows of its branch; theirs are not.
+        if (glowOnly) return isHighlight || glow == null ? glow : getSelfCutGlow(glow);
         if (isHighlight) return;
         if (!hoveredInPlace) return glow;
         return hoveredGlows ? CUT_ONLY_GLOW : undefined;

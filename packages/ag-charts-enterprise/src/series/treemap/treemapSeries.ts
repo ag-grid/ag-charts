@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     type BoxBounds,
     type CallbackParamRules,
     type DeepPartial,
@@ -672,7 +673,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         const getDatumId = (node: TreemapNode) => node.datumIndex;
         this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
-        this.highlightGlowSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
 
         if (!this.nodeDataRefresh) {
             return;
@@ -828,7 +828,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(node, isLeaf, true) : undefined;
             rect.fillShadow = this.resolveNodeShadow(
                 (isLeaf ? tile : group).shadow,
-                isHighlight,
+                isHighlight || glowOnly,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             rect.fillGlow = this.resolveNodeGlow(
@@ -864,10 +864,24 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             rect.visible = true;
         };
 
-        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, false));
+        // The glow of the hovered node and of each node of its branch that glows is cast by a glow-only copy, which is in the
+        // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
+        const glowCopies: TreemapNode[] = highlightedNode == null ? [] : [highlightedNode];
+        const branchRects: Rect[] = [];
+        this.datumSelection.each((rect, datum) => {
+            updateRectFn(datum, rect, false);
+            if (!this.castsBranchGlow(datum, rect.fillGlow, highlightedNode)) return;
+
+            glowCopies.push(datum);
+            branchRects.push(rect);
+        });
+        for (const rect of branchRects) rect.fillGlow = CUT_ONLY_GLOW;
 
         this.highlightSelection.each((rect, datum) => updateRectFn(datum, rect, true));
-        this.highlightGlowSelection.each((rect, datum) => updateRectFn(datum, rect, true, true));
+        this.highlightGlowSelection.update(glowCopies, undefined, (node) => node.datumIndex);
+        this.highlightGlowSelection.each((rect, datum) => {
+            updateRectFn(datum, rect, datum.datumIndex === highlightedNode?.datumIndex, true);
+        });
 
         if (!this.usesPlacedLabels) this.updateLabelNodes();
     }
