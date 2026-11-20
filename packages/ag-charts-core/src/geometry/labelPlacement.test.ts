@@ -607,7 +607,7 @@ describe('placeLabels', () => {
         expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
     });
 
-    it('forgets earlier obstacles after a pass with a non-finite obstacle', () => {
+    it('ignores non-finite obstacles and forgets earlier ones', () => {
         const place = (obstacles: LabelObstacle[]) => {
             const datum: PointLabelDatum = {
                 point: { x: 300, y: 200, size: 0 },
@@ -631,8 +631,15 @@ describe('placeLabels', () => {
             category: 'shape',
         };
 
+        const infinitelyWide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 0, y: 165, width: Infinity, height: 20 },
+            category: 'shape',
+        };
+
         expect(place([blocksTop])).toMatchObject([{ placement: 'bottom' }]);
-        place([nonFinite]);
+        expect(place([nonFinite])).toMatchObject([{ placement: 'top' }]);
+        expect(place([infinitelyWide])).toMatchObject([{ placement: 'top' }]);
         expect(place([])).toMatchObject([{ placement: 'top' }]);
     });
 
@@ -1513,13 +1520,10 @@ describe('bar label placement helpers', () => {
             expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
-        it('skips zero-area and non-finite rects', () => {
+        it('skips zero-area rects', () => {
             const result = rectLabelObstacles([
                 { x: 0, y: 0, width: 0, height: 10 },
                 { x: 0, y: 0, width: 10, height: 0 },
-                { x: 0, y: Number.NaN, width: 10, height: Number.NaN },
-                { x: Number.NaN, y: 0, width: 10, height: 10 },
-                { x: 0, y: 0, width: Number.POSITIVE_INFINITY, height: 10 },
                 { x: 0, y: 0, width: 10, height: 10 },
             ]);
             expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);

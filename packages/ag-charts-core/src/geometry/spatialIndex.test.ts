@@ -86,9 +86,14 @@ describe('SpatialIndex', () => {
         expect(index.query(miss, (ref) => boxCollides(ref, miss.x, miss.y, miss.width, miss.height))).toBe(false);
     });
 
-    it('stays usable at a larger grid after a reset with a NaN cell size', () => {
+    it.each([
+        { name: 'a NaN cell size', first: { x: 0, y: 0, width: 100, height: 100 }, cellSize: Number.NaN },
+        { name: 'NaN bounds', first: { x: 0, y: 0, width: Number.NaN, height: 100 }, cellSize: 10 },
+        { name: 'infinitely wide bounds', first: { x: 0, y: 0, width: Infinity, height: 100 }, cellSize: 10 },
+        { name: 'infinitely wide, flat bounds', first: { x: 0, y: 0, width: Infinity, height: 0 }, cellSize: 10 },
+    ])('stays usable at a larger grid after a reset with $name', ({ first, cellSize }) => {
         const index = new SpatialIndex<BoxBounds>();
-        index.reset({ x: 0, y: 0, width: 100, height: 100 }, Number.NaN);
+        index.reset(first, cellSize);
         index.reset(bounds, 10);
 
         const corner = { x: 700, y: 550, width: 5, height: 5 };

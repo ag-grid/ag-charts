@@ -1256,13 +1256,15 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
         }
     }
     for (const o of obstacles) {
-        const obstacleExtent = o.box.width + o.box.height;
-        if (Number.isFinite(obstacleExtent)) {
-            extentSum += obstacleExtent;
-            extentCount += 2;
-        }
+        if (!isFiniteBox(o.box)) continue;
+        extentSum += o.box.width + o.box.height;
+        extentCount += 2;
     }
     return gridCellSize(extentSum, extentCount);
+}
+
+function isFiniteBox({ x, y, width, height }: BoxBounds): boolean {
+    return Number.isFinite(x + y + width + height);
 }
 
 // Anchor-adjusted marker centre, written into the shared scratch (allocation-free). Marker-obstacle
@@ -1391,7 +1393,8 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
     const obstacles = typeof obstacleSource === 'function' ? obstacleSource() : obstacleSource;
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
-        obstacleIndex.insert(o.box, o);
+        // An invalid datum can yield a NaN or infinite box, which would otherwise block every label in its row.
+        if (isFiniteBox(o.box)) obstacleIndex.insert(o.box, o);
     }
     insertMarkerObstacles(data);
 }

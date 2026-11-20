@@ -33,8 +33,8 @@ export class SpatialIndex<R> {
         this.invCellSize = 1 / clampedCellSize;
         this.originX = bounds.x;
         this.originY = bounds.y;
-        this.cols = Math.max(1, Math.ceil(bounds.width / clampedCellSize));
-        this.rows = Math.max(1, Math.ceil(bounds.height / clampedCellSize));
+        this.cols = cellsAcross(bounds.width, clampedCellSize);
+        this.rows = cellsAcross(bounds.height, clampedCellSize);
 
         const count = this.cols * this.rows;
         const clearTo = Math.max(this.cellCount, count);
@@ -89,13 +89,19 @@ export class SpatialIndex<R> {
     }
 }
 
+// Non-finite bounds collapse to one cell: a NaN or infinite count would leave the shared index unusable.
+function cellsAcross(extent: number, cellSize: number): number {
+    const cells = Math.ceil(extent / cellSize);
+    return cells > 1 && cells < Infinity ? cells : 1;
+}
+
 /**
  * Heuristic {@link SpatialIndex} cell size: the mean extent (`extentSum / extentCount`), floored at
  * 1. Cell size only affects query performance, not correctness, so sizing cells to the typical box
  * keeps queries near O(1).
  */
 export function gridCellSize(extentSum: number, extentCount: number): number {
-    const mean = extentSum / extentCount;
+    const mean = extentCount > 0 ? extentSum / extentCount : 1;
     return mean >= 1 ? mean : 1;
 }
 
