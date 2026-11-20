@@ -1,7 +1,7 @@
 // -*- Mode: js -*-
 import tseslint from 'typescript-eslint';
 
-import widgetBoundary from '../rules/widget-boundary.mjs';
+import widgetBoundary, { widgetBoundaryDirectives } from '../rules/widget-boundary.mjs';
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
@@ -15,11 +15,14 @@ export default [
             aglint: {
                 rules: {
                     'widget-boundary': widgetBoundary,
+                    'widget-boundary-directives': widgetBoundaryDirectives,
                 },
             },
         },
         rules: {
             'aglint/widget-boundary': 2,
+            'aglint/widget-boundary-directives': 2,
+            'no-console': 2,
         },
     },
 ];

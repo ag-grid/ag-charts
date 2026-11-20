@@ -9,7 +9,7 @@ import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change
 import noUnscopedLogger from './libraries/ag-charts-eslint-rules/rules/no-unscoped-logger.mjs';
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
-import widgetBoundary from './libraries/ag-charts-eslint-rules/rules/widget-boundary.mjs';
+import widgetBoundary, { widgetBoundaryDirectives } from './libraries/ag-charts-eslint-rules/rules/widget-boundary.mjs';
 
 // The complete set of files that log without a chart, plus the deliberate re-export sites that
 // publish the ambient emitters. Each one is here because no chart context reaches it — not because
@@ -260,6 +260,7 @@ export const widgetBoundaryConfig = {
     ignores: ['src/widget/**', '**/*.{test,spec}.ts', '**/test/**', '**/__mocks__/**'],
     rules: {
         'aglint/widget-boundary': 2,
+        'aglint/widget-boundary-directives': 2,
     },
 };
 
@@ -313,6 +314,7 @@ export default [
                     'change-detection': lintChangeDetection,
                     'no-unscoped-logger': noUnscopedLogger,
                     'widget-boundary': widgetBoundary,
+                    'widget-boundary-directives': widgetBoundaryDirectives,
                 },
             },
             unicorn,
