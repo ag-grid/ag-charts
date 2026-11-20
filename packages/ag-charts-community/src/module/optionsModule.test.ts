@@ -1218,6 +1218,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -1349,6 +1350,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -1480,6 +1482,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -1611,6 +1614,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -2023,6 +2027,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -2154,6 +2159,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -2285,6 +2291,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -2416,6 +2423,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -2828,6 +2836,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -2959,6 +2968,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -3090,6 +3100,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,
@@ -3221,6 +3232,7 @@ describe('ChartOptions', () => {
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
+                  "gap": 0,
                   "glow": {
                     "blur": 2,
                     "enabled": false,

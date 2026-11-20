@@ -210,6 +210,31 @@ export function getBarSeriesContextNodeData(chartOrProxy: ChartOrProxy<any>, ind
     return context as BarSeriesContextNodeData;
 }
 
+// The context a bar series builds its nodes from is private; it holds the aggregation filter while data is aggregated.
+interface BarAggregationHost {
+    nodeDatumContext?: { dataAggregationFilter?: unknown };
+}
+
+/**
+ * Whether a bar series is drawing aggregated buckets for the current view rather than one bar per datum. Fails for a
+ * series that has not built its node context yet.
+ */
+export function isBarSeriesAggregating(chartOrProxy: ChartOrProxy<any>, index = 0): boolean {
+    const { nodeDatumContext } = getSeriesAt(chartOrProxy, index) as unknown as BarAggregationHost;
+    expect(nodeDatumContext, `series ${index} node context`).toBeDefined();
+    return nodeDatumContext!.dataAggregationFilter != null;
+}
+
+// The bar series keep a datum-to-group index for the stack total lookup; it is private.
+interface BarGroupIndexHost {
+    datumGroupIndexCache?: unknown;
+}
+
+/** Whether a bar series holds the datum-to-group index it builds when data has duplicate or invalid keys. */
+export function holdsBarDatumGroupIndex(chartOrProxy: ChartOrProxy<any>, index = 0): boolean {
+    return (getSeriesAt(chartOrProxy, index) as unknown as BarGroupIndexHost).datumGroupIndexCache != null;
+}
+
 // The processed data a series keeps from its last data pass is protected; the bar series reduce a flag onto it.
 interface ProcessedDataHost {
     processedData?: { reduced?: { filteredValueExceedUnfiltered?: boolean } };

@@ -10,8 +10,11 @@ export { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } 
 export * as CROSSLINE_EXAMPLES from './chart/crossline/test/examples';
 export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
+    type BarNodeDatum,
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
+    getBarSeriesContextNodeData,
+    isBarSeriesAggregating,
     withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './chart/test/communitySeriesAccessors';
