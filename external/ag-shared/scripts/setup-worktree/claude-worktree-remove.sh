@@ -42,6 +42,20 @@ if [[ -n "$WT_PATH" && -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -d "$WT_DIR" ]]; th
         log "Removing ${WT_PATH} from where an interrupted cleanup left it: ${HIDDEN}"
         git -C "$HIDDEN" worktree repair >/dev/null 2>&1 || true
         WT_PATH=$HIDDEN
+    elif [[ ! -e "$WT_PATH" ]]; then
+        # Or wherever a restore that landed elsewhere left it: a worktree of the current repository whose record
+        # names this path.
+        WANTED="$(cd -P "$WT_DIR" && pwd)/$(basename "$WT_PATH")"
+        while IFS= read -r -d '' ENTRY; do
+            [[ "$ENTRY" == "worktree "* ]] || continue
+            FOUND=${ENTRY#worktree }
+            FOUND_GIT_DIR=$(git -C "$FOUND" rev-parse --absolute-git-dir 2>/dev/null) || continue
+            if [[ "$(cat "$FOUND_GIT_DIR/claude-moved-from" 2>/dev/null)" == "$WANTED" ]]; then
+                log "Removing ${WT_PATH} from where a restore left it: ${FOUND}"
+                WT_PATH=$FOUND
+                break
+            fi
+        done < <(git worktree list --porcelain -z 2>/dev/null)
     fi
 fi
 

@@ -149,7 +149,7 @@ in_use() {
     # lsof escapes control characters, so such a path cannot be matched reliably.
     [[ "$real_path" != *[![:print:]]* ]] || return 0
     if [[ -n "${2:-}" ]]; then
-        [[ -n "$PROCESS_PATHS_READ" ]] || return 0
+        [[ -n "${PROCESS_PATHS_READ:-}" ]] || return 0
         paths=$PROCESS_PATHS
     else
         paths=$(stable_process_paths) || return 0
@@ -258,6 +258,8 @@ moved_keep_reason() {
     for ((i = 0; i < ${#entries[@]}; i += 200)); do
         status=0
         FIND_ALSO=(-o -type d \( ! -user "$(id -u)" -o ! -perm -u+wx \))
+        # macOS ACLs and file flags can forbid deletion whatever the mode bits say.
+        [[ "$(uname)" == Darwin ]] && FIND_ALSO+=(-o -acl -o -flags +uchg,schg,uappnd,sappnd)
         find_recent "${entries[@]:i:200}" || status=$?
         FIND_ALSO=()
         if ((status != 1)); then
@@ -332,12 +334,12 @@ cleanup_stale_agent_worktrees() {
 }
 
 cleanup_locked() {
-    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime git_dir MOVED_TO=
+    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime git_dir entry registered recorded repo_real MOVED_TO=
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
     # One process listing for the pre-move checks, taken when the first candidate needs it; each moved worktree
-    # gets a fresh one.
-    PROCESS_PATHS='' PROCESS_PATHS_READ='' local listed=''
+    # gets a fresh one. in_use reads them through bash's dynamic scoping.
+    local listed='' PROCESS_PATHS='' PROCESS_PATHS_READ=''
 
     # Restore worktrees left aside by an interrupted run: only those whose record in their git dir says this hook
     # moved them from the matching path.
@@ -349,6 +351,18 @@ cleanup_locked() {
         [[ "$(cat "$git_dir/claude-moved-from" 2>/dev/null)" == "$(cd -P "$repo_wt_dir" && pwd)/${original##*/}" ]] || continue
         restore_worktree "$moved" "$original"
     done
+
+    # A restore that landed somewhere unexpected leaves the worktree registered there with its record; move those
+    # back too.
+    repo_real=$(cd -P "$repo_wt_dir" && pwd)
+    while IFS= read -r -d '' entry; do
+        [[ "$entry" == "worktree "* ]] || continue
+        registered=${entry#worktree }
+        git_dir=$(git -C "$registered" rev-parse --absolute-git-dir 2>/dev/null) || continue
+        recorded=$(cat "$git_dir/claude-moved-from" 2>/dev/null) || continue
+        [[ "$(dirname "$recorded")" == "$repo_real" && ! -e "$recorded" ]] || continue
+        same_path "$registered" "$recorded" || restore_worktree "$registered" "$recorded"
+    done < <(git -C "$CWD" worktree list --porcelain -z 2>/dev/null)
 
     for candidate in "$repo_wt_dir"/agent-*; do
         [[ -d "$candidate" ]] || continue

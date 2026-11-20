@@ -14,6 +14,7 @@ T=$(mktemp -d)
 PIDS=()
 cleanup() {
     ((${#PIDS[@]})) && kill "${PIDS[@]}" 2>/dev/null
+    [[ "$(uname)" == Darwin ]] && chmod -R -N "$T" 2>/dev/null
     chmod -R u+rwx "$T" 2>/dev/null
     rm -rf -- "$T"
 }
@@ -61,10 +62,12 @@ set_owner() { echo "$2" >"$(git -C "$WTS/$1" rev-parse --absolute-git-dir)/$OWNE
 DEAD_PID=99999
 while ps -o pid= -p "$DEAD_PID" >/dev/null 2>&1; do DEAD_PID=$((DEAD_PID + 1)); done
 
-for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed readonly; do make_wt "agent-$n"; done
-for n in stale chmod ignored openfile inuse dirty readonly; do set_owner "agent-$n" "$DEAD_PID"; done
+for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed readonly acl; do make_wt "agent-$n"; done
+for n in stale chmod ignored openfile inuse dirty readonly acl; do set_owner "agent-$n" "$DEAD_PID"; done
 # A directory this user cannot empty, set before the wait so its ctime is old.
 chmod u-w "$WTS/agent-readonly/node_modules/p"
+# On macOS, the same through an ACL with the mode bits left alone.
+if [[ "$(uname)" == Darwin ]]; then chmod +a "everyone deny delete_child" "$WTS/agent-acl/node_modules/p"; fi
 sleep 600 &
 PIDS+=($!)
 set_owner agent-live "$!"
@@ -96,6 +99,17 @@ printf '#!/bin/sh\ntouch "%s/hook-ran"\nexit 1\n' "$T" >"$CWD/.git/hooks/pre-com
 chmod +x "$CWD/.git/hooks/pre-commit"
 sleep 1
 
+gone() { [[ ! -e "$WTS/$1" ]]; }
+kept() { [[ -e "$WTS/$1" ]]; }
+registered() { git -C "$CWD" worktree list --porcelain | grep -qxF "worktree $(cd -P "$WTS/$1" && pwd)"; }
+
+# Without a process listing every candidate is kept, and the run completes.
+if (
+    stable_process_paths() { return 1; }
+    cleanup_stale_agent_worktrees
+); then pass "a failed process listing does not abort the cleanup"; else fail "a failed process listing does not abort the cleanup"; fi
+expect "a failed process listing keeps the candidate" kept agent-stale
+
 # Unrelated processes starting or exiting on a busy machine make the listing unstable, which keeps every worktree.
 # The scenarios pin the process-id check; the turnover test below exercises it.
 real_user_pids=$(declare -f user_pids)
@@ -103,9 +117,6 @@ user_pids() { :; }
 cleanup_stale_agent_worktrees
 eval "$real_user_pids"
 
-gone() { [[ ! -e "$WTS/$1" ]]; }
-kept() { [[ -e "$WTS/$1" ]]; }
-registered() { git -C "$CWD" worktree list --porcelain | grep -qxF "worktree $(cd -P "$WTS/$1" && pwd)"; }
 expect "stale worktree with an exited owner is removed" gone agent-stale
 expect "removal leaves no hidden copy" gone .removing-agent-stale
 expect "worktree whose owner runs is kept" kept agent-live
@@ -120,6 +131,9 @@ expect "failed safety commit restores the worktree" registered agent-dirty
 expect "interrupted move is recovered and registered" registered agent-interrupted
 expect "manual rename without the hook's record is left alone" kept .removing-agent-renamed
 expect "a worktree with a directory it cannot empty is kept intact" test -e "$WTS/agent-readonly/node_modules/p/i.js"
+if [[ "$(uname)" == Darwin ]]; then
+    expect "a worktree with an ACL forbidding deletion is kept intact" test -e "$WTS/agent-acl/node_modules/p/i.js"
+fi
 expect "lock is released after cleanup" bash -c 'exec 9>>"$1"; perl -MFcntl=:flock -e '"'"'open(my $fh, ">&=", 9) or exit 1; flock($fh, LOCK_EX | LOCK_NB) or exit 1'"'" _ "$WTS/.cleanup.lock"
 
 # move_worktree refuses an occupied destination and leaves the worktree registered where it was.
@@ -135,6 +149,13 @@ restore_worktree "$WTS/.removing-agent-lockedaside" "$WTS/agent-lockedaside"
 expect "a worktree locked while aside is restored" registered agent-lockedaside
 git -C "$CWD" worktree unlock "$WTS/agent-lockedaside"
 
+# A restore that landed elsewhere is found through git's registration and moved back on the next run.
+git -C "$CWD" worktree add -q "$WTS/agent-misplaced" -b agent-misplaced 2>/dev/null
+echo "$(cd -P "$WTS" && pwd)/agent-misplaced" >"$(git -C "$WTS/agent-misplaced" rev-parse --absolute-git-dir)/claude-moved-from"
+git -C "$CWD" worktree move "$WTS/agent-misplaced" "$WTS/elsewhere-misplaced"
+cleanup_stale_agent_worktrees
+expect "a restore that landed elsewhere is moved back" registered agent-misplaced
+
 rm -f "$CWD/.git/hooks/pre-commit"
 remove() { jq -n --arg path "$1" '{worktree_path: $path}' | (cd / && bash "$REMOVE") 2>>"$LOG"; }
 
@@ -146,6 +167,13 @@ mv "$WTS/agent-direct" "$WTS/.removing-agent-direct"
 remove "$WTS/agent-direct"
 expect "direct removal removes the matching hidden copy" gone .removing-agent-direct
 expect "direct removal clears git's registration" test ! -d "$DIRECT_GIT_DIR"
+
+# The remover also finds a worktree where a restore left it.
+git -C "$CWD" worktree add -q "$WTS/agent-misremove" -b agent-misremove 2>/dev/null
+echo "$(cd -P "$WTS" && pwd)/agent-misremove" >"$(git -C "$WTS/agent-misremove" rev-parse --absolute-git-dir)/claude-moved-from"
+git -C "$CWD" worktree move "$WTS/agent-misremove" "$WTS/elsewhere-misremove"
+(cd "$CWD" && jq -n --arg path "$WTS/agent-misremove" '{worktree_path: $path}' | bash "$REMOVE") 2>>"$LOG"
+expect "direct removal removes a worktree where a restore left it" gone elsewhere-misremove
 
 # An unrelated checkout at the hidden name is left alone.
 git clone -q "$CWD" "$WTS/.removing-agent-other"
