@@ -278,7 +278,7 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         h1: 'Pie Chart Example',
         description:
             'An interactive pie chart built with AG Charts, breaking a total into proportional slices, with callout labels, sector labels and spacing between the slices. Explore the live example.',
-        intro: 'This example shows a [pie chart](/r/pie-series/) built with AG Charts, breaking a single total into proportional slices so each part reads as a share of the whole. [Callout and sector labels](/r/pie-series/#labels) name and quantify the slices, with formatters hiding both on slices too small to label, sector spacing separating the slices, and a [tooltip renderer](/r/tooltips/#modifying-content) reporting each value with its share.',
+        intro: 'This example shows a [pie chart](/r/pie-series/) built with AG Charts, breaking a single total into proportional slices so each part reads as a share of the whole. [Callout and sector labels](/r/pie-series/#labels) name and quantify the slices, with formatters hiding both on slices too small to label, a gap separating the slices, and a [tooltip renderer](/r/tooltips/#modifying-content) reporting each value with its share.',
     },
     'pie-with-variable-radius': {
         title: 'Pie Chart With Variable Radius Example - JavaScript | AG Charts',

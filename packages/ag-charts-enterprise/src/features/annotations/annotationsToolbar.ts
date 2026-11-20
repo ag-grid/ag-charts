@@ -59,7 +59,6 @@ export class AnnotationsToolbar {
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
     private menuItemPicked = false;
-    private menuHideRegistered = false;
     private magnetPressed = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -295,10 +294,8 @@ export class AnnotationsToolbar {
             class: 'ag-charts-annotations__toolbar-menu',
             sourceEvent: event.sourceEvent,
             onPress: (item, pressEvent) => this.onButtonPressMenuCreateAnnotation(menu, item, pressEvent),
-            // `Popover` keeps every `onHide` for its lifetime, so register ours once.
-            onHide: this.menuHideRegistered ? undefined : this.onMenuHide,
+            onHide: this.onMenuHide,
         });
-        this.menuHideRegistered = true;
 
         // Must run after `show()`, which hides the previous menu and so clears the active button.
         this.menuItemPicked = false;

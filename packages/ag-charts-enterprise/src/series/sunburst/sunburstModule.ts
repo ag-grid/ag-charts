@@ -79,7 +79,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
                 spacing: 2,
             },
         },
-        sectorSpacing: 2,
+        gap: 2,
         padding: 3,
         glow: GLOW_THEME_DEFAULTS,
         highlight: withFollowedGlowThemeDefaults(

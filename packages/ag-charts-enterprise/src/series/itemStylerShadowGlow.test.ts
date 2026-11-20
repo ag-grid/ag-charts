@@ -95,11 +95,11 @@ const hierarchyLayers =
     (kind: abstract new (...args: never[]) => Shape) =>
     (chart: AgChartInstance): Layers => {
         // Leaves only: a group of a treemap is a shape of the same kind in the same selection.
-        const leaves = (name: 'datumSelection' | 'highlightSelection') =>
+        const leaves = (name: 'datumSelection' | 'highlightGlowSelection') =>
             visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name), kind).filter(
                 (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
             );
-        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightSelection') };
+        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightGlowSelection') };
     };
 
 const CASES: Case[] = [
@@ -206,6 +206,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
 
     // A series with one slot per item holds the glow where it would hold the shadow; the shadow is cast where it has no glow.
     const glowOf = (shape: Shape) => shape[testCase.glowSlot];
+    const highlightGlowOf = (shape: Shape) => shape[testCase.glowSlot];
 
     describe('override', () => {
         it('casts the shadow that the styler returns for an item, and the series shadow for the others', async () => {
@@ -394,7 +395,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(inPlace[0].fillShadow).toMatchObject(ITEM_SHADOW);
         });
 
-        it('casts the glow of the styler from the highlight copy, with every field the styler sets', async () => {
+        it('casts the glow of the styler from the glow-only copy, with every field the styler sets', async () => {
             const { highlighted } = await create({
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
@@ -402,7 +403,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
 
             expect(highlighted).toHaveLength(1);
-            expect(glowOf(highlighted[0])).toMatchObject(glowShadow(ITEM_GLOW));
+            expect(highlightGlowOf(highlighted[0])).toMatchObject(glowShadow(ITEM_GLOW));
         });
 
         it('casts the glow of the highlightedItem from the copy of an item whose styler returns none', async () => {
@@ -412,7 +413,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
 
             expect(highlighted).toHaveLength(1);
-            expect(glowOf(highlighted[0])).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            expect(highlightGlowOf(highlighted[0])).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
         });
 
         it('merges a partial glow of the styler over the highlightedItem glow, field by field', async () => {
@@ -423,7 +424,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
 
             expect(highlighted).toHaveLength(1);
-            expect(glowOf(highlighted[0])).toMatchObject(glowShadow({ ...HIGHLIGHT_GLOW, blur: 20 }));
+            expect(highlightGlowOf(highlighted[0])).toMatchObject(glowShadow({ ...HIGHLIGHT_GLOW, blur: 20 }));
         });
 
         it('casts no glow from the copy when the styler turns the glow off for the item', async () => {
@@ -434,7 +435,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
 
             expect(highlighted).toHaveLength(1);
-            expect(isOn(glowOf(highlighted[0]))).toBe(false);
+            expect(isOn(highlightGlowOf(highlighted[0]))).toBe(false);
         });
 
         it.each(['shadow', 'glow'] as const)(
@@ -675,7 +676,8 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
             [...hierarchyRoot(chart)].find((node) => node.datum?.name === 'A')
         );
 
-        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).find(
+        // The glow of a tile in the hovered group is cast by its glow-only copy.
+        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'highlightGlowSelection'), Rect).find(
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 

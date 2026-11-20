@@ -94,6 +94,8 @@ export type NormalisedDropShadowOptions = Normalised<
     cutOnly?: true;
     /** With `cutOnly`, cuts the footprint out of the glows of its own series alone. */
     ownCut?: true;
+    /** A glow cast above the glows of the other casters of its overlay, cut by the footprint of its own item before it merges, and by the other footprints after. */
+    selfCut?: true;
 };
 
 /** A shadow with the `fill` that it casts in. */

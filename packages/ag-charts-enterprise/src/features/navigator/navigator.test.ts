@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } from 'ag-charts-community';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgLineSeriesOptions,
+    AgNavigatorHandleOptions,
+} from 'ag-charts-community';
 import {
     CROSSLINE_EXAMPLES,
     type CartesianTestCase,
@@ -684,6 +689,26 @@ describe('Navigator', () => {
                 expectWarningsCalls().toEqual([]);
             }
         );
+    });
+
+    describe('handle grip', () => {
+        const GRIP_CASES: Record<string, AgNavigatorHandleOptions> = {
+            'a 36x36 handle': { width: 36, height: 36 },
+            'a tall and narrow handle': { width: 8, height: 40 },
+            'a rounded handle with a thick border': { width: 100, height: 100, cornerRadius: 50, strokeWidth: 30 },
+        };
+
+        it.each(Object.entries(GRIP_CASES))('for %s it should render to canvas as expected', async (_name, handle) => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, miniChart: {}, minHandle: handle, maxHandle: handle },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
+            };
+            chart = await createEnterpriseChart(options);
+            await compare();
+
+            expectWarningsCalls().toEqual([]);
+        });
     });
 
     describe('track and thumb options', () => {
