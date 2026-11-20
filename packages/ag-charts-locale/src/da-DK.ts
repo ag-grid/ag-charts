@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaLabelAnnotationsList: 'Anmærkninger',
     ariaLabelAnnotation: '${description}, anmærkning ${type}',
     ariaLabelAnnotationRange: '${start} til ${end}',
+    ariaLabelMovingAnnotation: 'Flytter anmærkning',
     ariaLabelAnnotationsToolbar: 'Anmærkninger',
     ariaLabelColor: 'Farve',
     ariaLabelColorPicker: 'Farvevælger',

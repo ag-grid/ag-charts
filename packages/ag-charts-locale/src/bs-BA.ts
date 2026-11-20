@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_BS_BA: Record<string, string> = {
     ariaLabelAnnotationsList: 'Napomene',
     ariaLabelAnnotation: '${description}, napomena ${type}',
     ariaLabelAnnotationRange: '${start} do ${end}',
+    ariaLabelMovingAnnotation: 'Pomjeranje napomene',
     ariaLabelColor: 'Boja',
     ariaLabelColorPicker: 'Birač boja',
     ariaLabelColorPickerAlpha: 'Providnost',

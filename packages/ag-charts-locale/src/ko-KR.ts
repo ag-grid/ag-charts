@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelAnnotationsList: '주석',
     ariaLabelAnnotation: '${description}, ${type} 주석',
     ariaLabelAnnotationRange: '${start}에서 ${end}까지',
+    ariaLabelMovingAnnotation: '주석 이동 중',
     ariaLabelAnnotationsToolbar: '주석',
     ariaLabelColor: '색상',
     ariaLabelColorPicker: '색상 선택기',

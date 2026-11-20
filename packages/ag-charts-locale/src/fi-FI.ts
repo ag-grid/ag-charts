@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelAnnotationsList: 'Muistiinpanot',
     ariaLabelAnnotation: '${description}, merkintä ${type}',
     ariaLabelAnnotationRange: '${start} - ${end}',
+    ariaLabelMovingAnnotation: 'Siirretään merkintää',
     ariaLabelAnnotationsToolbar: 'Muistiinpanot',
     ariaLabelColor: 'Väri',
     ariaLabelColorPicker: 'Värinvalitsin',

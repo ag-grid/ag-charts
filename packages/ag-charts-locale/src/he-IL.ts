@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelAnnotationsList: 'הערות',
     ariaLabelAnnotation: '${description}, הערת ${type}',
     ariaLabelAnnotationRange: 'מ-${start} עד ${end}',
+    ariaLabelMovingAnnotation: 'הזזת הערה',
     ariaLabelAnnotationsToolbar: 'הערות',
     ariaLabelColor: 'צבע',
     ariaLabelColorPicker: 'בוחר צבעים',

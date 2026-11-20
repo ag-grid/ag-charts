@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     ariaLabelAnnotationsList: 'Anotasi',
     ariaLabelAnnotation: '${description}, anotasi ${type}',
     ariaLabelAnnotationRange: '${start} hingga ${end}',
+    ariaLabelMovingAnnotation: 'Memindahkan anotasi',
     ariaLabelColor: 'Warna',
     ariaLabelColorPicker: 'Pemilih warna',
     ariaLabelColorPickerAlpha: 'Transparansi',

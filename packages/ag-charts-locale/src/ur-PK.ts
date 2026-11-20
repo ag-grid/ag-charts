@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelAnnotationsList: 'حاشیے',
     ariaLabelAnnotation: '${description}، ${type} تشریح',
     ariaLabelAnnotationRange: '${start} سے ${end}',
+    ariaLabelMovingAnnotation: 'تشریح منتقل کی جا رہی ہے',
     ariaLabelAnnotationsToolbar: 'حاشیے',
     ariaLabelColor: 'رنگ',
     ariaLabelColorPicker: 'رنگ چننے والا',

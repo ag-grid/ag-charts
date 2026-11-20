@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     ariaLabelAnnotationsList: 'Opombe',
     ariaLabelAnnotation: '${description}, opomba ${type}',
     ariaLabelAnnotationRange: 'od ${start} do ${end}',
+    ariaLabelMovingAnnotation: 'Premikanje opombe',
     ariaLabelColor: 'Barva',
     ariaLabelColorPicker: 'Izbirnik barv',
     ariaLabelColorPickerAlpha: 'Prosojnost',

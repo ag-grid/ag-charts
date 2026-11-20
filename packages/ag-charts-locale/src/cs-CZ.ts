@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaLabelAnnotationsList: 'Anotace',
     ariaLabelAnnotation: '${description}, anotace ${type}',
     ariaLabelAnnotationRange: '${start} až ${end}',
+    ariaLabelMovingAnnotation: 'Přesouvání anotace',
     ariaLabelAnnotationsToolbar: '"Anotace"',
     ariaLabelColor: 'Barva',
     ariaLabelColorPicker: 'Výběr barev',

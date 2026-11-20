@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelAnnotationsList: 'التعليقات التوضيحية',
     ariaLabelAnnotation: '${description}، تعليق توضيحي ${type}',
     ariaLabelAnnotationRange: '${start} إلى ${end}',
+    ariaLabelMovingAnnotation: 'جارٍ نقل التعليق التوضيحي',
     ariaLabelAnnotationsToolbar: '"التعليقات التوضيحية"',
     ariaLabelColor: 'لون',
     ariaLabelColorPicker: 'منتقي الألوان',

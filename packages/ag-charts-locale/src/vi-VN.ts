@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelAnnotationsList: 'Chú thích',
     ariaLabelAnnotation: '${description}, chú thích ${type}',
     ariaLabelAnnotationRange: '${start} đến ${end}',
+    ariaLabelMovingAnnotation: 'Đang di chuyển chú thích',
     ariaLabelAnnotationsToolbar: 'Chú thích',
     ariaLabelColor: 'Màu sắc',
     ariaLabelColorPicker: 'Trình chọn màu',

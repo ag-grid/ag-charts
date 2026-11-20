@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     ariaLabelAnnotationsList: 'Anotasi',
     ariaLabelAnnotation: '${description}, anotasi ${type}',
     ariaLabelAnnotationRange: '${start} hingga ${end}',
+    ariaLabelMovingAnnotation: 'Mengalihkan anotasi',
     ariaLabelColor: 'Warna',
     ariaLabelColorPicker: 'Pemilih warna',
     ariaLabelColorPickerAlpha: 'Ketelusan',

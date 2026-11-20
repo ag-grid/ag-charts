@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelAnnotationsList: 'Анотации',
     ariaLabelAnnotation: '${description}, анотация ${type}',
     ariaLabelAnnotationRange: '${start} до ${end}',
+    ariaLabelMovingAnnotation: 'Анотацията се премества',
     ariaLabelAnnotationsToolbar: 'Анотации',
     ariaLabelColor: 'Цвят',
     ariaLabelColorPicker: 'Цветова палитра',

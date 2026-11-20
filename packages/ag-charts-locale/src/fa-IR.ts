@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelAnnotationsList: 'یادداشت‌ها',
     ariaLabelAnnotation: '${description}، حاشیه‌نویسی ${type}',
     ariaLabelAnnotationRange: '${start} تا ${end}',
+    ariaLabelMovingAnnotation: 'در حال جابه‌جایی حاشیه‌نویسی',
     ariaLabelAnnotationsToolbar: 'یادداشت‌ها',
     ariaLabelColor: 'رنگ',
     ariaLabelColorPicker: 'انتخاب‌گر رنگ',

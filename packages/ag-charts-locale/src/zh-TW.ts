@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaLabelAnnotationsList: '標註',
     ariaLabelAnnotation: '${description}，${type}註解',
     ariaLabelAnnotationRange: '${start} 到 ${end}',
+    ariaLabelMovingAnnotation: '正在移動註解',
     ariaLabelAnnotationsToolbar: '標註',
     ariaLabelColor: '顏色',
     ariaLabelColorPicker: '顏色選擇器',

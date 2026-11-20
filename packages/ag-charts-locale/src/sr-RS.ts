@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_SR_RS: Record<string, string> = {
     ariaLabelAnnotationsList: 'Анотације',
     ariaLabelAnnotation: '${description}, анотација ${type}',
     ariaLabelAnnotationRange: '${start} до ${end}',
+    ariaLabelMovingAnnotation: 'Померање анотације',
     ariaLabelColor: 'Боја',
     ariaLabelColorPicker: 'Бирач боја',
     ariaLabelColorPickerAlpha: 'Провидност',

@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     ariaLabelAnnotationsList: 'Anotacijos',
     ariaLabelAnnotation: '${description}, anotacija ${type}',
     ariaLabelAnnotationRange: 'nuo ${start} iki ${end}',
+    ariaLabelMovingAnnotation: 'Anotacijos perkėlimas',
     ariaLabelColor: 'Spalva',
     ariaLabelColorPicker: 'Spalvos parinkiklis',
     ariaLabelColorPickerAlpha: 'Skaidrumas',

@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     ariaLabelAnnotationsList: 'एनोटेशन',
     ariaLabelAnnotation: '${description}, ${type} एनोटेशन',
     ariaLabelAnnotationRange: '${start} से ${end}',
+    ariaLabelMovingAnnotation: 'एनोटेशन खिसकाया जा रहा है',
     ariaLabelColor: 'रंग',
     ariaLabelColorPicker: 'रंग चयनकर्ता',
     ariaLabelColorPickerAlpha: 'पारदर्शिता',

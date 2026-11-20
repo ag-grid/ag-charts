@@ -1,19 +1,17 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
-    type ButtonWidget,
+    ButtonWidget,
     CleanupRegistry,
     DescriptionWidget,
     type DynamicContext,
     type GroupWidget,
     type KeyboardWidgetEvent,
-    type ListWidget,
+    ListWidget,
     createElementId,
 } from 'ag-charts-core';
 
-const LIST_ID = 'annotations';
-const MOVE_HANDLE_ID = 'annotations-move';
-const LIVE_REGION_ID = 'annotations-live';
+const ROOT_ID = 'annotations';
 
 // Thin annotations, such as a horizontal line, would otherwise get a focus indicator too small to see.
 const MIN_FOCUS_SIZE = 6;
@@ -35,70 +33,39 @@ export interface AnnotationsDOMProxyListener {
     onMoveBlur(): void;
 }
 
-/** The widgets of the annotations' keyboard view, which are created only once there is an annotation to list. */
+/** The root owns the other widgets, so destroying it destroys them all. */
 class AnnotationsDOM {
-    readonly list: ListWidget;
-    readonly moveGroup: GroupWidget;
-    readonly moveHandle: ButtonWidget;
-    readonly liveRegion: GroupWidget;
+    readonly root: GroupWidget;
+    readonly mover = new ButtonWidget();
     readonly moveDescription = new DescriptionWidget();
-    readonly moveDescriptionId = createElementId();
+    readonly list = new ListWidget();
 
-    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        const { proxyInteractionService } = ctx;
-        this.list = proxyInteractionService.createProxyContainer({
-            type: 'list',
-            domManagerId: LIST_ID,
-            classList: ['ag-charts-annotations'],
-            ariaLabel: { id: 'ariaLabelAnnotationsList' },
-            where: 'afterend',
-        });
-
-        this.moveDescription.id = this.moveDescriptionId;
-        this.list.setDescription(this.moveDescription);
-
-        // A separate element takes the focus while an annotation moves, since the arrow keys move between the list items.
-        this.moveGroup = proxyInteractionService.createProxyContainer({
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        this.root = ctx.proxyInteractionService.createProxyContainer({
             type: 'group',
-            domManagerId: MOVE_HANDLE_ID,
-            classList: [],
+            domManagerId: ROOT_ID,
+            classList: ['ag-charts-annotations'],
             ariaLabel: undefined,
             role: 'presentation',
             where: 'afterend',
         });
-        this.moveHandle = proxyInteractionService.createProxyElement({
-            type: 'button',
-            textContent: '',
-            tabIndex: -1,
-            parent: this.moveGroup,
-        });
-        this.moveHandle.setPointerEvents('none');
-        this.moveHandle.setHidden(true);
-        this.moveHandle.setAriaDescribedBy(this.moveDescriptionId);
 
-        this.liveRegion = proxyInteractionService.createProxyContainer({
-            type: 'group',
-            domManagerId: LIVE_REGION_ID,
-            classList: ['ag-charts-annotations__live-region'],
-            ariaLabel: undefined,
-            role: 'status',
-        });
-    }
+        const moveDescriptionId = createElementId();
+        this.moveDescription.id = moveDescriptionId;
 
-    destroy() {
-        const { ctx } = this;
-        this.list.destroy();
-        this.moveGroup.destroy();
-        this.liveRegion.destroy();
-        ctx.domManager.removeChild('canvas-proxy', LIST_ID);
-        ctx.domManager.removeChild('canvas-proxy', MOVE_HANDLE_ID);
-        ctx.domManager.removeChild('canvas-proxy', LIVE_REGION_ID);
+        this.mover.addClass('ag-charts-annotations__mover');
+        this.mover.setTabIndex(-1);
+        this.mover.setAriaDescribedBy(moveDescriptionId);
+        this.mover.setHidden(true);
+
+        this.root.addChild(this.mover);
+        this.root.addChild(this.moveDescription);
+        this.root.addChild(this.list);
     }
 }
 
 /**
- * The keyboard and screen reader view of the annotations: a list with a menu button per annotation, whose popup is the
- * Annotation Options Toolbar. Pointer events pass through it to the series area.
+ * The keyboard and screen reader view of the annotations. Pointer events pass through it to the series area.
  */
 export class AnnotationsDOMProxy {
     private readonly cleanup = new CleanupRegistry();
@@ -113,8 +80,8 @@ export class AnnotationsDOMProxy {
         private readonly listener: AnnotationsDOMProxyListener
     ) {
         this.cleanup.register(
-            ctx.eventsHub.on('locale:change', () => this.updateMoveDescription()),
-            () => this.dom?.destroy()
+            ctx.eventsHub.on('locale:change', () => this.updateLocalisedText()),
+            () => this.dom?.root.destroy()
         );
     }
 
@@ -125,39 +92,39 @@ export class AnnotationsDOMProxy {
     update(items: AnnotationsDOMProxyItem[], seriesRect: BBox) {
         if (this.dom == null && items.length === 0) return;
 
-        const { list, moveGroup, moveHandle } = this.getDOM();
+        const { root, list, mover } = this.getDOM();
         this.syncButtons(list, items);
-        list.setHidden(items.length === 0);
+        root.setBounds(seriesRect);
 
-        list.setBounds(seriesRect);
-        moveGroup.setBounds(seriesRect);
         for (const item of items) {
             const button = this.buttons.get(item.id);
             if (button == null) continue;
             if (button.getTextContent() !== item.label) {
                 button.setTextContent(item.label);
             }
-            button.setBounds(getButtonBounds(item.bbox, seriesRect));
+            const bounds = getButtonBounds(item.bbox, seriesRect);
+            button.setBounds(bounds);
             button.setAriaHasPopup(this.hasPopup ? 'dialog' : undefined);
             button.setAriaExpanded(this.hasPopup ? item.expanded : undefined);
 
             if (item.id === this.movingId) {
-                moveHandle.setTextContent(item.label);
-                moveHandle.setBounds(getButtonBounds(item.bbox, seriesRect));
+                mover.setBounds(bounds);
             }
         }
     }
 
     clear() {
-        const { dom } = this;
-        if (dom == null) return;
-        this.syncButtons(dom.list, []);
-        dom.list.setHidden(true);
+        if (this.dom == null) return;
+        this.syncButtons(this.dom.list, []);
     }
 
     /** Whether the annotations open a popup, which is the Annotation Options Toolbar unless it is disabled. */
     setHasPopup(hasPopup: boolean) {
         this.hasPopup = hasPopup;
+    }
+
+    isListed(id: string) {
+        return this.buttons.has(id);
     }
 
     focus(id: string) {
@@ -171,50 +138,48 @@ export class AnnotationsDOMProxy {
         return true;
     }
 
-    /**
-     * While an annotation moves, a handle over it takes the focus and the arrow keys, and describes how to use them.
-     * Ending the move hides the handle without moving the focus, which the caller then moves on.
-     */
     startMove(id: string) {
         const button = this.buttons.get(id);
-        const moveHandle = this.dom?.moveHandle;
-        if (button == null || moveHandle == null) return;
+        const mover = this.dom?.mover;
+        if (button == null || mover == null) return;
 
         this.movingId = id;
-        moveHandle.setTextContent(button.getTextContent());
-        moveHandle.setBounds(button.getBounds());
-        moveHandle.setHidden(false);
-        moveHandle.focus();
+        mover.setTextContent(this.ctx.localeManager.t('ariaLabelMovingAnnotation'));
+        mover.setBounds(button.getBounds());
+        mover.setHidden(false);
+        mover.focus();
     }
 
+    /** Hides the mover without moving the focus, which the caller must move on. */
     stopMove() {
         this.movingId = undefined;
-        this.dom?.moveHandle.setHidden(true);
+        this.dom?.mover.setHidden(true);
     }
 
-    announce(text: string) {
-        const liveRegion = this.dom?.liveRegion;
-        if (liveRegion == null) return;
-        // A live region announces only a change, so the same text twice needs to differ.
-        liveRegion.setTextContent(liveRegion.getTextContent() === text ? `${text}\u00A0` : text);
+    announceMove(text: string) {
+        this.dom?.mover.setTextContent(text);
     }
 
     private getDOM() {
         if (this.dom != null) return this.dom;
 
         const dom = new AnnotationsDOM(this.ctx);
-        dom.moveHandle.addListener('keydown', this.onMoveKeyDown);
-        dom.moveHandle.addListener('keyup', ({ sourceEvent }) => this.listener.onMoveKeyUp(sourceEvent));
-        dom.moveHandle.addListener('blur', () => {
+        dom.mover.addListener('keydown', this.onMoveKeyDown);
+        dom.mover.addListener('keyup', ({ sourceEvent }) => this.listener.onMoveKeyUp(sourceEvent));
+        dom.mover.addListener('blur', () => {
             if (this.movingId != null) this.listener.onMoveBlur();
         });
         this.dom = dom;
-        this.updateMoveDescription();
+        this.updateLocalisedText();
         return dom;
     }
 
-    private updateMoveDescription() {
-        this.dom?.moveDescription.setTextContent(this.ctx.localeManager.t('ariaDescriptionMoveAnnotation'));
+    private updateLocalisedText() {
+        const { dom } = this;
+        if (dom == null) return;
+        const { localeManager } = this.ctx;
+        dom.list.setAriaLabel(localeManager.t('ariaLabelAnnotationsList'));
+        dom.moveDescription.setTextContent(localeManager.t('ariaDescriptionMoveAnnotation'));
     }
 
     private syncButtons(list: ListWidget, items: AnnotationsDOMProxyItem[]) {
@@ -266,14 +231,12 @@ export class AnnotationsDOMProxy {
     }
 
     private createButton(list: ListWidget, id: string, label: string) {
-        const button = this.ctx.proxyInteractionService.createProxyElement({
-            type: 'button',
-            textContent: label,
-            parent: list,
-        });
-        button.setPointerEvents('none');
+        const button = new ButtonWidget();
+        button.addClass('ag-charts-annotations__item');
+        button.setTextContent(label);
         button.addListener('focus', () => this.listener.onFocus(id));
         button.addListener('click', (event) => this.listener.onActivate(id, event.sourceEvent));
+        list.addChild(button);
         return button;
     }
 

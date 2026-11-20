@@ -40,6 +40,7 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     ariaLabelAnnotationsList: 'Аннотации',
     ariaLabelAnnotation: '${description}, аннотация ${type}',
     ariaLabelAnnotationRange: 'от ${start} до ${end}',
+    ariaLabelMovingAnnotation: 'Перемещение аннотации',
     ariaLabelColor: 'Цвет',
     ariaLabelColorPicker: 'Выбор цвета',
     ariaLabelColorPickerAlpha: 'Прозрачность',

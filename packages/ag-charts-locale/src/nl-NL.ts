@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaLabelAnnotationsList: 'Annotaties',
     ariaLabelAnnotation: '${description}, annotatie ${type}',
     ariaLabelAnnotationRange: '${start} tot ${end}',
+    ariaLabelMovingAnnotation: 'Annotatie wordt verplaatst',
     ariaLabelAnnotationsToolbar: 'Annotaties',
     ariaLabelColor: 'Kleur',
     ariaLabelColorPicker: 'Kleurkiezer',

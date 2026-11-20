@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelAnnotationsList: 'Adnotări',
     ariaLabelAnnotation: '${description}, adnotare ${type}',
     ariaLabelAnnotationRange: '${start} până la ${end}',
+    ariaLabelMovingAnnotation: 'Se mută adnotarea',
     ariaLabelAnnotationsToolbar: 'Adnotări',
     ariaLabelColor: 'Culoare',
     ariaLabelColorPicker: 'Selector de culoare',

@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelAnnotationsList: 'Σχόλια',
     ariaLabelAnnotation: '${description}, σχολιασμός ${type}',
     ariaLabelAnnotationRange: '${start} έως ${end}',
+    ariaLabelMovingAnnotation: 'Ο σχολιασμός μετακινείται',
     ariaLabelAnnotationsToolbar: 'Σχόλια',
     ariaLabelColor: 'Χρώμα',
     ariaLabelColorPicker: 'Επιλογή χρώματος',

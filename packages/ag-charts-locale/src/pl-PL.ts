@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaLabelAnnotationsList: 'Adnotacje',
     ariaLabelAnnotation: '${description}, adnotacja ${type}',
     ariaLabelAnnotationRange: 'od ${start} do ${end}',
+    ariaLabelMovingAnnotation: 'Przesuwanie adnotacji',
     ariaLabelAnnotationsToolbar: 'Adnotacje',
     ariaLabelColor: 'Kolor',
     ariaLabelColorPicker: 'Wybór koloru',

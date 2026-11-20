@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelAnnotationsList: 'Ek Açıklamalar',
     ariaLabelAnnotation: '${description}, ${type} ek açıklaması',
     ariaLabelAnnotationRange: '${start} ile ${end} arası',
+    ariaLabelMovingAnnotation: 'Ek açıklama taşınıyor',
     ariaLabelAnnotationsToolbar: 'Ek Açıklamalar',
     ariaLabelColor: 'Renk',
     ariaLabelColorPicker: 'Renk seçici',

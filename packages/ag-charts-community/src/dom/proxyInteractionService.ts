@@ -164,6 +164,10 @@ export class ProxyInteractionService {
         // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should adopt the Widget rather than its element.
         // eslint-disable-next-line aglint/widget-boundary -- DOMManager.addChild() takes a raw element (Phase 3).
         this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement(), insert);
+        result.destroyListener = () => {
+            this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);
+            result.destroyListener = undefined;
+        };
         result.addClass(...params.classList, 'ag-charts-proxy-container');
         result.setAriaRole(params.role ?? params.type);
 

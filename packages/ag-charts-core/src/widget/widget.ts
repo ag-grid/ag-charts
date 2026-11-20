@@ -27,10 +27,29 @@ export type BeforeWidget<T extends IWidget<HTMLElement>> = T & { domIndex: numbe
 
 abstract class WidgetBounds<TElement extends HTMLElement> {
     protected elemContainer?: HTMLDivElement;
+    // OPTIMIZATION: callers set bounds on every render, so bounds equal to the last ones skip the style writes.
+    private lastBounds?: Partial<BoxBounds>;
+
     constructor(protected readonly elem: TElement) {}
 
     setBounds(bounds: Partial<BoxBounds>): void {
+        const { lastBounds } = this;
+        if (
+            lastBounds != null &&
+            lastBounds.x === bounds.x &&
+            lastBounds.y === bounds.y &&
+            lastBounds.width === bounds.width &&
+            lastBounds.height === bounds.height
+        ) {
+            return;
+        }
+        this.lastBounds = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height };
         setElementBBox(this.elemContainer ?? this.elem, bounds);
+    }
+
+    /** Makes the next `setBounds()` write its bounds, after the styles it writes were changed some other way. */
+    protected invalidateBounds() {
+        this.lastBounds = undefined;
     }
 
     getBounds(): BoxBounds {
@@ -39,6 +58,7 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
 
     /** Removes the inline width that `setBounds()` wrote, so `getBounds()` reports the rendered width. */
     clearWidth(): void {
+        this.invalidateBounds();
         setElementStyle(this.elemContainer ?? this.elem, 'width', undefined);
     }
 
@@ -46,6 +66,7 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
         const currentBounds = widget.getBounds();
         setElementBBox(elemContainer, currentBounds);
         setElementStyles(widget.elem, { width: '100%', height: '100%' });
+        widget.invalidateBounds();
         widget.elem.remove();
         widget.elemContainer = elemContainer;
         widget.elemContainer.replaceChildren(widget.elem);
@@ -280,6 +301,7 @@ export abstract class Widget<
      */
     setCssOffset(position: Partial<Point>) {
         const { style } = this.elem;
+        this.invalidateBounds();
         style.setProperty('right', 'unset');
         style.setProperty('bottom', 'unset');
         if (position.x != null) style.setProperty('left', `${position.x}px`);
@@ -297,6 +319,7 @@ export abstract class Widget<
 
     /** Sets the inline `width` in CSS pixels, or removes it when `undefined`. */
     setWidth(width: number | undefined) {
+        this.invalidateBounds();
         if (width == null) {
             this.elem.style.removeProperty('width');
         } else {

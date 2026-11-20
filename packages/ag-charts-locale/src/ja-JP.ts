@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelAnnotationsList: 'アノテーション',
     ariaLabelAnnotation: '${description}、${type}の注釈',
     ariaLabelAnnotationRange: '${start} から ${end}',
+    ariaLabelMovingAnnotation: '注釈を移動中',
     ariaLabelAnnotationsToolbar: 'アノテーション',
     ariaLabelColor: '色',
     ariaLabelColorPicker: 'カラーピッカー',
