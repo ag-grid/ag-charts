@@ -54,15 +54,31 @@ describe('shadow and glow render (hierarchy series)', () => {
         return [x + padding.left + width / 2, y + padding.top + 3] as const;
     };
 
-    /** The point at the middle of the sunburst sector A1, `offset` px from its inner radius: negative is in the ring of its parent. */
-    const insideRing = (offset = -4) => {
+    /** The sectors of the outer ring of the sunburst, the leaves, in the order of their angles. */
+    const sunburstLeaves = () => {
         const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
         const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
-        const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
-        const a1 = leaves.find((sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle)))!;
+        return sectors.filter(({ innerRadius }) => innerRadius > innerRing).sort((a, b) => a.startAngle - b.startAngle);
+    };
+
+    /** The sector of the leaf A1, the first of the outer ring, which sits in the ring beyond its parent A. */
+    const a1Sector = () => sunburstLeaves()[0];
+
+    /** The point at the middle of the sunburst sector A1, `offset` px from its inner radius: negative is in the ring of its parent. */
+    const insideRing = (offset = -4) => {
+        const a1 = a1Sector();
         const { canvasX, canvasY } = Transformable.toCanvasPoint(a1, a1.centerX, a1.centerY);
         const angle = (a1.startAngle + a1.endAngle) / 2;
         const radius = a1.innerRadius + offset;
+        return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
+    };
+
+    /** The pixel in the sector of A2, 3px from the radius that it shares with A1, and 3px beyond its inner radius. */
+    const insideSectorBesideA1 = () => {
+        const a2 = sunburstLeaves().find(({ startAngle }) => startAngle === a1Sector().endAngle)!;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(a2, a2.centerX, a2.centerY);
+        const radius = a2.innerRadius + 3;
+        const angle = a2.startAngle + 3 / radius;
         return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
     };
 
@@ -260,19 +276,6 @@ describe('shadow and glow render (hierarchy series)', () => {
             });
         });
     });
-
-    /** The pixel in the sector of A2, 3px from the radius that it shares with A1, and 3px beyond its inner radius. */
-    const insideSectorBesideA1 = () => {
-        const sectors = shapesOf(getSeriesAt(chart()).contentGroup, Sector);
-        const innerRing = Math.min(...sectors.map(({ innerRadius }) => innerRadius));
-        const leaves = sectors.filter(({ innerRadius }) => innerRadius > innerRing);
-        const a1 = leaves.find((sector) => sector.startAngle === Math.min(...leaves.map((leaf) => leaf.startAngle)))!;
-        const a2 = leaves.find((sector) => sector.startAngle === a1.endAngle)!;
-        const { canvasX, canvasY } = Transformable.toCanvasPoint(a2, a2.centerX, a2.centerY);
-        const radius = a2.innerRadius + 3;
-        const angle = a2.startAngle + 3 / radius;
-        return [canvasX + radius * Math.cos(angle), canvasY + radius * Math.sin(angle)] as const;
-    };
 
     // The glows stack by depth: where the glow of a hovered leaf overlaps that of its branch, the leaf's is the one on top.
     describe.each([
