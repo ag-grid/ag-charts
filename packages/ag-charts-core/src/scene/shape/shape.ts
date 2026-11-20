@@ -1016,7 +1016,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.fill();
         if (reach > 0) {
             ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
             ctx.lineWidth = reach * 2;
             ctx.stroke();
         }
