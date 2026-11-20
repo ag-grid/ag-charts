@@ -911,7 +911,8 @@ export class MapMarkerSeries
         const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightState = _ModuleSupport.toHighlightString(castState);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -925,6 +926,8 @@ export class MapMarkerSeries
             colorKey,
             latitudeKey,
             longitudeKey,
+            shadow: this.getStylerShadow(this.options.shadow, castState),
+            glow: this.getStylerGlow(this.options.glow, castState),
             highlightState,
             selectionState,
             candidateState,

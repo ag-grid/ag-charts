@@ -932,13 +932,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { id: seriesId } = this;
         const { xKey, yKey } = this.options;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const castState = this.getHighlightState(activeHighlight, isHighlight, bin.binIndex);
+        const { shadow, glow } = this.options;
 
         return {
             seriesId,
             xKey,
             yKey,
             ...this.binParams(bin),
-            highlightState: this.getHighlightStateString(activeHighlight, isHighlight, bin.binIndex),
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: toHighlightString(castState),
             selectionState: this.getSelectionStateString(bin.binIndex),
             candidateState: this.getCandidateStateString(bin.binIndex),
             ...this.resolvedStyle(style),

@@ -1760,10 +1760,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData).domain;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
         const candidateStateString = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        const { shadow, glow } = this.options;
 
         return {
             seriesId,
@@ -1772,7 +1773,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             xValue,
             yValue,
             stackGroup,
-            highlightState: highlightStateString,
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: toHighlightString(castState),
             selectionState: selectionStateString,
             candidateState: candidateStateString,
             ...style,

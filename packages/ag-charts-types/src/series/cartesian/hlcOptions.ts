@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type { AgItemShadowStyle, AgItemShadowStylerParams } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -92,6 +92,7 @@ export interface AgHlcSeriesItemStylerParams<TDatum, TContext>
         AgHlcSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgHlcSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         Required<Omit<AgSeriesMarkerStyle, 'lineDash'>>,
         ResolvedLineDash {
     /** The value the marker represents. This can be `high`, `low` or `close`. */

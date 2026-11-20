@@ -82,6 +82,12 @@ export function toHierarchyHighlightString(
     }
 }
 
+/** A highlight state's merged `glow` and the shadow it casts as, each unset where the cascade sets no glow. */
+interface HierarchyGlowEntry {
+    shadow: NormalisedDropShadowOptions | undefined;
+    options: Readonly<AgGlowOptions> | undefined;
+}
+
 type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
 };
@@ -651,13 +657,32 @@ export abstract class HierarchySeries<
         }
     }
 
-    /** The shadow of each highlight state's `glow`, by slot, which `syncOptionDerivedState` drops. `null` once none. */
-    private glowBySlot: Array<Array<NormalisedDropShadowOptions | null> | undefined> = [];
+    /**
+     * The merged `glow` of each highlight state and the shadow it converts to, by slot, which `syncOptionDerivedState`
+     * drops. Shared by every node in a state, including the params of their item stylers.
+     */
+    private glowBySlot: Array<Array<HierarchyGlowEntry | undefined> | undefined> = [];
 
     protected override syncOptionDerivedState(diff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
         super.syncOptionDerivedState(diff);
         this.glowBySlot = [];
         this.highlightStyleBySlot = [];
+    }
+
+    private getGlowEntry(
+        slot: number,
+        highlightState: HierarchyHighlightState,
+        resolveGlow: (highlightState: HierarchyHighlightState) => DeepPartial<AgGlowOptions> | undefined
+    ): HierarchyGlowEntry {
+        const glowByState = (this.glowBySlot[slot] ??= []);
+        let entry = glowByState[highlightState];
+        if (entry === undefined) {
+            const options = resolveGlow(highlightState);
+            const shadow = glowToShadow(options);
+            entry = { shadow: shadow ?? undefined, options: shadow == null ? undefined : options };
+            glowByState[highlightState] = entry;
+        }
+        return entry;
     }
 
     /** The glow of a highlight state as a shadow, converted once per `slot` (tiles and groups resolve differently). */
@@ -667,21 +692,34 @@ export abstract class HierarchySeries<
         resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0],
         itemGlow?: AgGlowOptions
     ): NormalisedDropShadowOptions | undefined {
-        const glowByState = (this.glowBySlot[slot] ??= []);
-        let glow = glowByState[highlightState];
-        if (glow === undefined) {
-            glow = glowToShadow(resolveGlow(highlightState)) ?? null;
-            glowByState[highlightState] = glow;
-        }
-        if (itemGlow == null) return glow ?? undefined;
+        const glow = this.getGlowEntry(slot, highlightState, resolveGlow).shadow;
+        if (itemGlow == null) return glow;
 
         const index = HIERARCHY_GLOW_INDEX + slot * HIERARCHY_STATE_COUNT + highlightState;
-        const recalled = this.recallItemCast(glow ?? undefined, itemGlow, index);
+        const recalled = this.recallItemCast(glow, itemGlow, index);
         if (recalled !== undefined) return recalled ?? undefined;
 
-        return this.mergeItemGlow(glow ?? undefined, index, `h${slot}:${highlightState}:`, itemGlow, () => [
-            resolveGlow(highlightState),
-        ]);
+        return this.mergeItemGlow(glow, index, itemGlow, glow, () => [resolveGlow(highlightState)]);
+    }
+
+    /**
+     * The `shadow` a node casts without an item styler, for the params of one: unset where it casts none.
+     * It is the series' own object, so nothing is allocated per node.
+     */
+    protected getHierarchyStylerShadow(shadow: NormalisedDropShadowOptions | undefined) {
+        return shadow?.enabled ? (shadow as Readonly<NormalisedDropShadowOptions>) : undefined;
+    }
+
+    /**
+     * The `glow` a node casts without an item styler, for the params of one: unset where it casts none.
+     * It is the entry of its `slot` and state, so every node in a state gets the same object.
+     */
+    protected getHierarchyStylerGlow(
+        slot: number,
+        highlightState: HierarchyHighlightState,
+        resolveGlow: (highlightState: HierarchyHighlightState) => DeepPartial<AgGlowOptions> | undefined
+    ) {
+        return this.getGlowEntry(slot, highlightState, resolveGlow).options;
     }
 
     /** The shadow on one copy of a node, in `fillShadow`: the highlight copy casts none, as its glow is cast by a glow-only copy. */
