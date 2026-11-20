@@ -19,49 +19,55 @@ globs:
 
 # The DOM Graph
 
-The **DOM graph** is the tree of core `Widget`s (`packages/ag-charts-core/src/widget/`) that owns the chart's DOM UI: toolbars, menus, popovers, dialogs, proxy buttons. It is to DOM rendering what the scene graph is to canvas rendering. It is not the browser's DOM tree: ownership is the widget tree (`parent`, `children`), and an element can sit somewhere in the DOM other than under its owner (`insertSiblingAfter()` moves only the element).
+The **DOM graph** is the tree of core `Widget`s (`packages/ag-charts-core/src/widget/`) that owns the chart's DOM UI: toolbars, menus, popovers, dialogs, proxy buttons. It is to DOM rendering what the scene graph is to canvas rendering. It is not the browser's DOM tree: ownership is the widget tree (`parent`, `children`), and an element can sit somewhere in the DOM other than under its owner.
 
-`DOMManager` (`ag-charts-community/src/dom/domManager.ts`) still owns the root containers (`canvas-overlay`, `series-area`, …) as raw elements, handed out by `getParent()` and `addChild()`. Widgets are mounted on them through a host element (`PopoverWidget`, `ContextMenuContainerWidget`) or the `DOMManagerWidget`/`NativeWidget` fallbacks. Phase 3 direction: DOMManager owns one root Widget, so the whole chart DOM becomes one graph.
+This is a living document. It describes a transition, so whoever changes what it describes (Phase 3 lands, widgets gain batching, a known gap closes, a new widget area appears) updates it in the same change.
+
+## Direction
+
+-   Code outside `widget/` talks to Widgets, never to their elements.
+-   `DOMManager` owns a single root Widget, so the whole chart DOM is one graph (Phase 3). Today it owns the root containers as raw elements (`getParent()`, `addChild()`), hence the `DOMManagerWidget`/`NativeWidget` fallbacks.
+-   Widget DOM writes get scene-graph-style batching. Today setters write immediately, with no compare-before-write; the caching and deferred-write layer is `DOMElementProxy` (`.rulesync/rules/dom-performance.md`), outside the widget tree.
+
+**Please help steer.** When your change touches code next to a known gap or an escape, and one step toward the direction is small and safe (adding a missing widget event, swapping a raw write for an existing setter, deleting an exemption that is no longer needed), please take it in the same change. If it is not small, do not skip it silently: say in your PR description or hand-off what you saw and why you left it, so the next agent can pick it up. Reviewers, ask the same question of every change: did it leave a nearby escape that was cheap to fix?
 
 ## Ownership (Rust-like)
 
--   **A parent owns its children.** `addChild()`/`prependChild()` link the child in the widget tree and the DOM. `destroy()` runs `destructor()`, detaches the element and unlinks it from its parent, destroys every child, then releases the listeners added through `addListener()`.
+-   **Widgets own their children and their listeners, unless documented otherwise.** `destroy()` runs `destructor()`, detaches the element, destroys the children and releases `addListener()` listeners.
 -   **One owner.** `addChild()` does not unlink a child from a previous parent, which would still destroy it. To move a child, `remove()` it (detaches without destroying), then `addChild()` it elsewhere.
--   **Borrowing is explicit and documented.** `PopoverWidget.showPanel()` takes ownership of the panel and destroys the previous one; `showChildren()` only borrows its children, so `removePanel()` calls `remove()` on them, not `destroy()`; attached child popovers are detached, not destroyed. Any widget that borrows documents who owns what in its JSDoc, as `PopoverWidget` does.
--   **Out-of-tree widgets belong to the caller.** `MenuWidget.addSubMenu()` returns a `subMenu` that is not a child of the menu.
--   **`destroy()` releases only what the widget knows about.** Window or document listeners, observers and timers must be released in the subclass `destructor()`. Example: `MenuWidget.expand()` adds window `mousedown`/`touchstart` listeners for outside-press dismissal; only `collapse()` removes them, and `destructor()` calls it with `CollapseMode.DESTROY`. A menu left expanded and never destroyed (e.g. in a test) reacts to every later press on the window.
--   **Modules own their roots.** Register the root widget's `destroy()`, and `domManager.removeChild()` for any container requested from DOMManager, with the module's `cleanup` (see the `Popover` constructor).
+-   **Borrowing is the exception, and it is explicit:** the borrowing site says so in its JSDoc, and lets go with `remove()`, not `destroy()`.
+-   **`destroy()` releases only what the widget knows about.** Window or document listeners, observers and timers are released in the subclass `destructor()`. An expanded widget left undestroyed (e.g. in a test) keeps its global listeners.
+-   **Modules own their roots.** Register the root widget's `destroy()`, and `domManager.removeChild()` for any container requested from DOMManager, with the module's `cleanup`.
+
+## Expandables and focus
+
+An expandable widget owns what it expands (submenus, popovers, dialogs) and is responsible for winding and unwinding focus. Conceptually the DOM graph keeps a focus history: each open expandable remembers what opened it. Opening winds focus into the expanded widget; closing it (e.g. Escape) unwinds and returns focus to whatever opened it, much like a browser's Back button. See `MenuWidget` and `CollapseMode` for an example.
 
 ## Widgets do the heavy lifting
 
-Put behaviour in a core widget (a method or subclass), not in the feature using it:
-
--   **Accessibility:** `setAriaRole()`, `setAriaLabel()`, `setAriaExpanded()`, …; `RovingTabContainerWidget` sets the container role and `aria-orientation`.
--   **Focus and keyboard:** roving tab index and arrow keys (`RovingTabContainerWidget`); expand and collapse with focus unwinding (`MenuWidget`, `CollapseMode`: only `CLOSE` returns focus to the `Opener`); popover focus via `PopoverWidget.setFocusOnOpen()`, `focusInitial()`, `restoreFocus()`. `Opener` keeps the opening element inside `widget/`.
--   **Show/hide lifecycle:** `Popover.hide()` removes the panel, calls the protected `onHide()` hook, then the per-show `onHide` option. Override `onHide()` rather than collecting hide callbacks.
--   **Events:** `addListener()` with widget events, which carry canvas-relative coordinates; not `addEventListener()` on the element.
--   **DOM writes:** narrow semantic setters (`setCssOffset()`, `setTranslate()`, `setMinWidth()`, `setCSSVariable()`, `setData()`, `toggleClass()`, …), not raw `style` or `setAttribute()`.
-
-**Performance today:** widget setters write to the DOM immediately, with no compare-before-write or batching. The caching and deferred-write layer is `DOMElementProxy` (`.rulesync/rules/dom-performance.md`), outside the widget tree. Scene-graph-style batching for widgets is a direction, not a feature.
+Put behaviour in a core widget (a method or subclass), not in the feature using it: roles and `aria-*` (`setAriaRole()`, `setAriaExpanded()`, …), roving tab index and arrow keys (e.g. `RovingTabContainerWidget`), hide hooks (e.g. `Popover.onHide()`) rather than collected hide callbacks, widget events via `addListener()` (they carry canvas-relative coordinates), and narrow semantic setters (`setCssOffset()`, `setCSSVariable()`, `toggleClass()`, …) rather than raw `style` or `setAttribute()`.
 
 ## Rules
 
 1.  **Do not reach through `getElement()`** outside `widget/`. Use or add a Widget method.
-2.  **Lint:** `aglint/widget-boundary` reports every `getElement` reference in `src/**/*.ts` of core, community and enterprise, except `src/widget/**` and tests. An unavoidable escape takes `// eslint-disable-next-line aglint/widget-boundary -- <reason>`; `aglint/widget-boundary-directives` rejects a missing reason and block or file-wide disables, and a directive that no longer suppresses anything fails lint.
+2.  **Lint:** `aglint/widget-boundary` reports every `getElement` reference outside `src/widget/**` and tests in core, community and enterprise. An unavoidable escape takes `// eslint-disable-next-line aglint/widget-boundary -- <reason>`, one site each; a missing reason, a block or file-wide disable, or a directive that no longer suppresses anything fails lint.
 3.  **`NativeWidget` and `DOMManagerWidget` are last-resort fallbacks.** Prefer an existing subclass (`ContainerWidget`, `IconWidget`, `ButtonWidget`, …). Each `new` or `extends` of a fallback needs `// TODO: Phase 3 "Common Widget Ancestor" - <why>` directly before the statement or class: no ticket key, and do not copy the older `AG−18361` form.
+4.  **Keep this file's `globs` current.** They attach this rule by path, so widget or DOM code outside them (say, a widget under `src/series/`) never sees it. If you add such code, extend the `globs` in the same change; reviewers, check for it.
 
 ## Review red flags
 
 -   A new `aglint/widget-boundary` exemption, especially one whose reason is a missing Widget method.
 -   `addEventListener()`/`attachListener()` on a widget's element, or a global listener not released in `destructor()`.
--   Focus moved by hand (`.focus()` on stored elements, `document.activeElement` checks) instead of `Opener`, `CollapseMode` or `PopoverWidget`.
--   A widget with no owner: never added as a child, nor destroyed by a `destructor()` or module `cleanup`. Or a child added to a second parent without `remove()`.
--   `destroy()` on a borrowed widget.
--   `role`, `aria-*` or `style` written on a raw element.
--   A new fallback without the Phase 3 TODO.
+-   Focus moved by hand (`.focus()` on stored elements, `document.activeElement` checks) instead of through the expandable that owns it.
+-   A widget with no owner, a child added to a second parent without `remove()`, or `destroy()` on a borrowed widget.
+-   `role`, `aria-*` or `style` written on a raw element, or a new fallback without the Phase 3 TODO.
+-   A nearby escape left in place that was cheap to fix, with no note saying why.
 
-## Known gaps (not patterns to copy)
+## Known gaps: low-hanging fruit
 
--   `annotationOptionsToolbar.ts` attaches a raw `pointerdown` listener: widget events have no `pointerdown`. Add the event rather than another escape.
--   `zoomToolbar.ts` writes `style.transform`, `transitionDuration` and an inline `height` "fast path" cache directly; it needs setters.
+Not patterns to copy. Each is a candidate for the small step asked for above; remove an entry when it is fixed.
+
+-   `annotationOptionsToolbar.ts` attaches a raw `pointerdown` listener because widget events have no `pointerdown`. Fix: add the event.
+-   `zoomToolbar.ts` writes `style.transform`, `transitionDuration` and an inline `height` "fast path" cache directly. Fix: setters.
 -   DOMManager hands out raw containers, so `DOMManagerWidget.addChild()` does not attach to the DOM (`axisButton.ts`). Phase 3.
+-   `MenuWidget.addSubMenu()` returns a submenu that no widget owns.
