@@ -169,7 +169,16 @@ export function readVariant(variant: Variant, generatedRoot = GENERATED_ROOT): R
         );
     }
 
-    const contents = JSON.parse(readFileSync(contentsFile, 'utf8')) as GeneratedContents;
+    let contents: GeneratedContents;
+    try {
+        contents = JSON.parse(readFileSync(contentsFile, 'utf8')) as GeneratedContents;
+    } catch (cause) {
+        // A truncated or corrupt file (a partial cache restore, say) must still name its variant.
+        throw new Error(
+            `${label}: ${path.relative(WORKSPACE_ROOT, contentsFile)} is not valid JSON: ${(cause as Error).message}`,
+            { cause }
+        );
+    }
     const files = getExportedFiles(contents);
     const missing = ENTRY_FILES[variant.framework].filter((name) => !(name in files));
     if (missing.length > 0) {

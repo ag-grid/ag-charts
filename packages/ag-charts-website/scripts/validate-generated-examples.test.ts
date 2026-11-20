@@ -315,6 +315,7 @@ describe('readVariant', () => {
             'contents.json': JSON.stringify({ files: { 'index.html': '<div></div>' } }),
         });
         write('empty', 'reactFunctionalTs', { 'contents.json': JSON.stringify({}) });
+        write('plain', 'corrupt', { 'contents.json': '{"files": {"main.ts": "export' });
         mkdirSync(variantDir('plain', 'missing'), { recursive: true });
         // `dark-mode` has no directory at all
     });
@@ -335,6 +336,12 @@ describe('readVariant', () => {
     it('fails a variant whose generation wrote an error.txt, even though contents.json exists', () => {
         expect(() => read('plain', 'vue3')).toThrow(
             new RegExp(`${fixture.id} \\[plain/vue3\\]: generation failed, see .*error\\.txt`)
+        );
+    });
+
+    it('fails a variant whose contents.json is not valid JSON, and names the example, mode and framework', () => {
+        expect(() => read('plain', 'corrupt')).toThrow(
+            new RegExp(`${fixture.id} \\[plain/corrupt\\]: .*contents\\.json is not valid JSON: `)
         );
     });
 
