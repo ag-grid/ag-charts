@@ -1436,6 +1436,9 @@ describe('Annotations', () => {
                 async edit() {
                     await typeText('Edited text');
                     expect(panelControls('select.ag-charts-dialog__select')).toHaveLength(1);
+                    expect(panelControls('.ag-charts-dialog__color-picker-button')[0].getAttribute('aria-label')).toBe(
+                        'Text Color'
+                    );
                     await pickFontSize('28');
                     await pickDialogColor(0, GREEN);
                     await openTab('Coordinates');
@@ -1481,7 +1484,11 @@ describe('Annotations', () => {
                 async edit() {
                     await typeText('Edited callout');
                     await openTab('Style');
-                    expect(panelControls('.ag-charts-dialog__color-picker-button')).toHaveLength(2);
+                    expect(
+                        Array.from(panelControls('.ag-charts-dialog__color-picker-button'), (button) =>
+                            button.getAttribute('aria-label')
+                        )
+                    ).toEqual(['Line Color', 'Fill Color']);
                     await pickDialogColor(0, GREEN);
                     await pickDialogColor(1, '#0000ff');
                     await openTab('Coordinates');

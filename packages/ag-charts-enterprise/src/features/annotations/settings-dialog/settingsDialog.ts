@@ -147,6 +147,12 @@ const COORDINATE_INPUT_TYPES = {
     offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
+const COLOR_PICKER_ALT_TEXT = {
+    'line-color': 'toolbarAnnotationsLineColor',
+    'fill-color': 'dialogInputFillColorPickerAltText',
+    'text-color': 'dialogInputColorPickerAltText',
+} as const satisfies Record<AnnotationOptionsColorPickerType, string>;
+
 type SettingsTabs = Record<string, { label: string; panel: Widget; onShow?: () => void }>;
 
 interface EventMap {
@@ -576,8 +582,7 @@ export class AnnotationSettingsDialog extends Dialog {
         onChangeHide: Required<ColorPickerOptions>['onChangeHide']
     ) {
         const label = colorType === 'fill-color' ? 'dialogInputFillColorPicker' : 'dialogInputColorPicker';
-        const altText =
-            colorType === 'fill-color' ? 'dialogInputFillColorPickerAltText' : 'dialogInputColorPickerAltText';
+        const altText = COLOR_PICKER_ALT_TEXT[colorType];
         return this.createColorPicker({
             label,
             altText,
