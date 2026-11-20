@@ -9,7 +9,13 @@ import {
     scaleLineDashName,
     toTextString,
 } from 'ag-charts-core';
-import type { AgLineDashName, AgTooltipRendererResult, PixelSize, Renderer } from 'ag-charts-types';
+import type {
+    AgLineDashName,
+    AgTooltipRendererResult,
+    AgTooltipRendererSymbolLine,
+    PixelSize,
+    Renderer,
+} from 'ag-charts-types';
 
 import type { LegendLine, LegendMarker, LegendSymbolOptions } from '../legend/legendSymbol';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
@@ -24,15 +30,7 @@ function resolveLineDash(lineDash: PixelSize[] | AgLineDashName | undefined, str
 }
 
 function buildLineWithMarkerDefaults(
-    line:
-        | {
-              enabled?: boolean;
-              stroke?: string;
-              strokeWidth?: number;
-              strokeOpacity?: number;
-              lineDash?: PixelSize[] | AgLineDashName;
-          }
-        | undefined,
+    line: AgTooltipRendererSymbolLine | undefined,
     marker: LegendMarker | undefined
 ): LegendLine | undefined {
     if (line == null) return undefined;
@@ -48,9 +46,12 @@ function buildLineWithMarkerDefaults(
 }
 
 /** The marker with a stock dash name from the renderer resolved to its array. */
-function resolveMarkerLineDash<M extends { lineDash?: unknown; strokeWidth?: number }>(marker: M | undefined) {
-    if (marker == null || !isLineDashName(marker.lineDash)) return marker;
-    return { ...marker, lineDash: scaleLineDashName(marker.lineDash, marker.strokeWidth) };
+function resolveMarkerLineDash<M extends { lineDash?: PixelSize[] | AgLineDashName; strokeWidth?: number }>(
+    marker: M | undefined
+) {
+    if (marker == null) return marker;
+    const lineDash = resolveLineDash(marker.lineDash, marker.strokeWidth);
+    return lineDash === marker.lineDash ? marker : { ...marker, lineDash };
 }
 
 /** Applies the series tooltip `renderer` (if any) over the series-built `content`. */
@@ -75,7 +76,8 @@ export function formatSeriesTooltip<P>(
             content.symbol || overrides.symbol
                 ? {
                       marker: resolveMarkerLineDash(mergedMarker),
-                      // The line takes the marker's dash before its name is resolved, to scale by the line's width.
+                      // Built from the unresolved `mergedMarker` on purpose: a name that the line inherits
+                      // scales by the line's width, not the marker's.
                       line: buildLineWithMarkerDefaults(mergedLineInput, mergedMarker),
                   }
                 : undefined;
