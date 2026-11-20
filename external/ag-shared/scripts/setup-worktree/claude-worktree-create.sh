@@ -67,9 +67,9 @@ owner_state() {
     fi
 }
 
-# Prints the working directory of each of the user's processes; fails unless every live one was read.
-process_cwds() {
-    local proc uid mine
+# Prints the working directory and open files of each of the user's processes; fails unless every live one was read.
+process_paths() {
+    local proc uid mine fd
     if [[ -d /proc/self ]]; then
         mine=$(id -u)
         for proc in /proc/[0-9]*; do
@@ -83,22 +83,26 @@ process_cwds() {
             fi
             [[ "$uid" == mine ]] || continue
             readlink "$proc/cwd" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
+            [[ -r "$proc/fd" ]] || [[ ! -e "$proc" ]] || return 1
+            for fd in "$proc"/fd/*; do
+                readlink "$fd" 2>/dev/null
+            done
         done
         return 0
     fi
     command -v lsof >/dev/null || return 1
     local listing
-    listing=$(lsof -a -d cwd -u "$(id -u)" -Fpn 2>/dev/null) || return 1
-    # Each process record (p) must be followed by its cwd name (n).
+    listing=$(lsof -n -P -w -u "$(id -u)" -Fpn 2>/dev/null) || return 1
+    # Each process record (p) must be followed by at least its cwd name (n).
     awk '/^p/ { if (open) bad = 1; open = 1; next } /^n/ { print substr($0, 2); open = 0 } END { exit bad || open }' <<<"$listing"
 }
 
-# True when a running process of the user has its working directory inside the path, or the processes cannot all be read.
+# True when a running process of the user has its working directory or an open file inside the path, or the processes cannot all be read.
 in_use() {
-    local real_path cwds
+    local real_path paths
     real_path=$(cd -P "$1" && pwd) || return 0
-    cwds=$(process_cwds) || return 0
-    awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$cwds"
+    paths=$(process_paths) || return 0
+    awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$paths"
 }
 
 # Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
@@ -129,7 +133,8 @@ keep_reason() {
     unknown) echo "unknown owner, remove it by hand if unused" && return ;;
     esac
     # Absent metadata files are skipped by find_recent; inaccessible ones fail the probe.
-    if find_recent "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
+    # The root and .git are checked here because the move aside changes their timestamps.
+    if find_recent "$candidate" "$candidate/.git" "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
     fi
 }
@@ -165,14 +170,29 @@ cleanup_stale_agent_worktrees() {
     local repo_wt_dir="${WORKTREE_ROOT}/${REPO_NAME}"
     [[ -d "$repo_wt_dir" ]] || return 0
 
-    local remove_script candidate moved original reason
+    # One cleanup at a time per repo, so each removal owns its worktree from check to delete.
+    local lock="$repo_wt_dir/.cleanup.lock" holder=''
+    if ! mkdir "$lock" 2>/dev/null; then
+        holder=$(cat "$lock/pid" 2>/dev/null) || holder=''
+        # A lock whose holder has exited is cleared for the next hook; this one skips cleanup either way.
+        if [[ "$holder" =~ ^[0-9]+$ ]] && ! ps -o pid= -p "$holder" >/dev/null 2>&1 && ps -o pid= -p $$ >/dev/null 2>&1; then
+            rm -rf "$lock"
+        fi
+        log "Skipping stale agent worktree cleanup: another hook holds $lock"
+        return 0
+    fi
+    echo $$ >"$lock/pid"
+    cleanup_locked "$repo_wt_dir" || true
+    rm -rf "$lock"
+}
+
+cleanup_locked() {
+    local repo_wt_dir=$1 remove_script candidate moved original reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
-    # Restore worktrees left aside by an interrupted removal. Ones touched in the last 10 minutes may still be
-    # mid-removal by a concurrent hook, which has a 5 minute timeout.
+    # Restore worktrees left aside by an interrupted run.
     for moved in "$repo_wt_dir"/.removing-agent-*; do
         [[ -d "$moved" ]] || continue
-        [[ -z "$(find "$moved" -maxdepth 0 \( -mmin -10 -o -cmin -10 \) 2>/dev/null)" ]] || continue
         original="$repo_wt_dir/${moved##*/.removing-}"
         [[ -e "$original" ]] || restore_worktree "$moved" "$original"
     done
