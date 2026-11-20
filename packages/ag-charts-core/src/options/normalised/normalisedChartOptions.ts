@@ -94,8 +94,6 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
         /** The default `stroke` and axis label fill while the last bar is up or down. */
         up?: string;
         down?: string;
-        /** Whether the line is all that is drawn, so annotations are neither restored nor drawn. */
-        only?: boolean;
     };
 };
 

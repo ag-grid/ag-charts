@@ -666,10 +666,7 @@ export class Annotations extends AbstractModuleInstance {
     async processData(dataController: _ModuleSupport.DataController) {
         const opts = this.opts;
         const enabled = opts.enabled ?? true;
-        // The date and volume model is for annotation measurements, which are not drawn while only the line is
-        if (!enabled || opts.lastPriceLine?.only || opts.data == null || opts.xKey == null || opts.volumeKey == null) {
-            return;
-        }
+        if (!enabled || opts.data == null || opts.xKey == null || opts.volumeKey == null) return;
 
         const props = [
             keyProperty(opts.xKey, undefined, { id: 'date' }),
@@ -782,7 +779,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation>; source: AgAnnotationsEventSource }) {
-        if (!(this.opts.enabled ?? true) || this.opts.lastPriceLine?.only) return;
+        if (!(this.opts.enabled ?? true)) return;
 
         const { annotations, source } = event;
         const canPatchInPlace =
@@ -1002,14 +999,9 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!seriesRect || !context) return;
 
-        // The state is left as restored while the module only draws the last price line, as it is while disabled.
-        if (!this.opts.lastPriceLine?.only) {
-            annotationManager?.updateData(annotationData.map(serialiseAnnotation) as AgAnnotation[]);
-        }
+        annotationManager?.updateData(annotationData.map(serialiseAnnotation) as AgAnnotation[]);
 
-        // Annotations that were drawn before the module came to draw only the line are retained, but not drawn.
-        const showChart = this.showAnnotations();
-        const showAnnotations = showChart && !this.opts.lastPriceLine?.only;
+        const showAnnotations = this.showAnnotations();
         this.toolbar.refreshButtonsEnabled(showAnnotations);
         this.toolbar.toggleClearButtonEnabled(annotationData.length > 0 && showAnnotations);
 
@@ -1027,7 +1019,7 @@ export class Annotations extends AbstractModuleInstance {
                 updateAnnotation(node, datum, context);
             });
 
-        this.updateLastPriceLine(context, showChart);
+        this.updateLastPriceLine(context, showAnnotations);
 
         for (const fn of this.postUpdateFns) {
             fn();
@@ -1035,13 +1027,13 @@ export class Annotations extends AbstractModuleInstance {
         this.postUpdateFns = [];
     }
 
-    private updateLastPriceLine(context: AnnotationContext, showChart: boolean) {
+    private updateLastPriceLine(context: AnnotationContext, showAnnotations: boolean) {
         const { lastPriceLineScene: scene, opts } = this;
         const options = opts.lastPriceLine;
         const series = options?.enabled
             ? this.ctx.chartService.series.find((s) => s.id === options.seriesId)
             : undefined;
-        const price = showChart && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
+        const price = showAnnotations && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
 
         if (options == null || price == null) {
             scene.visible = false;
@@ -1060,7 +1052,6 @@ export class Annotations extends AbstractModuleInstance {
     private createLastPriceLineDatum(
         {
             enabled: _enabled,
-            only: _only,
             seriesId: _seriesId,
             closeKey: _closeKey,
             openKey: _openKey,

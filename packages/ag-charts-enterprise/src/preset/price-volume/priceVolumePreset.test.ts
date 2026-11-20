@@ -977,7 +977,7 @@ describe('priceVolumePreset', () => {
                 },
             ],
             [
-                'without the toolbar, which also hides annotations',
+                'without the toolbar, beside the annotations',
                 {
                     lastPriceLine: true,
                     toolbar: false,
@@ -1019,20 +1019,6 @@ describe('priceVolumePreset', () => {
             await waitForChartStability(chart);
 
             expect(chart.getState().annotations ?? []).toEqual([]);
-            await compare();
-        });
-
-        it('draws only the line when the toolbar is turned off, hiding the annotations drawn before', async () => {
-            chart = AgCharts.createFinancialChart(
-                prepareFinancialTestOptions({
-                    data,
-                    lastPriceLine: true,
-                    initialState: { annotations: [{ type: 'horizontal-line', value: 130 }] },
-                })
-            );
-            await waitForChartStability(chart);
-
-            await chart.updateDelta({ toolbar: false });
             await compare();
         });
 

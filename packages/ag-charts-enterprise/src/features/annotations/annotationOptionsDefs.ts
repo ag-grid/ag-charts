@@ -328,7 +328,6 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
             openKey: string,
             up: colorOrRef,
             down: colorOrRef,
-            only: boolean,
         },
     }),
 };
