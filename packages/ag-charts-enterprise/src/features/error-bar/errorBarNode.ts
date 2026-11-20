@@ -61,7 +61,7 @@ type DistributeItemStylerRule<T> = T extends any
 type ErrorBarItemStylerParamsRules = DistributeItemStylerRule<ErrorBarItemStylerParams>;
 
 type FormatOptions = Pick<AgErrorBarOptions<any>, ErrorBarKey | 'itemStyler'>;
-type Caller = {
+export type Caller = {
     callWithContext<I, O, F extends (params: I) => O>(callback: F, params: I): O;
     callWithContext<I, O, F extends (params: I) => O | undefined>(callback: F, params: I): O | undefined;
 };

@@ -34,7 +34,7 @@ import { compareZIndex } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { getSeriesPlacedLabels } from '../../test/featureAccessors';
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { collectShapes, createEnterpriseChart, drawnLineDashes, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const SERIES_CANADA = {
     data: [
@@ -854,6 +854,37 @@ describe('ErrorBars', () => {
         await hoverAction(0, 0)(chart);
         await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
         expect(result).toStrictEqual(['unhighlighted-item']);
+    });
+
+    it('resolves a stock dash name that the itemStyler returns while highlighted', async () => {
+        chart = await createEnterpriseChart({
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'line',
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        itemStyler: (param: AgErrorBarItemStylerParams<any>) => ({
+                            strokeWidth: 2,
+                            lineDash: param.highlightState === 'highlighted-item' ? 'dash' : 'dot',
+                        }),
+                    },
+                },
+            ],
+        });
+        const drawnDashes = () => {
+            const { unresolved, drawn } = drawnLineDashes(collectShapes(getSeriesAt(chart).annotationGroup));
+            expect(unresolved).toEqual([]);
+            return drawn;
+        };
+        expect(drawnDashes()).toEqual(new Set(['2,3']));
+
+        const { x, y } = getItemCoords(4);
+        await hoverAction(x, y - 20)(chart);
+        await waitForChartStability(chart);
+        // `dot` is `[1, 1.5]` and `dash` is `[3, 2]`, in multiples of the 2px stroke.
+        expect(drawnDashes()).toEqual(new Set(['2,3', '6,4']));
+        await compare();
     });
 
     it('AG-14263 should set itemStyler seriesId', async () => {

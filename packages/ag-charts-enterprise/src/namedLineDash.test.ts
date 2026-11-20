@@ -4,7 +4,9 @@ import { AgCharts } from 'ag-charts-community';
 import type { AgChartInstance, AgGaugeOptions } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    getSeriesAt,
     getSeriesOptions,
+    glowSeries,
     optionAt,
     prepareProcessedOptions,
     resetMockConsole,
@@ -13,7 +15,8 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from './test/utils';
+import { ENTERPRISE_GLOW_SERIES } from './test/glowSeriesCases';
+import { collectShapes, createEnterpriseChart, drawnLineDashes, prepareEnterpriseTestOptions } from './test/utils';
 
 type Location = [label: string, options: object, path: string];
 
@@ -344,5 +347,100 @@ describe('named line dash patterns in enterprise options', () => {
             ],
         } as never);
         await compareImageSnapshot(chart, ctx);
+    });
+
+    // An `itemStyler` result is resolved against the options graph at the path that holds the dash defaults, so that a
+    // name in it reaches the canvas as an array rather than as a string `setLineDash` rejects.
+    describe('itemStyler results', () => {
+        /** A `dot` at the 2px width that the styler sets: `[1, 1.5]` in multiples of it. */
+        const DOT = [2, 3];
+        /** A `dash` at the 2px width: `[3, 2]` in multiples of it. */
+        const DASH = [6, 4];
+
+        type Row = readonly [label: string, options: object, expected: number[][]];
+
+        const styled = { strokeWidth: 2, lineDash: 'dot' };
+        const flow = (name: string): Row => {
+            const flowCase = ENTERPRISE_GLOW_SERIES.find((c) => c.name === name);
+            if (flowCase == null) throw new Error(`No glow series case named "${name}"`);
+            return [name, { data: flowCase.data, series: [glowSeries(flowCase, { itemStyler: () => styled })] }, [DOT]];
+        };
+        const organization = (part: 'node' | 'link' | 'expander'): Row => {
+            const styler = { itemStyler: () => styled };
+            return [
+                `organization ${part}s`,
+                {
+                    data: [
+                        { id: 'ceo', name: 'Alice', parentId: null },
+                        { id: 'cto', name: 'Bob', parentId: 'ceo' },
+                        { id: 'cfo', name: 'Carol', parentId: 'ceo' },
+                    ],
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            // Only the styled part has a dash, so the other parts must stay solid.
+                            node: { title: { key: 'name' }, ...(part === 'node' ? styler : {}) },
+                            ...(part === 'node' ? {} : { [part]: styler }),
+                        },
+                    ],
+                },
+                [DOT],
+            ];
+        };
+        const errorBar: Row = [
+            'error bar and cap',
+            {
+                data: [
+                    { x: 'a', y: 5, lower: 3, upper: 7 },
+                    { x: 'b', y: 6, lower: 4, upper: 8 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        errorBar: {
+                            yLowerKey: 'lower',
+                            yUpperKey: 'upper',
+                            // A cap of its own name, so that a cap left as a string cannot hide behind the whisker.
+                            itemStyler: () => ({ ...styled, cap: { lineDash: 'dash' } }),
+                        },
+                    },
+                ],
+            },
+            [DOT, DASH],
+        ];
+
+        it.each([
+            flow('sankey nodes'),
+            flow('sankey links'),
+            flow('chord nodes'),
+            flow('chord links'),
+            organization('node'),
+            organization('link'),
+            organization('expander'),
+            errorBar,
+        ])('resolves a stock dash name returned for %s', async (_, options, expected) => {
+            chart = await createEnterpriseChart({
+                width: 600,
+                height: 300,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...options,
+            } as never);
+            await waitForChartStability(chart);
+
+            const group = getSeriesAt(chart);
+            const { unresolved, drawn } = drawnLineDashes([
+                ...collectShapes(group.contentGroup),
+                ...collectShapes(group.annotationGroup),
+            ]);
+
+            expect(unresolved).toEqual([]);
+            expect(drawn).toEqual(new Set(expected.map((dash) => dash.join())));
+            await compareImageSnapshot(chart, ctx);
+        });
     });
 });
