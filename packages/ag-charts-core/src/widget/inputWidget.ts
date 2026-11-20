@@ -36,10 +36,12 @@ export class InputWidget extends Widget<HTMLInputElement> {
         }
     }
 
-    /** Bounds the value a number input's spinner and arrow keys reach. */
+    /** Bounds the value a number input's spinner and arrow keys reach; other input types ignore it. */
     setRange(min: number, max: number) {
-        this.elem.min = String(min);
-        this.elem.max = String(max);
+        if (this.elem.type === 'number') {
+            this.elem.min = String(min);
+            this.elem.max = String(max);
+        }
     }
 
     /** Sets the `list` attribute to the id of a datalist of suggestions, or removes it when `undefined`. */

@@ -297,7 +297,7 @@ export class Annotations extends AbstractModuleInstance {
             select: (index?: number, previous?: number) => {
                 const { annotations, optionsToolbar } = this;
 
-                // The dialog and the toolbar menus are never open together, so nothing else needs hiding.
+                // Opening a toolbar menu hides the dialog and the reverse, so a visible dialog means no menu is open.
                 const keepsDialog = index != null && index === previous && this.settingsDialog.isVisible();
                 if (!keepsDialog) {
                     this.hideOverlays();

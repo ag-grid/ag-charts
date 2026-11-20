@@ -191,6 +191,11 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(inputs()[2].getAttribute('aria-label')).toBe('Start offset: X (%)');
         expect(inputs()[2].min).toBe('-50');
         expect(inputs()[2].max).toBe('50');
+
+        const offset = inputs()[2].value;
+        commit(inputs()[2], '51');
+        expect(inputs()[2].value).toBe(offset);
+        expect(onChangeCoordinates).not.toHaveBeenCalled();
         expect(layout()).toEqual([
             [
                 { label: 'Start: X', inline: false },
