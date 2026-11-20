@@ -18,7 +18,9 @@
 //   REPORT_PATH        where to write the Markdown report (default ./l10n-review.md)
 //
 // Outputs (when GITHUB_OUTPUT is set):
-//   verdict            `clean` when the reviewer found nothing to flag, else `issues`
+//   verdict            `clean` (nothing flagged), `issues` (flagged, or no clear verdict),
+//                      `skipped` (no translated locale files changed), or `unavailable` (the
+//                      review did not run)
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -30,7 +32,8 @@ const REPORT_PATH = process.env.REPORT_PATH || 'l10n-review.md';
 // Covers sr-Latn-RS.ts and fil-PH.ts as well as the common xx-YY.ts shape.
 const LOCALE_FILE = /\/[a-z]{2,3}(-[A-Z][a-z]{3})?-[A-Z]{2}\.ts$/;
 
-const VERDICT_LINE = /^\W*verdict:\s*(clean|issues)\W*$/i;
+// The exact verdict line, optionally wrapped in bold or code formatting.
+const VERDICT_LINE = /^(\*\*|`)?VERDICT:\s*(clean|issues)\1$/i;
 
 /**
  * Split the reviewer's leading `VERDICT: clean|issues` line from the review body. A missing or
@@ -40,7 +43,11 @@ export function splitVerdict(text) {
     const lines = text.replace(/\r\n/g, '\n').trim().split('\n');
     const m = VERDICT_LINE.exec(lines[0] ?? '');
     if (!m) return { verdict: 'issues', review: text.trim() };
-    return { verdict: m[1].toLowerCase(), review: lines.slice(1).join('\n').trim() };
+    return { verdict: m[2].toLowerCase(), review: lines.slice(1).join('\n').trim() };
+}
+
+function setVerdict(verdict) {
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${verdict}\n`);
 }
 
 function git(args) {
@@ -99,12 +106,14 @@ async function callAnthropic(apiKey, system, userText) {
 async function main() {
     if (!SRC_DIR) {
         console.log('LOCALE_SRC_DIR not set — nothing to review.');
+        setVerdict('unavailable');
         return;
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
         console.log('ANTHROPIC_API_KEY not set — skipping translation review.');
+        setVerdict('unavailable');
         return;
     }
 
@@ -112,12 +121,14 @@ async function main() {
     const head = process.env.HEAD_SHA || 'HEAD';
     if (!base) {
         console.log('BASE_SHA not set — nothing to diff.');
+        setVerdict('unavailable');
         return;
     }
 
     const files = changedLocaleFiles(base, head);
     if (files.length === 0) {
         console.log('No translated locale files changed — skipping review.');
+        setVerdict('skipped');
         return;
     }
     console.log(`Reviewing ${files.length} changed locale file(s): ${files.join(', ')}`);
@@ -156,7 +167,7 @@ async function main() {
     ].join('\n');
 
     writeFileSync(REPORT_PATH, report);
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${verdict}\n`);
+    setVerdict(verdict);
     console.log(`Wrote review to ${REPORT_PATH} (verdict: ${verdict})`);
 }
 
@@ -165,6 +176,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
     main().catch((err) => {
         // Advisory job — log and exit 0 so the build is never blocked.
         console.error('Translation review failed:', err.message);
+        setVerdict('unavailable');
         process.exit(0);
     });
 }

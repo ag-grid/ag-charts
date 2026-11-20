@@ -832,9 +832,12 @@ jobs:
                       status=warn
                       [ "$VERDICT" = clean ] && status=ok
                       { echo "## [$status] Translation review"; echo; cat l10n-review.md; } > "$out"
+                  elif [ "$VERDICT" = skipped ]; then
+                      # [ok]: no translated locale files changed, so nothing to review.
+                      printf '## [ok] Translation review\n\nNo translated locale files changed.\n' > "$out"
                   else
-                      # [ok]: nothing to action.
-                      printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
+                      # [warn]: the review did not run, so nothing was checked.
+                      printf '## [warn] Translation review\n\nThe translation review did not run. See the L10n Review job log.\n' > "$out"
                   fi
 
             - name: Check the PR head is current
