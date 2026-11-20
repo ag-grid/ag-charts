@@ -1814,10 +1814,7 @@ function clippedRangeIndices(
     return [xMinIndex, xMaxIndex];
 }
 
-/**
- * A view of `selection` whose `each` visits only the nodes of the items at `indices`, so that a series updates them as it
- * would all of its nodes. OPTIMIZATION: restyling every node of a large series on each hover is what this avoids.
- */
+/** A view of `selection` whose `each` visits only the nodes of the items at `indices`. */
 function selectItemsAt<TDatum extends { datumIndex: number }, TNode extends Node<TDatum>>(
     selection: Selection<TDatum, TNode>,
     indices: Set<number>
