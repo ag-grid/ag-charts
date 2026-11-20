@@ -35,20 +35,13 @@ STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
 # Per-worktree file in its git dir naming the Claude Code process that created it.
 OWNER_FILE_NAME=claude-owner
 
-# Prints a process's start time with whitespace collapsed, so pid reuse can be told apart.
-start_time() {
-    local started
-    started=$(ps -o lstart= -p "$1" 2>/dev/null) || return 1
-    echo $started
-}
-
-# Prints the pid and start time of the Claude Code process running this hook, if found.
+# Prints the pid of the Claude Code process running this hook, if found.
 claude_owner() {
     local pid=$PPID args claude_re='(^|/)claude( |$)'
     while [[ -n "$pid" && "$pid" -gt 1 ]]; do
         args=$(ps -o args= -p "$pid" 2>/dev/null) || return 1
         if [[ "$args" =~ $claude_re || "$args" == *claude-code/cli.js* ]]; then
-            echo "$pid $(start_time "$pid")"
+            echo "$pid"
             return 0
         fi
         pid=$(ps -o ppid= -p "$pid" | tr -d ' ')
@@ -57,13 +50,14 @@ claude_owner() {
 }
 
 # Prints alive, exited or unknown for the Claude Code process recorded in the owner file.
+# Any process holding the pid counts as alive, so pid reuse keeps the worktree rather than risking it.
 owner_state() {
-    local owner_file=$1 pid='' started=''
-    [[ -f "$owner_file" ]] && { read -r pid started <"$owner_file" || [[ -n "$pid" ]]; } && [[ "$pid" =~ ^[0-9]+$ && -n "$started" ]] || {
+    local owner_file=$1 pid=''
+    [[ -f "$owner_file" ]] && { read -r pid <"$owner_file" || [[ -n "$pid" ]]; } && [[ "$pid" =~ ^[0-9]+$ ]] || {
         echo unknown
         return
     }
-    if [[ "$(start_time "$pid")" == "$started" ]]; then
+    if ps -o pid= -p "$pid" >/dev/null 2>&1; then
         echo alive
     # Only a working ps that no longer lists the process proves it exited.
     elif ps -o pid= -p $$ >/dev/null 2>&1; then
@@ -71,6 +65,20 @@ owner_state() {
     else
         echo unknown
     fi
+}
+
+# Prints the working directory of each of the user's processes; fails when they cannot be listed.
+process_cwds() {
+    local proc
+    if [[ -d /proc/self ]]; then
+        for proc in /proc/[0-9]*; do
+            [[ -O "$proc" ]] && readlink "$proc/cwd" 2>/dev/null
+        done
+        return 0
+    fi
+    command -v lsof >/dev/null || return 1
+    # lsof exits non-zero when some processes vanish mid-listing, so judge it by its output.
+    { lsof -a -d cwd -u "$(id -u)" -Fn 2>/dev/null || true; } | sed -n 's/^n//p' | grep .
 }
 
 # Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
@@ -91,8 +99,7 @@ find_recent() {
 
 # Prints why the worktree must be kept, or nothing when its owner has exited and nothing in it changed within the stale window.
 keep_reason() {
-    local candidate=$1 git_dir='' path
-    local paths=()
+    local candidate=$1 git_dir='' real_path
     if [[ ! -e "$candidate/.git" ]] || ! git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
         echo "unknown owner, remove it by hand if unused"
         return
@@ -101,10 +108,21 @@ keep_reason() {
     alive) echo "owner running" && return ;;
     unknown) echo "unknown owner, remove it by hand if unused" && return ;;
     esac
-    for path in "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD"; do
-        [[ -e "$path" ]] && paths+=("$path")
-    done
-    if ((${#paths[@]})) && { find_recent "${paths[@]}" -maxdepth 0 || (($? == 2)); }; then
+    # Covers sessions started in the worktree after its owner exited.
+    if [[ -z "$CWDS_LISTED" ]]; then
+        echo "cannot list running processes"
+        return
+    fi
+    real_path=$(cd -P "$candidate" && pwd) || {
+        echo "cannot resolve path"
+        return
+    }
+    if awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$CWDS"; then
+        echo "in use by a running process"
+        return
+    fi
+    # Absent metadata files are skipped by find_recent; inaccessible ones fail the probe.
+    if find_recent "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
         return
     fi
@@ -123,6 +141,10 @@ cleanup_stale_agent_worktrees() {
 
     local remove_script candidate reason
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
+
+    # Listed once per run; read by keep_reason.
+    CWDS='' CWDS_LISTED=''
+    CWDS=$(process_cwds) && CWDS_LISTED=1
 
     for candidate in "$repo_wt_dir"/agent-*; do
         [[ -d "$candidate" ]] || continue
