@@ -33,25 +33,32 @@ WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 # Agents run in parallel, so only worktrees idle for this long count as stale.
 STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
 
-# True when find matches a path modified within the stale window, or its scan failed other than on a vanished path.
+# Exits 0 when find matches a path modified within the stale window, 2 when its scan failed other than on a vanished path, else 1.
 find_recent() {
     local err_file found='' status=0
     err_file=$(mktemp)
     found=$(LC_ALL=C find "$@" -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -print -quit 2>"$err_file") || status=$?
-    if [[ -z "$found" && $status -ne 0 ]] && { [[ ! -s "$err_file" ]] || grep -qv 'No such file or directory$' "$err_file"; }; then
-        found=incomplete
+    if [[ -n "$found" ]]; then
+        status=0
+    elif [[ $status -ne 0 ]] && { [[ ! -s "$err_file" ]] || grep -qv 'No such file or directory$' "$err_file"; }; then
+        status=2
+    else
+        status=1
     fi
     rm -f "$err_file"
-    [[ -n "$found" ]]
+    return $status
 }
 
-# True when any of the given paths was modified within the stale window; batched to stay under ARG_MAX.
+# As find_recent, for any of the given paths; batched to stay under ARG_MAX.
 modified_recently() {
-    local i
+    local i status result=1
     for ((i = 1; i <= $#; i += 500)); do
-        find_recent "${@:i:500}" -maxdepth 0 && return 0
+        status=0
+        find_recent "${@:i:500}" -maxdepth 0 || status=$?
+        ((status == 0)) && return 0
+        ((status == 2)) && result=2
     done
-    return 1
+    return $result
 }
 
 # True when the worktree, its git metadata or any file in it was touched within the stale window.
@@ -59,7 +66,7 @@ recently_active() {
     local candidate=$1 git_dir='' status_file entry path
     local paths=("$candidate")
     if [[ ! -e "$candidate/.git" ]]; then
-        modified_recently "$candidate"
+        modified_recently "$candidate" || (($? == 2))
         return
     fi
     paths+=("$candidate/.git")
@@ -68,7 +75,7 @@ recently_active() {
             [[ -e "$path" ]] && paths+=("$path")
         done
     fi
-    modified_recently "${paths[@]}" && return 0
+    { modified_recently "${paths[@]}" || (($? == 2)); } && return 0
 
     status_file=$(mktemp)
     # GIT_OPTIONAL_LOCKS=0 stops status refreshing the index, which would make the worktree look active.
@@ -80,9 +87,10 @@ recently_active() {
         done <"$status_file"
     fi
     rm -f "$status_file"
+    # An incomplete probe here is left to the full scan below.
     ((${#paths[@]})) && modified_recently "${paths[@]}" && return 0
     # Ignored files edited in place change no timestamp checked above.
-    find_recent "$candidate"
+    find_recent "$candidate" || (($? == 2))
 }
 
 # Clean up stale agent worktrees from previous runs.
