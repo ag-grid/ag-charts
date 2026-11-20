@@ -1199,6 +1199,74 @@ describe('SunburstSeries', () => {
                 );
             expect(texts).toEqual([['image', 'Satellite\n', 'Communications'], 'Orbital']);
         });
+
+        const renderSectorLabel = async (name: string, data: unknown[], series: Partial<AgSunburstSeriesOptions>) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', ...series }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart, preloaded);
+            await waitForChartStability(chart);
+            type Named = { datum?: { datum?: { name?: string } } };
+            const named = (node: Named) => node.datum?.datum?.name === name;
+            const sector = getSeriesSelectionNodes<Sector & Named>(chart, 'datumSelection').find(named)!;
+            const group = getSeriesSelectionNodes<Group & Named>(chart, 'labelSelection').find(named)!;
+            const [text] = Selection.selectByClass(group, TransformableText).filter((node) => node.visible);
+            const across = text.rotation - (sector.startAngle + sector.endAngle) / 2;
+            const form = Math.abs(Math.sin(across)) < 1e-6 ? 'perpendicular' : 'parallel';
+            const centre = Math.hypot(text.translationX, text.translationY);
+            return { sector, text, form, centre };
+        };
+
+        it('keeps a tall label stack in a full-ring sector parallel', async () => {
+            const { form } = await renderSectorLabel(
+                'Ring',
+                [{ name: 'Ring', children: [{ name: 'Leaf', size: 1 }] }],
+                {
+                    innerRadiusRatio: 0.5,
+                    label: {
+                        formatter: ({ value }) => (value === 'Ring' ? [...'TALLSTACK'].join('\n') : String(value)),
+                        collision: { alwaysShow: true },
+                    },
+                }
+            );
+            expect(form).toBe('parallel');
+        });
+
+        it('spills an overflowing perpendicular image equally past both edges of its thin sector', async () => {
+            const { sector, text, form, centre } = await renderSectorLabel(
+                'Thin',
+                [
+                    {
+                        name: 'Root',
+                        children: [
+                            { name: 'Wide', size: 20 },
+                            { name: 'Thin', size: 1 },
+                        ],
+                    },
+                ],
+                {
+                    label: {
+                        formatter: ({ value }) =>
+                            value === 'Thin'
+                                ? [{ type: 'image', url: ICONS.Solar, width: 180, height: 12, block: true }]
+                                : String(value),
+                        collision: { alwaysShow: true },
+                    },
+                }
+            );
+            const halfWidth = text.computeBBoxWithoutTransforms()!.width / 2;
+            const overhang = {
+                inner: sector.innerRadius - (centre - halfWidth),
+                outer: centre + halfWidth - sector.outerRadius,
+            };
+            expect(form).toBe('perpendicular');
+            expect(overhang.inner).toBeGreaterThan(0);
+            expect(Math.abs(overhang.outer - overhang.inner)).toBeLessThan(1);
+        });
     });
 
     describe('bigint values (AG-16608)', () => {

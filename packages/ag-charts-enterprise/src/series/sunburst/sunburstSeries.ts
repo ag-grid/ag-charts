@@ -30,6 +30,7 @@ import {
     Selection,
     Text,
     TransformableText,
+    clamp,
     cycledValue,
     datumKeyReader,
     drawnLineHeight,
@@ -40,7 +41,6 @@ import {
     isGradientFill,
     measureLabelText,
     mergeDefaults,
-    normalizeAngle360,
     readDatumKey,
     sectorEdgeInset,
     setSectorGlowEnds,
@@ -152,6 +152,11 @@ function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) 
     return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
 }
 
+/** How far out the near side of a perpendicular label `width` across may sit, clear of the drawn straight edges. */
+function perpendicularNearSide(ring: SunburstLabelRing, width: number) {
+    return ring.wedge ? wedgeApexRadius(ring, width) : Math.max(ring.innerRadius, edgeSpanRadius(ring, width));
+}
+
 /** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
 function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
     return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
@@ -181,12 +186,13 @@ function sectorLabelRadius(
         case LabelPlacement.Perpendicular: {
             if (!wedge) {
                 const span = height + 2 * padding;
-                const minimumRadius = Math.max(innerRadius, edgeSpanRadius(ring, span)) + padding + width * 0.5;
+                const minimumRadius = perpendicularNearSide(ring, span) + padding + width * 0.5;
                 const maximumRadius =
                     Math.sqrt(Math.max(0, outerRadius ** 2 - (span * 0.5) ** 2)) - padding - width * 0.5;
-                return Math.min(Math.max((innerRadius + outerRadius) * 0.5, minimumRadius), maximumRadius);
+                if (minimumRadius > maximumRadius) return (minimumRadius + maximumRadius) * 0.5;
+                return clamp(minimumRadius, (innerRadius + outerRadius) * 0.5, maximumRadius);
             }
-            const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
+            const minimumRadius = perpendicularNearSide(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -760,21 +766,13 @@ export class SunburstSeries extends HierarchySeries<
         const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
         const nearSide = parallelNearSide(ring);
         const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
-        let perpendicularWidth: ((height: number) => number) | undefined;
-        if (wedge) {
-            perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
-        } else if (normalizeAngle360(sweep) < Math.PI / 4) {
-            // A stack taller than the inner edge is wide starts further out, where the straight edges part.
-            perpendicularWidth = (height) =>
-                chordAt(height * 0.5) - Math.max(innerRadius, edgeSpanRadius(ring, height));
-        }
-        if (perpendicularWidth == null) {
+        if (!wedge && sweep >= Math.PI / 4) {
             return [
                 this.sectorLabelCandidate(ring, LabelPlacement.Parallel, heightBoundRegion(padding, parallelWidth)),
             ];
         }
 
-        const widthAcross = perpendicularWidth;
+        const widthAcross = (height: number) => chordAt(height * 0.5) - perpendicularNearSide(ring, height);
         const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
         const parallel = heightBoundRegion(padding, (height) => (parallelWins(height) ? parallelWidth(height) : 0));
         const perpendicular = heightBoundRegion(padding, (height) => (parallelWins(height) ? 0 : widthAcross(height)));
