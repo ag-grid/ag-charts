@@ -34,10 +34,13 @@ if [[ -n "$WT_PATH" && -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -d "$WT_DIR" ]]; th
         log "Cannot lock $LOCK; not removing ${WT_PATH}"
         exit 1
     fi
-    # A worktree left aside by an interrupted cleanup is still the one asked for.
+    # A worktree left aside by an interrupted cleanup is still the one asked for, if the create hook's record in
+    # its git dir names this path. Git's record is repaired first, in case the move stopped before updating it.
     HIDDEN="$WT_DIR/.removing-$(basename "$WT_PATH")"
-    if [[ ! -e "$WT_PATH" && -e "$HIDDEN/.git" ]]; then
+    if [[ ! -e "$WT_PATH" && -e "$HIDDEN/.git" ]] && HIDDEN_GIT_DIR=$(git -C "$HIDDEN" rev-parse --absolute-git-dir 2>/dev/null) &&
+        [[ "$(cat "$HIDDEN_GIT_DIR/claude-moved-from" 2>/dev/null)" == "$(cd -P "$WT_DIR" && pwd)/$(basename "$WT_PATH")" ]]; then
         log "Removing ${WT_PATH} from where an interrupted cleanup left it: ${HIDDEN}"
+        git -C "$HIDDEN" worktree repair >/dev/null 2>&1 || true
         WT_PATH=$HIDDEN
     fi
 fi
@@ -60,18 +63,33 @@ if [[ -e "$WT_PATH/.git" ]]; then
     fi
 fi
 
+# Git commands address the worktree's own repository, whatever directory this hook runs in.
+WT_GIT_DIR='' COMMON_DIR=''
+if WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null); then
+    COMMON_DIR=$(git -C "$WT_PATH" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || COMMON_DIR=''
+fi
+repo_git() {
+    if [[ -n "$COMMON_DIR" ]]; then git --git-dir="$COMMON_DIR" "$@"; else git "$@"; fi
+}
+
 log "Removing worktree: ${WT_PATH}"
-if ! git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
+if ! repo_git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
     log "git worktree remove failed, falling back to rm + prune..."
     rm -rf "$WT_PATH"
-    git worktree prune >&2 2>/dev/null || true
+    repo_git worktree prune >&2 2>/dev/null || true
 fi
 
 # Belt-and-suspenders: verify removal.
 if [[ -d "$WT_PATH" ]]; then
     log "Directory still exists after removal, force-removing..."
     rm -rf "$WT_PATH"
-    git worktree prune >&2 2>/dev/null || true
+    repo_git worktree prune >&2 2>/dev/null || true
+fi
+
+# Git drops a worktree's admin dir with its registration.
+if [[ -n "$WT_GIT_DIR" && -d "$WT_GIT_DIR" ]]; then
+    log "git still registers the removed worktree (${WT_GIT_DIR}); run git worktree prune"
+    exit 1
 fi
 
 log "Done."

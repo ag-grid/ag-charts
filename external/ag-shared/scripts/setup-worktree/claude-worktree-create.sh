@@ -183,7 +183,25 @@ keep_reason() {
     # The root and .git are checked here because the move aside changes their timestamps.
     if find_recent "$candidate" "$candidate/.git" "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
+        return
     fi
+    # Quick exit before moving it: files git reports as changed. Without optional locks, status leaves the index
+    # alone. A failed probe proves nothing either way; the full scan after the move decides.
+    local status_file entry i
+    local changed=()
+    status_file=$(mktemp)
+    if GIT_OPTIONAL_LOCKS=0 git -C "$candidate" status --porcelain -z --no-renames --untracked-files=all >"$status_file" 2>/dev/null; then
+        while IFS= read -r -d '' entry; do
+            changed+=("$candidate/${entry:3}")
+        done <"$status_file"
+    fi
+    rm -f "$status_file"
+    for ((i = 0; i < ${#changed[@]}; i += 200)); do
+        if find_recent "${changed[@]:i:200}" -maxdepth 0; then
+            echo "recently active"
+            return
+        fi
+    done
 }
 
 # Prints a path's modification time to the precision the platform's stat offers.
@@ -258,7 +276,8 @@ move_worktree() {
 # move left git's record at the old path.
 restore_worktree() {
     git -C "$CWD" worktree repair "$1" >/dev/null 2>&1 || true
-    move_worktree "$1" "$2" || log "WARNING: could not move the worktree at $MOVED_TO back to $2; move it back by hand with git worktree move"
+    move_worktree "$1" "$2" && rm -f "$MOVED_GIT_DIR/claude-moved-from" && return
+    log "WARNING: could not move the worktree at $MOVED_TO back to $2; move it back by hand with git worktree move"
 }
 
 # Clean up stale agent worktrees from previous runs.
@@ -289,7 +308,7 @@ cleanup_stale_agent_worktrees() {
 }
 
 cleanup_locked() {
-    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime MOVED_TO=
+    local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime git_dir MOVED_TO=
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
     # One process listing for the pre-move checks, taken when the first candidate needs it; each moved worktree
@@ -327,6 +346,12 @@ cleanup_locked() {
         # Move the worktree off its path before the file walk, so no new session can start in it and the
         # walk sees every write made before removal.
         moved="$repo_wt_dir/.removing-${candidate##*/}"
+        # Lets the remover recognise this checkout if a run is interrupted while it is aside.
+        if ! git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null) ||
+            ! echo "$(cd -P "$repo_wt_dir" && pwd)/${candidate##*/}" 2>/dev/null >"$git_dir/claude-moved-from"; then
+            log "Keeping agent worktree (could not record its path before moving it aside): $candidate"
+            continue
+        fi
         if ! move_worktree "$candidate" "$moved"; then
             # Put it back from where git registers it; failing that, from the destination, but only if that
             # directory is this checkout (git renamed it but did not finish).

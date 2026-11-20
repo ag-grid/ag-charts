@@ -69,7 +69,8 @@ set_owner agent-live "$!"
 mkdir -p "$WTS/agent-nogit/x"
 echo 1 >"$WTS/agent-nogit/x/f"
 echo changed >"$WTS/agent-dirty/f"
-git -C "$CWD" worktree move "$WTS/agent-interrupted" "$WTS/.removing-agent-interrupted"
+# An interrupted move: renamed on disk, git still registering the old path.
+mv "$WTS/agent-interrupted" "$WTS/.removing-agent-interrupted"
 
 sleep 70
 
@@ -85,12 +86,17 @@ PIDS+=($!)
     cd / && exec sleep 600
 ) &
 PIDS+=($!)
-# A pre-commit hook that rejects the remover's safety commit.
-printf '#!/bin/sh\nexit 1\n' >"$CWD/.git/hooks/pre-commit"
+# A pre-commit hook that rejects the remover's safety commit and records that it ran.
+printf '#!/bin/sh\ntouch "%s/hook-ran"\nexit 1\n' "$T" >"$CWD/.git/hooks/pre-commit"
 chmod +x "$CWD/.git/hooks/pre-commit"
 sleep 1
 
+# Unrelated processes starting or exiting on a busy machine make the listing unstable, which keeps every worktree.
+# The scenarios pin the process-id check; the turnover test below exercises it.
+real_user_pids=$(declare -f user_pids)
+user_pids() { echo stable; }
 cleanup_stale_agent_worktrees
+eval "$real_user_pids"
 
 gone() { [[ ! -e "$WTS/$1" ]]; }
 kept() { [[ -e "$WTS/$1" ]]; }
@@ -104,6 +110,7 @@ expect "chmod (ctime only) keeps the worktree" kept agent-chmod
 expect "recent ignored file keeps the worktree" kept agent-ignored
 expect "process cwd inside keeps the worktree" kept agent-inuse
 expect "open file from a process elsewhere keeps the worktree" kept agent-openfile
+expect "rejected safety commit reached the remover" test -e "$T/hook-ran"
 expect "failed safety commit restores the worktree" registered agent-dirty
 expect "interrupted move is recovered and registered" registered agent-interrupted
 expect "lock is released after cleanup" bash -c "exec 9>>'$WTS/.cleanup.lock'; perl -MFcntl=:flock -e 'open(my \$fh, \">&=\", 9) or exit 1; flock(\$fh, LOCK_EX | LOCK_NB) or exit 1'"
@@ -113,18 +120,39 @@ mkdir "$WTS/.occupied"
 if move_worktree "$WTS/agent-legacy" "$WTS/.occupied"; then fail "move to an occupied destination is refused"; else pass "move to an occupied destination is refused"; fi
 expect "worktree stays put after a refused move" registered agent-legacy
 
-# The remover takes the hidden copy left by an interrupted cleanup.
-git -C "$CWD" worktree add -q "$WTS/agent-direct" -b agent-direct 2>/dev/null
-git -C "$CWD" worktree move "$WTS/agent-direct" "$WTS/.removing-agent-direct"
 rm -f "$CWD/.git/hooks/pre-commit"
-jq -n --arg path "$WTS/agent-direct" '{worktree_path: $path}' | (cd "$CWD" && bash "$REMOVE") 2>>"$LOG"
-expect "direct removal removes the hidden copy" gone .removing-agent-direct
+remove() { jq -n --arg path "$1" '{worktree_path: $path}' | (cd / && bash "$REMOVE") 2>>"$LOG"; }
+
+# The remover takes the hidden copy an interrupted cleanup left, after an incomplete move, when its record matches.
+git -C "$CWD" worktree add -q "$WTS/agent-direct" -b agent-direct 2>/dev/null
+DIRECT_GIT_DIR=$(git -C "$WTS/agent-direct" rev-parse --absolute-git-dir)
+echo "$(cd -P "$WTS" && pwd)/agent-direct" >"$DIRECT_GIT_DIR/claude-moved-from"
+mv "$WTS/agent-direct" "$WTS/.removing-agent-direct"
+remove "$WTS/agent-direct"
+expect "direct removal removes the matching hidden copy" gone .removing-agent-direct
+expect "direct removal clears git's registration" test ! -d "$DIRECT_GIT_DIR"
+
+# An unrelated checkout at the hidden name is left alone.
+git clone -q "$CWD" "$WTS/.removing-agent-other"
+remove "$WTS/agent-other"
+expect "unrelated checkout at the hidden name is kept" kept .removing-agent-other
 
 # The remover refuses a worktree whose git status cannot be read.
 git -C "$CWD" worktree add -q "$WTS/agent-badindex" -b agent-badindex 2>/dev/null
 echo garbage >"$(git -C "$WTS/agent-badindex" rev-parse --absolute-git-dir)/index"
-jq -n --arg path "$WTS/agent-badindex" '{worktree_path: $path}' | (cd "$CWD" && bash "$REMOVE") 2>>"$LOG"
+if remove "$WTS/agent-badindex"; then fail "unreadable git status fails the remover"; else pass "unreadable git status fails the remover"; fi
+expect "the failure is the status check" grep -q "Cannot read git status of $WTS/agent-badindex" "$LOG"
 expect "unreadable git status blocks removal" kept agent-badindex
+
+# A process started or exited during the listing makes it incomplete. Run from a separate process tree, since the
+# hook's own descendants are left out of the check.
+(while :; do /bin/sleep 0.05; done) </dev/null >/dev/null 2>&1 &
+PIDS+=($!)
+if bash -c "$(declare -f process_paths user_pids stable_process_paths); stable_process_paths >/dev/null"; then
+    fail "process turnover makes the listing incomplete"
+else
+    pass "process turnover makes the listing incomplete"
+fi
 
 if ((FAILED)); then
     echo "--- log"
