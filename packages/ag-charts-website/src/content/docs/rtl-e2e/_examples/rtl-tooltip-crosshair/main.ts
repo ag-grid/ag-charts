@@ -13,6 +13,7 @@ ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, CrosshairMo
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     enableRtl: true,
+    tooltip: { mode: 'shared' },
     title: {
         text: 'רווח והפסד',
     },
