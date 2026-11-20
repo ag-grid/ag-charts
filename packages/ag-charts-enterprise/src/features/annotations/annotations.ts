@@ -1,11 +1,4 @@
-import {
-    type AgAnnotation,
-    type AgAnnotationFollow,
-    type AgAnnotationFollowName,
-    type AgAnnotationsEventSource,
-    type Direction,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgAnnotation, type AgAnnotationsEventSource, type Direction, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     BBox,
@@ -58,7 +51,8 @@ import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { CalloutScene } from './callout/calloutScene';
 import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDatum';
-import { findFollowedSeries, isFollowing, normaliseFollow, readFollowedValue } from './cross-line/followValue';
+import { CrossLineScene } from './cross-line/crossLineScene';
+import { type LastPrice, readLastPrice } from './cross-line/lastPriceLine';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
@@ -135,6 +129,12 @@ export class Annotations extends AbstractModuleInstance {
     // Elements
     private seriesRect?: BBox;
     private readonly container = new Group({ name: 'static-annotations' });
+    /**
+     * The line the price preset's `lastPriceLine` draws. It is kept out of `annotationData`, so it is not part of the
+     * annotation state or its history, cannot be selected or cleared, and is not replaced by `setState`.
+     */
+    private readonly lastPriceLineContainer = new Group({ name: 'last-price-line' });
+    private readonly lastPriceLineScene = new CrossLineScene();
     private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)
@@ -499,10 +499,6 @@ export class Annotations extends AbstractModuleInstance {
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
                         if (!hasLineText(datum)) return;
-                        if (props.follow != null) {
-                            this.setFollow(datum, props.follow);
-                            return;
-                        }
                         this.state.transition('lineProps', props);
                         if (props.bands != null)
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'bands', props.bands);
@@ -667,11 +663,17 @@ export class Annotations extends AbstractModuleInstance {
     private setupDOM() {
         const { ctx, toolbar, optionsToolbar } = this;
 
-        this.cleanup.register(ctx.annotationManager!.attachNode(this.container), () => {
-            ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
-            toolbar.destroy();
-            optionsToolbar.destroy();
-        });
+        this.cleanup.register(
+            // Attached first, so that annotations are drawn over the line
+            ctx.annotationManager!.attachNode(this.lastPriceLineContainer),
+            ctx.annotationManager!.attachNode(this.container),
+            () => {
+                this.lastPriceLineScene.destroy();
+                ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+                toolbar.destroy();
+                optionsToolbar.destroy();
+            }
+        );
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -728,32 +730,6 @@ export class Annotations extends AbstractModuleInstance {
             this.defaults.applyDefaults(datum);
         }
 
-        this.update();
-    }
-
-    private readonly getFollowedValue = (follow: AgAnnotationFollow) => {
-        const normalised = normaliseFollow(follow);
-        if (normalised == null || this.yAxis == null) return;
-
-        const series = findFollowedSeries(normalised, this.ctx.chartService.series, this.yAxis.context.seriesIds());
-        return series && readFollowedValue(series, normalised.follow);
-    };
-
-    /** Make a horizontal line follow `follow`, or stop it following with `'none'`, leaving it where it was last drawn. */
-    private setFollow(datum: AnnotationDatum, follow: AgAnnotationFollowName | 'none') {
-        if (!horizontalLineDatum.is(datum)) return;
-
-        const current = datum.follow;
-        if (follow === 'none') {
-            if (current == null) return;
-            datum.value = this.getFollowedValue(current) ?? datum.value;
-            datum.follow = undefined;
-        } else {
-            const seriesId = normaliseFollow(current)?.seriesId;
-            datum.follow = seriesId == null ? follow : { follow, seriesId };
-        }
-
-        this.recordActionAfterNextUpdate(`Change ${datum.type} follow to ${follow}`);
         this.update();
     }
 
@@ -866,6 +842,7 @@ export class Annotations extends AbstractModuleInstance {
 
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
+        this.lastPriceLineContainer.setClipRect(seriesRect);
 
         this.xAxis = this.getAxis(event.axes[ChartAxisDirection.X], seriesRect, this.xAxis?.button);
         this.yAxis = this.getAxis(event.axes[ChartAxisDirection.Y], seriesRect, this.yAxis?.button);
@@ -894,7 +871,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
-        const { annotations } = this;
+        const { annotations, lastPriceLineScene } = this;
         this.ctx.animationManager?.animate({
             from,
             to,
@@ -907,6 +884,8 @@ export class Annotations extends AbstractModuleInstance {
                     node.opacity = value;
                     node.setAxisLabelOpacity(value);
                 });
+                lastPriceLineScene.opacity = value;
+                lastPriceLineScene.setAxisLabelOpacity(value);
             },
             onStop() {
                 annotations.each((sceneNode) => {
@@ -914,6 +893,8 @@ export class Annotations extends AbstractModuleInstance {
                     node.opacity = to;
                     node.setAxisLabelOpacity(to);
                 });
+                lastPriceLineScene.opacity = to;
+                lastPriceLineScene.setAxisLabelOpacity(to);
             },
         });
     }
@@ -1051,10 +1032,62 @@ export class Annotations extends AbstractModuleInstance {
                 updateAnnotation(node, datum, context);
             });
 
+        this.updateLastPriceLine(context, showAnnotations);
+
         for (const fn of this.postUpdateFns) {
             fn();
         }
         this.postUpdateFns = [];
+    }
+
+    private updateLastPriceLine(context: AnnotationContext, showAnnotations: boolean) {
+        const { lastPriceLineScene: scene, opts } = this;
+        const options = opts.lastPriceLine;
+        const series = options?.enabled
+            ? this.ctx.chartService.series.find((s) => s.id === options.seriesId)
+            : undefined;
+        const price = showAnnotations && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
+
+        if (options == null || price == null) {
+            scene.visible = false;
+            scene.setAxisLabelVisible(false);
+            return;
+        }
+
+        // Attached when first drawn, so that a chart without a last price line has no node for it in the scene graph.
+        if (scene.parentNode == null) this.lastPriceLineContainer.append(scene);
+
+        // The scene hides the axis label itself while the line is out of range.
+        scene.setAxisLabelVisible(true);
+        scene.update(this.createLastPriceLineDatum(options, price), context);
+    }
+
+    private createLastPriceLineDatum(
+        {
+            enabled: _enabled,
+            seriesId: _seriesId,
+            closeKey: _closeKey,
+            openKey: _openKey,
+            up,
+            down,
+            ...styles
+        }: NonNullable<NormalisedAnnotationsOptions['lastPriceLine']>,
+        { value, up: isUp }: LastPrice
+    ) {
+        const datum = horizontalLineDatum.create();
+        const themeStyles = this.ctx.annotationManager?.getAnnotationTypeStyles(AnnotationType.HorizontalLine);
+        if (themeStyles) applyAnnotationOptions(datum, themeStyles);
+        applyAnnotationOptions(datum, styles);
+
+        // The colour of the last bar's direction is the default of the line and its axis label, unless they are set.
+        const colour = isUp ? up : down;
+        if (colour != null) {
+            applyAnnotationOptions(datum, {
+                stroke: styles.stroke ?? colour,
+                axisLabel: { fill: styles.axisLabel?.fill ?? colour },
+            });
+        }
+        return Object.assign(datum, { value, locked: true, readOnly: true });
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
@@ -1068,7 +1101,6 @@ export class Annotations extends AbstractModuleInstance {
             seriesRect,
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
-            getFollowedValue: this.getFollowedValue,
             magnet: this.magnetOffset,
             xAxis: {
                 ...xAxis.context,
@@ -1406,8 +1438,6 @@ export class Annotations extends AbstractModuleInstance {
         const isHorizontal = horizontalLineDatum.is(datum);
         if (!isHorizontal && !verticalLineDatum.is(datum)) return;
         if (!datum.axisLabel.enabled) return;
-        // A followed line is not dragged, so there is no dragged value for its label to report
-        if (isFollowing(datum)) return;
 
         const axis = isHorizontal ? this.yAxis : this.xAxis;
         if (!axis) return;

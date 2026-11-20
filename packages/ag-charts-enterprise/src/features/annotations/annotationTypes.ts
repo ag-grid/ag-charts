@@ -1,6 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { BBox, Logger, Point } from 'ag-charts-core';
-import type { AgAnnotationFollow, AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
 
@@ -119,7 +119,6 @@ export interface AnnotationContext {
     yAxis: AnnotationAxisContext;
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
-    getFollowedValue(follow: AgAnnotationFollow): PointType | undefined;
     /**
      * Snaps an offset in the series area to the nearest value of a datum, at its position, when the magnet is on. Creation
      * applies it to the point it places, and each scene to the point that a handle drag ends on, through
