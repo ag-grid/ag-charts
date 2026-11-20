@@ -33,31 +33,46 @@ WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 # Agents run in parallel, so only worktrees idle for this long count as stale.
 STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
 
+# True when any of the given paths was modified within the stale window; batched to stay under ARG_MAX.
+modified_recently() {
+    local i
+    for ((i = 1; i <= $#; i += 500)); do
+        [[ -n $(find "${@:i:500}" -maxdepth 0 -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" 2>/dev/null) ]] && return 0
+    done
+    return 1
+}
+
 # True when the worktree, its git metadata or a file it changed was touched within the stale window.
-# Also true when that cannot be determined, so a worktree is never removed on a failed probe.
+# When git cannot list the changed files, every file in the worktree is checked instead.
 recently_active() {
-    local candidate=$1 git_dir status_file entry path recent
+    local candidate=$1 git_dir='' status_file entry path
     local paths=("$candidate")
-    if [[ -e "$candidate/.git" ]]; then
-        git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null) || return 0
-        paths+=("$candidate/.git")
+    if [[ ! -e "$candidate/.git" ]]; then
+        modified_recently "$candidate"
+        return
+    fi
+    paths+=("$candidate/.git")
+    if git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
         for path in "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD"; do
             [[ -e "$path" ]] && paths+=("$path")
         done
-        status_file=$(mktemp)
-        # GIT_OPTIONAL_LOCKS=0 stops status refreshing the index, which would make the worktree look active.
-        if ! GIT_OPTIONAL_LOCKS=0 git -C "$candidate" status --porcelain -z --no-renames >"$status_file" 2>/dev/null; then
-            rm -f "$status_file"
-            return 0
-        fi
-        while IFS= read -r -d '' entry; do
-            path="$candidate/${entry:3}"
-            [[ -e "$path" ]] && paths+=("$path")
-        done <"$status_file"
-        rm -f "$status_file"
     fi
-    recent=$(find "${paths[@]}" -maxdepth 0 -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" 2>/dev/null) || return 0
-    [[ -n "$recent" ]]
+    modified_recently "${paths[@]}" && return 0
+
+    status_file=$(mktemp)
+    # GIT_OPTIONAL_LOCKS=0 stops status refreshing the index, which would make the worktree look active.
+    if [[ -z "$git_dir" ]] || ! GIT_OPTIONAL_LOCKS=0 git -C "$candidate" status --porcelain -z --no-renames --untracked-files=all >"$status_file" 2>/dev/null; then
+        rm -f "$status_file"
+        [[ -n $(find "$candidate" -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -print -quit 2>/dev/null) ]]
+        return
+    fi
+    paths=()
+    while IFS= read -r -d '' entry; do
+        path="$candidate/${entry:3}"
+        [[ -e "$path" ]] && paths+=("$path")
+    done <"$status_file"
+    rm -f "$status_file"
+    ((${#paths[@]})) && modified_recently "${paths[@]}"
 }
 
 # Clean up stale agent worktrees from previous runs.
