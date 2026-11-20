@@ -949,6 +949,96 @@ describe('priceVolumePreset', () => {
         });
     });
 
+    describe('lastPriceLine', () => {
+        const rows = getStockData();
+        const data = rows.slice(0, 40);
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['true', { lastPriceLine: true }],
+            ['an up bar', { lastPriceLine: true, data: rows.slice(0, 42) }],
+            // Down by its open, which is not given here, but up from the previous close
+            [
+                'a bar with no open',
+                {
+                    lastPriceLine: true,
+                    chartType: 'line',
+                    data: rows.slice(0, 36).map(({ open: _open, ...row }) => row),
+                },
+            ],
+            [
+                'styled',
+                {
+                    lastPriceLine: {
+                        stroke: 'orange',
+                        strokeWidth: 3,
+                        lineDash: 'dash',
+                        axisLabel: { fill: 'purple' },
+                    },
+                },
+            ],
+            [
+                'without the toolbar, beside the annotations',
+                {
+                    lastPriceLine: true,
+                    toolbar: false,
+                    initialState: { annotations: [{ type: 'horizontal-line', value: 130 }] },
+                },
+            ],
+            ['at the close of a line chart', { lastPriceLine: true, chartType: 'line' }],
+            ['at the close of a high-low chart', { lastPriceLine: true, chartType: 'high-low' }],
+            [
+                'hidden when the close is out of the visible range',
+                { lastPriceLine: true, initialState: { zoom: { ratioX: { start: 0, end: 0.3 } } } },
+            ],
+        ])('draws a line at the last close when %s', async (_name, options) => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, ...options }));
+            await compare();
+        });
+
+        it('moves the line when the data is updated', async () => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, lastPriceLine: true }));
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ data: rows.slice(0, 41) });
+            await compare();
+        });
+
+        it('is not cleared with the annotations by Clear All, and is not part of their state', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data,
+                    lastPriceLine: true,
+                    initialState: { annotations: [{ type: 'horizontal-line', value: 130 }] },
+                })
+            );
+            await waitForChartStability(chart);
+            // Only the annotation drawn, not the line
+            expect(chart.getState().annotations).toHaveLength(1);
+
+            deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[title="Clear All"]')!.click();
+            await waitForChartStability(chart);
+
+            expect(chart.getState().annotations ?? []).toEqual([]);
+            await compare();
+        });
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['is not set', {}],
+            ['is false', { lastPriceLine: false }],
+            ['is disabled', { lastPriceLine: { enabled: false } }],
+        ])('is not enabled when it %s', (_name, options) => {
+            const { annotations } = priceVolume(
+                { data, ...options },
+                undefined,
+                () => ({}) as ChartTheme,
+                undefined,
+                testLogger
+            ) as { annotations?: { lastPriceLine?: unknown } };
+
+            expect(annotations?.lastPriceLine).toBeUndefined();
+        });
+    });
+
     describe('toolbar button theme override (AG-17364)', () => {
         const userButtons: AgAnnotationsToolbarButton[] = [
             { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },

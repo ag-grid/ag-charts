@@ -10,6 +10,7 @@ import type {
     AgChartSyncOptions,
     AgHlcSeriesOptions,
     AgInsetNumberAxisOptions,
+    AgLastPriceLineOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -95,6 +96,7 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
+        lastPriceLine = false,
         volumeProfile: volumeProfileOptions,
         tickSize,
         rangeButtons = true,
@@ -138,7 +140,7 @@ export function priceVolume(
         highlight: { mode: 'single' },
         data,
         formatter,
-        ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
+        ...createAnnotationsOptions(toolbar, lastPriceLine, keys, themeOverrides, data, shownVolumeKey),
         ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
         ...createRangesOptions(rangeButtons, zoom),
         ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels, volumeProfile),
@@ -343,18 +345,32 @@ function createVolumeAxis(volume: boolean): Record<string, AgInsetNumberAxisOpti
     };
 }
 
+function createLastPriceLineOptions(
+    lastPriceLine: boolean | AgLastPriceLineOptions,
+    { openKey, closeKey }: PriceSeriesKeys
+) {
+    const styles = lastPriceLine === true ? {} : lastPriceLine;
+    if (styles === false || styles.enabled === false) return;
+
+    return { ...styles, enabled: true, seriesId: PRICE_SERIES_ID, closeKey, openKey };
+}
+
 function createAnnotationsOptions(
     toolbar: boolean,
+    lastPriceLine: boolean | AgLastPriceLineOptions,
+    keys: PriceSeriesKeys,
     themeOverrides: AgThemeOverrides | undefined,
     data: DatumDefault[] | undefined,
-    xKey: string,
     volumeKey: string | undefined
 ) {
     const buttons = themeOverrides?.common?.annotations?.toolbar?.buttons ?? toolbarButtons;
+    const lastPriceLineOptions = createLastPriceLineOptions(lastPriceLine, keys);
 
     return {
         annotations: {
-            enabled: toolbar,
+            // The last price line is drawn by the annotations module, which then runs without the toolbar
+            enabled: toolbar || lastPriceLineOptions != null,
+            ...(toolbar ? {} : { axesButtons: { enabled: false } }),
             optionsToolbar: {
                 enabled: toolbar,
             },
@@ -366,8 +382,9 @@ function createAnnotationsOptions(
                 padding: 0,
             },
             data,
-            xKey,
+            xKey: keys.xKey,
             volumeKey,
+            lastPriceLine: lastPriceLineOptions,
         } satisfies AgAnnotationsOptions,
     };
 }
