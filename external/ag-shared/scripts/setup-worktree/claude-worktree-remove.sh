@@ -13,11 +13,18 @@ WT_PATH=$(echo "$INPUT" | jq -r '.worktree_path')
 
 log() { echo "[claude-wt-rm] $*" >&2; }
 
-# The create hook's cleanup may have this worktree moved aside to .removing-<name> while it holds this lock, so wait
-# for it before judging the path; the worktree is then either back in place or gone.
-LOCK="$(dirname "$WT_PATH")/.cleanup.lock"
-if [[ -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -e "$LOCK" ]]; then
-    exec 9>>"$LOCK"
+# Git runs hooks and helpers that could outlive this script; they must not inherit the lock descriptor.
+git() { command git "$@" 9>&-; }
+
+# The create hook's cleanup may have this worktree moved aside to .removing-<name> while it holds this lock. Take the
+# lock before judging the path, so the worktree is either back in place, gone, or left aside by an interrupted run.
+WT_DIR=$(dirname "$WT_PATH")
+if [[ -n "$WT_PATH" && -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -d "$WT_DIR" ]]; then
+    LOCK="$WT_DIR/.cleanup.lock"
+    if ! exec 9>>"$LOCK"; then
+        log "Cannot open $LOCK; not removing ${WT_PATH}"
+        exit 1
+    fi
     if command -v flock >/dev/null; then
         flock -w 120 9 || { log "Timed out waiting for $LOCK; not removing ${WT_PATH}"; exit 1; }
     elif command -v perl >/dev/null; then
@@ -26,6 +33,12 @@ if [[ -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -e "$LOCK" ]]; then
     else
         log "Cannot lock $LOCK; not removing ${WT_PATH}"
         exit 1
+    fi
+    # A worktree left aside by an interrupted cleanup is still the one asked for.
+    HIDDEN="$WT_DIR/.removing-$(basename "$WT_PATH")"
+    if [[ ! -e "$WT_PATH" && -e "$HIDDEN/.git" ]]; then
+        log "Removing ${WT_PATH} from where an interrupted cleanup left it: ${HIDDEN}"
+        WT_PATH=$HIDDEN
     fi
 fi
 

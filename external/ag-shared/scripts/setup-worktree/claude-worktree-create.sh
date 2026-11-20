@@ -236,12 +236,14 @@ same_path() {
 }
 
 # Moves a worktree with git to a vacant path (git would nest it inside an existing directory). Sets MOVED_TO to
-# where git has the worktree registered afterwards, and fails unless that is the destination.
+# where git has the worktree registered afterwards and MOVED_GIT_DIR to its git dir, and fails unless that is the
+# destination.
 move_worktree() {
     local from=$1 to=$2 git_dir
-    MOVED_TO=$from
+    MOVED_TO=$from MOVED_GIT_DIR=''
     [[ ! -e "$to" && ! -L "$to" ]] || return 1
     git_dir=$(git -C "$from" rev-parse --absolute-git-dir 2>/dev/null) || return 1
+    MOVED_GIT_DIR=$git_dir
     git -C "$CWD" worktree move "$from" "$to" >/dev/null 2>&1 || true
     # The git dir's gitdir file names the worktree's .git file at its registered location, relative to the git
     # dir when worktree.useRelativePaths is set.
@@ -326,11 +328,13 @@ cleanup_locked() {
         # walk sees every write made before removal.
         moved="$repo_wt_dir/.removing-${candidate##*/}"
         if ! move_worktree "$candidate" "$moved"; then
-            # Put it back from wherever it is on disk: the destination if git renamed it but did not finish.
-            if [[ -d "$moved" && ! -e "$candidate" ]]; then
-                restore_worktree "$moved" "$candidate"
-            elif [[ -n "$MOVED_TO" && "$MOVED_TO" != . ]] && ! same_path "$MOVED_TO" "$candidate"; then
+            # Put it back from where git registers it; failing that, from the destination, but only if that
+            # directory is this checkout (git renamed it but did not finish).
+            if [[ -n "$MOVED_TO" && "$MOVED_TO" != . && -e "$MOVED_TO/.git" ]] && ! same_path "$MOVED_TO" "$candidate"; then
                 restore_worktree "$MOVED_TO" "$candidate"
+            elif [[ ! -e "$candidate" && -n "$MOVED_GIT_DIR" ]] &&
+                [[ "$(git -C "$moved" rev-parse --absolute-git-dir 2>/dev/null)" == "$MOVED_GIT_DIR" ]]; then
+                restore_worktree "$moved" "$candidate"
             fi
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
             continue
