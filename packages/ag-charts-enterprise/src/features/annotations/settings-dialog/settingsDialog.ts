@@ -25,7 +25,6 @@ import type {
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
 import { normaliseFollow } from '../cross-line/followValue';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
-import { noteDatum } from '../note/noteDatum';
 import {
     type CoordinateChangeProps,
     type CoordinateField,
@@ -245,23 +244,20 @@ export class AnnotationSettingsDialog extends Dialog {
         });
         panel.addChild(textArea);
 
-        // The options toolbar offers a note no font size or text colour.
-        if (!noteDatum.is(datum)) {
-            const inputGroupLine = this.createInputGroupLine();
-            inputGroupLine.addChild(this.createFontSizeSelect(datum.fontSize, options.onChangeTextFontSize));
-            inputGroupLine.addChild(
-                this.createColorPickerInput(
-                    'text-color',
-                    getDefaultColor(datum, 'text-color'),
-                    1,
-                    false,
-                    false,
-                    options.onChangeTextColor,
-                    options.onChangeHideTextColor
-                )
-            );
-            panel.addChild(inputGroupLine);
-        }
+        const inputGroupLine = this.createInputGroupLine();
+        inputGroupLine.addChild(this.createFontSizeSelect(datum.fontSize, options.onChangeTextFontSize));
+        inputGroupLine.addChild(
+            this.createColorPickerInput(
+                'text-color',
+                getDefaultColor(datum, 'text-color'),
+                1,
+                false,
+                false,
+                options.onChangeTextColor,
+                options.onChangeHideTextColor
+            )
+        );
+        panel.addChild(inputGroupLine);
 
         return { panel, onShow: () => textArea.focusCursorAtEnd() };
     }

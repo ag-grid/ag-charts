@@ -67,10 +67,7 @@ export type HasLineTextAnnotationType = Exclude<
     EphemeralAnnotationType
 >;
 export type HasFontSizeAnnotationType = Exclude<
-    | Exclude<TextualAnnotationType, AnnotationType.Note>
-    | LineAnnotationType
-    | ChannelAnnotationType
-    | MeasurerAnnotationType,
+    TextualAnnotationType | LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType,
     EphemeralAnnotationType
 >;
 

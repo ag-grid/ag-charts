@@ -64,7 +64,7 @@ import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
-import { hasFontSize, hasLineText, hasSettings } from './utils/has';
+import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
@@ -549,7 +549,7 @@ export class Annotations extends AbstractModuleInstance {
                     onChangeTextColor: onChangeColor('text-color'),
                     onChangeHideTextColor: onChangeHideColor('text-color'),
                     onChangeTextFontSize: (fontSize) => {
-                        if (!hasFontSize(datum) && !hasLineText(datum)) return;
+                        if (!isTextType(datum) && !hasLineText(datum)) return;
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
                 };
