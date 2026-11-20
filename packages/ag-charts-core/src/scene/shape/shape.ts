@@ -1088,7 +1088,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 this.dilateSilhouetteExtras(ctx, spread * 2);
             }
             // The glow's outer edge and its cut follow the spike that the item's own stroke paints, so the ring is round at its tip.
-            if (gapped && !painted) this.dilateMitreSpike(ctx, spread);
+            // A dilation of the fill alone is measured from the path, a half-stroke inside the outline that the spike has.
+            if (gapped && !painted) this.dilateMitreSpike(ctx, drawsStroke ? spread : spread - this.__strokeWidth / 2);
         } finally {
             if (clipped) ctx.restore();
         }
