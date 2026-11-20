@@ -250,7 +250,7 @@ export class AnnotationSettingsDialog extends Dialog {
             this.createColorPickerInput(
                 'text-color',
                 getDefaultColor(datum, 'text-color'),
-                1,
+                getDefaultOpacity(datum, 'text-color'),
                 false,
                 false,
                 options.onChangeTextColor,

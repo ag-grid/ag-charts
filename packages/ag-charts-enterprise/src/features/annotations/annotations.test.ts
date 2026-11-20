@@ -1554,6 +1554,22 @@ describe('Annotations', () => {
             expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
         });
 
+        it('opens the text colour picker at the transparency of the annotation', async () => {
+            const [text] = families;
+            await prepareChart({
+                annotations: [{ ...text.annotation, color: 'rgba(0, 170, 0, 0.4)' } as AgAnnotation],
+            });
+            await clickAt(pointOn(...text.at));
+            await press('button[title="Settings"]');
+            panelControls('.ag-charts-dialog__color-picker-button')[0].click();
+            await waitForChartStability(chart);
+
+            const alpha = chartBody().querySelector<HTMLInputElement>(
+                '.ag-charts-color-picker input[aria-label="Transparency"]'
+            );
+            expect(alpha?.value).toBe('0.4');
+        });
+
         it('opens from the keyboard, moves between the tabs with the arrow keys and returns focus on Escape', async () => {
             await prepareChart({ annotations: [families[1].annotation] });
             await clickAt(pointOn(...families[1].at));
