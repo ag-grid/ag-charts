@@ -1236,37 +1236,40 @@ describe('SunburstSeries', () => {
             expect(form).toBe('parallel');
         });
 
-        it('spills an overflowing perpendicular image equally past both edges of its thin sector', async () => {
-            const { sector, text, form, centre } = await renderSectorLabel(
-                'Thin',
-                [
+        it.each([12, 48])(
+            'spills an overflowing perpendicular image %ipx tall equally past both arcs of its thin sector',
+            async (height) => {
+                const { sector, text, form, centre } = await renderSectorLabel(
+                    'Thin',
+                    [
+                        {
+                            name: 'Root',
+                            children: [
+                                { name: 'Wide', size: 20 },
+                                { name: 'Thin', size: 1 },
+                            ],
+                        },
+                    ],
                     {
-                        name: 'Root',
-                        children: [
-                            { name: 'Wide', size: 20 },
-                            { name: 'Thin', size: 1 },
-                        ],
-                    },
-                ],
-                {
-                    label: {
-                        formatter: ({ value }) =>
-                            value === 'Thin'
-                                ? [{ type: 'image', url: ICONS.Solar, width: 180, height: 12, block: true }]
-                                : String(value),
-                        collision: { alwaysShow: true },
-                    },
-                }
-            );
-            const halfWidth = text.computeBBoxWithoutTransforms()!.width / 2;
-            const overhang = {
-                inner: sector.innerRadius - (centre - halfWidth),
-                outer: centre + halfWidth - sector.outerRadius,
-            };
-            expect(form).toBe('perpendicular');
-            expect(overhang.inner).toBeGreaterThan(0);
-            expect(Math.abs(overhang.outer - overhang.inner)).toBeLessThan(1);
-        });
+                        label: {
+                            formatter: ({ value }) =>
+                                value === 'Thin'
+                                    ? [{ type: 'image', url: ICONS.Solar, width: 180, height, block: true }]
+                                    : String(value),
+                            collision: { alwaysShow: true },
+                        },
+                    }
+                );
+                const halfWidth = text.computeBBoxWithoutTransforms()!.width / 2;
+                const overhang = {
+                    inner: sector.innerRadius + sector.innerEdgeInset - (centre - halfWidth),
+                    outer: centre + halfWidth - (sector.outerRadius - sector.outerEdgeInset),
+                };
+                expect(form).toBe('perpendicular');
+                expect(overhang.inner).toBeGreaterThan(0);
+                expect(overhang.outer).toBeCloseTo(overhang.inner);
+            }
+        );
     });
 
     describe('bigint values (AG-16608)', () => {

@@ -189,8 +189,8 @@ function sectorLabelRadius(
                 const minimumRadius = perpendicularNearSide(ring, span) + padding + width * 0.5;
                 const maximumRadius =
                     Math.sqrt(Math.max(0, outerRadius ** 2 - (span * 0.5) ** 2)) - padding - width * 0.5;
-                if (minimumRadius > maximumRadius) return (minimumRadius + maximumRadius) * 0.5;
-                return clamp(minimumRadius, (innerRadius + outerRadius) * 0.5, maximumRadius);
+                const middle = (innerRadius + outerRadius) * 0.5;
+                return minimumRadius > maximumRadius ? middle : clamp(minimumRadius, middle, maximumRadius);
             }
             const minimumRadius = perpendicularNearSide(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
