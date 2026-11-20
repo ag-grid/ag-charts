@@ -244,8 +244,11 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    // Its glow is cast by the root above the overlay, so that it draws over the glows of the nodes that are not highlight copies.
     private readonly highlightSectorGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer' })
+    );
+    /** Casts the glow of the highlight copy above every fill, in depth order: its sectors paint nothing. */
+    private readonly highlightGlowGroup = this.scalingGroup.appendChild(
         new Group<SunburstNode>({ batchShadows: 'by-layer', castsHoveredGlows: true })
     );
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
@@ -259,6 +262,7 @@ export class SunburstSeries extends HierarchySeries<
     readonly datumSelection = Selection.select<Sector<SunburstNode>>(this.sectorGroup, Sector<SunburstNode>);
     private readonly labelSelection = Selection.select<Group<SunburstNode>>(this.sectorLabelGroup, Group);
     private readonly highlightSelection = Selection.select<Sector<SunburstNode>>(this.highlightSectorGroup, Sector);
+    private readonly highlightGlowSelection = Selection.select<Sector<SunburstNode>>(this.highlightGlowGroup, Sector);
     private readonly innerCircleSelection = Selection.select<Sector<{ radius: number }>>(
         this.innerCircleGroup,
         Sector<{ radius: number }>
@@ -293,6 +297,7 @@ export class SunburstSeries extends HierarchySeries<
         const highlightedNode = this.getActiveHighlightNode();
         const getDatumId = (node: SunburstNode) => node.datumIndex;
         this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
+        this.highlightGlowSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
 
         if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
@@ -586,7 +591,7 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         const highlightedNode = this.getActiveHighlightNode();
-        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
+        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean, glowOnly = false) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
@@ -607,18 +612,18 @@ export class SunburstSeries extends HierarchySeries<
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
-                glow,
                 highlighted,
-                hoveredStyle == null ? style.shadow : hoveredStyle.shadow,
-                highlighted
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             sector.fillGlow = this.resolveNodeGlow(
                 glow,
                 highlighted,
                 hoveredInPlace,
                 hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null,
-                highlighted
+                glowOnly
             );
+            sector.glowOnly = glowOnly;
+            if (glowOnly) sector.pointerEvents = PointerEvents.None;
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -641,6 +646,9 @@ export class SunburstSeries extends HierarchySeries<
         });
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
+        });
+        this.highlightGlowSelection.each((rect, datum) => {
+            updateSector(datum, rect, true, true);
         });
         if (glowing) {
             this.updateGlowEnds(angleOffset);

@@ -49,12 +49,10 @@ type Bucket = 'highlightedItem' | 'unhighlightedItem' | 'highlightedBranch' | 'u
 /** A node's role relative to the hovered leaf A1. */
 type Role = 'hovered' | 'sameBranch' | 'otherBranch';
 
-// An in-place copy casts its glow through the glow slot, in the overlay of the series root. The highlight copy of a leaf casts
-// it through the same slot, above the overlay, and that of a group through its shadow slot, beneath itself.
+// An in-place copy casts its glow through the glow slot, in the overlay of the series root. The glow-only copy of the hovered node
+// casts the glow of its highlight copy through the same slot, above the overlay.
 const castsGlow = (shape: Shape, layer: 'inPlace' | 'highlighted') =>
-    layer === 'inPlace'
-        ? shape.getCastShadow('glow') != null
-        : shape.fillShadow?.enabled === true || shape.fillGlow?.enabled === true;
+    layer === 'inPlace' ? shape.getCastShadow('glow') != null : shape.fillGlow?.enabled === true;
 
 describe('highlight glow on every hierarchy bucket', () => {
     setupMockConsole();
@@ -116,11 +114,11 @@ describe('highlight glow on every hierarchy bucket', () => {
         ctx.highlightManager.updateHighlight(id, target as any);
         await waitForChartStability(chart);
 
-        const withRoles = (name: 'datumSelection' | 'highlightSelection') =>
+        const withRoles = (name: 'datumSelection' | 'highlightGlowSelection') =>
             getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name)
                 .filter((shape) => shape.visible && shape.datum?.children.length === 0)
                 .map((shape) => ({ shape, role: roleOf(shape.datum!, target) }));
-        return { inPlace: withRoles('datumSelection'), highlighted: withRoles('highlightSelection') };
+        return { inPlace: withRoles('datumSelection'), highlighted: withRoles('highlightGlowSelection') };
     };
 
     const cast = (entries: Array<{ shape: Shape; role: Role }>, layer: 'inPlace' | 'highlighted') =>
@@ -286,13 +284,13 @@ describe('highlight glow on treemap groups', () => {
         ctx.highlightManager.updateHighlight(id, groupA);
         await waitForChartStability(chart);
 
-        const groups = (name: 'datumSelection' | 'highlightGroupSelection') =>
+        const groups = (name: 'datumSelection' | 'highlightGlowSelection') =>
             getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name).filter(
                 (shape) => shape.visible && shape.datum?.hasChildren && shape.datum.depth === groupA.depth
             );
         const castBy = (shapes: Array<Shape<HierarchyNode>>, layer: 'inPlace' | 'highlighted') =>
             shapes.filter((shape) => castsGlow(shape, layer)).map((shape) => shape.datum!.datum?.name);
-        return { inPlace: groups('datumSelection'), highlighted: groups('highlightGroupSelection'), castBy };
+        return { inPlace: groups('datumSelection'), highlighted: groups('highlightGlowSelection'), castBy };
     };
 
     it('casts unhighlightedItem.glow from the sibling groups of the hovered group, not from the group itself', async () => {
@@ -305,11 +303,11 @@ describe('highlight glow on treemap groups', () => {
         expect(castBy(highlighted, 'highlighted')).toEqual([]);
     });
 
-    it('casts highlightedItem.glow from the hovered group alone, via the highlight copy', async () => {
+    it('casts highlightedItem.glow from the hovered group alone, via the glow-only copy', async () => {
         const { inPlace, highlighted, castBy } = await hoverGroupA({ highlightedItem: { glow: HIGHLIGHT_GLOW } });
 
         expect(castBy(highlighted, 'highlighted')).toEqual(['A']);
-        expect(highlighted.find((s) => s.fillShadow?.enabled)?.fillShadow).toMatchObject(GLOW_SHADOW);
+        expect(highlighted.find((s) => s.fillGlow?.enabled)?.fillGlow).toMatchObject(GLOW_SHADOW);
         expect(castBy(inPlace, 'inPlace')).toEqual([]);
     });
 

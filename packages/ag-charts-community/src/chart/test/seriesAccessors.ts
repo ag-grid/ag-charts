@@ -88,7 +88,7 @@ export type SeriesSelectionName =
     | 'datumSelection'
     | 'labelSelection'
     | 'highlightSelection'
-    | 'highlightGroupSelection'
+    | 'highlightGlowSelection'
     | 'highlightLabelSelection'
     | 'itemSelection';
 

@@ -673,34 +673,32 @@ export abstract class HierarchySeries<
     }
 
     /**
-     * The shadow on one copy of a node, in `fillShadow`: a highlight copy casts its `glow` there, beneath itself, unless it
-     * is `inHoveredLayer`, which casts it as a glow, see {@link resolveNodeGlow}. The in-place copies cast their shadow, as
-     * their glow is cast in the root's overlay.
+     * The shadow on one copy of a node, in `fillShadow`. The highlight copy casts none: its glow is cast by a glow-only copy, see
+     * {@link resolveNodeGlow}, and the hovered in-place copy casts the node's shadow.
      */
     protected resolveNodeShadow(
         shadow: NormalisedDropShadowOptions | undefined,
-        glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
-        itemShadow?: AgItemShadowStyle['shadow'],
-        inHoveredLayer = false
+        itemShadow?: AgItemShadowStyle['shadow']
     ): NormalisedDropShadowOptions | undefined {
-        if (isHighlight) return inHoveredLayer ? undefined : glow;
+        if (isHighlight) return;
         return itemShadow == null ? shadow : this.mergeItemShadow(shadow, itemShadow);
     }
 
     /**
-     * The glow on one copy of a node, in `fillGlow`, cast in the root's overlay. A highlight copy has none there unless it
-     * is `inHoveredLayer`, where the root casts it above the overlay, and above the glows of the nodes that are not highlight
-     * copies. The hovered in-place copy cuts the overlay only if the highlight copy glows.
+     * The glow on one copy of a node, in `fillGlow`. The in-place copies cast theirs in the root's overlay, where the hovered one
+     * cuts it only if the highlight copy glows. The glow-only copy casts the glow of the highlight copy above the overlay, and
+     * the highlight copy itself has none.
      */
     protected resolveNodeGlow(
         glow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean,
         hoveredInPlace: boolean,
         hoveredGlows: boolean,
-        inHoveredLayer = false
+        glowOnly: boolean
     ): NormalisedDropShadowOptions | undefined {
-        if (isHighlight) return inHoveredLayer ? glow : undefined;
+        if (glowOnly) return glow;
+        if (isHighlight) return;
         if (!hoveredInPlace) return glow;
         return hoveredGlows ? CUT_ONLY_GLOW : undefined;
     }

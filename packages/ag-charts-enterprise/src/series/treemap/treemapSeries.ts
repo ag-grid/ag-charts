@@ -28,6 +28,7 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
     type PositionedLabelCandidate,
     Rect,
     type RequireOptional,
@@ -200,9 +201,6 @@ function clearOfEdge(
     return edgeAlign === 'top' ? Math.max(y, edgeY + gap) : Math.min(y, edgeY - gap);
 }
 
-/** The depth of a highlight copy, which is above that of every node. */
-const ABOVE_EVERY_DEPTH = Number.MAX_SAFE_INTEGER;
-
 export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode>, NormalisedTreemapSeriesOwnOptions> {
     static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
@@ -213,16 +211,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
     protected readonly datumSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect<TreemapNode>);
     private readonly labelSelection = Selection.select<Group<TreemapNode>>(this.labelGroup, Group<TreemapNode>);
-    /** The highlight copy of a group, which draws in depth order, for the tiles of the group to draw over its fill. */
-    private readonly highlightGroupSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
-    /**
-     * Above every node, and cast by the root above its overlay, so that the glow of a hovered tile draws over the fill and the glow
-     * of every other node, a branch that glows included. It holds the highlight copy of a tile, which has no tiles to cover.
-     */
-    private readonly highlightTileGroup = this.contentGroup.appendChild(
+    private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
+    /** Casts the glow of the highlight copy above every fill, in depth order: its rects paint nothing. */
+    private readonly highlightGlowGroup = this.contentGroup.appendChild(
         new Group({ batchShadows: 'by-layer', castsHoveredGlows: true })
     );
-    private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.highlightTileGroup, Rect);
+    private readonly highlightGlowSelection = Selection.select<Rect<TreemapNode>>(this.highlightGlowGroup, Rect);
 
     protected override _data?: HierarchyDataSet<any>;
     protected override _chartData?: HierarchyDataSet<any>;
@@ -677,13 +671,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const highlightedNode = this.getActiveHighlightNode();
 
         const getDatumId = (node: TreemapNode) => node.datumIndex;
-        const highlightedIsGroup = highlightedNode != null && highlightedNode.children.length > 0;
-        this.highlightGroupSelection.update(highlightedIsGroup ? [highlightedNode] : [], undefined, getDatumId);
-        this.highlightSelection.update(
-            highlightedNode != null && !highlightedIsGroup ? [highlightedNode] : [],
-            undefined,
-            getDatumId
-        );
+        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
+        this.highlightGlowSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
 
         if (!this.nodeDataRefresh) {
             return;
@@ -818,7 +807,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         };
 
         const highlightedNode = this.getActiveHighlightNode();
-        const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean) => {
+        const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean, glowOnly = false) => {
             const { bbox } = node;
             if (bbox == null) {
                 rect.visible = false;
@@ -839,10 +828,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(node, isLeaf, true) : undefined;
             rect.fillShadow = this.resolveNodeShadow(
                 (isLeaf ? tile : group).shadow,
-                glow,
                 isHighlight,
-                hoveredStyle == null ? style.shadow : hoveredStyle.shadow,
-                isHighlight && isLeaf
+                hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             rect.fillGlow = this.resolveNodeGlow(
                 glow,
@@ -850,10 +837,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 hoveredInPlace,
                 hoveredStyle != null &&
                     this.getNodeGlow(node, isLeaf, true, highlightedNode, hoveredStyle.glow) != null,
-                isHighlight && isLeaf
+                glowOnly
             );
+            rect.glowOnly = glowOnly;
+            if (glowOnly) rect.pointerEvents = PointerEvents.None;
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
-            rect.zIndex = this.getNodeZIndex(node, depth, isHighlight, highlightedNode);
+            rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
             const parentBbox = node.parent == null ? undefined : node.parent.bbox;
@@ -877,8 +866,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, false));
 
-        this.highlightGroupSelection.each((rect, datum) => updateRectFn(datum, rect, true));
         this.highlightSelection.each((rect, datum) => updateRectFn(datum, rect, true));
+        this.highlightGlowSelection.each((rect, datum) => updateRectFn(datum, rect, true, true));
 
         if (!this.usesPlacedLabels) this.updateLabelNodes();
     }
@@ -1319,30 +1308,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         const groupState = this.getGroupHighlightState(isHighlight ?? false, highlightedNode, nodeDatum);
         return toHierarchyHighlightString(groupState);
-    }
-
-    /**
-     * The layers draw by depth first, so that a shadow lands on the shallower nodes. The highlight copy is above every depth,
-     * for its glow to draw over the fill of every other node. A hovered group's tiles then draw above that copy, as they
-     * draw above the group, so the fill of the copy never covers them.
-     */
-    private getNodeZIndex(
-        node: TreemapNode,
-        depth: number,
-        isHighlight: boolean,
-        highlightedNode: TreemapNode | undefined
-    ) {
-        if (isHighlight) return [0, ABOVE_EVERY_DEPTH, 1];
-
-        const ancestorIndex = highlightedNode?.path;
-        const belowHovered =
-            highlightedNode != null &&
-            highlightedNode.children.length > 0 &&
-            node.path != null &&
-            ancestorIndex != null &&
-            node.path.length > ancestorIndex.length &&
-            this.isDescendantDatumIndex(node.path, ancestorIndex);
-        return [belowHovered ? 1 : 0, depth, 0];
     }
 
     private isDescendantDatumIndex(nodeIndex: number[] | undefined, ancestorIndex: number[] | undefined): boolean {

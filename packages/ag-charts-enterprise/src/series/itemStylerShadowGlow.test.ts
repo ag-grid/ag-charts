@@ -91,11 +91,11 @@ const hierarchyLayers =
     (kind: abstract new (...args: never[]) => Shape) =>
     (chart: AgChartInstance): Layers => {
         // Leaves only: a group of a treemap is a shape of the same kind in the same selection.
-        const leaves = (name: 'datumSelection' | 'highlightSelection') =>
+        const leaves = (name: 'datumSelection' | 'highlightGlowSelection') =>
             visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name), kind).filter(
                 (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
             );
-        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightSelection') };
+        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightGlowSelection') };
     };
 
 const CASES: Case[] = [
