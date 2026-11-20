@@ -84,6 +84,9 @@ function gradientAlpha(gradient: Gradient): number {
  * unless a custom `path` replaces the segments, which it does only if it parses.
  */
 function patternAlpha(pattern: Pattern): number {
+    // A tile too small to draw is replaced by the plain fill.
+    if (!pattern.drawable) return paintAlpha(pattern.fill, pattern.fillOpacity);
+
     const { fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeOpacity, strokeWidth } = pattern;
     const customPath = pattern.path != null && pattern.path !== '' && parseSvg(pattern.path) != null;
     const fillsNothing = STROKE_ONLY_PATTERNS.has(pattern.pattern) && !customPath;
@@ -1210,7 +1213,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillPattern } = this;
         const mode = this.getShadowMode(slot);
         const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
 
@@ -1229,7 +1232,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let strength = 1;
         if (drawsFill) {
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
-            strength = fillAlpha;
+            // The plain fill that replaces an undrawable pattern has its opacity in the context's alpha already.
+            strength = fillPattern?.drawable === false ? fillAlpha / fillPattern.fillOpacity : fillAlpha;
         } else if (drawsStroke) {
             this.applyStrokeAndAlpha(ctx, bboxOverride);
             strength = strokeAlpha;
@@ -1422,7 +1426,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             if (pattern) {
                 ctx.fillStyle = pattern;
             } else {
-                ctx.fillStyle = fillPattern.fill;
+                ctx.fillStyle = fillPattern.fill === 'none' ? 'transparent' : fillPattern.fill;
                 ctx.globalAlpha *= fillPattern.fillOpacity;
             }
         } else if (fillImage) {
