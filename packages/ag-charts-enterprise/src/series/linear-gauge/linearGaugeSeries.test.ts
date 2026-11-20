@@ -59,20 +59,6 @@ describe('LinearGaugeSeries', () => {
         });
     });
 
-    it('can be destroyed while its value label is still counting up', async () => {
-        const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, label: { enabled: true } };
-        prepareEnterpriseTestOptions(options);
-        options.animation = { enabled: true };
-
-        chart = deproxy(AgCharts.createGauge(options));
-        await waitForChartStability(chart);
-        expect(options.container?.querySelector('[data-animating="true"]')).not.toBeNull();
-
-        chart.destroy();
-        // Teardown is queued and logs its errors, which the mock console then fails on.
-        await waitForUpdateQueueDrain(chart);
-    });
-
     // The value bar sweeps open by growing its clip window along the gauge's main axis; every other
     // node holds constant.
     describe('initial animation', () => {
@@ -131,6 +117,23 @@ describe('LinearGaugeSeries', () => {
             const finalCalls = formatter.mock.calls.filter(([{ value }]) => value === options.value);
             expect(formatter.mock.calls.length).toBeGreaterThan(finalCalls.length);
             expect(finalCalls).toHaveLength(1);
+        });
+
+        it('can be destroyed while its value label is still counting up', async () => {
+            const formatter = vi.fn(({ value }: { value: number }) => `${value}`);
+            const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, label: { enabled: true, formatter } };
+            prepareEnterpriseTestOptions(options);
+
+            const proxy = AgCharts.createGauge(options);
+            chart = deproxy(proxy);
+            await frames.captureAnimationFrames(proxy, () => undefined, { frames: 3, duration: 300 });
+            const [{ value }] = formatter.mock.calls.at(-1)!;
+            expect(value).toBeGreaterThan(0);
+            expect(value).toBeLessThan(options.value);
+
+            chart.destroy();
+            // Teardown is queued and logs its errors, which the mock console then fails on.
+            await waitForUpdateQueueDrain(chart);
         });
     });
 
