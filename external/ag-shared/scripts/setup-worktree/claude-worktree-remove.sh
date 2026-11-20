@@ -18,11 +18,17 @@ if [[ -z "$WT_PATH" || ! -d "$WT_PATH" ]]; then
     exit 0
 fi
 
-# Safety: commit uncommitted changes before removal.
-if git -C "$WT_PATH" status --porcelain 2>/dev/null | grep -q .; then
-    log "Committing uncommitted changes in ${WT_PATH}..."
-    git -C "$WT_PATH" add -A >&2
-    git -C "$WT_PATH" commit -m "wip - commit before worktree removal" >&2
+# Safety: commit uncommitted changes before removal. A checkout whose status cannot be read is not removed.
+if [[ -e "$WT_PATH/.git" ]]; then
+    if ! changes=$(git -C "$WT_PATH" status --porcelain 2>/dev/null); then
+        log "Cannot read git status of ${WT_PATH}; not removing it"
+        exit 1
+    fi
+    if [[ -n "$changes" ]]; then
+        log "Committing uncommitted changes in ${WT_PATH}..."
+        git -C "$WT_PATH" add -A >&2
+        git -C "$WT_PATH" commit -m "wip - commit before worktree removal" >&2
+    fi
 fi
 
 log "Removing worktree: ${WT_PATH}"

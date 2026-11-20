@@ -70,7 +70,7 @@ owner_state() {
 # Prints the working directory, open files and mapped files of each of the user's processes; fails unless every
 # live one was fully read.
 process_paths() {
-    local proc uid mine fd
+    local proc uid mine
     if [[ -d /proc/self ]]; then
         mine=$(id -u)
         for proc in /proc/[0-9]*; do
@@ -83,12 +83,8 @@ process_paths() {
                 continue
             fi
             [[ "$uid" == mine ]] || continue
-            readlink "$proc/cwd" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
-            [[ -r "$proc/fd" ]] || [[ ! -e "$proc" ]] || return 1
-            for fd in "$proc"/fd/*; do
-                # A descriptor closed mid-listing is fine; one still present that cannot be resolved is not.
-                readlink "$fd" 2>/dev/null || [[ ! -L "$fd" ]] || return 1
-            done
+            # One find per process prints the cwd and every descriptor target; it fails on any it cannot resolve.
+            find "$proc/cwd" "$proc/fd" -maxdepth 1 -type l -printf '%l\n' 2>/dev/null || [[ ! -e "$proc" ]] || return 1
             # Mappings outlive their descriptors; the path starts at the first " /" since earlier fields hold no slash.
             awk '{ i = index($0, " /"); if (i) print substr($0, i + 1) }' "$proc/maps" 2>/dev/null || [[ ! -e "$proc" ]] || return 1
         done
@@ -105,11 +101,17 @@ process_paths() {
         END { exit bad || file || (proc && !named) }' <<<"$listing"
 }
 
-# True when a running process of the user has its working directory or an open file inside the path, or the processes cannot all be read.
+# True when a running process of the user has its working directory or an open file inside the path, or the processes
+# cannot all be read. Uses the PROCESS_PATHS snapshot when given a second argument, else a fresh listing.
 in_use() {
     local real_path paths
     real_path=$(cd -P "$1" && pwd) || return 0
-    paths=$(process_paths) || return 0
+    if [[ -n "${2:-}" ]]; then
+        [[ -n "$PROCESS_PATHS_READ" ]] || return 0
+        paths=$PROCESS_PATHS
+    else
+        paths=$(process_paths) || return 0
+    fi
     awk -v p="$real_path" '$0 == p || index($0, p "/") == 1 { found = 1 } END { exit !found }' <<<"$paths"
 }
 
@@ -146,8 +148,8 @@ keep_reason() {
         echo "recently active"
         return
     fi
-    # Checked before the move so a known user never sees the path vanish; rechecked after it.
-    if in_use "$candidate"; then
+    # Checked against the run's snapshot before the move, so a known user never sees the path vanish; rechecked fresh after it.
+    if in_use "$candidate" snapshot; then
         echo "in use by a running process, or processes could not all be read"
     fi
 }
@@ -160,8 +162,15 @@ mtime_of() {
 # As keep_reason, for a worktree already moved aside: checks processes inside it and walks every file once.
 # Renaming leaves the root's mtime alone, so a change since root_mtime means its entries changed around the move.
 moved_keep_reason() {
-    local moved=$1 root_mtime=$2
+    local moved=$1 root_mtime=$2 git_dir
     if [[ -z "$root_mtime" || "$(mtime_of "$moved")" != "$root_mtime" ]]; then
+        echo "recently active"
+        return
+    fi
+    # The move does not touch these, so they are rechecked for writes made since keep_reason looked.
+    # The .git file, which the move rewrites, holds only git's own pointer to the git dir.
+    if ! git_dir=$(git -C "$moved" rev-parse --absolute-git-dir 2>/dev/null) ||
+        find_recent "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD" -maxdepth 0 || (($? == 2)); then
         echo "recently active"
         return
     fi
@@ -217,6 +226,10 @@ cleanup_locked() {
     local repo_wt_dir=$1 remove_script candidate moved original reason root_mtime
     remove_script="$(dirname "$0")/claude-worktree-remove.sh"
 
+    # One process listing for the pre-move checks; each moved worktree gets a fresh one.
+    PROCESS_PATHS='' PROCESS_PATHS_READ=''
+    PROCESS_PATHS=$(process_paths) && PROCESS_PATHS_READ=1
+
     # Restore worktrees left aside by an interrupted run.
     for moved in "$repo_wt_dir"/.removing-agent-*; do
         [[ -d "$moved" ]] || continue
@@ -251,7 +264,8 @@ cleanup_locked() {
         fi
 
         log "Cleaning up stale agent worktree: $candidate"
-        if ! echo "{\"worktree_path\": \"$moved\"}" | bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done; then
+        # The remover runs git hooks, which must not inherit the lock descriptor.
+        if ! echo "{\"worktree_path\": \"$moved\"}" | bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done; then
             [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
             log "WARNING: removal failed; kept $candidate"
         fi
