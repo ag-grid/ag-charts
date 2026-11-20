@@ -17,6 +17,7 @@ import {
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
+    waitForUpdateQueueDrain,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -56,6 +57,20 @@ describe('LinearGaugeSeries', () => {
             chart = deproxy(AgCharts.createGauge(options));
             await compare();
         });
+    });
+
+    it('can be destroyed while its value label is still counting up', async () => {
+        const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, label: { enabled: true } };
+        prepareEnterpriseTestOptions(options);
+        options.animation = { enabled: true };
+
+        chart = deproxy(AgCharts.createGauge(options));
+        await waitForChartStability(chart);
+        expect(options.container?.querySelector('[data-animating="true"]')).not.toBeNull();
+
+        chart.destroy();
+        // Teardown is queued and logs its errors, which the mock console then fails on.
+        await waitForUpdateQueueDrain(chart);
     });
 
     // The value bar sweeps open by growing its clip window along the gauge's main axis; every other
