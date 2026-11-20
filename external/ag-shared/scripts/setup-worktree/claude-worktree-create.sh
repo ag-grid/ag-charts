@@ -32,12 +32,44 @@ WT_PATH="${WORKTREE_ROOT}/${REPO_NAME}/${DIR_NAME}"
 
 # Agents run in parallel, so only worktrees idle for this long count as stale.
 STALE_AGENT_WORKTREE_MINUTES=$((24 * 60))
+# Per-worktree file in its git dir naming the Claude Code process that created it.
+OWNER_FILE_NAME=claude-owner
 
-# Exits 0 when find matches a path modified within the stale window, 2 when its scan failed other than on a vanished path, else 1.
+# Prints a process's start time with whitespace collapsed, so pid reuse can be told apart.
+start_time() {
+    local started
+    started=$(ps -o lstart= -p "$1" 2>/dev/null) || return 1
+    echo $started
+}
+
+# Prints the pid and start time of the Claude Code process running this hook, if found.
+claude_owner() {
+    local pid=$PPID args claude_re='(^|/)claude( |$)'
+    while [[ -n "$pid" && "$pid" -gt 1 ]]; do
+        args=$(ps -o args= -p "$pid" 2>/dev/null) || return 1
+        if [[ "$args" =~ $claude_re || "$args" == *claude-code/cli.js* ]]; then
+            echo "$pid $(start_time "$pid")"
+            return 0
+        fi
+        pid=$(ps -o ppid= -p "$pid" | tr -d ' ')
+    done
+    return 1
+}
+
+# True while the Claude Code process that created the worktree is still running.
+owner_alive() {
+    local owner_file=$1 pid started
+    [[ -f "$owner_file" ]] || return 1
+    read -r pid started <"$owner_file" || [[ -n "$pid" ]] || return 1
+    [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+    [[ "$(start_time "$pid")" == "$started" ]]
+}
+
+# Exits 0 when find matches a path modified or changed within the stale window, 2 when its scan failed other than on a vanished path, else 1.
 find_recent() {
     local err_file found='' status=0
     err_file=$(mktemp)
-    found=$(LC_ALL=C find "$@" -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -print -quit 2>"$err_file") || status=$?
+    found=$(LC_ALL=C find "$@" \( -mmin "-${STALE_AGENT_WORKTREE_MINUTES}" -o -cmin "-${STALE_AGENT_WORKTREE_MINUTES}" \) -print -quit 2>"$err_file") || status=$?
     if [[ -n "$found" ]]; then
         status=0
     elif [[ $status -ne 0 ]] && { [[ ! -s "$err_file" ]] || grep -qv 'No such file or directory$' "$err_file"; }; then
@@ -49,47 +81,18 @@ find_recent() {
     return $status
 }
 
-# As find_recent, for any of the given paths; batched to stay under ARG_MAX.
-modified_recently() {
-    local i status result=1
-    for ((i = 1; i <= $#; i += 500)); do
-        status=0
-        find_recent "${@:i:500}" -maxdepth 0 || status=$?
-        ((status == 0)) && return 0
-        ((status == 2)) && result=2
-    done
-    return $result
-}
-
-# True when the worktree, its git metadata or any file in it was touched within the stale window.
+# True when the worktree's owner is running, or the worktree, its git metadata or any file in it was touched within the stale window. A failed scan counts as active.
 recently_active() {
-    local candidate=$1 git_dir='' status_file entry path
-    local paths=("$candidate")
-    if [[ ! -e "$candidate/.git" ]]; then
-        modified_recently "$candidate" || (($? == 2))
-        return
-    fi
-    paths+=("$candidate/.git")
-    if git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
+    local candidate=$1 git_dir='' path
+    local paths=()
+    if [[ -e "$candidate/.git" ]] && git_dir=$(git -C "$candidate" rev-parse --absolute-git-dir 2>/dev/null); then
+        owner_alive "$git_dir/$OWNER_FILE_NAME" && return 0
         for path in "$git_dir/index" "$git_dir/HEAD" "$git_dir/logs/HEAD"; do
             [[ -e "$path" ]] && paths+=("$path")
         done
+        ((${#paths[@]})) && { find_recent "${paths[@]}" -maxdepth 0 || (($? == 2)); } && return 0
     fi
-    { modified_recently "${paths[@]}" || (($? == 2)); } && return 0
-
-    status_file=$(mktemp)
-    # GIT_OPTIONAL_LOCKS=0 stops status refreshing the index, which would make the worktree look active.
-    paths=()
-    if [[ -n "$git_dir" ]] && GIT_OPTIONAL_LOCKS=0 git -C "$candidate" status --porcelain -z --no-renames --untracked-files=all >"$status_file" 2>/dev/null; then
-        while IFS= read -r -d '' entry; do
-            path="$candidate/${entry:3}"
-            [[ -e "$path" ]] && paths+=("$path")
-        done <"$status_file"
-    fi
-    rm -f "$status_file"
-    # An incomplete probe here is left to the full scan below.
-    ((${#paths[@]})) && modified_recently "${paths[@]}" && return 0
-    # Ignored files edited in place change no timestamp checked above.
+    # One walk of the worktree, ignored files included; also covers leftovers without git metadata.
     find_recent "$candidate" || (($? == 2))
 }
 
@@ -136,6 +139,11 @@ elif git -C "$CWD" show-ref --verify --quiet "refs/remotes/origin/${NAME}" 2>/de
 else
     log "Creating new branch '${NAME}' from origin/latest..."
     git -C "$CWD" worktree add "$WT_PATH" -b "$NAME" origin/latest >&2
+fi
+
+# Record the owning Claude Code process so cleanup keeps this worktree while it runs.
+if OWNER=$(claude_owner) && WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null); then
+    echo "$OWNER" >"$WT_GIT_DIR/$OWNER_FILE_NAME"
 fi
 
 # Set up the worktree (COW clone when possible, else yarn install). ROOT_WORKTREE_PATH
