@@ -3,7 +3,6 @@ import type { PaddingOptions } from 'ag-charts-types';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
-import { toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -16,7 +15,7 @@ import {
     keptCharacters,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
-import { EllipsisChar, type FontOptions, LineSplitter } from '../types/text';
+import type { FontOptions } from '../types/text';
 import { type FitRegion, regionWidthAt } from './fitRegion';
 
 /** What a block is fitted with; a label's fit descriptor already carries it. */
@@ -278,8 +277,8 @@ function fitBlocksToWidth(
             overflowStrategy,
         };
         let fittedText = glyphWidth <= 0 || glyphHeight <= 0 ? '' : fitLabelText(text, blockFit, font);
-        // A bare ellipsis reads as an artefact rather than a label, even beside an image.
-        if (!showsText(fittedText) && keptCharacters(text) > 0) fittedText = '';
+        // A bare ellipsis reads as an artefact rather than a label.
+        if (!showsContent(fittedText) && keptCharacters(text) > 0) fittedText = '';
         const { fitOverflow } = fit;
         const overflows = isErased(fittedText) && atFloor && fitOverflow != null;
         if (overflows) {
@@ -309,17 +308,8 @@ function fitBlocksToWidth(
     return { blocks: fitted, width, height, dropped: Math.max(0, dropped), area, overflows: anyOverflows };
 }
 
-/** Beside an image, a line cut short to a single character reads as an artefact too. */
-function showsText(text: NormalisedTextOrSegments): boolean {
-    if (!isArray(text) || !text.some((segment) => segment.type === 'image')) return hasRealChars(text);
-    let joined = '';
-    for (const segment of text) {
-        if (segment.type !== 'image') joined += toTextString(segment.text);
-    }
-    return joined.split(LineSplitter).some((line) => {
-        const kept = keptCharacters(line);
-        return kept > 1 || (kept === 1 && !line.includes(EllipsisChar));
-    });
+function showsContent(text: NormalisedTextOrSegments): boolean {
+    return hasRealChars(text) || (isArray(text) && text.some((segment) => segment.type === 'image'));
 }
 
 function shapeWidthAt(shape: FitRegion, align: RegionAlign, height: number): number {

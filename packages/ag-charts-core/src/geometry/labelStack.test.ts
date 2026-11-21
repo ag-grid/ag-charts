@@ -54,22 +54,14 @@ describe('fitLabelStack', () => {
         expect(fitLabelStack(stack(block('Netflix')), { width: 15, height: 100 })).toBeUndefined();
     });
 
-    it.each([
-        { width: 40, kept: undefined },
-        { width: 50, kept: undefined },
-        { width: 70, kept: undefined },
-        { width: 80, kept: ['image', 'Ne…'] },
-    ])('needs more than a character cut short beside its image, at width $width', ({ width, kept }) => {
+    it('keeps a block whose text is truncated away but whose image still fits', () => {
         const segments: ContentSegment[] = [
             { type: 'image', url: 'https://example.com/logo.png', width: 30, height: 20, block: true },
             { text: 'Netflix' },
         ];
-        const fitted = fitLabelStack(stack(block(segments)), { width, height: 100 })?.blocks[0]?.text;
-        expect(
-            Array.isArray(fitted)
-                ? fitted.map((segment) => (segment.type === 'image' ? 'image' : segment.text))
-                : fitted
-        ).toEqual(kept);
+        const fitted = fitLabelStack(stack(block(segments)), { width: 40, height: 100 });
+        const kept = fitted?.blocks[0]?.text;
+        expect(Array.isArray(kept) && kept.some((segment) => segment.type === 'image')).toBe(true);
     });
 
     describe('in a shape that narrows as the stack grows taller', () => {
