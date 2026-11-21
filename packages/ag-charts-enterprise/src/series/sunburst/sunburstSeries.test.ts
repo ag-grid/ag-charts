@@ -1136,6 +1136,140 @@ describe('SunburstSeries', () => {
             // plain text the stubbed image would not render and the baseline would diff.
             await compare();
         });
+
+        it('keeps the image of a label taller than its thin sector is wide at the inner edge', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Information Technology Services',
+                        children: [
+                            { name: 'Cloud Infrastructure Platforms', size: 30, note: 'Hyperscalers' },
+                            { name: 'Enterprise Software Licensing', size: 20, note: 'Subscriptions' },
+                            { name: 'Managed Security Operations', size: 12, note: 'Outsourced' },
+                            { name: 'Data Center Hardware', size: 8, note: 'Servers' },
+                        ],
+                    },
+                    {
+                        name: 'Telecommunications Networks',
+                        children: [
+                            { name: 'Wireless Carrier Services', size: 25, note: 'Mobile' },
+                            { name: 'Fiber Broadband Providers', size: 10, note: 'Fixed line' },
+                            { name: 'Satellite Communications', size: 6, note: 'Orbital' },
+                        ],
+                    },
+                    {
+                        name: 'Consumer Electronics Manufacturing',
+                        children: [
+                            { name: 'Smartphones', size: 18, note: 'Handsets' },
+                            { name: 'Wearable Devices', size: 9, note: 'Watches' },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'note',
+                        sizeKey: 'size',
+                        label: {
+                            wrapping: 'on-space',
+                            collision: { alwaysShow: true },
+                            formatter: ({ value }) => [
+                                { type: 'image', url: ICONS.Solar, width: 24, height: 24, block: true },
+                                { text: String(value) },
+                            ],
+                        },
+                        secondaryLabel: { wrapping: 'on-space', collision: { alwaysShow: true } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart, preloaded);
+            await compare();
+            const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection').find(
+                (node) => node.datum?.datum?.name === 'Satellite Communications'
+            )!;
+            const texts = Selection.selectByClass(group, TransformableText)
+                .filter((text) => text.visible)
+                .map((text) =>
+                    Array.isArray(text.text)
+                        ? text.text.map((segment) => (segment.type === 'image' ? 'image' : segment.text))
+                        : text.text
+                );
+            expect(texts).toEqual([['image', 'Satellite\n', 'Communications'], 'Orbital']);
+        });
+
+        const renderSectorLabel = async (name: string, data: unknown[], series: Partial<AgSunburstSeriesOptions>) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', ...series }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart, preloaded);
+            await waitForChartStability(chart);
+            type Named = { datum?: { datum?: { name?: string } } };
+            const named = (node: Named) => node.datum?.datum?.name === name;
+            const sector = getSeriesSelectionNodes<Sector & Named>(chart, 'datumSelection').find(named)!;
+            const group = getSeriesSelectionNodes<Group & Named>(chart, 'labelSelection').find(named)!;
+            const [text] = Selection.selectByClass(group, TransformableText).filter((node) => node.visible);
+            const across = text.rotation - (sector.startAngle + sector.endAngle) / 2;
+            const form = Math.abs(Math.sin(across)) < 1e-6 ? 'perpendicular' : 'parallel';
+            const centre = Math.hypot(text.translationX, text.translationY);
+            return { sector, text, form, centre };
+        };
+
+        it('keeps a tall label stack in a full-ring sector parallel', async () => {
+            const { form } = await renderSectorLabel(
+                'Ring',
+                [{ name: 'Ring', children: [{ name: 'Leaf', size: 1 }] }],
+                {
+                    innerRadiusRatio: 0.5,
+                    label: {
+                        formatter: ({ value }) => (value === 'Ring' ? [...'TALLSTACK'].join('\n') : String(value)),
+                        collision: { alwaysShow: true },
+                    },
+                }
+            );
+            expect(form).toBe('parallel');
+        });
+
+        it.each([12, 48])(
+            'spills an overflowing perpendicular image %ipx tall equally past both arcs of its thin sector',
+            async (height) => {
+                const { sector, text, form, centre } = await renderSectorLabel(
+                    'Thin',
+                    [
+                        {
+                            name: 'Root',
+                            children: [
+                                { name: 'Wide', size: 20 },
+                                { name: 'Thin', size: 1 },
+                            ],
+                        },
+                    ],
+                    {
+                        label: {
+                            formatter: ({ value }) =>
+                                value === 'Thin'
+                                    ? [{ type: 'image', url: ICONS.Solar, width: 180, height, block: true }]
+                                    : String(value),
+                            collision: { alwaysShow: true },
+                        },
+                    }
+                );
+                const halfWidth = text.computeBBoxWithoutTransforms()!.width / 2;
+                const overhang = {
+                    inner: sector.innerRadius + sector.innerEdgeInset - (centre - halfWidth),
+                    outer: centre + halfWidth - (sector.outerRadius - sector.outerEdgeInset),
+                };
+                expect(form).toBe('perpendicular');
+                expect(overhang.inner).toBeGreaterThan(0);
+                expect(overhang.outer).toBeCloseTo(overhang.inner);
+            }
+        );
     });
 
     describe('bigint values (AG-16608)', () => {
