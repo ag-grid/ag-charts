@@ -45,6 +45,7 @@ zoompan
 Zoompan
 
 # Chart terminology
+crosshatch
 itemstyler
 polychroma
 

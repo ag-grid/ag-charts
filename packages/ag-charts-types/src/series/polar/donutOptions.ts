@@ -172,8 +172,12 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     innerCircle?: AgDonutInnerCircle;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
-    /** The spacing between Donut sectors. */
-    sectorSpacing?: PixelSize;
+    /**
+     * The gap, in pixels, between neighbouring sectors. The inner and outer edges of the ring stay where they are, and the gap is never left between two donut series.
+     *
+     * __Note:__ A sector that is narrower than its share of the gap is not drawn.
+     */
+    gap?: PixelSize;
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the Donut sectors. */

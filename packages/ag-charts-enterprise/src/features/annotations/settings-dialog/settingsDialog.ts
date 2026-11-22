@@ -146,10 +146,12 @@ export class AnnotationSettingsDialog extends Dialog {
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
-        this.hideFns.push(() => {
-            this.refreshCoordinateInputs = undefined;
-            this.events.emit('hidden', null);
-        });
+    }
+
+    protected override onHide() {
+        this.refreshCoordinateInputs = undefined;
+        this.events.emit('hidden', null);
+        super.onHide();
     }
 
     /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */

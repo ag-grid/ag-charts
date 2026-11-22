@@ -79,8 +79,8 @@ export const STROKE_ONLY_PATTERNS: ReadonlySet<AgPatternName> = new Set<AgPatter
     'vertical-dashed-lines',
     'horizontal-dashed-lines',
     'waves',
-    'criss-cross',
-    'zig-zag',
+    'crosshatch',
+    'zigzag',
     'hollow-circles',
 ]);
 
@@ -200,11 +200,11 @@ export const PATTERNS: Record<AgPatternName, (path: ExtendedPath2D, params: Patt
     },
     'forward-slanted-lines': drawForwardSlantedLines,
     'backward-slanted-lines': drawBackwardSlantedLines,
-    'criss-cross'(path, params) {
+    crosshatch(path, params) {
         drawForwardSlantedLines(path, params);
         drawBackwardSlantedLines(path, params);
     },
-    'zig-zag'(path, { width, height }) {
+    zigzag(path, { width, height }) {
         const top = height / 4;
         const bottom = height - top;
         const half = width / 2;

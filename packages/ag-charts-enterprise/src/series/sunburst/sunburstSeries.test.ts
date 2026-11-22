@@ -2204,4 +2204,148 @@ describe('SunburstSeries', () => {
             });
         });
     });
+
+    describe('AG-18209 gap', () => {
+        const gap = 8;
+        const renderSectors = async (data: object[]) => {
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data,
+                    series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', gap, strokeWidth: 0 }],
+                    animation: { enabled: false },
+                })
+            );
+            const sectors = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(chart, 'datumSelection');
+            return (name: string) => sectors.find((s) => s.datum?.datum?.name === name)!;
+        };
+
+        it('separates every ring from the next, leaving only the outermost ring at full radius', async () => {
+            const sector = await renderSectors([
+                { name: 'Branch', children: [{ name: 'Leaf', size: 10, children: [{ name: 'Empty', size: 0 }] }] },
+                { name: 'Root leaf', size: 6 },
+                { name: 'Own-size parent', size: 5, children: [{ name: 'Tiny child', size: 0.0001 }] },
+            ]);
+            const arcInsets = (name: string) => [sector(name).innerEdgeInset, sector(name).outerEdgeInset];
+
+            expect(arcInsets('Branch')).toEqual([0, gap / 2]);
+            expect(arcInsets('Root leaf')).toEqual([0, gap / 2]);
+            expect(arcInsets('Own-size parent')).toEqual([0, gap / 2]);
+            expect(arcInsets('Leaf')).toEqual([gap / 2, 0]);
+            expect(sector('Tiny child').path.isEmpty()).toBe(true);
+            expect(sector('Root leaf').radialEdgeInset).toBe(gap / 2);
+        });
+
+        const longLabel = 'N0 has a label too long for its wedge';
+        it.each([
+            {
+                wedge: 'narrower than a half turn',
+                gap: 16,
+                sizes: Array.from({ length: 30 }, () => 1),
+                text: longLabel,
+                fontSize: undefined,
+                placement: 'perpendicular',
+            },
+            { wedge: 'of a half turn', gap: 20, sizes: [1, 1], text: 'W', fontSize: 280, placement: 'perpendicular' },
+            { wedge: 'of a half turn', gap: 20, sizes: [1, 1], text: 'Word', fontSize: 200, placement: 'parallel' },
+            {
+                wedge: 'of a half turn under a wide gap',
+                gap: 240,
+                sizes: [1, 1],
+                text: 'W',
+                fontSize: 10,
+                placement: 'parallel',
+            },
+            {
+                wedge: 'wider than a half turn',
+                gap: 20,
+                sizes: [3, 1],
+                text: 'W',
+                fontSize: 240,
+                placement: 'perpendicular',
+            },
+        ])(
+            'fits $placement labels in a wedge $wedge inside its drawn edges',
+            async ({ gap: wedgeGap, sizes, text: label, fontSize, placement }) => {
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: sizes.map((size, i) => ({ name: i === 0 ? label : `N${i}${longLabel.slice(2)}`, size })),
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                gap: wedgeGap,
+                                padding: 0,
+                                strokeWidth: 0,
+                                label: { fontSize },
+                            },
+                        ],
+                        animation: { enabled: false },
+                    })
+                );
+                const isFirst = (node: { datum?: { datum?: { name: string } } }) => node.datum?.datum?.name === label;
+                const wedge = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(
+                    chart,
+                    'datumSelection'
+                ).find(isFirst)!;
+                const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(
+                    chart,
+                    'labelSelection'
+                ).find(isFirst)!;
+                const text = Selection.selectByClass(group, TransformableText).find((node) => node.tag === 0)!;
+                expect(text.visible).toBe(true);
+
+                const toCanvas = (x: number, y: number) => Transformable.toCanvasPoint(wedge, x, y);
+                const centre = toCanvas(wedge.centerX, wedge.centerY);
+                const direction = (angle: number) => {
+                    const { canvasX, canvasY } = toCanvas(
+                        wedge.centerX + Math.cos(angle),
+                        wedge.centerY + Math.sin(angle)
+                    );
+                    return { x: canvasX - centre.canvasX, y: canvasY - centre.canvasY };
+                };
+                const sweep = wedge.endAngle - wedge.startAngle;
+                const start = direction(wedge.startAngle);
+                const end = direction(wedge.endAngle);
+                const bisector = direction(wedge.startAngle + sweep / 2);
+                expect(Math.abs(Math.sin(text.rotation - Math.atan2(bisector.y, bisector.x)))).toBeCloseTo(
+                    placement === 'parallel' ? 1 : 0
+                );
+
+                const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
+                const corners = [
+                    [x, y],
+                    [x + width, y],
+                    [x, y + height],
+                    [x + width, y + height],
+                ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
+                for (const { canvasX, canvasY } of corners) {
+                    const dx = canvasX - centre.canvasX;
+                    const dy = canvasY - centre.canvasY;
+                    // Square to each straight edge, positive inside; from half a turn up the cut-out lies behind the centre.
+                    const clearance =
+                        sweep < Math.PI
+                            ? Math.min(start.x * dy - start.y * dx, end.y * dx - end.x * dy)
+                            : bisector.x * dx + bisector.y * dy;
+                    expect(clearance).toBeGreaterThanOrEqual(wedgeGap / 2 - 1e-6);
+                    expect(Math.hypot(dx, dy)).toBeLessThanOrEqual(wedge.outerRadius + 1e-6);
+                }
+            }
+        );
+
+        it('gives no side gap to a sector that fills its ring alone', async () => {
+            const sector = await renderSectors([
+                {
+                    name: 'Only',
+                    children: [
+                        { name: 'First', size: 1 },
+                        { name: 'Second', size: 1 },
+                    ],
+                },
+            ]);
+
+            expect(sector('Only').radialEdgeInset).toBe(0);
+            expect(sector('First').radialEdgeInset).toBe(gap / 2);
+        });
+    });
 });

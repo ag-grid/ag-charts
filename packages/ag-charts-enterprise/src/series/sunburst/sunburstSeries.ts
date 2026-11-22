@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-community';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     type CallbackParamRules,
     type DynamicContext,
     type FitRegion,
@@ -37,11 +38,13 @@ import {
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
+    isFullSweep,
     isGradientFill,
     measureLabelText,
     mergeDefaults,
     normalizeAngle360,
     readDatumKey,
+    sectorEdgeInset,
     setSectorGlowEnds,
     withoutCasts,
 } from 'ag-charts-core';
@@ -99,6 +102,8 @@ interface SunburstLabelRing {
     readonly sweep: number;
     readonly theta: number;
     readonly radiusScale: number;
+    /** How far, in pixels, the drawn straight edges sit inside the edges at the sector's angles. */
+    readonly edgeInset: number;
     /** The depth-0 sector of a sunburst with no hole, which reaches the centre. */
     readonly wedge: boolean;
     /** A sole depth-0 node filling the whole disc. */
@@ -131,6 +136,29 @@ function heightBoundRegion(padding: number, widthFor: (height: number) => number
     };
 }
 
+/** How far along the bisector the drawn straight edges of a sector narrower than half a turn are `width` apart. */
+function edgeSpanRadius({ sweep, edgeInset }: SunburstLabelRing, width: number) {
+    return (width + (2 * edgeInset) / Math.cos(sweep * 0.5)) / (2 * Math.tan(sweep * 0.5));
+}
+
+/**
+ * How far along the bisector a label `width` across must start to clear a wedge's drawn straight edges. From half a
+ * turn up, the cut-out lies behind the centre, so only the label's near side has to clear it.
+ */
+function wedgeApexRadius(ring: SunburstLabelRing, width: number) {
+    return ring.sweep < Math.PI ? edgeSpanRadius(ring, width) : ring.edgeInset;
+}
+
+/** How far out the near side of a parallel label may sit: from half a turn up, the drawn straight edges sit in front of the centre. */
+function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) {
+    return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
+}
+
+/** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
+function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
+    return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
+}
+
 /** How far from the centre a sector's labels are drawn, for a stack of the given size. */
 function sectorLabelRadius(
     ring: SunburstLabelRing,
@@ -139,20 +167,22 @@ function sectorLabelRadius(
     height: number,
     padding: number
 ): number {
-    const { innerRadius, outerRadius, sweep, radiusScale, wedge } = ring;
+    const { innerRadius, outerRadius, radiusScale, wedge } = ring;
     switch (labelPlacement) {
         case LabelPlacement.CenterCircle:
             return 0;
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+            const nearSide = parallelNearSide(ring);
+            const minimumRadius = nearSide > innerRadius ? nearSide + padding + height : 0;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
-            return Math.min(idealRadius, maximumRadius);
+            return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
             if (!wedge) return (innerRadius + outerRadius) * 0.5;
-            const minimumRadius = height / (2 * Math.tan(sweep * 0.5)) + width * 0.5;
+            const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -219,6 +249,10 @@ export class SunburstSeries extends HierarchySeries<
     private readonly highlightSectorGroup = this.scalingGroup.appendChild(
         new Group<SunburstNode>({ batchShadows: 'by-layer' })
     );
+    /** Casts the glow of the highlight copy above every fill, in depth order: its sectors paint nothing. */
+    private readonly highlightGlowGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer', castsHoveredGlows: true })
+    );
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -230,6 +264,7 @@ export class SunburstSeries extends HierarchySeries<
     readonly datumSelection = Selection.select<Sector<SunburstNode>>(this.sectorGroup, Sector<SunburstNode>);
     private readonly labelSelection = Selection.select<Group<SunburstNode>>(this.sectorLabelGroup, Group);
     private readonly highlightSelection = Selection.select<Sector<SunburstNode>>(this.highlightSectorGroup, Sector);
+    private readonly highlightGlowSelection = Selection.select<Sector<SunburstNode>>(this.highlightGlowGroup, Sector);
     private readonly innerCircleSelection = Selection.select<Sector<{ radius: number }>>(
         this.innerCircleGroup,
         Sector<{ radius: number }>
@@ -412,7 +447,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const { width, height } = chart.seriesRect!;
         const {
-            sectorSpacing,
+            gap,
             cornerRadius,
             shadow,
             childrenKey,
@@ -430,7 +465,6 @@ export class SunburstSeries extends HierarchySeries<
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
 
-        const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
         // No hole unless one of the inner-radius options is explicitly set - the short-circuit keeps an
         // unconfigured sunburst identical to before.
@@ -459,15 +493,23 @@ export class SunburstSeries extends HierarchySeries<
             this.centreCircle = { radius: hole };
         }
 
+        let outerRingDepth = 0;
         rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
             if (node.depth != null) {
+                if (node.sumSize > 0) outerRingDepth = Math.max(outerRingDepth, node.depth);
                 const midAngle = (startAngle + endAngle) / 2 + angleOffset;
                 const midRadius = hole + (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
             }
         });
+
+        const innerArcGap = (depth: number, strokeInset: number) => sectorEdgeInset(gap, strokeInset, depth > 0);
+        const outerArcGap = (depth: number, strokeInset: number) =>
+            sectorEdgeInset(gap, strokeInset, depth < outerRingDepth);
+        const sideGap = ({ startAngle, endAngle }: SunburstNode, strokeInset: number) =>
+            sectorEdgeInset(gap, strokeInset, !isFullSweep(startAngle, endAngle));
 
         const suppressFieldDotNotation = this.data?.suppressFieldDotNotation ?? false;
         const readLabel = labelKey == null ? undefined : datumKeyReader(labelKey, suppressFieldDotNotation);
@@ -540,14 +582,15 @@ export class SunburstSeries extends HierarchySeries<
             // zero-height annulus only yields non-finite geometry.
             if (radiusScale <= 0) return;
 
-            const innerRadius = hole + depth * radiusScale + baseInset;
-            const outerRadius = hole + (depth + 1) * radiusScale - baseInset;
+            const innerRadius = hole + depth * radiusScale + innerArcGap(depth, 0);
+            const outerRadius = hole + (depth + 1) * radiusScale - outerArcGap(depth, 0);
             node.ring = {
                 innerRadius,
                 outerRadius,
                 sweep: endAngle - startAngle,
                 theta: angleOffset + (startAngle + endAngle) / 2,
                 radiusScale,
+                edgeInset: sideGap(node, 0),
                 // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
                 // centre-circle and wedge-from-centre label forms no longer apply to it.
                 wedge: depth === 0 && hole === 0,
@@ -565,7 +608,7 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         const highlightedNode = this.getActiveHighlightNode();
-        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
+        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean, glowOnly = false) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
@@ -578,7 +621,7 @@ export class SunburstSeries extends HierarchySeries<
             const glow = this.getNodeGlow(nodeDatum, highlighted, highlightedNode, style.glow);
 
             const fill = style.fill;
-            const strokeWidth = style.strokeWidth;
+            const strokeInset = style.stroke == null ? 0 : style.strokeWidth * 0.5;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
@@ -586,10 +629,18 @@ export class SunburstSeries extends HierarchySeries<
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
-                highlighted,
+                highlighted || glowOnly,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
-            sector.fillGlow = this.resolveNodeGlow(glow, hoveredInPlace);
+            sector.fillGlow = this.resolveNodeGlow(
+                glow,
+                highlighted,
+                hoveredInPlace,
+                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null,
+                glowOnly
+            );
+            sector.glowOnly = glowOnly;
+            if (glowOnly) sector.pointerEvents = PointerEvents.None;
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -599,17 +650,34 @@ export class SunburstSeries extends HierarchySeries<
             sector.outerRadius = hole + (depth + 1) * radiusScale;
             sector.startAngle = startAngle + angleOffset;
             sector.endAngle = endAngle + angleOffset;
-            sector.inset = baseInset + strokeWidth * 0.5;
+            sector.innerEdgeInset = innerArcGap(depth, strokeInset);
+            sector.outerEdgeInset = outerArcGap(depth, strokeInset);
+            sector.radialEdgeInset = sideGap(nodeDatum, strokeInset);
             sector.cornerRadius = cornerRadius;
         };
 
+        // The glow of the hovered node and of each node of its branch that glows is cast by a glow-only copy, which is in the
+        // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
+        const glowCopies: SunburstNode[] = highlightedNode == null ? [] : [highlightedNode];
+        const branchSectors: Sector[] = [];
         let glowing = false;
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
-            glowing ||= sector.fillGlow?.enabled === true;
+            if (this.castsBranchGlow(datum, sector.fillGlow, highlightedNode)) {
+                glowCopies.push(datum);
+                branchSectors.push(sector);
+            } else {
+                // A branch sector becomes cut-only below, so only the rest stay overlay casters.
+                glowing ||= sector.fillGlow?.enabled === true && sector.fillGlow.cutOnly !== true;
+            }
         });
+        for (const sector of branchSectors) sector.fillGlow = CUT_ONLY_GLOW;
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
+        });
+        this.highlightGlowSelection.update(glowCopies, undefined, (node) => node.datumIndex);
+        this.highlightGlowSelection.each((rect, datum) => {
+            updateSector(datum, rect, datum.datumIndex === highlightedNode?.datumIndex, true);
         });
         if (glowing) {
             this.updateGlowEnds(angleOffset);
@@ -655,26 +723,15 @@ export class SunburstSeries extends HierarchySeries<
     private updateGlowEnds(angleOffset: number) {
         const { glowRings } = this;
         for (const ring of glowRings.values()) ring.clear();
-        // The hovered sector glows through its highlight copy, as its in-place one has no glow, so the copy takes its place.
-        const [highlighted] = this.highlightSelection.nodes();
-        this.datumSelection.each((inPlace, { depth, datumIndex, startAngle, endAngle }) => {
+        this.datumSelection.each((sector, { depth, startAngle, endAngle }) => {
             if (depth == null) return;
-
-            const sector =
-                highlighted?.fillGlow != null && highlighted.datum?.datumIndex === datumIndex ? highlighted : inPlace;
 
             let ring = glowRings.get(depth);
             if (ring == null) {
                 ring = new SectorGlowRing();
                 glowRings.set(depth, ring);
             }
-            ring.add(
-                sector,
-                startAngle + angleOffset,
-                endAngle + angleOffset,
-                inPlace.innerRadius,
-                inPlace.outerRadius
-            );
+            ring.add(sector, startAngle + angleOffset, endAngle + angleOffset, sector.innerRadius, sector.outerRadius);
         });
         for (const ring of glowRings.values()) setSectorGlowEnds(ring);
     }
@@ -734,14 +791,12 @@ export class SunburstSeries extends HierarchySeries<
             return [this.sectorLabelCandidate(ring, LabelPlacement.CenterCircle, shape)];
         }
 
-        const straightEdges = sweep < Math.PI ? 2 * innerRadius * Math.tan(sweep * 0.5) : Infinity;
-        const parallelWidth = (height: number) => Math.min(2 * chordAt(innerRadius + height), straightEdges);
+        const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
+        const nearSide = parallelNearSide(ring);
+        const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
         let perpendicularWidth: ((height: number) => number) | undefined;
         if (wedge) {
-            perpendicularWidth = (height) => {
-                const apex = sweep < Math.PI ? height / (2 * Math.tan(sweep * 0.5)) : 0;
-                return chordAt(height * 0.5) - apex;
-            };
+            perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
         } else if (normalizeAngle360(sweep) < Math.PI / 4) {
             // Measured across the sector's full height at its inner edge, however short the text.
             const across = chordAt(straightEdges * 0.5) - innerRadius;

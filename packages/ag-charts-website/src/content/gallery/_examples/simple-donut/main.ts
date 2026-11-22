@@ -34,7 +34,7 @@ const options: AgChartOptions<DataType> = {
             donut: {
                 series: {
                     strokeWidth: 1,
-                    sectorSpacing: 2,
+                    gap: 2,
                     innerRadiusRatio: 0.6,
                     outerRadiusRatio: 0.95,
                 },

@@ -193,4 +193,16 @@ const rowNode = gridOptions.api.getRowNode('55');`
 }`
         );
     });
+
+    describe('given object spread, optional chaining and nullish coalescing', () => {
+        runSnippetFrameworkTests(
+            `const gridOptions = {
+    columnDefs: baseColumnDefs.map((colDef) => ({
+        ...colDef,
+        headerName: colDef.headerName ?? colDef.field,
+        width: colDef.width?.toFixed(0),
+    })),
+}`
+        );
+    });
 });
