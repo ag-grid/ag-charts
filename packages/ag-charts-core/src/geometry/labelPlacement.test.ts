@@ -2041,6 +2041,12 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(55, 80),
                 placement: 'inside-start',
             };
+            const overhanging: BarCandidate = {
+                box: { x: 36, y: 62, width: 38, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 70),
+                placement: 'inside-start',
+            };
             const shapes = { marker: true, label: true, shape: true, seriesArea: true };
             // The label is datum 0 of series 's'; another datum's bar is owned by datum 1.
             const other = (box: BoxBounds, entityIndex = 1, sourceId = 's', stackId?: number): LabelObstacle => ({
@@ -2158,63 +2164,48 @@ describe('placeLabels positioned candidates', () => {
                     insideStart,
                 ],
                 ['stays across a marker overlapping its own bar', insideStart, marker, {}, 0, insideStart],
-            ])('%s', (_, candidate, foreign, avoid, threshold, expected) => {
-                const { placed } = place(
-                    [candidate, elsewhere],
-                    [other(ownBar, 0), foreign],
-                    ownBar,
-                    true,
-                    { ...shapes, ...avoid },
-                    threshold
-                );
-                expect(placed[0].candidate).toBe(expected);
-            });
-
-            const overhanging: BarCandidate = {
-                box: { x: 36, y: 62, width: 38, height: 16 },
-                region: bounds,
-                anchor: anchorOf(55, 70),
-                placement: 'inside-start',
-            };
-
-            it('stays on its stacked column when it overhangs it and a sibling series shares the column box', () => {
-                const { placed } = place(
-                    [overhanging, elsewhere],
-                    [other({ ...ownBar }, 0, 's', 0), other({ ...ownBar }, 0, 'sibling', 0)],
-                    ownBar,
-                    true,
-                    shapes,
+                // Stacked siblings share or nest within the column, and aggregated buckets of one series overlap.
+                [
+                    'stays on its stacked column when it overhangs it and a sibling series shares the column box',
+                    overhanging,
+                    other({ ...ownBar }, 0, 'sibling', 0),
+                    {},
                     0,
-                    0
-                );
-                expect(placed[0].candidate).toBe(overhanging);
-            });
-
-            // Aggregated stacks give siblings nested boxes and neighbouring buckets of one series overlapping boxes.
-            it.each<[string, LabelObstacle, BarCandidate]>([
+                    overhanging,
+                ],
                 [
                     'stays across the end of a sibling nested in its stack',
+                    insideStart,
                     other({ x: 40, y: 70, width: 30, height: 90 }, 7, 'sibling', 0),
+                    {},
+                    0,
                     insideStart,
                 ],
                 [
                     'stays across the side of a neighbouring bucket of its own stacked series',
+                    insideStart,
                     other({ x: 60, y: 30, width: 30, height: 130 }, 1, 's', 0),
+                    {},
+                    0,
                     insideStart,
                 ],
                 [
                     'falls through across the end of a bar in another stack',
+                    insideStart,
                     other({ x: 40, y: 70, width: 30, height: 90 }, 7, 'sibling', 1),
+                    {},
+                    0,
                     elsewhere,
                 ],
-            ])('%s', (_, foreign, expected) => {
+            ])('%s', (_, candidate, foreign, avoid, threshold, expected) => {
+                // The label and its own bar sit in stack 0.
                 const { placed } = place(
-                    [insideStart, elsewhere],
+                    [candidate, elsewhere],
                     [other(ownBar, 0, 's', 0), foreign],
                     ownBar,
                     true,
-                    shapes,
-                    0,
+                    { ...shapes, ...avoid },
+                    threshold,
                     0
                 );
                 expect(placed[0].candidate).toBe(expected);

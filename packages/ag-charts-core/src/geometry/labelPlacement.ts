@@ -333,10 +333,7 @@ export interface PointLabelDatum {
      * crosses (see {@link entityIndex} and {@link stackId}).
      */
     readonly ownBox?: BoxBounds;
-    /**
-     * Index of the datum whose shape this label belongs to: within the label's series, the `shape`
-     * obstacle with the same {@link LabelObstacle.entityIndex} and `sourceId` is its own.
-     */
+    /** The label's datum: its own shape is the `shape` obstacle with this `entityIndex` and its series' `sourceId`. */
     readonly entityIndex?: number;
     /** The stack the label's bar belongs to: `shape` obstacles with the same `stackId` count as its own. */
     readonly stackId?: number;
@@ -932,7 +929,7 @@ function straddlesForeignShape(o: LabelObstacle, category: ObstacleCategory): bo
     if (o.kind !== 'rect' || category !== 'shape' || o.entityIndex == null || candidateEntityIndex == null)
         return false;
     if (o.entityIndex === candidateEntityIndex && o.sourceId === candidateSourceId) return false;
-    // Stacked bars overlap their siblings (and aggregated buckets their neighbours), so the whole stack is its own.
+    // Stack siblings (and aggregated buckets) overlap one another, so the whole stack is its own.
     if (o.stackId != null && o.stackId === candidateStackId) return false;
     if (candidateOriented) {
         // The rect already carries the threshold, so take back any positive part to measure the label itself.
