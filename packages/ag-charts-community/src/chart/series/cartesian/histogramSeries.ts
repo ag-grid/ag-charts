@@ -1061,7 +1061,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => node.label
+            (node) => node.label,
+            this.id
         );
     }
 
@@ -1162,7 +1163,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         threshold,
                         false,
                         fitFor(nodeLabel.text),
-                        node
+                        node,
+                        node.datumIndex
                     )
                 );
             }
@@ -1198,6 +1200,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                     fit == null || styledBox == null
                         ? fit
                         : { ...fit, font: styledBox.font, boxPadding: styledBox.boxPadding },
+                entityIndex: node.datumIndex,
             };
         });
     }

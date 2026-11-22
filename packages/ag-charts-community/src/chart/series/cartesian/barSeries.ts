@@ -1981,9 +1981,16 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => node.label
+            (node) => node.label,
+            this.id,
+            this.labelStackId()
         );
         return withOverlayLabelObstacles(obstacles, nodeData);
+    }
+
+    /** The stack this series' bars belong to, so a label treats every bar in its own stack as its own. */
+    private labelStackId(): number | undefined {
+        return this.nodeDatumContext?.isStacked ? this.seriesGrouping?.groupIndex : undefined;
     }
 
     private overlayPlugins() {
@@ -1994,6 +2001,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.options;
         const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const stackId = this.labelStackId();
         if (barLabelPropsUsePositionedCandidates(label)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
@@ -2018,7 +2026,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         fitFor(nodeLabel.text),
                         // `datum`/`datumIndex` are written at node-data time, so a candidate resolved
                         // from here shows the styler this datum's values.
-                        node
+                        node,
+                        node.datumIndex,
+                        stackId
                     )
                 );
             }
@@ -2050,6 +2060,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 avoid,
                 threshold,
                 fit: fit == null || styled == null ? fit : { ...fit, font: styled.font, boxPadding: styled.boxPadding },
+                entityIndex: node.datumIndex,
+                stackId,
             };
         });
     }

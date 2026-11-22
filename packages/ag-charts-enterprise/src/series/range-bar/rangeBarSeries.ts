@@ -1445,7 +1445,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (labelDatum) => labelDatum
+            (labelDatum) => labelDatum,
+            this.id
         );
     }
 
@@ -1498,6 +1499,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                             configuredFit == null || styled == null
                                 ? configuredFit
                                 : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding },
+                        entityIndex: labelDatum.datumIndex,
                     }))
                 );
             } else {
@@ -1517,7 +1519,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         threshold,
                         true,
                         configuredFit,
-                        labelDatum
+                        labelDatum,
+                        labelDatum.datumIndex
                     )
                 );
             }

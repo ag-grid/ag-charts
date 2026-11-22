@@ -328,13 +328,18 @@ export interface PointLabelDatum {
      */
     readonly positionedCandidates?: readonly PositionedLabelCandidate[];
     /**
-     * The label's own bar rect (full-column geometry, matching its `shape` obstacle box). Any
-     * `shape` obstacle intersecting it is treated as non-colliding, so a bar label avoids other
-     * bars without ever colliding with its own bar, its stacked siblings, or `grouped:false`
-     * behind-bars that overlap it. Set only on the positioned-candidate path with `shape`
-     * avoidance enabled.
+     * The label's own bar rect. Obstacles intersecting it are treated as non-colliding, so a bar label
+     * never collides with its own bar, except a `shape` owned by another datum whose edge the label
+     * crosses (see {@link entityIndex} and {@link stackId}).
      */
     readonly ownBox?: BoxBounds;
+    /**
+     * Index of the datum whose shape this label belongs to: within the label's series, the `shape`
+     * obstacle with the same {@link LabelObstacle.entityIndex} and `sourceId` is its own.
+     */
+    readonly entityIndex?: number;
+    /** The stack the label's bar belongs to: `shape` obstacles with the same `stackId` count as its own. */
+    readonly stackId?: number;
     /**
      * Keep `category: 'label'` obstacles that overlap this label's own box as real obstacles rather
      * than excluding them with the own-box gate. Range-bar sets this because both its labels share the
@@ -524,6 +529,8 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** The {@link PointLabelDatum.stackId} of the stacked bar this obstacle stands for. */
+          readonly stackId?: number;
           /** The {@link PointLabelDatum.labelGroup} of the placed label this obstacle stands for. */
           readonly labelGroup?: string;
           /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
@@ -728,6 +735,8 @@ let candidateAvoid: LabelAvoidance | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
 // negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
 let candidateThreshold = 0;
+// How far the candidate may poke out of a foreign shape yet lie on it: the overlap a negative threshold allows.
+let candidateContainSlack = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
 // Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
@@ -735,9 +744,13 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
-// inside label never collides with the shape it sits on. `undefined` disables the gate.
+// The candidate's own bar rect: obstacles intersecting it are excluded, except straddled foreign shapes.
 let candidateOwnBox: BoxBounds | undefined;
+// Series id and datum index naming the candidate's own shape among the owned `shape` obstacles.
+let candidateSourceId: string | undefined;
+let candidateEntityIndex: number | undefined;
+// The stack of the candidate's bar, whose shapes all count as its own.
+let candidateStackId: number | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
@@ -913,6 +926,28 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
+/** True when the candidate crosses the edge of `o`, another datum's bar overlapping its own, beyond threshold slack. */
+function straddlesForeignShape(o: LabelObstacle, category: ObstacleCategory): boolean {
+    // A shape or label without an owner keeps the plain own-box exclusion.
+    if (o.kind !== 'rect' || category !== 'shape' || o.entityIndex == null || candidateEntityIndex == null)
+        return false;
+    if (o.entityIndex === candidateEntityIndex && o.sourceId === candidateSourceId) return false;
+    // Stacked bars overlap their siblings (and aggregated buckets their neighbours), so the whole stack is its own.
+    if (o.stackId != null && o.stackId === candidateStackId) return false;
+    if (candidateOriented) {
+        // The rect already carries the threshold, so take back any positive part to measure the label itself.
+        const { cx, cy, cos, sin } = candidateRect;
+        const halfWidth = candidateRect.halfWidth - Math.max(candidateThreshold, 0);
+        const halfHeight = candidateRect.halfHeight - Math.max(candidateThreshold, 0);
+        const extentX = Math.abs(cos) * halfWidth + Math.abs(sin) * halfHeight;
+        const extentY = Math.abs(sin) * halfWidth + Math.abs(cos) * halfHeight;
+        return !boxContains(o.box, cx - extentX, cy - extentY, 2 * extentX, 2 * extentY);
+    }
+    const slack = candidateContainSlack;
+    const { x, y, width, height } = candidateBox;
+    return !boxContains(o.box, x + slack, y + slack, width - 2 * slack, height - 2 * slack);
+}
+
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
@@ -936,13 +971,13 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    // An inside label never collides with the shape it sits on, so anything but an overlay overlapping its own
-    // box is excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
+    // Excludes all but overlays and straddled foreign shapes; `ownBoxLabelsCollide` keeps range-bar's sibling labels.
     if (
         candidateOwnBox != null &&
         !isOverlayCategory(category) &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
-        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
+        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height) &&
+        !straddlesForeignShape(o, category)
     ) {
         return true;
     }
@@ -1442,6 +1477,7 @@ export function placeLabels(
     )) {
         const labels: PlacedLabel[] = [];
         if (datums[0]?.label == null) continue;
+        candidateSourceId = seriesId;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -2510,9 +2546,12 @@ function placeAvoidingLabel(
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
+    candidateEntityIndex = d.entityIndex;
+    candidateStackId = d.stackId;
     candidateYields = d.yields === true;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
+    candidateContainSlack = -cascadeContainThreshold;
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
     cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
     // inside-start/inside-end centre on the bar's end, so a candidate rotated along the bar would
@@ -2568,9 +2607,12 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerCx = Number.NaN;
     candidateOwnMarkerCy = Number.NaN;
     candidateOwnMarkerR = -1;
+    candidateContainSlack = -containmentThreshold(threshold);
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
+    candidateEntityIndex = d.entityIndex;
+    candidateStackId = d.stackId;
     candidateYields = d.yields === true;
 
     const { fit } = d;
