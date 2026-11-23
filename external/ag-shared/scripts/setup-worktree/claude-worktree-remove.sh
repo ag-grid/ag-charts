@@ -13,8 +13,31 @@ WT_PATH=$(echo "$INPUT" | jq -r '.worktree_path')
 
 log() { echo "[claude-wt-rm] $*" >&2; }
 
-# Git runs hooks and helpers that could outlive this script; they must not inherit the lock descriptor.
+# Git runs hooks and helpers that could outlive this script; they must not inherit the lock descriptor. Only the
+# commands that delete keep it (deleting_git and rm, which start neither), so the lock is held until deletion stops,
+# even if this script is killed first.
 git() { command git "$@" 9>&-; }
+deleting_git() {
+    if [[ -n "$COMMON_DIR" ]]; then set -- --git-dir="$COMMON_DIR" "$@"; fi
+    command git -c core.fsmonitor=false "$@"
+}
+
+# Succeeds when another git checkout lies inside the path (a top-level .git file is the path's own stale link), or
+# the path cannot be searched, so rm never deletes a checkout it was not asked for.
+holds_other_worktree() {
+    local found
+    found=$(find "$1" -mindepth 2 -name .git -print -quit 2>/dev/null) || return 0
+    [[ -n "$found" || -d "$1/.git" ]]
+}
+force_remove() {
+    if holds_other_worktree "$WT_PATH"; then
+        log "${WT_PATH} contains another git checkout; not removing it"
+        exit 1
+    fi
+    log "$1"
+    rm -rf "$WT_PATH"
+    deleting_git worktree prune >&2 2>/dev/null || true
+}
 
 # The create hook's cleanup may have this worktree moved aside to .removing-<name> while it holds this lock. Take the
 # lock before judging the path, so the worktree is either back in place, gone, or left aside by an interrupted run.
@@ -42,19 +65,23 @@ if [[ -n "$WT_PATH" && -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -d "$WT_DIR" ]]; th
         log "Removing ${WT_PATH} from where an interrupted cleanup left it: ${HIDDEN}"
         git -C "$HIDDEN" worktree repair >/dev/null 2>&1 || true
         WT_PATH=$HIDDEN
-    elif [[ ! -e "$WT_PATH" ]]; then
+    else
         # Or wherever a restore that landed elsewhere left it: a worktree of the current repository whose record
-        # names this path.
+        # names this path. If something else now occupies the path, which one was meant is ambiguous.
         WANTED="$(cd -P "$WT_DIR" && pwd)/$(basename "$WT_PATH")"
         while IFS= read -r -d '' ENTRY; do
             [[ "$ENTRY" == "worktree "* ]] || continue
             FOUND=${ENTRY#worktree }
             FOUND_GIT_DIR=$(git -C "$FOUND" rev-parse --absolute-git-dir 2>/dev/null) || continue
-            if [[ "$(cat "$FOUND_GIT_DIR/claude-moved-from" 2>/dev/null)" == "$WANTED" ]]; then
-                log "Removing ${WT_PATH} from where a restore left it: ${FOUND}"
-                WT_PATH=$FOUND
-                break
+            [[ "$(cat "$FOUND_GIT_DIR/claude-moved-from" 2>/dev/null)" == "$WANTED" ]] || continue
+            [[ "$(cd -P "$WT_PATH" 2>/dev/null && pwd)" == "$FOUND" ]] && break
+            if [[ -e "$WT_PATH" || -L "$WT_PATH" ]]; then
+                log "${WT_PATH} is occupied while the worktree recorded for it is at ${FOUND}; not removing either"
+                exit 1
             fi
+            log "Removing ${WT_PATH} from where a restore left it: ${FOUND}"
+            WT_PATH=$FOUND
+            break
         done < <(git worktree list --porcelain -z 2>/dev/null)
     fi
 fi
@@ -82,28 +109,21 @@ WT_GIT_DIR='' COMMON_DIR=''
 if WT_GIT_DIR=$(git -C "$WT_PATH" rev-parse --absolute-git-dir 2>/dev/null); then
     COMMON_DIR=$(git -C "$WT_PATH" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || COMMON_DIR=''
 fi
-repo_git() {
-    if [[ -n "$COMMON_DIR" ]]; then git --git-dir="$COMMON_DIR" "$@"; else git "$@"; fi
-}
 
 log "Removing worktree: ${WT_PATH}"
 # Git's refusal stands for a registered checkout (a locked one, say), leaving it intact for the caller to restore.
 if [[ -n "$WT_GIT_DIR" ]]; then
-    if ! repo_git worktree remove --force "$WT_PATH" >&2; then
+    if ! deleting_git worktree remove --force "$WT_PATH" >&2; then
         log "git refused to remove ${WT_PATH}; leaving it in place"
         exit 1
     fi
-elif ! git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
-    log "git worktree remove failed, falling back to rm + prune..."
-    rm -rf "$WT_PATH"
-    repo_git worktree prune >&2 2>/dev/null || true
+elif ! deleting_git worktree remove --force "$WT_PATH" >&2 2>/dev/null; then
+    force_remove "git worktree remove failed, falling back to rm + prune..."
 fi
 
 # Belt-and-suspenders: verify removal.
 if [[ -d "$WT_PATH" ]]; then
-    log "Directory still exists after removal, force-removing..."
-    rm -rf "$WT_PATH"
-    repo_git worktree prune >&2 2>/dev/null || true
+    force_remove "Directory still exists after removal, force-removing..."
 fi
 
 # Git drops a worktree's admin dir with its registration.

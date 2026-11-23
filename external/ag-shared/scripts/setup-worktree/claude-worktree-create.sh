@@ -249,6 +249,15 @@ moved_keep_reason() {
         echo "recently active, or cannot be fully read or deleted"
         return
     fi
+    # The walk below skips the root and its .git file, so their own deletion restrictions are checked here.
+    if [[ "$(uname)" == Darwin ]]; then
+        local protected
+        if ! protected=$(find "$moved" "$moved/.git" -maxdepth 0 \( -acl -o -flags +uchg,schg,uappnd,sappnd \) -print 2>/dev/null) ||
+            [[ -n "$protected" ]]; then
+            echo "recently active, or cannot be fully read or deleted"
+            return
+        fi
+    fi
     for entry in "$moved"/* "$moved"/.[!.]* "$moved"/..?*; do
         [[ -e "$entry" || -L "$entry" ]] && [[ "$entry" != "$moved/.git" ]] && entries+=("$entry")
     done
@@ -314,7 +323,8 @@ cleanup_stale_agent_worktrees() {
     [[ -d "$repo_wt_dir" ]] || return 0
 
     # One cleanup at a time per repo, so each removal owns its worktree from check to delete. The kernel releases
-    # the flock when the hook exits, however it exits, so no stale lock is left to reclaim.
+    # the flock when the last process holding the descriptor exits, however it exits, so no stale lock is left to
+    # reclaim.
     local lock="$repo_wt_dir/.cleanup.lock" locked=1
     exec 9>>"$lock" || return 0
     if command -v flock >/dev/null; then
@@ -403,6 +413,8 @@ cleanup_locked() {
                 [[ "$(git -C "$moved" rev-parse --absolute-git-dir 2>/dev/null)" == "$MOVED_GIT_DIR" ]]; then
                 restore_worktree "$moved" "$candidate"
             fi
+            # Left where it was, the record would send a later deliberate move of this checkout back here.
+            same_path "$MOVED_TO" "$candidate" && rm -f "$git_dir/claude-moved-from"
             log "Keeping agent worktree (could not move it aside for removal): $candidate"
             continue
         fi
@@ -414,10 +426,10 @@ cleanup_locked() {
         fi
 
         log "Cleaning up stale agent worktree: $candidate"
-        # The remover runs git hooks, which must not inherit the lock descriptor.
-        # The remover reports a missing path as success, so success is judged by the path being gone.
-        # The remover would otherwise wait for the lock this hook holds.
-        jq -n --arg path "$moved" '{worktree_path: $path}' | CLAUDE_WT_CLEANUP_LOCKED=1 bash "$remove_script" 9>&- 2>&1 | while IFS= read -r line; do log "$line"; done || true
+        # The remover inherits the lock and keeps it on the commands that delete, so the lock outlives this hook
+        # until deletion stops. It would otherwise wait for the lock this hook holds. It reports a missing path as
+        # success, so success is judged by the path being gone.
+        jq -n --arg path "$moved" '{worktree_path: $path}' | CLAUDE_WT_CLEANUP_LOCKED=1 bash "$remove_script" 2>&1 | while IFS= read -r line; do log "$line"; done || true
         if [[ -e "$moved" || -L "$moved" ]]; then
             [[ -d "$moved" ]] && restore_worktree "$moved" "$candidate"
             log "WARNING: removal of $candidate failed; moved what remains back, but files may already be gone"

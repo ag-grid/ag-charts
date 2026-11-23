@@ -62,12 +62,19 @@ set_owner() { echo "$2" >"$(git -C "$WTS/$1" rev-parse --absolute-git-dir)/$OWNE
 DEAD_PID=99999
 while ps -o pid= -p "$DEAD_PID" >/dev/null 2>&1; do DEAD_PID=$((DEAD_PID + 1)); done
 
-for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed readonly acl; do make_wt "agent-$n"; done
-for n in stale chmod ignored openfile inuse dirty readonly acl; do set_owner "agent-$n" "$DEAD_PID"; done
+for n in stale live legacy chmod ignored openfile inuse dirty interrupted renamed readonly acl aclroot blocked; do make_wt "agent-$n"; done
+for n in stale chmod ignored openfile inuse dirty readonly acl aclroot blocked; do set_owner "agent-$n" "$DEAD_PID"; done
+# Siblings of the protected files below, which a removal that stopped partway would delete.
+for n in readonly acl aclroot; do echo 1 >"$WTS/agent-$n/sibling"; done
 # A directory this user cannot empty, set before the wait so its ctime is old.
 chmod u-w "$WTS/agent-readonly/node_modules/p"
 # On macOS, the same through an ACL with the mode bits left alone.
-if [[ "$(uname)" == Darwin ]]; then chmod +a "everyone deny delete_child" "$WTS/agent-acl/node_modules/p"; fi
+if [[ "$(uname)" == Darwin ]]; then
+    chmod +a "everyone deny delete_child" "$WTS/agent-acl/node_modules/p"
+    chmod +a "everyone deny delete" "$WTS/agent-aclroot/.git"
+fi
+# Occupies the path cleanup moves agent-blocked to.
+mkdir "$WTS/.removing-agent-blocked"
 sleep 600 &
 PIDS+=($!)
 set_owner agent-live "$!"
@@ -95,7 +102,7 @@ PIDS+=($!)
 ) &
 PIDS+=($!)
 # A pre-commit hook that rejects the remover's safety commit and records that it ran.
-printf '#!/bin/sh\ntouch "%s/hook-ran"\nexit 1\n' "$T" >"$CWD/.git/hooks/pre-commit"
+printf '#!/bin/sh\ntouch "%s/hook-ran"\n[ -e /dev/fd/9 ] && touch "%s/hook-held"\nexit 1\n' "$T" "$T" >"$CWD/.git/hooks/pre-commit"
 chmod +x "$CWD/.git/hooks/pre-commit"
 sleep 1
 
@@ -112,9 +119,13 @@ expect "a failed process listing keeps the candidate" kept agent-stale
 
 # Unrelated processes starting or exiting on a busy machine make the listing unstable, which keeps every worktree.
 # The scenarios pin the process-id check; the turnover test below exercises it.
+# A git wrapper records whether the deleting command holds the lock descriptor.
+mkdir "$T/bin"
+printf '#!/bin/bash\n[[ "$*" == *"worktree remove"* && -e /dev/fd/9 ]] && touch "%s/remove-held"\nexec "%s" "$@"\n' "$T" "$(command -v git)" >"$T/bin/git"
+chmod +x "$T/bin/git"
 real_user_pids=$(declare -f user_pids)
 user_pids() { :; }
-cleanup_stale_agent_worktrees
+PATH="$T/bin:$PATH" cleanup_stale_agent_worktrees
 eval "$real_user_pids"
 
 expect "stale worktree with an exited owner is removed" gone agent-stale
@@ -127,13 +138,21 @@ expect "recent ignored file keeps the worktree" kept agent-ignored
 expect "process cwd inside keeps the worktree" kept agent-inuse
 expect "open file from a process elsewhere keeps the worktree" kept agent-openfile
 expect "rejected safety commit reached the remover" test -e "$T/hook-ran"
+expect "git hooks do not inherit the lock" test ! -e "$T/hook-held"
+expect "the deleting git command holds the lock" test -e "$T/remove-held"
 expect "failed safety commit restores the worktree" registered agent-dirty
 expect "interrupted move is recovered and registered" registered agent-interrupted
 expect "manual rename without the hook's record is left alone" kept .removing-agent-renamed
-expect "a worktree with a directory it cannot empty is kept intact" test -e "$WTS/agent-readonly/node_modules/p/i.js"
+refused() { grep -qxF "Keeping agent worktree (recently active, or cannot be fully read or deleted): $WTS/$1" "$LOG"; }
+expect "a worktree with a directory it cannot empty is kept intact" test -e "$WTS/agent-readonly/node_modules/p/i.js" -a -e "$WTS/agent-readonly/sibling"
+expect "the preflight refuses a directory it cannot empty" refused agent-readonly
 if [[ "$(uname)" == Darwin ]]; then
-    expect "a worktree with an ACL forbidding deletion is kept intact" test -e "$WTS/agent-acl/node_modules/p/i.js"
+    expect "a worktree with an ACL forbidding deletion is kept intact" test -e "$WTS/agent-acl/node_modules/p/i.js" -a -e "$WTS/agent-acl/sibling"
+    expect "the preflight refuses an ACL forbidding deletion" refused agent-acl
+    expect "a worktree whose .git link cannot be deleted is kept intact" test -e "$WTS/agent-aclroot/.git" -a -e "$WTS/agent-aclroot/sibling"
+    expect "the preflight refuses a .git link that cannot be deleted" refused agent-aclroot
 fi
+expect "a refused move aside leaves no record" test ! -e "$(git -C "$WTS/agent-blocked" rev-parse --absolute-git-dir)/claude-moved-from"
 expect "lock is released after cleanup" bash -c 'exec 9>>"$1"; perl -MFcntl=:flock -e '"'"'open(my $fh, ">&=", 9) or exit 1; flock($fh, LOCK_EX | LOCK_NB) or exit 1'"'" _ "$WTS/.cleanup.lock"
 
 # move_worktree refuses an occupied destination and leaves the worktree registered where it was.
@@ -174,6 +193,26 @@ echo "$(cd -P "$WTS" && pwd)/agent-misremove" >"$(git -C "$WTS/agent-misremove" 
 git -C "$CWD" worktree move "$WTS/agent-misremove" "$WTS/elsewhere-misremove"
 (cd "$CWD" && jq -n --arg path "$WTS/agent-misremove" '{worktree_path: $path}' | bash "$REMOVE") 2>>"$LOG"
 expect "direct removal removes a worktree where a restore left it" gone elsewhere-misremove
+
+# A misplaced worktree nested inside whatever now occupies its path: which one was meant is ambiguous.
+git -C "$CWD" worktree add -q "$WTS/agent-ambiguous" -b agent-ambiguous 2>/dev/null
+echo "$(cd -P "$WTS" && pwd)/agent-ambiguous" >"$(git -C "$WTS/agent-ambiguous" rev-parse --absolute-git-dir)/claude-moved-from"
+git -C "$CWD" worktree move "$WTS/agent-ambiguous" "$WTS/elsewhere-ambiguous"
+mkdir "$WTS/agent-ambiguous"
+echo 1 >"$WTS/agent-ambiguous/other"
+git -C "$CWD" worktree move "$WTS/elsewhere-ambiguous" "$WTS/agent-ambiguous/nested"
+if (cd "$CWD" && jq -n --arg path "$WTS/agent-ambiguous" '{worktree_path: $path}' | bash "$REMOVE") 2>>"$LOG"; then
+    fail "an occupied path with a misplaced worktree fails the remover"
+else
+    pass "an occupied path with a misplaced worktree fails the remover"
+fi
+expect "the occupant and the misplaced worktree are kept" test -e "$WTS/agent-ambiguous/other" -a -e "$WTS/agent-ambiguous/nested/f"
+
+# Without git's registration to go on, rm still never deletes a checkout inside the path.
+mkdir -p "$WTS/agent-holder"
+git clone -q "$CWD" "$WTS/agent-holder/clone"
+if remove "$WTS/agent-holder"; then fail "a directory holding a checkout fails the remover"; else pass "a directory holding a checkout fails the remover"; fi
+expect "the checkout inside is kept" test -e "$WTS/agent-holder/clone/f"
 
 # An unrelated checkout at the hidden name is left alone.
 git clone -q "$CWD" "$WTS/.removing-agent-other"
