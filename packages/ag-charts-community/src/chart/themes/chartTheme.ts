@@ -333,6 +333,7 @@ export class ChartTheme {
                 fills: Object.values(fills),
                 strokes: Object.values(strokes),
                 markerShapes: ['circle'],
+                lineDashes: [[]],
                 sequentialColors: Object.values(sequentialColors),
                 ...otherColors,
             })
