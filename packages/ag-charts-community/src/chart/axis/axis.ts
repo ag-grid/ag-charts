@@ -740,7 +740,7 @@ export abstract class Axis<
     }
 
     /** See {@link AxisContext.valueTickSize}. */
-    protected valueTickSize(): AxisValueTickSize | undefined {
+    protected valueTickSize(_infer?: boolean): AxisValueTickSize | undefined {
         return undefined;
     }
 
@@ -1482,7 +1482,7 @@ export abstract class Axis<
                 );
             },
             formatWithCrosshairLabel: (value) => this.formatWithCrosshairLabel(value),
-            valueTickSize: () => this.valueTickSize(),
+            valueTickSize: (infer) => this.valueTickSize(infer),
             attachLabel: (node: Node) => this.attachLabel(node),
             attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),
             inRange: (value, tolerance) => this.inRange(value, tolerance),

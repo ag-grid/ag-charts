@@ -75,9 +75,9 @@ export interface CoordinateField {
     kind: CoordinateKind;
     /** The datum's current value, formatted for the input. */
     value: string;
-    /** The decimals a number is shown at, read from the formats and the tick size of its axis. */
+    /** The decimals a number is shown at: those of the axis's crosshair label, or else of its tick size. */
     fractionDigits?: number;
-    /** The tick size of a number's axis, which its spinner moves by, or the granularity of a time in seconds. */
+    /** The tick size a number's spinner moves by, or the granularity of a time in seconds. */
     step?: number;
     /** A time is shown down to the tick size of its axis, or else to the precision of its value. */
     timePrecision?: TimePrecision;
@@ -349,8 +349,8 @@ function createPointField(
         axis,
         kind,
         value: formatCoordinate(current, kind, timePrecision),
-        fractionDigits: getFractionDigits(kind, current, context),
-        step: timePrecision == null ? getNumberStep(kind, context) : TIME_STEPS[timePrecision],
+        step: timePrecision == null ? undefined : TIME_STEPS[timePrecision],
+        ...getNumberPrecision(kind, current, context),
         timePrecision,
         // A precision read from the value hides none of it.
         withHiddenTime:
@@ -391,20 +391,33 @@ function createOffsetPointFields(
 }
 
 /**
- * The decimals of the format the user gave the crosshair label, or else of the axis's tick size, or else of the
- * label's default text. Undefined where none is a plain number, such as the text of a custom formatter.
+ * The decimals and spinner step of a number. The decimals are those of the format the user gave the crosshair label, or
+ * else of the axis's tick size, or else of the label's default text, where that is a plain number. The spinner moves by
+ * the tick size.
  */
-function getFractionDigits(kind: CoordinateKind, current: PointType | undefined, context: AnnotationAxisContext) {
-    const value = getGroupingValue(current);
-    if (kind !== 'number' || typeof value !== 'number') {
-        return;
+function getNumberPrecision(
+    kind: CoordinateKind,
+    current: PointType | undefined,
+    context: AnnotationAxisContext
+): Pick<CoordinateField, 'fractionDigits' | 'step'> {
+    if (kind !== 'number') {
+        return {};
     }
-    const tickSize = getNumberStep(kind, context);
-    return (
-        countTextFractionDigits(context.formatWithCrosshairLabel(value)) ??
-        (tickSize == null ? undefined : countFractionDigits(tickSize)) ??
-        countTextFractionDigits(toPlainText(context.formatScaleValue(value, 'crosshair')))
-    );
+    const value = getGroupingValue(current);
+    if (typeof value !== 'number') {
+        return { step: getNumberTickSize(context) };
+    }
+
+    const labelDigits = countTextFractionDigits(context.formatWithCrosshairLabel(value));
+    if (labelDigits != null) {
+        // The data is left unread for a tick size, which the label's format stands in for.
+        return { fractionDigits: labelDigits, step: getNumberTickSize(context, false) };
+    }
+    const tickSize = getNumberTickSize(context);
+    if (tickSize != null) {
+        return { fractionDigits: countFractionDigits(tickSize), step: tickSize };
+    }
+    return { fractionDigits: countTextFractionDigits(toPlainText(context.formatScaleValue(value, 'crosshair'))) };
 }
 
 function countTextFractionDigits(text: string | undefined) {
@@ -416,8 +429,8 @@ function countTextFractionDigits(text: string | undefined) {
     return match ? (match[1]?.length ?? 0) : undefined;
 }
 
-function getNumberStep(kind: CoordinateKind, context: AnnotationAxisContext) {
-    const tickSize = kind === 'number' ? context.valueTickSize() : undefined;
+function getNumberTickSize(context: AnnotationAxisContext, infer?: boolean) {
+    const tickSize = context.valueTickSize(infer);
     return typeof tickSize === 'number' ? tickSize : undefined;
 }
 
@@ -530,8 +543,7 @@ function createHeightField(
         kind: 'number',
         value: String(current),
         // A height is a distance along the y axis, so it is shown and stepped as a value on that axis is.
-        fractionDigits: getFractionDigits(kind, current, context),
-        step: getNumberStep(kind, context),
+        ...getNumberPrecision(kind, current, context),
         toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
     };
 }

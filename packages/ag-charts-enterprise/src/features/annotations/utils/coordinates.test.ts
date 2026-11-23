@@ -17,7 +17,7 @@ import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
 import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
-import { createAxesContext } from '../test/fixture';
+import { type AxisOverrides, createAxesContext } from '../test/fixture';
 import {
     displayCoordinate,
     floorToBand,
@@ -352,7 +352,7 @@ describe('annotation coordinates', () => {
         const datum = { ...lineDatum.create(), start: { x: 1, y: 4366.2765 }, end: { x: 2, y: 20 } };
         const twoDecimals = (value: unknown) => Number(value).toFixed(2);
 
-        it.each([
+        it.each<[string, AxisOverrides, number, number | undefined]>([
             ['the tick size ahead of the default label', { valueTickSize: () => 0.5 }, 1, 0.5],
             ['none for a whole tick size', { valueTickSize: () => 5 }, 0, 5],
             [
@@ -360,6 +360,15 @@ describe('annotation coordinates', () => {
                 { valueTickSize: () => 0.25, formatWithCrosshairLabel: () => '$4,366.277' },
                 3,
                 0.25,
+            ],
+            [
+                'a format given to the crosshair label, with the data left unread for a tick size',
+                {
+                    valueTickSize: (infer) => (infer === false ? undefined : 0.25),
+                    formatWithCrosshairLabel: () => '$4,366.277',
+                },
+                3,
+                undefined,
             ],
             [
                 'the tick size where the crosshair label is not a plain number',
@@ -374,7 +383,7 @@ describe('annotation coordinates', () => {
                 2,
                 undefined,
             ],
-        ])('follow %s, and the spinner steps by the tick size', (_name, y, fractionDigits, step) => {
+        ])('follow %s, as does the spinner step', (_name, y, fractionDigits, step) => {
             const parallel = { ...parallelChannelDatum.create(), start: datum.start, end: datum.end, height: 12.3456 };
             const context = createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), twoDecimals, { y });
 

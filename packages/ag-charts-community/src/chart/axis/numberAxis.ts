@@ -45,9 +45,9 @@ export class NumberAxis<
         this.inferredTickSize = undefined;
     }
 
-    protected override valueTickSize() {
+    protected override valueTickSize(infer = true) {
         const { tickSize } = this.options;
-        if (tickSize != null) return tickSize;
+        if (tickSize != null || !infer) return tickSize;
 
         this.inferredTickSize ??= { value: inferValueTickSize(this.boundSeries, this.direction) };
         return this.inferredTickSize.value;

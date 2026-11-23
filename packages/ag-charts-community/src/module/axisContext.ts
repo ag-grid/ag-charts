@@ -115,10 +115,10 @@ export interface AxisContext {
      */
     formatWithCrosshairLabel(value: unknown): string | undefined;
     /**
-     * The smallest step between values on the axis: its `tickSize` option, or else the step of its data, which is
-     * read when asked for rather than as the data is processed. Not the length of the axis's tick marks.
+     * The smallest step between values on the axis, not the length of its tick marks: its `tickSize` option, or else the
+     * step of its data. A numeric axis reads all of its data for that step when asked, unless `infer` is false.
      */
-    valueTickSize(): AxisValueTickSize | undefined;
+    valueTickSize(infer?: boolean): AxisValueTickSize | undefined;
     attachLabel(node: Node): void;
     /**
      * Attaches a plugin-owned scene group into one of three z-index-ordered overlay slots that

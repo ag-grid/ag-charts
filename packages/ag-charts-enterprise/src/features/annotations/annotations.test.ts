@@ -1435,6 +1435,14 @@ describe('Annotations', () => {
                     ['number', '0.25', '1.0'],
                 ],
                 [
+                    'a number at the format of the crosshair label, which leaves the step of the data unread',
+                    numberOptions(THOUSANDTHS, { crosshair: { label: { format: '.3f' } } }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', 'any', '1.002'],
+                ],
+                [
                     'a number on a log axis at the step of the data',
                     numberOptions(POWERS_OF_TEN, { type: 'log' }),
                     'horizontal-line',
