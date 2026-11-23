@@ -45,5 +45,5 @@ Each series is a `SeriesModuleDefinition` (`packages/ag-charts-core/src/modules/
 
 ## Testing
 
--   Visual snapshot tests live in `*.test.ts` alongside the series; use `prepareTestOptions()` (community) / `prepareEnterpriseTestOptions()` (enterprise)
+-   Visual snapshot tests live in `*.test.ts` alongside the series; create charts through the shared factories `createChart` (community) / `createEnterpriseChart` (enterprise), as the `test-harness-contracts` rule describes
 -   When modifying community series, check enterprise extensions too
