@@ -1,5 +1,6 @@
 import {
     type AgItemShadowStyle,
+    type AgItemShadowStylerParams,
     type AgTreemapHighlightState,
     type AgTreemapSeriesItemStylerParams,
     type AgTreemapSeriesLabelFormatterParams,
@@ -553,10 +554,13 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const overrides = this.cachedDatumCallback(
                 createDatumId(nodeDatum.datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const part = isLeaf ? this.options.tile : this.options.group;
                     const params = this.makeItemStylerParams(
                         nodeDatum,
                         style,
-                        toHierarchyHighlightString(highlightState)
+                        toHierarchyHighlightString(highlightState),
+                        this.getHierarchyStylerShadow(part.shadow),
+                        this.getNodeStylerGlow(nodeDatum, isLeaf, isHighlight, highlightedNode)
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -582,6 +586,62 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     private readonly resolveSeriesOnlyTileGlow = () => this.options.tile.glow;
 
     /**
+     * A group casts no glow with its highlight off, and a tile with no highlight glow casts none without a series-level
+     * one, unless an item styler sets one.
+     */
+    private castsNoGlow(slot: number, itemGlow: AgGlowOptions | undefined) {
+        if (itemGlow != null) return false;
+
+        switch (slot) {
+            case GROUP_SLOT:
+                return !this.options.group.highlight.enabled && this.options.group.glow?.enabled !== true;
+            case SERIES_ONLY_TILE_SLOT:
+                return this.options.tile.glow?.enabled !== true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * The cache slot a node's glow is kept in. With a group highlighted, a tile inherits only the group's opacities (see
+     * `getTileHighlightStyle`), and it has no highlight glow with its tile highlight off: it casts its series-level glow,
+     * under any glow from an item styler.
+     */
+    private getGlowSlot(isLeaf: boolean, highlightedNode: TreemapNode | undefined) {
+        if (!isLeaf) return GROUP_SLOT;
+        return !this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0
+            ? SERIES_ONLY_TILE_SLOT
+            : TILE_SLOT;
+    }
+
+    private getGlowState(
+        slot: number,
+        node: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth'>,
+        isHighlight: boolean,
+        highlightedNode: TreemapNode | undefined
+    ) {
+        switch (slot) {
+            case GROUP_SLOT:
+                return this.getGroupHighlightState(isHighlight, highlightedNode, node);
+            case TILE_SLOT:
+                return this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
+            default:
+                return HierarchyHighlightState.None;
+        }
+    }
+
+    private getGlowResolver(slot: number) {
+        switch (slot) {
+            case GROUP_SLOT:
+                return this.resolveGroupGlow;
+            case TILE_SLOT:
+                return this.resolveTileGlow;
+            default:
+                return this.resolveSeriesOnlyTileGlow;
+        }
+    }
+
+    /**
      * The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. Tile
      * and group highlights sit under `tile.highlight` and `group.highlight`.
      */
@@ -592,35 +652,25 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         highlightedNode: TreemapNode | undefined,
         itemGlow?: AgGlowOptions
     ) {
-        if (!isLeaf) {
-            // A series-level glow, or one from an item styler, casts whether or not the group highlight is on.
-            if (
-                !this.options.group.highlight.enabled &&
-                itemGlow == null &&
-                this.options.group.glow?.enabled !== true
-            ) {
-                return;
-            }
+        const slot = this.getGlowSlot(isLeaf, highlightedNode);
+        if (this.castsNoGlow(slot, itemGlow)) return;
 
-            const groupState = this.getGroupHighlightState(isHighlight, highlightedNode, node);
-            return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow, itemGlow);
-        }
+        const state = this.getGlowState(slot, node, isHighlight, highlightedNode);
+        return this.getHierarchyGlow(slot, state, this.getGlowResolver(slot), itemGlow);
+    }
 
-        // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`), and it has
-        // no highlight glow with its tile highlight off: it casts its series-level glow, under any glow from an item styler.
-        if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) {
-            if (itemGlow == null && this.options.tile.glow?.enabled !== true) return;
+    /** The glow a node casts without an item styler, from the same slot and state as {@link getNodeGlow}. */
+    private getNodeStylerGlow(
+        node: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth'>,
+        isLeaf: boolean,
+        isHighlight: boolean,
+        highlightedNode: TreemapNode | undefined
+    ) {
+        const slot = this.getGlowSlot(isLeaf, highlightedNode);
+        if (this.castsNoGlow(slot, undefined)) return;
 
-            return this.getHierarchyGlow(
-                SERIES_ONLY_TILE_SLOT,
-                HierarchyHighlightState.None,
-                this.resolveSeriesOnlyTileGlow,
-                itemGlow
-            );
-        }
-
-        const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
-        return this.getHierarchyGlow(TILE_SLOT, tileState, this.resolveTileGlow, itemGlow);
+        const state = this.getGlowState(slot, node, isHighlight, highlightedNode);
+        return this.getHierarchyStylerGlow(slot, state, this.getGlowResolver(slot));
     }
 
     private itemStyle(
@@ -642,7 +692,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     private makeItemStylerParams(
         nodeDatum: Pick<TreemapNode, 'datum' | 'datumIndex' | 'depth'>,
         style: Required<ItemStyle>,
-        highlightState: AgTreemapHighlightState
+        highlightState: AgTreemapHighlightState,
+        shadow: AgItemShadowStylerParams['shadow'],
+        glow: AgItemShadowStylerParams['glow']
     ) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
@@ -658,6 +710,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             sizeKey,
             labelKey,
             secondaryLabelKey,
+            shadow,
+            glow,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             candidateState: this.getCandidateStateString(nodeDatum.datumIndex),

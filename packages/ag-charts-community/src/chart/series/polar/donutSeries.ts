@@ -117,7 +117,7 @@ import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import type { SeriesAreaLayout, UnknownSeries } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import { isUnselected } from '../seriesProperties';
+import { isUnselected, toHighlightString } from '../seriesProperties';
 import { HighlightState } from '../seriesTypes';
 import {
     pickByMatchingAngle,
@@ -951,6 +951,12 @@ export class DonutSeries extends PolarSeries<
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.options;
 
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        const castState = this.getHighlightState(
+            this.ctx.highlightManager?.getActiveHighlight(),
+            isHighlight,
+            datumIndex
+        );
+        const { shadow, glow } = this.options;
 
         return {
             datum,
@@ -961,11 +967,9 @@ export class DonutSeries extends PolarSeries<
             legendItemKey,
             ...style,
             fill,
-            highlightState: this.getHighlightStateString(
-                this.ctx.highlightManager?.getActiveHighlight(),
-                isHighlight,
-                datumIndex
-            ),
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: toHighlightString(castState),
             selectionState: this.getSelectionStateString(datumIndex),
             candidateState: this.getCandidateStateString(datumIndex),
             seriesId: this.id,

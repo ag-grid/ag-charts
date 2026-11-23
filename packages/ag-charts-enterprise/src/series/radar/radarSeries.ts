@@ -531,7 +531,7 @@ export abstract class RadarSeries<
             selection,
             isHighlight,
             ctx,
-            { compute: RadarSeries.computeStylerStyle, apply: RadarSeries.applyStylerDatum }
+            { hoveredItemShadow: true, compute: RadarSeries.computeStylerStyle, apply: RadarSeries.applyStylerDatum }
         );
     }
 
