@@ -1243,6 +1243,14 @@ describe('label collision avoidance', () => {
         };
         const placedBoxes = () =>
             getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({ text, x, y, width, height }));
+        const placedWithMarker = () =>
+            getPlacedLabelData(chart).map(({ x, y, width, height, datum }) => ({
+                box: { x, y, width, height },
+                anchor: datum.anchor,
+                markerShape: datum.markerShape,
+                markerSize: datum.markerSize,
+                markerRestyled: datum.markerRestyled,
+            }));
         const squareMarkerOptions = (type: 'line' | 'area' | 'scatter', styled: boolean): any => ({
             legend: { enabled: false },
             axes: {
@@ -1464,14 +1472,6 @@ describe('label collision avoidance', () => {
                 // Wide enough that 1200 markers stay above the density cut-off.
                 width: 3000,
             });
-            const placed = () =>
-                getPlacedLabelData(chart).map(({ x, y, width, height, datum }) => ({
-                    box: { x, y, width, height },
-                    anchor: datum.anchor,
-                    markerShape: datum.markerShape,
-                    markerSize: datum.markerSize,
-                    markerRestyled: datum.markerRestyled,
-                }));
 
             // createChart would reset the width.
             const create = async (styled: boolean) => {
@@ -1479,16 +1479,61 @@ describe('label collision avoidance', () => {
                 await waitForChartStability(chart);
             };
             await create(false);
-            const plain = placed();
+            const plain = placedWithMarker();
             chart.destroy();
 
             await create(true);
-            const styled = placed();
+            const styled = placedWithMarker();
             await chart.update(options(false));
             await waitForChartStability(chart);
             expect(plain).toHaveLength(3);
             expect(styled.map((l) => l.box)).not.toEqual(plain.map((l) => l.box));
-            expect(placed()).toEqual(plain);
+            expect(placedWithMarker()).toEqual(plain);
+        });
+
+        // After a transaction a bubble series reuses its node data in place, so nothing a styler stamped may outlive it.
+        it('bubble: places labels as before once a shape-changing styler is removed after a transaction', async () => {
+            const data = [
+                { x: 2, y: 5, s: 1, l: 'Alpha' },
+                { x: 5, y: 5, s: 1, l: 'Beta' },
+            ];
+            const added = { x: 8, y: 5, s: 1, l: 'Gamma' };
+            const series = (styled: boolean) => ({
+                type: 'bubble',
+                xKey: 'x',
+                yKey: 'y',
+                sizeKey: 's',
+                labelKey: 'l',
+                shape: 'circle',
+                minSize: 8,
+                maxSize: 8,
+                itemStyler: styled ? () => ({ shape: 'pin', size: 40 }) : undefined,
+                label: { enabled: true, placement: 'bottom' },
+            });
+            const options = (styled: boolean, chartData: object[]): any => ({
+                animation: { enabled: false },
+                legend: { enabled: false },
+                data: chartData,
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+                series: [series(styled)],
+            });
+
+            chart = await createChart(options(false, [...data, added]));
+            const plain = placedWithMarker();
+            chart.destroy();
+
+            chart = await createChart(options(true, [...data]));
+            const styled = placedWithMarker();
+            // One update both drops the styler and reuses the styled nodes for the transaction.
+            const removed = chart.updateDelta({ series: [series(false)] } as any);
+            await Promise.all([removed, chart.applyTransaction({ add: [added] })]);
+            await waitForChartStability(chart);
+            expect(plain).toHaveLength(3);
+            expect(styled.map((l) => l.box)).not.toEqual(plain.slice(0, 2).map((l) => l.box));
+            expect(placedWithMarker()).toEqual(plain);
         });
     });
 
