@@ -204,11 +204,11 @@ describe('highlight glow', () => {
             }
         );
 
-        it('casts no glow unless it is enabled', async () => {
+        it('casts the default glow on the hovered item unless it is disabled', async () => {
             const { highlighted } = await hoverFirstItem(testCase, undefined);
 
             expect(highlighted).toHaveLength(1);
-            expect(highlighted.filter(casts)).toHaveLength(0);
+            expect(highlighted.filter(casts)).toHaveLength(1);
         });
 
         it('casts no glow when it is configured but disabled', async () => {
@@ -245,7 +245,12 @@ describe('highlight glow', () => {
         it.each(['cutout', 'overlay'] as const)(
             'does not cast the base shadow from the highlight copy when there is no glow in %s mode',
             async (drawingMode) => {
-                const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, drawingMode);
+                const { inPlace, highlighted } = await hoverFirstItem(
+                    testCase,
+                    SERIES_SHADOW,
+                    { highlightedItem: { glow: { enabled: false } } },
+                    drawingMode
+                );
 
                 expect(highlighted).toHaveLength(1);
                 expect(highlighted.filter(casts)).toHaveLength(0);
@@ -255,7 +260,7 @@ describe('highlight glow', () => {
 
         it('casts no glow from the highlight copy when only the base shadow is configured', async () => {
             const { highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {
-                highlightedItem: { fill: 'orange' },
+                highlightedItem: { fill: 'orange', glow: { enabled: false } },
             });
 
             expect(highlighted.filter(casts)).toHaveLength(0);
@@ -489,7 +494,7 @@ describe('highlight glow', () => {
     });
 
     describe('theme defaults', () => {
-        const THEME_GLOW = { enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 };
+        const THEME_GLOW = { enabled: false, fillOpacity: 0.6, blur: 1, spread: 2, gap: 1 };
 
         const createBar = async (theme: 'ag-default' | 'ag-default-dark', glow?: AgGlowOptions) => {
             chart = deproxy(
@@ -517,7 +522,7 @@ describe('highlight glow', () => {
         it.each(BUCKETS)('has the %s glow follow the series glow, and none of its other fields', async (bucket) => {
             await createBar('ag-default');
 
-            expect(resolvedGlow(bucket)).toEqual({ enabled: false });
+            expect(resolvedGlow(bucket)).toEqual({ enabled: bucket === 'highlightedItem' });
         });
 
         it.each(BUCKETS)('turns the %s glow on with the series glow', async (bucket) => {
@@ -559,9 +564,9 @@ describe('highlight glow', () => {
 
             expect(highlighted[0].fillGlow).toMatchObject({
                 enabled: true,
-                fillOpacity: 0.4,
-                blur: 2,
-                spread: 4,
+                fillOpacity: 0.6,
+                blur: 1,
+                spread: 2,
                 xOffset: 0,
                 yOffset: 0,
             });
@@ -866,7 +871,7 @@ describe('highlight glow', () => {
                 expect(shape.getCastShadow('glow')).toMatchObject({
                     enabled: true,
                     fill: shape.fill,
-                    fillOpacity: 0.4,
+                    fillOpacity: 0.6,
                 });
             });
 
@@ -883,7 +888,7 @@ describe('highlight glow', () => {
                     highlightedItem: { fill: 'orange', glow: { ...GLOW, fill: '#123456' } },
                 });
 
-                expect(highlighted[0].getCastShadow('glow')).toMatchObject({ fill: '#123456', fillOpacity: 0.4 });
+                expect(highlighted[0].getCastShadow('glow')).toMatchObject({ fill: '#123456', fillOpacity: 0.6 });
             });
 
             it('casts at the fillOpacity that it sets, and at that of the theme where it sets none', async () => {
@@ -894,7 +899,7 @@ describe('highlight glow', () => {
                 chart.destroy();
 
                 const unset = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: GLOW } });
-                expect(unset.highlighted[0].getCastShadow('glow')?.fillOpacity).toBe(0.4);
+                expect(unset.highlighted[0].getCastShadow('glow')?.fillOpacity).toBe(0.6);
             });
 
             it.each(BUCKETS)('takes fill and fillOpacity in the %s bucket', async (bucket) => {
@@ -1072,7 +1077,7 @@ describe('highlight glow', () => {
             ] as const)('draws a spread glow in the stroke colour around %s', async (_name, testCase, options) => {
                 const pixels = await hoveredPixels(testCase, options, glow({ spread: 4, blur: 0 }));
 
-                expect(pixels.above(2)).toEqual(BLUE);
+                expect(pixels.above(3)).toEqual(BLUE);
                 expect(pixels.above(12)).toEqual(WHITE);
             });
 
@@ -1110,7 +1115,7 @@ describe('highlight glow', () => {
                         glow({ spread: 4, blur: 0, fill: GREEN_FILL })
                     );
 
-                    expect(pixels.above(2)).toEqual(GREEN);
+                    expect(pixels.above(3)).toEqual(GREEN);
                     expect(pixels.above(12)).toEqual(WHITE);
                 }
             );
@@ -1300,6 +1305,7 @@ describe('highlight glow', () => {
                 const BLUE_FILL = '#0000ff';
                 const NO_GLOW = { enabled: false };
                 const ZERO = glow({ spread: 0, blur: 0 });
+                const BLUR_ONLY = glow({ spread: 0, blur: 8 });
 
                 const PAINTS = [
                     ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL],
@@ -1337,7 +1343,7 @@ describe('highlight glow', () => {
                     describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
                         // Cut out of the item, a glow with no spread has nothing to show.
                         it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
-                            const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                            const cast = await regionOf(testCase, options, BLUR_ONLY, drawingMode, undefined);
                             const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
 
                             expect(cast).not.toEqual(none);
