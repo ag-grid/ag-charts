@@ -8,10 +8,10 @@ import {
     FILL_PATTERN_KEYED_DEFAULTS,
     GLOW_THEME_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
     SERIES_GLOW_BUCKETS,
-    SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     inheritedGlowTheme,
@@ -160,7 +160,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
                 glow: ['high', 'low', 'close'].map((item) => `/series/$index/item/${item}/marker/glow`),
             }
         ),
-        selection: SERIES_SELECTION_THEME,
+        selection: MARKER_SERIES_SELECTION_THEME,
     },
     axes: FINANCIAL_SERIES_AXES_THEME,
 };

@@ -11,11 +11,11 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
-    SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -178,7 +178,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
                 glow: ['low', 'high'].map((item) => `/series/$index/item/${item}/marker/glow`),
             }
         ),
-        selection: SERIES_SELECTION_THEME,
+        selection: MARKER_SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {
             enabled: false,

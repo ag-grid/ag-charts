@@ -45,31 +45,31 @@ export interface AgGlowOptions {
     /**
      * The fill colour of the glow.
      *
-     * Default: the fill of the item that glows, or its stroke if it has no fill
+     * Default: the fill of the item that glows, or its stroke if it has no fill. A 60% mix of `foregroundColor` onto `backgroundColor` for heatmap, nightingale, sunburst, treemap and map-shape
      */
     fill?: CssColor;
     /**
      * The opacity of the glow's fill, from `0` to `1`. It multiplies any alpha that `fill` already has.
      *
-     * Default: `0.4`
+     * Default: `0.6`. `0.5` for candlestick and OHLC; `1` for box-plot, heatmap, nightingale, sunburst, treemap tiles and map-shape
      */
     fillOpacity?: Opacity;
     /**
      * The radius of the glow's blur, in pixels.
      *
-     * Default: `2`
+     * Default: `1`. `0` for heatmap, nightingale, sunburst, treemap tiles and map-shape
      */
     blur?: PixelSize;
     /**
      * How far, in pixels, the glow grows beyond the item before the blur is applied.
      *
-     * Default: `4`
+     * Default: `2`. `1` for heatmap, nightingale, sunburst, treemap tiles and map-shape
      */
     spread?: PixelSize;
     /**
      * How far, in pixels, the glow starts from the item.
      *
-     * Default: unset
+     * Default: `1`. `0` for candlestick, OHLC, heatmap, nightingale, sunburst, treemap tiles and map-shape
      */
     gap?: PixelSize;
 }

@@ -271,7 +271,11 @@ export class MapShapeSeries
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, zIndex];
+        // Above the series' own shapes, but under later series and the markers, unless it is to come to the front.
+        this.highlightGroup.zIndex =
+            this.options.highlight?.bringToFront === false
+                ? [MapZIndexMap.ShapeLine, zIndex, 1]
+                : [MapZIndexMap.ShapeLineHighlight, zIndex];
 
         return true;
     }

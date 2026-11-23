@@ -11,14 +11,14 @@ import {
     CARTESIAN_POSITION,
     ChartAxisDirection,
     GLOW_THEME_DEFAULTS,
-    MULTI_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     NEAREST_TOOLTIP_THEME,
     SERIES_GLOW_BUCKETS,
     SERIES_INTERACTION_THEME_DEFAULTS,
-    SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    multiSeriesHighlightStyle,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -53,10 +53,13 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
             down: itemTheme('down'),
         },
         shadow: SHADOW_THEME_DEFAULTS,
-        glow: GLOW_THEME_DEFAULTS,
+        glow: { ...GLOW_THEME_DEFAULTS, fillOpacity: 0.5, gap: 0 },
         tooltip: NEAREST_TOOLTIP_THEME,
-        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
-        selection: SERIES_SELECTION_THEME,
+        highlight: withGlowThemeDefaults(
+            { ...multiSeriesHighlightStyle(0.3), bringToFront: true },
+            SERIES_GLOW_BUCKETS
+        ),
+        selection: MARKER_SERIES_SELECTION_THEME,
     },
     axes: FINANCIAL_SERIES_AXES_THEME,
 };

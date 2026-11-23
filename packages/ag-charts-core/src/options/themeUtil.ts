@@ -626,39 +626,49 @@ export const BAR_LABEL_COLLISION_THEME = {
     collideWith: { shapes: false },
 };
 
-export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedItem: {
-        opacity: 0.6,
-    },
-    unhighlightedSeries: {
-        opacity: 0.2,
-    },
-};
+/** The `unhighlightedItem` opacity of a series, which in `highlight.mode: 'shared'` is that of `unhighlightedSeries`. */
+function sharedModeOpacity(singleModeOpacity: number): Operation {
+    return {
+        $if: [
+            { $eq: [{ $path: '/highlight/mode' }, 'shared'] },
+            { $path: '/series/$index/highlight/unhighlightedSeries/opacity' },
+            singleModeOpacity,
+        ],
+    };
+}
 
-export const MARKER_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedSeries: {
-        opacity: 0.2,
-    },
-};
+/**
+ * The highlight style of a series with series states, whose other series dim to `unhighlightedSeries` opacity. The
+ * other items of the hovered series dim to `unhighlightedItem` in `'single'` mode, and with the other series in `'shared'`.
+ */
+export function multiSeriesHighlightStyle(
+    unhighlightedSeries: number,
+    unhighlightedItem = 1
+): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: { $circular: { $path: '/highlight/enabled' } },
+        unhighlightedItem: { opacity: sharedModeOpacity(unhighlightedItem) },
+        unhighlightedSeries: { opacity: unhighlightedSeries },
+    };
+}
 
-export const PART_WHOLE_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedItem: {
-        opacity: 0.2,
-    },
-    unhighlightedSeries: {
-        opacity: 0.2,
-    },
-};
+export const MULTI_SERIES_HIGHLIGHT_STYLE = multiSeriesHighlightStyle(0.5);
 
-export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedItem: {
-        opacity: 0.2,
-    },
-};
+export const MARKER_SERIES_HIGHLIGHT_STYLE = multiSeriesHighlightStyle(0.3);
+
+export const PART_WHOLE_HIGHLIGHT_STYLE = multiSeriesHighlightStyle(0.5, 0.5);
+
+/** The highlight style of a series without series states, whose other items dim to `unhighlightedItem` opacity. */
+export function singleSeriesHighlightStyle(
+    unhighlightedItem = 1
+): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: { $circular: { $path: '/highlight/enabled' } },
+        unhighlightedItem: { opacity: unhighlightedItem },
+    };
+}
+
+export const SINGLE_SERIES_HIGHLIGHT_STYLE = singleSeriesHighlightStyle();
 
 /** Interaction defaults for series whose public options omit `showInLegend`. */
 export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
@@ -732,9 +742,20 @@ export const SHADOW_THEME_DEFAULTS = {
 /** Disabled glow. It has no `fill`, as it takes the fill of the item that it surrounds. */
 export const GLOW_THEME_DEFAULTS = {
     enabled: false,
-    fillOpacity: 0.4,
-    blur: 2,
-    spread: 4,
+    fillOpacity: 0.6,
+    blur: 1,
+    spread: 2,
+    gap: 1,
+} as const;
+
+/** {@link GLOW_THEME_DEFAULTS} for items that sit against each other: a neutral `fill`, as a glow of the item's would be lost. */
+export const NEUTRAL_GLOW_THEME_DEFAULTS = {
+    enabled: false,
+    fill: { $foregroundBackgroundMix: 0.6 },
+    fillOpacity: 1,
+    blur: 0,
+    spread: 1,
+    gap: 0,
 } as const;
 
 /** The `lineDash` default of a style that falls back to the series' when unset, such as a highlight bucket. */
@@ -777,20 +798,24 @@ export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] 
 
 /**
  * Gives each of the `buckets` of a highlight theme, keeping what they hold, a `glow` whose `enabled` follows the series-level
- * `glow` at `seriesGlowPath`, so that its other options come from there. For a series whose highlight styles have no
+ * `glow` at `seriesGlowPath`, so that its other options come from there. The `highlightedItem` glows unless the user sets
+ * that `glow`, which `glowOnHover: false` leaves to follow it too. For a series whose highlight styles have no
  * `lineDash` for {@link withGlowThemeDefaults} to default, such as treemap and sunburst.
  */
 export function withFollowedGlowThemeDefaults<T extends object>(
     highlight: T,
     buckets: readonly string[],
-    seriesGlowPath: string
+    seriesGlowPath: string,
+    { glowOnHover = true }: Pick<GlowThemePaths, 'glowOnHover'> = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
-    for (const bucket of buckets) {
-        result[bucket] = {
-            ...(result[bucket] as object | undefined),
-            glow: { enabled: { $path: `${seriesGlowPath}/enabled` } },
-        };
+    const seriesEnabled = { $path: `${seriesGlowPath}/enabled` };
+    const follow = (bucket: string, enabled: Operation) => {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: { enabled } };
+    };
+    for (const bucket of buckets) follow(bucket, seriesEnabled);
+    if (glowOnHover) {
+        follow('highlightedItem', { $isUserOption: [seriesEnabled.$path, seriesEnabled, true] });
     }
     return result as T;
 }
@@ -802,6 +827,13 @@ export interface GlowThemePaths {
      * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
      */
     readonly glow?: string | readonly string[];
+    /**
+     * Whether the highlighted item glows unless the user sets the series-level `glow`. Set to `false` for a series whose
+     * highlighted item glows only when the series does.
+     *
+     * Default: `true`
+     */
+    readonly glowOnHover?: boolean;
 }
 
 /**
@@ -818,7 +850,7 @@ export interface GlowThemePaths {
 export function withGlowThemeDefaults<T extends object>(
     highlight: T,
     buckets: readonly string[],
-    { glow = '/series/$index/glow' }: GlowThemePaths = {}
+    { glow = '/series/$index/glow', glowOnHover = true }: GlowThemePaths = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     const glowPaths = typeof glow === 'string' ? [glow] : glow;
@@ -839,6 +871,13 @@ export function withGlowThemeDefaults<T extends object>(
         ? { $path: '/series/$index/highlight/highlightedSeries/glow/enabled' }
         : seriesEnabled;
     for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
+    if (glowOnHover) {
+        const userEnabledPaths = enabledPaths.map(({ $path }) => $path);
+        result.highlightedItem = {
+            ...(result.highlightedItem as object),
+            glow: { enabled: { $isUserOption: [userEnabledPaths, perPart ? undefined : itemEnabled, true] } },
+        };
+    }
     return result as T;
 }
 
@@ -958,22 +997,33 @@ export function interpolationThemeTemplate(defaultType: unknown = 'linear') {
     };
 }
 
-export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> = {
-    enabled: { $path: ['/selection/enabled', false] },
-    containment: { $path: ['/selection/containment', 'any'] },
-    selectedItem: {
-        strokeWidth: 2,
-        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
-    },
-    unselectedItem: {
-        opacity: 0.6,
-        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
-    },
-    unselectedSeries: {
-        opacity: 0.2,
-        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
-    },
-};
+/** The selection style of a series, whose unselected items dim to `unselectedItem` opacity, and series to `unselectedSeries`. */
+export function seriesSelectionTheme(
+    unselectedItem: number,
+    unselectedSeries = unselectedItem
+): WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> {
+    return {
+        enabled: { $path: ['/selection/enabled', false] },
+        containment: { $path: ['/selection/containment', 'any'] },
+        selectedItem: {
+            strokeWidth: 2,
+            opacity: 1,
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+        },
+        unselectedItem: {
+            opacity: unselectedItem,
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+        },
+        unselectedSeries: {
+            opacity: unselectedSeries,
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+        },
+    };
+}
+
+export const SERIES_SELECTION_THEME = seriesSelectionTheme(0.5);
+
+export const MARKER_SERIES_SELECTION_THEME = seriesSelectionTheme(0.3);
 
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
