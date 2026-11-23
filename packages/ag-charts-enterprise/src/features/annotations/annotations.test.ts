@@ -1427,12 +1427,12 @@ describe('Annotations', () => {
                     ['number', '0.25', '1.00'],
                 ],
                 [
-                    'a number at the format of the crosshair label ahead of both',
+                    'a number at the format of the crosshair label ahead of both, which hides a step of the `tickSize`',
                     numberOptions(THOUSANDTHS, { tickSize: 0.25, crosshair: { label: { format: '.1f' } } }),
                     'horizontal-line',
                     1.0015432,
                     1.0015432,
-                    ['number', '0.25', '1.0'],
+                    ['number', 'any', '1.0'],
                 ],
                 [
                     'a number at the format of the crosshair label, which leaves the step of the data unread',

@@ -393,7 +393,7 @@ function createOffsetPointFields(
 /**
  * The decimals and spinner step of a number. The decimals are those of the format the user gave the crosshair label, or
  * else of the axis's tick size, or else of the label's default text, where that is a plain number. The spinner moves by
- * the tick size.
+ * the tick size, unless the crosshair label shows too few decimals for a step of it to be seen.
  */
 function getNumberPrecision(
     kind: CoordinateKind,
@@ -411,7 +411,9 @@ function getNumberPrecision(
     const labelDigits = countTextFractionDigits(context.formatWithCrosshairLabel(value));
     if (labelDigits != null) {
         // The data is left unread for a tick size, which the label's format stands in for.
-        return { fractionDigits: labelDigits, step: getNumberTickSize(context, false) };
+        const given = getNumberTickSize(context, false);
+        const step = given != null && countFractionDigits(given) <= labelDigits ? given : undefined;
+        return { fractionDigits: labelDigits, step };
     }
     const tickSize = getNumberTickSize(context);
     if (tickSize != null) {

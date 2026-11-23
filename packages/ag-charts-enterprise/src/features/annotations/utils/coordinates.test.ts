@@ -362,6 +362,12 @@ describe('annotation coordinates', () => {
                 0.25,
             ],
             [
+                'a format given to the crosshair label that hides a step of the tick size, which the spinner leaves',
+                { valueTickSize: () => 0.01, formatWithCrosshairLabel: () => '4366' },
+                0,
+                undefined,
+            ],
+            [
                 'a format given to the crosshair label, with the data left unread for a tick size',
                 {
                     valueTickSize: (infer) => (infer === false ? undefined : 0.25),
