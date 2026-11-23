@@ -121,6 +121,7 @@ describe('AG-13024 API context', () => {
                     },
                 },
             },
+            tooltip: { mode: 'shared' },
             data: [
                 { quarter: 'q1', Toyota: 120000, Ford: 95000, BMW: 80000 },
                 { quarter: 'q2', Toyota: 150000, Ford: 110000, BMW: 90000 },
@@ -447,6 +448,7 @@ describe('AG-15283 context precedence', () => {
             context: {
                 source: 'root',
             },
+            tooltip: { mode: 'shared' },
             formatter: (params) => {
                 return (params.context as { source?: string } | undefined)?.source;
             },

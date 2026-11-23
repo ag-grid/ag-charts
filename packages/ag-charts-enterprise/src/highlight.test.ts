@@ -735,10 +735,7 @@ describe('Enterprise highlight defaults', () => {
         },
     ];
 
-    it.each([
-        [2, 'shared'],
-        [4, 'single'],
-    ])('defaults highlight.mode to the tooltip mode on a polar chart with %i series', async (count, expected) => {
+    it.each([2, 4])('defaults both modes to single on a polar chart with %i series', async (count) => {
         chart = deproxy(
             await createEnterpriseChart({
                 data: [
@@ -756,8 +753,8 @@ describe('Enterprise highlight defaults', () => {
         );
 
         const { processedOptions } = chart.chartOptions;
-        expect(processedOptions.tooltip?.mode).toBe(expected);
-        expect(processedOptions.highlight?.mode).toBe(expected);
+        expect(processedOptions.tooltip?.mode).toBe('single');
+        expect(processedOptions.highlight?.mode).toBe('single');
     });
 
     describe('multi series', () => {
