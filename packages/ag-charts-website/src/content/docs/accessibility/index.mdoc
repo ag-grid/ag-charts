@@ -106,6 +106,14 @@ Our accessibility testing has focused on these screen readers.
 
 AG Charts generates announcements for screen readers via a standards-based accessibility implementation based on the currently focused chart element.
 
+### Toolbars and Buttons
+
+Toolbar buttons that have a state announce it to screen readers:
+
+- The [annotations](./annotations/) magnet button is announced as a switch that is on or off.
+- The line colour, fill colour, text colour and settings buttons are announced as expanded while their colour picker or settings dialog is open, and as collapsed otherwise.
+- The selected [range button](./range-buttons/) is announced as current.
+
 ## High Contrast Theme
 
 For users that are visually impaired due to colour deficiencies, care should be taken to provide enough contrast between adjacent colours. Additionally, when using charts it is common to use red and green to denote negative and positive values, however this can pose difficulties for people suffering from colour blindness.
