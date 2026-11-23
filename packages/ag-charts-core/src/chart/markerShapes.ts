@@ -189,16 +189,37 @@ export function traceMarkerShape(shape: AgMarkerShape, size: number, pixelRatio 
     return path;
 }
 
-/** `compute` cached per shape, holding a custom one weakly so a styler's fresh function per datum leaks nothing. */
-export function memoiseByMarkerShape<T>(compute: (shape: AgMarkerShape) => T): (shape: AgMarkerShape) => T {
+// Soft cap on the distinct custom geometries remembered, cleared wholesale as the marker path cache is.
+const MAX_CUSTOM_GEOMETRIES = 1024;
+
+/**
+ * `compute` cached per shape, holding a custom one weakly. A styler may return a fresh function per datum,
+ * so functions whose traces at every `traceSizes` match share one result; `compute` must read no other size.
+ */
+export function memoiseByMarkerShape<T extends object | undefined>(
+    compute: (shape: AgMarkerShape) => T,
+    traceSizes: readonly number[]
+): (shape: AgMarkerShape) => T {
     const builtIn = new Map<string, T>();
     const custom = new WeakMap<AgMarkerShapeFn, T>();
+    const byGeometry = new Map<string, WeakRef<NonNullable<T>>>();
+    const computeCustom = (shape: AgMarkerShapeFn): T => {
+        const key = traceSizes.map((size) => traceMarkerShape(shape, size).toSVG()).join('|');
+        const shared = byGeometry.get(key)?.deref();
+        if (shared != null) return shared;
+        const value = compute(shape);
+        if (value != null) {
+            if (byGeometry.size >= MAX_CUSTOM_GEOMETRIES) byGeometry.clear();
+            byGeometry.set(key, new WeakRef(value));
+        }
+        return value;
+    };
     return (shape) => {
         if (typeof shape === 'string') {
             if (!builtIn.has(shape)) builtIn.set(shape, compute(shape));
             return builtIn.get(shape)!;
         }
-        if (!custom.has(shape)) custom.set(shape, compute(shape));
+        if (!custom.has(shape)) custom.set(shape, computeCustom(shape));
         return custom.get(shape)!;
     };
 }

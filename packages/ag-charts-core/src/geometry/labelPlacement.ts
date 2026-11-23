@@ -764,6 +764,8 @@ interface PooledLabelObstacle {
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
 const markerOutlinePool: PooledMarkerOutlineObstacle[] = [];
+// Pooled outline obstacles the current solve placed, whose shapes it lets go of when it ends.
+let placedOutlineCount = 0;
 const labelObstaclePool: PooledLabelObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the positive part of the collision threshold, a
@@ -1447,6 +1449,7 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
             }
         }
     }
+    placedOutlineCount = outlineCount;
 }
 
 /** Inserts the pooled circle obstacle at `index` for the marker of diameter `size` at {@link markerCentre}. */
@@ -1692,6 +1695,10 @@ function releaseSolveReferences() {
     restyledPolicyBase = undefined;
     restyledPolicy.policy = releasedPolicy;
     markerCentre.outline = undefined;
+    for (let i = 0; i < placedOutlineCount; i++) {
+        markerOutlinePool[i].outline.outline = undefined;
+    }
+    placedOutlineCount = 0;
     fittedLabel.text = '';
     candidateLabel.text = '';
     boundedFit.region = undefined;

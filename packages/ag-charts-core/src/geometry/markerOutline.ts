@@ -33,8 +33,9 @@ const INNER_MARGIN = 0.01;
 const CUSTOM_SMALL_SIZE = 10;
 const CUSTOM_LARGE_SIZE = 100;
 
-const cachedOutline = memoiseByMarkerShape((shape) =>
-    typeof shape === 'string' ? builtInOutline(shape) : customOutline(shape)
+const cachedOutline = memoiseByMarkerShape(
+    (shape) => (typeof shape === 'string' ? builtInOutline(shape) : customOutline(shape)),
+    [CUSTOM_SMALL_SIZE, CUSTOM_LARGE_SIZE]
 );
 
 /** The shape's outline, analysed once; `undefined` for a circle or unmeasurable shape, which collide as circles. */
@@ -197,18 +198,20 @@ function outlineContainsBox(scale: Float64Array, x: number, y: number, halfWidth
     return winding !== 0;
 }
 
-/** An outline drawn at one size and centre: its vertices and inner box in px, laid out once for many tests. */
+/** An outline drawn at one size and centre, its vertices derived per test so placing it costs no layout pass. */
 export interface PlacedMarkerOutline {
-    /** Interleaved x, y pairs, of which the first `length` entries are the outline's. */
-    vertices: Float64Array;
-    length: number;
+    /** `undefined` while the outline is released, or drawn at no positive size. */
+    outline: MarkerOutline | undefined;
+    cx: number;
+    cy: number;
+    size: number;
     innerMinX: number;
     innerMinY: number;
     innerMaxX: number;
     innerMaxY: number;
 }
 
-/** Lays `outline` out at `size` on `(cx, cy)`, into `out` when given; empty unless `size` is positive. */
+/** Places `outline` at `size` on `(cx, cy)`, into `out` when given; empty unless `size` is positive. */
 export function placeMarkerOutline(
     outline: MarkerOutline,
     cx: number,
@@ -216,28 +219,25 @@ export function placeMarkerOutline(
     size: number,
     out?: PlacedMarkerOutline
 ): PlacedMarkerOutline {
-    const { scale, offset } = outline;
-    const n = size > 0 ? scale.length : 0;
+    const drawn = size > 0;
     const placed = out ?? {
-        vertices: new Float64Array(n),
-        length: 0,
+        outline: undefined,
+        cx: 0,
+        cy: 0,
+        size: 0,
         innerMinX: 0,
         innerMinY: 0,
         innerMaxX: 0,
         innerMaxY: 0,
     };
-    if (placed.vertices.length < n) placed.vertices = new Float64Array(n);
-    const { vertices } = placed;
-    for (let i = 0; i < n; i += 2) {
-        vertices[i] = cx + scale[i] * size + offset[i];
-        vertices[i + 1] = cy + scale[i + 1] * size + offset[i + 1];
-    }
-    placed.length = n;
-    const empty = n === 0;
-    placed.innerMinX = empty ? Infinity : cx + outline.innerMinX * size;
-    placed.innerMinY = empty ? Infinity : cy + outline.innerMinY * size;
-    placed.innerMaxX = empty ? -Infinity : cx + outline.innerMaxX * size;
-    placed.innerMaxY = empty ? -Infinity : cy + outline.innerMaxY * size;
+    placed.outline = drawn ? outline : undefined;
+    placed.cx = cx;
+    placed.cy = cy;
+    placed.size = size;
+    placed.innerMinX = drawn ? cx + outline.innerMinX * size : Infinity;
+    placed.innerMinY = drawn ? cy + outline.innerMinY * size : Infinity;
+    placed.innerMaxX = drawn ? cx + outline.innerMaxX * size : -Infinity;
+    placed.innerMaxY = drawn ? cy + outline.innerMaxY * size : -Infinity;
     return placed;
 }
 
@@ -251,8 +251,8 @@ export function markerOutlineOverlapsRect(
     cos: number,
     sin: number
 ): boolean {
-    const testable = placed.length > 0 && halfWidth > 0 && halfHeight > 0;
-    if (!testable) return false;
+    const { outline } = placed;
+    if (outline == null || !(halfWidth > 0 && halfHeight > 0)) return false;
     if (cos === 1 && sin === 0) {
         // Sharing area with the inner box is an overlap the full test finds too, as every edge keeps clear of it.
         const sharesInner =
@@ -262,15 +262,17 @@ export function markerOutlineOverlapsRect(
             ry + halfHeight > placed.innerMinY;
         if (sharesInner) return true;
     }
-    const { vertices, length: n } = placed;
+    const { scale, offset } = outline;
+    const { cx, cy, size } = placed;
+    const n = scale.length;
     // Vertices are taken into the rectangle's frame, where it is the open box ±halfWidth × ±halfHeight.
     let prevX = 0;
     let prevY = 0;
     let winding = 0;
     for (let i = 0; i <= n; i += 2) {
         const j = i === n ? 0 : i;
-        const dx = vertices[j] - rx;
-        const dy = vertices[j + 1] - ry;
+        const dx = cx + scale[j] * size + offset[j] - rx;
+        const dy = cy + scale[j + 1] * size + offset[j + 1] - ry;
         const x = cos * dx + sin * dy;
         const y = cos * dy - sin * dx;
         if (i > 0) {
@@ -331,6 +333,8 @@ function windingStep(x0: number, y0: number, x1: number, y1: number): number {
     return y1 <= 0 && cross < 0 ? -1 : 0;
 }
 
+const NO_VERTICES = new Float64Array(0);
+
 /** Both spans in one edge pass, as the label retreat needs each axis per obstacle. */
 export function markerOutlineSpans(
     outX: { min: number; max: number },
@@ -341,7 +345,10 @@ export function markerOutlineSpans(
     right: number,
     bottom: number
 ): void {
-    const { vertices, length: n } = placed;
+    const { outline, cx, cy, size } = placed;
+    const scale = outline?.scale ?? NO_VERTICES;
+    const offset = outline?.offset ?? NO_VERTICES;
+    const n = scale.length;
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
@@ -350,8 +357,8 @@ export function markerOutlineSpans(
     let y0 = 0;
     for (let i = 0; n > 0 && i <= n; i += 2) {
         const j = i === n ? 0 : i;
-        const x1 = vertices[j];
-        const y1 = vertices[j + 1];
+        const x1 = cx + scale[j] * size + offset[j];
+        const y1 = cy + scale[j + 1] * size + offset[j + 1];
         if (i > 0) {
             const yLo = Math.min(y0, y1);
             const yHi = Math.max(y0, y1);

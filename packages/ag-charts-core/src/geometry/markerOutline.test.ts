@@ -6,6 +6,7 @@ import { MARKER_SHAPES } from '../chart/markerShapes';
 import { ExtendedPath2D } from '../scene/extendedPath2D';
 import { seededRandom } from '../test/random';
 import { stubPath2D } from '../test/stubPath2D';
+import { markerLabelRect, markerRowSpans } from './markerLabelRect';
 import { markerOutline, markerOutlineOverlapsRect, markerOutlineSpans, placeMarkerOutline } from './markerOutline';
 
 beforeAll(stubPath2D);
@@ -107,6 +108,30 @@ describe('markerOutline', () => {
 
     it('keeps the circle test for a custom shape that draws nothing', () => {
         expect(markerOutline(() => {})).toBeUndefined();
+    });
+});
+
+describe('custom shape analysis', () => {
+    const kite = (width: number): AgMarkerShapeFn => {
+        return ({ path, x, y, size }) => {
+            path.moveTo(x, y - size / 2);
+            path.lineTo(x + width * size, y);
+            path.lineTo(x, y + size / 2);
+            path.lineTo(x - width * size, y);
+            path.closePath();
+        };
+    };
+
+    // A styler may return a fresh function per datum, which must not be analysed again per datum.
+    it.each([
+        ['markerOutline', markerOutline],
+        ['markerLabelRect', markerLabelRect],
+        ['markerRowSpans', markerRowSpans],
+    ] as const)('%s shares one analysis between functions that draw alike', (_name, analyse) => {
+        const first = analyse(kite(0.5));
+        expect(first).toBeDefined();
+        expect(analyse(kite(0.5))).toBe(first);
+        expect(analyse(kite(0.25))).not.toEqual(first);
     });
 });
 

@@ -42,7 +42,7 @@ interface MarkerShapeAnalysis {
     readonly rows: FitRegionMask | undefined;
 }
 
-const analyseShape = memoiseByMarkerShape(computeAnalysis);
+const analyseShape = memoiseByMarkerShape(computeAnalysis, [1]);
 
 /** The largest inscribed label rectangle for a marker shape, analysed once per shape and cached. */
 export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRect {
