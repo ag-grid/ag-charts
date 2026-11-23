@@ -1,8 +1,23 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import { isPointInSector } from '../scene/util/sector';
-import { fitSectorLabelRect, sectorLabelRoom } from './sectorLabelFit';
+import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
+
+// jsdom has no canvas, so text measures at 10px a character and 20px a line.
+vi.mock('../rendering/canvasUtil', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('../rendering/canvasUtil')>()),
+    createCanvasContext: () => ({
+        font: '',
+        measureText: (text: string) => ({
+            width: [...text].length * 10,
+            fontBoundingBoxAscent: 16,
+            fontBoundingBoxDescent: 4,
+            emHeightAscent: 16,
+            emHeightDescent: 4,
+        }),
+    }),
+}));
 
 const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
     startAngle: midAngle - halfSpan,
@@ -100,5 +115,27 @@ describe('sectorLabelRoom', () => {
     it('holds fewer lines, and so less text, as the lines grow taller', () => {
         const room = sectorLabelRoom(anchor, s, 14);
         expect(room.capacityAt(28)).toBeLessThan(room.capacityAt(14));
+    });
+});
+
+describe('sectorLabelPlacer', () => {
+    it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
+        // The first pass, against the estimated block, loses text that the re-placed pass fits whole.
+        const s = sector(0.3, 0.6, 0, 80);
+        const place = (overflowStrategy?: 'hide') =>
+            sectorLabelPlacer(
+                anchorAt(40, 0.3),
+                s,
+                { top: 6, bottom: 6, left: 6, right: 6 },
+                {},
+                0,
+                0
+            )({
+                text: 'Golf',
+                policy: { wrapping: 'always', overflowStrategy },
+                font: { fontSize: 14, fontFamily: 'sans-serif' },
+            });
+        expect(place()?.text).toBe('Golf');
+        expect(place()).toEqual(place('hide'));
     });
 });

@@ -66,6 +66,7 @@ export class AxisButton extends AbstractModuleInstance {
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
         // TODO: Phase 3 "Common Widget Ancestor" - seriesBoundsWidget.addChild() cannot be used yet: it is a
         // DOMManagerWidget, whose addChild() leaves the DOM to DOMManager, so the button would never be attached.
+        // eslint-disable-next-line aglint/widget-boundary -- seriesBoundsWidget.addChild() does not attach (Phase 3).
         this.ctx.widgets.seriesBoundsWidget.getElement().appendChild(button.getElement());
         return button;
     }

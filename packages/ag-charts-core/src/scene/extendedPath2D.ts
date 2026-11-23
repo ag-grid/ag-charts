@@ -29,8 +29,15 @@ export class ExtendedPath2D {
     private previousClosedPath: boolean = false;
     commands: Command[] = [];
     params: number[] = [];
-    private commandsLength: number = 0;
+    commandsLength: number = 0;
     private paramsLength: number = 0;
+
+    // The end segments (from x, y, to x, y) of the open runs of lines, found once per build of the path.
+    // Only a path that has a gapped butt-end cut drawn allocates it.
+    openEnds?: number[];
+    openEndsLength = 0;
+    // The commands length the ends were found at, or -1 while they are stale. Commands are only ever appended between clears.
+    openEndsAt = -1;
 
     cx = Number.NaN;
     cy = Number.NaN;
@@ -449,6 +456,7 @@ export class ExtendedPath2D {
         this.path2d = new Path2DCtor();
         this.openedPath = false;
         this.closedPath = false;
+        this.openEndsAt = -1;
     }
 
     isPointInPath(x: number, y: number): boolean {
@@ -705,6 +713,116 @@ export class ExtendedPath2D {
         if (current.length > 0) polygons.push(current);
         return polygons;
     }
+}
+
+/**
+ * Strokes `reach` further along each end of every open subpath of straight lines, with the width and cap the context has,
+ * so that a butt-capped dilation ends `reach` past the ends as it does at the sides. Closed, curved and zero-length
+ * subpaths have no such end and are skipped.
+ */
+export function strokeOpenLineEnds(
+    path: ExtendedPath2D,
+    ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo' | 'stroke'>,
+    reach: number
+) {
+    if (reach <= 0) return;
+
+    if (path.openEndsAt !== path.commandsLength) findOpenLineEnds(path);
+
+    const { openEnds, openEndsLength } = path;
+    if (openEnds == null) return;
+
+    let began = false;
+    for (let i = 0; i < openEndsLength; i += 4) {
+        began = extendLineEnd(ctx, openEnds[i], openEnds[i + 1], openEnds[i + 2], openEnds[i + 3], reach, began);
+    }
+    if (began) ctx.stroke();
+}
+
+function findOpenLineEnds(path: ExtendedPath2D) {
+    const { commands, params, commandsLength } = path;
+    let openEnds = path.openEnds;
+    let n = 0;
+    // The first and last segments of the subpath being read, and whether it is still a plain open run of lines.
+    let x0 = 0;
+    let y0 = 0;
+    let x1 = 0;
+    let y1 = 0;
+    let px = 0;
+    let py = 0;
+    let x = 0;
+    let y = 0;
+    let lines = 0;
+    let plain = false;
+
+    let pi = 0;
+    // The final pass, with no command, ends the last subpath as a move would.
+    for (let ci = 0; ci <= commandsLength; ci++) {
+        switch (ci < commandsLength ? commands[ci] : Command.Move) {
+            case Command.Move:
+                if (plain && lines > 0) {
+                    openEnds ??= path.openEnds = [];
+                    openEnds[n++] = x1;
+                    openEnds[n++] = y1;
+                    openEnds[n++] = x0;
+                    openEnds[n++] = y0;
+                    openEnds[n++] = px;
+                    openEnds[n++] = py;
+                    openEnds[n++] = x;
+                    openEnds[n++] = y;
+                }
+                if (ci === commandsLength) break;
+                x0 = x = params[pi++];
+                y0 = y = params[pi++];
+                lines = 0;
+                plain = true;
+                break;
+            case Command.Line:
+                if (lines === 0) {
+                    x1 = params[pi];
+                    y1 = params[pi + 1];
+                }
+                px = x;
+                py = y;
+                x = params[pi++];
+                y = params[pi++];
+                lines++;
+                break;
+            case Command.Curve:
+                pi += 6;
+                plain = false;
+                break;
+            case Command.ClosePath:
+                plain = false;
+                break;
+        }
+    }
+    path.openEndsLength = n;
+    path.openEndsAt = commandsLength;
+}
+
+/**
+ * Draws a line of `reach` past `to`, in line with the segment from `from`, starting a unit inside the segment so the two
+ * erases of a gap's cut overlap. Returns whether the context has begun a path.
+ */
+export function extendLineEnd(
+    ctx: Pick<CanvasRenderingContext2D, 'beginPath' | 'moveTo' | 'lineTo'>,
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    reach: number,
+    began: boolean
+): boolean {
+    const length = Math.hypot(toX - fromX, toY - fromY);
+    if (!Number.isFinite(length) || length <= 0) return began;
+    if (!began) ctx.beginPath();
+    const dx = (toX - fromX) / length;
+    const dy = (toY - fromY) / length;
+    const overlap = Math.min(length, 1);
+    ctx.moveTo(toX - dx * overlap, toY - dy * overlap);
+    ctx.lineTo(toX + dx * reach, toY + dy * reach);
+    return true;
 }
 
 /** Whether the horizontal ray running left from (x, y) crosses the edge, under the half-open rule. */

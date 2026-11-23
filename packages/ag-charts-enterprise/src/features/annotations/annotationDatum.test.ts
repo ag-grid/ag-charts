@@ -453,7 +453,7 @@ describe('Annotation datum lifecycle', () => {
 
         it('serialises a lock set from the toolbar', async () => {
             await selectHorizontalLine();
-            body().querySelector<HTMLElement>('button[aria-checked]')!.click();
+            body().querySelector<HTMLElement>('button[aria-label="Lock"]')!.click();
             await waitForChartStability(chart);
 
             expect(chart.getState().annotations[0]).toMatchObject({ type: 'horizontal-line', locked: true });
@@ -462,7 +462,7 @@ describe('Annotation datum lifecycle', () => {
         it('undoes a toolbar lock in place', async () => {
             await selectHorizontalLine();
             const [before] = chart.getState().annotations;
-            body().querySelector<HTMLElement>('button[aria-checked]')!.click();
+            body().querySelector<HTMLElement>('button[aria-label="Lock"]')!.click();
             await waitForChartStability(chart);
 
             const rect = deproxy(chart).seriesRect!;

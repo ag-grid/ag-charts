@@ -4,6 +4,7 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-communi
 import {
     type Chart,
     deproxy,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -18,7 +19,7 @@ import type {
 } from 'ag-charts-types';
 
 import { getRangesDropdownMinWidth, setRangesDropdownMinWidth } from '../../test/featureAccessors';
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { Ranges } from './ranges';
 
 // `minSize` is undocumented: the theme and the price-volume preset set it, so the options type does not know it.
@@ -366,6 +367,64 @@ describe('Ranges', () => {
             (button) => button.getAttribute('aria-label')
         );
         expect(names).toEqual(['First range', 'Second range', 'All']);
+    });
+
+    it('marks only the pressed range button as current until the zoom changes', async () => {
+        chart = await createEnterpriseChart({
+            data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            zoom: { enabled: true },
+            ranges: {
+                enabled: true,
+                buttons: [
+                    { label: 'A', ariaLabel: 'First range', value: [0, 5] },
+                    { label: 'B', ariaLabel: 'Second range', value: [0, 10] },
+                ],
+            },
+        });
+        const buttons = () =>
+            Array.from(
+                deproxy(chart).ctx.agDocument.body.querySelectorAll<HTMLElement>(
+                    '.ag-charts-range-buttons--buttons .ag-charts-toolbar__button'
+                )
+            );
+        const current = () => buttons().map((button) => button.getAttribute('aria-current'));
+        const press = async (index: number) => {
+            buttons()[index].click();
+            await waitForChartStability(chart);
+        };
+
+        expect(current()).toEqual([null, null]);
+
+        await press(0);
+        expect(current()).toEqual(['true', null]);
+
+        await press(1);
+        expect(current()).toEqual([null, 'true']);
+
+        await chart.setState({ ...chart.getState(), zoom: { ratioX: { start: 0.1, end: 0.3 } } });
+        await waitForChartStability(chart);
+        expect(current()).toEqual([null, null]);
+    });
+
+    it('warns once for each custom range button that sets none of ariaLabel, tooltip or label', async () => {
+        const options: AgCartesianChartOptions = {
+            data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            ranges: {
+                enabled: true,
+                buttons: [{ label: '5', value: [0, 5] }, { value: [0, 10] }, { tooltip: '', value: [0, 19] }],
+            },
+        };
+        chart = await createEnterpriseChart(options);
+        await chart.update(prepareEnterpriseTestOptions(options));
+
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `ranges.buttons[1]` has no accessible name; set one of `ariaLabel`, `tooltip` or `label`.',
+            ],
+        ]);
     });
 
     describe('theme params', () => {

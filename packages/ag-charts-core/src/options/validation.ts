@@ -536,6 +536,28 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
 }
 
 /**
+ * Wraps a toolbar buttons array validator. Each button that sets none of `ariaLabel`, `tooltip` or
+ * `label` has no accessible name, so a one-shot warning naming its option path is emitted. The
+ * buttons are still validated and used as before.
+ */
+export function buttonNameAdvisory(validator: Validator): Validator {
+    const gated: Validator = (value, context) => {
+        if (isArray(value) && !context.params?.silentAdvisories) {
+            for (let i = 0; i < value.length; i++) {
+                const button = value[i];
+                if (isObject(button) && button.ariaLabel == null && button.tooltip == null && button.label == null) {
+                    context.params.logger.warnOnce(
+                        `Option \`${context.path}[${i}]\` has no accessible name; set one of \`ariaLabel\`, \`tooltip\` or \`label\`.`
+                    );
+                }
+            }
+        }
+        return validator(value, context);
+    };
+    return Object.assign(gated, { [descriptionSymbol]: validator[descriptionSymbol] });
+}
+
+/**
  * Creates a validator for ensuring an object matches the provided option definitions.
  * @param defs The option definitions against which to validate an object.
  * @param description (Optional) A description for the validator, defaulting to 'an object'.

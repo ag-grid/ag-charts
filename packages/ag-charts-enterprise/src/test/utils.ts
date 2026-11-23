@@ -172,6 +172,24 @@ export function collectShapes(root: Group): Shape[] {
     return shapes;
 }
 
+/**
+ * How `shapes` draw their stroke: the `lineDash` values still left as something other than an array, which the canvas
+ * rejects, and the distinct dashed arrays among the rest, each as its `on,off,...` string. Kept `expect`-free as above.
+ */
+export function drawnLineDashes(shapes: Shape[]): { unresolved: unknown[]; drawn: Set<string> } {
+    const unresolved: unknown[] = [];
+    const drawn = new Set<string>();
+    for (const shape of shapes) {
+        const dash: unknown = shape.lineDash;
+        if (Array.isArray(dash)) {
+            if (dash.some((length) => length > 0)) drawn.add(dash.join());
+        } else if (dash != null) {
+            unresolved.push(dash);
+        }
+    }
+    return { unresolved, drawn };
+}
+
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
 export const DEFAULT_DISABLED_SHADOW = {
     enabled: false,

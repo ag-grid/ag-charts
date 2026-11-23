@@ -267,6 +267,7 @@ export function getTreemapNodeLayout(node: HierarchyNode): TreemapNodeLayout {
 
 export type SeriesGroupName =
     | 'sectorGroup'
+    | 'highlightSectorGroup'
     | 'scalingGroup'
     | 'innerLabelsGroup'
     | 'labelGroup'

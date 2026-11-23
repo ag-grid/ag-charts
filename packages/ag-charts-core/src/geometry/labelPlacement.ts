@@ -28,7 +28,7 @@ import {
 import type { Point, SizedPoint } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, isFiniteBox } from './boxBounds';
 import type { FitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
 import {
@@ -69,7 +69,7 @@ export interface LabelFitOptions {
 /**
  * Resolves the label-surface fit fields to an engine {@link LabelFit}, mapping the public `truncate`
  * boolean onto the internal overflow strategy:
- *  - `truncate: true` or `defaultToTruncate` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
+ *  - `truncate: true`, or `defaultToTruncate` while `truncate` is unset → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
  *  - `truncate` unset + `hideOnOverflow` → `'hide'`: the bound is applied and the label hides if it overflows.
  *  - otherwise → a fit is produced only when `wrapping` or `minimumFontSize` is set (so wrap and font
  *    reduction apply on their own); with none of the three the full text renders unbounded, as before.
@@ -87,7 +87,7 @@ export function resolveLabelFit(
 ): LabelFit | undefined {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
-    if (truncate || defaultToTruncate) {
+    if (truncate ?? defaultToTruncate) {
         overflowStrategy = 'ellipsis';
     } else if (hideOnOverflow) {
         overflowStrategy = 'hide';
@@ -327,14 +327,12 @@ export interface PointLabelDatum {
      * bar-family labels, whose rect-relative candidates the compass-vector engine can't express.
      */
     readonly positionedCandidates?: readonly PositionedLabelCandidate[];
-    /**
-     * The label's own bar rect (full-column geometry, matching its `shape` obstacle box). Any
-     * `shape` obstacle intersecting it is treated as non-colliding, so a bar label avoids other
-     * bars without ever colliding with its own bar, its stacked siblings, or `grouped:false`
-     * behind-bars that overlap it. Set only on the positioned-candidate path with `shape`
-     * avoidance enabled.
-     */
+    /** The label's own bar rect; obstacles intersecting it don't collide, except other datums' shapes. */
     readonly ownBox?: BoxBounds;
+    /** The label's datum: its own shape is the `shape` obstacle with this `entityIndex` and its series' `sourceId`. */
+    readonly entityIndex?: number;
+    /** The stack the label's bar belongs to: `shape` obstacles with the same `stackId` count as its own. */
+    readonly stackId?: number;
     /**
      * Keep `category: 'label'` obstacles that overlap this label's own box as real obstacles rather
      * than excluding them with the own-box gate. Range-bar sets this because both its labels share the
@@ -524,6 +522,8 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** The {@link PointLabelDatum.stackId} of the stacked bar this obstacle stands for. */
+          readonly stackId?: number;
           /** The {@link PointLabelDatum.labelGroup} of the placed label this obstacle stands for. */
           readonly labelGroup?: string;
           /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
@@ -728,6 +728,8 @@ let candidateAvoid: LabelAvoidance | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
 // negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
 let candidateThreshold = 0;
+// How far the candidate may poke out of its own bar yet lie on it: the overlap a negative threshold allows.
+let candidateContainSlack = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
 // Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
@@ -735,9 +737,19 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
-// inside label never collides with the shape it sits on. `undefined` disables the gate.
+// The candidate's own bar rect: obstacles intersecting it are excluded, except foreign shapes.
 let candidateOwnBox: BoxBounds | undefined;
+// Series id and datum index naming the candidate's own shape among the owned `shape` obstacles.
+let candidateSourceId: string | undefined;
+let candidateEntityIndex: number | undefined;
+// The stack of the candidate's bar, whose shapes all count as its own.
+let candidateStackId: number | undefined;
+// The drawn box of the candidate's own shape, looked up from the index on first need per label.
+let candidateOwnShape: BoxBounds | undefined;
+let candidateOwnShapeResolved = false;
+// Each source's rank in the solve's paint order (higher drawn over lower), and the candidate series' rank.
+let solvePaintOrder: ReadonlyMap<string, number> | undefined;
+let candidatePaintRank: number | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
@@ -913,6 +925,66 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
+/** True when `o` is a shape owned by a datum other than the candidate's, outside the candidate's stack. */
+function isForeignShape(o: LabelObstacle, category: ObstacleCategory): boolean {
+    if (o.kind !== 'rect' || category !== 'shape' || o.entityIndex == null || candidateEntityIndex == null)
+        return false;
+    if (o.entityIndex === candidateEntityIndex && o.sourceId === candidateSourceId) return false;
+    // Stack siblings (and aggregated buckets) overlap one another, so the whole stack is its own.
+    return o.stackId == null || o.stackId !== candidateStackId;
+}
+
+function matchOwnShape(o: LabelObstacle): boolean {
+    if (o.kind !== 'rect' || (o.category ?? 'shape') !== 'shape') return false;
+    if (o.entityIndex !== candidateEntityIndex || o.sourceId !== candidateSourceId) return false;
+    candidateOwnShape = o.box;
+    return true;
+}
+
+/** True when the candidate's overlap with `under` lies on its own drawn bar, within the slack a negative threshold allows. */
+function overlapLiesOnOwnShape(under: BoxBounds): boolean {
+    if (!candidateOwnShapeResolved) {
+        candidateOwnShapeResolved = true;
+        candidateOwnShape = undefined;
+        if (candidateOwnBox != null) obstacleIndex.query(candidateOwnBox, matchOwnShape);
+    }
+    const own = candidateOwnShape;
+    if (own == null) return false;
+    let x0: number, y0: number, x1: number, y1: number;
+    if (candidateOriented) {
+        // The rect already carries the threshold, so take back any positive part to measure the label itself.
+        const { cx, cy, cos, sin } = candidateRect;
+        const halfWidth = candidateRect.halfWidth - Math.max(candidateThreshold, 0);
+        const halfHeight = candidateRect.halfHeight - Math.max(candidateThreshold, 0);
+        const extentX = Math.abs(cos) * halfWidth + Math.abs(sin) * halfHeight;
+        const extentY = Math.abs(sin) * halfWidth + Math.abs(cos) * halfHeight;
+        x0 = cx - extentX;
+        y0 = cy - extentY;
+        x1 = cx + extentX;
+        y1 = cy + extentY;
+    } else {
+        const slack = candidateContainSlack;
+        const { x, y, width, height } = candidateBox;
+        x0 = x + slack;
+        y0 = y + slack;
+        x1 = x + width - slack;
+        y1 = y + height - slack;
+    }
+    x0 = Math.max(x0, under.x);
+    y0 = Math.max(y0, under.y);
+    x1 = Math.min(x1, under.x + under.width);
+    y1 = Math.min(y1, under.y + under.height);
+    return x0 >= x1 || y0 >= y1 || boxContains(own, x0, y0, x1 - x0, y1 - y0);
+}
+
+/** True when foreign shape `o` is painted under the candidate's own bar, which covers all of it the label overlaps. */
+function foreignShapeHidden(o: LabelObstacle): boolean {
+    // A bar of the candidate's own series shares its paint level, so is never under it.
+    if (candidatePaintRank == null || o.sourceId == null || o.sourceId === candidateSourceId) return false;
+    const rank = solvePaintOrder?.get(o.sourceId);
+    return rank != null && rank < candidatePaintRank && overlapLiesOnOwnShape(o.box);
+}
+
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
@@ -936,9 +1008,11 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    // An inside label never collides with the shape it sits on, so anything but an overlay overlapping its own
-    // box is excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
-    if (
+    // Another datum's bar blocks wherever it shows; the own bar hides it only where painted over it.
+    if (isForeignShape(o, category)) {
+        if (foreignShapeHidden(o)) return true;
+    } else if (
+        // Excludes all but overlays; `ownBoxLabelsCollide` keeps range-bar's sibling labels.
         candidateOwnBox != null &&
         !isOverlayCategory(category) &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
@@ -1243,16 +1317,20 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
     let extentCount = 0;
     for (const { datums } of data.values()) {
         for (const d of datums) {
-            extentSum += d.label.width + d.label.height;
-            extentCount += 2;
+            const labelExtent = d.label.width + d.label.height;
+            if (Number.isFinite(labelExtent)) {
+                extentSum += labelExtent;
+                extentCount += 2;
+            }
             const markerSize = markerSizeOf(d);
-            if (markerSize > 0) {
+            if (markerSize > 0 && Number.isFinite(markerSize)) {
                 extentSum += markerSize;
                 extentCount += 1;
             }
         }
     }
     for (const o of obstacles) {
+        if (!isFiniteBox(o.box)) continue;
         extentSum += o.box.width + o.box.height;
         extentCount += 2;
     }
@@ -1385,7 +1463,8 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
     const obstacles = typeof obstacleSource === 'function' ? obstacleSource() : obstacleSource;
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
-        obstacleIndex.insert(o.box, o);
+        // An invalid datum can yield a NaN or infinite box, which would otherwise block every label in its row.
+        if (isFiniteBox(o.box)) obstacleIndex.insert(o.box, o);
     }
     insertMarkerObstacles(data);
 }
@@ -1398,15 +1477,18 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
  * @param obstacles External obstacles (e.g. bar rects, pie sectors) every label must avoid, in
  * addition to markers and already-placed labels. All obstacles block all labels, regardless of order.
  * A function is only called when some label will query the obstacle index.
+ * @param paintOrder Each source's paint rank by source id, higher drawn over lower.
  * @returns Placed labels for all series.
  */
 export function placeLabels(
     data: Map<string, SeriesLabels>,
     bounds: BoxBounds,
     padding = 5,
-    obstacles: LabelObstacles = []
+    obstacles: LabelObstacles = [],
+    paintOrder?: ReadonlyMap<string, number>
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
+    solvePaintOrder = paintOrder;
 
     // placeLabels runs on every chart update; a chart with no labels must not touch the index.
     if (!hasAnyLabels(data)) return result;
@@ -1437,6 +1519,8 @@ export function placeLabels(
     )) {
         const labels: PlacedLabel[] = [];
         if (datums[0]?.label == null) continue;
+        candidateSourceId = seriesId;
+        candidatePaintRank = paintOrder?.get(seriesId);
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -2505,9 +2589,13 @@ function placeAvoidingLabel(
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
+    candidateEntityIndex = d.entityIndex;
+    candidateStackId = d.stackId;
+    candidateOwnShapeResolved = false;
     candidateYields = d.yields === true;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
+    candidateContainSlack = -cascadeContainThreshold;
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
     cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
     // inside-start/inside-end centre on the bar's end, so a candidate rotated along the bar would
@@ -2563,9 +2651,13 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerCx = Number.NaN;
     candidateOwnMarkerCy = Number.NaN;
     candidateOwnMarkerR = -1;
+    candidateContainSlack = -containmentThreshold(threshold);
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
+    candidateEntityIndex = d.entityIndex;
+    candidateStackId = d.stackId;
+    candidateOwnShapeResolved = false;
     candidateYields = d.yields === true;
 
     const { fit } = d;
@@ -3086,7 +3178,14 @@ function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | unde
 /** Slides a `size`-long span starting at `pos` flush inside `[min, min+extent]`; unchanged when it is too big to fit. */
 function clampAxis(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    const end = min + extent;
+    let far = end - size;
+    if (far + size > end) {
+        // A step no finer than the operands' precision clears the rounding overshoot in one or two.
+        const step = Math.max((Math.abs(end) + size) * Number.EPSILON, Number.MIN_VALUE);
+        while (far + size > end && far > min) far -= step;
+    }
+    return Math.min(Math.max(pos, min), Math.max(min, far));
 }
 
 /** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */

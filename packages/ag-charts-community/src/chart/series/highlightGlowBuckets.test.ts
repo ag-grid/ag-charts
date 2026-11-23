@@ -215,7 +215,7 @@ describe('glow when the hover moves between series', () => {
         await waitForChartStability(chart);
     };
 
-    it('redraws only the series whose redrawn item changes when the hover moves between items', async () => {
+    it('redraws no whole series when the hover moves between items', async () => {
         const highlight = { unhighlightedItem: { glow: HIGHLIGHT_GLOW } };
         await create(
             ['v', 'w', 'x'].map((yKey) => ({ type: 'bar', xKey: 'x', yKey, shadow: SERIES_SHADOW, highlight }))
@@ -223,7 +223,7 @@ describe('glow when the hover moves between series', () => {
         await hoverDatum(0, 0);
         await hoverDatum(0, 1);
 
-        expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(true);
+        expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(false);
         expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(false);
         expect(getSeriesHasChangesOnHighlight(chart, 2)).toBe(false);
     });

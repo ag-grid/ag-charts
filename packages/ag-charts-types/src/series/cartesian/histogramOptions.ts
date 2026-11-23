@@ -9,7 +9,12 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -109,6 +114,7 @@ export interface AgHistogramSeriesItemStylerParams<TDatum = DatumDefault, TConte
     extends
         Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum'>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesBinParams<TDatum>,
         Required<Omit<AgHistogramSeriesStyle, 'lineDash'>>,

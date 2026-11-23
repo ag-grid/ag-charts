@@ -153,9 +153,15 @@ export abstract class BaseToolbar<
         this.buttonWidgets.at(index)?.setEnabled(enabled);
     }
 
-    public toggleSwitchCheckedByIndex(index: number, checked: boolean) {
+    public setDialogExpandedByIndex(index: number, expanded: boolean) {
         if (index === -1) return;
-        this.buttonWidgets.at(index)?.setChecked(checked);
+        this.buttonWidgets.at(index)?.setDialogExpanded(expanded);
+    }
+
+    public setCurrentButtonByIndex(index: number | undefined) {
+        for (const [buttonIndex, button] of this.buttonWidgets.entries()) {
+            button.setCurrent(index === buttonIndex);
+        }
     }
 
     public getButtonBounds() {

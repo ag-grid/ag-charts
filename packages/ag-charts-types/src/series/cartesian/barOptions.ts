@@ -7,7 +7,12 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgBarSeriesLabelPlacement, AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -60,6 +65,7 @@ export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgBarSeriesOptionsKeys<TDatum>,
         Required<Omit<AgBarSeriesStyle, 'lineDash'>>,
         ResolvedLineDash {

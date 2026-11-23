@@ -12,12 +12,16 @@ import {
     HIGHLIGHT_GLOW,
     HIGHLIGHT_SHADOW,
     deproxy,
+    expectParamsInState,
     getSeriesAt,
     getSeriesNodeData,
     getSeriesOptions,
     getSeriesSelectionNodes,
     glowShadow,
+    hoverAction,
+    hoverLegendItem,
     itShadowsTheHoveredItem,
+    recordParamsByHighlightState,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -61,8 +65,6 @@ interface SeriesCase {
     /** The exact shape class that casts the shadow, so labels, lines and subclasses like sankey links are left out. */
     kind: abstract new (...args: never[]) => Shape;
     chartOptions?: object;
-    /** The series has no series-level `glow` yet, so a highlight bucket's glow replaces the shadow, in the shadow slot. */
-    glowInShadowSlot?: boolean;
     /** The in-place and highlight-layer shapes, for series that keep both copies of an item in one group. */
     layers?: (chart: AgChartInstance) => { inPlace: Shape[]; highlighted: Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
@@ -110,13 +112,13 @@ const FIRST_GROUP = (chart: AgChartInstance) => hierarchyRoot(chart).children[0]
 const SECOND_GROUP = (chart: AgChartInstance) => hierarchyRoot(chart).children[0].children[0];
 const SELECTION_LAYERS = (chart: AgChartInstance) => ({
     inPlace: getSeriesSelectionNodes<Shape>(chart, 'datumSelection'),
-    highlighted: getSeriesSelectionNodes<Shape>(chart, 'highlightSelection'),
+    highlighted: getSeriesSelectionNodes<Shape>(chart, 'highlightGlowSelection'),
 });
 // Only groups cast in the group case, so the leaf rects that share the selection are left out.
 const GROUP_LAYERS = (chart: AgChartInstance) => {
-    const groups = (name: 'datumSelection' | 'highlightSelection') =>
+    const groups = (name: 'datumSelection' | 'highlightGlowSelection') =>
         getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name).filter((node) => node.datum?.hasChildren);
-    return { inPlace: groups('datumSelection'), highlighted: groups('highlightSelection') };
+    return { inPlace: groups('datumSelection'), highlighted: groups('highlightGlowSelection') };
 };
 // A flow series redraws the hovered item's neighbours on a focus layer; the highlight layer holds the item itself,
 // as a node or as a link.
@@ -308,7 +310,6 @@ const SERIES: SeriesCase[] = [
     {
         // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
         name: 'treemap tiles',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_LEAF,
@@ -324,7 +325,6 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'treemap groups',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Rect,
         hover: FIRST_GROUP,
@@ -339,7 +339,6 @@ const SERIES: SeriesCase[] = [
     },
     {
         name: 'sunburst',
-        glowInShadowSlot: true,
         data: HIERARCHY_SHADOW_DATA,
         kind: Sector,
         hover: FIRST_LEAF,
@@ -551,11 +550,9 @@ describe('highlight glow (enterprise series)', () => {
     /** Whether a shape casts anything: its glow, or a shadow, which a highlight copy never casts. */
     const casts = (shape: Shape) => shape.fillShadow?.enabled === true || shape.fillGlow?.enabled === true;
 
-    /** The options a shape of the case casts its glow with, and the shadow they are cast as. */
-    const castOptionsOf = (shape: Shape, testCase: SeriesCase) =>
-        testCase.glowInShadowSlot ? shape.fillShadow : shape.fillGlow;
-    const castGlowOf = (shape: Shape, testCase: SeriesCase) =>
-        shape.getCastShadow(testCase.glowInShadowSlot ? 'shadow' : 'glow');
+    /** The options a shape casts its glow with, and the shadow they are cast as. */
+    const castOptionsOf = (shape: Shape) => shape.fillGlow;
+    const castGlowOf = (shape: Shape) => shape.getCastShadow('glow');
 
     /** The visible in-place and highlight-layer shapes of the case's shape kind. */
     const layersOf = (testCase: SeriesCase) => {
@@ -781,7 +778,7 @@ describe('highlight glow (enterprise series)', () => {
                     highlightedItem: { glow: { enabled: true } },
                 });
                 expect(highlighted).toHaveLength(1);
-                expect(sameColour(castGlowOf(highlighted[0], testCase)?.fill, expected)).toBe(true);
+                expect(sameColour(castGlowOf(highlighted[0])?.fill, expected)).toBe(true);
                 chart.destroy();
             }
         });
@@ -836,16 +833,12 @@ describe('highlight glow (enterprise series)', () => {
 
                 expect(highlighted.length).toBeGreaterThan(0);
                 expect(highlighted.filter(casts)).toHaveLength(copies);
-                expect(castOptionsOf(highlighted.find(casts)!, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                expect(castOptionsOf(highlighted.find(casts)!)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
             }
         );
 
-        it('gives the itemStyler params no glow, in any highlight state', async () => {
-            const params: object[] = [];
-            const itemStyler = (itemParams: object) => {
-                params.push(itemParams);
-                return {};
-            };
+        it('gives the itemStyler params the glow that the highlight state casts', async () => {
+            const { byState, styler: itemStyler } = recordParamsByHighlightState();
             const styled: SeriesCase = {
                 ...testCase,
                 series: (shadow, highlight) => withItemStyler(testCase.series(shadow, highlight), itemStyler),
@@ -855,8 +848,7 @@ describe('highlight glow (enterprise series)', () => {
                 unhighlightedItem: { glow: HIGHLIGHT_GLOW },
             });
 
-            expect(params.length).toBeGreaterThan(0);
-            for (const itemParams of params) expect(itemParams).not.toHaveProperty('glow');
+            expectParamsInState(byState, 'highlighted-item', { glow: HIGHLIGHT_GLOW });
         });
 
         it('takes the fill of the item that it surrounds when it sets none, or its stroke where it has no fill', async () => {
@@ -869,11 +861,11 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            const shapes = highlighted.filter((shape) => castGlowOf(shape, testCase) != null);
+            const shapes = highlighted.filter((shape) => castGlowOf(shape) != null);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(castGlowOf(shape, testCase)).toMatchObject({ enabled: true, fillOpacity: 0.4 });
-                expect(sameColour(castGlowOf(shape, testCase)?.fill, PAINT)).toBe(true);
+                expect(castGlowOf(shape)).toMatchObject({ enabled: true, fillOpacity: 0.4 });
+                expect(sameColour(castGlowOf(shape)?.fill, PAINT)).toBe(true);
             }
         });
 
@@ -883,9 +875,9 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { ...style, glow: { enabled: true } },
             });
 
-            const shapes = highlighted.filter((shape) => castGlowOf(shape, testCase) != null);
+            const shapes = highlighted.filter((shape) => castGlowOf(shape) != null);
             expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) expect(sameColour(castGlowOf(shape, testCase)?.fill, 'orange')).toBe(true);
+            for (const shape of shapes) expect(sameColour(castGlowOf(shape)?.fill, 'orange')).toBe(true);
         });
 
         it('casts its own fill and fillOpacity, and not that of the item, when it sets them', async () => {
@@ -896,7 +888,7 @@ describe('highlight glow (enterprise series)', () => {
             const shapes = highlighted.filter(casts);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(castGlowOf(shape, testCase)).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
+                expect(castGlowOf(shape)).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
             }
         });
 
@@ -911,8 +903,8 @@ describe('highlight glow (enterprise series)', () => {
                 .filter((message) => message.includes('glow.color'));
             expect(messages.length).toBeGreaterThan(0);
             for (const shape of highlighted.filter(casts)) {
-                expect(castOptionsOf(shape, testCase)).not.toHaveProperty('color');
-                expect(castGlowOf(shape, testCase)?.fill).not.toBe('#ff00ff');
+                expect(castOptionsOf(shape)).not.toHaveProperty('color');
+                expect(castGlowOf(shape)?.fill).not.toBe('#ff00ff');
             }
             vi.mocked(console.warn).mockClear();
         });
@@ -933,7 +925,7 @@ describe('highlight glow (enterprise series)', () => {
                 highlightedItem: { glow: { enabled: true } },
             });
 
-            expect(castOptionsOf(highlighted.find(casts)!, testCase)).toMatchObject({
+            expect(castOptionsOf(highlighted.find(casts)!)).toMatchObject({
                 ...defaults,
                 enabled: true,
                 xOffset: 0,
@@ -966,8 +958,8 @@ describe('highlight glow (enterprise series)', () => {
                 // ... and the highlight copy casts the glow alone, never merged with the base shadow.
                 expect(highlighted.filter(casts)).toHaveLength(copies);
                 for (const shape of highlighted.filter(casts)) {
-                    expect(castOptionsOf(shape, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                    expect(castOptionsOf(shape, testCase)?.fill).not.toBe(SHADOW.fill);
+                    expect(castOptionsOf(shape)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+                    expect(castOptionsOf(shape)?.fill).not.toBe(SHADOW.fill);
                 }
             }
         );
@@ -993,7 +985,7 @@ describe('highlight glow (enterprise series)', () => {
 
             const moved = layersOf(testCase);
             expect(moved.highlighted.filter(casts)).toHaveLength(copies);
-            expect(castOptionsOf(moved.highlighted.find(casts)!, testCase)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            expect(castOptionsOf(moved.highlighted.find(casts)!)).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
             raiseHighlight();
             await waitForChartStability(chart);
@@ -1028,17 +1020,8 @@ describe('highlight glow (enterprise series)', () => {
     const LINK_SHADOW: AgDropShadowOptions = { ...SHADOW, fill: '#445566', blur: 22 };
     const LINK_GLOW: AgGlowOptions = { enabled: true, fill: '#aa0000', fillOpacity: 1, blur: 7, spread: 5 };
 
-    /** A sankey or chord chart with `part` hovered, and the visible shapes of each of its layers. */
-    const hoverFlowPart = async (type: string, series: object, part: 'node' | 'link') => {
-        chart = await createEnterpriseChart({
-            data: FLOW_DATA,
-            animation: { enabled: false },
-            legend: { enabled: false },
-            series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size', ...series }],
-        } as AgChartOptions);
-        raiseHighlight(part === 'node' ? FLOW_NODE(chart) : FLOW_LINK(chart));
-        await waitForChartStability(chart);
-
+    /** The visible shapes of each layer of the flow chart. */
+    const flowLayers = () => {
         const shapes = (name: Parameters<typeof getSeriesGroup>[1]) =>
             collectShapes(getSeriesGroup(chart, name)).filter((shape) => shape.visible);
         return {
@@ -1050,6 +1033,27 @@ describe('highlight glow (enterprise series)', () => {
             highlightLinks: shapes('highlightLinkGroup'),
         };
     };
+
+    const createFlowChart = async (type: string, series: object, legend = false) => {
+        chart = await createEnterpriseChart({
+            data: FLOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: legend },
+            series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size', ...series }],
+        } as AgChartOptions);
+    };
+
+    /** A sankey or chord chart with `part` hovered, and the visible shapes of each of its layers. */
+    const hoverFlowPart = async (type: string, series: object, part: 'node' | 'link') => {
+        await createFlowChart(type, series);
+        raiseHighlight(part === 'node' ? FLOW_NODE(chart) : FLOW_LINK(chart));
+        await waitForChartStability(chart);
+        return flowLayers();
+    };
+
+    /** The shapes of `of` that cast; `of` is where a shape holds the effect, the shadow by default. */
+    const casting = (shapes: Shape[], of: (shape: Shape) => { enabled?: boolean } | undefined = (s) => s.fillShadow) =>
+        shapes.filter((shape) => of(shape)?.enabled === true);
 
     describe('highlightedItem.shadow', () => {
         const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
@@ -1312,26 +1316,29 @@ describe('highlight glow (enterprise series)', () => {
 
         describe.each(['glow', 'shadow'] as const)('%s', (effect) => {
             const { node, link, of, resolved } = EFFECTS[effect];
-            const casting = (shapes: Shape[]) => shapes.filter((shape) => of(shape)?.enabled === true);
 
             describe.each(['node', 'link'] as const)('hovering a %s', (part) => {
                 it('keeps every link casting its own effect when only link is configured, and gives no node one', async () => {
                     const layers = await hover({ link: { [effect]: link } }, part);
 
                     // The hovered link casts from its highlight copy for a glow, and in place for a shadow.
-                    const links = casting([...layers.links, ...layers.highlightLinks]);
+                    const links = casting([...layers.links, ...layers.highlightLinks], of);
                     expect(links).toHaveLength(4);
                     for (const shape of links) expect(of(shape)).toMatchObject(resolved(link as never));
-                    expect(casting([...layers.nodes, ...layers.focusNodes, ...layers.highlightNodes])).toHaveLength(0);
+                    expect(casting([...layers.nodes, ...layers.focusNodes, ...layers.highlightNodes], of)).toHaveLength(
+                        0
+                    );
                 });
 
                 it('keeps every node casting its own effect when only node is configured, and gives no link one', async () => {
                     const layers = await hover({ node: { [effect]: node } }, part);
 
-                    const nodes = casting([...layers.nodes, ...layers.highlightNodes]);
+                    const nodes = casting([...layers.nodes, ...layers.highlightNodes], of);
                     expect(nodes).toHaveLength(4);
                     for (const shape of nodes) expect(of(shape)).toMatchObject(resolved(node as never));
-                    expect(casting([...layers.links, ...layers.focusLinks, ...layers.highlightLinks])).toHaveLength(0);
+                    expect(casting([...layers.links, ...layers.focusLinks, ...layers.highlightLinks], of)).toHaveLength(
+                        0
+                    );
                 });
             });
         });
@@ -1363,6 +1370,119 @@ describe('highlight glow (enterprise series)', () => {
                 }
             }
         );
+    });
+
+    // A sankey or chord casts its series shadow once: from the in-place copy of each item, through the root. The
+    // highlight layer's copy of the hovered item casts none, and nor does any copy on the focus layer.
+    describe.each(['sankey', 'chord'])('%s: the shadow of the hovered item', (type) => {
+        const OPACITY = 0.3;
+        const series = {
+            node: { shadow: NODE_SHADOW },
+            link: { shadow: LINK_SHADOW },
+            highlight: { highlightedItem: { shadow: { blur: 1 } }, unhighlightedItem: { opacity: OPACITY } },
+        };
+        const NODE_KIND = type === 'sankey' ? Rect : Sector;
+
+        const blurs = (shapes: Shape[]) => shapes.map((shape) => shape.fillShadow?.blur);
+        const nodeBlurs = () => blurs(flowLayers().nodes.filter((shape) => shape instanceof NODE_KIND));
+        const labelOpacities = () => getSeriesSelectionNodes<Shape>(chart, 'labelSelection').map((l) => l.opacity);
+
+        /** A chart with a legend, which the pointer hovers a node of through the legend. */
+        const createLegendChart = async () => {
+            await createFlowChart(type, series, true);
+            expect(getFlowNodeData(chart)).toHaveLength(4);
+        };
+
+        describe('hovering a legend item', () => {
+            it('gives its node the highlightedItem shadow, as hovering the node does', async () => {
+                await createLegendChart();
+                raiseHighlight(FLOW_NODE(chart));
+                await waitForChartStability(chart);
+                const hoveredNode = nodeBlurs();
+                expect(hoveredNode).toEqual([1, 11, 11, 11]);
+                raiseHighlight();
+                await waitForChartStability(chart);
+
+                await hoverLegendItem(chart, 0);
+                expect(nodeBlurs()).toEqual(hoveredNode);
+            });
+
+            it('keeps every node casting its series shadow when the itemId matches no node', async () => {
+                await createLegendChart();
+                const { series: hovered } = FLOW_NODE(chart);
+                raiseHighlight({ series: hovered, itemId: 'not a node', datum: undefined, datumIndex: Number.NaN });
+                await waitForChartStability(chart);
+
+                expect(nodeBlurs()).toEqual([11, 11, 11, 11]);
+            });
+
+            it('moves the highlightedItem shadow straight to the next item, and takes it off when the hover ends', async () => {
+                await createLegendChart();
+                // The legend lists the nodes in the order they were first read, which is not that of the node data.
+                const legendIds = getSeriesAt(chart)
+                    .getLegendData('category')
+                    .map((datum) => datum.itemId);
+                const castFrom = (itemId: unknown) => getFlowNodeData(chart).map((n) => (n.id === itemId ? 1 : 11));
+
+                await hoverLegendItem(chart, 0);
+                expect(nodeBlurs()).toEqual(castFrom(legendIds[0]));
+                await hoverLegendItem(chart, 1);
+                expect(nodeBlurs()).toEqual(castFrom(legendIds[1]));
+                expect(castFrom(legendIds[0])).not.toEqual(castFrom(legendIds[1]));
+
+                // The pointer leaves the legend for an empty corner of the chart.
+                await hoverAction(1, 1)(chart);
+                expect(nodeBlurs()).toEqual([11, 11, 11, 11]);
+            });
+
+            it('dims the labels of the other nodes, and leaves the label of its node alone', async () => {
+                await createLegendChart();
+                raiseHighlight(FLOW_NODE(chart));
+                await waitForChartStability(chart);
+                const hoveredNode = labelOpacities();
+                expect(hoveredNode).toEqual([1, OPACITY, OPACITY, OPACITY]);
+                raiseHighlight();
+                await waitForChartStability(chart);
+                expect(labelOpacities()).toEqual([1, 1, 1, 1]);
+
+                await hoverLegendItem(chart, 0);
+                expect(labelOpacities()).toEqual(hoveredNode);
+            });
+        });
+
+        describe('hovering a node', () => {
+            it('casts the shadow of each neighbour once, from its in-place copy', async () => {
+                const layers = await hoverFlowPart(type, series, 'node');
+
+                // The hovered node casts the highlightedItem shadow in place, and its neighbours their series shadow.
+                expect(blurs(layers.nodes)).toEqual([1, 11, 11, 11]);
+                // The focus layer holds the hovered node and its neighbours, and casts none of them.
+                expect(layers.focusNodes.length).toBeGreaterThan(1);
+                expect(casting(layers.focusNodes)).toHaveLength(0);
+                expect(casting(layers.highlightNodes)).toHaveLength(0);
+            });
+
+            it('casts the shadow of each link once, from its in-place copy', async () => {
+                const layers = await hoverFlowPart(type, series, 'node');
+
+                expect(layers.focusLinks.length).toBeGreaterThan(0);
+                expect(casting(layers.focusLinks)).toHaveLength(0);
+                expect(blurs(layers.links)).toEqual([22, 22, 22, 22]);
+            });
+        });
+
+        describe('hovering a link', () => {
+            it('casts the shadow of each node and link once, from its in-place copy', async () => {
+                const layers = await hoverFlowPart(type, series, 'link');
+
+                expect(layers.focusNodes.length).toBeGreaterThan(0);
+                expect(layers.focusLinks.length).toBeGreaterThan(0);
+                expect(casting([...layers.focusNodes, ...layers.focusLinks, ...layers.highlightLinks])).toHaveLength(0);
+                // The hovered link casts the highlightedItem shadow in place, and the other links their series shadow.
+                expect(blurs(layers.links)).toEqual([1, 22, 22, 22]);
+                expect(blurs(layers.nodes)).toEqual([11, 11, 11, 11]);
+            });
+        });
     });
 
     describe('theme defaults', () => {
@@ -1433,6 +1553,27 @@ describe('highlight glow (enterprise series)', () => {
                 buckets: ITEM_BUCKETS,
                 highlight: (options) => options.highlight,
             },
+            {
+                name: 'treemap tile',
+                glow: (options) => [options.tile.glow],
+                series: HIERARCHY({ type: 'treemap' }),
+                buckets: BRANCH_ONLY_BUCKETS,
+                highlight: (options) => options.tile.highlight,
+            },
+            {
+                name: 'treemap group',
+                glow: (options) => [options.group.glow],
+                series: HIERARCHY({ type: 'treemap' }),
+                buckets: ITEM_BUCKETS,
+                highlight: (options) => options.group.highlight,
+            },
+            {
+                name: 'sunburst',
+                glow: (options) => [options.glow],
+                series: HIERARCHY({ type: 'sunburst' }),
+                buckets: BRANCH_ONLY_BUCKETS,
+                highlight: (options) => options.highlight,
+            },
         ];
 
         describe.each(CASES)('$name', ({ series, data, buckets, glow: glowOf, highlight: highlightOf, perPart }) => {
@@ -1456,37 +1597,6 @@ describe('highlight glow (enterprise series)', () => {
                     if (perPart) expect(styles[bucket]?.glow?.enabled).toBeUndefined();
                     else expect(styles[bucket].glow).toEqual({ enabled: false });
                 }
-            });
-        });
-
-        // Treemap and sunburst have no series-level glow yet: the branch buckets hold the glow theme defaults themselves.
-        describe.each([
-            {
-                name: 'treemap tile',
-                series: HIERARCHY({ type: 'treemap' }),
-                defaulted: BRANCH_ONLY_BUCKETS,
-                highlight: (options: any) => options.tile.highlight,
-            },
-            {
-                name: 'treemap group',
-                series: HIERARCHY({ type: 'treemap' }),
-                defaulted: ITEM_BUCKETS,
-                highlight: (options: any) => options.group.highlight,
-            },
-            {
-                name: 'sunburst',
-                series: HIERARCHY({ type: 'sunburst' }),
-                defaulted: BRANCH_ONLY_BUCKETS,
-                highlight: (options: any) => options.highlight,
-            },
-        ])('$name', ({ series, defaulted, highlight: highlightOf }) => {
-            it.each([
-                ['light', 'ag-default', LIGHT_GLOW],
-                ['dark', 'ag-default-dark', DARK_GLOW],
-            ])('puts the %s glow theme defaults, with the glow off, on the buckets', async (_, theme, expected) => {
-                const styles = highlightOf(await resolvedOptions(theme, series));
-
-                for (const bucket of defaulted) expect(styles[bucket].glow).toEqual(expected);
             });
         });
 

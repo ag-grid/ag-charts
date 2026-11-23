@@ -109,10 +109,16 @@ export function insideBarContainer(
  */
 export function sectorLabelContainer(
     anchor: { x: number; y: number },
-    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    sector: {
+        startAngle: number;
+        endAngle: number;
+        innerRadius: number;
+        outerRadius: number;
+        radialEdgeInset?: number;
+    },
     lineHeight: number
 ): { width: number; height: number } {
-    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    const { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset = 0 } = sector;
     const px = Math.abs(anchor.x);
     const py = Math.abs(anchor.y);
     const radius = Math.hypot(px, py);
@@ -121,7 +127,7 @@ export function sectorLabelContainer(
     const cosMid = px / radius;
     const sinMid = py / radius;
     const halfSpan = Math.min(Math.abs(endAngle - startAngle) / 2, Math.PI / 2);
-    const edgeDistance = radius * Math.sin(halfSpan);
+    const edgeDistance = radius * Math.sin(halfSpan) - Math.max(radialEdgeInset, 0);
     const edges = [startAngle, endAngle].map((angle) => ({
         sin: Math.abs(Math.sin(angle)),
         cos: Math.abs(Math.cos(angle)),
@@ -288,7 +294,9 @@ export function buildBarLabelDatum(
     avoid: LabelAvoidance,
     threshold: number,
     target: BarLabelTarget,
-    fit?: LabelFitDescriptor
+    fit?: LabelFitDescriptor,
+    entityIndex?: number,
+    stackId?: number
 ): BarPlacedLabelDatum {
     const { x, y } = labelGlyphCentre(anchor, width, height);
     return {
@@ -304,6 +312,8 @@ export function buildBarLabelDatum(
         threshold,
         region,
         ownBox: region,
+        entityIndex,
+        stackId,
         target,
     };
 }
@@ -326,7 +336,9 @@ export function buildBarPositionedLabelDatum(
     threshold: number,
     ownBoxLabelsCollide = false,
     fit?: LabelFitDescriptor,
-    styleDatum?: object
+    styleDatum?: object,
+    entityIndex?: number,
+    stackId?: number
 ): BarPlacedLabelDatum {
     return {
         point: { x: 0, y: 0, size: 0 },
@@ -343,6 +355,8 @@ export function buildBarPositionedLabelDatum(
         positionedCandidates: candidates,
         ownBox,
         ownBoxLabelsCollide,
+        entityIndex,
+        stackId,
         target,
         styleDatum,
     };
@@ -486,6 +500,10 @@ export interface BarLabelSource {
     readonly threshold: number;
     /** Per-candidate fit inputs, so each orientation gets the text refitted to the room it actually has. */
     readonly fit?: LabelFitDescriptor;
+    /** Index of the datum whose bar this label belongs to, matching its shape obstacle's `entityIndex`. */
+    readonly entityIndex?: number;
+    /** The stack this label's bar belongs to, matching its stack's shape obstacles' `stackId`. */
+    readonly stackId?: number;
 }
 
 /**
@@ -515,7 +533,9 @@ export function buildBarLabelData<T>(
                 source.avoid,
                 source.threshold,
                 label,
-                source.fit
+                source.fit,
+                source.entityIndex,
+                source.stackId
             )
         );
     }
@@ -529,18 +549,25 @@ export interface RectObstacleSource {
     readonly width: number;
     readonly height: number;
     readonly phantom?: boolean;
+    readonly datumIndex?: number;
 }
 
 /**
  * Maps rect-shaped node data (bars, histogram bins) to `shape` label obstacles so that labels from
- * other series route around them. Skips phantom (stacking/feather) nodes and zero-area rects.
+ * other series route around them, each owned by `sourceId` and its node's `datumIndex`, within stack
+ * `stackId` when stacked. Skips phantom (stacking/feather) nodes and zero-area rects.
  */
-export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | undefined): LabelObstacle[] | undefined {
+export function rectLabelObstacles(
+    nodeData: readonly RectObstacleSource[] | undefined,
+    sourceId: string,
+    stackId?: number
+): LabelObstacle[] | undefined {
     if (nodeData == null || nodeData.length === 0) return undefined;
     const obstacles: LabelObstacle[] = [];
-    for (const { x, y, width, height, phantom } of nodeData) {
+    for (const { x, y, width, height, phantom, datumIndex } of nodeData) {
         if (phantom === true || width <= 0 || height <= 0) continue;
-        obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
+        const box = { x, y, width, height };
+        obstacles.push({ kind: 'rect', box, category: 'shape', sourceId, entityIndex: datumIndex, stackId });
     }
     return obstacles.length > 0 ? obstacles : undefined;
 }
@@ -586,9 +613,11 @@ export function barLabelObstacles<T>(
     nodeData: readonly RectObstacleSource[] | undefined,
     labelData: Iterable<T> | undefined,
     bakeLabels: boolean,
-    resolveBaked: (element: T) => BakedLabelSource | undefined
+    resolveBaked: (element: T) => BakedLabelSource | undefined,
+    sourceId: string,
+    stackId?: number
 ): LabelObstacle[] | undefined {
-    const rects = rectLabelObstacles(nodeData);
+    const rects = rectLabelObstacles(nodeData, sourceId, stackId);
     if (!bakeLabels) return rects;
     const labels = bakedLabelObstacles(labelData, resolveBaked);
     if (labels == null) return rects;

@@ -77,6 +77,7 @@ export class LongTapInterpreter {
         const { touch, target } = candidate;
         // TODO: Phase 3 "Common Widget Ancestor" - the gesture listeners below need capture and non-passive options,
         // which Widget listeners do not offer.
+        // eslint-disable-next-line aglint/widget-boundary -- needs capture and non-passive listeners (Phase 3).
         const element = this.widget.getElement();
         this.disarm();
 

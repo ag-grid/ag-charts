@@ -1,5 +1,6 @@
 // Undocumented APIs used by Enterprise Modules.
 export * from './chart/test/axisAccessors';
+export * from './chart/test/chartAccessors';
 export * from './chart/test/seriesAccessors';
 export * from './chart/test/utils';
 export * from './chart/test/axisTestCases';
@@ -14,6 +15,7 @@ export {
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
     getBarSeriesContextNodeData,
+    getSeriesLabelObstacles,
     isBarSeriesAggregating,
     withUndocumentedChartOptions,
     withUndocumentedOptions,

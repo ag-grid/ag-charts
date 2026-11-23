@@ -15,14 +15,15 @@ import {
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { type AnnotationAxisContext, type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
-import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import type { SettingsDialogDatumType } from '../annotationsSuperTypes';
+import { calloutDatum } from '../callout/calloutDatum';
 import type { CrossLineDatum } from '../cross-line/crossLineDatum';
 import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
 import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { getGrouping, getGroupingValue } from './scale';
 import type { PointType } from './scale';
-import { isCrossLineType } from './types';
+import { isCrossLineType, isShapeType, isTextType } from './types';
 
 /**
  * How a value is typed into the settings dialog: the kind of its axis, or `offset` for the position of a point within
@@ -33,10 +34,11 @@ export type CoordinateKind = 'number' | 'time' | 'ordinal-time' | 'unit-time' | 
 
 export type ParsedCoordinate = AgNumericValue | Date | string;
 
-export type PointRow = 'start' | 'end' | 'endRetracement';
+/** `point` is the one position of an annotation that is anchored at a single point, rather than at a start and an end. */
+export type PointRow = 'point' | 'start' | 'end' | 'endRetracement';
 
 export function isPointRow(row: CoordinateRow): row is PointRow {
-    return row === 'start' || row === 'end' || row === 'endRetracement';
+    return row === 'point' || row === 'start' || row === 'end' || row === 'endRetracement';
 }
 
 /** A `height` row is a distance along the y axis; the position of a point within its band is the `offset` kind. */
@@ -50,6 +52,8 @@ export function isHeightRow(row: CoordinateRow): row is HeightRow {
 
 /** The datum properties a coordinate edit can change, merged onto the datum as-is. */
 export interface CoordinateChangeProps {
+    x?: PointType;
+    y?: PointType;
     start?: DataPoint;
     end?: DataPoint;
     endRetracement?: DataPoint;
@@ -69,6 +73,8 @@ export interface CoordinateField {
     fractionDigits?: number;
     /** The input's granularity in seconds, so that a time shows the precision of its value. */
     step?: number;
+    /** The bounds of a number input, which its spinner stays within. */
+    range?: { min: number; max: number };
     /** The axis's categories for the input to suggest, read once as the input is created. */
     suggestions?: () => string[];
     /** The datum change for a parsed value, or `undefined` when the field cannot take it. */
@@ -209,7 +215,7 @@ function hasSignOfLogDomain(parsed: ParsedCoordinate, { domain }: LogScale) {
 }
 
 /** The editable coordinates of an annotation, in the order the dialog lists them. */
-export function getCoordinateFields(datum: LinearDialogDatumType, context: AnnotationContext): CoordinateField[] {
+export function getCoordinateFields(datum: SettingsDialogDatumType, context: AnnotationContext): CoordinateField[] {
     const x = getCoordinateAxis('x', context.xAxis);
     const y = getCoordinateAxis('y', context.yAxis);
 
@@ -226,23 +232,29 @@ export function getCoordinateFields(datum: LinearDialogDatumType, context: Annot
 
     const fields: CoordinateField[] = [];
     for (const [row, point] of getPointRows(datum)) {
+        const toProps =
+            (axis: 'x' | 'y') =>
+            (value: PointType): CoordinateChangeProps =>
+                row === 'point' ? { [axis]: value } : { [row]: { [axis]: value } };
+        const toXProps = toProps('x');
+        const toYProps = toProps('y');
         if (x) {
-            fields.push(createPointField(row, x, point.x, (value) => ({ [row]: { x: value } })));
+            fields.push(createPointField(row, x, point.x, toXProps));
         }
         if (y) {
-            fields.push(createPointField(row, y, point.y, (value) => ({ [row]: { y: value } })));
+            fields.push(createPointField(row, y, point.y, toYProps));
         }
         if (x) {
-            fields.push(...createOffsetPointFields(row, x, point.x, (value) => ({ [row]: { x: value } })));
+            fields.push(...createOffsetPointFields(row, x, point.x, toXProps));
         }
         if (y) {
-            fields.push(...createOffsetPointFields(row, y, point.y, (value) => ({ [row]: { y: value } })));
+            fields.push(...createOffsetPointFields(row, y, point.y, toYProps));
         }
     }
 
     // A channel's offset is a distance along the y axis, which only a numeric axis can measure.
     if (y?.kind === 'number') {
-        fields.push(...getHeightFields(datum));
+        fields.push(...getHeightFields(datum, y));
     }
 
     return fields;
@@ -331,6 +343,7 @@ function createOffsetPointFields(
             axis,
             kind: 'offset',
             value: String(Math.round(((groupPercentage - centre) / stepInUnits) * 1e4) / 100),
+            range: { min: -OFFSET_LIMIT, max: OFFSET_LIMIT },
             toProps: (parsed) =>
                 typeof parsed === 'number'
                     ? toProps({ value, groupPercentage: centre + (parsed / 100) * stepInUnits })
@@ -377,7 +390,10 @@ function toPointType(parsed: ParsedCoordinate, kind: CoordinateKind, current: Po
     return { value: parsed, groupPercentage: getGrouping(current).groupPercentage };
 }
 
-function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [PointRow, DataPoint][] {
+function getPointRows(datum: Exclude<SettingsDialogDatumType, CrossLineDatum>): [PointRow, DataPoint][] {
+    if (isShapeType(datum) || (isTextType(datum) && !calloutDatum.is(datum))) {
+        return [['point', datum]];
+    }
     const rows: [PointRow, DataPoint][] = [
         ['start', datum.start],
         ['end', datum.end],
@@ -388,14 +404,14 @@ function getPointRows(datum: Exclude<LinearDialogDatumType, CrossLineDatum>): [P
     return rows;
 }
 
-function getHeightFields(datum: LinearDialogDatumType): CoordinateField[] {
+function getHeightFields(datum: SettingsDialogDatumType, y: CoordinateAxis): CoordinateField[] {
     if (parallelChannelDatum.is(datum)) {
-        return [createHeightField('height', datum.height, 'height')];
+        return [createHeightField('height', datum.height, 'height', y)];
     }
     if (disjointChannelDatum.is(datum)) {
         return [
-            createHeightField('startHeight', datum.startHeight, 'startHeight'),
-            createHeightField('endHeight', datum.endHeight, 'endHeight'),
+            createHeightField('startHeight', datum.startHeight, 'startHeight', y),
+            createHeightField('endHeight', datum.endHeight, 'endHeight', y),
         ];
     }
     return [];
@@ -404,13 +420,16 @@ function getHeightFields(datum: LinearDialogDatumType): CoordinateField[] {
 function createHeightField(
     row: CoordinateRow,
     current: AgNumericValue,
-    key: 'height' | 'startHeight' | 'endHeight'
+    key: 'height' | 'startHeight' | 'endHeight',
+    { context, kind }: CoordinateAxis
 ): CoordinateField {
     return {
         row,
         axis: 'y',
         kind: 'number',
         value: String(current),
+        // A height is a distance along the y axis, so it is shown at the decimals of that axis's crosshair label.
+        fractionDigits: getFractionDigits(kind, current, context),
         toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
     };
 }

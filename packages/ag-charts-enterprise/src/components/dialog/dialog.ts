@@ -51,6 +51,8 @@ interface InputOptions {
     value: string;
     /** The granularity of a `datetime-local` input, in seconds. */
     step?: number;
+    /** The bounds of a `number` input. */
+    range?: { min: number; max: number };
     /** The id of the datalist the input suggests from. */
     list?: ElementID;
     /** Called when the user commits a value; a `datetime-local` input may commit a value that has not changed. */
@@ -120,6 +122,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         this.colorPicker.attachTo(this);
 
         return popover;
+    }
+
+    protected override onHide() {
+        this.colorPicker.hide();
     }
 
     protected override updatePosition(position: Point): void {
@@ -280,9 +286,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createInput({ ariaLabel, type, value, step, onChange, list }: InputOptions) {
+    protected createInput({ ariaLabel, type, value, step, range, onChange, list }: InputOptions) {
         const input = new InputWidget(type, 'ag-charts-dialog__input');
         if (step != null) input.setStep(step);
+        if (range) input.setRange(range.min, range.max);
         input.value = value;
         input.addCommitListener((event) => onChange(input.value, event));
         input.setAriaLabel(ariaLabel);
@@ -339,6 +346,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
             // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
+            // eslint-disable-next-line aglint/widget-boundary -- reads back the swatch's CSS variable and class; Widget only sets them.
             const swatchEl = colorEl.getElement();
             const swatch = {
                 color: swatchEl.style.getPropertyValue('--color'),
@@ -376,10 +384,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         }
 
         group.addChild(colorEl);
-
-        this.hideFns.push(() => {
-            this.colorPicker.hide();
-        });
 
         return group;
     }

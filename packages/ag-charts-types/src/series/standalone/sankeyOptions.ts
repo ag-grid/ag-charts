@@ -1,5 +1,10 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -56,6 +61,7 @@ export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDe
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgSankeySeriesOptionsKeys<TDatum>,
         Required<Omit<AgSankeySeriesLinkStyle, 'lineDash'>>,
         ResolvedLineDash {}
@@ -64,6 +70,7 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDe
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgSankeySeriesOptionsKeys<TDatum>,
         Required<Omit<AgSankeySeriesNodeStyle, 'lineDash'>>,
         ResolvedLineDash {

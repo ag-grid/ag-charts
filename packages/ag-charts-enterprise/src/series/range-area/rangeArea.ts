@@ -1331,7 +1331,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             datumSelection,
             isHighlight,
             ctx,
-            { compute: RangeAreaSeries.computeStylerStyle, apply: RangeAreaSeries.applyStylerDatum }
+            {
+                hoveredItemShadow: true,
+                compute: RangeAreaSeries.computeStylerStyle,
+                apply: RangeAreaSeries.applyStylerDatum,
+            }
         );
     }
 

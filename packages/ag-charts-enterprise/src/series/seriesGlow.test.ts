@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
@@ -10,7 +10,7 @@ import {
     canvasImage,
     deproxy,
     differingBytes,
-    expectWarningsCalls,
+    endHover,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
     getSeriesNodeData,
@@ -26,16 +26,8 @@ import {
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
-import { ENTERPRISE_GLOW_SERIES, RANGE, STAGES } from '../test/glowSeriesCases';
-import {
-    FLOW_DATA,
-    HIERARCHY_SHADOW_DATA,
-    OHLC_DATA,
-    SHADOW,
-    WATERFALL_DATA,
-    collectShapes,
-    createEnterpriseChart,
-} from '../test/utils';
+import { ENTERPRISE_GLOW_SERIES, HIERARCHY_GLOW_SERIES, RANGE, STAGES } from '../test/glowSeriesCases';
+import { FLOW_DATA, OHLC_DATA, SHADOW, WATERFALL_DATA, collectShapes, createEnterpriseChart } from '../test/utils';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 
 type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
@@ -70,6 +62,10 @@ const COUNTED: Record<string, Partial<SeriesCase>> = {
     'sankey links': { count: FLOW_DATA.length, hoverable: false },
     'chord nodes': { count: 4, hoverable: false },
     'chord links': { count: FLOW_DATA.length, hoverable: false },
+    // A hierarchy is hovered by node, not datum: hierarchyShadowGlowRender.test.ts covers its highlight copy and the cascade of the glow into its buckets.
+    'treemap tile': { hoverable: false },
+    'treemap group': { hoverable: false },
+    sunburst: { hoverable: false },
 };
 
 /** The community series that are also run through an enterprise chart. */
@@ -89,6 +85,7 @@ const WATERFALL = ENTERPRISE_GLOW_SERIES.find(({ name }) => name === 'waterfall'
 const SERIES: SeriesCase[] = [
     ...COMMUNITY_GLOW_SERIES.filter(({ name }) => COMMUNITY_SERIES.has(name)),
     ...ENTERPRISE_GLOW_SERIES.filter((testCase) => testCase !== WATERFALL && !testCase.seriesShadowOnly),
+    ...HIERARCHY_GLOW_SERIES,
 ]
     .map((testCase) => fromCase(testCase, COUNTED[testCase.name]))
     .concat(
@@ -99,6 +96,20 @@ const SERIES: SeriesCase[] = [
             )
         )
     );
+
+/** Series that are not cartesian, so redraw every item when the hover moves where the other items glow. */
+const REDRAWS_ALL_ITEMS = new Set([
+    'pie',
+    'donut',
+    'pyramid',
+    'radial-column',
+    'radial-bar',
+    'nightingale',
+    'radar-line markers',
+    'radar-area markers',
+    'map-shape',
+    'map-marker',
+]);
 
 /** Series with no `highlightedSeries` or `unhighlightedSeries`. */
 const NO_SERIES_STATES = new Set(['funnel', 'pyramid']);
@@ -656,7 +667,7 @@ describe('series-level glow (enterprise series)', () => {
     describe('redraw on hover', () => {
         // A cone funnel has no highlight options, so no state style makes it redraw. Highlighting the whole series, as
         // a legend item of the series does, redraws no one item, so the glow on its connectors is all that can.
-        const highlightSeries = async (glow: object | undefined) => {
+        const createFunnel = async (glow: object | undefined) => {
             chart = await createEnterpriseChart({
                 data: STAGES,
                 animation: { enabled: false },
@@ -664,6 +675,9 @@ describe('series-level glow (enterprise series)', () => {
                 series: [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value', glow }],
             } as AgChartOptions);
             await waitForChartStability(chart);
+        };
+
+        const raiseSeriesHighlight = async () => {
             const { ctx, id } = deproxy(chart);
             ctx.highlightManager.updateHighlight(id, {
                 series: getSeriesAt(chart),
@@ -674,10 +688,15 @@ describe('series-level glow (enterprise series)', () => {
             await waitForChartStability(chart);
         };
 
-        it('redraws a series with a glow when it is highlighted', async () => {
+        const highlightSeries = async (glow: object | undefined) => {
+            await createFunnel(glow);
+            await raiseSeriesHighlight();
+        };
+
+        it('leaves the connectors of a series with a glow cached when it is highlighted', async () => {
             await highlightSeries({});
 
-            expect(getSeriesHasChangesOnHighlight(chart)).toBe(true);
+            expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
         });
 
         it.each([
@@ -696,9 +715,7 @@ describe('series-level glow (enterprise series)', () => {
             const before = glowOf();
             expect(before).toBeDefined();
 
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id);
-            await waitForChartStability(chart);
+            await endHover(chart);
             expect(glowOf()).toBe(before);
 
             await chart.update({
@@ -712,6 +729,81 @@ describe('series-level glow (enterprise series)', () => {
             await waitForChartStability(chart);
             expect(glowOf()).not.toBe(before);
             expect(glowOf()).toMatchObject({ blur: 11 });
+        });
+
+        it('keeps the glow object of the connectors of a series with a glow, and does not make them dirty, when it is highlighted', async () => {
+            await createFunnel(SERIES_GLOW);
+            const connectors = collectShapes(getSeriesAt(chart).contentGroup).filter(
+                (shape) => shape.fillGlow?.enabled
+            );
+            expect(connectors).toHaveLength(STAGES.length - 1);
+            const before = connectors.map((shape) => shape.fillGlow);
+            const spies = connectors.map((shape) => vi.spyOn(shape, 'markDirty'));
+
+            await raiseSeriesHighlight();
+            await endHover(chart);
+
+            for (const [i, shape] of connectors.entries()) expect(shape.fillGlow).toBe(before[i]);
+            expect(spies.map((spy) => spy.mock.calls.length)).toEqual(connectors.map(() => 0));
+            expect(getSeriesHasChangesOnHighlight(chart)).toBe(false);
+        });
+
+        describe.each(
+            ['hlc markers', 'range-area markers', 'candlestick', 'ohlc', 'range-bar', 'waterfall'].map((name) => ({
+                name,
+                testCase: fromCase(ENTERPRISE_GLOW_SERIES.find((c) => c.name === name)!),
+            }))
+        )('$name, after moves between items', ({ testCase }) => {
+            const highlight = { unhighlightedItem: { glow: { blur: 11 } } };
+            const items = () => {
+                const nodeData = getSeriesNodeData<HighlightNodeDatum>(chart);
+                const indices = [...new Set(nodeData.map((datum) => datum.datumIndex))];
+                expect(indices.length).toBeGreaterThan(2);
+                return indices.map((index) => nodeData.find((datum) => datum.datumIndex === index)!);
+            };
+            const inPlaceGlows = () => collectShapes(getSeriesAt(chart).contentGroup).map((shape) => shape.fillGlow);
+
+            const moveThrough = async (reached: number[]) => {
+                for (const index of reached) await hoverNode(chart, items()[index]);
+                return inPlaceGlows();
+            };
+
+            const moveInOneFrame = async (reached: number[]) => {
+                const { ctx, id } = deproxy(chart);
+                for (const index of reached) ctx.highlightManager.updateHighlight(id, items()[index]);
+                await waitForChartStability(chart);
+                return inPlaceGlows();
+            };
+
+            const freshAt = async (index: number) => {
+                chart.destroy();
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                await hoverNode(chart, items()[index]);
+                return inPlaceGlows();
+            };
+
+            it.each([
+                { when: 'each move is drawn', move: moveThrough },
+                { when: 'one frame draws the moves', move: moveInOneFrame },
+            ])('casts on every node the glow of a chart hovered at the item reached, when $when', async ({ move }) => {
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                await hoverNode(chart, items()[0]);
+                const moved = await move([1, 2]);
+
+                expect(moved.length).toBeGreaterThan(0);
+                expect(moved).toEqual(await freshAt(2));
+                // The nodes that the hover left cast the glow of the other items, so the check above can tell a stale node.
+                expect(moved.filter((glow) => glow?.enabled && glow.blur === 11).length).toBeGreaterThan(0);
+            });
+
+            it('casts the glow at rest on every node when the hover ends after moves', async () => {
+                await create(testCase, SERIES_GLOW, undefined, highlight);
+                const atRest = inPlaceGlows();
+                await moveThrough([0, 1, 2]);
+                await endHover(chart);
+
+                expect(inPlaceGlows()).toEqual(atRest);
+            });
         });
 
         // Only the highlight layer's copy casts the hovered item's glow, so a move redraws no in-place node.
@@ -748,36 +840,13 @@ describe('series-level glow (enterprise series)', () => {
                     }
                 );
 
-                it('redraws where the other items glow', async () => {
+                // A series that redraws only the items a move changes leaves the rest cached; the others redraw all.
+                it('redraws all items, or only the moved ones, where the other items glow', async () => {
                     await moveHover({ unhighlightedItem: { glow: {} } });
 
-                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(true);
+                    expect(getSeriesHasChangesOnHighlight(chart)).toBe(REDRAWS_ALL_ITEMS.has(testCase.name));
                 });
             }
         );
-    });
-
-    // Treemap and sunburst take their glow from the highlight buckets alone, until they support a series-level one.
-    describe.each([
-        { name: 'treemap tile', series: { tile: { glow: {} } }, key: 'tile.glow' },
-        { name: 'treemap group', series: { group: { glow: {} } }, key: 'group.glow' },
-        { name: 'sunburst', series: { glow: {} }, key: 'glow' },
-    ] as const)('$name', ({ name, series, key }) => {
-        it('drops a series-level glow with a warning, and casts none', async () => {
-            const type = name.split(' ')[0];
-            chart = await createEnterpriseChart({
-                data: HIERARCHY_SHADOW_DATA,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                series: [{ type, labelKey: 'name', sizeKey: 'size', ...series }],
-            } as AgChartOptions);
-            await waitForChartStability(chart);
-
-            expectWarningsCalls().toEqual([[`AG Charts - Unknown option \`series[0].${key}\`, ignoring.`]]);
-            expect(collectShapes(getSeriesAt(chart).contentGroup).filter((shape) => shape.fillGlow != null)).toEqual(
-                []
-            );
-            expect(uncastGlows(getSeriesAt(chart).contentGroup)).toEqual([]);
-        });
     });
 });

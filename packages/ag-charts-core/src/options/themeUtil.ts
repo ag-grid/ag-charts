@@ -262,14 +262,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             0,
             [['backward-slanted-lines', 'forward-slanted-lines', 'horizontal-lines', 'vertical-lines'], 4],
             [
-                [
-                    'waves',
-                    'hollow-circles',
-                    'criss-cross',
-                    'zig-zag',
-                    'horizontal-dashed-lines',
-                    'vertical-dashed-lines',
-                ],
+                ['waves', 'hollow-circles', 'crosshatch', 'zigzag', 'horizontal-dashed-lines', 'vertical-dashed-lines'],
                 2,
             ],
         ],
@@ -783,13 +776,21 @@ export const SERIES_GLOW_BUCKETS = ['highlightedSeries', 'unhighlightedSeries'] 
 export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] as const;
 
 /**
- * Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. For
- * a series with no series-level `glow` for its buckets to follow, such as treemap and sunburst.
+ * Gives each of the `buckets` of a highlight theme, keeping what they hold, a `glow` whose `enabled` follows the series-level
+ * `glow` at `seriesGlowPath`, so that its other options come from there. For a series whose highlight styles have no
+ * `lineDash` for {@link withGlowThemeDefaults} to default, such as treemap and sunburst.
  */
-export function withDisabledGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
+export function withFollowedGlowThemeDefaults<T extends object>(
+    highlight: T,
+    buckets: readonly string[],
+    seriesGlowPath: string
+): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     for (const bucket of buckets) {
-        result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
+        result[bucket] = {
+            ...(result[bucket] as object | undefined),
+            glow: { enabled: { $path: `${seriesGlowPath}/enabled` } },
+        };
     }
     return result as T;
 }
@@ -1031,25 +1032,18 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
 
 /**
  * Theme defaults for `highlight.mode` and `tooltip.mode`. When only one of them is set, the other follows it
- * (a `'compact'` tooltip gives `'single'` highlighting). Otherwise both resolve to `'shared'` when `sharedCondition`
- * holds and `'single'` when it does not. Each `$path` to the other option is guarded by `$isUserOption` so that
- * neither default can resolve through the other.
+ * (a `'compact'` tooltip gives `'single'` highlighting); otherwise both resolve to `'single'`. Each `$path` to the
+ * other option is guarded by `$isUserOption` so that neither default can resolve through the other.
  */
-export function interactionModeThemeDefaults(sharedCondition: Operation): {
-    highlightMode: Operation;
-    tooltipMode: Operation;
-} {
-    const seriesCountDefault: Operation = { $if: [sharedCondition, 'shared', 'single'] };
-    return {
-        highlightMode: {
-            $isUserOption: [
-                '/tooltip/mode',
-                { $if: [{ $eq: [{ $path: '/tooltip/mode' }, 'shared'] }, 'shared', 'single'] },
-                seriesCountDefault,
-            ],
-        },
-        tooltipMode: {
-            $isUserOption: ['/highlight/mode', { $path: '/highlight/mode' }, seriesCountDefault],
-        },
-    };
-}
+export const INTERACTION_MODE_THEME_DEFAULTS: { highlightMode: Operation; tooltipMode: Operation } = {
+    highlightMode: {
+        $isUserOption: [
+            '/tooltip/mode',
+            { $if: [{ $eq: [{ $path: '/tooltip/mode' }, 'shared'] }, 'shared', 'single'] },
+            'single',
+        ],
+    },
+    tooltipMode: {
+        $isUserOption: ['/highlight/mode', { $path: '/highlight/mode' }, 'single'],
+    },
+};

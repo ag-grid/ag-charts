@@ -822,6 +822,7 @@ export class SankeySeries extends FlowProportionSeries<
                     ],
                     ownBox: nodeDatum,
                     ownBoxLabelsCollide: true,
+                    entityIndex: nodeDatum.datumIndex,
                     target,
                 });
             }
@@ -833,8 +834,9 @@ export class SankeySeries extends FlowProportionSeries<
         const obstacles: LabelObstacle[] = [];
         for (const datum of this.contextNodeData?.nodeData ?? []) {
             if (datum.type !== FlowProportionDatumType.Node) continue;
-            const { x, y, width, height } = datum;
-            obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
+            const { x, y, width, height, datumIndex } = datum;
+            const box = { x, y, width, height };
+            obstacles.push({ kind: 'rect', box, category: 'shape', sourceId: this.id, entityIndex: datumIndex });
         }
         return obstacles;
     }
@@ -1085,7 +1087,7 @@ export class SankeySeries extends FlowProportionSeries<
                 () => {
                     const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
+                        ['series', `${this.declarationOrder}`, 'node'],
                         this.callWithContext(itemStyler, params)
                     );
                 }
@@ -1116,7 +1118,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { fromKey, toKey, sizeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -1127,7 +1129,9 @@ export class SankeySeries extends FlowProportionSeries<
             fromKey,
             toKey,
             sizeKey,
-            highlightState,
+            shadow: this.getStylerShadow(this.options.node.shadow, castState),
+            glow: this.getStylerGlow(this.options.node.glow, castState),
+            highlightState: _ModuleSupport.toHighlightString(castState),
             selectionState,
             candidateState,
             ...style,
@@ -1170,9 +1174,9 @@ export class SankeySeries extends FlowProportionSeries<
                     ? this.getNodeStyle(datum, datumIndex, true).shadow
                     : style.shadow;
             rect.fillShadow =
-                datum === focusedDatum
-                    ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow);
+                focusedDatum == null
+                    ? this.resolveItemShadow(shadow, isHighlight, datumIndex, castState, undefined, itemShadow)
+                    : undefined;
             rect.fillGlow =
                 focusedDatum == null
                     ? this.resolveItemGlow(glow, isHighlight, datumIndex, castState, undefined, style.glow)
@@ -1231,14 +1235,16 @@ export class SankeySeries extends FlowProportionSeries<
                 createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
 
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
+                        ['series', `${this.declarationOrder}`, 'link'],
                         this.callWithContext(itemStyler, {
                             seriesId,
                             datum,
-                            highlightState,
+                            shadow: this.getStylerShadow(this.options.link.shadow, castState),
+                            glow: this.getStylerGlow(this.options.link.glow, castState),
+                            highlightState: _ModuleSupport.toHighlightString(castState),
                             ...style,
                         })
                     );
@@ -1291,9 +1297,9 @@ export class SankeySeries extends FlowProportionSeries<
                     ? this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, true).shadow
                     : style.shadow;
             link.fillShadow =
-                datum === focusedDatum
-                    ? undefined
-                    : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow);
+                focusedDatum == null
+                    ? this.resolveItemShadow(shadow, isHighlight, datum.datumIndex, castState, undefined, itemShadow)
+                    : undefined;
             link.fillGlow =
                 focusedDatum == null
                     ? this.resolveItemGlow(glow, isHighlight, datum.datumIndex, castState, undefined, style.glow)

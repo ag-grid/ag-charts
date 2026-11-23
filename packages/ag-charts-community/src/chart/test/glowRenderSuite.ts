@@ -61,7 +61,8 @@ export function useGlowCharts(factory: (options: AgChartOptions) => Promise<AgCh
     return {
         create,
         chart: () => chart!,
-        snapshot: () => compareImageSnapshot(chart!, { ...ctx, bbox: RENDER_CROP }),
+        /** Snapshots the part of the canvas in `bbox`, which is {@link RENDER_CROP} unless a test crops closer. */
+        snapshot: (bbox: typeof RENDER_CROP = RENDER_CROP) => compareImageSnapshot(chart!, { ...ctx, bbox }),
         /** The render of a chart, as read from its own canvas, so that two charts of a test can be compared. */
         render: async (
             testCase: GlowSeriesCase,
@@ -137,7 +138,8 @@ export function describeGlowSeries(
         });
 
         it.skipIf(!hoverable)('renders the shadow and glow of the hovered item', async () => {
-            await create([glowSeries(testCase, placement, { highlightedItem: hoveredItem })], testCase.data, options);
+            const hovered = testCase.hoveredPlacement ?? placement;
+            await create([glowSeries(testCase, hovered, { highlightedItem: hoveredItem })], testCase.data, options);
             await hoverCase(chart(), testCase);
             await snapshot();
         });
@@ -248,7 +250,12 @@ export function describeGlowSeries(
             async () => {
                 const series = await render(testCase, { glow: SERIES_GLOW });
                 expect(differingBytes(series, await render(testCase, {}))).toBeGreaterThan(0);
-                expectSamePixels(await render(testCase, { itemStyler: () => ({ glow: SERIES_GLOW }) }), series);
+                const { stylerGlowOnly } = testCase;
+                const styled = await render(testCase, {
+                    itemStyler: (params: { datum?: unknown }) =>
+                        stylerGlowOnly == null || stylerGlowOnly(params) ? { glow: SERIES_GLOW } : {},
+                });
+                expectSamePixels(styled, series);
             }
         );
     });

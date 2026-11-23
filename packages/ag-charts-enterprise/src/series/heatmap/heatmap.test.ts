@@ -1392,6 +1392,42 @@ describe('HeatmapSeries', () => {
         });
     });
 
+    it('names the padded cell a label sits in as its own shape obstacle', async () => {
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        itemPadding: 6,
+                        label: { enabled: true },
+                    },
+                ],
+            })
+        );
+        const series = getSeriesInstance(chart, HeatmapSeries);
+        const obstacles = series.getLabelObstacles() ?? [];
+
+        const ownCells = series.getLabelData().map(({ entityIndex, ownBox }) => {
+            const owned = obstacles.filter((o) => o.sourceId === series.id && o.entityIndex === entityIndex);
+            const cell = owned[0]?.box;
+            // The own box sits strictly inside the cell, so the two can never match by geometry.
+            const padded =
+                cell != null &&
+                ownBox != null &&
+                ownBox.x > cell.x &&
+                ownBox.y > cell.y &&
+                ownBox.x + ownBox.width < cell.x + cell.width &&
+                ownBox.y + ownBox.height < cell.y + cell.height;
+            return { owned: owned.length, padded };
+        });
+
+        expect(ownCells).toEqual(Array(9).fill({ owned: 1, padded: true }));
+    });
+
     describe('label alignment', () => {
         const ITEM_PADDING = 12;
 

@@ -1,7 +1,12 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -42,6 +47,7 @@ export interface AgFunnelSeriesItemStylerParams<TDatum = DatumDefault, TContext 
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgFunnelSeriesOptionsKeys<TDatum>,
         Required<Omit<AgFunnelSeriesStyle, 'lineDash'>>,
         ResolvedLineDash {}

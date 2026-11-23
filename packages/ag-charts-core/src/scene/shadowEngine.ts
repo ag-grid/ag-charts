@@ -166,7 +166,8 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
             (a.spread ?? 0) === (b.spread ?? 0) &&
             // An unset gap casts like a shadow, and a gap of 0 cuts the footprint out, so the two are not the same.
             a.gap === b.gap &&
-            a.overlay === b.overlay)
+            a.overlay === b.overlay &&
+            a.selfCut === b.selfCut)
     );
 }
 
@@ -401,6 +402,7 @@ function matchSignature(
         putSignature(cache, shadow.blur);
         putSignature(cache, shadow.spread ?? 0);
         putSignature(cache, shadow.gap ?? -1);
+        putSignature(cache, shadow.selfCut === true ? 1 : 0);
         putSignature(cache, clip?.length ?? -1);
         if (clip != null) {
             for (const corner of clip) putSignature(cache, corner);
@@ -1072,6 +1074,9 @@ function castOverlay(
     const lone = sources.size === 1;
     // Whether every glow was cut by the footprint of its own casters, dilated by its `gap`, before it merged.
     let cutWhole = true;
+    // The keys whose glow was cut by the footprint of their own casters before it merged: the cut after the merge doesn't erase
+    // that footprint again, but the footprints in `cuts`, the hovered node's among them, still cut these glows.
+    const selfCut = new Set<ShadowKey>();
     let directKey: ShadowKey | undefined;
     for (let first = 0; first < plans.length;) {
         // The parts that a key was split into by strength cast one glow, so they share a canvas, and one cut.
@@ -1083,7 +1088,8 @@ function castOverlay(
         const { gap, overlay } = source.shadow;
         const hasGap = gap != null && overlay !== true;
         const ownCuts = source.ownCuts;
-        const cutAlone = hasGap || ownCuts != null;
+        const cutsSelf = source.shadow.selfCut === true;
+        const cutAlone = hasGap || ownCuts != null || cutsSelf;
         const direct = lone && hasGap;
         if (cutAlone && !direct) cut ??= acquireOwnCutCanvas(scene, width, height);
         // Without a canvas for its own cut, a glow is merged whole, and the cut of every footprint still clears the items.
@@ -1116,9 +1122,15 @@ function castOverlay(
         }
         if (own == null) continue;
 
+        if (cutsSelf) {
+            for (const plan of group) selfCut.add(plan.key);
+        }
         rendered =
             cutOut(own, reach, scratch, (ctx, op) => {
                 let drew = true;
+                if (cutsSelf) {
+                    for (const plan of group) drew = eraseKey(plan.key, ctx, op) && drew;
+                }
                 if (hasGap) {
                     for (const plan of group) {
                         drew =
@@ -1163,12 +1175,13 @@ function castOverlay(
         }
     }
 
-    // A lone glow cut whole by its own `gap` needs no further cut.
-    if (!(cutWhole && lone && cuts == null))
+    // A lone glow cut whole by its own `gap` needs no further cut, nor one that every glow was cut by its own footprint alone.
+    const mergedPlans = selfCut.size === 0 ? plans : plans.filter((plan) => !selfCut.has(plan.key));
+    if (!(cutWhole && lone && cuts == null) && (mergedPlans.length > 0 || cuts != null))
         rendered =
             cutOut(merged, { x: 0, y: 0, width, height }, scratch, (ctx, op) => {
                 let drew = true;
-                for (const plan of plans) drew = eraseRing(plan.key, ctx, op) && drew;
+                for (const plan of mergedPlans) drew = eraseRing(plan.key, ctx, op) && drew;
                 for (const key of cuts ?? []) drew = eraseRing(key, ctx, op) && drew;
                 return drew;
             }) && rendered;

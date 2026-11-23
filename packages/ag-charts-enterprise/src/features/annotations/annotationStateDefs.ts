@@ -1,4 +1,4 @@
-import type { AgAnnotation, AgAnnotationFollowOptions } from 'ag-charts-community';
+import type { AgAnnotation } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
@@ -8,11 +8,9 @@ import {
     optionsDefs,
     or,
     positiveNumber,
-    required,
     string,
     textAlign,
     typeUnion,
-    union,
 } from 'ag-charts-core';
 
 import {
@@ -40,7 +38,7 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
         scalar,
         optionsDefs<{ value: unknown; groupPercentage: number }>({ value: scalar, groupPercentage: number })
     );
-    const point = { x: value, y: numericValue };
+    const point = { x: value, y: value };
     const startEnd = { start: point, end: point };
 
     const lineText = { ...annotationLineTextDefs, label: string };
@@ -57,14 +55,6 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
         axisLabel,
         text: lineText,
     };
-    const followName = union('first', 'last');
-    const horizontalLine = {
-        ...crossLine,
-        follow: or(
-            followName,
-            optionsDefs<AgAnnotationFollowOptions>({ follow: required(followName), seriesId: string })
-        ),
-    };
     const fibonacci = { ...annotationFibonacciStylesDefs, ...startEnd, text: lineText, reverse: boolean, axisLabel };
     const measurer = { ...annotationMeasurerStylesDefs, ...startEnd, text: lineText, axisLabel };
     const quickMeasurerDirection = annotationQuickMeasurerStylesDefs.up;
@@ -74,7 +64,7 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
         {
             line,
             arrow: line,
-            'horizontal-line': horizontalLine,
+            'horizontal-line': crossLine,
             'vertical-line': crossLine,
             'parallel-channel': {
                 ...annotationParallelChannelStyleDefs,
