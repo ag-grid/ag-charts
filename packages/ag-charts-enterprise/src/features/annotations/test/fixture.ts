@@ -26,9 +26,7 @@ export const ANNOTATIONS_EXAMPLE_OPTIONS: AgCartesianChartOptions = {
     annotations: { enabled: true, toolbar: { enabled: false } },
 };
 
-export type AxisOverrides = Partial<
-    Pick<AnnotationAxisContext, 'formatScaleValue' | 'formatWithCrosshairLabel' | 'valueTickSize'>
->;
+export type AxisOverrides = Partial<Pick<AnnotationAxisContext, 'formatWithCrosshairLabel' | 'valueTickSize'>>;
 
 /**
  * The axes of an annotation context, which is all the coordinate editing reads; the rest of the interface is unused.

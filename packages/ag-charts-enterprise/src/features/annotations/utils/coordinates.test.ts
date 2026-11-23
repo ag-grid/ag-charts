@@ -384,24 +384,6 @@ describe('annotation coordinates', () => {
             ],
             ['the default label without a tick size', {}, 2, undefined],
             [
-                'the default label ahead of the tick size calculated from the data, which the spinner steps by',
-                { valueTickSize: (infer) => (infer === false ? undefined : 0.009994) },
-                2,
-                0.009994,
-            ],
-            [
-                'the default label, which the spinner leaves for a calculated tick size too fine to be seen',
-                { valueTickSize: (infer) => (infer === false ? undefined : 0.001) },
-                2,
-                undefined,
-            ],
-            [
-                'the calculated tick size where the default label is not a plain number',
-                { valueTickSize: (infer) => (infer === false ? undefined : 0.25), formatScaleValue: () => 'Q3 2024' },
-                2,
-                0.25,
-            ],
-            [
                 'the default label for a time interval, which is not a number',
                 { valueTickSize: () => 'day' as const },
                 2,

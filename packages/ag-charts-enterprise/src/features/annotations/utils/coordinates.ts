@@ -392,8 +392,8 @@ function createOffsetPointFields(
 
 /**
  * The decimals and spinner step of a number. The decimals are those of the format the user gave the crosshair label, or
- * else of the `tickSize` option, or else of the label's default text, where that is a plain number, or else of the
- * tick size calculated from the data. The spinner moves by the tick size, unless the decimals hide a step of it.
+ * else of the axis's tick size, or else of the label's default text, where that is a plain number. The spinner moves by
+ * the tick size, unless the crosshair label shows too few decimals for a step of it to be seen.
  */
 function getNumberPrecision(
     kind: CoordinateKind,
@@ -415,19 +415,11 @@ function getNumberPrecision(
         const step = given != null && countFractionDigits(given) <= labelDigits ? given : undefined;
         return { fractionDigits: labelDigits, step };
     }
-    const given = getNumberTickSize(context, false);
-    if (given != null) {
-        return { fractionDigits: countFractionDigits(given), step: given };
+    const tickSize = getNumberTickSize(context);
+    if (tickSize != null) {
+        return { fractionDigits: countFractionDigits(tickSize), step: tickSize };
     }
-
-    const calculated = getNumberTickSize(context);
-    const defaultDigits = countTextFractionDigits(toPlainText(context.formatScaleValue(value, 'crosshair')));
-    if (defaultDigits == null) {
-        return calculated == null ? {} : { fractionDigits: countFractionDigits(calculated), step: calculated };
-    }
-    // Rounded to the shown decimals, a step of under half of the last of them would leave the value where it is.
-    const step = calculated != null && calculated >= 0.5 * 10 ** -defaultDigits ? calculated : undefined;
-    return { fractionDigits: defaultDigits, step };
+    return { fractionDigits: countTextFractionDigits(toPlainText(context.formatScaleValue(value, 'crosshair'))) };
 }
 
 function countTextFractionDigits(text: string | undefined) {
