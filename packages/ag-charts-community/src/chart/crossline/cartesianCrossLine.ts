@@ -294,8 +294,6 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = Number.NaN;
 
-            if (yStart !== clampedYStart) return;
-            this.unzoomedData = [this.unzoomedPosition(clampedYStart), Number.NaN];
             if (yStart > clipMax + bandwidth || yStart < clipMin - bandwidth) {
                 return;
             }
@@ -328,7 +326,6 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                 clampedYEnd += bandwidth + rangePadding;
             }
 
-            this.unzoomedData = [this.unzoomedPosition(clampedYStart), this.unzoomedPosition(clampedYEnd)];
             if (clampedYStart >= clipMax || clampedYEnd <= clipMin) {
                 return;
             }
@@ -336,6 +333,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             return;
         }
 
+        this.unzoomedData = [this.unzoomedPosition(clampedYStart), this.unzoomedPosition(clampedYEnd)];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
 
@@ -928,7 +926,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
-        if (!this.padsForLabel || this.unzoomedData == null) return;
+        if (!this.padsForLabel || this.labelBounds == null) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
