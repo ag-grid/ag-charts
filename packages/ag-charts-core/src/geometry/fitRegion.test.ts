@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import {
     type FitRegion,
     type FitRegionMask,
+    ReusableInsetRegion,
     insetFitRegion,
     maskFitRegion,
     probedFitRegion,
@@ -166,6 +167,20 @@ describe('insetFitRegion', () => {
         const region = insetFitRegion(trapezoidFitRegion(stage(), 50), 0, 10);
         // The band [0, 10] is measured as [-10, 20], so it pays the narrower width 10px further up.
         expect(regionWidthAt(region, 0, 10)).toBe(regionWidthAt(trapezoidFitRegion(stage(), 50), -10, 20));
+    });
+
+    test('a reusable inset answers like insetFitRegion and forgets its bands once released', () => {
+        const base = rect(120, 40);
+        const spanAt = vi.spyOn(base, 'spanAt');
+        const reusable = new ReusableInsetRegion().reset(base, 10, 5);
+        expect(reusable.spanAt(-3, 8)).toEqual(insetFitRegion(base, 10, 5).spanAt(-3, 8));
+        expect([reusable.extentAbove, reusable.extentBelow]).toEqual([15, 15]);
+        spanAt.mockClear();
+        reusable.spanAt(-3, 8);
+        expect(spanAt).not.toHaveBeenCalled();
+        reusable.release();
+        reusable.reset(base, 10, 5).spanAt(-3, 8);
+        expect(spanAt).toHaveBeenCalledTimes(1);
     });
 
     test('bottoms out at nothing rather than going negative', () => {

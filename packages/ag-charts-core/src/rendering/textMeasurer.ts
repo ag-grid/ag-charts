@@ -97,21 +97,45 @@ export class TextMeasurer implements ITextMeasurer {
 }
 
 const instanceMap = new LRUCache<TextMeasurer>(50);
+// OPTIMIZATION: the font last asked for by its options, so a run of asks for one font skips building its string.
+const lastFont: Required<Omit<FontOptions, 'lineHeight'>> & { measurer?: TextMeasurer } = {
+    fontSize: 0,
+    fontStyle: 'normal',
+    fontWeight: 'normal',
+    fontFamily: '',
+};
+
 export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
     if (typeof font === 'object') {
-        font = toFontString(font);
+        if (
+            lastFont.measurer != null &&
+            font.fontSize === lastFont.fontSize &&
+            font.fontStyle === lastFont.fontStyle &&
+            font.fontWeight === lastFont.fontWeight &&
+            font.fontFamily === lastFont.fontFamily
+        ) {
+            return lastFont.measurer;
+        }
+        const measurer = cachedTextMeasurer(toFontString(font));
+        lastFont.fontSize = font.fontSize;
+        lastFont.fontStyle = font.fontStyle!;
+        lastFont.fontWeight = font.fontWeight!;
+        lastFont.fontFamily = font.fontFamily!;
+        lastFont.measurer = measurer;
+        return measurer;
     }
 
     let cachedMeasurer = instanceMap.get(font);
     if (cachedMeasurer) return cachedMeasurer;
 
-    const cachedTextMetrics = new LRUCache<LegacyTextMetrics>(10_000);
+    const cachedTextMetrics = new Map<string, LegacyTextMetrics>();
     const ctx = createCanvasContext();
     ctx.font = font;
 
     cachedMeasurer = new TextMeasurer(ctx, (text) => {
         let textMetrics = cachedTextMetrics.get(text);
         if (textMetrics) return textMetrics;
+        if (cachedTextMetrics.size >= MAX_CACHED_WIDTHS) cachedTextMetrics.clear();
         textMetrics = ctx.measureText(text);
         cachedTextMetrics.set(text, textMetrics);
         return textMetrics;
@@ -120,7 +144,10 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
     return cachedMeasurer;
 }
 
-cachedTextMeasurer.clear = () => instanceMap.clear();
+cachedTextMeasurer.clear = () => {
+    instanceMap.clear();
+    lastFont.measurer = undefined;
+};
 
 export function resolvePadding(padding: Padding | undefined): Required<PaddingOptions> {
     if (padding == null) return { top: 0, right: 0, bottom: 0, left: 0 };

@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { BoxBounds } from '../../geometry/boxBounds';
 import {
+    SectorPointTester,
     boxOverlapsSector,
     clampSectorCornerRadii,
     clockwiseAngles,
     isBoxInSector,
+    isPointClearOfSector,
     isPointInSector,
     radiiScalingFactor,
     sectorColumnTest,
@@ -300,6 +302,124 @@ describe('sector point tests with a radialEdgeInset', () => {
             }
         }
         expect(checked).toBeGreaterThan(30000);
+    });
+
+    it('vouches along a ray only for points the point test passes, up to and at the bound', () => {
+        const rng = makeRng(0x2545f491);
+        const tester = new SectorPointTester();
+        let vouched = 0;
+        for (let i = 0; i < 2000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + [rng() * 0.3, rng() * Math.PI, Math.PI + rng()][i % 3],
+                innerRadius: i % 4 === 0 ? 0 : rng() * 60,
+                outerRadius: 60 + rng() * 140,
+                radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
+            };
+            tester.reset(sector);
+            const [px, py] = at(
+                sector.innerRadius + rng() * (sector.outerRadius - sector.innerRadius),
+                startAngle + rng() * 2
+            );
+            const angle = i % 5 === 0 ? (Math.floor(rng() * 4) * Math.PI) / 2 : rng() * TAU;
+            const [dx, dy] = [Math.cos(angle), Math.sin(angle)];
+            const limit = sector.outerRadius * 2;
+            const until = tester.insideUntil(px, py, dx, dy, limit);
+            if (until < 0) continue;
+            vouched++;
+            for (const t of [0, until, Math.min(until, limit), ...Array.from({ length: 30 }, () => rng() * until)]) {
+                if (t > limit) continue;
+                const [x, y] = [px + dx * t, py + dy * t];
+                expect(tester.contains(x, y)).toBe(true);
+                expect(isPointInSector(x, y, sector)).toBe(true);
+            }
+        }
+        expect(vouched).toBeGreaterThan(300);
+    });
+
+    it('vouches, in a convex wedge, for every point between two rows it vouches for', () => {
+        const rng = makeRng(0x1b873593);
+        const tester = new SectorPointTester();
+        let checked = 0;
+        for (let i = 0; i < 3000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + rng() * Math.PI,
+                innerRadius: 0,
+                outerRadius: 60 + rng() * 140,
+            };
+            if (!tester.reset(sector).convex) continue;
+            const [px, py] = at(rng() * sector.outerRadius, startAngle + rng() * (sector.endAngle - startAngle));
+            const dir = rng() < 0.5 ? -1 : 1;
+            const [top, bottom] = [py - rng() * 30, py + rng() * 30];
+            const limit = sector.outerRadius * 2;
+            const until = Math.min(
+                tester.insideUntil(px, top, dir, 0, limit),
+                tester.insideUntil(px, bottom, dir, 0, limit)
+            );
+            if (until < 0) continue;
+            checked++;
+            for (let k = 0; k < 20; k++) {
+                const t = Math.min(until, limit) * rng();
+                const y = top + (bottom - top) * rng();
+                expect(tester.contains(px + dir * t, y)).toBe(true);
+            }
+        }
+        expect(checked).toBeGreaterThan(500);
+    });
+
+    it('rules a ray out only where the point test fails, from the bound on', () => {
+        const rng = makeRng(0x6c8e9cf5);
+        const tester = new SectorPointTester();
+        let ruled = 0;
+        for (let i = 0; i < 2000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + [rng() * 0.3, rng() * Math.PI, Math.PI + rng()][i % 3],
+                innerRadius: i % 4 === 0 ? 0 : rng() * 60,
+                outerRadius: 60 + rng() * 140,
+                radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
+            };
+            tester.reset(sector);
+            const [px, py] = at(rng() * 220, startAngle + rng() * 2);
+            const angle = i % 5 === 0 ? (Math.floor(rng() * 4) * Math.PI) / 2 : rng() * TAU;
+            const [dx, dy] = [Math.cos(angle), Math.sin(angle)];
+            const limit = sector.outerRadius * 2;
+            const from = tester.outsideFrom(px, py, dx, dy, limit);
+            if (from > limit) continue;
+            ruled++;
+            for (const t of [from, limit, ...Array.from({ length: 30 }, () => from + rng() * (limit - from))]) {
+                const [x, y] = [px + dx * t, py + dy * t];
+                expect(tester.contains(x, y)).toBe(false);
+                expect(isPointInSector(x, y, sector)).toBe(false);
+            }
+        }
+        expect(ruled).toBeGreaterThan(1000);
+    });
+
+    it('clears a point only when every box holding it fails isBoxInSector', () => {
+        const rng = makeRng(0x9e3779b9);
+        let cleared = 0;
+        for (let i = 0; i < 4000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + [rng() * 0.3, rng() * Math.PI, Math.PI + rng()][i % 3],
+                innerRadius: i % 4 === 0 ? 0 : rng() * 60,
+                outerRadius: 60 + rng() * 140,
+                radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
+            };
+            const [x, y] = at(rng() * 220, startAngle + (rng() - 0.25) * 2);
+            if (!isPointClearOfSector(x, y, sector, Math.abs(x) + Math.abs(y))) continue;
+            cleared++;
+            const [w, h] = [rng() * 80, rng() * 30];
+            const box = { x: x - rng() * w, y: y - rng() * h, width: w, height: h };
+            expect(isBoxInSector(box, sector)).toBe(false);
+        }
+        expect(cleared).toBeGreaterThan(1000);
     });
 
     it('insets only along each edge, not across the line it lies on', () => {

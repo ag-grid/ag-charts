@@ -548,6 +548,14 @@ describe('wrapLines', () => {
             expect(wrapLines('AA BB CC DD EE FF G', options).at(-1)).toBe('FF G');
             expect(wrapLines('AA BB CC DD EE FF G', { ...options, lineHeight: 60 }).at(-1)).toBe('G');
         });
+        it('asks a shape for each row it builds once, however many times the row tests its width', () => {
+            const maxWidthAt = vi.fn((_top: number, _bottom: number) => 90);
+            const lines = wrapLines('AA BB CC DD EE FF GG HH', { font, maxWidth: 90, maxWidthAt, lineHeight: 20 });
+            expect(lines).toEqual(['AA BB CC', 'DD EE FF', 'GG HH']);
+            const rowTops = maxWidthAt.mock.calls.map(([top]) => top);
+            expect(rowTops.filter((top) => top === 0)).toHaveLength(1);
+            expect(rowTops.filter((top) => top === 20)).toHaveLength(1);
+        });
     });
 
     describe('overflow: hide', () => {

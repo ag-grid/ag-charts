@@ -437,26 +437,45 @@ function blockTopFor(align: RegionAlign, height: number, region: FitRegion) {
  * nearer edge allows, so the offset that suits the block is not the anchor unless the shape is symmetric
  * about it. Each band's own centre is a candidate, and the one giving the most width across the block wins.
  */
-function blockOffsetX(region: FitRegion, bands: (readonly [number, number])[]) {
-    const spans = bands.map(([top, bottom]) => region.spanAt(top, bottom));
-    const candidates = [0];
-    for (const [left, right] of spans) {
-        if (left < right) candidates.push((left + right) / 2);
+function blockOffsetX(
+    region: FitRegion,
+    blockTop: number,
+    height: number,
+    lineHeight: number,
+    lines: number,
+    boxed: boolean
+) {
+    const count = boxed ? 1 : lines;
+    if (bandSpans.length < 2 * count) bandSpans = new Float64Array(2 * count);
+    const spans = bandSpans;
+    for (let i = 0; i < count; i += 1) {
+        const [left, right] = boxed
+            ? region.spanAt(blockTop, blockTop + height)
+            : region.spanAt(blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight);
+        spans[2 * i] = left;
+        spans[2 * i + 1] = right;
     }
     let best = 0;
     let bestTotal = -1;
-    for (const offset of candidates) {
+    // The anchor first, then each band's own centre.
+    for (let c = -1; c < count; c += 1) {
+        // An empty band offers no centre.
+        const isCandidate = c < 0 || spans[2 * c] < spans[2 * c + 1];
+        const offset = c < 0 ? 0 : (spans[2 * c] + spans[2 * c + 1]) / 2;
         let total = 0;
-        for (const [left, right] of spans) {
-            total += Math.max(0, 2 * Math.min(offset - left, right - offset));
+        for (let i = 0; isCandidate && i < count; i += 1) {
+            total += Math.max(0, 2 * Math.min(offset - spans[2 * i], spans[2 * i + 1] - offset));
         }
-        if (total > bestTotal) {
+        if (isCandidate && total > bestTotal) {
             bestTotal = total;
             best = offset;
         }
     }
     return best;
 }
+
+// OPTIMIZATION: scratch for blockOffsetX's band spans, as left/right pairs, refilled by each call.
+let bandSpans = new Float64Array(16);
 
 /** One candidate layout: the text wrapped into a block of `lines`, and how much of the source it kept. */
 function wrapBlockToRegion(
@@ -472,15 +491,7 @@ function wrapBlockToRegion(
 ) {
     const height = Math.min(lines * lineHeight, limit);
     const blockTop = blockTopFor(align, height, region);
-    const bands: (readonly [number, number])[] = [];
-    if (boxed) {
-        bands.push([blockTop, blockTop + height] as const);
-    } else {
-        for (let i = 0; i < lines; i += 1) {
-            bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
-        }
-    }
-    const offsetX = anchored ? 0 : blockOffsetX(region, bands);
+    const offsetX = anchored ? 0 : blockOffsetX(region, blockTop, height, lineHeight, lines, boxed);
     const widthAt = boxed
         ? () => regionWidthAt(region, blockTop, blockTop + height, offsetX)
         : (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
@@ -1042,9 +1053,16 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     // A shape-bounded label narrows per line, so every width test below asks for the line being built.
     // Lines are uniform height here: one font per call, with segments driving their own offset in.
     const lineHeight = options.maxWidthAt == null ? 0 : (options.lineHeight ?? measurer.lineHeight());
+    // OPTIMIZATION: a row's width is asked for several times while it is built, and a shape answers it the same.
+    let widthRow = -1;
+    let rowWidth = 0;
     const maxWidth = () => {
-        const top = blockTop + result.length * lineHeight;
-        return lineMaxWidth(options, top, top + lineHeight);
+        if (result.length !== widthRow) {
+            const top = blockTop + result.length * lineHeight;
+            rowWidth = lineMaxWidth(options, top, top + lineHeight);
+            widthRow = result.length;
+        }
+        return rowWidth;
     };
 
     if (options.textWrap === 'never') {
@@ -1189,16 +1207,16 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
         return lines;
     }
 
-    const { height, lineMetrics } = measurer.measureLines(lines);
-    // An explicit line height is the spacing the text is drawn with, so it is what has to fit.
-    const totalHeight = options.lineHeight == null ? height : lines.length * options.lineHeight;
+    // OPTIMIZATION: an explicit line height is the spacing the text is drawn with, so it fits unmeasured.
+    const measured = options.lineHeight == null ? measurer.measureLines(lines) : undefined;
+    const totalHeight = measured?.height ?? lines.length * options.lineHeight!;
     if (totalHeight <= options.maxHeight) {
         return lines;
     }
 
-    const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+    const lineHeightAt = (i: number) => options.lineHeight ?? measured!.lineMetrics[i].height;
 
-    for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
+    for (let i = 0, cumulativeHeight = 0; i < lines.length; i++) {
         const lineTop = cumulativeHeight;
         cumulativeHeight += lineHeightAt(i);
         if (cumulativeHeight > options.maxHeight) {

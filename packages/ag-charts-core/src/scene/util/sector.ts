@@ -182,47 +182,245 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
 
 /** {@link isPointInSector} with the sector resolved once, for a caller testing many points against it. */
 export function sectorPointTest(sector: SectorBoundaries): (x: number, y: number) => boolean {
-    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
-    if (startAngle === endAngle) return () => false;
-    const minRadius = Math.min(innerRadius, outerRadius);
-    const maxRadius = Math.max(innerRadius, outerRadius);
-    const start180 = normalizeAngle180(startAngle);
-    const end180 = normalizeAngle180(endAngle);
-    const inset = sector.radialEdgeInset ?? 0;
-    const startCos = Math.cos(startAngle);
-    const startSin = Math.sin(startAngle);
-    const endCos = Math.cos(endAngle);
-    const endSin = Math.sin(endAngle);
-    const exact = (x: number, y: number) =>
-        isWithinRadii(x, y, minRadius, maxRadius) &&
-        isWithinAngles(x, y, start180, end180, inset, startCos, startSin, endCos, endSin);
-    // Squared radii only order non-negative bounds.
-    if (minRadius < 0) return exact;
-    // The sweep as isWithinAngleRange reads it: equal ends hold every angle.
-    const sweep = start180 < end180 ? end180 - start180 : end180 - start180 + 2 * Math.PI;
-    const anyAngle = start180 === end180;
-    const wide = sweep > Math.PI;
-    const innerOut = (minRadius * (1 - POINT_TEST_MARGIN)) ** 2;
-    const innerIn = (minRadius * (1 + POINT_TEST_MARGIN)) ** 2;
-    const outerIn = (maxRadius * (1 - POINT_TEST_MARGIN)) ** 2;
-    const outerOut = (maxRadius * (1 + POINT_TEST_MARGIN)) ** 2;
-    // OPTIMIZATION: fitting probes thousands of points per label, so one clear of every boundary skips sqrt and atan2.
-    return (x, y) => {
+    return new SectorPointTester().reset(sector).contains;
+}
+
+const enum PointTestMode {
+    Empty,
+    Exact,
+    Fast,
+}
+
+/**
+ * {@link sectorPointTest} as one reusable tester, which also answers how far along a ray its test is sure to
+ * pass: a fit probing thousands of points per label can then skip every probe short of that distance.
+ */
+export class SectorPointTester {
+    private mode = PointTestMode.Empty;
+    private minRadius = 0;
+    private maxRadius = 0;
+    private start180 = 0;
+    private end180 = 0;
+    private inset = 0;
+    private startCos = 0;
+    private startSin = 0;
+    private endCos = 0;
+    private endSin = 0;
+    private anyAngle = false;
+    private wide = false;
+    /** Whether a point between two that {@link insideUntil} vouches for is vouched for too: no hole, inset or reflex turn. */
+    convex = false;
+    private innerOut = 0;
+    private innerIn = 0;
+    private outerIn = 0;
+    private outerOut = 0;
+
+    reset(sector: SectorBoundaries): this {
+        const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+        this.minRadius = Math.min(innerRadius, outerRadius);
+        this.maxRadius = Math.max(innerRadius, outerRadius);
+        this.start180 = normalizeAngle180(startAngle);
+        this.end180 = normalizeAngle180(endAngle);
+        this.inset = sector.radialEdgeInset ?? 0;
+        this.startCos = Math.cos(startAngle);
+        this.startSin = Math.sin(startAngle);
+        this.endCos = Math.cos(endAngle);
+        this.endSin = Math.sin(endAngle);
+        // The sweep as isWithinAngleRange reads it: equal ends hold every angle.
+        const sweep =
+            this.start180 < this.end180 ? this.end180 - this.start180 : this.end180 - this.start180 + 2 * Math.PI;
+        this.anyAngle = this.start180 === this.end180;
+        this.wide = sweep > Math.PI;
+        this.innerOut = (this.minRadius * (1 - POINT_TEST_MARGIN)) ** 2;
+        this.innerIn = (this.minRadius * (1 + POINT_TEST_MARGIN)) ** 2;
+        this.outerIn = (this.maxRadius * (1 - POINT_TEST_MARGIN)) ** 2;
+        this.outerOut = (this.maxRadius * (1 + POINT_TEST_MARGIN)) ** 2;
+        this.convex = this.minRadius === 0 && this.maxRadius > 0 && this.inset <= 0 && !this.anyAngle && !this.wide;
+        if (startAngle === endAngle) {
+            this.mode = PointTestMode.Empty;
+        } else if (this.minRadius < 0) {
+            // Squared radii only order non-negative bounds.
+            this.mode = PointTestMode.Exact;
+        } else {
+            this.mode = PointTestMode.Fast;
+        }
+        return this;
+    }
+
+    readonly contains = (x: number, y: number): boolean => {
+        if (this.mode !== PointTestMode.Fast) return this.mode === PointTestMode.Exact && this.exact(x, y);
+        // OPTIMIZATION: fitting probes thousands of points per label, so one clear of every boundary skips sqrt and atan2.
         const squared = x * x + y * y;
-        if (squared > outerOut || squared < innerOut) return false;
-        if (squared < innerIn || squared > outerIn) return exact(x, y);
-        if (!anyAngle) {
+        if (squared > this.outerOut || squared < this.innerOut) return false;
+        if (squared < this.innerIn || squared > this.outerIn) return this.exact(x, y);
+        const { startCos, startSin, endCos, endSin, inset } = this;
+        // Signed distances from the start and end edge lines, positive on the sector's side.
+        const pastStart = y * startCos - x * startSin;
+        const beforeEnd = x * endSin - y * endCos;
+        if (!this.anyAngle) {
             const margin = POINT_TEST_MARGIN * (Math.abs(x) + Math.abs(y));
-            const pastStart = y * startCos - x * startSin;
-            const beforeEnd = x * endSin - y * endCos;
-            if (Math.abs(pastStart) <= margin || Math.abs(beforeEnd) <= margin) return exact(x, y);
-            const inAngle = wide ? pastStart > 0 || beforeEnd > 0 : pastStart > 0 && beforeEnd > 0;
+            if (Math.abs(pastStart) <= margin || Math.abs(beforeEnd) <= margin) return this.exact(x, y);
+            const inAngle = this.wide ? pastStart > 0 || beforeEnd > 0 : pastStart > 0 && beforeEnd > 0;
             if (!inAngle) return false;
         }
         if (inset <= 0) return true;
-        return isClearOfEdge(x, y, startCos, startSin, inset, 1) && isClearOfEdge(x, y, endCos, endSin, inset, -1);
+        // isClearOfEdge for both edges, whose distances across are pastStart and beforeEnd.
+        if (!(x * startCos + y * startSin < 0 || pastStart < 0 || pastStart >= inset)) return false;
+        return x * endCos + y * endSin < 0 || beforeEnd < 0 || beforeEnd >= inset;
     };
+
+    /**
+     * How far along `(dx, dy)` from `(px, py)` every point passes {@link contains}, or -1 when that cannot be
+     * vouched for at the start. The bound keeps each boundary at a margin of {@link RAY_TEST_MARGIN} of the
+     * coordinates the ray spans up to `limit`, so neither rounding nor the test's own near-boundary path can
+     * tell such a point otherwise.
+     */
+    readonly insideUntil = (px: number, py: number, dx: number, dy: number, limit: number): number => {
+        if (this.mode !== PointTestMode.Fast || this.anyAngle || this.wide) return -1;
+        const margin = RAY_TEST_MARGIN * (Math.abs(px) + Math.abs(py) + limit * (Math.abs(dx) + Math.abs(dy)));
+        const a = dx * dx + dy * dy;
+        const b = 2 * (px * dx + py * dy);
+        const c = px * px + py * py;
+        const outer = this.maxRadius * this.maxRadius * (1 - RAY_TEST_MARGIN);
+        const inner = this.minRadius > 0 ? this.minRadius * this.minRadius * (1 + RAY_TEST_MARGIN) : 0;
+        if (!(margin > 0 && margin < Infinity && this.maxRadius > 0 && a > 0 && c <= outer && c >= inner)) return -1;
+        let until = largerRoot(a, b, c - outer);
+        if (this.minRadius > 0) until = Math.min(until, firstPositiveRoot(a, b, c - inner));
+        const { startCos, startSin, endCos, endSin, inset } = this;
+        const pastStart0 = py * startCos - px * startSin;
+        const pastStart1 = dy * startCos - dx * startSin;
+        const beforeEnd0 = px * endSin - py * endCos;
+        const beforeEnd1 = dx * endSin - dy * endCos;
+        until = Math.min(
+            until,
+            linearUntil(pastStart0, pastStart1, margin),
+            linearUntil(beforeEnd0, beforeEnd1, margin)
+        );
+        if (inset > 0) {
+            const startDot0 = px * startCos + py * startSin;
+            const startDot1 = dx * startCos + dy * startSin;
+            const endDot0 = px * endCos + py * endSin;
+            const endDot1 = dx * endCos + dy * endSin;
+            until = Math.min(
+                until,
+                eitherUntil(-startDot0, -startDot1, pastStart0 - inset, pastStart1, margin),
+                eitherUntil(-endDot0, -endDot1, beforeEnd0 - inset, beforeEnd1, margin)
+            );
+        }
+        return until >= 0 ? until : -1;
+    };
+
+    /**
+     * How far along `(dx, dy)` from `(px, py)` a ray has to go before every point beyond fails {@link contains},
+     * or Infinity when that cannot be vouched for. Only exits for good count: the outer rim, and the edge lines
+     * up to a half turn, each passed by the {@link insideUntil} margin.
+     */
+    readonly outsideFrom = (px: number, py: number, dx: number, dy: number, limit: number): number => {
+        if (this.mode !== PointTestMode.Fast) return Infinity;
+        const margin = RAY_TEST_MARGIN * (Math.abs(px) + Math.abs(py) + limit * (Math.abs(dx) + Math.abs(dy)));
+        const a = dx * dx + dy * dy;
+        if (!(margin > 0 && margin < Infinity && this.maxRadius > 0 && a > 0)) return Infinity;
+        const c = px * px + py * py - this.maxRadius * this.maxRadius * (1 + RAY_TEST_MARGIN);
+        const b = 2 * (px * dx + py * dy);
+        const from = b * b - 4 * a * c < 0 ? 0 : Math.max(0, largerRoot(a, b, c));
+        const { startCos, startSin, endCos, endSin } = this;
+        const result =
+            this.anyAngle || this.wide
+                ? from
+                : Math.min(
+                      from,
+                      linearFrom(py * startCos - px * startSin, dy * startCos - dx * startSin, margin),
+                      linearFrom(px * endSin - py * endCos, dx * endSin - dy * endCos, margin)
+                  );
+        // A NaN bound would read as outside everywhere, so it vouches for nothing.
+        return result >= 0 ? result : Infinity;
+    };
+
+    private exact(x: number, y: number) {
+        return (
+            isWithinRadii(x, y, this.minRadius, this.maxRadius) &&
+            isWithinAngles(
+                x,
+                y,
+                this.start180,
+                this.end180,
+                this.inset,
+                this.startCos,
+                this.startSin,
+                this.endCos,
+                this.endSin
+            )
+        );
+    }
 }
+
+// Relative margin a ray keeps from every boundary; 100x the point test's own, and ~1e8 times rounding.
+const RAY_TEST_MARGIN = 1e-7;
+
+/** The larger root of `a t^2 + b t + c` for `a > 0` and real roots; never negative when `c <= 0`. */
+function largerRoot(a: number, b: number, c: number) {
+    const q = -(b + (b < 0 ? -1 : 1) * Math.sqrt(b * b - 4 * a * c)) / 2;
+    return Math.max(q / a, q === 0 ? 0 : c / q);
+}
+
+/** The first `t > 0` at which `a t^2 + b t + c` (positive at 0, `a > 0`) falls to zero, or Infinity. */
+function firstPositiveRoot(a: number, b: number, c: number) {
+    const discriminant = b * b - 4 * a * c;
+    if (discriminant < 0 || b >= 0) return Infinity;
+    const q = -(b - Math.sqrt(discriminant)) / 2;
+    return Math.min(q / a, c / q);
+}
+
+/** How long `v0 + v1 t` stays at least `margin`, given it starts there; -1 when it does not. */
+function linearUntil(v0: number, v1: number, margin: number) {
+    if (v0 >= margin) return v1 < 0 ? (margin - v0) / v1 : Infinity;
+    return -1;
+}
+
+/** From where `v0 + v1 t` stays below `-margin` for good, or Infinity. */
+function linearFrom(v0: number, v1: number, margin: number) {
+    if (v1 < 0) return Math.max(0, (-margin - v0) / v1);
+    return v0 < -margin && v1 === 0 ? 0 : Infinity;
+}
+
+/** How long at least one of `u0 + u1 t` and `v0 + v1 t` stays at least `margin`, from `t = 0`; -1 when neither starts there. */
+function eitherUntil(u0: number, u1: number, v0: number, v1: number, margin: number) {
+    const uUntil = linearUntil(u0, u1, margin);
+    const vUntil = linearUntil(v0, v1, margin);
+    let until = Math.max(uUntil, vUntil);
+    if (until < 0) return -1;
+    // The one that does not hold at 0 may take over before the other lapses, and a linear one then holds for good.
+    if (
+        (uUntil < 0 && u1 > 0 && (margin - u0) / u1 <= until) ||
+        (vUntil < 0 && v1 > 0 && (margin - v0) / v1 <= until)
+    ) {
+        until = Infinity;
+    }
+    return until;
+}
+
+/**
+ * True only when the point lies outside the sector's radii, or outside its angular range up to a half turn, by a
+ * margin of `scale` (a bound on the coordinates in play) that rounding cannot close. A box holding such a point
+ * then fails {@link isBoxInSector}: the radii and the angular range are convex, so one of its corners lies at
+ * least as far out. The edge inset is left out, as the strip it excludes is not something corners can reveal.
+ */
+export function isPointClearOfSector(x: number, y: number, sector: SectorBoundaries, scale: number) {
+    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    const slack = CLEAR_MARGIN * (scale + Math.abs(innerRadius) + Math.abs(outerRadius));
+    const radius = Math.sqrt(x * x + y * y);
+    if (radius > Math.max(innerRadius, outerRadius) + slack) return true;
+    if (radius < Math.min(innerRadius, outerRadius) - slack) return true;
+    const start180 = normalizeAngle180(startAngle);
+    const end180 = normalizeAngle180(endAngle);
+    const sweep = start180 < end180 ? end180 - start180 : end180 - start180 + 2 * Math.PI;
+    if (start180 === end180 || sweep > Math.PI) return false;
+    if (y * Math.cos(startAngle) - x * Math.sin(startAngle) < -slack) return true;
+    return x * Math.sin(endAngle) - y * Math.cos(endAngle) < -slack;
+}
+
+// Relative margin, against the coordinates in play, past which rounding (~1e-15 of them) cannot move a point back.
+const CLEAR_MARGIN = 1e-7;
 
 // Relative distance from a boundary inside which a point takes the exact test; float error is ~1e-15 of it.
 const POINT_TEST_MARGIN = 1e-9;

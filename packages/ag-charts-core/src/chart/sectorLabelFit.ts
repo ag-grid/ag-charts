@@ -2,19 +2,21 @@ import type { PaddingOptions } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
-import { type FitRegion, insetFitRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
+import { type FitRegion, ReusableInsetRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
 import type { LabelFitDescriptor, PlacedFit } from '../geometry/labelPlacement';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { measureLabelText } from '../rendering/textMeasurer';
+import { cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
 import { BBox } from '../scene/bbox';
 import { Text, type TextBoxingProperties } from '../scene/shape/text';
 import {
     type SectorBoundaries,
+    SectorPointTester,
     isBoxInSector,
+    isPointClearOfSector,
     isPointInSector,
     sectorColumnTest,
-    sectorPointTest,
 } from '../scene/util/sector';
+import { toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     drawnLineHeight,
@@ -56,12 +58,13 @@ const SECTOR_MULTILINE_HEIGHT_RATIO = 1.5;
 const SECTOR_BISECTION_STEPS = 24;
 
 /** Largest `t` in `[0, limit]` for which `inside(t)` still holds, by binary search (`inside` is monotone false-ward). */
-function furthestInside(limit: number, inside: (t: number) => boolean): number {
+function furthestInside(limit: number, inside: (t: number) => boolean, knownInside = -1, knownOutside = Infinity) {
     let lo = 0;
     let hi = limit;
     for (let i = 0; i < SECTOR_BISECTION_STEPS; i += 1) {
         const t = (lo + hi) / 2;
-        if (inside(t)) {
+        // OPTIMIZATION: a probe where the caller already knows the answer skips the test.
+        if (t <= knownInside || (t < knownOutside && inside(t))) {
             lo = t;
         } else {
             hi = t;
@@ -111,11 +114,21 @@ export function fitSectorLabelRect(
             return centred;
         }
     }
-    const contains = sectorPointTest(sector);
+    const { contains, insideUntil, outsideFrom } = rectTester.reset(sector);
     const limit = Math.abs(sector.outerRadius) * 2;
     // Furthest an edge through corners A and B can slide along (dirX, dirY) while both corners stay in the wedge.
-    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) =>
-        furthestInside(limit, (t) => contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t));
+    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) => {
+        const aUntil = insideUntil(ax, ay, dirX, dirY, limit);
+        const bUntil = insideUntil(bx, by, dirX, dirY, limit);
+        return furthestInside(
+            limit,
+            (t) =>
+                (t <= aUntil || contains(ax + dirX * t, ay + dirY * t)) &&
+                (t <= bUntil || contains(bx + dirX * t, by + dirY * t)),
+            Math.min(aUntil, bUntil),
+            Math.min(outsideFrom(ax, ay, dirX, dirY, limit), outsideFrom(bx, by, dirX, dirY, limit))
+        );
+    };
     // Clearance for the box's leading edges (kept at the final size), then recentre on the room found.
     const right = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, 1, 0);
     const left = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, -1, 0);
@@ -161,10 +174,17 @@ function sectorBands(anchor: Point, inset: SectorBoundaries, height: number) {
     const outer = inset.outerRadius;
     const halfHeight = height / 2;
     const limit = outer * 2;
-    const inInset = sectorPointTest(inset);
+    const { contains: inInset, insideUntil, outsideFrom } = bandTester.reset(inset);
     // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
     const edge = (seedX: number, y: number, dir: -1 | 1) =>
-        seedX + dir * furthestInside(limit, (t) => inInset(seedX + dir * t, y));
+        seedX +
+        dir *
+            furthestInside(
+                limit,
+                (t) => inInset(seedX + dir * t, y),
+                insideUntil(seedX, y, dir, 0, limit),
+                outsideFrom(seedX, y, dir, 0, limit)
+            );
     // Seed each line from the point where the bisector ray crosses it, guaranteed inside where the ray reaches.
     const seedAt = (y: number) => (Math.abs(midSin) > 1e-3 ? (y * midCos) / midSin : anchor.x);
 
@@ -340,6 +360,14 @@ function placeOnAnchor(
     // Past a half turn the wedge is not convex, so the full fit may move a label its anchor holds.
     if (Math.abs(sector.endAngle - sector.startAngle) > Math.PI) return undefined;
     if (resolveMinimumFontSize(fit.minimumFontSize, font.fontSize) < font.fontSize) return undefined;
+    const line = toTextString(text);
+    // A line break lays out as more than one line, which the anchor never holds.
+    if (LINE_BREAK.test(line)) return undefined;
+    // OPTIMIZATION: the drawn box holds the line across the anchor, so an end of it clear of the wedge rejects unlaid.
+    const half = cachedTextMeasurer(font).measureText(line.trim()).width / 2;
+    const scale = Math.abs(anchor.x) + Math.abs(anchor.y) + 2 * half;
+    if (isPointClearOfSector(anchor.x - half, anchor.y, sector, scale)) return undefined;
+    if (isPointClearOfSector(anchor.x + half, anchor.y, sector, scale)) return undefined;
     const placed = { text, x: anchor.x, y: anchor.y };
     const boxes = layout(placed, font);
     if (boxes.length !== 1) return undefined;
@@ -354,8 +382,16 @@ function placeOnAnchor(
     return isBoxInSector(heldBox, sector) ? placed : undefined;
 }
 
+// OPTIMIZATION: one point tester per role, reset for each label rather than built afresh.
+const wedgeTester = new SectorPointTester();
+const rectTester = new SectorPointTester();
+const bandTester = new SectorPointTester();
+
 // OPTIMIZATION: scratch for placeOnAnchor's padded box, which it tests once per label.
 const heldBox = { x: 0, y: 0, width: 0, height: 0 };
+// OPTIMIZATION: every pass insets the wedge afresh, into this one region, released once the label is placed.
+const wedgeInset = new ReusableInsetRegion();
+const LINE_BREAK = /\r?\n/;
 
 /** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
 function fitSectorLabelToWedge(
@@ -369,7 +405,7 @@ function fitSectorLabelToWedge(
 ): PlacedSectorLabel {
     const onAnchor = placeOnAnchor(text, fit, font, anchor, sector, padding, layout);
     if (onAnchor != null) return onAnchor;
-    const inSector = sectorPointTest(sector);
+    const inSector = wedgeTester.reset(sector).contains;
     const holdsColumn = sectorColumnTest(sector);
     // A retry that only adds clearance keeps the line height and block, so it reuses their rect and region.
     let probed: { lineHeight: number; block?: BlockSize; rect: SectorLabelRect; region: FitRegion } | undefined;
@@ -382,11 +418,11 @@ function fitSectorLabelToWedge(
                 lineHeight,
                 block,
                 rect,
-                region: probedFitRegion(at, inSector, Math.abs(sector.outerRadius) * 2, holdsColumn),
+                region: probedFitRegion(at, inSector, Math.abs(sector.outerRadius) * 2, holdsColumn, wedgeTester),
             };
         }
         const { rect } = probed;
-        const region = insetFitRegion(
+        const region = wedgeInset.reset(
             probed.region,
             Math.max(padding.left, padding.right) + inset,
             Math.max(padding.top, padding.bottom) + inset
@@ -493,7 +529,12 @@ export function sectorLabelPlacer(
 ): (fit: LabelFitDescriptor) => PlacedFit | undefined {
     return (fit) => {
         const layout = wedgeLabelLayout(boxing);
-        const placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, layout);
+        let placed: PlacedSectorLabel;
+        try {
+            placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, layout);
+        } finally {
+            wedgeInset.release();
+        }
         if (!showsContent(placed.text)) return undefined;
         return { text: placed.text, x: centreX + placed.x, y: centreY + placed.y, fontSize: placed.fontSize };
     };
