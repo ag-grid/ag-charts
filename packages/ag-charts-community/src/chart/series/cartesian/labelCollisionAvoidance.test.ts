@@ -7,6 +7,8 @@ import type {
     AgChartInstance,
     AgChartLabelOrientation,
     AgHistogramSeriesLabelPlacement,
+    AgLineSeriesOptions,
+    AgScatterSeriesOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -1205,6 +1207,62 @@ describe('label collision avoidance', () => {
             const crowded = renderedLabelTexts();
             expect(crowded).not.toContain('Roomy');
             expect(crowded.some((text) => text.endsWith('\u2026') && 'Roomy'.startsWith(text.slice(0, -1)))).toBe(true);
+        });
+    });
+
+    describe('inside labels over markers of other series', () => {
+        // Each line label overlaps the marker of a scatter point just right of it.
+        const scatter = (xs: number[], fill: string): AgScatterSeriesOptions => ({
+            type: 'scatter',
+            xKey: 'x',
+            yKey: fill,
+            labelKey: 'x',
+            data: xs.map((x) => ({ x, [fill]: 5 })),
+            size: 28,
+            fill,
+            label: { enabled: true, placement: 'bottom' },
+        });
+        // Series paint in declaration order, so the scatter declared first is under the line.
+        const options = (seriesOrder: 'tomato-line-blue' | 'blue-line-tomato'): AgCartesianChartOptions => {
+            const line: AgLineSeriesOptions = {
+                type: 'line',
+                xKey: 'x',
+                yKey: 'y',
+                data: ['A', 'B', 'C', 'D'].map((name, i) => ({ x: i + 1, y: 5, name })),
+                marker: { size: 36, fill: 'gold' },
+                label: {
+                    enabled: true,
+                    color: 'black',
+                    formatter: ({ datum }) => datum.name,
+                    placement: 'inside',
+                    collision: { alwaysShow: false },
+                },
+            };
+            const tomato = scatter([1.1, 2.1], 'tomato');
+            const blue = scatter([3.1, 4.1], 'dodgerblue');
+            return {
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 5 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+                series: seriesOrder === 'tomato-line-blue' ? [tomato, line, blue] : [blue, line, tomato],
+            };
+        };
+
+        it.each([
+            { seriesOrder: 'tomato-line-blue', shown: ['A', 'B'] },
+            { seriesOrder: 'blue-line-tomato', shown: ['C', 'D'] },
+        ] as const)(
+            'keeps only the labels over markers painted under them, $seriesOrder',
+            async ({ seriesOrder, shown }) => {
+                chart = await createChart(options(seriesOrder));
+                expect(getVisibleLabelTextNodes(chart, 1).map((node) => node.text)).toEqual(shown);
+            }
+        );
+
+        it('renders labels over markers painted under them, dropping those under markers painted over', async () => {
+            await renderAndSnapshot(options('tomato-line-blue'));
         });
     });
 
