@@ -434,19 +434,19 @@ export class AnnotationOptionsToolbar {
 
             switch (button.value) {
                 case AnnotationOptions.LineStrokeWidth: {
-                    this.lineStrokeWidthMenuMinWidth = bounds.width + 1;
+                    this.lineStrokeWidthMenuMinWidth = bounds.width;
                     this.lineStrokeWidthMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
 
                 case AnnotationOptions.LineStyleType: {
-                    this.lineStyleTypeMenuMinWidth = bounds.width + 1;
+                    this.lineStyleTypeMenuMinWidth = bounds.width;
                     this.lineStyleTypeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
 
                 case AnnotationOptions.TextSize: {
-                    this.textSizeMenuMinWidth = bounds.width + 1;
+                    this.textSizeMenuMinWidth = bounds.width;
                     this.textSizeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
