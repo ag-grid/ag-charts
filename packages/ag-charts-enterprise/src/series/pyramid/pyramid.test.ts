@@ -538,6 +538,38 @@ describe('PyramidSeries', () => {
         });
     });
 
+    it('AG-18765 keeps a label that does not truncate whole, wrapping lines past its stage at its edge rows', async () => {
+        chart = await createEnterpriseChart({
+            data: [
+                { group: 'Close', value: 1 },
+                { group: 'Develop', value: 1 },
+                { group: 'Qualify', value: 1 },
+                { group: 'Prospect', value: 1 },
+            ],
+            series: [
+                {
+                    type: 'pyramid',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                    label: {
+                        enabled: true,
+                        formatter: ({ datum }) =>
+                            datum.group === 'Develop'
+                                ? 'Develop stage of the quarterly sales funnel for the region'
+                                : datum.group,
+                        fontSize: 40,
+                        wrapping: 'on-space',
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    },
+                    stageLabel: { enabled: false },
+                },
+            ],
+            legend: { enabled: false },
+        });
+        await compare();
+    });
+
     it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [

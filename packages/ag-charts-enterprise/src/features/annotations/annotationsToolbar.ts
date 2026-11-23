@@ -59,7 +59,7 @@ export class AnnotationsToolbar {
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
     private menuItemPicked = false;
-    private magnetPressed = false;
+    private magnetChecked = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
@@ -89,7 +89,7 @@ export class AnnotationsToolbar {
         }
         this.toolbar.setButtonSize(buttonSize);
         this.padding = padding;
-        this.buttons = buttons.map((button) => this.withPressed(button));
+        this.buttons = buttons.map((button) => this.withChecked(button));
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {
@@ -98,14 +98,14 @@ export class AnnotationsToolbar {
     }
 
     /** Shows whether the magnet is on; it persists across drawing, unlike the active button. */
-    public setMagnetPressed(pressed: boolean) {
-        this.magnetPressed = pressed;
+    public setMagnetChecked(checked: boolean) {
+        this.magnetChecked = checked;
         const index = this.buttons.findIndex((button) => button.value === 'magnet');
-        if (index !== -1) this.updateButtonByIndex(index, { pressed });
+        if (index !== -1) this.updateButtonByIndex(index, { checked });
     }
 
-    private withPressed<T extends { value: string }>(button: T): T {
-        return button.value === 'magnet' ? { ...button, pressed: this.magnetPressed } : button;
+    private withChecked<T extends { value: string }>(button: T): T {
+        return button.value === 'magnet' ? { ...button, checked: this.magnetChecked } : button;
     }
 
     public resetButtonIcons() {

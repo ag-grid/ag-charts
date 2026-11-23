@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumItemCallbackParams, HighlightState } from '../../chart/callbackOptions';
+import type { AgItemShadowStylerParams } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
@@ -46,6 +47,7 @@ export type AgOhlcSeriesBaseItemStylerParams<
     TContext = ContextDefault,
 > = OhlcItemCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
+    AgItemShadowStylerParams &
     AgOhlcSeriesOptionsKeys<TDatum> &
     StrokeOptions &
     LineDashOptions;

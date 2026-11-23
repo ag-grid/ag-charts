@@ -7,7 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgCrosshairSnapMode } from '../../chart/crosshairOptions';
-import type { AgDropShadowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type { AgDropShadowOptions, AgItemShadowStyle, AgItemShadowStylerParams } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -77,6 +77,7 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         Required<Omit<AgSeriesMarkerStyle, 'lineDash'>>,
         ResolvedLineDash {
     /** The type of datum. This can be `high` or `low`. */

@@ -1292,6 +1292,7 @@ export abstract class BubbleScatterSeries<
             { marker, params, isHighlight, colorScaleValid, colorKey },
             {
                 cacheable: colorKey == null,
+                hoveredItemShadow: marker.itemStyler != null,
                 compute: BubbleSeries.computePerDatumStylerStyle,
                 apply: BubbleSeries.applyPerDatumStyle,
             }

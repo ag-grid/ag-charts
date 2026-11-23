@@ -49,7 +49,8 @@ export type NormalisedErrorBarStyles = {
 };
 
 type ErrorBarKey = 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey';
-type IgnoredSeriesKey = 'context' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
+type IgnoredSeriesKey =
+    'context' | 'shadow' | 'glow' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
 
 type ErrorBarItemStylerParams =
     | AgBarSeriesItemStylerParams<unknown, unknown>
