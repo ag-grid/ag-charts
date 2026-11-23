@@ -65,7 +65,14 @@ export interface FillCssOptions {
 }
 
 export type AgColorType =
-    CssColor | AgColorRef | AgColorRefMixOnto | AgColorRefMixOntoColor | AgGradientColor | AgPatternColor | AgImageFill;
+    | CssColor
+    | AgColorRef
+    | AgColorRefMixOnto
+    | AgColorRefMixOntoColor
+    | AgSolidColor
+    | AgGradientColor
+    | AgPatternColor
+    | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
@@ -102,6 +109,14 @@ export interface AgColorScale {
      * preserves its default behaviour for missing data.
      */
     missingDataFill?: CssColor;
+}
+
+export interface AgSolidColor {
+    type: 'solid';
+    /** The colour for filling shapes. If unset, a solid colour is taken from the palette, using the stroke colour of a pattern. */
+    fill?: CssColor;
+    /** The opacity of the fill colour. */
+    fillOpacity?: Opacity;
 }
 
 export interface AgGradientColor {

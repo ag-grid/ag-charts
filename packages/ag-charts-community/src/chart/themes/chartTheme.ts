@@ -17,9 +17,11 @@ import {
     deepFreeze,
     getSequentialColors,
     groupBy,
+    isSolidFill,
     mergeDefaults,
     mergeDefaultsShallowOperations,
     nestAtOptionsPath,
+    solidFillColour,
     themeBorderColor,
 } from 'ag-charts-core';
 import type {
@@ -328,9 +330,16 @@ export class ChartTheme {
         }
 
         const { fills, strokes, sequentialColors, ...otherColors } = this.getDefaultColors();
+        const defaultFills = Object.values(fills);
+        if (palette?.fills) {
+            // A palette colour has no `fillOpacity` beside it, and every colour derived from it expects a string.
+            palette.fills = palette.fills.map((fill, index) =>
+                isSolidFill(fill) ? (solidFillColour(fill) ?? defaultFills[index % defaultFills.length]) : fill
+            );
+        }
         this.palette = deepFreeze(
             mergeDefaults(palette, {
-                fills: Object.values(fills),
+                fills: defaultFills,
                 strokes: Object.values(strokes),
                 markerShapes: ['circle'],
                 sequentialColors: Object.values(sequentialColors),

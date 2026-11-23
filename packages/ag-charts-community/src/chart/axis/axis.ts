@@ -45,6 +45,7 @@ import {
     drawnLineHeight,
     findMinMax,
     isArray,
+    isSolidFill,
     mergeDefaults,
     stylerLineHeightOverrides,
     toPlainText,
@@ -713,6 +714,12 @@ export abstract class Axis<
                 lineHeight,
             });
             if (stylerOutput) stylerOutput = stylerLineHeightOverrides(stylerOutput, label, lineHeight);
+            // This result is merged as it stands rather than resolved through the options graph.
+            if (stylerOutput && isSolidFill(stylerOutput.fill)) {
+                const { fill, fillOpacity } = stylerOutput.fill;
+                stylerOutput = { ...stylerOutput, fill };
+                if (fillOpacity != null) stylerOutput.fillOpacity = (stylerOutput.fillOpacity ?? 1) * fillOpacity;
+            }
         }
         // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
         if (stylerOutput == null && additionalStyles == null) return defaultStyle;

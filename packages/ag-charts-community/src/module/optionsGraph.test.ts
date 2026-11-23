@@ -2337,4 +2337,83 @@ describe('OptionsGraph', () => {
             });
         });
     });
+
+    describe('solid fills', () => {
+        const solid = { type: 'solid', fill: 'blue', fillOpacity: 0.5 };
+        const pattern = { type: 'pattern', pattern: 'stars', stroke: 'purple' };
+        const gradient = { type: 'gradient', colorStops: [{ color: 'green' }, { color: 'yellow' }] };
+        const themeConfig = {
+            line: {
+                series: {
+                    marker: {
+                        fill: {
+                            $applySwitch: [{ $path: 'type' }, { $palette: 'fill' }, ['pattern', { stroke: 'black' }]],
+                        },
+                        fillOpacity: 0.8,
+                    },
+                    stroke: { $mix: [{ $path: '/series/$index/marker/fill' }, 'white', 0.5] },
+                },
+            },
+        };
+
+        function createGraph(series: PlainObject, fills: unknown[] = ['red'], overrides?: PlainObject) {
+            const palette = { fills, fillsFallback: ['grey'] };
+            const userOptions = prepareOptions({ series: [{ type: 'line', ...series }] });
+            const graph = new OptionsGraph(themeConfig, userOptions, undefined, {}, palette, overrides);
+            return { graph, series: graph.resolve(testLogger).series[0] };
+        }
+
+        it.each([
+            ['its colour, as a colour string would', { fill: { type: 'solid', fill: 'blue' } }, 'blue', 0.8],
+            ['its opacity in place of the default one', { fill: solid }, 'blue', 0.5],
+            ['its opacity multiplied with one set beside it', { fill: solid, fillOpacity: 0.5 }, 'blue', 0.25],
+            ['the palette colour when it has none', { fill: { type: 'solid' } }, 'red', 0.8],
+        ])('should resolve a solid fill to %s', (_name, marker, fill, fillOpacity) => {
+            expect(createGraph({ marker }).series.marker).toStrictEqual({ fill, fillOpacity });
+        });
+
+        it.each([
+            ["a pattern's stroke", [pattern], 'purple'],
+            ['the fallback of a pattern with no stroke', [{ type: 'pattern' }], 'grey'],
+            ['the fallback of a gradient', [gradient], 'grey'],
+        ])('should resolve a solid fill with no colour to %s in the palette', (_name, fills, fill) => {
+            expect(createGraph({ marker: { fill: { type: 'solid' } } }, fills).series.marker.fill).toBe(fill);
+        });
+
+        it('should multiply the opacity with one set by a theme override', () => {
+            const overrides = { line: { series: { marker: { fillOpacity: 0.5 } } } };
+            const { series } = createGraph({ marker: { fill: solid } }, undefined, overrides);
+            expect(series.marker).toStrictEqual({ fill: 'blue', fillOpacity: 0.25 });
+        });
+
+        it('should mix a solid fill as its colour', () => {
+            const marker = (fill: unknown) => createGraph({ marker: { fill } }).series;
+            expect(marker(solid).stroke).toBe(marker('rgba(0, 0, 255, 0.5)').stroke);
+            expect(marker(solid).stroke).toBeDefined();
+        });
+
+        it('should fold the opacity into the colour of a fill in a list', () => {
+            const { series } = createGraph({ fills: ['green', solid, { type: 'solid', fill: 'red' }] });
+            expect(series.fills).toStrictEqual(['green', 'rgba(0, 0, 255, 0.5)', 'red']);
+        });
+
+        it('should resolve a solid fill in a partial with the opacity beside it', () => {
+            const { graph } = createGraph({ marker: {} });
+            const path = ['series', '0', 'marker'];
+            expect(graph.resolvePartial(testLogger, path, { fill: { ...solid } })).toStrictEqual({
+                fill: 'blue',
+                fillOpacity: 0.5,
+            });
+            expect(graph.resolvePartial(testLogger, path, { fill: { ...solid }, fillOpacity: 0.5 })).toStrictEqual({
+                fill: 'blue',
+                fillOpacity: 0.25,
+            });
+            expect(graph.resolvePartial(testLogger, path, { fill: { type: 'solid' } })).toStrictEqual({ fill: 'red' });
+        });
+
+        it('should resolve solid colours in a theme palette to colour strings', () => {
+            const { palette } = getChartTheme({ palette: { fills: [solid, { type: 'solid', fill: 'red' }, pattern] } });
+            expect(palette.fills).toStrictEqual(['rgba(0, 0, 255, 0.5)', 'red', pattern]);
+        });
+    });
 });

@@ -9,11 +9,14 @@ import {
     SKIP_JS_BUILTINS,
     type Vertex,
     ambientLog,
+    isNumber,
     isObject,
     isObjectLike,
     isPlainObject,
+    isSolidFill,
     pick,
     simpleMemorize,
+    solidFillColour,
     without,
 } from 'ag-charts-core';
 
@@ -213,6 +216,54 @@ const ATOMIC_LIST_OPTION_KEYS = new Set<string>([
     'throwOn',
     'crosshairSnapTo',
 ]);
+
+/**
+ * Replace each solid colour object under `node` with its colour, so that it then behaves as a colour string. A `fill`
+ * hands its `fillOpacity` to the one beside it, multiplying when `isSet` reports that one as set; anywhere else there
+ * is no opacity beside it, so it is folded into the colour.
+ */
+export function collapseSolidFills(node: unknown, path: Array<string>, isSet: (path: Array<string>) => boolean) {
+    if (Array.isArray(node)) {
+        for (let index = 0; index < node.length; index++) {
+            const item = node[index];
+            if (isSolidFill(item)) {
+                node[index] = solidFillColour(item);
+                continue;
+            }
+            path.push(`${index}`);
+            collapseSolidFills(item, path, isSet);
+            path.pop();
+        }
+        return;
+    }
+
+    if (!isPlainObject(node)) return;
+
+    for (const key of Object.keys(node)) {
+        if (SHALLOW_OPTION_KEYS.has(key)) continue;
+
+        const value = node[key];
+        if (!isSolidFill(value)) {
+            path.push(key);
+            collapseSolidFills(value, path, isSet);
+            path.pop();
+            continue;
+        }
+
+        if (key !== 'fill') {
+            node[key] = solidFillColour(value);
+            continue;
+        }
+
+        node.fill = value.fill;
+        if (value.fillOpacity == null) continue;
+
+        path.push('fillOpacity');
+        const multiplies = isNumber(node.fillOpacity) && isSet(path);
+        path.pop();
+        node.fillOpacity = multiplies ? node.fillOpacity * value.fillOpacity : value.fillOpacity;
+    }
+}
 
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
@@ -489,6 +540,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
                 debug('resolve root');
                 this.resolveVertex(this.root!);
+                collapseSolidFills(this.resolved, [], this.isOptionSet);
                 debug('resolved root', this.resolved);
 
                 debug('vertex count', this.getVertexCount());
@@ -668,6 +720,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             hasPathSafe(this.overrides, path)
         );
     }
+
+    /** Whether the option is set in the user options, a styler's result or the theme overrides, not only defaulted. */
+    private readonly isOptionSet = (path: Array<string>) => this.hasUserOption(path) || this.hasThemeOverride(path);
 
     /**
      * Axis themes hold list options such as cross lines as one template object, optionally keyed by each item's
@@ -1600,6 +1655,13 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         const partialKeys = Object.keys(partialOptions);
 
+        // A solid fill hands its opacity to the `fillOpacity` beside it, which the partial must then return too.
+        const { fill } = partialOptions;
+        const pickedKeys =
+            isSolidFill(fill) && fill.fillOpacity != null && !partialKeys.includes('fillOpacity')
+                ? [...partialKeys, 'fillOpacity']
+                : partialKeys;
+
         // Series stylers resolve partials per datum, so the label is only worth building when it will
         // be printed.
         const debugLabel = debug.check() ? `OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]` : '';
@@ -1671,6 +1733,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
             this.rollback();
 
+            const { userPartialOptions } = this;
+
             this.graftEdge = OptionsGraph.GRAFT_EDGE;
             this.edgePriority = OptionsGraph.EDGE_PRIORITY;
             this.userPartialOptions = undefined;
@@ -1688,7 +1752,13 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
             // Only pick the keys that have been requested to prevent overwriting other values with the graph.
             const shouldPick: boolean = resolveOptions?.pick ?? true;
-            const partial = shouldPick ? (pick(getPathSafe(resolved, path) as T, partialKeys) as Partial<T>) : pathed;
+            const partial = shouldPick ? (pick(getPathSafe(resolved, path) as T, pickedKeys) as Partial<T>) : pathed;
+
+            collapseSolidFills(
+                partial,
+                [...path],
+                (optionPath) => hasPathSafe(userPartialOptions, optionPath) || this.isOptionSet(optionPath)
+            );
 
             debug('vertex count', this.getVertexCount());
             debug('edge count', this.getEdgeCount());

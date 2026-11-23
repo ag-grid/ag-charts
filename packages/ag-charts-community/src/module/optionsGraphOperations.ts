@@ -18,9 +18,11 @@ import {
     isObjectLike,
     isPatternFill,
     isPlainObject,
+    isSolidFill,
     isString,
     isThemeOriginOperator,
     scaleLineDashName,
+    solidFillColour,
     without,
 } from 'ag-charts-core';
 
@@ -368,7 +370,8 @@ function isTransparentOperation(graph: OptionsGraphInterface, vertex: VertexInte
 
 function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [colorAVertex, colorBVertex, ratioVertex] = values;
-    const colorA = graph.resolveVertexValue(vertex, colorAVertex);
+    const fillA = graph.resolveVertexValue(vertex, colorAVertex);
+    const colorA = isSolidFill(fillA) ? solidFillColour(fillA) : fillA;
     const colorB = graph.resolveVertexValue(vertex, colorBVertex);
     const ratio = graph.resolveVertexValue(vertex, ratioVertex);
 
@@ -1217,7 +1220,28 @@ function applySwitchOperation(graph: OptionsGraphInterface, vertex: VertexInterf
         }
     }
 
-    return graph.resolveVertexValue(vertex, defaultValueVertex);
+    const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
+
+    // No theme lists a `solid` case: a solid fill only ever needs its colour, which derives from the default fill.
+    if (conditionValue === 'solid') {
+        graph.graftObject(vertex, { fill: solidColour(graph, vertex, defaultValue) }, [], DEFAULTS_EDGE);
+        return RESOLVED_TO_BRANCH;
+    }
+
+    return defaultValue;
+}
+
+/** The solid colour standing in for a fill: itself, a pattern's stroke, or else the palette's fallback colour. */
+function solidColour(graph: OptionsGraphInterface, vertex: VertexInterface, fill: unknown) {
+    const index = getPathLastIndex(graph.getPathArray(vertex));
+    const paletteColour = (fills: unknown) =>
+        isArray(fills) && !Number.isNaN(index) ? circularSliceArray(fills, 1, index)[0] : undefined;
+
+    for (const candidate of [fill, paletteColour(graph.palette.fills)]) {
+        if (isString(candidate)) return candidate;
+        if (isPatternFill(candidate) && isString(candidate.stroke)) return candidate.stroke;
+    }
+    return paletteColour(graph.palette.fillsFallback);
 }
 
 function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
