@@ -150,7 +150,7 @@ export function resolveLabelFitDescriptors(
  */
 export interface CandidateFitTarget {
     readonly container?: { readonly width: number; readonly height: number };
-    /** Whether {@link container} is the label's own shape, kept clear by the collision threshold. Defaults to `true`. */
+    /** Whether {@link container} is the label's own shape, which a negative collision threshold lets it spill past. Defaults to `true`. */
     readonly ownShape?: boolean;
     /** Shape the text is fitted to, when the candidate's container is only its bounding box. */
     readonly shape?: FitRegion;
@@ -692,6 +692,7 @@ interface PooledCircleObstacle {
     cy: number;
     r: number;
     category: ObstacleCategory;
+    sourceId: string | undefined;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -730,11 +731,13 @@ let candidateAvoid: LabelAvoidance | undefined;
 let candidateThreshold = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
-// so never avoids. Radius disambiguates a coincident marker of a different size; -1 never matches.
+// Centre and radius of the candidate datum's own anchor marker, which the threshold never applies against.
+// Radius disambiguates a coincident marker of a different size; -1 never matches.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
+// The candidate's series id, which its own marker carries as `sourceId`.
+let candidateSourceId: string | undefined;
 // The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so an
 // inside label never collides with the shape it sits on. `undefined` disables the gate.
 let candidateOwnBox: BoxBounds | undefined;
@@ -872,8 +875,7 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
  * How much of the collision threshold a containment region takes: only the negative part, which is spill
  * allowance — the label may overflow the region by that much without counting as a collision. A positive
  * threshold must not inset a containment region, because the label is flushed against that region's raw
- * edge and an inset bound could then only ever reject it. Positive clearance is the glyph budget's job
- * ({@link deflateContainer}), not containment's.
+ * edge and an inset bound could then only ever reject it. A positive threshold clears other obstacles only.
  */
 function containmentThreshold(threshold: number): number {
     return Math.min(threshold, 0);
@@ -890,12 +892,12 @@ function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxB
     return dest;
 }
 
-// The only way a positive threshold reaches an own shape: text wraps or truncates to the clearance it
-// must keep, rather than the box moving to make room.
-function deflateContainer(container: { width: number; height: number } | undefined, threshold: number) {
-    if (container == null || threshold === 0) return container;
-    candidateContainer.width = Math.max(0, container.width - 2 * threshold);
-    candidateContainer.height = Math.max(0, container.height - 2 * threshold);
+// A label's own room, widened by the spill allowance of a negative threshold.
+function spillContainer(container: { width: number; height: number } | undefined, threshold: number) {
+    const spill = containmentThreshold(threshold);
+    if (container == null || spill === 0) return container;
+    candidateContainer.width = container.width - 2 * spill;
+    candidateContainer.height = container.height - 2 * spill;
     return candidateContainer;
 }
 
@@ -913,6 +915,22 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
+function coincidesWithOwnMarker(o: LabelObstacle): boolean {
+    return (
+        o.kind === 'circle' &&
+        (o.category ?? 'shape') === 'marker' &&
+        o.cx === candidateOwnMarkerCx &&
+        o.cy === candidateOwnMarkerCy &&
+        o.r === candidateOwnMarkerR
+    );
+}
+
+/** The box `o` is tested against: the label's own marker never sees the threshold. */
+function obstacleTestBox(o: LabelObstacle): BoxBounds | undefined {
+    if (o.sourceId === candidateSourceId && coincidesWithOwnMarker(o)) return candidateBox;
+    return candidateTestBox();
+}
+
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
@@ -923,18 +941,8 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     }
 
     const category = o.category ?? 'shape';
-    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
-    // directional labels fall through to the circle test, which measures their real clearance.
-    if (
-        candidatePlacement === 'inside' &&
-        category === 'marker' &&
-        o.kind === 'circle' &&
-        o.cx === candidateOwnMarkerCx &&
-        o.cy === candidateOwnMarkerCy &&
-        o.r === candidateOwnMarkerR
-    ) {
-        return true;
-    }
+    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it.
+    if (candidatePlacement === 'inside' && coincidesWithOwnMarker(o)) return true;
 
     // An inside label never collides with the shape it sits on, so anything but an overlay overlapping its own
     // box is excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
@@ -1002,7 +1010,7 @@ function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, 
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     if (obstacleExcluded(o)) return false;
-    const testBox = candidateTestBox();
+    const testBox = obstacleTestBox(o);
     return testBox != null && obstacleOverlapsBox(o, testBox);
 }
 
@@ -1089,7 +1097,7 @@ function affordableRetreat(retreat: number, extent: number, allowed: boolean, fl
 // than once: accumulating with `max` keeps the measurement idempotent.
 function accumulateObstacleReduction(o: LabelObstacle): boolean | void {
     if (obstacleExcluded(o)) return;
-    const testBox = candidateTestBox();
+    const testBox = obstacleTestBox(o);
     if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
     const { x, y, width, height } = testBox;
     const spentWidth = width / retreatSpread(shrinkPinX, shrinkSlideLimitX);
@@ -1280,7 +1288,7 @@ function markerCentreOf(d: PointLabelDatum) {
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
 function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let markerCount = 0;
-    for (const { datums } of data.values()) {
+    for (const [seriesId, { datums }] of data) {
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
@@ -1296,10 +1304,12 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
                     cy: 0,
                     r: 0,
                     category: 'marker',
+                    sourceId: undefined,
                 };
                 markerPool.push(obstacle);
             }
             markerCount++;
+            obstacle.sourceId = seriesId;
             obstacle.cx = cx;
             obstacle.cy = cy;
             obstacle.r = r;
@@ -1442,6 +1452,7 @@ export function placeLabels(
     )) {
         const labels: PlacedLabel[] = [];
         if (datums[0]?.label == null) continue;
+        candidateSourceId = seriesId;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -2514,7 +2525,9 @@ function placeAvoidingLabel(
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
-    cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
+    // A positive threshold takes no room off the label's own shape.
+    const fitThreshold = d.ownBox == null ? threshold : cascadeContainThreshold;
+    cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, fitThreshold);
     // inside-start/inside-end centre on the bar's end, so a candidate rotated along the bar would
     // straddle it; slide it flush inside its own bar rect instead.
     cascadeFlushToRegion = d.region != null && d.neverDrop === true;
@@ -2757,7 +2770,7 @@ let nudgeAlongY = false;
 
 function measureNudge(o: LabelObstacle): void {
     if (!obstacleOverlapsCandidate(o)) return;
-    const { x, y, width, height } = candidateTestBox()!;
+    const { x, y, width, height } = obstacleTestBox(o)!;
     if (nudgeAlongY) {
         writeObstacleSpanY(o, x, x + width);
         nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (y + height));
@@ -2952,14 +2965,8 @@ function fitPositionedCandidateAt(
     threshold: number
 ): boolean {
     const fontSearch = candidateTrialFontSize == null;
-    const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
-    // The clearance a label keeps from its own surface must not erase it: refit to the surface
-    // itself rather than draw the bare ellipsis the deflated container left.
-    const fitted =
-        fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign) &&
-        (container === fitTo.container ||
-            hasRealChars(fittedLabel.text) ||
-            fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign));
+    const container = fitTo.ownShape === false ? fitTo.container : spillContainer(fitTo.container, threshold);
+    const fitted = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
@@ -3006,13 +3013,9 @@ function leadCharacter(text: string): string | undefined {
     return graphemeSegments(text.trimStart())[0];
 }
 
-/** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
+/** Fits a stack into {@link candidateStack}. */
 function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, threshold: number): boolean {
-    const container = deflateContainer(fitTo.container, threshold);
-    let fitted = fitLabelStack(stack, container, fitTo.shape, fitTo.shapeAlign);
-    if (fitted == null && container !== fitTo.container) {
-        fitted = fitLabelStack(stack, fitTo.container, fitTo.shape, fitTo.shapeAlign);
-    }
+    const fitted = fitLabelStack(stack, spillContainer(fitTo.container, threshold), fitTo.shape, fitTo.shapeAlign);
     if (fitted == null) return false;
     const first = fitted.blocks.find((block) => block != null);
     candidateStack = fitted;
