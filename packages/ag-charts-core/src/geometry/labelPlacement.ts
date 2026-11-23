@@ -1486,6 +1486,7 @@ function releaseSolveReferences() {
     cascadeOrientations = undefined;
     cascadeStyle = undefined;
     cascadeFitSource = undefined;
+    cascadeMeasurer = undefined;
     cascadeRawRegion = releasedRegion;
     cascadeRegion = releasedRegion;
     cascadeFitRegion = undefined;
