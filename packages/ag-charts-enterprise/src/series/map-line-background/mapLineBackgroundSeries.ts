@@ -6,6 +6,7 @@ import type {
     Geometry,
     NormalisedMapLineBackgroundSeriesOwnOptions,
     NormalisedMapLineSeriesStyle,
+    ZIndex,
 } from 'ag-charts-core';
 import { Group, PointerEvents, Selection } from 'ag-charts-core';
 
@@ -98,10 +99,13 @@ export class MapLineBackgroundSeries
         }
     }
 
+    protected override contentZIndex(zIndex: number): ZIndex {
+        return [MapZIndexMap.ShapeLineBackground, zIndex, 0];
+    }
+
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.ShapeLineBackground, zIndex, 0];
         this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineBackground, zIndex, 1];
 
         return true;

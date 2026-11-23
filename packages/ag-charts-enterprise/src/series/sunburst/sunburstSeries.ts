@@ -1,5 +1,6 @@
 import {
     type AgItemShadowStyle,
+    type AgItemShadowStylerParams,
     type AgSunburstHighlightState,
     type AgSunburstSeriesLabelFormatterParams,
     _ModuleSupport,
@@ -31,6 +32,7 @@ import {
     Selection,
     Text,
     TransformableText,
+    clamp,
     cycledValue,
     datumKeyReader,
     drawnLineHeight,
@@ -41,7 +43,6 @@ import {
     isGradientFill,
     measureLabelText,
     mergeDefaults,
-    normalizeAngle360,
     readDatumKey,
     sectorEdgeInset,
     setSectorGlowEnds,
@@ -154,6 +155,11 @@ function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) 
     return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
 }
 
+/** How far out the near side of a perpendicular label `width` across may sit, clear of the drawn straight edges. */
+function perpendicularNearSide(ring: SunburstLabelRing, width: number) {
+    return ring.wedge ? wedgeApexRadius(ring, width) : Math.max(ring.innerRadius, edgeSpanRadius(ring, width));
+}
+
 /** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
 function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
     return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
@@ -180,8 +186,15 @@ function sectorLabelRadius(
             return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
-            if (!wedge) return (innerRadius + outerRadius) * 0.5;
-            const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
+            if (!wedge) {
+                const span = height + 2 * padding;
+                const minimumRadius = perpendicularNearSide(ring, span) + padding + width * 0.5;
+                const maximumRadius =
+                    Math.sqrt(Math.max(0, outerRadius ** 2 - (span * 0.5) ** 2)) - padding - width * 0.5;
+                const middle = (innerRadius + outerRadius) * 0.5;
+                return minimumRadius > maximumRadius ? middle : clamp(minimumRadius, middle, maximumRadius);
+            }
+            const minimumRadius = perpendicularNearSide(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -400,7 +413,9 @@ export class SunburstSeries extends HierarchySeries<
                     const params = this.makeItemStylerParams(
                         nodeDatum,
                         style,
-                        toHierarchyHighlightString(highlightState)
+                        toHierarchyHighlightString(highlightState),
+                        this.getHierarchyStylerShadow(this.options.shadow),
+                        this.getNodeStylerGlow(highlightState)
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -419,6 +434,12 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
         this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
+
+    /** The glow a node casts without an item styler in `highlightState`, as {@link getNodeGlow} selects it. */
+    private getNodeStylerGlow(highlightState: HierarchyHighlightState) {
+        if (!this.options.highlight.enabled && this.options.glow?.enabled !== true) return;
+        return this.getHierarchyStylerGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
+    }
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(
@@ -446,7 +467,13 @@ export class SunburstSeries extends HierarchySeries<
         };
     }
 
-    private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
+    private makeItemStylerParams(
+        nodeDatum: SunburstNode,
+        style: ItemStyle,
+        highlightState: AgSunburstHighlightState,
+        shadow: AgItemShadowStylerParams['shadow'],
+        glow: AgItemShadowStylerParams['glow']
+    ) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
         // `style` is the resolved item style, so its `fill` never carries unresolved colour refs.
@@ -461,6 +488,8 @@ export class SunburstSeries extends HierarchySeries<
             sizeKey,
             labelKey,
             secondaryLabelKey,
+            shadow,
+            glow,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             candidateState: this.getCandidateStateString(nodeDatum.datumIndex),
@@ -828,27 +857,16 @@ export class SunburstSeries extends HierarchySeries<
         const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
         const nearSide = parallelNearSide(ring);
         const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
-        let perpendicularWidth: ((height: number) => number) | undefined;
-        if (wedge) {
-            perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
-        } else if (normalizeAngle360(sweep) < Math.PI / 4) {
-            // Measured across the sector's full height at its inner edge, however short the text.
-            const across = chordAt(straightEdges * 0.5) - innerRadius;
-            perpendicularWidth = () => across;
-        }
-        if (perpendicularWidth == null) {
+        if (!wedge && sweep >= Math.PI / 4) {
             return [
                 this.sectorLabelCandidate(ring, LabelPlacement.Parallel, heightBoundRegion(padding, parallelWidth)),
             ];
         }
 
-        const widthAcross = perpendicularWidth;
+        const widthAcross = (height: number) => chordAt(height * 0.5) - perpendicularNearSide(ring, height);
         const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
         const parallel = heightBoundRegion(padding, (height) => (parallelWins(height) ? parallelWidth(height) : 0));
-        const perpendicular = heightBoundRegion(padding, (height) => {
-            if (parallelWins(height) || (!wedge && height > straightEdges)) return 0;
-            return widthAcross(height);
-        });
+        const perpendicular = heightBoundRegion(padding, (height) => (parallelWins(height) ? 0 : widthAcross(height)));
         const candidates = [
             this.sectorLabelCandidate(ring, LabelPlacement.Parallel, parallel),
             this.sectorLabelCandidate(ring, LabelPlacement.Perpendicular, perpendicular),

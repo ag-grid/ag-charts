@@ -118,13 +118,15 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
                         this.callWithContext(itemStyler, {
                             seriesId,
                             datum,
-                            highlightState: highlightStateString,
+                            shadow: this.getStylerShadow(options.shadow, castState),
+                            glow: this.getStylerGlow(options.glow, castState),
+                            highlightState: _ModuleSupport.toHighlightString(castState),
                             stageKey,
                             valueKey,
                             ...style,

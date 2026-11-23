@@ -38,7 +38,7 @@ export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
         scalar,
         optionsDefs<{ value: unknown; groupPercentage: number }>({ value: scalar, groupPercentage: number })
     );
-    const point = { x: value, y: numericValue };
+    const point = { x: value, y: value };
     const startEnd = { start: point, end: point };
 
     const lineText = { ...annotationLineTextDefs, label: string };

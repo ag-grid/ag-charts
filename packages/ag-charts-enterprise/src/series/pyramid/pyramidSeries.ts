@@ -906,7 +906,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { stageKey, valueKey } = options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightState = _ModuleSupport.toHighlightString(castState);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -916,6 +917,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             stageKey,
             valueKey,
+            shadow: this.getStylerShadow(this.options.shadow, castState),
+            glow: this.getStylerGlow(this.options.glow, castState),
             highlightState,
             selectionState,
             candidateState,

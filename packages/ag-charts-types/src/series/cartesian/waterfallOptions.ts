@@ -7,7 +7,12 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -58,6 +63,7 @@ export type AgWaterfallSeriesItemStylerParams<
     TContext = ContextDefault,
 > = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
+    AgItemShadowStylerParams &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesItemParams &
     Required<Omit<AgWaterfallSeriesStyle, 'lineDash'>> &

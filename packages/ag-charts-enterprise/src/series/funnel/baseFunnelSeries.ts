@@ -837,7 +837,8 @@ export abstract class BaseFunnelSeries<
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (labelDatum) => labelDatum
+            (labelDatum) => labelDatum,
+            this.id
         );
     }
 
@@ -863,7 +864,8 @@ export abstract class BaseFunnelSeries<
                     threshold,
                     true,
                     fitFor(labelDatum.text),
-                    labelDatum
+                    labelDatum,
+                    labelDatum.datumIndex
                 )
             );
         }
