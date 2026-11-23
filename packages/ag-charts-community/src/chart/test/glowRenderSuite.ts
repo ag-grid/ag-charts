@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { differingBytes, expectSamePixels } from './expectSamePixels';
+import { byteDifference, differingBytes, expectSamePixels } from './expectSamePixels';
 import { type GlowPlacement, type GlowSeriesCase, type HighlightStep, glowSeries, glowThemeOptions } from './glowCases';
 import { RENDER_CROP, RENDER_OPTIONS, canvasImage, endHover, hoverDatum, hoverNode, hoverSeries } from './glowRender';
 import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_GLOW, SERIES_SHADOW } from './shadowFixtures';
@@ -259,4 +259,111 @@ export function describeGlowSeries(
             }
         );
     });
+}
+
+/** One series of {@link describeGlowOptions}, and the chart options that leave room for its casts. */
+export interface GlowOptionsEntry {
+    testCase: GlowSeriesCase;
+    options: object;
+    /**
+     * How much of the render, as {@link byteDifference}, a gap of 0 and no gap may differ by: the anti-aliased edges that the cut
+     * leaves, which a pixel-aligned edge (a bar, a treemap tile) has none of. Each budget is set just above what the entry measures,
+     * and the cell fails unless a glow with a `fillOpacity` of 0.4 instead of 0.5 differs by more.
+     */
+    edgeBudget?: { series: number; hovered: number };
+    /** The part of the series (`tile`, `node`, `link`) that takes the `fillOpacity` that makes its items opaque, where the series itself does not. */
+    opaquePart?: string;
+    /** The highlight of the hovered item takes no `shadow`, so none of its cells is drawn. */
+    noHoveredShadow?: true;
+}
+
+/** The options of the shadow, and of the glow, that a series is given, and each change to them that should show in the render. */
+const OPTION_CASTS: [string, { cast: object; changes: object[] }][] = [
+    [
+        'shadow',
+        {
+            cast: { ...SERIES_SHADOW, fillOpacity: 0.8, spread: 0 },
+            changes: [
+                { xOffset: 12 },
+                { yOffset: 12 },
+                { blur: 0 },
+                { spread: 4 },
+                { fill: '#cc2200' },
+                { fillOpacity: 0.3 },
+            ],
+        },
+    ],
+    [
+        'glow',
+        {
+            cast: SERIES_GLOW,
+            changes: [{ blur: 0 }, { spread: 8 }, { fill: '#00aa00' }, { fillOpacity: 1 }],
+        },
+    ],
+];
+
+const withOpaqueItems = (series: object, part?: string) =>
+    part === undefined
+        ? { ...series, fillOpacity: 1 }
+        : { ...series, [part]: { ...(series as Record<string, object>)[part], fillOpacity: 1 } };
+
+/**
+ * Each option of the shadow and of the glow, changed one at a time, on the series and on the hovered item of each entry, and
+ * the glow `gap`. Call it in the body of a `describe`, with the charts of {@link useGlowCharts}.
+ */
+export function describeGlowOptions(entries: GlowOptionsEntry[], { create, chart }: ReturnType<typeof useGlowCharts>) {
+    describe.each(entries)(
+        '$testCase.name',
+        ({ testCase, options, edgeBudget = { series: 0, hovered: 0 }, opaquePart, noHoveredShadow }) => {
+            describe.each([
+                ['the series', false],
+                ['the hovered item', true],
+            ])('on %s', (_name, hovered) => {
+                const draw = async (placement: GlowPlacement, opaque = false) => {
+                    const series = hovered
+                        ? glowSeries(testCase, {}, { highlightedItem: placement })
+                        : glowSeries(testCase, placement);
+                    await create([opaque ? withOpaqueItems(series, opaquePart) : series], testCase.data, {
+                        ...options,
+                        ...testCase.chartOptions,
+                    });
+                    if (hovered) await hoverCase(chart(), testCase);
+                    return canvasImage(chart());
+                };
+
+                const casts = OPTION_CASTS.filter(([name]) => !(hovered && noHoveredShadow && name === 'shadow'));
+
+                describe.each(casts)('the %s', (name, { cast, changes }) => {
+                    const style = (change: object = {}) => ({ [name]: { ...cast, ...change } });
+
+                    it.each(changes)('renders differently when %o changes', async (change) => {
+                        const before = await draw(style());
+                        expect(differingBytes(before, await draw({}))).toBeGreaterThan(0);
+                        expect(differingBytes(await draw(style(change)), before)).toBeGreaterThan(0);
+                    });
+                });
+
+                describe('the glow gap', () => {
+                    const glow = (gap?: number) => ({ glow: { ...SERIES_GLOW, gap } });
+
+                    const budget = hovered ? edgeBudget.hovered : edgeBudget.series;
+
+                    it('renders a gap of 0 as it renders no gap, on an opaque item', async () => {
+                        const gapOfZero = await draw(glow(0), true);
+                        expect(differingBytes(gapOfZero, await draw({}, true))).toBeGreaterThan(0);
+                        expect(byteDifference(gapOfZero, await draw(glow(), true))).toBeLessThanOrEqual(budget);
+
+                        const fainter = { glow: { ...SERIES_GLOW, gap: 0, fillOpacity: 0.4 } };
+                        expect(byteDifference(gapOfZero, await draw(fainter, true))).toBeGreaterThan(budget);
+                    });
+
+                    it('renders a gap above 0 differently from none', async () => {
+                        const none = await draw(glow(), true);
+                        expect(byteDifference(await draw(glow(4), true), none)).toBeGreaterThan(budget);
+                        expect(byteDifference(await draw(glow(12), true), none)).toBeGreaterThan(budget);
+                    });
+                });
+            });
+        }
+    );
 }

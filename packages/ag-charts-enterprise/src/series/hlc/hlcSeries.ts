@@ -1046,6 +1046,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
         // No itemType in the cache key: getStyle() is item-type-agnostic; sub-styles are extracted per datum.
         this.runMarkerStylePass<HlcPassCtx, HlcMarkerDatum, StylerResult, HlcSeries>(datumSelection, isHighlight, ctx, {
+            hoveredItemShadow: true,
             compute: HlcSeries.computeStylerStyle,
             apply: HlcSeries.applyStylerDatum,
         });

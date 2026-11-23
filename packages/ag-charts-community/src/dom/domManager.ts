@@ -627,7 +627,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
                 );
                 this.element.style.setProperty(
                     this.formatCSSVariableKey(prefix, component, `${key}Width`, modifier),
-                    value ? 'var(--ag-charts-border-width)' : '0'
+                    value ? 'var(--ag-charts-border-width)' : '0px'
                 );
                 continue;
             }

@@ -76,8 +76,27 @@ export interface AgGlowOptions {
 
 /** What an `itemStyler` can return beyond the style of an item: the `shadow` and `glow` that the item casts. */
 export interface AgItemShadowStyle {
-    /** The `shadow` of this item, merged over the `shadow` that it would cast. Setting it without `enabled` turns it on. */
+    /**
+     * The `shadow` of this item, merged over the `shadow` that it would cast. Setting it without `enabled` turns it on.
+     *
+     * A series casts up to 16 distinct `shadow` and `glow` values between them from its `itemStyler`. Past that, an item casts the `shadow` that it would cast without one, and a warning is logged once.
+     */
     shadow?: Omit<AgDropShadowOptions, 'color'>;
-    /** The `glow` of this item, merged over the `glow` that it would cast. Setting it without `enabled` turns it on. */
+    /**
+     * The `glow` of this item, merged over the `glow` that it would cast. Setting it without `enabled` turns it on.
+     *
+     * A series casts up to 16 distinct `shadow` and `glow` values between them from its `itemStyler`. Past that, an item casts the `glow` that it would cast without one, and a warning is logged once.
+     */
     glow?: AgGlowOptions;
+}
+
+/** What an `itemStyler` is given of the `shadow` and `glow` that its item casts, for the highlight state of the call. */
+export interface AgItemShadowStylerParams {
+    /**
+     * The `shadow` that this item would cast, which the `shadow` an `itemStyler` returns is merged over. Unset if nothing sets it.
+     * It has no deprecated `color`, so it can be returned, or spread into the `shadow` that is returned.
+     */
+    readonly shadow?: Readonly<Omit<AgDropShadowOptions, 'color'>>;
+    /** The `glow` that this item would cast, which the `glow` an `itemStyler` returns is merged over. Unset if nothing sets it. */
+    readonly glow?: Readonly<AgGlowOptions>;
 }

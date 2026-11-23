@@ -1020,7 +1020,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             datumSelection,
             isHighlight,
             ctx,
-            { compute: LineSeries.computeStylerStyle, apply: LineSeries.applyStylerDatum }
+            { hoveredItemShadow: true, compute: LineSeries.computeStylerStyle, apply: LineSeries.applyStylerDatum }
         );
     }
 
