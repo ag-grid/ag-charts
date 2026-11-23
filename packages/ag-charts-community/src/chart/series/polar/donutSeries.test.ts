@@ -1489,6 +1489,76 @@ describe('DonutSeries', () => {
             expect(texts.filter((text) => text.includes(EllipsisChar))).toEqual([]);
             await compare();
         });
+
+        test('hangs a boxed label too tall for its wedge from the top, where it is drawn whole', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Quarterly revenue from the northern region', size: 5 },
+                        { name: 'Operating costs and overheads', size: 3 },
+                        { name: 'Marketing', size: 2 },
+                        { name: 'Research and development spend', size: 4 },
+                        { name: 'Other', size: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.88,
+                            sectorLabel: {
+                                fontSize: 12,
+                                wrapping: 'on-space',
+                                truncate: false,
+                                padding: 6,
+                                fill: '#eee',
+                                border: { enabled: true, stroke: 'black', strokeWidth: 1 },
+                            },
+                        },
+                    ],
+                    legend: { enabled: false },
+                })
+            );
+            // Centred on its anchor the boxed block would be hidden; hung, it is drawn whole above the anchor.
+            const labels = getVisibleLabelTextNodes(chart);
+            expect(labels.map((node) => String(node.text))).toEqual(['Other']);
+            const other = getSeriesSelectionNodes<Sector<{ datumIndex: number }>>(chart, 'itemSelection').find(
+                (node) => node.datum?.datumIndex === 4
+            )!;
+            const midAngle = (other.startAngle + other.endAngle) / 2;
+            const anchorY = Math.sin(midAngle) * ((other.innerRadius + other.outerRadius) / 2);
+            expect(labels[0].y).toBeLessThan(anchorY - 1);
+            await compare();
+        });
+
+        test('centres a label too tall for its wedge where hanging it would hide it', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'One two three four five six seven eight nine ten', size: 20 },
+                        { name: 'A B C D E F G H I J K L', size: 10 },
+                        { name: 'x', size: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.3,
+                            sectorLabel: { fontSize: 28, wrapping: 'on-space', truncate: false, positionRatio: 0.85 },
+                        },
+                    ],
+                    legend: { enabled: false },
+                })
+            );
+            const label = getVisibleLabelTextNodes(chart).find((node) => String(node.text).startsWith('One two'));
+            expect(String(label?.text).replaceAll('\n', ' ')).toBe('One two three four five six seven eight nine ten');
+            // Centred on the wedge's widest band, through the series centre; hung, it would drop to its room's top.
+            expect(label!.y).toBeCloseTo(0, 3);
+            await compare();
+        });
     });
 
     describe('sectorLabel layout', () => {

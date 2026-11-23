@@ -115,6 +115,12 @@ export interface FittedRegionText {
     offsetY: number;
 }
 
+/**
+ * Where a preserved block that loses text to its shape is laid out past it: centred where it is drawn, hung
+ * from the shape's top, or `'none'` to keep the layout that lost the text.
+ */
+export type OverflowPlacement = 'centre' | 'hang' | 'none';
+
 /** `'preserve'` is engine-internal: text still wraps to `maxWidth`, but nothing is ever dropped or ellipsised. */
 export type WrapOverflow = OverflowStrategy | 'preserve';
 
@@ -356,14 +362,14 @@ function ellipsisOverflows(fitted: string | MeasuredSegment[], options: WrapOpti
  * on one side of the anchor than the other is only worth fitting to if the text is drawn where that room
  * is, so the offset it was fitted at comes back with the text. `anchored` is for a caller that has settled
  * on the anchor for this label after all: the fit then takes no horizontal offset it would have to discard.
- * `hangsOverflow` hangs a preserved block too tall for the shape from its top, for a caller drawing at the offset.
+ * `overflowPlacement` places a preserved block that loses text to the shape; see {@link OverflowPlacement}.
  */
 export function fitLabelTextToRegion(
     text: NormalisedTextOrSegments,
     fit: LabelFit | undefined,
     font: FontOptions,
     anchored = false,
-    hangsOverflow = false
+    overflowPlacement: OverflowPlacement = 'centre'
 ): FittedRegionText {
     if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0, offsetY: 0 };
     const overflow = fit.overflowStrategy ?? 'preserve';
@@ -382,7 +388,7 @@ export function fitLabelTextToRegion(
         fit.regionAlign ?? 'center',
         anchored,
         fit.boxed,
-        hangsOverflow
+        overflowPlacement
     );
 }
 
@@ -535,11 +541,11 @@ function wrapTextToRegion(
     align: RegionAlign,
     anchored = false,
     boxed = false,
-    hangsOverflow = false
+    overflowPlacement: OverflowPlacement = 'centre'
 ): FittedRegionText {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return refineSegmentsToRegion(text, options, region, align, limit, boxed, hangsOverflow);
+        return refineSegmentsToRegion(text, options, region, align, limit, boxed, overflowPlacement);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -564,17 +570,17 @@ function wrapTextToRegion(
     }
     if (best == null) return { text, offsetX: 0, offsetY: 0 };
     // Preserved text that lost some to the shape is laid out past it; a best that lost text is consistent.
-    if (preservesText(options) && bestKept < wanted) {
+    if (overflowPlacement !== 'none' && preservesText(options) && bestKept < wanted) {
         const { offsetX } = best;
         const overflow = wrapOverflowingBlock(
             region,
             align,
-            hangsOverflow,
+            overflowPlacement === 'hang',
             boxed,
             offsetX,
             lineHeight,
             lineHeight,
-            (_, held) => (held.length + 1) * lineHeight,
+            (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
             (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
             (wrapped) => countLines(wrapped) * lineHeight
         );
@@ -592,7 +598,7 @@ function wrapOverflowingBlock<T>(
     offsetX: number,
     rowHeight: number,
     startHeight: number,
-    nextHeight: (drawn: number, held: readonly number[]) => number,
+    nextHeights: (drawn: number, held: readonly number[]) => readonly number[],
     wrapAt: (maxWidthAt: (top: number, bottom: number) => number) => T,
     heightOf: (wrapped: T) => number
 ) {
@@ -613,12 +619,20 @@ function wrapOverflowingBlock<T>(
     };
     let wrapped = wrapAt(maxWidthAt);
     let drawn = heightOf(wrapped);
-    while (!holdsHeight(held, drawn)) {
-        held.push(nextHeight(drawn, held));
+    // Capped like the refinement it extends, for a shape whose drawn height keeps moving.
+    for (let i = 0; i < MAX_REGION_REFINEMENTS && !holdsHeight(held, drawn); i += 1) {
+        held.push(...nextHeights(drawn, held));
         wrapped = wrapAt(maxWidthAt);
         drawn = heightOf(wrapped);
     }
     return { text: wrapped, offsetY: topFor(drawn) + drawn / 2 };
+}
+
+/** Every block height from `held + 1` rows up to `drawn`, so one pass holds all the heights the wrap grew past. */
+function rowHeightsBetween(held: number, drawn: number, lineHeight: number) {
+    const heights: number[] = [];
+    for (let rows = held + 1; rows * lineHeight <= drawn + OVERFLOW_EPSILON; rows += 1) heights.push(rows * lineHeight);
+    return heights;
 }
 
 function holdsHeight(held: readonly number[], height: number) {
@@ -697,9 +711,10 @@ function refineSegmentsToRegion(
     align: RegionAlign,
     limit: number,
     boxed: boolean,
-    hangsOverflow: boolean
+    overflowPlacement: OverflowPlacement
 ) {
-    let height = measureText(text, options.font).height;
+    const sourceHeight = measureText(text, options.font).height;
+    let height = sourceHeight;
     let lines = 1;
     let result: NormalisedTextOrSegments = text;
     let blockTop = 0;
@@ -721,17 +736,17 @@ function refineSegmentsToRegion(
         if (next === height) break;
         height = next;
     }
-    // Preserved text that outgrew the shape, or lost an image to its height, is laid out past it.
-    if (preservesText(options) && (height > limit || lostImageToHeight(text, result, passOptions))) {
+    // Preserved segments keep their text past the shape as before, so only one that lost an image is laid out past it.
+    if (overflowPlacement !== 'none' && preservesText(options) && lostImageToHeight(text, result, passOptions)) {
         const overflow = wrapOverflowingBlock(
             region,
             align,
-            hangsOverflow,
+            overflowPlacement === 'hang',
             boxed,
             0,
             options.lineHeight ?? cachedTextMeasurer(options.font).lineHeight(),
-            measureText(text, options.font).height,
-            (drawn) => drawn,
+            sourceHeight,
+            (drawn) => [drawn],
             (maxWidthAt) => wrapTextOrSegments(text, { ...options, maxHeight: undefined, maxWidthAt }),
             (wrapped) => measureText(wrapped, options.font).height
         );
@@ -766,6 +781,11 @@ export function withFitRegion(fit: LabelFit | undefined, region: FitRegion | und
 /** A fit can bound the text away to nothing, which the placement engine treats as no label at all. */
 export function isErased(text: NormalisedTextOrSegments): boolean {
     return isArray(text) ? text.length === 0 : String(text).length === 0;
+}
+
+/** Whether `fitted` dropped text or an image of `source`, ignoring the layout and any ellipsis. */
+export function lostContent(source: NormalisedTextOrSegments, fitted: NormalisedTextOrSegments) {
+    return keptCharacters(fitted) < keptCharacters(source) || countImages(fitted) < countImages(source);
 }
 
 /** Characters of `text` that survived a fit, ignoring the layout and the ellipsis marking the loss. */
