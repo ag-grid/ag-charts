@@ -37,7 +37,6 @@ import {
     indexOfBreakSpace,
     isBreakSpace,
     isTextTruncated,
-    lastIndexOfBreakSpace,
     lineHeightAtSize,
     preserveArabicJoining,
     toTextString,
@@ -1377,17 +1376,64 @@ function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: Wra
     return lastLineBandWidth(options, measurer.measureLines(lines).lineMetrics, options.lineHeight);
 }
 
-/** Whether breaking at `split`, a line's last break space, leaves a word behind; taking the second of two would not. */
-function splitsBeforeLastWord(split: number, firstBreak: number) {
-    return split !== -1 && split !== firstBreak;
+const PREV_LINE = 0;
+const LAST_LINE = 1;
+type OrphanLine = typeof PREV_LINE | typeof LAST_LINE;
+
+/** The second-last and last lines the orphan rule reads, whether held as strings or as segments. */
+interface OrphanLines {
+    /** Offset of the first, or `fromEnd` the last, character in `[lo, hi)` that is or is not a break space, or -1. */
+    find(line: OrphanLine, lo: number, hi: number, breakSpace: boolean, fromEnd: boolean): number;
+    graphemes(line: OrphanLine, lo: number, hi: number): number;
 }
 
-/** Where `prev` breaks before the word that a one-word `last` takes from it, or -1 when it takes none. */
+/**
+ * Where `[0, prevTo)` of the second-last line breaks before the word that a one-word `[lastFrom, lastTo)` last
+ * line takes from it, or -1 when it takes none. Each side's `edges` count as graphemes of that line.
+ */
+function orphanWordSplit(
+    lines: OrphanLines,
+    prevTo: number,
+    lastFrom: number,
+    lastTo: number,
+    prevEdges: number,
+    lastEdges: number
+) {
+    if (lines.find(LAST_LINE, lastFrom, lastTo, true, false) !== -1) return -1;
+    const split = lines.find(PREV_LINE, 0, prevTo, true, true);
+    // With a single break space, moving the second word would leave the first alone above.
+    if (split === -1 || split === lines.find(PREV_LINE, 0, prevTo, true, false)) return -1;
+    const prevGraphemes = lines.graphemes(PREV_LINE, 0, prevTo) + prevEdges;
+    return prevGraphemes < lines.graphemes(LAST_LINE, lastFrom, lastTo) + lastEdges ? -1 : split;
+}
+
+const stringOrphanLines = {
+    prev: '',
+    last: '',
+    find(line: OrphanLine, lo: number, hi: number, breakSpace: boolean, fromEnd: boolean) {
+        const text = line === PREV_LINE ? this.prev : this.last;
+        if (fromEnd) {
+            for (let i = hi - 1; i >= lo; i--) {
+                if (isBreakSpace(text[i]) === breakSpace) return i;
+            }
+            return -1;
+        }
+        for (let i = lo; i < hi; i++) {
+            if (isBreakSpace(text[i]) === breakSpace) return i;
+        }
+        return -1;
+    },
+    graphemes(line: OrphanLine, lo: number, hi: number) {
+        const text = line === PREV_LINE ? this.prev : this.last;
+        return graphemeSegments(lo === 0 && hi === text.length ? text : text.slice(lo, hi)).length;
+    },
+};
+
+/** {@link orphanWordSplit} for whole string lines. */
 function orphanSplit(prev: string, last: string) {
-    if (indexOfBreakSpace(last) !== -1) return -1;
-    const split = lastIndexOfBreakSpace(prev);
-    if (!splitsBeforeLastWord(split, indexOfBreakSpace(prev))) return -1;
-    return graphemeSegments(prev).length < graphemeSegments(last).length ? -1 : split;
+    stringOrphanLines.prev = prev;
+    stringOrphanLines.last = last;
+    return orphanWordSplit(stringOrphanLines, prev.length, 0, last.length, 0, 0);
 }
 
 /** {@link orphanSplit} for the last two `lines`, when the last line still fits with the word on it. */
@@ -1449,16 +1495,15 @@ interface FitLines {
 
 const EXPLICIT_BREAK = '\n';
 const EDGE_BREAK = '';
-let fitLines: FitLines = { breaks: [], metrics: undefined, clipped: false };
-// Those of the text run a multi-group block ends with.
-let runLines: FitLines = { breaks: [], metrics: undefined, clipped: false };
-let fitLineIndex = 0;
+// Reused by every wrapTextSegments call, which passes them down explicitly: one per group, one for the last run.
+const groupFitLines: FitLines = { breaks: [], metrics: undefined, clipped: false };
+const runFitLines: FitLines = { breaks: [], metrics: undefined, clipped: false };
 const segmentWrapBreaks: string[] = [];
 const TRUNCATED_LINE_END = `${EllipsisChar}\n`;
 
-/** Drops a segment's wrapped `lines` after the first that ends in an ellipsis; returns whether one does. */
-function cutAtDrawnEllipsis(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    const split = ellipsisOrphanSplit(lines, segmentWrapBreaks, measurer, options);
+/** Drops a segment's `lines`, wrapped at `breaks`, after the first ending in an ellipsis; returns whether one does. */
+function cutAtDrawnEllipsis(lines: string[], breaks: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    const split = ellipsisOrphanSplit(lines, breaks, measurer, options);
     const index = firstTruncatedLine(lines, split);
     if (index === -1) return false;
     // Cut where the ellipsis is drawn: on the second-last line, that is with its orphan moved off it.
@@ -1467,25 +1512,16 @@ function cutAtDrawnEllipsis(lines: string[], measurer: ITextMeasurer, options: W
     return true;
 }
 
-function resetFitLines() {
-    fitLineIndex = 0;
-    fitLines.breaks.length = 0;
-    fitLines.metrics = undefined;
-    fitLines.clipped = false;
+function resetFitLines(lines: FitLines) {
+    // Index 0 stands for the first line, which follows no break.
+    lines.breaks.length = 1;
+    lines.breaks[0] = undefined;
+    lines.metrics = undefined;
+    lines.clipped = false;
 }
 
-function breakFitLine(kind: string | undefined) {
-    fitLines.breaks[++fitLineIndex] = kind;
-}
-
-function breakFitLineAfterLast(result: MeasuredSegment[], font: FontOptions, kind: string) {
-    if (appendLineBreak(result, font)) breakFitLine(kind);
-}
-
-function keepRunLines() {
-    const kept = runLines;
-    runLines = fitLines;
-    fitLines = kept;
+function breakFitLineAfterLast(lines: FitLines, result: MeasuredSegment[], font: FontOptions, kind: string) {
+    if (appendLineBreak(result, font)) lines.breaks.push(kind);
 }
 
 /** Whether a `'hide'` run from `start` has a wrapped line, or an `orphanEllipsis` one, ending in an ellipsis. */
@@ -1567,7 +1603,7 @@ function planOrphanMove(
     const lastLength = lineRangeLength(segments, lastStart, end);
     // Space opening the last line is a segment's edge, so the gap it wrapped at, unless the source broke the line.
     const lastFrom = kind === EXPLICIT_BREAK ? 0 : findInLine(segments, lastStart, end, 0, lastLength, false);
-    if (lastFrom === -1 || findInLine(segments, lastStart, end, lastFrom, lastLength, true) !== -1) return false;
+    if (lastFrom === -1) return false;
     if (clipped && lastLength - lastFrom === 1 && lineCharAt(segments, lastStart, lastFrom) === EllipsisChar) {
         return false;
     }
@@ -1577,11 +1613,14 @@ function planOrphanMove(
     const prevLength = lineRangeLength(segments, wordStart, lastStart);
     const prevTo = findLastInLine(segments, wordStart, lastStart, 0, prevLength, false) + 1;
     if (kind === EDGE_BREAK && lastFrom === 0 && prevTo === prevLength) return false;
-    const split = findLastInLine(segments, wordStart, lastStart, 0, prevTo, true);
-    if (!splitsBeforeLastWord(split, findInLine(segments, wordStart, lastStart, 0, prevTo, true))) return false;
-    const opens = prevOpens || wordStart > prevStart;
-    const prevGraphemes = lineGraphemeCount(segments, wordStart, lastStart, 0, prevTo) + (opens ? 1 : 0);
-    if (prevGraphemes < lineGraphemeCount(segments, lastStart, end, lastFrom, lastLength) + 1) return false;
+    segmentOrphanLines.segments = segments;
+    segmentOrphanLines.prevStart = wordStart;
+    segmentOrphanLines.lastStart = lastStart;
+    segmentOrphanLines.end = end;
+    const opens = prevOpens || wordStart > prevStart ? 1 : 0;
+    const split = orphanWordSplit(segmentOrphanLines, prevTo, lastFrom, lastLength, opens, 1);
+    segmentOrphanLines.segments = NO_SEGMENTS;
+    if (split === -1) return false;
 
     orphanMove.wordStart = wordStart;
     orphanMove.lastStart = lastStart;
@@ -1595,6 +1634,26 @@ function planOrphanMove(
     orphanMove.merges = lastFirst.type !== 'image' && lastMoved.type !== 'image' && sameStyle(lastMoved, lastFirst);
     return true;
 }
+
+const NO_SEGMENTS: MeasuredSegment[] = [];
+
+/** The second-last line as segments `[prevStart, lastStart)` and the last as `[lastStart, end)`. */
+const segmentOrphanLines = {
+    segments: NO_SEGMENTS,
+    prevStart: 0,
+    lastStart: 0,
+    end: 0,
+    find(line: OrphanLine, lo: number, hi: number, breakSpace: boolean, fromEnd: boolean) {
+        const from = line === PREV_LINE ? this.prevStart : this.lastStart;
+        const to = line === PREV_LINE ? this.lastStart : this.end;
+        return (fromEnd ? findLastInLine : findInLine)(this.segments, from, to, lo, hi, breakSpace);
+    },
+    graphemes(line: OrphanLine, lo: number, hi: number) {
+        const from = line === PREV_LINE ? this.prevStart : this.lastStart;
+        const to = line === PREV_LINE ? this.lastStart : this.end;
+        return lineGraphemeCount(this.segments, from, to, lo, hi);
+    },
+};
 
 /** Whether two text segments differ only in their text. */
 function sameStyle(a: MeasuredTextSegment, b: MeasuredTextSegment) {
@@ -1912,10 +1971,10 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
         groups[0].blockImages.length === 0 &&
         !groups[0].segments.some((s) => s.type === 'image')
     ) {
-        const fitted = fitMeasuredSegments(groups[0].segments, options);
-        const orphanEllipsis = avoidSegmentOrphans(fitted, 0, options, fitLines);
+        const fitted = fitMeasuredSegments(groups[0].segments, options, groupFitLines);
+        const orphanEllipsis = avoidSegmentOrphans(fitted, 0, options, groupFitLines);
         const hides =
-            hidesWrappedEllipsis(fitted, 0, options, fitLines, orphanEllipsis) ||
+            hidesWrappedEllipsis(fitted, 0, options, groupFitLines, orphanEllipsis) ||
             hidesOverflow(groups[0].segments, fitted, options);
         return hides ? [] : fitted;
     }
@@ -1929,6 +1988,8 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
     // Runs before the last are judged as fitted; the last only once its orphan has moved.
     let earlierEllipsis = false;
     let runEllipsis = false;
+    let groupLines = groupFitLines;
+    let runLines = runFitLines;
 
     for (const group of groups) {
         if (remainingMaxHeight <= 0) break;
@@ -1937,14 +1998,17 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
             : options;
         run.start = 0;
         run.options = groupOptions;
-        const groupResult = wrapGroup(group, groupOptions, run);
+        const groupResult = wrapGroup(group, groupOptions, run, groupLines);
         if (groupResult.length === 0) continue;
 
         lastStart = result.length + run.start;
         lastOptions = run.options;
         earlierEllipsis ||= runEllipsis;
-        runEllipsis = hidesWrappedEllipsis(groupResult, run.start, options, fitLines, false);
-        keepRunLines();
+        runEllipsis = hidesWrappedEllipsis(groupResult, run.start, options, groupLines, false);
+        // This group's lines become the run's, and the run's buffer is free for the next group.
+        const kept = runLines;
+        runLines = groupLines;
+        groupLines = kept;
         result.push(...groupResult);
 
         if (Number.isFinite(remainingMaxHeight)) {
@@ -1987,22 +2051,30 @@ function contentLength(segments: NormalisedContentSegment[]): number {
     return segments.reduce((n, s) => (s.type === 'image' ? n : n + survivingCharacters(toTextString(s.text))), 0);
 }
 
-function wrapGroup(group: SegmentGroup, options: WrapOptions, run: TextRun): MeasuredSegment[] {
+function wrapGroup(group: SegmentGroup, options: WrapOptions, run: TextRun, lines: FitLines): MeasuredSegment[] {
     if (group.blockImages.length === 0) {
-        return wrapInlineSegments(group.segments, options);
+        return wrapInlineSegments(group.segments, options, lines);
     }
-    return wrapBlockGroup(group.blockImages, group.segments, options, run);
+    return wrapBlockGroup(group.blockImages, group.segments, options, run, lines);
 }
 
-function wrapInlineSegments(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegments(
+    segments: NormalisedContentSegment[],
+    options: WrapOptions,
+    lines: FitLines
+): MeasuredSegment[] {
     if (segments.length === 0) return [];
     if (!segments.some((s) => s.type === 'image')) {
-        return fitMeasuredSegments(segments, options);
+        return fitMeasuredSegments(segments, options, lines);
     }
-    return wrapInlineSegmentsWithOverflow(segments, options);
+    return wrapInlineSegmentsWithOverflow(segments, options, lines);
 }
 
-function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegmentsWithOverflow(
+    segments: NormalisedContentSegment[],
+    options: WrapOptions,
+    lines: FitLines
+): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
     // Drop any image that exceeds the width or height budget on its own; no strategy can keep it.
     // Build a single working array we mutate in place to avoid allocating a fresh array per drop.
@@ -2015,15 +2087,19 @@ function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], op
         working.push(s);
     }
 
-    let result = fitMeasuredSegments(working, options);
+    let result = fitMeasuredSegments(working, options, lines);
     // 'hide' images yield to text first.
-    result = dropUntilFits(working, options, result, () => dropLastMatching(working, isImageWithStrategy('hide')));
+    result = dropUntilFits(working, options, lines, result, () =>
+        dropLastMatching(working, isImageWithStrategy('hide'))
+    );
     // 'keep' images take priority over text: drop trailing text rightmost-first.
-    result = dropUntilFits(working, options, result, () => {
+    result = dropUntilFits(working, options, lines, result, () => {
         return hasImageWithStrategy(working, 'keep') && dropLastMatching(working, isText);
     });
     // Last resort: drop 'keep' images that still can't fit alongside anything.
-    result = dropUntilFits(working, options, result, () => dropLastMatching(working, isImageWithStrategy('keep')));
+    result = dropUntilFits(working, options, lines, result, () =>
+        dropLastMatching(working, isImageWithStrategy('keep'))
+    );
     return result;
 }
 
@@ -2032,11 +2108,12 @@ function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], op
 function dropUntilFits(
     working: NormalisedContentSegment[],
     options: WrapOptions,
+    lines: FitLines,
     result: MeasuredSegment[],
     drop: () => boolean
 ): MeasuredSegment[] {
     while (!resultFitsAllSegments(working, result) && drop()) {
-        result = fitMeasuredSegments(working, options);
+        result = fitMeasuredSegments(working, options, lines);
     }
     return result;
 }
@@ -2045,14 +2122,15 @@ function wrapBlockGroup(
     blockImages: ImageSegment[],
     segments: NormalisedContentSegment[],
     options: WrapOptions,
-    run: TextRun
+    run: TextRun,
+    lines: FitLines
 ): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
 
     const strip = buildBlockStrip(blockImages, options);
     if (strip.length === 0) {
         // No images survived — re-wrap text full-width as if no block strip was requested.
-        return wrapInlineSegments(segments, options);
+        return wrapInlineSegments(segments, options, lines);
     }
 
     // The text column is `keep` only when every surviving image is `keep` — otherwise text
@@ -2069,14 +2147,14 @@ function wrapBlockGroup(
     if (innerMaxWidth <= 0) {
         // No room for a text column to the right. Under 'hide' prefer dropping the strip so text
         // gets the full width; under 'keep' preserve the strip alone.
-        if (!allKeep) return wrapInlineSegments(segments, options);
+        if (!allKeep) return wrapInlineSegments(segments, options, lines);
         run.start = strip.length;
         return strip;
     }
 
     // Row height is max(stripHeight, textColumnHeight); strip images are already filtered to maxHeight.
     const innerOptions = { ...options, maxWidth: innerMaxWidth, maxHeight: Math.max(0, maxHeight) };
-    const innerResult = wrapBlockTextColumn(segments, innerOptions, allKeep);
+    const innerResult = wrapBlockTextColumn(segments, innerOptions, allKeep, lines);
 
     // A sub-character `innerMaxWidth` can emit an orphan wider than the column, pushing the strip past the tile edge.
     if (
@@ -2116,15 +2194,16 @@ function buildBlockStrip(blockImages: ImageSegment[], options: WrapOptions): Mea
 function wrapBlockTextColumn(
     segments: NormalisedContentSegment[],
     innerOptions: WrapOptions,
-    allKeep: boolean
+    allKeep: boolean,
+    lines: FitLines
 ): MeasuredSegment[] {
     if (!allKeep) {
-        return wrapInlineSegments(segments, innerOptions);
+        return wrapInlineSegments(segments, innerOptions, lines);
     }
     const working = segments.slice();
-    let result = wrapInlineSegments(working, innerOptions);
+    let result = wrapInlineSegments(working, innerOptions, lines);
     while ((hasTruncatedText(result) || lostTextSegments(working, result)) && dropLastMatching(working, isText)) {
-        result = wrapInlineSegments(working, innerOptions);
+        result = wrapInlineSegments(working, innerOptions, lines);
     }
     return result;
 }
@@ -2173,23 +2252,28 @@ function hasImageWithStrategy(segments: NormalisedContentSegment[], strategy: 'h
 /**
  * Fits the segments in two steps: wrapping estimates each row's band to break the text to its width, then
  * the renderer's own measurement of the result decides what fits, trimming it to the bands and `maxHeight`.
+ * The fit's lines are recorded into `lines`.
  */
-function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
-    const { result, reshaped, height, lineMetrics } = wrapMeasuredSegments(textSegments, options);
+function fitMeasuredSegments(
+    textSegments: NormalisedContentSegment[],
+    options: WrapOptions,
+    lines: FitLines
+): MeasuredSegment[] {
+    const { result, reshaped, height, lineMetrics } = wrapMeasuredSegments(textSegments, options, lines);
     // Lines passed through whole are the ones measured.
-    if (!reshaped) fitLines.metrics = lineMetrics;
+    if (!reshaped) lines.metrics = lineMetrics;
     if (preservesText(options)) return result;
     // OPTIMIZATION: lines passed through unchanged were measured in their bands already.
     if (!reshaped && height <= (options.maxHeight ?? Infinity)) return result;
-    return trimToMeasuredFit(result, options);
+    return trimToMeasuredFit(result, options, lines);
 }
 
-function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions) {
+function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions, lines: FitLines) {
     const preserveText = preservesText(options);
     const result: MeasuredSegment[] = [];
 
     let reshaped = false;
-    resetFitLines();
+    resetFitLines(lines);
     let lineWidth = 0;
     let totalHeight = 0;
     // The empty line a segment's trailing whitespace broke onto, kept only if a later segment fills it.
@@ -2203,7 +2287,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         if (lastSegment.type === 'image') return;
         const measurer = cachedTextMeasurer(lastSegment);
         const truncatedText = truncateLine(lastSegment.text, measurer, maxWidth(), true);
-        fitLines.clipped = true;
+        lines.clipped = true;
         const textMetrics = measurer.measureText(truncatedText);
         result.push({ ...lastSegment, text: truncatedText, textMetrics });
     }
@@ -2232,7 +2316,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
                 const lastSegment = result.at(-1);
                 if (wrappedLines.length > 0 && lineWidth > 0 && lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
-                    breakFitLine(EDGE_BREAK);
+                    lines.breaks.push(EDGE_BREAK);
                     lineWidth = 0;
                 }
             }
@@ -2245,7 +2329,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
 
         // Under 'preserve' a trailing ellipsis can only be the author's own text ("Loading…"), so acting
         // on it here would drop the lines and segments that follow it.
-        const truncated = !preserveText && cutAtDrawnEllipsis(wrappedLines, measurer, wrapOptions);
+        const truncated = !preserveText && cutAtDrawnEllipsis(wrappedLines, segmentWrapBreaks, measurer, wrapOptions);
 
         // A text segment's edge whitespace is the gap to an adjacent image (e.g. flag then " Germany ").
         // A wrap break can trim it, so restore it onto the first/last content line of the output.
@@ -2274,7 +2358,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
             } else {
                 subSegment.text += '\n';
                 // Before its first word the break is the segment's edge, whose gap the next line takes back.
-                breakFitLine(i < firstContentIndex ? EDGE_BREAK : segmentWrapBreaks[i + 1]);
+                lines.breaks.push(i < firstContentIndex ? EDGE_BREAK : segmentWrapBreaks[i + 1]);
                 lineWidth = 0;
             }
             totalHeight += lineHeight ?? textMetrics.height;
@@ -2315,7 +2399,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
                 const imageHeight = segment.textMetrics.height;
                 // Wrap the overflowing image to its own line rather than drop it (keeps width-shrinking monotonic).
                 if (options.textWrap !== 'never' && lineWidth > 0 && imageWidth <= maxWidth(imageHeight)) {
-                    breakFitLineAfterLast(result, options.font, EDGE_BREAK);
+                    breakFitLineAfterLast(lines, result, options.font, EDGE_BREAK);
                     lineWidth = imageWidth;
                     totalHeight += lineHeight + imageHeight;
                     lineHeight = 0;
@@ -2356,9 +2440,9 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         if (i > 0) {
             if (dropEmptyTrailingWsLine()) {
                 // The break left in place now stands for the source's own.
-                fitLines.breaks[fitLineIndex] = EXPLICIT_BREAK;
+                lines.breaks[lines.breaks.length - 1] = EXPLICIT_BREAK;
             } else {
-                breakFitLineAfterLast(result, options.font, EXPLICIT_BREAK);
+                breakFitLineAfterLast(lines, result, options.font, EXPLICIT_BREAK);
             }
             lineWidth = 0;
         }
@@ -2376,7 +2460,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
  * Measures `segments` as the renderer lays them out and, while a line falls outside its band or the block
  * outgrows `maxHeight`, cuts the block after the last line that fits and ellipsises it.
  */
-function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions): MeasuredSegment[] {
+function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions, lines: FitLines): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
     const lineMaxWidths: number[] = [];
     let top = 0;
@@ -2397,15 +2481,15 @@ function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions): M
         top = bottom;
     }
     if (fits) {
-        fitLines.metrics = lineMetrics;
+        lines.metrics = lineMetrics;
         return segments;
     }
 
-    fitLines.clipped = true;
+    lines.clipped = true;
     for (let line = lineMaxWidths.length - 1; line >= 0; line--) {
         const { before, row } = splitAtLine(segments, line);
         const ellipsised = ellipsiseRow(row, lineMaxWidths[line]);
-        if (ellipsised != null) return trimToMeasuredFit([...before, ...ellipsised], options);
+        if (ellipsised != null) return trimToMeasuredFit([...before, ...ellipsised], options, lines);
     }
     return [];
 }
