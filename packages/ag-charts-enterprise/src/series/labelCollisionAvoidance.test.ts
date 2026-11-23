@@ -1158,6 +1158,229 @@ describe('label collision avoidance', () => {
             });
         });
     });
+
+    // Labels reaching over the corner of a large square marker, where its nominal circle leaves room.
+    describe('marker outlines', () => {
+        // Styled, a small circle series draws its marker through the itemStyler.
+        const drawn = (shape: 'circle' | 'square', styled: boolean) =>
+            styled
+                ? { shape: 'circle' as const, size: 4, itemStyler: () => ({ shape, size: 40 }) }
+                : { shape, size: 40 };
+
+        it.each([false, true])(
+            'range-area: moves a label off the corner of a square marker (styled: %s)',
+            async (styled) => {
+                chart = await createEnterpriseChart({
+                    legend: { enabled: false },
+                    axes: {
+                        x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                        y: { type: 'number', position: 'left', min: 0, max: 10 },
+                    },
+                    series: [
+                        {
+                            type: 'range-area',
+                            data: [{ x: 5, low: 5, high: 9 }],
+                            xKey: 'x',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            marker: { enabled: true, ...drawn('square', styled) },
+                            label: { enabled: true, formatter: () => 'A' },
+                        },
+                        {
+                            type: 'scatter',
+                            data: [{ x: 5.7, y: 5.7, l: 'Label' }],
+                            xKey: 'x',
+                            yKey: 'y',
+                            labelKey: 'l',
+                            size: 4,
+                            label: {
+                                enabled: true,
+                                placement: ['bottom-left', 'top-right'],
+                                truncate: false,
+                                wrapping: 'never',
+                                collision: { alwaysShow: false },
+                            },
+                        },
+                    ],
+                });
+                expect(getPlacedLabelData<{ placement?: string }>(chart, 1).map((l) => l.placement)).toEqual([
+                    'top-right',
+                ]);
+            }
+        );
+
+        // Both markers share a point; the diagonal placements land only on corners the circle misses.
+        it.each([false, true])(
+            'map-marker: hides a label that reaches over a square marker on every side (styled: %s)',
+            async (styled) => {
+                const site = { name: 'Site', lat: 52, lon: -1.5 };
+                const markers = (shape: 'circle' | 'square'): AgChartOptions => ({
+                    topology: ukTopology,
+                    series: [
+                        { type: 'map-shape-background' },
+                        {
+                            type: 'map-marker',
+                            data: [site],
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            // Only series with labels contribute their markers as obstacles.
+                            labelKey: 'name',
+                            label: { enabled: true, placement: 'bottom' },
+                            ...drawn(shape, styled),
+                        },
+                        {
+                            type: 'map-marker',
+                            data: [site],
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            labelKey: 'name',
+                            size: 10,
+                            label: {
+                                enabled: true,
+                                placement: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
+                                spacing: 10,
+                                collision: { alwaysShow: false },
+                            },
+                        },
+                    ],
+                });
+                chart = await createEnterpriseChart(markers('circle'));
+                expect(visibleLabelCount(2)).toBe(1);
+                chart.destroy();
+                chart = await createEnterpriseChart(markers('square'));
+                expect(visibleLabelCount(2)).toBe(0);
+            }
+        );
+
+        // A styler that only recolours draws the same markers, so it must leave every label where it was.
+        describe('colour-only itemStyler', () => {
+            const CASCADE = {
+                enabled: true,
+                placement: ['top', 'right', 'bottom', 'left'],
+                collision: { alwaysShow: false },
+            } as const;
+            const points = Array.from({ length: 24 }, (_, i) => ({
+                x: i % 6,
+                y: Math.floor(i / 6) + (i % 2) * 0.4,
+                high: Math.floor(i / 6) + 2,
+                size: 1 + (i % 5),
+                name: `Item ${i}`,
+            }));
+            const cartesian = (series: object): AgChartOptions => ({
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: -1, max: 6 },
+                    y: { type: 'number', position: 'left', min: -1, max: 6 },
+                },
+                series: [series as NonNullable<AgCartesianChartOptions['series']>[number]],
+            });
+            const marker = (styled: boolean) => ({
+                enabled: true,
+                shape: 'square' as const,
+                size: 14,
+                ...(styled ? { itemStyler: () => ({ fill: 'red' }) } : {}),
+            });
+            const cases: Array<[string, (styled: boolean) => AgChartOptions, number]> = [
+                [
+                    'line',
+                    (styled) =>
+                        cartesian({
+                            type: 'line',
+                            data: points,
+                            xKey: 'x',
+                            yKey: 'y',
+                            marker: marker(styled),
+                            label: CASCADE,
+                        }),
+                    0,
+                ],
+                [
+                    'area',
+                    (styled) =>
+                        cartesian({
+                            type: 'area',
+                            data: points,
+                            xKey: 'x',
+                            yKey: 'y',
+                            marker: marker(styled),
+                            label: CASCADE,
+                        }),
+                    0,
+                ],
+                [
+                    'scatter',
+                    (styled) =>
+                        cartesian({
+                            type: 'scatter',
+                            data: points,
+                            xKey: 'x',
+                            yKey: 'y',
+                            labelKey: 'name',
+                            shape: 'square',
+                            size: 14,
+                            ...(styled ? { itemStyler: () => ({ fill: 'red' }) } : {}),
+                            label: CASCADE,
+                        }),
+                    0,
+                ],
+                [
+                    'range-area',
+                    (styled) =>
+                        cartesian({
+                            type: 'range-area',
+                            data: points,
+                            xKey: 'x',
+                            yLowKey: 'y',
+                            yHighKey: 'high',
+                            marker: marker(styled),
+                            label: { ...CASCADE, placement: ['outside', 'inside'] },
+                        }),
+                    0,
+                ],
+                [
+                    // Sized by `sizeKey`, so each drawn marker differs from the configured size.
+                    'map-marker',
+                    (styled) => ({
+                        topology: ukTopology,
+                        series: [
+                            { type: 'map-shape-background' },
+                            {
+                                type: 'map-marker',
+                                data: points.map((d) => ({ ...d, lat: 52 + d.y * 0.15, lon: -1.5 + d.x * 0.15 })),
+                                latitudeKey: 'lat',
+                                longitudeKey: 'lon',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                shape: 'square',
+                                size: 6,
+                                maxSize: 24,
+                                ...(styled ? { itemStyler: () => ({ fill: 'red' }) } : {}),
+                                label: { ...CASCADE, placement: [...CASCADE.placement] },
+                            } satisfies AgMapMarkerSeriesOptions,
+                        ],
+                    }),
+                    1,
+                ],
+            ];
+            const placedBoxes = (index: number) =>
+                getPlacedLabelData<Box & { text: unknown }>(chart, index).map(({ x, y, width, height, text }) => ({
+                    x,
+                    y,
+                    width,
+                    height,
+                    text,
+                }));
+
+            it.each(cases)('%s places the same labels with and without it', async (_name, options, index) => {
+                chart = await createEnterpriseChart(options(false));
+                const plain = placedBoxes(index);
+                chart.destroy();
+                chart = await createEnterpriseChart(options(true));
+                expect(placedBoxes(index)).toEqual(plain);
+                expect(plain.length).toBeGreaterThan(0);
+            });
+        });
+    });
     // Funnel, cone funnel and pyramid value labels all cascade through the bar candidate list. Funnel and
     // pyramid place along the stage axis (`before`/`after`); cone funnel places across its divider
     // (`before`/`middle`/`after`) and along it (`start`/`center`/`end`).

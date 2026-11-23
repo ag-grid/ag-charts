@@ -1208,6 +1208,306 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // The first placement reaches into a square marker's corner, which its nominal circle leaves empty.
+    describe('marker outlines', () => {
+        const square = (type: 'line' | 'area' | 'scatter', styled: boolean): object => {
+            // Styled, a small circle series draws the square through its itemStyler.
+            const marker = styled
+                ? { shape: 'circle', size: 4, itemStyler: () => ({ shape: 'square', size: 40 }) }
+                : { shape: 'square', size: 40 };
+            return {
+                type,
+                data: [{ x: 5, y: 5, l: 'A' }],
+                xKey: 'x',
+                yKey: 'y',
+                yName: 'Square',
+                label: { enabled: true, placement: 'bottom', ...(type === 'scatter' ? {} : { formatter: () => 'A' }) },
+                ...(type === 'scatter' ? { labelKey: 'l', ...marker } : { marker: { enabled: true, ...marker } }),
+            };
+        };
+        const neighbour = {
+            type: 'scatter',
+            data: [{ x: 5.7, y: 5.7, l: 'Label' }],
+            xKey: 'x',
+            yKey: 'y',
+            yName: 'Neighbour',
+            labelKey: 'l',
+            size: 4,
+            label: {
+                enabled: true,
+                placement: ['bottom-left', 'top-right'],
+                truncate: false,
+                wrapping: 'never',
+                collision: { alwaysShow: false },
+            },
+        };
+        const squareMarkerOptions = (type: 'line' | 'area' | 'scatter', styled: boolean): any => ({
+            legend: { enabled: false },
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                y: { type: 'number', position: 'left', min: 0, max: 10 },
+            },
+            series: [square(type, styled), neighbour],
+        });
+
+        it.each([
+            ['line', false],
+            ['area', false],
+            ['scatter', false],
+            ['line', true],
+            ['area', true],
+            ['scatter', true],
+        ] as const)('%s: moves a label off a square marker corner (styled: %s)', async (type, styled) => {
+            chart = await createChart(squareMarkerOptions(type, styled));
+            expect(getPlacedLabelData(chart, 1).map((l) => l.placement)).toEqual(['top-right']);
+        });
+
+        it('renders a label moved off a square marker corner', async () => {
+            await renderAndSnapshot(squareMarkerOptions('scatter', false));
+        });
+
+        // A small marker styled into a large triangle must sit and fit its label as a triangle series does.
+        it.each(['line', 'area', 'scatter'] as const)(
+            '%s: sits and fits an inside label in the styled marker',
+            async (type) => {
+                const insideLabelOptions = (styled: boolean): any => {
+                    const marker = styled
+                        ? { shape: 'circle', size: 6, itemStyler: () => ({ shape: 'triangle', size: 60 }) }
+                        : { shape: 'triangle', size: 60 };
+                    return {
+                        legend: { enabled: false },
+                        series: [
+                            {
+                                type,
+                                data: [{ x: 5, y: 5, l: 'AB' }],
+                                xKey: 'x',
+                                yKey: 'y',
+                                label: {
+                                    enabled: true,
+                                    placement: 'inside',
+                                    truncate: true,
+                                    ...(type === 'scatter' ? {} : { formatter: () => 'AB' }),
+                                },
+                                ...(type === 'scatter'
+                                    ? { labelKey: 'l', ...marker }
+                                    : { marker: { enabled: true, ...marker } }),
+                            },
+                        ],
+                    };
+                };
+                const placed = async (styled: boolean) => {
+                    chart?.destroy();
+                    chart = await createChart(insideLabelOptions(styled));
+                    return getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({
+                        text,
+                        x,
+                        y,
+                        width,
+                        height,
+                    }));
+                };
+                const drawnAsTriangle = await placed(false);
+                expect(drawnAsTriangle).toHaveLength(1);
+                expect(await placed(true)).toEqual(drawnAsTriangle);
+            }
+        );
+
+        // Wider than the circle's inscribed rect, so only its row-by-row fit keeps the full text.
+        it('bubble: places an inside label under a colour-only styler as without one', async () => {
+            const placed = async (itemStyler?: () => object) => {
+                chart?.destroy();
+                chart = await createChart({
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type: 'bubble',
+                            data: [{ x: 5, y: 5, size: 1, l: 'Wide label' }],
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            labelKey: 'l',
+                            minSize: 64,
+                            maxSize: 64,
+                            itemStyler,
+                            label: { enabled: true, placement: 'inside', truncate: true },
+                        },
+                    ],
+                } as any);
+                return getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({
+                    text,
+                    x,
+                    y,
+                    width,
+                    height,
+                }));
+            };
+            const unstyled = await placed();
+            expect(unstyled.map((l) => l.text)).toEqual(['Wide label']);
+            expect(await placed(() => ({ fill: 'red' }))).toEqual(unstyled);
+        });
+
+        it('bubble: places no label for a restyled marker without label text', async () => {
+            chart = await createChart({
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bubble',
+                        data: [
+                            { x: 2, y: 5, size: 1, l: '' },
+                            { x: 8, y: 5, size: 1, l: 'B' },
+                        ],
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        labelKey: 'l',
+                        minSize: 64,
+                        maxSize: 64,
+                        itemStyler: () => ({ shape: 'square' }),
+                        label: { enabled: true, placement: 'inside' },
+                    },
+                ],
+            } as any);
+            expect(getPlacedLabelData(chart).map((l) => l.text)).toEqual(['B']);
+        });
+
+        it.each([
+            ['line', 'size'],
+            ['line', 'shape'],
+            ['scatter', 'size'],
+            ['scatter', 'shape'],
+            ['bubble', 'size'],
+            ['bubble', 'shape'],
+        ] as const)('%s: fits an inside label to a marker restyled by %s as to a series drawn so', async (type, by) => {
+            const data = [
+                { x: 1, y: 5, s: 1, l: 'Alpha' },
+                { x: 2, y: 5, s: 1, l: 'Gamma label' },
+                { x: 3, y: 5, s: 1, l: 'A much longer label' },
+            ];
+            const series = (marker: { shape: string; size: number; itemStyler?: () => object }) => {
+                const label = { enabled: true, placement: 'inside' };
+                if (type === 'line') {
+                    const formatter = ({ datum }: any) => datum.l;
+                    const lineMarker = { enabled: true, ...marker };
+                    return { type, data, xKey: 'x', yKey: 'y', marker: lineMarker, label: { ...label, formatter } };
+                }
+                const { size, ...rest } = marker;
+                const sizing = type === 'bubble' ? { sizeKey: 's', minSize: size, maxSize: size } : { size };
+                return { type, data, xKey: 'x', yKey: 'y', labelKey: 'l', ...sizing, ...rest, label };
+            };
+            const placed = async (marker: Parameters<typeof series>[0]) => {
+                chart?.destroy();
+                chart = await createChart({ legend: { enabled: false }, series: [series(marker)] } as any);
+                return getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({
+                    text,
+                    x,
+                    y,
+                    width,
+                    height,
+                }));
+            };
+            const drawn = await placed(by === 'size' ? { shape: 'circle', size: 60 } : { shape: 'heart', size: 60 });
+            expect(drawn.length).toBeGreaterThan(0);
+            const restyled =
+                by === 'size'
+                    ? { shape: 'circle', size: 20, itemStyler: () => ({ size: 60 }) }
+                    : { shape: 'circle', size: 60, itemStyler: () => ({ shape: 'heart' }) };
+            expect(await placed(restyled)).toEqual(drawn);
+        });
+
+        it('treats a styler returning the series own custom shape as no restyle', async () => {
+            const shape = ({ path, x, y, size }: any) => {
+                path.moveTo(x - size / 2, y - size / 2);
+                path.lineTo(x + size / 2, y - size / 2);
+                path.lineTo(x, y + size / 2);
+                path.closePath();
+            };
+            const restyled = async (itemStyler: () => object) => {
+                chart?.destroy();
+                chart = await createChart({
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type: 'scatter',
+                            data: [{ x: 1, y: 5, l: 'A' }],
+                            xKey: 'x',
+                            yKey: 'y',
+                            labelKey: 'l',
+                            shape,
+                            size: 60,
+                            itemStyler,
+                            label: { enabled: true, placement: 'inside' },
+                        },
+                    ],
+                } as any);
+                return getPlacedLabelData(chart).map((l) => l.datum.markerRestyled === true);
+            };
+            expect(await restyled(() => ({ fill: 'red' }))).toEqual([false]);
+            expect(await restyled(() => ({ shape }))).toEqual([false]);
+            expect(await restyled(() => ({ shape: (params: any) => shape(params) }))).toEqual([true]);
+        });
+
+        // Past the animatable limit a line reuses its node data in place, so nothing a styler stamped may outlive it.
+        it('line: places labels as before once a shape-changing styler is removed', async () => {
+            const data = Array.from({ length: 1200 }, (_, i) => ({
+                x: i,
+                y: i % 7,
+                l: i % 400 === 200 ? 'Label' : '',
+            }));
+            const options = (styled: boolean) => ({
+                ...prepareTestOptions({
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type: 'line',
+                            data,
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: {
+                                enabled: true,
+                                placement: ['bottom', 'top'],
+                                formatter: ({ datum }: any) => datum.l,
+                            },
+                            marker: {
+                                enabled: true,
+                                shape: 'circle',
+                                size: 8,
+                                ...(styled ? { itemStyler: () => ({ shape: 'pin', size: 30 }) } : {}),
+                            },
+                        },
+                    ],
+                } as any),
+                // Wide enough that 1200 markers stay above the density cut-off.
+                width: 3000,
+            });
+            const placed = () =>
+                getPlacedLabelData(chart).map(({ x, y, width, height, datum }) => ({
+                    box: { x, y, width, height },
+                    anchor: datum.anchor,
+                    markerShape: datum.markerShape,
+                    markerSize: datum.markerSize,
+                    markerRestyled: datum.markerRestyled,
+                }));
+
+            // createChart would reset the width.
+            const create = async (styled: boolean) => {
+                chart = AgCharts.create(options(styled));
+                await waitForChartStability(chart);
+            };
+            await create(false);
+            const plain = placed();
+            chart.destroy();
+
+            await create(true);
+            const styled = placed();
+            await chart.update(options(false));
+            await waitForChartStability(chart);
+            expect(plain).toHaveLength(3);
+            expect(styled.map((l) => l.box)).not.toEqual(plain.map((l) => l.box));
+            expect(placed()).toEqual(plain);
+        });
+    });
+
     describe('scatter series', () => {
         const data = markerData;
 

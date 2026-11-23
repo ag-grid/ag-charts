@@ -24,6 +24,7 @@ import {
     Text,
     type ZIndex,
     applySizeMode,
+    applyStyledMarker,
     configureColorScale,
     datumKeyReader,
     findDiscreteColorBinLabel,
@@ -375,7 +376,7 @@ export class MapMarkerSeries
         // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
         if (labelValue == null || !labelStyle.enabled) return;
 
-        const { labelKey, label, shape } = this.options;
+        const { labelKey, label, shape, itemStyler } = this.options;
         if (labelKey == null || !label.enabled) return;
 
         const { datum, datumIndex, index, idValue, lonValue, latValue, point } = node;
@@ -399,16 +400,20 @@ export class MapMarkerSeries
         const height = text.height + box.top + box.bottom;
         const anchor = Marker.anchor(shape);
 
-        return {
+        const labelDatum: MapMarkerNodeLabelDatum = {
             point: { x: point.x, y: point.y, size: point.size },
             label: { width, height, text: fittedText },
             anchor,
+            markerShape: shape,
             placement,
             // An inside label rides with its marker, so only directional placements can spill out.
             region: placement === 'inside' ? undefined : labelRegion,
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
         };
+        // The node's style already holds what the itemStyler resolved for the drawn marker.
+        if (itemStyler != null) applyStyledMarker(labelDatum, node.style, shape);
+        return labelDatum;
     }
 
     private resolveColumn<T>(

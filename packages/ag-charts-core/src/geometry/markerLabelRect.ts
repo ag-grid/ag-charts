@@ -1,7 +1,11 @@
-import type { FitRegionMask } from 'ag-charts-core';
-import type { AgMarkerShape } from 'ag-charts-types';
+import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 
-import { getSharedMarkerPath } from './markerPathCache';
+import { MARKER_SHAPES } from '../chart/markerShapes';
+import { ExtendedPath2D } from '../scene/extendedPath2D';
+import type { LabelFit } from '../text/textWrapper';
+import type { Writeable } from '../types/global';
+import type { Point } from '../types/scene';
+import { type FitRegionMask, InsetMaskFitRegion } from './fitRegion';
 
 /** Largest axis-aligned rectangle that fits inside a marker shape, as fractions of the marker diameter. */
 export interface MarkerLabelRect {
@@ -12,11 +16,19 @@ export interface MarkerLabelRect {
     /** Rectangle centre offset from the marker centre (x, y down), as a fraction of the marker diameter. */
     cx: number;
     cy: number;
+    /** `(cx, cy)` as a point, shared by every label inside this shape. */
+    offset: Point;
 }
 
 // Conservative fallback: the square inscribed in the marker's bounding circle, centred on the marker.
 // Used for shapes whose path is too thin or complex to analyse.
-const INSCRIBED_SQUARE: MarkerLabelRect = { width: Math.SQRT1_2, height: Math.SQRT1_2, cx: 0, cy: 0 };
+const INSCRIBED_SQUARE: MarkerLabelRect = {
+    width: Math.SQRT1_2,
+    height: Math.SQRT1_2,
+    cx: 0,
+    cy: 0,
+    offset: { x: 0, y: 0 },
+};
 
 // Odd resolution so a sample row/column lands on each centre line. 33² samples per shape, computed once.
 const GRID = 33;
@@ -24,22 +36,25 @@ const GRID = 33;
 // the shape as unanalysable and fall back to the inscribed square.
 const MIN_FACTOR = 0.1;
 
-const cache = new Map<AgMarkerShape, MarkerLabelRect>();
+// Weakly held per custom shape, so a styler returning a fresh function per datum leaks nothing.
+const builtInRects = new Map<string, MarkerLabelRect | undefined>();
+const customRects = new WeakMap<AgMarkerShapeFn, MarkerLabelRect | undefined>();
 
 /** The largest inscribed label rectangle for a marker shape, analysed once per shape and cached. */
 export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRect {
-    if (shape == null) {
-        return INSCRIBED_SQUARE;
+    if (typeof shape === 'string') {
+        if (!builtInRects.has(shape)) builtInRects.set(shape, computeLabelRect(shape));
+        return builtInRects.get(shape) ?? INSCRIBED_SQUARE;
     }
-    let rect = cache.get(shape);
-    if (rect == null) {
-        rect = computeLabelRect(shape) ?? INSCRIBED_SQUARE;
-        cache.set(shape, rect);
+    if (typeof shape === 'function') {
+        if (!customRects.has(shape)) customRects.set(shape, computeLabelRect(shape));
+        return customRects.get(shape) ?? INSCRIBED_SQUARE;
     }
-    return rect;
+    return INSCRIBED_SQUARE;
 }
 
-const rowCache = new Map<AgMarkerShape, FitRegionMask | undefined>();
+const builtInRows = new Map<string, FitRegionMask | undefined>();
+const customRows = new WeakMap<AgMarkerShapeFn, FitRegionMask | undefined>();
 
 /**
  * The per-row inside spans of a marker shape, in fractions of the marker diameter, analysed once per shape
@@ -47,11 +62,54 @@ const rowCache = new Map<AgMarkerShape, FitRegionMask | undefined>();
  * the room a row actually offers.
  */
 export function markerRowSpans(shape: AgMarkerShape | undefined): FitRegionMask | undefined {
-    if (shape == null) return undefined;
-    if (!rowCache.has(shape)) {
-        rowCache.set(shape, computeRowSpans(shape));
+    if (typeof shape === 'string') {
+        if (!builtInRows.has(shape)) builtInRows.set(shape, computeRowSpans(shape));
+        return builtInRows.get(shape);
     }
-    return rowCache.get(shape);
+    if (typeof shape === 'function') {
+        if (!customRows.has(shape)) customRows.set(shape, computeRowSpans(shape));
+        return customRows.get(shape);
+    }
+    return undefined;
+}
+
+/** How a series fits an `inside`-only label to its marker, so a restyled marker can be fitted the same way. */
+export interface InsideMarkerFit {
+    readonly base: LabelFit;
+    readonly threshold: number;
+    /** Each line takes the width its row of the shape offers, rather than the inscribed rect's. */
+    readonly masked: boolean;
+}
+
+/** Reusable output of {@link insideMarkerPolicy}, refilled per datum instead of allocated. */
+export interface InsideMarkerPolicyScratch {
+    policy: Writeable<LabelFit>;
+    readonly region: InsetMaskFitRegion;
+}
+
+/** The fit policy for an `inside` label of the marker `shape` drawn at diameter `size`. */
+export function insideMarkerPolicy(
+    fit: InsideMarkerFit,
+    shape: AgMarkerShape | undefined,
+    size: number,
+    scratch?: InsideMarkerPolicyScratch
+): LabelFit {
+    const { base } = fit;
+    // Only a negative threshold reaches the marker, as spill: a positive one never shrinks the label's own room.
+    const spill = Math.min(fit.threshold, 0);
+    const rect = markerLabelRect(shape);
+    const mask = fit.masked ? markerRowSpans(shape) : undefined;
+    const policy: Writeable<LabelFit> = scratch?.policy ?? { ...base };
+    if (mask == null) {
+        policy.maxWidth = Math.min(base.maxWidth ?? Infinity, size * rect.width - 2 * spill);
+        if (policy.region != null) policy.region = undefined;
+    } else {
+        policy.maxWidth = Math.min(base.maxWidth ?? Infinity, Infinity);
+        const region = scratch?.region ?? new InsetMaskFitRegion();
+        policy.region = region.set(mask, size, rect.cx * size, rect.cy * size, spill);
+    }
+    policy.maxHeight = Math.min(base.maxHeight ?? Infinity, size * rect.height - 2 * spill);
+    return policy;
 }
 
 function computeRowSpans(shape: AgMarkerShape): FitRegionMask | undefined {
@@ -83,7 +141,9 @@ function computeRowSpans(shape: AgMarkerShape): FitRegionMask | undefined {
 }
 
 function sampleShape(shape: AgMarkerShape) {
-    const path = getSharedMarkerPath(shape, 1);
+    const path = new ExtendedPath2D();
+    const draw = typeof shape === 'string' ? MARKER_SHAPES[shape] : shape;
+    draw({ path, x: 0, y: 0, size: 1, pixelRatio: 1 });
     const bbox = path.computeBBox();
     if (bbox.width <= 0 || bbox.height <= 0) {
         return undefined;
@@ -124,7 +184,7 @@ function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
     }
     const cx = bbox.x + ((best.c0 + best.c1) / 2 + 0.5) * cellW;
     const cy = bbox.y + ((best.r0 + best.r1) / 2 + 0.5) * cellH;
-    return { width, height, cx, cy };
+    return { width, height, cx, cy, offset: { x: cx, y: cy } };
 }
 
 // Even-odd point-in-polygon across all subpaths, with the half-open edge convention so shared vertices

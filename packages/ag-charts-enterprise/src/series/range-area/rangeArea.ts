@@ -40,6 +40,7 @@ import {
     type SeriesLabelDefaults,
     type SizedPoint,
     type Writeable,
+    applyStyledMarker,
     cachedTextMeasurer,
     extent,
     findMinMax,
@@ -55,7 +56,7 @@ import {
     withoutCasts,
 } from 'ag-charts-core';
 import type { BoxBounds, NormalisedLineDash, Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
-import type { AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgMarkerShape, AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type CrosshairSnapConfig,
@@ -185,6 +186,7 @@ interface RangeAreaSeriesNodeDatumContext
     readonly labelPlacements: Record<AgRangeAreaSeriesItemType, readonly LabelPlacement[]>;
     readonly labelMarkerSize: Record<AgRangeAreaSeriesItemType, number>;
     readonly labelAnchor: Record<AgRangeAreaSeriesItemType, Point | undefined>;
+    readonly labelMarkerShape: Record<AgRangeAreaSeriesItemType, AgMarkerShape | undefined>;
     readonly labelRegion: BoxBounds | undefined;
 
     // Property caches
@@ -530,6 +532,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             },
             labelMarkerSize: { low: markerSizeOf('low'), high: markerSizeOf('high') },
             labelAnchor: { low: Marker.anchor(item.low.marker.shape), high: Marker.anchor(item.high.marker.shape) },
+            labelMarkerShape: { low: item.low.marker.shape, high: item.high.marker.shape },
             labelRegion: label.enabled ? this.resolveLabelPlotRegion(label.collision) : undefined,
             animationEnabled,
             canIncrementallyUpdate,
@@ -748,6 +751,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 ? ctx.nodes[ctx.nodeIndex]
                 : dst;
 
+        let markerDatum: RangeAreaMarkerDatum;
         if (existingNode) {
             // Update existing marker datum in place to avoid allocation
             existingNode.index = datumIndex;
@@ -759,8 +763,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             existingNode.yLowValue = scratch.yLowValue;
             existingNode.xValue = scratch.xValue;
             existingNode.point = { x: scratch.x, y, size };
+            markerDatum = existingNode;
         } else {
-            ctx.nodes.push({
+            markerDatum = {
                 index: datumIndex,
                 series: this,
                 itemType,
@@ -775,7 +780,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 yHighKey: ctx.yHighKey,
                 point: { x: scratch.x, y, size },
                 enabled: true,
-            });
+            };
+            ctx.nodes.push(markerDatum);
         }
         // Do not mutate render-data when called from computeFocusBounds
         if (dst !== undefined) return;
@@ -792,6 +798,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     itemType,
                     inverted: scratch.inverted,
                     datum: scratch.datum,
+                    markerDatum,
                 })
             );
         }
@@ -976,6 +983,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType,
             inverted,
             datum,
+            markerDatum,
         }: {
             datumIndex: number;
             point: Point;
@@ -983,6 +991,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType: AgRangeAreaSeriesItemType;
             inverted: boolean;
             datum: any;
+            markerDatum: RangeAreaMarkerDatum;
         }
     ): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.options;
@@ -1025,6 +1034,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             fit: placedLabelFit(labelText, label, ctx),
             text: measuredLabel.text,
             anchor: ctx.labelAnchor[itemType],
+            markerShape: ctx.labelMarkerShape[itemType],
+            markerDatum,
             region: ctx.labelRegion,
             placements: ctx.labelPlacements[valueSide],
             placement: undefined,
@@ -1456,7 +1467,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     override getLabelData(): RangeAreaLabelDatum[] {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        // A marker itemStyler resolves size and shape after node data, so stamp them from the drawn marker.
+        if (this.options.marker.itemStyler != null) {
+            const { item } = this.options;
+            for (const datum of labelData) {
+                const { marker } = item[datum.itemType];
+                if (marker.enabled) applyStyledMarker(datum, datum.markerDatum.style, marker.shape);
+            }
+        }
+        return labelData;
     }
 
     override getLabelDefaults(): SeriesLabelDefaults {

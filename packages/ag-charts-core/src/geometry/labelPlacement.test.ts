@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
+import type { AgChartLabelOrientation, AgMarkerShape, AgMarkerShapeFn, PaddingOptions } from 'ag-charts-types';
 
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
+import { stubPath2D } from '../test/stubPath2D';
 import type { Point, SizedPoint } from '../types/scene';
 import {
     type BarLabelTarget,
@@ -38,13 +39,17 @@ import {
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
+    applyStyledMarker,
     labelGlyphCentre,
     labelsAvoidAxisLabels,
     placeLabels,
     resolveLabelFit,
     writeLabelBoxCentre,
 } from './labelPlacement';
+import { markerOutline, markerShapeAnchor, placeMarkerOutline } from './markerOutline';
 import { SpatialIndex } from './spatialIndex';
+
+beforeAll(stubPath2D);
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
 // measureLabelText deterministic metrics, scaled by the measurer's font size.
@@ -3359,6 +3364,23 @@ describe('placeLabels obstacle-driven shrink', () => {
         expect(placeOne(shrinkableLabel(), [circle]).text).toBe('WWW…');
     });
 
+    it('measures a marker outline at its true width across the label, not by its box', () => {
+        const cx = TOP_BOX.x + TOP_BOX.width;
+        const cy = TOP_BOX.y + TOP_BOX.height + 10;
+        const diamond: LabelObstacle = {
+            kind: 'markerOutline',
+            cx,
+            cy,
+            r: 20,
+            outline: placeMarkerOutline(markerOutline('diamond')!, cx, cy, 40),
+            box: { x: cx - 20, y: cy - 20, width: 40, height: 40 },
+            category: 'marker',
+        };
+        // Its box intrudes 20px into the label and would leave 'WW…'; the diamond is 10px wide at the label's
+        // bottom edge, so it reaches only 10px in.
+        expect(placeOne(shrinkableLabel(), [diamond]).text).toBe('WWW…');
+    });
+
     // A label clipping the edge of a shape far larger than itself must give up the overlap, not the whole
     // box: the retreat that would clear the shape's far side is no retreat the label can afford.
     it('shrinks off the near edge of an obstacle wider than the label', () => {
@@ -4216,11 +4238,23 @@ describe('placeLabels solve references', () => {
             }),
         ]);
 
+    const diamondShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
+        path.moveTo(x, y - size / 2);
+        path.lineTo(x + size / 2, y);
+        path.lineTo(x, y + size / 2);
+        path.lineTo(x - size / 2, y);
+        path.closePath();
+    };
+
     const compassCascade =
-        (styled: boolean): Solve =>
+        (styled: boolean, shaped = false): Solve =>
         (track) => {
+            const markerShape = shaped ? track('marker shape', diamondShape.bind(null)) : undefined;
+            // Its outline is cached against the shape, so outlives the solve only if the engine still holds it.
+            if (markerShape != null) track('marker outline', markerOutline(markerShape)!);
             const datum: PointLabelDatum = track('datum', {
                 ...ownDatum(track),
+                markerShape,
                 fit: fitOf(track, track('fit shape', wideShape())),
                 placements: track('placements', ['top', 'bottom'] as LabelPlacement[]),
                 orientation: track('orientations', ['horizontal', 'vertical'] as AgChartLabelOrientation[]),
@@ -4241,6 +4275,29 @@ describe('placeLabels solve references', () => {
             ]);
             return placeLabels(data, boundsOf(track), 0, [wall(track)]);
         };
+
+    // A restyled marker refits its `inside` label from the series' base policy, so the solve copies that base.
+    const restyledInside: Solve = (track) => {
+        const base = track('inside base', {
+            overflowStrategy: 'ellipsis' as const,
+            minimumFontSize: 6,
+            rotated: track('inside base turn', { rotation: 0, width: Infinity, height: Infinity }),
+        });
+        const datum: PointLabelDatum = track('datum', {
+            ...ownDatum(track),
+            fit: { ...fitOf(track), insideMarker: track('inside marker fit', { base, threshold: 0, masked: false }) },
+            markerSize: 60,
+            markerShape: 'square',
+            markerRestyled: true,
+            placements: track('placements', ['inside'] as LabelPlacement[]),
+            alwaysShow: true,
+        });
+        const data = new Map([
+            ['markers', markerSeries(track)],
+            ['restyled', seriesLabels([datum])],
+        ]);
+        return placeLabels(data, boundsOf(track), 0);
+    };
 
     const positionedCandidates: Solve = (track) => {
         const candidate = track('candidate', {
@@ -4332,10 +4389,102 @@ describe('placeLabels solve references', () => {
     it.each([
         { path: 'a compass cascade', solve: compassCascade(false) },
         { path: 'a styled compass cascade', solve: compassCascade(true) },
+        { path: 'a compass cascade from a custom-shaped marker', solve: compassCascade(false, true) },
+        { path: 'an inside label on a restyled marker', solve: restyledInside },
         { path: 'positioned candidates', solve: positionedCandidates },
         { path: 'a shape-fitted stack', solve: shapeFittedStack(false) },
         { path: 'a blocked shape-fitted stack', solve: shapeFittedStack(true) },
     ])('keeps no reference to the labels, datums or callbacks of $path once it returns', async ({ solve }) => {
         expect(await retainedAfter(solve)).toEqual({ placedCount: 2, retained: [] });
+    });
+});
+
+describe('placeLabels marker outlines', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const wide: AgMarkerShapeFn = ({ path, x, y, size }) => {
+        path.moveTo(x - size, y - size / 4);
+        path.lineTo(x + size, y - size / 4);
+        path.lineTo(x + size, y + size / 4);
+        path.lineTo(x - size, y + size / 4);
+        path.closePath();
+    };
+
+    const marker = (markerShape: AgMarkerShape | undefined, x = 100, y = 100): PointLabelDatum => ({
+        point: { x, y, size: 20 },
+        markerShape,
+        label: { text: '', width: 0, height: 0 },
+        anchor: markerShapeAnchor(markerShape),
+        placement: undefined,
+    });
+
+    /** A markerless label centred on `(cx, cy)`, dropped when it collides with the other series' marker. */
+    const label = (cx: number, cy: number, size: number): PointLabelDatum => ({
+        point: { x: cx, y: cy, size: 0 },
+        label: { text: 'X', width: size, height: size },
+        anchor: undefined,
+        placement: undefined,
+    });
+
+    const placesLabel = (markerDatum: PointLabelDatum, labelDatum: PointLabelDatum) =>
+        placeLabels(
+            new Map([
+                ['markers', seriesLabels([markerDatum])],
+                ['s', seriesLabels([labelDatum], { alwaysShow: false })],
+            ]),
+            bounds,
+            5
+        )
+            .get('s')!
+            .some((l) => l.datum === labelDatum);
+
+    it.each([
+        // Over a square's corner, which its nominal circle leaves empty.
+        ['square', [113, 113, 10], false],
+        // In the corner of a diamond's box, which its nominal circle covers.
+        ['diamond', [106.75, 106.75, 2.5], true],
+        // Under the arm of a custom shape twice as wide as its size, by its path's bounding box.
+        ['wide custom', [116, 100, 4], false],
+        // Over the body of a pin, drawn above the point its tip marks.
+        ['pin', [100, 85, 6], false],
+        // Below the pin's tip, where a circle centred on the point would reach.
+        ['pin', [100, 107, 4], true],
+    ] as const)('tests a label against the outline of a %s marker', (shape, [cx, cy, size], placed) => {
+        const markerShape = shape === 'wide custom' ? wide : shape;
+        expect(placesLabel(marker(markerShape), label(cx, cy, size))).toBe(placed);
+        // The nominal circle decides the other way, so each case is one only the outline gets right.
+        expect(placesLabel(marker(undefined), label(cx, cy, size))).toBe(!placed);
+    });
+
+    it('tests a rotated label against the outline in its own frame', () => {
+        // A 45° label parallel to a diamond's edge 18.5px away: clear of the edge, inside its nominal circle.
+        const offset = 18.5 * Math.SQRT1_2;
+        const rotated = (): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'WWWWW', width: 50, height: 20 },
+            anchor: undefined,
+            placement: undefined,
+            positionedCandidates: [
+                { box: { x: 75, y: 75, width: 50, height: 50 }, rotation: 45, orientedCollision: true },
+            ],
+        });
+        expect(placesLabel(marker('diamond', 100 - offset, 100 + offset), rotated())).toBe(true);
+        expect(placesLabel(marker(undefined, 100 - offset, 100 + offset), rotated())).toBe(false);
+    });
+
+    // The label must hang off the marker the obstacle models, or it lands on its own marker.
+    it.each([
+        ['pin', 'circle', 'bottom'],
+        ['circle', 'pin', 'top'],
+    ] as const)('places the own label of a %s marker styled to a %s at %s', (seriesShape, shape, placement) => {
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'X', width: 10, height: 10 },
+            anchor: markerShapeAnchor(seriesShape),
+            markerShape: seriesShape,
+            placement,
+        };
+        applyStyledMarker(datum, { size: 20, shape }, seriesShape);
+        const placed = placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5);
+        expect(placed.get('s')!.map((l) => l.datum)).toEqual([datum]);
     });
 });

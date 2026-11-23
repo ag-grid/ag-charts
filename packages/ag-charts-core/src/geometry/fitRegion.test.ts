@@ -3,8 +3,8 @@ import { describe, expect, test, vi } from 'vitest';
 import {
     type FitRegion,
     type FitRegionMask,
+    InsetMaskFitRegion,
     insetFitRegion,
-    maskFitRegion,
     probedFitRegion,
     regionTextCapacity,
     regionWidthAt,
@@ -164,7 +164,7 @@ describe('insetFitRegion', () => {
     });
 });
 
-describe('maskFitRegion', () => {
+describe('InsetMaskFitRegion', () => {
     // Three rows of a shape pinching in the middle, sampled over a unit shape anchored at its centre.
     const mask: FitRegionMask = {
         rows: [
@@ -175,7 +175,7 @@ describe('maskFitRegion', () => {
         top: -0.5,
         rowHeight: 1 / 3,
     };
-    const region = () => maskFitRegion(mask, 30, { x: 0, y: 0 });
+    const region = () => new InsetMaskFitRegion().set(mask, 30, 0, 0, 0);
 
     test('scales the unit mask onto the drawn shape', () => {
         expect(region().extentAbove).toBe(15);
@@ -194,11 +194,28 @@ describe('maskFitRegion', () => {
     });
 
     test('offers nothing where the shape has no row', () => {
-        const empty = maskFitRegion({ rows: [undefined, [-0.5, 0.5]], top: -0.5, rowHeight: 0.5 }, 30, {
-            x: 0,
-            y: 0,
-        });
+        const empty = new InsetMaskFitRegion().set(
+            { rows: [undefined, [-0.5, 0.5]], top: -0.5, rowHeight: 0.5 },
+            30,
+            0,
+            0,
+            0
+        );
         expect(regionWidthAt(empty, -15, -10)).toBe(0);
+    });
+
+    test('insets exactly as insetFitRegion does', () => {
+        const composed = insetFitRegion(new InsetMaskFitRegion().set(mask, 30, 2, -3, 0), 1.5, 1.5);
+        const reused = new InsetMaskFitRegion().set(mask, 30, 2, -3, 1.5);
+        expect([reused.extentAbove, reused.extentBelow]).toEqual([composed.extentAbove, composed.extentBelow]);
+        for (const [top, bottom] of [
+            [-12, -8],
+            [-1, 1],
+            [4, 11],
+            [-20, 20],
+        ]) {
+            expect(reused.spanAt(top, bottom)).toEqual(composed.spanAt(top, bottom));
+        }
     });
 });
 

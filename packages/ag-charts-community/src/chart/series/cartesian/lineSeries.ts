@@ -22,7 +22,7 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     PointerEvents,
-    applyStyledMarkerSize,
+    applyStyledMarker,
     extent,
     isDefined,
     markerRebuildNeeded,
@@ -547,10 +547,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelTextMeasurer: labelContext.labelTextMeasurer,
             labelFit: labelContext.labelFit,
             labelFitOverflow: labelContext.labelFitOverflow,
+            labelInsideMarkerFit: labelContext.labelInsideMarkerFit,
             labelStyled: labelContext.labelStyled,
             labelInsideOffset: labelContext.labelInsideOffset,
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
+            labelMarkerShape: labelContext.labelMarkerShape,
             labelRegion: labelContext.labelRegion,
             emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -642,6 +644,11 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.fit = fit;
                 existingNode.gap = gap;
                 existingNode.region = ctx.labelRegion;
+                // Back to the series marker: a styler stamps its own on afterwards, and a removed one must not linger.
+                existingNode.anchor = ctx.labelAnchor;
+                existingNode.markerShape = ctx.labelMarkerShape;
+                existingNode.markerSize = undefined;
+                existingNode.markerRestyled = undefined;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
@@ -663,6 +670,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     insideSize: ctx.labelInsideSize,
+                    markerShape: ctx.labelMarkerShape,
                     region: ctx.labelRegion,
                     placement: 'top',
                     gap,
@@ -754,6 +762,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             anchor: ctx.labelAnchor,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
+            markerShape: ctx.labelMarkerShape,
             region: ctx.labelRegion,
             placement: 'top',
             crossFilterSelected: undefined,
@@ -1095,11 +1104,11 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {
         const labelData = super.getLabelData();
         const { marker } = this.options;
-        // A marker itemStyler resolves its size after node data was built, so the styled size is stamped
-        // on here — the label's obstacles, gap and anchor all scale off the marker that gets drawn.
+        // A marker itemStyler resolves its size and shape after node data was built, so they are stamped
+        // on here — the label's obstacles, gap and anchor all follow the marker that gets drawn.
         if (marker.enabled && marker.itemStyler != null) {
             for (const datum of labelData) {
-                applyStyledMarkerSize(datum, datum.style?.size);
+                applyStyledMarker(datum, datum.style, marker.shape);
             }
         }
         return labelData;
