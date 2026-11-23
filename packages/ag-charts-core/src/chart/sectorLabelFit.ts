@@ -126,8 +126,8 @@ export function fitSectorLabelRect(
     return { centerX, centerY: anchor.y + (down - up) / 2, width, height };
 }
 
-// Radial slack (px) kept between the placed box and the wedge's arcs, so a box corner rounded outward by
-// floating error still passes the visibility gate that hides overflowing sector labels.
+// Radial slack (px) that band and room placement keep from the arcs, so a corner rounded outward still passes
+// the visibility gate; a box held on its anchor is tested as the gate tests it, with no slack.
 const SECTOR_ARC_INSET = 0.75;
 // Two bands whose widths are within this many px count as equally wide, so the tie-break toward the band
 // furthest from the centre decides between them rather than sub-pixel noise.
@@ -381,7 +381,7 @@ const heldBox = { x: 0, y: 0, width: 0, height: 0 };
 const wedgeInset = new ReusableInsetRegion();
 const LINE_BREAK = /\r?\n/;
 
-/** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
+/** The wedge's usable region depends on the line height and block, so it is probed again whenever either changes. */
 function fitSectorLabelToWedge(
     text: NormalisedTextOrSegments,
     fit: LabelFit,
