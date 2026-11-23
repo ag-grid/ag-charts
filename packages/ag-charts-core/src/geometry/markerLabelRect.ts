@@ -1,6 +1,8 @@
 import type { AgMarkerShape } from 'ag-charts-types';
 
-import { memoiseByMarkerShape, traceMarkerShape } from '../chart/markerShapes';
+import { getSharedMarkerPath } from '../chart/markerPathCache';
+import { traceMarkerShape } from '../chart/markerShapes';
+import type { ExtendedPath2D } from '../scene/extendedPath2D';
 import type { LabelFit } from '../text/textWrapper';
 import type { Writeable } from '../types/global';
 import type { Point } from '../types/scene';
@@ -37,25 +39,57 @@ const MIN_FACTOR = 0.1;
 
 const NO_ANALYSIS: MarkerShapeAnalysis = { rect: INSCRIBED_SQUARE, rows: undefined };
 
-interface MarkerShapeAnalysis {
+/** The room a marker shape offers an `inside` label, in fractions of the marker diameter. */
+export interface MarkerShapeAnalysis {
     readonly rect: MarkerLabelRect;
+    /**
+     * The shape's per-row inside spans: the mask {@link rect} reduces to one rectangle, kept whole so a label
+     * can use the room a row actually offers.
+     */
     readonly rows: FitRegionMask | undefined;
 }
 
-const analyseShape = memoiseByMarkerShape(computeAnalysis, [1]);
+const builtInAnalyses = new Map<string, MarkerShapeAnalysis>();
+// Keyed by the path rendering draws, so a custom shape is traced once for both and its analysis dies with that path.
+const customAnalyses = new WeakMap<ExtendedPath2D, MarkerShapeAnalysis>();
 
-/** The largest inscribed label rectangle for a marker shape, analysed once per shape and cached. */
-export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRect {
-    return shape == null ? INSCRIBED_SQUARE : analyseShape(shape).rect;
+/** A marker shape's {@link MarkerShapeAnalysis}, a custom shape's taken as drawn at unit size. */
+export function markerShapeAnalysis(shape: AgMarkerShape | undefined): MarkerShapeAnalysis {
+    return drawnMarkerShapeAnalysis(shape, 1, 1);
 }
 
 /**
- * The per-row inside spans of a marker shape, in fractions of the marker diameter, analysed once per shape
- * and cached. The same mask {@link markerLabelRect} reduces to one rectangle, kept whole so a label can use
- * the room a row actually offers.
+ * {@link markerShapeAnalysis} for a marker drawn at `size`: a custom shape is analysed on the path rendering
+ * traces at `size` and `pixelRatio`, so its fractions hold at that size whatever it draws at others.
  */
-export function markerRowSpans(shape: AgMarkerShape | undefined): FitRegionMask | undefined {
-    return shape == null ? undefined : analyseShape(shape).rows;
+export function drawnMarkerShapeAnalysis(
+    shape: AgMarkerShape | undefined,
+    size: number,
+    pixelRatio: number
+): MarkerShapeAnalysis {
+    if (shape == null) return NO_ANALYSIS;
+    if (typeof shape === 'string') {
+        let analysis = builtInAnalyses.get(shape);
+        if (analysis == null) {
+            analysis = analysePath(traceMarkerShape(shape, 1), 1);
+            builtInAnalyses.set(shape, analysis);
+        }
+        return analysis;
+    }
+    // An undrawn marker is never traced at its own size, so it takes the unit-size analysis the series traced.
+    const drawn = size > 0;
+    const path = drawn ? getSharedMarkerPath(shape, size, pixelRatio) : getSharedMarkerPath(shape, 1, 1);
+    let analysis = customAnalyses.get(path);
+    if (analysis == null) {
+        analysis = analysePath(path, drawn ? size : 1);
+        customAnalyses.set(path, analysis);
+    }
+    return analysis;
+}
+
+/** The largest inscribed label rectangle for a marker shape, analysed once per shape and cached. */
+export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRect {
+    return markerShapeAnalysis(shape).rect;
 }
 
 /** How a series fits an `inside`-only label to its marker, so a restyled marker can be fitted the same way. */
@@ -72,18 +106,18 @@ export interface InsideMarkerPolicyScratch {
     readonly region: InsetMaskFitRegion;
 }
 
-/** The fit policy for an `inside` label of the marker `shape` drawn at diameter `size`. */
+/** The fit policy for an `inside` label of a marker with the shape `analysis` drawn at diameter `size`. */
 export function insideMarkerPolicy(
     fit: InsideMarkerFit,
-    shape: AgMarkerShape | undefined,
+    analysis: MarkerShapeAnalysis,
     size: number,
     scratch?: InsideMarkerPolicyScratch
 ): LabelFit {
     const { base } = fit;
     // Only a negative threshold reaches the marker, as spill: a positive one never shrinks the label's own room.
     const spill = Math.min(fit.threshold, 0);
-    const rect = markerLabelRect(shape);
-    const mask = fit.masked ? markerRowSpans(shape) : undefined;
+    const { rect } = analysis;
+    const mask = fit.masked ? analysis.rows : undefined;
     const policy: Writeable<LabelFit> = scratch?.policy ?? { ...base };
     if (mask == null) {
         policy.maxWidth = Math.min(base.maxWidth ?? Infinity, size * rect.width - 2 * spill);
@@ -99,8 +133,9 @@ export function insideMarkerPolicy(
 
 type ShapeSamples = NonNullable<ReturnType<typeof sampleShape>>;
 
-function computeAnalysis(shape: AgMarkerShape): MarkerShapeAnalysis {
-    const sampled = sampleShape(shape);
+/** Analyses `path`, a shape traced at `size`, in fractions of that size. */
+function analysePath(path: ExtendedPath2D, size: number): MarkerShapeAnalysis {
+    const sampled = sampleShape(path, size);
     const best = sampled == null ? undefined : largestInsideRect(sampled.inside);
     if (sampled == null || best == null) return NO_ANALYSIS;
     return { rect: labelRectOf(sampled, best) ?? INSCRIBED_SQUARE, rows: rowSpansOf(sampled, best) };
@@ -127,8 +162,8 @@ function rowSpansOf({ bbox, inside, cellW, cellH }: ShapeSamples, best: RectCell
     return { rows, top: bbox.y, rowHeight: cellH };
 }
 
-function sampleShape(shape: AgMarkerShape) {
-    const path = traceMarkerShape(shape, 1);
+/** Samples the path traced at `size`, returning its box and cells in fractions of that size. */
+function sampleShape(path: ExtendedPath2D, size: number) {
     const bbox = path.computeBBox();
     if (bbox.width <= 0 || bbox.height <= 0) {
         return undefined;
@@ -145,7 +180,7 @@ function sampleShape(shape: AgMarkerShape) {
             inside[row * GRID + col] = pointInPolygons(x, y, polygons);
         }
     }
-    return { bbox, inside, cellW, cellH };
+    return { bbox: { x: bbox.x / size, y: bbox.y / size }, inside, cellW: cellW / size, cellH: cellH / size };
 }
 
 function labelRectOf({ bbox, cellW, cellH }: ShapeSamples, best: RectCells): MarkerLabelRect | undefined {

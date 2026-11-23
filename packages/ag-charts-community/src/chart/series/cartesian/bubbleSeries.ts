@@ -44,6 +44,7 @@ import {
     insideMarkerPolicy,
     lineHeightAtSize,
     markerLabelRect,
+    markerShapeAnalysis,
     measurePlacedLabel,
     placedLabelFit,
     rescaleVisibleRange,
@@ -1014,7 +1015,7 @@ export abstract class BubbleScatterSeries<
         // label at its centre via `labelInsideOffset`.
         const { labelInsideMarkerFit } = ctx;
         const boundedFit = labelInsideMarkerFit
-            ? insideMarkerPolicy(labelInsideMarkerFit, ctx.labelMarkerShape, markerSize)
+            ? insideMarkerPolicy(labelInsideMarkerFit, markerShapeAnalysis(ctx.labelMarkerShape), markerSize)
             : ctx.labelFit;
         scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry

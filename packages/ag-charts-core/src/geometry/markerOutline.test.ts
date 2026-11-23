@@ -2,11 +2,12 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 
+import { getSharedMarkerPath } from '../chart/markerPathCache';
 import { MARKER_SHAPES } from '../chart/markerShapes';
 import { ExtendedPath2D } from '../scene/extendedPath2D';
 import { seededRandom } from '../test/random';
 import { stubPath2D } from '../test/stubPath2D';
-import { markerLabelRect, markerRowSpans } from './markerLabelRect';
+import { drawnMarkerShapeAnalysis } from './markerLabelRect';
 import { markerOutline, markerOutlineOverlapsRect, markerOutlineSpans, placeMarkerOutline } from './markerOutline';
 
 beforeAll(stubPath2D);
@@ -15,7 +16,7 @@ const BUILT_IN_SHAPES = Object.keys(MARKER_SHAPES).filter((shape) => shape !== '
 
 /** Axis-aligned overlap of a unit-centred outline at `size` 10 with the box `[x0, x1] × [y0, y1]`. */
 function overlapsBox(shape: AgMarkerShape, x0: number, y0: number, x1: number, y1: number) {
-    const placed = placeMarkerOutline(markerOutline(shape)!, 0, 0, 10);
+    const placed = placeMarkerOutline(markerOutline(shape, 10)!, 0, 0, 10);
     return markerOutlineOverlapsRect(placed, (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, 1, 0);
 }
 
@@ -43,28 +44,28 @@ function distanceToPolygon(xy: Float64Array, x: number, y: number) {
 
 describe('markerOutline', () => {
     it.each([undefined, 'circle', 'no-such-shape'])('leaves %s to the circle test', (shape) => {
-        expect(markerOutline(shape as AgMarkerShape | undefined)).toBeUndefined();
+        expect(markerOutline(shape as AgMarkerShape | undefined, 10)).toBeUndefined();
     });
 
     it.each(BUILT_IN_SHAPES)('gives %s an outline within its unit box, analysed once', (shape) => {
-        const outline = markerOutline(shape)!;
+        const outline = markerOutline(shape, 1)!;
         expect(outline.scale.length).toBeGreaterThanOrEqual(6);
         expect(outline.minX).toBeGreaterThanOrEqual(-0.5 - 1e-4);
         expect(outline.maxX).toBeLessThanOrEqual(0.5 + 1e-4);
         expect(outline.minY).toBeGreaterThanOrEqual(-0.5 - 1e-4);
         expect(outline.maxY).toBeLessThanOrEqual(0.5 + 1e-4);
-        expect(markerOutline(shape)).toBe(outline);
+        expect(markerOutline(shape, 20)).toBe(outline);
     });
 
     it.each([
         ['heart', 30],
         ['pin', 26],
     ] as const)('traces the curves of a %s in at most %s edges', (shape, edges) => {
-        expect(markerOutline(shape)!.scale.length / 2).toBeLessThanOrEqual(edges);
+        expect(markerOutline(shape, 1)!.scale.length / 2).toBeLessThanOrEqual(edges);
     });
 
     it.each(['pin', 'heart'] as const)('keeps a %s outline within 0.005 of its size inside the drawn edge', (shape) => {
-        const { scale } = markerOutline(shape)!;
+        const { scale } = markerOutline(shape, 1)!;
         const path = new ExtendedPath2D();
         MARKER_SHAPES[shape]({ path, x: 0, y: 0, size: 1, pixelRatio: 1 });
         let worst = 0;
@@ -76,17 +77,18 @@ describe('markerOutline', () => {
         expect(worst).toBeLessThanOrEqual(0.005);
     });
 
-    it('bounds a custom shape by its path box, scaled to unit size', () => {
+    it('bounds a custom shape by its path box at the size it is drawn', () => {
         const wide: AgMarkerShapeFn = ({ path, x, y, size }) => {
             path.moveTo(x - size, y - size / 4);
             path.lineTo(x + size, y - size / 4);
             path.lineTo(x, y + size / 4);
             path.closePath();
         };
-        const outline = markerOutline(wide)!;
-        const bounds = [outline.minX, outline.minY, outline.maxX, outline.maxY];
-        expect(bounds.map((b) => Number(b.toFixed(9)))).toEqual([-1, -0.25, 1, 0.25]);
-        expect(markerOutline(wide)).toBe(outline);
+        const outline = markerOutline(wide, 20)!;
+        const bounds = [outline.minOffsetX, outline.minOffsetY, outline.maxOffsetX, outline.maxOffsetY];
+        expect(bounds.map((b) => Number(b.toFixed(9)))).toEqual([-20, -5, 20, 5]);
+        expect([outline.minX, outline.minY, outline.maxX, outline.maxY]).toEqual([0, 0, 0, 0]);
+        expect(markerOutline(wide, 20)).toBe(outline);
     });
 
     it('keeps the fixed-width parts of a custom shape at their width at any size', () => {
@@ -100,38 +102,56 @@ describe('markerOutline', () => {
             { min: 0, max: 0 },
         ];
         for (const size of [10, 40, 100]) {
-            markerOutlineSpans(outX, outY, placeMarkerOutline(markerOutline(bordered)!, 0, 0, size), -1, -1, 1, 1);
+            markerOutlineSpans(
+                outX,
+                outY,
+                placeMarkerOutline(markerOutline(bordered, size)!, 0, 0, size),
+                -1,
+                -1,
+                1,
+                1
+            );
             expect(outX.max).toBeCloseTo(size / 2 + 4);
             expect(outY.max).toBeCloseTo(size / 2 + 4);
         }
     });
 
+    it('bounds a custom shape as drawn at its size, not as linear in size', () => {
+        // 40px wide at size 40, though 10px at size 10 and 40px at size 100 would make it 20px.
+        const capped: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            const side = Math.min(size, 40);
+            path.rect(x - side / 2, y - side / 2, side, side);
+        };
+        const placed = placeMarkerOutline(markerOutline(capped, 40)!, 0, 0, 40);
+        expect(markerOutlineOverlapsRect(placed, 15, 0, 2, 2, 1, 0)).toBe(true);
+    });
+
     it('keeps the circle test for a custom shape that draws nothing', () => {
-        expect(markerOutline(() => {})).toBeUndefined();
+        expect(markerOutline(() => {}, 10)).toBeUndefined();
     });
 });
 
 describe('custom shape analysis', () => {
-    const kite = (width: number): AgMarkerShapeFn => {
-        return ({ path, x, y, size }) => {
+    // A styler may return a fresh function per datum, which placement must not trace again beyond rendering.
+    it('traces a custom shape once per size for rendering, its outline and its inside room', () => {
+        let traces = 0;
+        const kite: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            traces++;
             path.moveTo(x, y - size / 2);
-            path.lineTo(x + width * size, y);
+            path.lineTo(x + size / 4, y);
             path.lineTo(x, y + size / 2);
-            path.lineTo(x - width * size, y);
+            path.lineTo(x - size / 4, y);
             path.closePath();
         };
-    };
-
-    // A styler may return a fresh function per datum, which must not be analysed again per datum.
-    it.each([
-        ['markerOutline', markerOutline],
-        ['markerLabelRect', markerLabelRect],
-        ['markerRowSpans', markerRowSpans],
-    ] as const)('%s shares one analysis between functions that draw alike', (_name, analyse) => {
-        const first = analyse(kite(0.5));
-        expect(first).toBeDefined();
-        expect(analyse(kite(0.5))).toBe(first);
-        expect(analyse(kite(0.25))).not.toEqual(first);
+        getSharedMarkerPath(kite, 30, 2);
+        const outline = markerOutline(kite, 30, 2);
+        const analysis = drawnMarkerShapeAnalysis(kite, 30, 2);
+        expect(outline).toBeDefined();
+        expect(markerOutline(kite, 30, 2)).toBe(outline);
+        expect(drawnMarkerShapeAnalysis(kite, 30, 2)).toBe(analysis);
+        expect(traces).toBe(1);
+        expect(markerOutline(kite, 40, 2)).not.toBe(outline);
+        expect(traces).toBe(2);
     });
 });
 
@@ -156,12 +176,12 @@ describe('markerOutlineOverlapsRect', () => {
     });
 
     it.each([Number.NaN, 0])('never overlaps a rectangle %s wide', (halfWidth) => {
-        const square = placeMarkerOutline(markerOutline('square')!, 0, 0, 10);
+        const square = placeMarkerOutline(markerOutline('square', 10)!, 0, 0, 10);
         expect(markerOutlineOverlapsRect(square, 0, 0, halfWidth, 1, 1, 0)).toBe(false);
     });
 
     it('tests a rotated rectangle in its own frame', () => {
-        const outline = placeMarkerOutline(markerOutline('diamond')!, 0, 0, 10);
+        const outline = placeMarkerOutline(markerOutline('diamond', 10)!, 0, 0, 10);
         // A 2 × 20 bar at the diamond's edge crosses it upright and turned across it, but not laid along it.
         const cx = 4.5;
         const cy = 4.5;
@@ -204,7 +224,7 @@ function polygonArea(xy: number[]) {
 
 /** The outline at `size` on `(cx, cy)`, taken into the frame of a rectangle on `(rx, ry)` turned by `(cos, sin)`. */
 function outlineInFrame(shape: AgMarkerShape, cx: number, cy: number, size: number, rx = 0, ry = 0, cos = 1, sin = 0) {
-    const { scale, offset } = markerOutline(shape)!;
+    const { scale, offset } = markerOutline(shape, size)!;
     const xy: number[] = [];
     for (let i = 0; i < scale.length; i += 2) {
         const dx = cx + scale[i] * size + offset[i] - rx;
@@ -224,14 +244,14 @@ const ORACLE_SHAPES: AgMarkerShape[] = [...BUILT_IN_SHAPES, triangleFn];
 
 describe('markerOutline shortcuts against a clipping oracle', () => {
     it('leaves an hourglass, pinched at its centre, without an inner box', () => {
-        const { innerMinX, innerMaxX } = markerOutline('hourglass')!;
+        const { innerMinX, innerMaxX } = markerOutline('hourglass', 1)!;
         expect(innerMaxX).toBeLessThan(innerMinX);
     });
 
     it.each(BUILT_IN_SHAPES.filter((shape) => shape !== 'hourglass'))(
         'keeps every edge of %s clear of its inner box',
         (shape) => {
-            const { innerMinX, innerMinY, innerMaxX, innerMaxY } = markerOutline(shape)!;
+            const { innerMinX, innerMinY, innerMaxX, innerMaxY } = markerOutline(shape, 1)!;
             expect(innerMaxX).toBeGreaterThan(innerMinX);
             expect(innerMaxY).toBeGreaterThan(innerMinY);
             const [x0, y0, x1, y1] = [innerMinX - 0.01, innerMinY - 0.01, innerMaxX + 0.01, innerMaxY + 0.01];
@@ -243,7 +263,7 @@ describe('markerOutline shortcuts against a clipping oracle', () => {
     it.each(ORACLE_SHAPES)('overlaps a rectangle exactly where %s shares area with it', (shape) => {
         const random = seededRandom(18765);
         const size = 20;
-        const outline = placeMarkerOutline(markerOutline(shape)!, 0, 0, size);
+        const outline = placeMarkerOutline(markerOutline(shape, size)!, 0, 0, size);
         // Margins either side of the verdict, so only rectangles touching the outline go unjudged; clipping a
         // concave outline leaves zero-width slivers, whose rounded area stays far below `minArea`.
         const eps = 1e-7;
@@ -271,7 +291,7 @@ describe('markerOutline shortcuts against a clipping oracle', () => {
 
     it.each(ORACLE_SHAPES)('measures %s across a band as its clipped outline does', (shape) => {
         const random = seededRandom(18766);
-        const outline = placeMarkerOutline(markerOutline(shape)!, 3, -2, 20);
+        const outline = placeMarkerOutline(markerOutline(shape, 20)!, 3, -2, 20);
         const xy = outlineInFrame(shape, 3, -2, 20);
         const spans = [
             { min: 0, max: 0 },
@@ -305,13 +325,13 @@ describe('markerOutlineSpans', () => {
             { min: 0, max: 0 },
         ];
         // A diamond of size 10 is 5 wide at y = 2.5, and 5 tall at x = 2.5.
-        const diamond = placeMarkerOutline(markerOutline('diamond')!, 0, 0, 10);
+        const diamond = placeMarkerOutline(markerOutline('diamond', 10)!, 0, 0, 10);
         markerOutlineSpans(outX, outY, diamond, 2.5, 2.5, 10, 10);
         expect(outX.min).toBeCloseTo(-2.5);
         expect(outX.max).toBeCloseTo(2.5);
         expect(outY.min).toBeCloseTo(-2.5);
         expect(outY.max).toBeCloseTo(2.5);
-        markerOutlineSpans(outX, outY, placeMarkerOutline(markerOutline('square')!, 100, 50, 10), 0, 52, 1, 60);
+        markerOutlineSpans(outX, outY, placeMarkerOutline(markerOutline('square', 10)!, 100, 50, 10), 0, 52, 1, 60);
         expect([outX.min, outX.max]).toEqual([95, 105]);
         expect(outY.min).toBe(Infinity);
     });

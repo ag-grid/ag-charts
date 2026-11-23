@@ -36,8 +36,9 @@ import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelSt
 import {
     type InsideMarkerFit,
     type InsideMarkerPolicyScratch,
+    type MarkerShapeAnalysis,
+    drawnMarkerShapeAnalysis,
     insideMarkerPolicy,
-    markerLabelRect,
 } from './markerLabelRect';
 import {
     type MarkerOutline,
@@ -817,6 +818,8 @@ let candidateOwnShapeResolved = false;
 // Each source's rank in the solve's paint order (higher drawn over lower), and the candidate series' rank.
 let solvePaintOrder: ReadonlyMap<string, number> | undefined;
 let candidatePaintRank: number | undefined;
+// The pixel ratio the solve's markers render at, which a custom marker shape is traced at.
+let solvePixelRatio = 1;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
@@ -1435,7 +1438,7 @@ function markerCentreOf(d: PointLabelDatum) {
     markerCentre.cx = x;
     markerCentre.cy = y;
     // An undrawn marker's shape is never traced, as it is never drawn.
-    markerCentre.outline = size > 0 ? markerOutline(d.markerShape) : undefined;
+    markerCentre.outline = size > 0 ? markerOutline(d.markerShape, size, solvePixelRatio) : undefined;
     if (anchor != null) {
         markerCentre.cx -= (anchor.x - 0.5) * size;
         markerCentre.cy -= (anchor.y - 0.5) * size;
@@ -1598,6 +1601,7 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
  * addition to markers and already-placed labels. All obstacles block all labels, regardless of order.
  * A function is only called when some label will query the obstacle index.
  * @param paintOrder Each source's paint rank by source id, higher drawn over lower.
+ * @param pixelRatio The ratio markers render at, so a custom shape is measured on the path rendering traces.
  * @returns Placed labels for all series.
  */
 export function placeLabels(
@@ -1605,10 +1609,12 @@ export function placeLabels(
     bounds: BoxBounds,
     padding = 5,
     obstacles: LabelObstacles = [],
-    paintOrder?: ReadonlyMap<string, number>
+    paintOrder?: ReadonlyMap<string, number>,
+    pixelRatio = 1
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
     solvePaintOrder = paintOrder;
+    solvePixelRatio = pixelRatio;
 
     // placeLabels runs on every chart update; a chart with no labels must not touch the index.
     if (!hasAnyLabels(data)) return result;
@@ -1813,13 +1819,18 @@ function positionLabelBox(
 /** The `inside` offset of the marker drawn: the series' shape's, or a restyled marker's own. */
 function insideOffsetOf(d: PointLabelDatum): Readonly<Point> | undefined {
     if (d.insideOffset == null || d.markerRestyled !== true) return d.insideOffset;
-    return markerLabelRect(d.markerShape).offset;
+    return drawnAnalysisOf(d).rect.offset;
 }
 
 /** {@link insideOffsetOf} for the inscribed rect an `inside` candidate must fit. */
 function insideSizeOf(d: PointLabelDatum): Readonly<{ width: number; height: number }> | undefined {
     if (d.insideSize == null || d.markerRestyled !== true) return d.insideSize;
-    return markerLabelRect(d.markerShape);
+    return drawnAnalysisOf(d).rect;
+}
+
+/** The room a restyled marker offers its `inside` label, as rendering draws it. */
+function drawnAnalysisOf(d: PointLabelDatum): MarkerShapeAnalysis {
+    return drawnMarkerShapeAnalysis(d.markerShape, markerSizeOf(d), solvePixelRatio);
 }
 
 /** A restyled marker's `inside` label is fitted as the series fits its own marker, at the drawn shape and size. */
@@ -1830,7 +1841,7 @@ function insideFitPolicy(d: PointLabelDatum, fit: LabelFitDescriptor): LabelFit 
         restyledPolicyBase = insideMarker.base;
         restyledPolicy.policy = { ...insideMarker.base };
     }
-    return insideMarkerPolicy(insideMarker, d.markerShape, markerSizeOf(d), restyledPolicy);
+    return insideMarkerPolicy(insideMarker, drawnAnalysisOf(d), markerSizeOf(d), restyledPolicy);
 }
 
 /** No text to place; a restyled marker's label is re-fitted from its source, not its series-bound measurement. */

@@ -1491,6 +1491,39 @@ describe('label collision avoidance', () => {
             expect(await restyled(() => ({ shape: (params: any) => shape(params) }))).toEqual([true]);
         });
 
+        // Placement must collide and fit against the path rendering traces, not trace its own copies.
+        it('traces no fresh shape a styler returns per datum beyond what rendering traces', async () => {
+            const data = Array.from({ length: 20 }, (_, i) => ({ x: i, y: i % 3, l: `L${i}` }));
+            const traces = async (labelled: boolean) => {
+                let count = 0;
+                chart?.destroy();
+                chart = await createChart({
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type: 'scatter',
+                            data,
+                            xKey: 'x',
+                            yKey: 'y',
+                            labelKey: 'l',
+                            size: 20,
+                            itemStyler: () => ({
+                                shape: ({ path, x, y, size }: any) => {
+                                    count++;
+                                    path.rect(x - size / 2, y - size / 2, size, size);
+                                },
+                            }),
+                            label: { enabled: labelled, placement: ['inside', 'top'], truncate: true },
+                        },
+                    ],
+                } as any);
+                return count;
+            };
+            const rendering = await traces(false);
+            expect(rendering).toBeGreaterThanOrEqual(data.length);
+            expect(await traces(true)).toBe(rendering);
+        });
+
         // Past the animatable limit a line reuses its node data in place, so nothing a styler stamped may outlive it.
         it('line: places labels as before once a shape-changing styler is removed', async () => {
             const data = Array.from({ length: 1200 }, (_, i) => ({

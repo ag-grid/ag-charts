@@ -19,6 +19,7 @@ import {
     cachedTextMeasurer,
     insideMarkerPolicy,
     lineHeightAtSize,
+    markerShapeAnalysis,
     measurePlacedLabel,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
@@ -150,7 +151,7 @@ export abstract class PlacedLabelCartesianSeries<
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit: insideMarkerFit
-                ? insideMarkerPolicy(insideMarkerFit, shape, markerSize)
+                ? insideMarkerPolicy(insideMarkerFit, markerShapeAnalysis(shape), markerSize)
                 : resolveLabelFit(label, !collision.alwaysShow),
             labelInsideMarkerFit: insideMarkerFit,
             // Keeps the label on a marker too small to hold even an ellipsis.

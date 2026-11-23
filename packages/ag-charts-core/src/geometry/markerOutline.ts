@@ -1,12 +1,17 @@
-import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
+import type { AgMarkerShape } from 'ag-charts-types';
 
-import { memoiseByMarkerShape, traceMarkerShape } from '../chart/markerShapes';
+import { getSharedMarkerPath } from '../chart/markerPathCache';
+import { traceMarkerShape } from '../chart/markerShapes';
 import { isSupportedMarkerShape } from '../chart/markerUtil';
+import type { ExtendedPath2D } from '../scene/extendedPath2D';
 import type { Point } from '../types/scene';
 
-/** A marker shape's outline centred on the origin: at size `s` each vertex is `scale * s + offset`. */
+/**
+ * A marker shape's outline centred on the origin: at size `s` each vertex is `scale * s + offset`. A built-in
+ * shape's is all scale, so one outline serves every size; a custom shape's is measured at the size it is drawn,
+ * so it is all offset.
+ */
 export interface MarkerOutline {
-    /** Vertex = scale * size + offset, so one outline serves every marker size. */
     readonly scale: Float64Array;
     readonly offset: Float64Array;
     /** Bounds the outline at any size without walking its vertices. */
@@ -30,22 +35,39 @@ const OUTLINE_TOLERANCE = 0.005;
 const CURVE_SAMPLES = 32;
 // How far every edge stays from the inner box, as a fraction of the size: far beyond the rounding of the full test.
 const INNER_MARGIN = 0.01;
-// Two sizes fit a custom shape's bounds exactly when they are made of size-proportional and fixed-px parts.
-const CUSTOM_SMALL_SIZE = 10;
-const CUSTOM_LARGE_SIZE = 100;
 
-const cachedOutline = memoiseByMarkerShape(
-    (shape) => (typeof shape === 'string' ? builtInOutline(shape) : customOutline(shape)),
-    [CUSTOM_SMALL_SIZE, CUSTOM_LARGE_SIZE]
-);
+const builtInOutlines = new Map<string, MarkerOutline | undefined>();
+// Keyed by the path rendering draws, so a custom shape is traced once for both and its outline dies with that path.
+const customOutlines = new WeakMap<ExtendedPath2D, MarkerOutline | null>();
 
-/** The shape's outline, analysed once; `undefined` for a circle or unmeasurable shape, which collide as circles. */
-export function markerOutline(shape: AgMarkerShape | undefined): MarkerOutline | undefined {
+/**
+ * The outline of `shape` drawn at `size`; `undefined` for a circle or unmeasurable shape, which collide as circles.
+ * A custom shape is measured on the path rendering traces at `size` and `pixelRatio`, so `size` must be positive.
+ */
+export function markerOutline(
+    shape: AgMarkerShape | undefined,
+    size: number,
+    pixelRatio = 1
+): MarkerOutline | undefined {
     // A name with no built-in shape draws nothing to outline, so it keeps the nominal circle.
     if (shape == null || shape === 'circle' || (typeof shape === 'string' && !isSupportedMarkerShape(shape))) {
         return undefined;
     }
-    return cachedOutline(shape);
+    if (typeof shape === 'string') {
+        let outline = builtInOutlines.get(shape);
+        if (outline == null && !builtInOutlines.has(shape)) {
+            outline = builtInOutline(shape);
+            builtInOutlines.set(shape, outline);
+        }
+        return outline;
+    }
+    const path = getSharedMarkerPath(shape, size, pixelRatio);
+    let outline = customOutlines.get(path);
+    if (outline === undefined) {
+        outline = customOutline(path) ?? null;
+        customOutlines.set(path, outline);
+    }
+    return outline ?? undefined;
 }
 
 function builtInOutline(shape: AgMarkerShape): MarkerOutline | undefined {
@@ -111,28 +133,12 @@ function distanceToSegment(p: Point, a: Point, b: Point): number {
     return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy);
 }
 
-// A custom path may draw anything at any cost to trace, so it collides as its bounding box.
-function customOutline(shape: AgMarkerShapeFn): MarkerOutline | undefined {
-    const small = customBounds(shape, CUSTOM_SMALL_SIZE);
-    const large = customBounds(shape, CUSTOM_LARGE_SIZE);
-    if (small == null || large == null) return undefined;
-    // Fits each bound as `scale * size + offset` through both measurements.
-    const scale = new Float64Array(8);
-    const offset = new Float64Array(8);
-    const corners = [0, 1, 2, 1, 2, 3, 0, 3];
-    for (let i = 0; i < 8; i++) {
-        const b = corners[i];
-        scale[i] = (large[b] - small[b]) / (CUSTOM_LARGE_SIZE - CUSTOM_SMALL_SIZE);
-        offset[i] = small[b] - scale[i] * CUSTOM_SMALL_SIZE;
-    }
-    return outlineOf(scale, offset, false);
-}
-
-/** `[x0, y0, x1, y1]` of the custom shape's path at `size`, or `undefined` when it has no area. */
-function customBounds(shape: AgMarkerShapeFn, size: number): number[] | undefined {
-    const { x, y, width, height } = traceMarkerShape(shape, size).computeBBox();
-    const measurable = width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height);
-    return measurable ? [x, y, x + width, y + height] : undefined;
+// A custom path may draw anything at any cost to trace, so it collides as its bounding box at its drawn size.
+function customOutline(path: ExtendedPath2D): MarkerOutline | undefined {
+    const { x, y, width, height } = path.computeBBox();
+    if (!(width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height))) return undefined;
+    const offset = Float64Array.of(x, y, x + width, y, x + width, y + height, x, y + height);
+    return outlineOf(new Float64Array(offset.length), offset, false);
 }
 
 function outlineOf(scale: Float64Array, offset: Float64Array, withInner: boolean): MarkerOutline {

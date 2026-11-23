@@ -1066,6 +1066,29 @@ describe('placeLabels', () => {
             expect(placed.placement).toBe('inside');
         });
 
+        // Capped at 40px, the square fills its box at unit size but only half of it at the 100px it is drawn at.
+        it('fits a restyled custom marker inside the room it has at the size it is drawn', () => {
+            const capped: AgMarkerShapeFn = ({ path, x, y, size }) => {
+                const side = Math.min(size, 40);
+                path.rect(x - side / 2, y - side / 2, side, side);
+            };
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 10 },
+                label: { text: 'L', width: 60, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                insideSize: { width: 0.7, height: 0.7 },
+                insideOffset: { x: 0, y: 0 },
+                markerSize: 100,
+                markerShape: capped,
+                markerRestyled: true,
+                alwaysShow: false,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
+            expect(result.get('s')![0].placement).toBe('top');
+        });
+
         // A large marker pushes the directional candidates clear of the centred inside box, so an
         // inside failure is isolated to the insideSize containment test rather than obstacle overlap.
         it('cascades to top when the label is too large for the marker inscribed rect', () => {
@@ -3373,7 +3396,7 @@ describe('placeLabels obstacle-driven shrink', () => {
             cx,
             cy,
             r: 20,
-            outline: placeMarkerOutline(markerOutline('diamond')!, cx, cy, 40),
+            outline: placeMarkerOutline(markerOutline('diamond', 40)!, cx, cy, 40),
             box: { x: cx - 20, y: cy - 20, width: 40, height: 40 },
             category: 'marker',
         };
@@ -4252,7 +4275,7 @@ describe('placeLabels solve references', () => {
         (track) => {
             const markerShape = shaped ? track('marker shape', diamondShape.bind(null)) : undefined;
             // Its outline is cached against the shape, so outlives the solve only if the engine still holds it.
-            if (markerShape != null) track('marker outline', markerOutline(markerShape)!);
+            if (markerShape != null) track('marker outline', markerOutline(markerShape, 10)!);
             const datum: PointLabelDatum = track('datum', {
                 ...ownDatum(track),
                 markerShape,
@@ -4454,6 +4477,16 @@ describe('placeLabels marker outlines', () => {
         expect(placesLabel(marker(markerShape), label(cx, cy, size))).toBe(placed);
         // The nominal circle decides the other way, so each case is one only the outline gets right.
         expect(placesLabel(marker(undefined), label(cx, cy, size))).toBe(!placed);
+    });
+
+    // Drawn 40px wide at size 40, though its bounds at other sizes, taken as linear in size, would make it 20px.
+    it('collides with a custom shape at the bounds it is drawn with at its size', () => {
+        const capped: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            const side = Math.min(size, 40);
+            path.rect(x - side / 2, y - side / 2, side, side);
+        };
+        const cappedMarker: PointLabelDatum = { ...marker(capped), point: { x: 100, y: 100, size: 40 } };
+        expect(placesLabel(cappedMarker, label(115, 100, 4))).toBe(false);
     });
 
     it('tests a rotated label against the outline in its own frame', () => {

@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import { stubPath2D } from '../test/stubPath2D';
 import { InsetMaskFitRegion, insetFitRegion } from './fitRegion';
-import { insideMarkerPolicy, markerLabelRect, markerRowSpans } from './markerLabelRect';
+import { drawnMarkerShapeAnalysis, insideMarkerPolicy, markerLabelRect, markerShapeAnalysis } from './markerLabelRect';
 
 describe('markerLabelRect', () => {
     beforeAll(stubPath2D);
@@ -59,6 +59,20 @@ describe('markerLabelRect', () => {
         // Same shape reference returns the identical cached object.
         expect(markerLabelRect(wide)).toBe(first);
     });
+
+    it('analyses a custom shape as drawn at its size, not as scaled from unit size', () => {
+        // A square capped at 40px fills its box at unit size, but only half of it at size 80.
+        const capped = ({ path, x, y, size }: any) => {
+            const side = Math.min(size, 40);
+            path.rect(x - side / 2, y - side / 2, side, side);
+        };
+        expect(markerLabelRect(capped).width).toBeGreaterThan(0.9);
+        const drawn = drawnMarkerShapeAnalysis(capped, 80, 1);
+        expect(drawn.rect.width).toBeGreaterThan(0.45);
+        expect(drawn.rect.width).toBeLessThanOrEqual(0.5);
+        expect(drawn.rows!.top).toBeCloseTo(-0.25);
+        expect(drawnMarkerShapeAnalysis(capped, 80, 1)).toBe(drawn);
+    });
 });
 
 describe('insideMarkerPolicy', () => {
@@ -66,7 +80,7 @@ describe('insideMarkerPolicy', () => {
 
     const SIZE = 100;
     const policyAt = (threshold: number, masked: boolean) =>
-        insideMarkerPolicy({ base: {}, threshold, masked }, 'diamond', SIZE);
+        insideMarkerPolicy({ base: {}, threshold, masked }, markerShapeAnalysis('diamond'), SIZE);
 
     it.each([
         { threshold: 6, grow: 0 },
@@ -82,13 +96,18 @@ describe('insideMarkerPolicy', () => {
     );
 
     it('bounds a circle marker by its inscribed square', () => {
-        const policy = insideMarkerPolicy({ base: {}, threshold: 0, masked: false }, undefined, 20);
+        const policy = insideMarkerPolicy(
+            { base: {}, threshold: 0, masked: false },
+            markerShapeAnalysis(undefined),
+            20
+        );
         expect(policy.maxWidth).toBeCloseTo(20 / Math.SQRT2);
         expect(policy.maxHeight).toBeCloseTo(20 / Math.SQRT2);
     });
 
     it('scales the room with the marker size, and gives a markerless point none', () => {
-        const at = (size: number) => insideMarkerPolicy({ base: {}, threshold: 0, masked: false }, 'square', size);
+        const square = markerShapeAnalysis('square');
+        const at = (size: number) => insideMarkerPolicy({ base: {}, threshold: 0, masked: false }, square, size);
         expect(at(100).maxWidth).toBeCloseTo(at(50).maxWidth! * 2);
         expect(at(100).maxHeight).toBeCloseTo(at(50).maxHeight! * 2);
         expect(at(0)).toMatchObject({ maxWidth: 0, maxHeight: 0 });
@@ -97,7 +116,7 @@ describe('insideMarkerPolicy', () => {
     it('never widens past the base policy', () => {
         const policy = insideMarkerPolicy(
             { base: { maxWidth: 10, maxHeight: 5 }, threshold: -6, masked: false },
-            'square',
+            markerShapeAnalysis('square'),
             100
         );
         expect(policy).toMatchObject({ maxWidth: 10, maxHeight: 5 });
@@ -107,7 +126,7 @@ describe('insideMarkerPolicy', () => {
     const spillInsetRegion = (threshold: number) => {
         const rect = markerLabelRect('diamond');
         const spill = Math.min(threshold, 0);
-        const mask = markerRowSpans('diamond')!;
+        const mask = markerShapeAnalysis('diamond').rows!;
         return insetFitRegion(
             new InsetMaskFitRegion().set(mask, SIZE, rect.cx * SIZE, rect.cy * SIZE, 0),
             spill,
