@@ -241,7 +241,7 @@ describe.each([
     });
 });
 
-describe('isPointInSector with a radialEdgeInset', () => {
+describe('sector point tests with a radialEdgeInset', () => {
     const quarter: Sector = {
         startAngle: 0,
         endAngle: Math.PI / 2,
@@ -250,15 +250,20 @@ describe('isPointInSector with a radialEdgeInset', () => {
         radialEdgeInset: 5,
     };
 
-    it.each([
-        { point: [50, 3], inside: false, at: 'within the inset of the start edge' },
-        { point: [50, 6], inside: true, at: 'clear of the start edge' },
-        { point: [3, 50], inside: false, at: 'within the inset of the end edge' },
-        { point: [6, 50], inside: true, at: 'clear of the end edge' },
-        { point: [6, 6], inside: true, at: 'clear of both edges near the centre' },
-        { point: [4, 4], inside: false, at: 'within the inset of both edges near the centre' },
-    ])('treats a point $at as inside: $inside', ({ point: [x, y], inside }) => {
-        expect(isPointInSector(x, y, quarter)).toBe(inside);
+    describe.each([
+        ['isPointInSector', (x: number, y: number) => isPointInSector(x, y, quarter)],
+        ['sectorPointTest', sectorPointTest(quarter)],
+    ])('%s', (_name, contains) => {
+        it.each([
+            { point: [50, 3], inside: false, at: 'within the inset of the start edge' },
+            { point: [50, 6], inside: true, at: 'clear of the start edge' },
+            { point: [3, 50], inside: false, at: 'within the inset of the end edge' },
+            { point: [6, 50], inside: true, at: 'clear of the end edge' },
+            { point: [6, 6], inside: true, at: 'clear of both edges near the centre' },
+            { point: [4, 4], inside: false, at: 'within the inset of both edges near the centre' },
+        ])('treats a point $at as inside: $inside', ({ point: [x, y], inside }) => {
+            expect(contains(x, y)).toBe(inside);
+        });
     });
 
     it('insets only along each edge, not across the line it lies on', () => {
