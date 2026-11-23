@@ -1,7 +1,6 @@
-import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
+import type { AgMarkerShape } from 'ag-charts-types';
 
-import { MARKER_SHAPES } from '../chart/markerShapes';
-import { ExtendedPath2D } from '../scene/extendedPath2D';
+import { memoiseByMarkerShape, traceMarkerShape } from '../chart/markerShapes';
 import type { LabelFit } from '../text/textWrapper';
 import type { Writeable } from '../types/global';
 import type { Point } from '../types/scene';
@@ -36,25 +35,19 @@ const GRID = 33;
 // the shape as unanalysable and fall back to the inscribed square.
 const MIN_FACTOR = 0.1;
 
-// Weakly held per custom shape, so a styler returning a fresh function per datum leaks nothing.
-const builtInRects = new Map<string, MarkerLabelRect | undefined>();
-const customRects = new WeakMap<AgMarkerShapeFn, MarkerLabelRect | undefined>();
+const NO_ANALYSIS: MarkerShapeAnalysis = { rect: INSCRIBED_SQUARE, rows: undefined };
+
+interface MarkerShapeAnalysis {
+    readonly rect: MarkerLabelRect;
+    readonly rows: FitRegionMask | undefined;
+}
+
+const analyseShape = memoiseByMarkerShape(computeAnalysis);
 
 /** The largest inscribed label rectangle for a marker shape, analysed once per shape and cached. */
 export function markerLabelRect(shape: AgMarkerShape | undefined): MarkerLabelRect {
-    if (typeof shape === 'string') {
-        if (!builtInRects.has(shape)) builtInRects.set(shape, computeLabelRect(shape));
-        return builtInRects.get(shape) ?? INSCRIBED_SQUARE;
-    }
-    if (typeof shape === 'function') {
-        if (!customRects.has(shape)) customRects.set(shape, computeLabelRect(shape));
-        return customRects.get(shape) ?? INSCRIBED_SQUARE;
-    }
-    return INSCRIBED_SQUARE;
+    return shape == null ? INSCRIBED_SQUARE : analyseShape(shape).rect;
 }
-
-const builtInRows = new Map<string, FitRegionMask | undefined>();
-const customRows = new WeakMap<AgMarkerShapeFn, FitRegionMask | undefined>();
 
 /**
  * The per-row inside spans of a marker shape, in fractions of the marker diameter, analysed once per shape
@@ -62,15 +55,7 @@ const customRows = new WeakMap<AgMarkerShapeFn, FitRegionMask | undefined>();
  * the room a row actually offers.
  */
 export function markerRowSpans(shape: AgMarkerShape | undefined): FitRegionMask | undefined {
-    if (typeof shape === 'string') {
-        if (!builtInRows.has(shape)) builtInRows.set(shape, computeRowSpans(shape));
-        return builtInRows.get(shape);
-    }
-    if (typeof shape === 'function') {
-        if (!customRows.has(shape)) customRows.set(shape, computeRowSpans(shape));
-        return customRows.get(shape);
-    }
-    return undefined;
+    return shape == null ? undefined : analyseShape(shape).rows;
 }
 
 /** How a series fits an `inside`-only label to its marker, so a restyled marker can be fitted the same way. */
@@ -112,14 +97,16 @@ export function insideMarkerPolicy(
     return policy;
 }
 
-function computeRowSpans(shape: AgMarkerShape): FitRegionMask | undefined {
+type ShapeSamples = NonNullable<ReturnType<typeof sampleShape>>;
+
+function computeAnalysis(shape: AgMarkerShape): MarkerShapeAnalysis {
     const sampled = sampleShape(shape);
-    if (sampled == null) return undefined;
+    const best = sampled == null ? undefined : largestInsideRect(sampled.inside);
+    if (sampled == null || best == null) return NO_ANALYSIS;
+    return { rect: labelRectOf(sampled, best) ?? INSCRIBED_SQUARE, rows: rowSpansOf(sampled, best) };
+}
 
-    const { bbox, inside, cellW, cellH } = sampled;
-    const best = largestInsideRect(inside);
-    if (best == null) return undefined;
-
+function rowSpansOf({ bbox, inside, cellW, cellH }: ShapeSamples, best: RectCells): FitRegionMask {
     // A row is only usable through the run the label sits in: a shape with a notch or two lobes (a heart,
     // a star) has inside cells either side of ground that is outside it.
     const anchorCol = Math.round((best.c0 + best.c1) / 2);
@@ -141,9 +128,7 @@ function computeRowSpans(shape: AgMarkerShape): FitRegionMask | undefined {
 }
 
 function sampleShape(shape: AgMarkerShape) {
-    const path = new ExtendedPath2D();
-    const draw = typeof shape === 'string' ? MARKER_SHAPES[shape] : shape;
-    draw({ path, x: 0, y: 0, size: 1, pixelRatio: 1 });
+    const path = traceMarkerShape(shape, 1);
     const bbox = path.computeBBox();
     if (bbox.width <= 0 || bbox.height <= 0) {
         return undefined;
@@ -163,18 +148,7 @@ function sampleShape(shape: AgMarkerShape) {
     return { bbox, inside, cellW, cellH };
 }
 
-function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
-    const sampled = sampleShape(shape);
-    if (sampled == null) {
-        return undefined;
-    }
-
-    const { bbox, inside, cellW, cellH } = sampled;
-    const best = largestInsideRect(inside);
-    if (best == null) {
-        return undefined;
-    }
-
+function labelRectOf({ bbox, cellW, cellH }: ShapeSamples, best: RectCells): MarkerLabelRect | undefined {
     // Rectangle spans from the centre of the first inside cell to the centre of the last, so its corners
     // sit on sampled inside points.
     const width = (best.c1 - best.c0) * cellW;

@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, AgMarkerShape, AgMarkerShapeFn, PaddingOptions } from 'ag-charts-types';
 
+import { markerShapeAnchor } from '../chart/markerShapes';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import { stubPath2D } from '../test/stubPath2D';
@@ -46,7 +47,7 @@ import {
     resolveLabelFit,
     writeLabelBoxCentre,
 } from './labelPlacement';
-import { markerOutline, markerShapeAnchor, placeMarkerOutline } from './markerOutline';
+import { markerOutline, placeMarkerOutline } from './markerOutline';
 import { SpatialIndex } from './spatialIndex';
 
 beforeAll(stubPath2D);

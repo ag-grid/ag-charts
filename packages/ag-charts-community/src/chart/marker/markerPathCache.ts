@@ -1,5 +1,5 @@
-import { ExtendedPath2D, MARKER_SHAPES } from 'ag-charts-core';
-import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
+import { type ExtendedPath2D, traceMarkerShape } from 'ag-charts-core';
+import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 
 /**
  * Origin-centred {@link ExtendedPath2D} authored once per `(shape, size [, pixelRatio])` and
@@ -32,24 +32,13 @@ const MAX_CACHE_ENTRIES = 1024;
 const stringShapeCache = new Map<string, ExtendedPath2D>();
 const functionShapeCache = new WeakMap<AgMarkerShapeFn, Map<string, ExtendedPath2D>>();
 
-function buildPath(shape: AgMarkerShape, size: number, pixelRatio: number): ExtendedPath2D {
-    const path = new ExtendedPath2D();
-    const drawParams: AgMarkerShapeFnParams = { path, x: 0, y: 0, size, pixelRatio };
-    if (typeof shape === 'string') {
-        MARKER_SHAPES[shape](drawParams);
-    } else {
-        shape(drawParams);
-    }
-    return path;
-}
-
 export function getSharedMarkerPath(shape: AgMarkerShape, size: number, pixelRatio: number = 1): ExtendedPath2D {
     if (typeof shape === 'string') {
         const key = `${shape}:${size}`;
         let path = stringShapeCache.get(key);
         if (path === undefined) {
             if (stringShapeCache.size >= MAX_CACHE_ENTRIES) stringShapeCache.clear();
-            path = buildPath(shape, size, 1);
+            path = traceMarkerShape(shape, size, 1);
             stringShapeCache.set(key, path);
         }
         return path;
@@ -64,14 +53,14 @@ export function getSharedMarkerPath(shape: AgMarkerShape, size: number, pixelRat
         let path = sizeMap.get(key);
         if (path === undefined) {
             if (sizeMap.size >= MAX_CACHE_ENTRIES) sizeMap.clear();
-            path = buildPath(shape, size, pixelRatio);
+            path = traceMarkerShape(shape, size, pixelRatio);
             sizeMap.set(key, path);
         }
         return path;
     }
     // Fallback for unset/invalid shape — build a one-off square so rendering doesn't crash.
     // Not cached: this branch should only be reachable via options that failed validation.
-    return buildPath('square', size, pixelRatio);
+    return traceMarkerShape('square', size, pixelRatio);
 }
 
 /** @internal — test-only escape hatch. The runtime never needs to clear the cache. */

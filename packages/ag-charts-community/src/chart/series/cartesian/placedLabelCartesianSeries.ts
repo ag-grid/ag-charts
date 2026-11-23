@@ -15,6 +15,7 @@ import type {
 } from 'ag-charts-core';
 import {
     PointerEvents,
+    applyStyledMarker,
     cachedTextMeasurer,
     insideMarkerPolicy,
     lineHeightAtSize,
@@ -168,9 +169,28 @@ export abstract class PlacedLabelCartesianSeries<
         return measurePlacedLabel(labelText, this.labelProperty, ctx);
     }
 
+    /** The series' marker, whose `itemStyler` may restyle the markers its labels avoid. */
+    protected abstract get labelMarker(): {
+        readonly enabled: boolean;
+        readonly shape: AgMarkerShape;
+        readonly itemStyler?: unknown;
+    };
+    /** What the marker `itemStyler` resolved for the marker drawn at the label's point. */
+    protected abstract labelMarkerStyle(
+        datum: LabelOf<TTypes>
+    ): { readonly size?: number; readonly shape?: AgMarkerShape } | undefined;
+
     override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const { enabled, itemStyler, shape } = this.labelMarker;
+        // A marker itemStyler resolves size and shape after node data, so stamp them from the drawn marker.
+        if (enabled && itemStyler != null) {
+            for (const datum of labelData) {
+                applyStyledMarker(datum, this.labelMarkerStyle(datum), shape);
+            }
+        }
+        return labelData;
     }
 
     override getLabelDefaults(): SeriesLabelDefaults | undefined {

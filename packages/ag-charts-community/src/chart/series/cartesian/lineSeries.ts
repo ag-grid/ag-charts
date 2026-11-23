@@ -10,7 +10,6 @@ import type {
     NormalisedSeriesMarkerStyle,
     Path,
     Point,
-    PointLabelDatum,
     RequireOptional,
     SegmentedPath,
     Selection,
@@ -22,7 +21,6 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     PointerEvents,
-    applyStyledMarker,
     extent,
     isDefined,
     markerRebuildNeeded,
@@ -1101,17 +1099,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }
 
-    override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {
-        const labelData = super.getLabelData();
-        const { marker } = this.options;
-        // A marker itemStyler resolves its size and shape after node data was built, so they are stamped
-        // on here — the label's obstacles, gap and anchor all follow the marker that gets drawn.
-        if (marker.enabled && marker.itemStyler != null) {
-            for (const datum of labelData) {
-                applyStyledMarker(datum, datum.style, marker.shape);
-            }
-        }
-        return labelData;
+    protected override get labelMarker() {
+        return this.options.marker;
+    }
+
+    protected override labelMarkerStyle(datum: LineNodeDatum) {
+        return datum.style;
     }
 
     protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {

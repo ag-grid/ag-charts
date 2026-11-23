@@ -10,7 +10,6 @@ import type {
     NormalisedColorType,
     NormalisedSeriesMarkerStyle,
     Point,
-    PointLabelDatum,
     RequireOptional,
     SegmentedPath,
     Selection,
@@ -28,7 +27,6 @@ import {
     PointerEvents,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
-    applyStyledMarker,
     extent,
     isContinuous,
     isDefined,
@@ -1672,16 +1670,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return this.options.label;
     }
 
-    override getLabelData(): (LabelSelectionDatum & PointLabelDatum)[] {
-        const labelData = super.getLabelData();
-        const { marker } = this.options;
-        // A marker itemStyler resolves size and shape after node data, so stamp them from the drawn marker.
-        if (marker.enabled && marker.itemStyler != null) {
-            for (const datum of labelData) {
-                applyStyledMarker(datum, datum.markerDatum?.style, marker.shape);
-            }
-        }
-        return labelData;
+    protected override get labelMarker() {
+        return this.options.marker;
+    }
+
+    protected override labelMarkerStyle(datum: LabelSelectionDatum) {
+        return datum.markerDatum?.style;
     }
 
     protected override writeLabelPoint(datum: LabelSelectionDatum, x: number, y: number): LabelSelectionDatum {

@@ -1,7 +1,6 @@
 import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 
-import { MARKER_SHAPES } from '../chart/markerShapes';
-import { ExtendedPath2D } from '../scene/extendedPath2D';
+import { memoiseByMarkerShape, traceMarkerShape } from '../chart/markerShapes';
 import type { Point } from '../types/scene';
 
 /** A marker shape's outline centred on the origin: at size `s` each vertex is `scale * s + offset`. */
@@ -25,17 +24,6 @@ export interface MarkerOutline {
     readonly innerMaxY: number;
 }
 
-const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
-const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
-
-/** The fraction of the marker box its point is drawn at: the tip of a pin, the centre of anything else. */
-export function markerShapeAnchor(shape: AgMarkerShape | undefined): Point {
-    if (shape === 'pin') return PIN_ANCHOR;
-    // Undocumented API, used by FC annotations.
-    if (typeof shape === 'function' && 'anchor' in shape) return shape.anchor as Point;
-    return CENTRE_ANCHOR;
-}
-
 // Curves are traced finely, then simplified to within this fraction of the marker size: 0.15px at 30px.
 const OUTLINE_TOLERANCE = 0.005;
 const CURVE_SAMPLES = 32;
@@ -45,29 +33,17 @@ const INNER_MARGIN = 0.01;
 const CUSTOM_SMALL_SIZE = 10;
 const CUSTOM_LARGE_SIZE = 100;
 
-const builtInOutlines = new Map<string, MarkerOutline | undefined>();
-const customOutlines = new WeakMap<AgMarkerShapeFn, MarkerOutline | undefined>();
+const cachedOutline = memoiseByMarkerShape((shape) =>
+    typeof shape === 'string' ? builtInOutline(shape) : customOutline(shape)
+);
 
 /** The shape's outline, analysed once; `undefined` for a circle or unmeasurable shape, which collide as circles. */
 export function markerOutline(shape: AgMarkerShape | undefined): MarkerOutline | undefined {
-    if (typeof shape === 'string') {
-        if (shape === 'circle') return undefined;
-        if (!builtInOutlines.has(shape)) builtInOutlines.set(shape, builtInOutline(shape));
-        return builtInOutlines.get(shape);
-    }
-    if (typeof shape === 'function') {
-        if (!customOutlines.has(shape)) customOutlines.set(shape, customOutline(shape));
-        return customOutlines.get(shape);
-    }
-    return undefined;
+    return shape == null || shape === 'circle' ? undefined : cachedOutline(shape);
 }
 
-function builtInOutline(shape: string): MarkerOutline | undefined {
-    const draw = MARKER_SHAPES[shape as keyof typeof MARKER_SHAPES];
-    if (draw == null) return undefined;
-    const path = new ExtendedPath2D();
-    draw({ path, x: 0, y: 0, size: 1, pixelRatio: 1 });
-    const rings = path.flatten(CURVE_SAMPLES);
+function builtInOutline(shape: AgMarkerShape): MarkerOutline | undefined {
+    const rings = traceMarkerShape(shape, 1).flatten(CURVE_SAMPLES);
     if (rings.length !== 1) return undefined;
     const ring = rings[0];
     const last = ring.at(-1);
@@ -148,9 +124,7 @@ function customOutline(shape: AgMarkerShapeFn): MarkerOutline | undefined {
 
 /** `[x0, y0, x1, y1]` of the custom shape's path at `size`, or `undefined` when it has no area. */
 function customBounds(shape: AgMarkerShapeFn, size: number): number[] | undefined {
-    const path = new ExtendedPath2D();
-    shape({ path, x: 0, y: 0, size, pixelRatio: 1 });
-    const { x, y, width, height } = path.computeBBox();
+    const { x, y, width, height } = traceMarkerShape(shape, size).computeBBox();
     const measurable = width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height);
     return measurable ? [x, y, x + width, y + height] : undefined;
 }

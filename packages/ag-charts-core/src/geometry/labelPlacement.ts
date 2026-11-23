@@ -1,5 +1,6 @@
 import type { AgChartLabelOrientation, AgMarkerShape, PaddingOptions, TextWrap } from 'ag-charts-types';
 
+import { markerShapeAnchor } from '../chart/markerShapes';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedErrorBarSeriesLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
@@ -43,7 +44,6 @@ import {
     markerOutline,
     markerOutlineOverlapsRect,
     markerOutlineSpans,
-    markerShapeAnchor,
     placeMarkerOutline,
 } from './markerOutline';
 import {

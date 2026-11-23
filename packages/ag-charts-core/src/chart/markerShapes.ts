@@ -1,6 +1,8 @@
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { toRadians } from '../geometry/angle';
+import { ExtendedPath2D } from '../scene/extendedPath2D';
+import type { Point } from '../types/scene';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
@@ -178,3 +180,36 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         ]);
     },
 };
+
+/** `shape` traced at `size` on the origin; empty for a name with no built-in shape. */
+export function traceMarkerShape(shape: AgMarkerShape, size: number, pixelRatio = 1): ExtendedPath2D {
+    const path = new ExtendedPath2D();
+    const draw: AgMarkerShapeFn | undefined = typeof shape === 'string' ? MARKER_SHAPES[shape] : shape;
+    draw?.({ path, x: 0, y: 0, size, pixelRatio });
+    return path;
+}
+
+/** `compute` cached per shape, holding a custom one weakly so a styler's fresh function per datum leaks nothing. */
+export function memoiseByMarkerShape<T>(compute: (shape: AgMarkerShape) => T): (shape: AgMarkerShape) => T {
+    const builtIn = new Map<string, T>();
+    const custom = new WeakMap<AgMarkerShapeFn, T>();
+    return (shape) => {
+        if (typeof shape === 'string') {
+            if (!builtIn.has(shape)) builtIn.set(shape, compute(shape));
+            return builtIn.get(shape)!;
+        }
+        if (!custom.has(shape)) custom.set(shape, compute(shape));
+        return custom.get(shape)!;
+    };
+}
+
+const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
+const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
+
+/** The fraction of the marker box its point is drawn at: the tip of a pin, the centre of anything else. */
+export function markerShapeAnchor(shape: AgMarkerShape | undefined): Point {
+    if (shape === 'pin') return PIN_ANCHOR;
+    // Undocumented API, used by FC annotations.
+    if (typeof shape === 'function' && 'anchor' in shape) return shape.anchor as Point;
+    return CENTRE_ANCHOR;
+}
