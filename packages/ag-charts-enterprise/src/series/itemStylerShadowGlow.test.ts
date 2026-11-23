@@ -78,8 +78,6 @@ interface Case {
     layers: (chart: AgChartInstance) => Layers;
     /** The slot of a shape that holds the glow it casts: the glow slot, or the shadow slot of a series with one slot per item. */
     glowSlot: 'fillGlow' | 'fillShadow';
-    /** The slot that holds the glow of the highlight layer's copy, if it is not `glowSlot`: a hierarchy casts it as a shadow. */
-    highlightGlowSlot?: 'fillGlow' | 'fillShadow';
     /** A series with one slot per item shows its glow in place of its shadow; others cast both. */
     oneSlot: boolean;
     /** Whether the series has a series-level `glow` option; the hierarchy series take a glow from their highlight styles only. */
@@ -93,11 +91,11 @@ const hierarchyLayers =
     (kind: abstract new (...args: never[]) => Shape) =>
     (chart: AgChartInstance): Layers => {
         // Leaves only: a group of a treemap is a shape of the same kind in the same selection.
-        const leaves = (name: 'datumSelection' | 'highlightSelection') =>
+        const leaves = (name: 'datumSelection' | 'highlightGlowSelection') =>
             visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name), kind).filter(
                 (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
             );
-        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightSelection') };
+        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightGlowSelection') };
     };
 
 const CASES: Case[] = [
@@ -126,16 +124,15 @@ const CASES: Case[] = [
         name: 'treemap tile',
         data: HIERARCHY_SHADOW_DATA,
         glowSlot: 'fillGlow',
-        highlightGlowSlot: 'fillShadow',
-        oneSlot: true,
-        seriesGlow: false,
+        oneSlot: false,
+        seriesGlow: true,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
-        series: ({ shadow, highlight, itemStyler }) => ({
+        series: ({ shadow, glow, highlight, itemStyler }) => ({
             type: 'treemap',
             labelKey: 'name',
             sizeKey: 'size',
-            tile: { shadow, highlight },
+            tile: { shadow, glow, highlight },
             itemStyler,
         }),
         layers: hierarchyLayers(Rect),
@@ -144,9 +141,8 @@ const CASES: Case[] = [
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
         glowSlot: 'fillGlow',
-        highlightGlowSlot: 'fillShadow',
-        oneSlot: true,
-        seriesGlow: false,
+        oneSlot: false,
+        seriesGlow: true,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -201,7 +197,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
 
     // A series with one slot per item holds the glow where it would hold the shadow; the shadow is cast where it has no glow.
     const glowOf = (shape: Shape) => shape[testCase.glowSlot];
-    const highlightGlowOf = (shape: Shape) => shape[testCase.highlightGlowSlot ?? testCase.glowSlot];
+    const highlightGlowOf = (shape: Shape) => shape[testCase.glowSlot];
 
     describe('override', () => {
         it('casts the shadow that the styler returns for an item, and the series shadow for the others', async () => {
@@ -398,7 +394,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(inPlace[0].fillShadow).toMatchObject(ITEM_SHADOW);
         });
 
-        it('casts the glow of the styler from the highlight copy, with every field the styler sets', async () => {
+        it('casts the glow of the styler from the glow-only copy, with every field the styler sets', async () => {
             const { highlighted } = await create({
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
@@ -557,7 +553,8 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
         );
         await waitForChartStability(chart);
 
-        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).find(
+        // The glow of a tile in the hovered group is cast by its glow-only copy.
+        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'highlightGlowSelection'), Rect).find(
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 
