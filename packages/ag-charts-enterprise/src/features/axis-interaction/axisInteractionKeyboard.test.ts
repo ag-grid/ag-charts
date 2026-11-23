@@ -1,7 +1,14 @@
 import { vi } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, spyOnAnimationFrames, waitForChartStability } from 'ag-charts-community-test';
+import {
+    deproxy,
+    getSwapChainText,
+    setupMockCanvas,
+    spyOnAnimationFrames,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { BoxBounds } from 'ag-charts-core';
 import { setupMockConsole } from 'ag-charts-test';
 import type { AgChartInstance } from 'ag-charts-types';
@@ -281,5 +288,150 @@ describe('AxisInteraction keyboard navigation after an animated layout change', 
 
         expectProxiesMatchSettledLayout('x');
         expectProxiesMatchSettledLayout('y');
+    });
+});
+
+// Focus follows series item focus: it keeps its position when the focused tick survives an update and falls back to
+// the previous tick when the focused tick was the last one.
+describe('AxisInteraction keyboard focus when ticks change', () => {
+    setupMockCanvas();
+    setupMockConsole();
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, i) => ({ month, units: 10 + i }));
+    const withListener = { listeners: { click: () => {} } };
+
+    function monthOptions({
+        data = MONTHS,
+        x = withListener,
+        y = withListener,
+        ...rest
+    }: { data?: object[]; x?: object; y?: object } & AgCartesianChartOptions = {}): AgCartesianChartOptions {
+        return prepareEnterpriseTestOptions({
+            data,
+            series: [{ type: 'bar', xKey: 'month', yKey: 'units' }],
+            axes: {
+                x: { type: 'category', position: 'bottom', ...x },
+                y: { type: 'number', position: 'left', ...y },
+            },
+            ...rest,
+        });
+    }
+
+    async function focusXTick(options: AgCartesianChartOptions, label: string) {
+        chart = await createEnterpriseChart(options);
+        await waitForChartStability(chart);
+        const button = getTickButtons(chart, 'x').find((b) => b.getElement().textContent === label);
+        button!.focus();
+        expect(document.activeElement?.textContent).toBe(label);
+    }
+
+    async function update(options: AgCartesianChartOptions) {
+        await chart.update(options);
+        await waitForChartStability(chart);
+    }
+
+    function expectSeriesAreaFocused() {
+        expect(document.activeElement?.classList.contains('ag-charts-swapchain')).toBe(true);
+    }
+
+    test('moves to the previous tick when the focused last tick is removed', async () => {
+        await focusXTick(monthOptions(), 'Jun');
+
+        await update(monthOptions({ data: MONTHS.slice(0, -1) }));
+
+        const buttons = getTickButtons(chart, 'x');
+        expect(buttons.map((b) => b.getElement().textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May']);
+        expect(document.activeElement).toBe(buttons[4].getElement());
+        expect(buttons[4].getElement().tabIndex).toBe(0);
+    });
+
+    test('moves to the new last tick when several ticks after the focused tick are removed', async () => {
+        await focusXTick(monthOptions(), 'Jun');
+
+        await update(monthOptions({ data: MONTHS.slice(0, 3) }));
+
+        expect(document.activeElement?.textContent).toBe('Mar');
+    });
+
+    test('keeps its position when a tick before the focused tick is removed', async () => {
+        await focusXTick(monthOptions(), 'Mar');
+
+        await update(monthOptions({ data: MONTHS.filter(({ month }) => month !== 'Mar') }));
+
+        expect(document.activeElement).toBe(getTickButtons(chart, 'x')[2].getElement());
+        expect(document.activeElement?.textContent).toBe('Apr');
+    });
+
+    test('moves to the series area when no ticks are left', async () => {
+        await focusXTick(monthOptions(), 'Jun');
+
+        await update(monthOptions({ data: [] }));
+
+        expect(getTickButtons(chart, 'x')).toHaveLength(0);
+        expectSeriesAreaFocused();
+        expect(getSwapChainText()).toBe('No data to display');
+    });
+
+    test('moves to the series area when the axis loses its click listener', async () => {
+        await focusXTick(monthOptions(), 'Mar');
+
+        await update(monthOptions({ x: {} }));
+
+        expectSeriesAreaFocused();
+    });
+
+    test('moves to the series area when no axis interaction is left', async () => {
+        await focusXTick(monthOptions({ contextMenu: { enabled: false } }), 'Mar');
+
+        await update(monthOptions({ x: {}, y: {}, contextMenu: { enabled: false } }));
+
+        expectSeriesAreaFocused();
+    });
+
+    test('moves to the series area when the axis is removed', async () => {
+        const series = [
+            { type: 'bar' as const, xKey: 'month', yKey: 'units' },
+            { type: 'line' as const, xKey: 'month', yKey: 'units', yKeyAxis: 'y2' },
+        ];
+        const axes = {
+            x: { type: 'category' as const, position: 'bottom' as const },
+            y: { type: 'number' as const, position: 'left' as const },
+        };
+        chart = await createEnterpriseChart(
+            prepareEnterpriseTestOptions({
+                data: MONTHS,
+                series,
+                axes: { ...axes, y2: { type: 'number', position: 'right', ...withListener } },
+            })
+        );
+        await waitForChartStability(chart);
+        const y2 = deproxy(chart)
+            .ctx.axisManager.getAxisContext(ChartAxisDirection.Y)
+            .find(({ userAxisId }) => userAxisId === 'y2')!;
+        const [button] = getTickButtons(chart, y2.axisId);
+        button.focus();
+        expect(document.activeElement).toBe(button.getElement());
+
+        await update(prepareEnterpriseTestOptions({ data: MONTHS, series: [series[0]], axes }));
+
+        expectSeriesAreaFocused();
+    });
+
+    test('leaves focus alone when no tick had focus', async () => {
+        chart = await createEnterpriseChart(monthOptions());
+        await waitForChartStability(chart);
+        const outside = document.createElement('button');
+        document.body.append(outside);
+        outside.focus();
+
+        await update(monthOptions({ data: [] }));
+
+        expect(document.activeElement).toBe(outside);
+        outside.remove();
     });
 });
