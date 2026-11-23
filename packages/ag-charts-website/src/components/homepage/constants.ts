@@ -16,5 +16,10 @@ export const GLOBAL_UPDATE_EXAMPLES_VARIABLE = 'UPDATE_HOMEPAGE_EXAMPLES';
 export const GLOBAL_UPDATE_FUNCTION_NAME = 'updateHomepageExample';
 export const GLOBAL_UPDATE_FUNCTION = `${GLOBAL_UPDATE_FUNCTION_NAME}(options);`;
 
+export const HOMEPAGE_GALLERY_TABLIST_ID = 'homepage-gallery-tabs';
+export const HOMEPAGE_GALLERY_PANEL_ID = 'homepage-gallery-panel';
+export const HOMEPAGE_GALLERY_SELECT_EVENT = 'homepage-gallery-select';
+export const getHomepageGalleryTabId = (exampleId: string) => `homepage-gallery-tab-${exampleId}`;
+
 export const EXAMPLE_CODE_START = '/** EXAMPLE CODE START **/';
 export const EXAMPLE_CODE_END = '/** EXAMPLE CODE END **/';

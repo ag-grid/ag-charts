@@ -70,8 +70,6 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     className={classnames(styles.content, {
                         [styles.hasExampleConsoleLog]: hasExampleConsoleLog,
                     })}
-                    role="tabpanel"
-                    aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: Math.max(exampleHeight, MIN_HEIGHT) }}
                 >
                     {deferred ? (
@@ -113,7 +111,6 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         {!hideCode && (
                             <button
                                 className={classnames(styles.previewCodeToggle, 'button-secondary')}
-                                tabIndex={0}
                                 onClick={() => {
                                     setShowCode(!showCode);
                                 }}
