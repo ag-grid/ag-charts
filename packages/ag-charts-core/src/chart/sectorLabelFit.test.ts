@@ -183,9 +183,21 @@ describe('sectorLabelPlacer', () => {
             }
         );
 
-        it('places nothing when the wedge cannot hold an image-only label', () => {
-            const wedge = sector(Math.PI / 2, Math.PI / 16, 100, 120);
-            expect(place([image(40)], wedge, anchorAt(110, Math.PI / 2), overflowStrategy)).toBeUndefined();
+    });
+
+    describe('an image-only label the wedge cannot hold', () => {
+        const wedge = sector(Math.PI / 2, Math.PI / 16, 100, 120);
+        const anchor = anchorAt(110, Math.PI / 2);
+
+        it('is placed nowhere when it truncates', () => {
+            expect(place([image(40)], wedge, anchor, 'ellipsis')).toBeUndefined();
+        });
+
+        it('overflows the wedge whole when it does not truncate, like text', () => {
+            const placed = place([image(40)], wedge, anchor, undefined);
+            expect(placed?.text).toEqual([expect.objectContaining(image(40))]);
+            const box = { x: placed!.x - 20, y: placed!.y - 20, width: 40, height: 40 };
+            expect(isBoxInSector(box, wedge)).toBe(false);
         });
     });
 
@@ -217,5 +229,25 @@ describe('sectorLabelPlacer', () => {
             place('Alpha Bravo', wedge, anchorAt(100, Math.PI / 2), 'ellipsis', minimumFontSize);
             expect(layouts.mock.calls.length).toBeGreaterThan(1);
         });
+    });
+
+    it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
+        // The first pass, against the estimated block, loses text that the re-placed pass fits whole.
+        const s = sector(0.3, 0.6, 0, 80);
+        const placeGolf = (overflowStrategy?: 'hide') =>
+            sectorLabelPlacer(
+                anchorAt(40, 0.3),
+                s,
+                { top: 6, bottom: 6, left: 6, right: 6 },
+                {},
+                0,
+                0
+            )({
+                text: 'Golf',
+                policy: { wrapping: 'always', overflowStrategy },
+                font: { fontSize: 14, fontFamily: 'sans-serif' },
+            });
+        expect(placeGolf()?.text).toBe('Golf');
+        expect(placeGolf()).toEqual(placeGolf('hide'));
     });
 });

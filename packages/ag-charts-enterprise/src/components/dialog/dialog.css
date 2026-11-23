@@ -151,6 +151,12 @@
     flex-direction: row;
 }
 
+/* The last input of a row ends at its edge, so its label adds no margin to the width. */
+.ag-charts-dialog__labelled-input:last-child:not(.ag-charts-dialog__labelled-input--inline)
+    > .ag-charts-dialog__input-group-label {
+    margin-inline-end: 0;
+}
+
 .ag-charts-dialog__input {
     background: var(--ag-charts-input-background-color);
     border-color: var(--ag-charts-input-border-color);

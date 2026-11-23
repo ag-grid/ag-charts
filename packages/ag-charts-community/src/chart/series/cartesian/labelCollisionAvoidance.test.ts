@@ -2366,6 +2366,117 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // A positive threshold is clearance from other obstacles: it neither blocks a label on its own
+    // marker or shape nor takes room off the shape it is fitted to.
+    describe("collision.threshold ignores the label's own shape and marker", () => {
+        const sparsePoints = [
+            { x: 3, y: 20, label: 'Alpha' },
+            { x: 9, y: 60, label: 'Beta' },
+            { x: 15, y: 40, label: 'Gamma' },
+            { x: 21, y: 70, label: 'Delta' },
+        ];
+        const sparseAxes = {
+            x: { position: 'bottom', type: 'number', min: 0, max: 24 },
+            y: { position: 'left', type: 'number', min: 0, max: 100 },
+        };
+
+        it('keeps directional labels whose threshold exceeds their spacing beside their own markers', async () => {
+            chart = await createChart({
+                data: sparsePoints,
+                legend: { enabled: false },
+                axes: sparseAxes,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        size: 16,
+                        label: {
+                            enabled: true,
+                            placement: 'top',
+                            spacing: 5,
+                            collision: { alwaysShow: false, threshold: 12 },
+                        },
+                    },
+                ],
+            } as AgCartesianChartOptions);
+            expect(placedLabelPlacements()).toHaveLength(sparsePoints.length);
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        const insideLabelTexts = async (type: 'line' | 'area' | 'scatter', threshold: number) => {
+            chart?.destroy();
+            chart = await createChart({
+                data: sparsePoints,
+                legend: { enabled: false },
+                axes: sparseAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        ...(type === 'scatter'
+                            ? { labelKey: 'label', size: 40 }
+                            : { marker: { enabled: true, size: 40 } }),
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            formatter: ({ datum }: any) => datum.label,
+                            collision: { alwaysShow: false, threshold },
+                        },
+                    },
+                ],
+            } as any);
+            return renderedLabelTexts();
+        };
+
+        for (const type of ['line', 'area', 'scatter'] as const) {
+            it(`${type}: fits inside labels to the whole marker at a positive threshold`, async () => {
+                const unspaced = await insideLabelTexts(type, 0);
+                expect(unspaced).toHaveLength(sparsePoints.length);
+                expect(await insideLabelTexts(type, 12)).toEqual(unspaced);
+            });
+        }
+
+        const insideBarOptions = (threshold: number): AgCartesianChartOptions => ({
+            data: [
+                { cat: 'A', value: 8 },
+                { cat: 'B', value: 60 },
+                { cat: 'C', value: 14 },
+                { cat: 'D', value: 90 },
+                { cat: 'E', value: 22 },
+            ],
+            legend: { enabled: false },
+            axes: { y: { type: 'number', position: 'left', min: 0, max: 100 } },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'cat',
+                    yKey: 'value',
+                    label: {
+                        enabled: true,
+                        placement: 'inside-center',
+                        truncate: true,
+                        wrapping: 'on-space',
+                        formatter: () => 'Inside label wrapped and truncated to the whole of its own bar',
+                        collision: { threshold },
+                    },
+                },
+            ],
+        });
+
+        it('bar: fits inside labels to the whole bar at a positive threshold', async () => {
+            chart = await createChart(insideBarOptions(0));
+            const unspaced = renderedLabelTexts();
+            expect(unspaced.some((text) => text.includes('…'))).toBe(true);
+            chart.destroy();
+            chart = await createChart(insideBarOptions(4));
+            expect(renderedLabelTexts()).toEqual(unspaced);
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
     // `label.spacing` is the gap in px between a marker-based label and its anchor point; a larger value
     // pushes the label further from the marker along its placement direction.
     describe('label.spacing (acceptance criteria)', () => {

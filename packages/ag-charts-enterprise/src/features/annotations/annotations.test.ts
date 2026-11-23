@@ -5,9 +5,11 @@ import {
     clickAction,
     deproxy,
     doubleClickAction,
+    dragAction,
     expectErrorsCalls,
     expectWarningsCalls,
     findAxis,
+    getAxisCoordinate,
     getAxisLayoutState,
     getSeriesRect,
     hoverAction,
@@ -36,6 +38,7 @@ import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
     createAnnotationsChart,
+    openAnnotationSettings,
     restoreAnnotations,
 } from './test/fixture';
 
@@ -92,8 +95,8 @@ describe('Annotations', () => {
     async function commitInput(container: HTMLElement, label: string, value: string) {
         const input = container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
         input.value = value;
-        // A date-time input commits on blur, the others on change.
-        input.dispatchEvent(new Event(input.type === 'datetime-local' ? 'blur' : 'change'));
+        // A date or date-time input commits on blur, the others on change.
+        input.dispatchEvent(new Event(input.type === 'number' || input.type === 'text' ? 'change' : 'blur'));
         await waitForChartStability(chart);
     }
 
@@ -840,6 +843,42 @@ describe('Annotations', () => {
             );
             await compare();
         });
+
+        // A horizontal bar series swaps its axes, so the `y` of a point is the category axis.
+        it('should render and round-trip category `y` values on a horizontal bar chart', async () => {
+            const annotations = [
+                { type: 'line', start: { x: 5, y: 'Q1' }, end: { x: 5, y: 'Q3' } },
+                {
+                    type: 'line',
+                    start: { x: 20, y: { value: 'Q1', groupPercentage: -1 } },
+                    end: { x: 20, y: { value: 'Q3', groupPercentage: 1 } },
+                },
+                { type: 'arrow-up', x: 10, y: 'Q2' },
+                { type: 'horizontal-line', value: 'Q4' },
+            ] as AgAnnotation[];
+
+            await prepareChart(
+                { annotations },
+                {
+                    ...BAR_SERIES_OPTIONS,
+                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'category', position: 'left' },
+                        y: { type: 'number', position: 'bottom' },
+                    },
+                }
+            );
+            expectWarningsCalls().toHaveLength(0);
+            await compare();
+
+            // The state the chart writes must restore without losing the category `y`.
+            const state = chart.getState().annotations;
+            expect(state).toMatchObject(annotations);
+            await chart.setState({ ...chart.getState(), annotations: state });
+            await waitForChartStability(chart);
+            expectWarningsCalls().toHaveLength(0);
+            expect(chart.getState().annotations).toEqual(state);
+        });
     });
 
     describe('bigint coordinates (AG-16608)', () => {
@@ -1208,22 +1247,24 @@ describe('Annotations', () => {
             await clickAction(centre.x, centre.y)(chart);
             await waitForChartStability(chart);
 
-            const lockSwitch = () =>
-                deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-checked]');
-            expect(lockSwitch()?.getAttribute('aria-checked')).toBe('true');
-            expect(lockSwitch()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
-            expect(lockSwitch()?.title).toBe('Unlock');
-            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Lock');
-            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
+            const lockButton = () =>
+                deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-label="Lock"]');
+            expect(lockButton()?.hasAttribute('role')).toBe(false);
+            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
+            expect(lockButton()?.title).toBe('Unlock');
+            expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
+            expect(lockButton()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
 
-            lockSwitch()!.click();
+            lockButton()!.click();
             await waitForChartStability(chart);
 
-            expect(lockSwitch()?.getAttribute('aria-checked')).toBe('false');
-            expect(lockSwitch()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
-            expect(lockSwitch()?.title).toBe('Lock');
-            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Lock');
-            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
+            expect(lockButton()?.hasAttribute('role')).toBe(false);
+            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
+            expect(lockButton()?.title).toBe('Lock');
+            expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
+            expect(lockButton()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
         });
     });
 
@@ -1282,25 +1323,27 @@ describe('Annotations', () => {
             return scale;
         };
 
-        // Selects the vertical line through the centre of the band of `at`, and opens its settings.
-        async function openVerticalLineCoordinates(
+        // Selects the cross line at `at` on its axis, or through the centre of the band of `at`, and opens its settings.
+        async function openCrossLineSettings(
+            options: AgCartesianChartOptions,
+            type: 'horizontal-line' | 'vertical-line',
+            value: AgAnnotationValue,
+            at: string | number | Date
+        ) {
+            await prepareChart({ annotations: [{ type, value }] }, options);
+            const { x, y, width, height } = getSeriesRect(chart);
+            const position = type === 'horizontal-line' ? 'left' : 'bottom';
+            const along = getAxisCoordinate(chart, position, at) + (findAxis(chart, position).scale.bandwidth ?? 0) / 2;
+            return openAnnotationSettings(
+                chart,
+                type === 'horizontal-line' ? { x: x + width / 2, y: y + along } : { x: x + along, y: y + height / 2 }
+            );
+        }
+        const openVerticalLineCoordinates = (
             options: AgCartesianChartOptions,
             value: AgAnnotationValue,
             at: string | Date
-        ) {
-            await prepareChart({ annotations: [{ type: 'vertical-line', value }] }, options);
-            const scale = getBandScale();
-            const { x, y, height } = getSeriesRect(chart);
-            const lineX = x + scale.convert(at) + scale.bandwidth / 2;
-            await hoverAction(lineX, y + height / 2)(chart);
-            await clickAction(lineX, y + height / 2)(chart);
-            await waitForChartStability(chart);
-
-            const { body } = deproxy(chart).ctx.agDocument;
-            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
-            await waitForChartStability(chart);
-            return body;
-        }
+        ) => openCrossLineSettings(options, 'vertical-line', value, at);
 
         describe('on a category axis', () => {
             const categoryOptions: AgCartesianChartOptions = {
@@ -1322,7 +1365,7 @@ describe('Annotations', () => {
             it('places an offset of 50 at the midpoint between the band and the next, padding included', async () => {
                 const body = await openAtQ2();
 
-                await commitInput(body, 'Value offset: X (%)', '50');
+                await commitInput(body, 'Value: X offset %', '50');
 
                 const [{ value }] = chart.getState().annotations as Array<{
                     value: { value: string; groupPercentage: number };
@@ -1371,7 +1414,7 @@ describe('Annotations', () => {
                 );
                 const typed = (date: Date) => {
                     const pad = (n: number) => String(n).padStart(2, '0');
-                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T00:00:00`;
+                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
                 };
                 const stateDate = () =>
                     (chart.getState().annotations as Array<{ value: { value: { value: string } } }>)[0].value.value
@@ -1385,16 +1428,163 @@ describe('Annotations', () => {
             });
         });
 
-        it('edits the selected annotation and follows an undo', async () => {
-            await prepareChart({ annotations: [{ type: 'horizontal-line', value: 50 }] });
+        // Selects the horizontal line through the middle of the series area, and opens its settings.
+        async function openHorizontalLineSettings(annotations: AgAnnotation[]) {
+            await prepareChart({ annotations });
             const { x, y, width, height } = getSeriesRect(chart);
-            await hoverAction(x + width / 2, y + height / 2)(chart);
-            await clickAction(x + width / 2, y + height / 2)(chart);
-            await waitForChartStability(chart);
+            const at = { x: x + width / 2, y: y + height / 2 };
+            return { at, body: await openAnnotationSettings(chart, at) };
+        }
 
-            const { body } = deproxy(chart).ctx.agDocument;
-            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
-            await waitForChartStability(chart);
+        describe('at the tick size of the axis', () => {
+            const times = (start: number, step: number) => [0, 1, 2, 3].map((i) => new Date(start + i * step));
+            const MINUTE = 60_000;
+            const DAY = 24 * 60 * MINUTE;
+            const QUARTER_HOURS = times(Date.UTC(2024, 0, 5, 9), 15 * MINUTE);
+            // Midnight UTC, which is 01:00 in the time zone of the tests.
+            const SUMMER_DAYS = times(Date.UTC(2024, 6, 2), DAY);
+            const date = (value: Date) => ({ __type: 'date' as const, value: value.toISOString() });
+
+            // `axis` is spread in, as `tickSize` is not one of the public axis options.
+            const numberOptions = (values: number[], axis: object = {}): AgCartesianChartOptions => ({
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: values.map((value, index) => ({ x: index, y: value })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left', ...axis } },
+            });
+            const timeOptions = (
+                values: Date[],
+                axis: object,
+                series: 'line' | 'bar' = 'line'
+            ): AgCartesianChartOptions => ({
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: values.map((value, index) => ({ x: value, y: index + 1 })),
+                series: [{ type: series, xKey: 'x', yKey: 'y' }],
+                axes: { x: { position: 'bottom', ...axis }, y: { type: 'number', position: 'left' } },
+            });
+            const banded = (value: Date) => ({ value: date(value), groupPercentage: 0.5 });
+
+            const THOUSANDTHS = [1, 1.001, 1.002, 1.004];
+            const POWERS_OF_TEN = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+            const BETWEEN_QUARTER_HOURS = new Date(Date.UTC(2024, 0, 5, 9, 20, 30, 500));
+
+            it.each<
+                [
+                    string,
+                    AgCartesianChartOptions,
+                    'horizontal-line' | 'vertical-line',
+                    AgAnnotationValue,
+                    number | Date,
+                    string[],
+                ]
+            >([
+                [
+                    'a number at the step of the data',
+                    numberOptions(THOUSANDTHS),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', '0.001', '1.002'],
+                ],
+                [
+                    'a number at a `tickSize` ahead of the data',
+                    numberOptions(THOUSANDTHS, { tickSize: 0.25 }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', '0.25', '1.00'],
+                ],
+                [
+                    'a number at the format of the crosshair label ahead of both, which hides a step of the `tickSize`',
+                    numberOptions(THOUSANDTHS, { tickSize: 0.25, crosshair: { label: { format: '.1f' } } }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', 'any', '1.0'],
+                ],
+                [
+                    'a number at the format of the crosshair label, which leaves the step of the data unread',
+                    numberOptions(THOUSANDTHS, { crosshair: { label: { format: '.3f' } } }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', 'any', '1.002'],
+                ],
+                [
+                    'a number on a log axis at the step of the data',
+                    numberOptions(POWERS_OF_TEN, { type: 'log' }),
+                    'horizontal-line',
+                    12.3456,
+                    12.3456,
+                    ['number', '0.09', '12.35'],
+                ],
+                [
+                    'a time to the minute for data a quarter of an hour apart',
+                    timeOptions(QUARTER_HOURS, { type: 'time' }),
+                    'vertical-line',
+                    date(BETWEEN_QUARTER_HOURS),
+                    BETWEEN_QUARTER_HOURS,
+                    ['datetime-local', '60', '2024-01-05T09:20'],
+                ],
+                [
+                    'a time as a date at a `tickSize` of a day',
+                    timeOptions(QUARTER_HOURS, { type: 'time', tickSize: 'day' }),
+                    'vertical-line',
+                    date(BETWEEN_QUARTER_HOURS),
+                    BETWEEN_QUARTER_HOURS,
+                    ['date', '', '2024-01-05'],
+                ],
+                [
+                    'a time as a date for daily data',
+                    timeOptions(SUMMER_DAYS, { type: 'time' }),
+                    'vertical-line',
+                    date(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1],
+                    ['date', '', '2024-07-03'],
+                ],
+                [
+                    'a time band as a date for bands of a day',
+                    timeOptions(SUMMER_DAYS, { type: 'unit-time', unit: 'day' }, 'bar'),
+                    'vertical-line',
+                    banded(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1],
+                    ['date', '', '2024-07-03'],
+                ],
+                [
+                    'an ordinal time as a date for daily bars',
+                    timeOptions(SUMMER_DAYS, { type: 'ordinal-time' }, 'bar'),
+                    'vertical-line',
+                    banded(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1],
+                    ['date', '', '2024-07-03'],
+                ],
+            ])('shows %s', async (_name, options, type, value, at, expected) => {
+                const body = await openCrossLineSettings(options, type, value, at);
+                const label = type === 'horizontal-line' ? 'Value: Y' : 'Value: X';
+
+                const input = body.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
+
+                expect([input.type, input.getAttribute('step') ?? '', input.value]).toEqual(expected);
+            });
+
+            it('changes the date of a time and keeps its time of day, and takes an unchanged date as no change', async () => {
+                const body = await openCrossLineSettings(
+                    timeOptions(SUMMER_DAYS, { type: 'time' }),
+                    'vertical-line',
+                    date(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1]
+                );
+
+                await commitInput(body, 'Value: X', '2024-07-03');
+                expect(chart.getState().annotations).toMatchObject([{ value: date(SUMMER_DAYS[1]) }]);
+
+                await commitInput(body, 'Value: X', '2024-07-05');
+                expect(chart.getState().annotations).toMatchObject([{ value: date(SUMMER_DAYS[3]) }]);
+            });
+        });
+
+        it('edits the selected annotation and follows an undo', async () => {
+            const { body } = await openHorizontalLineSettings([{ type: 'horizontal-line', value: 50 }]);
 
             const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
             input.value = '60';
@@ -1405,6 +1595,31 @@ describe('Annotations', () => {
             await pressKey(chart, 'z', { ctrlKey: true });
             expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
             expect(input.value).toBe('50');
+        });
+
+        it('stays open while its annotation is clicked or dragged, and closes on selecting another annotation', async () => {
+            const { at, body } = await openHorizontalLineSettings([
+                { type: 'horizontal-line', value: 50 },
+                { type: 'horizontal-line', value: 10 },
+            ]);
+            const dialog = () => body.querySelector('.ag-charts-dialog');
+            expect(dialog()).not.toBeNull();
+
+            await clickAction(at.x, at.y)(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).not.toBeNull();
+
+            await dragAction(at, { x: at.x, y: at.y - 40 })(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).not.toBeNull();
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
+            expect(Number(input.value)).toBeGreaterThan(50);
+
+            const otherY = getSeriesRect(chart).y + findAxis(chart, 'left').scale.convert(10);
+            await hoverAction(at.x, otherY)(chart);
+            await clickAction(at.x, otherY)(chart);
+            await waitForChartStability(chart);
+            expect(dialog()).toBeNull();
         });
     });
 
@@ -1735,6 +1950,76 @@ describe('Annotations', () => {
             historyManager.redo();
             await waitForChartStability(chart);
             expect(annotation().stroke).toBe('#00ff00');
+        });
+
+        describe('aria-expanded of the options toolbar', () => {
+            const expanded = (title: string) =>
+                chartBody().querySelector<HTMLElement>(`button[title="${title}"]`)!.getAttribute('aria-expanded');
+            const LINE = 'button[title="Line Color"]';
+            const closers: Array<[string, () => Promise<void>]> = [
+                ['Escape', () => pressEscape()],
+                ['cancel', () => press(CANCEL)],
+                ['confirm', () => press(CONFIRM)],
+                ['pressing the button again', () => press(LINE)],
+            ];
+
+            it.each(closers)(
+                'is true while the colour picker is open and false after %s closes it',
+                async (_, close) => {
+                    await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
+                    expect(expanded('Line Color')).toBe('false');
+
+                    await press(LINE);
+                    expect(hasPicker()).toBe(true);
+                    expect(expanded('Line Color')).toBe('true');
+
+                    await pickColor(GREEN);
+                    expect(expanded('Line Color')).toBe('true');
+
+                    await close();
+                    expect(hasPicker()).toBe(false);
+                    expect(expanded('Line Color')).toBe('false');
+                }
+            );
+
+            it('is false after the annotation is deselected with the picker open', async () => {
+                await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
+                await press(LINE);
+                const lineButton = chartBody().querySelector<HTMLElement>(LINE)!;
+                expect(lineButton.getAttribute('aria-expanded')).toBe('true');
+
+                const { x, y } = getSeriesRect(chart);
+                await clickAt({ x: x + 5, y: y + 5 });
+                expect(hasPicker()).toBe(false);
+                expect(lineButton.getAttribute('aria-expanded')).toBe('false');
+            });
+
+            it.each([
+                ['the toolbar button', async () => press('button[title="Settings"]')],
+                [
+                    'a double-click on the annotation',
+                    async () => {
+                        const { x, y, width, height } = getSeriesRect(chart);
+                        await hoverAction(x + width / 2, y + height / 2)(chart);
+                        await doubleClickAction(x + width / 2, y + height / 2)(chart);
+                        await waitForChartStability(chart);
+                    },
+                ],
+            ])(
+                'is true on Settings while the dialog opened by %s is open and false after it closes',
+                async (_, open) => {
+                    await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
+                    expect(expanded('Settings')).toBe('false');
+
+                    await open();
+                    expect(chartBody().querySelector('.ag-charts-dialog')).not.toBeNull();
+                    expect(expanded('Settings')).toBe('true');
+
+                    await press('.ag-charts-dialog__close-button');
+                    expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+                    expect(expanded('Settings')).toBe('false');
+                }
+            );
         });
 
         it('cancels a colour from the settings dialog without undoing earlier dialog edits', async () => {
@@ -2532,9 +2817,9 @@ describe('Annotations', () => {
             it('shows it as locked when the restored annotation is locked', async () => {
                 await restoreWhileSelected({ type: 'horizontal-line', value: 50, locked: true });
 
-                const lockSwitch = body().querySelector<HTMLElement>('button[aria-checked]');
-                expect(lockSwitch?.getAttribute('aria-checked')).toBe('true');
-                expect(lockSwitch?.getAttribute('aria-label')).toBe('Unlock');
+                const lockButton = body().querySelector<HTMLElement>('button[aria-label="Unlock"]');
+                expect(lockButton).not.toBeNull();
+                expect(lockButton?.hasAttribute('aria-checked')).toBe(false);
             });
         });
 

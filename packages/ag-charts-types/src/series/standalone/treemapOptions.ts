@@ -5,7 +5,12 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -254,6 +259,7 @@ export interface AgTreemapSeriesItemStylerParams<TDatum, TContext = ContextDefau
     extends
         DatumCallbackParams<TDatum, AgTreemapHighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgTreemapSeriesOptionsKeys<TDatum>,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */

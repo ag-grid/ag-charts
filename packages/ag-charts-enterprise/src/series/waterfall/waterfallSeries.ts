@@ -1089,9 +1089,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const { xKey, yKey } = options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
         const candidateStateString = this.getCandidateStateString(datumIndex);
+        const { shadow, glow } = this.getItemConfig(itemType);
         const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
 
         return {
@@ -1102,7 +1103,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             datum,
             xKey,
             yKey,
-            highlightState: highlightStateString,
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: _ModuleSupport.toHighlightString(castState),
             selectionState: selectionStateString,
             candidateState: candidateStateString,
             ...style,
@@ -1215,7 +1218,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     config: fontWithSize(label, node.label?.fittedFontSize),
                     box: expandPlacementLabelBoxExtent(label),
                 };
-            }
+            },
+            this.id
         );
     }
 
@@ -1272,6 +1276,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                             configuredFit == null || styled == null
                                 ? configuredFit
                                 : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding },
+                        entityIndex: node.datumIndex,
                     }))
                 );
             } else {
@@ -1290,7 +1295,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         threshold,
                         false,
                         configuredFit,
-                        node
+                        node,
+                        node.datumIndex
                     )
                 );
             }

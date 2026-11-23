@@ -40,7 +40,7 @@ import type {
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
-import { LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
+import { AnnotationOptions, LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type {
     AnnotationDatum,
@@ -190,12 +190,12 @@ export class Annotations extends AbstractModuleInstance {
 
         this.configuredMagnetEnabled = enabled;
         this.magnetEnabled = enabled;
-        this.toolbar.setMagnetPressed(enabled);
+        this.toolbar.setMagnetChecked(enabled);
     }
 
     private toggleMagnet() {
         this.magnetEnabled = !this.magnetEnabled;
-        this.toolbar.setMagnetPressed(this.magnetEnabled);
+        this.toolbar.setMagnetChecked(this.magnetEnabled);
     }
 
     private trackMagnetModifier(sourceEvent: Pick<MouseEvent, 'ctrlKey' | 'metaKey'> | undefined) {
@@ -297,7 +297,11 @@ export class Annotations extends AbstractModuleInstance {
             select: (index?: number, previous?: number) => {
                 const { annotations, optionsToolbar } = this;
 
-                this.hideOverlays();
+                // Opening a toolbar menu hides the dialog and the reverse, so a visible dialog means no menu is open.
+                const keepsDialog = index != null && index === previous && this.settingsDialog.isVisible();
+                if (!keepsDialog) {
+                    this.hideOverlays();
+                }
                 if (!this.textInput.isVisible()) {
                     this.toolbar.clearActiveButton();
                     this.toolbar.resetButtonIcons();
@@ -495,6 +499,7 @@ export class Annotations extends AbstractModuleInstance {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
+                    onHide: () => this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, false),
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
@@ -554,6 +559,7 @@ export class Annotations extends AbstractModuleInstance {
                 };
 
                 this.settingsDialog.show(datum, options);
+                this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, true);
             },
         });
     }

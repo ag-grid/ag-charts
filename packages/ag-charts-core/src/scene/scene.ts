@@ -20,7 +20,7 @@ import {
     prepareSceneNodeHighlight,
     registerDebugStatsConsumer,
 } from './sceneDebug';
-import { destroyShadowScratch } from './shadowEngine';
+import { destroyShadowScratch, startShadowFrame } from './shadowEngine';
 
 type EventMap = {
     'scene-changed': object;
@@ -276,6 +276,7 @@ export class Scene extends EventEmitter<EventMap> {
             };
         }
 
+        startShadowFrame(this);
         prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;

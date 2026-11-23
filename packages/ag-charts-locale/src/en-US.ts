@@ -369,30 +369,30 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputCoordinatesEndX: 'End: X',
     // Label and alt text for the annotation dialog's end point y coordinate input, e.g. 'End: Y'
     dialogInputCoordinatesEndY: 'End: Y',
-    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point x coordinate input, e.g. 'Retracement end: X'
-    dialogInputCoordinatesEndRetracementX: 'Retracement end: X',
-    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point y coordinate input, e.g. 'Retracement end: Y'
-    dialogInputCoordinatesEndRetracementY: 'Retracement end: Y',
+    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point x coordinate input, e.g. 'Retracement: X'
+    dialogInputCoordinatesEndRetracementX: 'Retracement: X',
+    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point y coordinate input, e.g. 'Retracement: Y'
+    dialogInputCoordinatesEndRetracementY: 'Retracement: Y',
     // Alt text for the annotation dialog's single value x coordinate input, e.g. 'Value: X'
     dialogInputCoordinatesValueX: 'Value: X',
     // Alt text for the annotation dialog's single value y coordinate input, e.g. 'Value: Y'
     dialogInputCoordinatesValueY: 'Value: Y',
-    // Label and alt text for the annotation dialog's input for the position of the start point x coordinate within its category, time band or bar, as a percentage, e.g. 'Start offset: X (%)'
-    dialogInputCoordinatesStartOffsetX: 'Start offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the start point y coordinate within its category, time band or bar, as a percentage, e.g. 'Start offset: Y (%)'
-    dialogInputCoordinatesStartOffsetY: 'Start offset: Y (%)',
-    // Label and alt text for the annotation dialog's input for the position of the end point x coordinate within its category, time band or bar, as a percentage, e.g. 'End offset: X (%)'
-    dialogInputCoordinatesEndOffsetX: 'End offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the end point y coordinate within its category, time band or bar, as a percentage, e.g. 'End offset: Y (%)'
-    dialogInputCoordinatesEndOffsetY: 'End offset: Y (%)',
-    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point x coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement end offset: X (%)'
-    dialogInputCoordinatesEndRetracementOffsetX: 'Retracement end offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point y coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement end offset: Y (%)'
-    dialogInputCoordinatesEndRetracementOffsetY: 'Retracement end offset: Y (%)',
-    // Label and alt text for the annotation dialog's input for the position of the single value x coordinate within its category, time band or bar, as a percentage, e.g. 'Value offset: X (%)'
-    dialogInputCoordinatesValueOffsetX: 'Value offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the single value y coordinate within its category, time band or bar, as a percentage, e.g. 'Value offset: Y (%)'
-    dialogInputCoordinatesValueOffsetY: 'Value offset: Y (%)',
+    // Label and alt text for the annotation dialog's input for the position of the start point x coordinate within its category, time band or bar, as a percentage, e.g. 'Start: X offset %'
+    dialogInputCoordinatesStartOffsetX: 'Start: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the start point y coordinate within its category, time band or bar, as a percentage, e.g. 'Start: Y offset %'
+    dialogInputCoordinatesStartOffsetY: 'Start: Y offset %',
+    // Label and alt text for the annotation dialog's input for the position of the end point x coordinate within its category, time band or bar, as a percentage, e.g. 'End: X offset %'
+    dialogInputCoordinatesEndOffsetX: 'End: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the end point y coordinate within its category, time band or bar, as a percentage, e.g. 'End: Y offset %'
+    dialogInputCoordinatesEndOffsetY: 'End: Y offset %',
+    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point x coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement: X offset %'
+    dialogInputCoordinatesEndRetracementOffsetX: 'Retracement: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point y coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement: Y offset %'
+    dialogInputCoordinatesEndRetracementOffsetY: 'Retracement: Y offset %',
+    // Label and alt text for the annotation dialog's input for the position of the single value x coordinate within its category, time band or bar, as a percentage, e.g. 'Value: X offset %'
+    dialogInputCoordinatesValueOffsetX: 'Value: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the single value y coordinate within its category, time band or bar, as a percentage, e.g. 'Value: Y offset %'
+    dialogInputCoordinatesValueOffsetY: 'Value: Y offset %',
     // Alt text for the annotation dialog's channel height input, e.g. 'Height: Y'
     dialogInputCoordinatesHeightY: 'Height: Y',
     // Alt text for the annotation dialog's disjoint channel start height input, e.g. 'Start height: Y'

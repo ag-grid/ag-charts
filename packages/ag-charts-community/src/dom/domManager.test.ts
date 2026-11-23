@@ -1361,6 +1361,15 @@ describe('DOMManager', () => {
                 expect(cssVar(dm, 'disabled-border-color')).toBe('transparent');
                 expect(cssVar(dm, 'disabled-border-width')).toBe('var(--ag-charts-button-border-width)');
             });
+
+            // The toolbar adds this width to a length in calc(), which rejects a unitless zero.
+            it('buttonBorder set to false has a zero width with a unit', () => {
+                const { dm } = setup();
+
+                dm.setThemeParameters({ buttonBorder: false });
+
+                expect(cssVar(dm, 'border-width')).toBe('0px');
+            });
         });
     });
 

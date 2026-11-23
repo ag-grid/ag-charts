@@ -19,12 +19,14 @@ import {
 import { toTextString } from '../text/textUtil';
 import {
     type LabelFit,
+    type OverflowPlacement,
     drawnLineHeight,
     findLargestFontSizeDescending,
     fitLabelTextToRegion,
     fontWithSize,
     isErased,
     keptContent,
+    lostContent,
     resolveMinimumFontSize,
     showsContent,
     withFitRegion,
@@ -409,7 +411,13 @@ function fitSectorLabelToWedge(
     const holdsColumn = sectorColumnTest(sector);
     // A retry that only adds clearance keeps the line height and block, so it reuses their rect and region.
     let probed: { lineHeight: number; block?: BlockSize; rect: SectorLabelRect; region: FitRegion } | undefined;
-    const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
+    const place = (
+        sized: FontOptions,
+        atFloor: boolean,
+        overflow: OverflowPlacement,
+        inset: number,
+        block: BlockSize | undefined
+    ) => {
         const lineHeight = drawnLineHeight(sized);
         if (probed?.lineHeight !== lineHeight || !sameBlock(probed.block, block)) {
             const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
@@ -436,7 +444,7 @@ function fitSectorLabelToWedge(
         const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
         // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
         // room on one side: the text would be wrapped for bands it is then not drawn in.
-        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored);
+        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored, overflow);
         return {
             placed: { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY + fitted.offsetY },
             rectHeight: rect.height,
@@ -449,10 +457,10 @@ function fitSectorLabelToWedge(
      * for the size it turned out to be — a block only earns the anchor, or the band that suits it, once
      * its own width and height are known.
      */
-    const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
+    const placeInWedgeAs = (sized: FontOptions, atFloor: boolean, overflow: OverflowPlacement) => {
         let inset = 0;
         let block: BlockSize | undefined;
-        const first = place(sized, atFloor, inset, block);
+        const first = place(sized, atFloor, overflow, inset, block);
         if (first == null) {
             return { placed: { text: '', x: 0, y: 0 }, inWedge: false };
         }
@@ -482,7 +490,7 @@ function fitSectorLabelToWedge(
             }
             inset = nextInset;
             block = nextBlock;
-            const next = place(sized, atFloor, inset, block);
+            const next = place(sized, atFloor, overflow, inset, block);
             if (next == null) {
                 break;
             }
@@ -494,10 +502,21 @@ function fitSectorLabelToWedge(
         const kept = showsContent(chosen.text) ? chosen.text : '';
         return { placed: { ...chosen, text: kept }, inWedge: best != null };
     };
+    // Placed as before; a preserved label that lost text is then hung, else centred, past the wedge.
+    const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
+        const placed = placeInWedgeAs(sized, atFloor, 'none');
+        if (!atFloor || fit.overflowStrategy != null || !lostContent(text, placed.placed.text)) return placed;
+        const hung = placeInWedgeAs(sized, atFloor, 'hang');
+        if (hung.inWedge) return hung;
+        const centred = placeInWedgeAs(sized, atFloor, 'centre');
+        return centred.inWedge ? centred : hung;
+    };
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
     if (floor >= font.fontSize) return placeInWedge(font, true).placed;
     // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
     const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
+    // The floor rung is always placed, so its placement is the fallback rather than placed twice.
+    let atFloorPlaced: PlacedSectorLabel | undefined;
     // A smaller size can reflow into a wider block, so the ladder is scanned down rather than bisected.
     const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
         const sized = fontWithSize(font, fontSize);
@@ -509,10 +528,11 @@ function fitSectorLabelToWedge(
             return undefined;
         }
         const { placed, inWedge } = placeInWedge(sized, atFloor);
+        if (atFloor) atFloorPlaced = placed;
         if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });
-    return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
+    return found ?? atFloorPlaced!;
 }
 
 /**

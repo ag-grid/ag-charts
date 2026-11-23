@@ -6,6 +6,7 @@ import {
     customMarkerShape,
     getSeriesAt,
     getSeriesSelectionNodes,
+    hoverDatum,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
@@ -17,10 +18,10 @@ import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 
 const RADAR_DATA = [
-    { subject: 'a', value: 3, low: 1 },
-    { subject: 'b', value: 6, low: 2 },
-    { subject: 'c', value: 4, low: 1 },
-    { subject: 'd', value: 8, low: 3 },
+    { subject: 'a', value: 3, low: 1, close: 2 },
+    { subject: 'b', value: 6, low: 2, close: 4 },
+    { subject: 'c', value: 4, low: 1, close: 3 },
+    { subject: 'd', value: 8, low: 3, close: 5 },
 ];
 
 type Marker = _ModuleSupport.Marker;
@@ -237,6 +238,69 @@ describe('marker shadow', () => {
             for (const marker of high) {
                 expect(marker.fillShadow).toMatchObject(HIGH_SHADOW);
             }
+        });
+    });
+
+    describe.each([
+        {
+            name: 'radar-line',
+            selection: 'itemSelection',
+            copies: 1,
+            series: { type: 'radar-line', angleKey: 'subject', radiusKey: 'value' },
+            style: (size: number) => ({ marker: { size } }),
+        },
+        {
+            name: 'range-area',
+            selection: 'datumSelection',
+            copies: 2,
+            series: { type: 'range-area', xKey: 'subject', yHighKey: 'value', yLowKey: 'low' },
+            style: (size: number) => ({ item: { low: { marker: { size } }, high: { marker: { size } } } }),
+        },
+        {
+            name: 'hlc',
+            selection: 'datumSelection',
+            copies: 3,
+            series: { type: 'hlc', xKey: 'subject', highKey: 'value', lowKey: 'low', closeKey: 'close' },
+            style: (size: number) => ({
+                item: { high: { marker: { size } }, low: { marker: { size } }, close: { marker: { size } } },
+            }),
+        },
+    ] as const)('the hovered marker of $name with a series styler that sizes it by highlight state', (testCase) => {
+        const HOVERED_SIZE = 20;
+        const DEFAULT_SIZE = 8;
+
+        it('casts the shadow from the marker size of its highlighted-item call, in place', async () => {
+            await create({
+                data: RADAR_DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    {
+                        ...testCase.series,
+                        marker: {
+                            enabled: true,
+                            itemStyler: (params: { size: number }) => ({
+                                shadow: { enabled: true, blur: params.size },
+                            }),
+                        },
+                        styler: (params: { highlightState: string }) =>
+                            testCase.style(params.highlightState === 'highlighted-item' ? HOVERED_SIZE : DEFAULT_SIZE),
+                    },
+                ],
+            } as AgChartOptions);
+            const blurs = () =>
+                getSeriesSelectionNodes<Marker>(chart!, testCase.selection)
+                    .filter((marker) => marker.visible)
+                    .map((marker) => marker.fillShadow?.blur);
+            const markerCount = RADAR_DATA.length * testCase.copies;
+            expect(blurs()).toEqual(Array(markerCount).fill(DEFAULT_SIZE));
+
+            await hoverDatum(chart!);
+
+            const hovered = blurs();
+            expect(hovered).toHaveLength(markerCount);
+            expect(hovered.filter((blur) => blur === HOVERED_SIZE)).toHaveLength(testCase.copies);
+            expect(hovered.filter((blur) => blur === DEFAULT_SIZE)).toHaveLength(markerCount - testCase.copies);
         });
     });
 

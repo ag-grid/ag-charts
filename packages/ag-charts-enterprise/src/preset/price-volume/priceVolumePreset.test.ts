@@ -6,6 +6,7 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getAxisCoordinate,
     getSeriesNodeData,
     getSeriesRect,
     getSwapChainText,
@@ -30,6 +31,7 @@ import type {
     AgThemeOverrides,
 } from 'ag-charts-types';
 
+import { openAnnotationSettings } from '../../features/annotations/test/fixture';
 import { setupEnterpriseModules } from '../../setup';
 import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
@@ -38,6 +40,8 @@ import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volu
 import { priceVolume } from './priceVolumePreset';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
+
+const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
@@ -306,8 +310,6 @@ describe('priceVolumePreset', () => {
     });
 
     describe('volumeProfile', () => {
-        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
-
         const VOLUME_PROFILE_EXAMPLES: Record<string, AgFinancialChartOptions> = {
             default: { data: getStockData(), volumeProfile },
             'placement left': { data: getStockData(), volumeProfile: { ...volumeProfile, placement: 'left' } },
@@ -504,8 +506,6 @@ describe('priceVolumePreset', () => {
             centerX?: number;
         }
 
-        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
-
         // Levels run highest price first, so index 2 is 200 and index 21 is 152.5, which has no volume.
         const LEVEL_200 = 2;
         const EMPTY_LEVEL = 21;
@@ -666,8 +666,6 @@ describe('priceVolumePreset', () => {
     });
 
     describe('hlc chart type', () => {
-        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
-
         const HLC_EXAMPLES: Record<string, AgFinancialChartOptions> = {
             'volume and volume profile': { volume: true, volumeProfile },
             'volume only': { volume: true },
@@ -844,6 +842,39 @@ describe('priceVolumePreset', () => {
             expect(Number(value).toFixed(2)).toBe(labels.at(-1)?.price);
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
+
+        it.each<[string, AgFinancialChartOptions, string[]]>([
+            ['the step of the data', {}, ['0.009994', '137.123456']],
+            ['the tickSize', { tickSize: 0.25 }, ['0.25', '137.12']],
+            [
+                'the tickSize ahead of the one of the volume profile',
+                { tickSize: 0.25, volumeProfile },
+                ['0.25', '137.12'],
+            ],
+            ['the tick size of the levels of the volume profile', { volumeProfile }, ['2.5', '137.1']],
+        ])(
+            'shows a price in the annotation settings at the decimals of %s, which its spinner steps by',
+            async (_name, options, expected) => {
+                const price = 137.123456;
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({
+                        data: getStockData(),
+                        ...options,
+                        initialState: { annotations: [{ type: 'horizontal-line', value: price }] },
+                    })
+                );
+                await waitForChartStability(chart);
+                const { x, y, width } = getSeriesRect(chart);
+
+                const body = await openAnnotationSettings(chart, {
+                    x: x + width / 2,
+                    y: y + getAxisCoordinate(chart, 'right', price),
+                });
+
+                const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
+                expect([input.step, input.value]).toEqual(expected);
+            }
+        );
 
         it('rounds the pointer price inside a candle rather than snapping to its values', async () => {
             chart = AgCharts.createFinancialChart(

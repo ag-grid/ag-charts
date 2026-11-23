@@ -26,7 +26,9 @@ import {
     compareImageSnapshot,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
+    getSeriesAt,
     getSeriesContextNodeData,
+    getSeriesLabelObstacles,
     getSeriesSelectionNodes,
     setupMockCanvas,
     setupMockConsole,
@@ -1865,5 +1867,130 @@ describe('label collision avoidance', () => {
             await render(options({ placement: 'center' }));
             await compareImageSnapshot(chart, ctx);
         });
+    });
+
+    describe('own shape obstacles', () => {
+        const barData = [
+            { x: 'A', y: 10, low: 2, high: 8 },
+            { x: 'B', y: -4, low: 3, high: 9 },
+            { x: 'C', y: 6, low: 1, high: 5 },
+        ];
+        const binData = [1, 2, 2, 3, 3, 3, 7, 8].map((x) => ({ x }));
+        const orientation: AgChartLabelOrientation[] = ['horizontal', 'vertical'];
+        // An orientation array on a label that is never hidden resolves only its orientation.
+        const orientationLabel = { orientation, collision: { alwaysShow: true } };
+        const cascade = ['inside-center', 'outside-end'] as AgWaterfallSeriesLabelPlacement[];
+        const waterfall = (label: object): AgChartOptions => ({
+            data: barData,
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'x',
+                    yKey: 'y',
+                    item: {
+                        positive: { label: { enabled: true, ...label } },
+                        negative: { label: { enabled: true, ...label } },
+                    },
+                },
+            ],
+        });
+        const rangeBar = (label: object): AgChartOptions => ({
+            data: barData,
+            series: [
+                { type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label: { enabled: true, ...label } },
+            ],
+        });
+
+        // Range-bar's empty-text route is not covered: `buildBarLabelData` drops empty labels, so it emits no datum.
+        it.each<[string, 'positioned' | 'orientation', AgChartOptions]>([
+            ['waterfall', 'positioned', waterfall({ placement: cascade })],
+            ['waterfall', 'orientation', waterfall({ placement: 'inside-center', ...orientationLabel })],
+            ['range-bar', 'positioned', rangeBar({ placement: ['inside', 'outside'] })],
+            ['range-bar', 'orientation', rangeBar({ placement: 'inside', ...orientationLabel })],
+            [
+                'funnel',
+                'positioned',
+                {
+                    data: [
+                        { stage: 'Qualify', value: 7910 },
+                        { stage: 'Develop', value: 8170 },
+                        { stage: 'Close', value: 4460 },
+                    ],
+                    series: [
+                        {
+                            type: 'funnel',
+                            stageKey: 'stage',
+                            valueKey: 'value',
+                            label: { enabled: true, placement: ['outside-start', 'inside-center'] },
+                        },
+                    ],
+                },
+            ],
+            [
+                'sankey',
+                'positioned',
+                {
+                    data: [
+                        { from: 'A', to: 'B', size: 10 },
+                        { from: 'A', to: 'C', size: 6 },
+                        { from: 'B', to: 'D', size: 10 },
+                    ],
+                    series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+                },
+            ],
+            [
+                'bar',
+                'orientation',
+                {
+                    data: barData,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: { placement: 'inside-center', ...orientationLabel },
+                        },
+                    ],
+                },
+            ],
+            [
+                'histogram',
+                'orientation',
+                {
+                    data: binData,
+                    series: [
+                        { type: 'histogram', xKey: 'x', label: { placement: 'inside-center', ...orientationLabel } },
+                    ],
+                },
+            ],
+        ])(
+            'gives each %s label on the %s route exactly one owned shape, its own bar',
+            async (_type, route, options) => {
+                chart = await createEnterpriseChart(options);
+                const series = getSeriesAt(chart);
+                const obstacles = getSeriesLabelObstacles(chart);
+                const labels = series.getLabelData();
+
+                expect(labels.length).toBeGreaterThan(0);
+                expect(labels.map((d) => (d.positionedCandidates == null ? 'orientation' : 'positioned'))).toEqual(
+                    labels.map(() => route)
+                );
+                const ownShapes = labels.map(({ entityIndex, ownBox }) => {
+                    const owned = obstacles.filter(
+                        (o) => o.category === 'shape' && o.sourceId === series.id && o.entityIndex === entityIndex
+                    );
+                    const bar = owned[0]?.box;
+                    const onOwnBar =
+                        bar != null &&
+                        ownBox != null &&
+                        ownBox.x >= bar.x &&
+                        ownBox.y >= bar.y &&
+                        ownBox.x + ownBox.width <= bar.x + bar.width &&
+                        ownBox.y + ownBox.height <= bar.y + bar.height;
+                    return { owned: owned.length, onOwnBar };
+                });
+                expect(ownShapes).toEqual(labels.map(() => ({ owned: 1, onOwnBar: true })));
+            }
+        );
     });
 });
