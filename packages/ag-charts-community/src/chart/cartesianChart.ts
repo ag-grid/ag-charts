@@ -44,6 +44,10 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 /** Share of the space left over by the axes that cross-line labels may claim on one dimension. */
 const CROSS_LINE_PADDING_SLACK_RATIO = 0.5;
 
+function crossLinePaddingBudget(slack: number) {
+    return Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+}
+
 /** Scales an opposing pair of paddings down proportionally, so the series area survives any label length. */
 function clampPaddingPair(
     padding: Record<'top' | 'right' | 'bottom' | 'left', number>,
@@ -52,7 +56,7 @@ function clampPaddingPair(
     slack: number
 ) {
     const total = padding[low] + padding[high];
-    const budget = Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+    const budget = crossLinePaddingBudget(slack);
     if (total <= budget) return;
 
     const scale = total > 0 ? budget / total : 0;
@@ -490,9 +494,11 @@ export class CartesianChartType implements ChartTypeInstance {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const pluginPadding = this.buildAxisPluginPadding(outerSpace);
         const collectedPadding = { ...pluginPadding };
-        // The most `clampPaddingPair` lets a side's plugin padding grow, beyond the space it overlaps.
-        const outerRoom = (side: AgCartesianAxisPosition, slack: number) =>
-            (outerSpace.get(side) ?? 0) + Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+        const outerRoom = (side: AgCartesianAxisPosition, slack: number) => {
+            const space = outerSpace.get(side) ?? 0;
+            // Upper bound: `clampPaddingPair` shares the budget when both sides of a pair pad.
+            return { space, padded: space + crossLinePaddingBudget(slack) };
+        };
         const slackX = axisAreaBound.width - totalWidth;
         const slackY = axisAreaBound.height - totalHeight;
         const outerLabelRoom = {

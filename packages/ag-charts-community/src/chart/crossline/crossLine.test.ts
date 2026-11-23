@@ -2356,6 +2356,8 @@ describe('CrossLine', () => {
                                     label: {
                                         text: 'A LONG CROSS LINE LABEL',
                                         fontSize: 20,
+                                        wrapping: 'never',
+                                        truncate: false,
                                         placement: ['top', 'right-top'],
                                     },
                                 },
@@ -3829,6 +3831,35 @@ describe('CrossLine label fitting', () => {
             expect(footprint.y).toBeGreaterThanOrEqual(0);
             expect(footprint.x + footprint.width).toBeLessThanOrEqual(CANVAS_WIDTH);
             expect(footprint.y + footprint.height).toBeLessThanOrEqual(CANVAS_HEIGHT);
+        });
+
+        it.each<['x' | 'y', number, AgCartesianCrossLineLabelOptions['placement']]>([
+            ['x', 0, 'top'],
+            ['x', 0.05, 'top'],
+            ['x', 0.2, 'inside'],
+            ['y', 0, 'left'],
+            ['y', 0.05, 'inside'],
+            ['y', 10, 'right'],
+        ])('keeps a short label on a %s line at %s %s whole', async (axisId, value, placement) => {
+            chart = deproxy(
+                await createChart(fitChart({ type: 'line', value, label: { text: 'Target', placement } }, axisId))
+            );
+
+            expect(renderedLabel(axisId).text).toBe('Target');
+        });
+
+        it.each<['x' | 'y', number]>([
+            ['x', 0.05],
+            ['x', 10],
+            ['y', 0.05],
+            ['y', 10],
+        ])('keeps a long label on a %s line at %s on the canvas along its text', async (axisId, value) => {
+            const label = { text: LONG_WORDS, placement: 'inside' as const };
+            chart = deproxy(await createChart(fitChart({ type: 'line', value, label }, axisId)));
+
+            const { footprint } = renderedLabel(axisId);
+            expect(footprint.x).toBeGreaterThanOrEqual(0);
+            expect(footprint.x + footprint.width).toBeLessThanOrEqual(CANVAS_WIDTH);
         });
 
         it('lets an explicit maxWidth beyond the series area replace the bound', async () => {

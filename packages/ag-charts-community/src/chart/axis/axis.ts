@@ -78,6 +78,7 @@ import type {
     AxisContext,
     AxisFormattableLabel,
     AxisValuePick,
+    OuterLabelRoom,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -356,7 +357,7 @@ export abstract class Axis<
      */
     gridPadding = 0;
 
-    outerLabelRoom: Record<AgCartesianAxisPosition, number> | undefined = undefined;
+    outerLabelRoom: Record<AgCartesianAxisPosition, OuterLabelRoom> | undefined = undefined;
 
     /**
      * Is used to avoid collisions between axis labels and series.
