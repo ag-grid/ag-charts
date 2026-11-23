@@ -73,7 +73,7 @@ function omitInheritedShadow(ignoredProperties: readonly string[]) {
  * default is only filled in after theming, so each fallback mirrors the default of its series theme.
  *
  * A width that the series copies from the main series is not seen here, so a name on such a series scales by the
- * default. A line or an area, the usual mini-chart series, copies none.
+ * default. A line, the usual mini-chart series, copies none.
  */
 type StrokeWidth = NonNullable<Parameters<typeof lineDashThemeDefault>[1]>;
 
@@ -133,20 +133,38 @@ const miniChartLineDashLocations: Record<
     },
 };
 
+// A wick or a whisker with no `strokeWidth` of its own is drawn at that of the location around it.
+const STROKE_WIDTHS_WITHIN_PARENT = new Set([WICK_STROKE_WIDTH, WHISKER_STROKE_WIDTH]);
+
 /**
  * The main series' `lineDash` at `keys`, rescaled from the width it resolved at to the one the mini-chart series draws
- * it at: the `strokeWidth` set there, else `copiedWidth`, which defaults to the main series' as the copy carries it.
+ * it at. Each is the `strokeWidth` there, else with `withinParent` the one around it; the mini-chart series takes its own
+ * before the main series' that it copies, or `uncopiedWidth` where it copies none.
  */
-function inheritedLineDash(keys: string[] = [], copiedWidth?: StrokeWidth) {
-    const main = ['/series/$index', ...keys].join('/');
-    const mainWidth: StrokeWidth = { $path: `${main}/strokeWidth` };
+function inheritedLineDash(
+    keys: string[] = [],
+    { withinParent = false, uncopiedWidth }: { withinParent?: boolean; uncopiedWidth?: number } = {}
+) {
+    const widthPath = (location: string[]) => ['/series/$index', ...location, 'strokeWidth'].join('/');
+    const mainWidth = widthPath(keys);
+    const parentWidth = widthPath(keys.slice(0, -1));
+
+    const resolvedWidth: StrokeWidth = { $path: withinParent ? [mainWidth, { $path: parentWidth }] : mainWidth };
+    const copiedWidth: StrokeWidth = withinParent
+        ? { $path: [mainWidth, { $path: ['../strokeWidth', { $path: parentWidth }] }] }
+        : { $path: mainWidth };
+
     return {
-        $rescaleLineDash: [{ $path: `${main}/lineDash` }, mainWidth, copiedWidth ?? strokeWidthOr(mainWidth)],
+        $rescaleLineDash: [
+            { $path: ['/series/$index', ...keys, 'lineDash'].join('/') },
+            resolvedWidth,
+            strokeWidthOr(uncopiedWidth ?? copiedWidth),
+        ],
     } satisfies Operation;
 }
 
 // A mini-chart line copies no `strokeWidth`, so the main series' dash is rescaled to the line's default width.
-const INHERITED_LINE_DASH = inheritedLineDash([], DEFAULT_STROKE_WIDTH);
+const INHERITED_LINE_DASH = inheritedLineDash([], { uncopiedWidth: 2 });
 
 /**
  * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
@@ -164,7 +182,8 @@ function miniChartLineDashTheme(type: string, { own, nested = [] }: (typeof mini
 
         let node = theme;
         for (const key of keys) node = node[key] ??= {};
-        node.lineDash = lineDashThemeDefault(inheritedLineDash(keys), strokeWidth);
+        const withinParent = strokeWidth != null && STROKE_WIDTHS_WITHIN_PARENT.has(strokeWidth);
+        node.lineDash = lineDashThemeDefault(inheritedLineDash(keys, { withinParent }), strokeWidth);
     }
     return theme;
 }
@@ -254,6 +273,12 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineD
                         $switch: [
                             typePath,
                             omitInheritedShadow(commonIgnoredMiniChartProperties),
+                            ['area', ignored('area', omitInheritedShadow(commonIgnoredMiniChartProperties))],
+                            [
+                                'candlestick',
+                                ignored('candlestick', omitInheritedShadow(commonIgnoredMiniChartProperties)),
+                            ],
+                            ['ohlc', ignored('ohlc', omitInheritedShadow(commonIgnoredMiniChartProperties))],
                             ['bar', ignored('bar', omitInheritedShadow(barIgnoredMiniChartProperties))],
                             ['box-plot', ignored('box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties))],
                             ['bubble', ignored('bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties))],
