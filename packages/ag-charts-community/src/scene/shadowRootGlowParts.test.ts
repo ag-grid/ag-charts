@@ -16,15 +16,24 @@ const FEW = 20;
 const GLOW = {
     enabled: true,
     fill: 'rgb(0, 0, 255)',
-    fillOpacity: 1,
+    fillOpacity: 0.6,
     xOffset: 0,
     yOffset: 0,
     blur: 6,
     glow: true as const,
 };
 
+interface Layout {
+    /** The opacity of the items of each key that casts BULK of them. */
+    keys: number[];
+    /** The size of the layer, which a key's glow reaches most of. */
+    size?: { width: number; height: number };
+    /** Casters in a key of too few for a part, below the others. */
+    few?: boolean;
+}
+
 describe('the parts of the glow overlay', () => {
-    setupMockCanvas({ width: WIDTH, height: HEIGHT });
+    const mockCanvas = setupMockCanvas({ width: WIDTH, height: HEIGHT });
 
     const scenes: Scene[] = [];
     let masked: Rect[] = [];
@@ -47,41 +56,45 @@ describe('the parts of the glow overlay', () => {
         vi.mocked(console.warn).mockRestore();
     });
 
-    /** Items at one opacity, in rows from `top`, whose glows share one key as they cast the same glow. */
-    const items = (count: number, top: number, opacity: number) =>
+    /** Items at one opacity, in rows from `top`, which overlap those of the other keys, whose glows share one key as they cast the same. */
+    const items = (count: number, top: number, opacity: number, size: Layout['size'], shift: number, glow = GLOW) =>
         Array.from({ length: count }, (_, i) => {
             const item = new TestRect();
+            const scale = size == null ? 1 : size.width / WIDTH;
             Object.assign(item, {
-                x: 10 + (i % 60) * 6,
-                y: top + Math.floor(i / 60) * 6,
-                width: 4,
-                height: 4,
+                x: (10 + (i % 60) * 6 + shift) * scale,
+                y: (top + Math.floor(i / 60) * 6 + shift) * scale,
+                width: 4 * scale,
+                height: 4 * scale,
                 fill: 'black',
                 opacity,
-                fillGlow: GLOW,
+                fillGlow: glow,
             });
             return item;
         });
 
-    const chart = (bulkOpacity = 0.2, fewOpacity = 1) => {
-        const bulk = items(BULK, 10, bulkOpacity);
-        const few = items(FEW, 150, fewOpacity);
+    const chart = ({ keys, size, few }: Layout) => {
+        const { width, height } = size ?? { width: WIDTH, height: HEIGHT };
+        const bulk = keys.map((opacity, i) => items(BULK, 10, opacity, size, i * 2));
+        const small = few === true ? items(FEW, 150, 1, size, 0, { ...GLOW, fill: 'rgb(255, 0, 0)' }) : [];
         const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
-        for (const children of [bulk, few]) {
+        for (const children of [...bulk, small]) {
             const group = new Group({ name: 'series', batchShadows: 'shared' });
             for (const child of children) group.appendChild(child);
             root.appendChild(group);
         }
         const scene = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
-        scene.resize(WIDTH, HEIGHT, 1);
+        scene.resize(width, height, 1);
         scene.setRoot(root);
         scenes.push(scene);
         scene.render();
-        return { scene, bulk, few };
+        return { scene, bulk, small, root };
     };
 
-    const pixelsOf = (scene: Scene) =>
-        Array.from(scene.canvas.context.getImageData(0, 0, WIDTH, HEIGHT).data as ArrayLike<number>);
+    const pixelsOf = (scene: Scene) => {
+        const { width, height } = scene.canvas;
+        return Array.from(scene.canvas.context.getImageData(0, 0, width, height).data as ArrayLike<number>);
+    };
 
     /** Draws again, and returns the items that drew a mask: those whose glow was cast, not drawn from a part kept. */
     const render = (scene: Scene) => {
@@ -90,73 +103,121 @@ describe('the parts of the glow overlay', () => {
         return masked;
     };
 
-    it('should draw the glow of the casters that a change leaves as they were from the part that held it', () => {
-        const { scene, few } = chart();
-        expect(pixelsOf(scene).some((value) => value !== 0)).toBe(true);
+    const setOpacity = (casters: Rect[], opacity: number) => {
+        for (const item of casters) item.opacity = opacity;
+    };
 
-        few[0].opacity = 0.6;
+    const live = () => mockCanvas.getActiveOffscreenCanvasInstances().filter((canvas) => canvas.width > 0);
+
+    it('should draw the glow of the casters that two casts left as they were from the part that held it', () => {
+        const { scene, bulk } = chart({ keys: [0.2, 0.2, 0.2] });
+        const [changing, ...others] = bulk;
+
+        // The part that two casts in a row sign alike is kept by the second, and drawn by the third. The changing one sorts first.
+        setOpacity(changing, 0.4);
+        render(scene);
+        setOpacity(changing, 0.6);
+        const kept = render(scene);
+        expect(others.flat().every((item) => kept.includes(item))).toBe(true);
+
+        setOpacity(changing, 0.8);
+        const drawn = render(scene);
+
+        expect(drawn).toHaveLength(BULK);
+        expect(changing.every((item) => drawn.includes(item))).toBe(true);
+    });
+
+    it('should draw the parts that a cast that repeats kept, and not cast them again once a change leaves them as they were', () => {
+        const { scene, bulk, root } = chart({ keys: [0.2, 0.2] });
+        setOpacity(bulk[0], 0.4);
+        render(scene);
+        for (let repeat = 0; repeat < 2; repeat++) {
+            root.markDirty();
+            render(scene);
+        }
+
+        setOpacity(bulk[0], 0.6);
         const cast = render(scene);
 
-        expect(cast.length).toBeGreaterThan(0);
-        expect(cast.every((item) => few.includes(item))).toBe(true);
+        expect(cast).toHaveLength(BULK);
+        expect(bulk[0].every((item) => cast.includes(item))).toBe(true);
     });
 
     it('should draw the glows that it draws from a part as a chart in that state draws them', () => {
-        const { scene, few } = chart();
-        few[0].opacity = 0.6;
-        render(scene);
+        const { scene, bulk } = chart({ keys: [0.2, 0.2, 0.2] });
+        for (const opacity of [0.4, 0.6, 0.8]) {
+            setOpacity(bulk[0], opacity);
+            render(scene);
+        }
+        expect(pixelsOf(scene).some((value) => value !== 0)).toBe(true);
 
-        const fresh = chart(0.2, 1);
-        fresh.few[0].opacity = 0.6;
-        render(fresh.scene);
-
-        expectSamePixels({ data: pixelsOf(scene) }, { data: pixelsOf(fresh.scene) });
+        expectSamePixels({ data: pixelsOf(scene) }, { data: pixelsOf(chart({ keys: [0.8, 0.2, 0.2] }).scene) });
     });
 
-    it('should draw the glows again when the opacity of the casters of a part changes', () => {
-        const { scene, bulk } = chart();
-        for (const item of bulk) item.opacity = 0.6;
-        const cast = render(scene);
+    it('should draw the glows as a chart in that state draws them when the scene keeps no room for a part', () => {
+        // Each key's glow reaches most of a layer of 2000 x 2000, so that two parts fill the budget and the third has no room.
+        const size = { width: 2000, height: 2000 };
+        const { scene, bulk } = chart({ keys: [0.2, 0.3, 0.4, 0.5], size });
+        for (const opacity of [0.6, 0.7, 0.8]) {
+            setOpacity(bulk[0], opacity);
+            render(scene);
+        }
 
-        expect(bulk.every((item) => cast.includes(item))).toBe(true);
-        expectSamePixels({ data: pixelsOf(scene) }, { data: pixelsOf(chart(0.6, 1).scene) });
+        expectSamePixels(
+            { data: pixelsOf(scene) },
+            { data: pixelsOf(chart({ keys: [0.8, 0.3, 0.4, 0.5], size }).scene) }
+        );
     });
 
     it('should draw the glow of a caster that moves, beside the part that it was in', () => {
-        const { scene, bulk } = chart();
-        bulk[3].x += 40;
+        const { scene, bulk } = chart({ keys: [0.2, 0.2] });
+        setOpacity(bulk[0], 0.4);
+        render(scene);
+        bulk[1][3].x += 40;
         render(scene);
 
-        const fresh = chart();
-        fresh.bulk[3].x += 40;
+        const fresh = chart({ keys: [0.4, 0.2] });
+        fresh.bulk[1][3].x += 40;
         render(fresh.scene);
         expectSamePixels({ data: pixelsOf(scene) }, { data: pixelsOf(fresh.scene) });
     });
 
     it('should draw a part again, as it was, after the chart returns to its state', () => {
-        const { scene, few } = chart();
+        const { scene, bulk } = chart({ keys: [0.2, 0.2] });
         const before = pixelsOf(scene);
-        few[0].opacity = 0.6;
+        setOpacity(bulk[0], 0.6);
         render(scene);
-        few[0].opacity = 1;
+        setOpacity(bulk[0], 0.2);
         render(scene);
 
         expectSamePixels({ data: pixelsOf(scene) }, { data: before });
     });
 
-    it('should keep no part for a key of too few casters', () => {
-        const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
-        const group = new Group({ name: 'series', batchShadows: 'shared' });
-        const few = items(FEW, 10, 1);
-        for (const child of few) group.appendChild(child);
-        root.appendChild(group);
-        const scene = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
-        scene.resize(WIDTH, HEIGHT, 1);
-        scene.setRoot(root);
-        scenes.push(scene);
-        scene.render();
+    it('should cast a key of too few casters for a part on every cast', () => {
+        const { scene, bulk, small } = chart({ keys: [0.2, 0.2], few: true });
+        for (const opacity of [0.4, 0.6]) {
+            setOpacity(bulk[0], opacity);
+            render(scene);
+        }
+        setOpacity(bulk[0], 0.8);
+        const cast = render(scene);
 
-        few[0].opacity = 0.6;
-        expect(render(scene)).toHaveLength(FEW);
+        expect(small.every((item) => cast.includes(item))).toBe(true);
+        expect(bulk[1].some((item) => cast.includes(item))).toBe(false);
+    });
+
+    it('should keep no canvas for the parts of casts that change every frame', () => {
+        const animated = chart({ keys: [0.2, 0.2, 0.2] });
+        for (let frame = 0; frame < 6; frame++) {
+            for (const [i, casters] of animated.bulk.entries()) setOpacity(casters, 0.2 + ((frame + i) % 5) * 0.1);
+            render(animated.scene);
+        }
+        const canvases = live().length;
+
+        // The canvases that a cast of keys of too few casters for parts holds, and the one that the parts are blurred on.
+        scenes.pop()?.destroy();
+        const unkept = chart({ keys: [0.2, 0.2, 0.2], few: true });
+        expect(unkept.small).toHaveLength(FEW);
+        expect(canvases).toBeLessThanOrEqual(live().length + 1);
     });
 });

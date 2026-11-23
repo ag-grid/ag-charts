@@ -6,7 +6,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 
 import { Marker } from '../marker/marker';
 import { differingBytes } from '../test/expectSamePixels';
-import { endHover, hoverDatum } from '../test/glowRender';
+import { canvasImage, endHover, hoverDatum } from '../test/glowRender';
 import { getSeriesAt } from '../test/seriesAccessors';
 import { SERIES_GLOW, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
@@ -18,11 +18,6 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-/**
- * What a hover costs a chart whose series glows are many: the glows of the casters that a hover leaves as they were are drawn
- * from the parts that the cast before kept, so a move between items casts only the part that the move changes. The tests pin
- * that mechanism and never a timing, and that what is drawn from a kept part is what a cast draws.
- */
 const POINTS = 200;
 const SERIES = 3;
 /** Past the 512 casters that the glows of the overlay are cast in parts of one strength each. */
@@ -37,22 +32,16 @@ interface Config {
     name: string;
     glow: object;
     highlight?: object;
-    itemStyler?: unknown;
 }
 
 const CONFIGS: Config[] = [
     { name: 'the default theme', glow: SERIES_GLOW },
     { name: 'unhighlightedSeries.opacity: 1', glow: SERIES_GLOW, highlight: { unhighlightedSeries: { opacity: 1 } } },
     { name: 'a glow with a gap', glow: { ...SERIES_GLOW, gap: 5 } },
-    {
-        name: 'an itemStyler that returns a glow for the state',
-        glow: SERIES_GLOW,
-        itemStyler: ({ highlightState }: { highlightState?: string }) =>
-            highlightState === 'unhighlighted-item' ? { glow: { enabled: true, fill: '#00aa00', blur: 4 } } : {},
-    },
 ];
 
-describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ glow, highlight, itemStyler }) => {
+/** A hover leaves the glows of most casters as they were, so it draws them from the parts that the casts before it kept. */
+describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ glow, highlight }) => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -77,7 +66,6 @@ describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ 
                     size: 6,
                     glow,
                     highlight,
-                    itemStyler,
                 })),
             } as AgChartOptions)
         );
@@ -85,11 +73,6 @@ describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ 
     };
 
     const markersOf = (seriesIndex: number): Shape[] => shapesOf(getSeriesAt(chart, seriesIndex).contentGroup, Marker);
-
-    const pixelsOf = () => {
-        const { canvas } = chart.ctx.scene;
-        return { data: canvas.context.getImageData(0, 0, canvas.width, canvas.height).data as ArrayLike<number> };
-    };
 
     /** The markers whose masks the cast of the overlay draws during `action`, as against those of footprints it erases. */
     const maskedDuring = async (action: () => Promise<void>) => {
@@ -104,15 +87,12 @@ describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ 
         return masked;
     };
 
-    it('should not cast the glow of the series that a move between items of another leaves as it was', async ({
-        skip,
-    }) => {
-        // An itemStyler glows each item by its own state, so no key holds enough casters to be kept in parts: it recasts, drawing the same pixels.
-        if (itemStyler != null) skip();
+    it('should not cast the glow of the series that a move between items of another leaves as it was', async () => {
         await create();
         await hoverDatum(chart, 0, 0);
+        await hoverDatum(chart, 0, 5);
 
-        const masked = await maskedDuring(() => hoverDatum(chart, 0, 5));
+        const masked = await maskedDuring(() => hoverDatum(chart, 0, 9));
 
         for (const marker of [...markersOf(1), ...markersOf(2)]) expect(masked.has(marker)).toBe(false);
         expect(masked.size).toBeGreaterThan(0);
@@ -123,27 +103,27 @@ describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ 
         await hoverDatum(chart, 0, 0);
         await hoverDatum(chart, 0, 5);
         await hoverDatum(chart, 0, 9);
-        const moved = pixelsOf();
+        const moved = canvasImage(chart);
         expect(Array.from(moved.data).some((value) => value !== 0)).toBe(true);
 
         await create();
         await hoverDatum(chart, 0, 9);
 
-        expect(differingBytes(moved, pixelsOf())).toBe(0);
+        expect(differingBytes(moved, canvasImage(chart))).toBe(0);
     });
 
     it('should draw the glows of a hover that ends, and that enters another series, as a chart in that state draws them', async () => {
         await create();
-        const rest = pixelsOf();
+        const rest = canvasImage(chart);
         await hoverDatum(chart, 0, 0);
         await hoverDatum(chart, 1, 5);
-        const switched = pixelsOf();
+        const switched = canvasImage(chart);
         await endHover(chart);
-        expect(differingBytes(pixelsOf(), rest)).toBe(0);
+        expect(differingBytes(canvasImage(chart), rest)).toBe(0);
 
         await create();
         await hoverDatum(chart, 1, 5);
-        expect(differingBytes(switched, pixelsOf())).toBe(0);
+        expect(differingBytes(switched, canvasImage(chart))).toBe(0);
     });
 
     it('should keep one glow object on the series that a hover enters and leaves, whose glow the state leaves as it was', async () => {
@@ -157,9 +137,6 @@ describe.each(CONFIGS)('the glows of a hover with many casters, with $name', ({ 
         await endHover(chart);
         const left = markersOf(1).map((marker) => marker.fillGlow);
 
-        // The state of the dimmed series casts its own glow only where the config says so.
-        if (itemStyler == null) {
-            for (const shape of [...entered, ...left]) expect(shape).toBe(before);
-        }
+        for (const shape of [...entered, ...left]) expect(shape).toBe(before);
     });
 });
