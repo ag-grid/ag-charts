@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, Shape } from 'ag-charts-core';
+import { type Group, Rect, Shape } from 'ag-charts-core';
 import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
@@ -348,12 +348,7 @@ describe('series-level glow on phantom nodes', () => {
     // The phantoms draw the filtered-out part of each item, one for each item.
     const PHANTOM_DATA = DATA.map((datum) => ({ ...datum, f: datum.v / 2 }));
 
-    // The donut phantoms cast their shadow through the group of the items but suppress their glow, and the bar phantoms are
-    // not batched: the items cast the glow, the phantoms none.
-    it.each([
-        ['bar', { type: 'bar', xKey: 'x', yKey: 'v', yFilterKey: 'f' }],
-        ['donut', { type: 'donut', angleKey: 'v', angleFilterKey: 'f' }],
-    ])('casts the glow of %s items and not of their phantoms', async (_name, series) => {
+    const phantomChart = async (series: object) => {
         chart = deproxy(
             await createChart({
                 data: PHANTOM_DATA,
@@ -363,20 +358,57 @@ describe('series-level glow on phantom nodes', () => {
             } as AgChartOptions)
         );
         await waitForChartStability(chart);
-        const { contentGroup, highlightGroup } = getSeriesAt(chart);
-        const glowing = (root: typeof contentGroup) =>
-            shapesOf(root, Shape).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
+        return getSeriesAt(chart);
+    };
+    const glowing = (root: Group) =>
+        shapesOf(root, Shape).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
+    const phantomsOf = (root: Group) => shapesOf(root, Shape).filter((shape) => shape.parentNode?.name === 'phantom');
+    const highlight = async () => {
+        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+        await waitForChartStability(chart);
+    };
+
+    // The bar phantoms are not batched: the items cast the glow, the phantoms none.
+    it('casts the glow of bar items and not of their phantoms', async () => {
+        const { contentGroup, highlightGroup } = await phantomChart({
+            type: 'bar',
+            xKey: 'x',
+            yKey: 'v',
+            yFilterKey: 'f',
+        });
         const phantoms = Array(PHANTOM_DATA.length).fill(expect.stringContaining('"phantom"'));
 
         // An item and its phantom each, and only the phantoms are left uncast.
         expect(glowing(contentGroup)).toHaveLength(PHANTOM_DATA.length * 2);
         expect(uncastGlows(contentGroup)).toEqual(phantoms);
 
-        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
-        await waitForChartStability(chart);
+        await highlight();
 
         for (const label of uncastGlows(contentGroup)) expect(label).toContain('"phantom"');
         expect(glowing(highlightGroup).length).toBeGreaterThan(uncastGlows(highlightGroup).length);
+    });
+
+    // The donut phantoms cast their shadow through the group of the items, and have no glow to cast.
+    it('casts the glow of donut items and not of their phantoms', async () => {
+        const { contentGroup, highlightGroup } = await phantomChart({
+            type: 'donut',
+            angleKey: 'v',
+            angleFilterKey: 'f',
+        });
+
+        expect(phantomsOf(contentGroup)).toHaveLength(PHANTOM_DATA.length);
+        expect(glowing(contentGroup)).toHaveLength(PHANTOM_DATA.length);
+        expect(uncastGlows(contentGroup)).toEqual([]);
+        for (const phantom of phantomsOf(contentGroup)) expect(glowing(contentGroup)).not.toContain(phantom);
+
+        await highlight();
+
+        expect(phantomsOf(highlightGroup).length).toBeGreaterThan(0);
+        expect(glowing(highlightGroup).length).toBeGreaterThan(0);
+        expect(uncastGlows(highlightGroup)).toEqual([]);
+        for (const root of [contentGroup, highlightGroup]) {
+            for (const phantom of phantomsOf(root)) expect(phantom.fillGlow?.enabled).not.toBe(true);
+        }
     });
 });
 

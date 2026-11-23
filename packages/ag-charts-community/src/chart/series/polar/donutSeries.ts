@@ -286,7 +286,7 @@ export class DonutSeries extends PolarSeries<
     );
     private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
-        () => this.phantomFactory(),
+        () => this.nodeFactory(),
         false
     );
     protected phantomHighlightGroup = this.highlightGroup.appendChild(
@@ -294,7 +294,7 @@ export class DonutSeries extends PolarSeries<
     );
     private readonly phantomHighlightSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomHighlightGroup,
-        () => this.phantomFactory(),
+        () => this.nodeFactory(),
         false
     );
     private readonly calloutLabelGroup = this.contentGroup.appendChild(
@@ -408,12 +408,6 @@ export class DonutSeries extends PolarSeries<
     protected override nodeFactory(): Sector<PieDonutNodeDatum> {
         const sector = new Sector<PieDonutNodeDatum>();
         sector.miterLimit = 1e9;
-        return sector;
-    }
-
-    private phantomFactory(): Sector<PieDonutNodeDatum> {
-        const sector = this.nodeFactory();
-        sector.suppressGlow = true;
         return sector;
     }
 
@@ -1405,7 +1399,11 @@ export class DonutSeries extends PolarSeries<
         } else {
             this.glowRing.release();
         }
-        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        this.phantomSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, false, 'overlay');
+            // A phantom casts its shadow with the sectors', but no glow of its own.
+            node.fillGlow = undefined;
+        });
 
         this.innerCircleCutoutSelection.each((sector, datum) => {
             // Resolved exactly as the real sector's is, so the erased outline matches what is drawn.
@@ -1437,6 +1435,7 @@ export class DonutSeries extends PolarSeries<
         });
         this.phantomHighlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
+            node.fillGlow = undefined;
 
             node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });

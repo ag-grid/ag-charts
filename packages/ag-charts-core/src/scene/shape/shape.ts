@@ -462,9 +462,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
 
-    /** Whether the shape keeps its {@link fillGlow} but casts none, for a shape that casts only its shadow. Set when it is created. */
-    suppressGlow = false;
-
     /** What {@link getCastShadow} resolved, one memo per slot, so that a shape that casts both can ask each often. */
     private castShadowMemo?: CastMemo;
     private castGlowMemo?: CastMemo;
@@ -615,8 +612,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * of every colour share a mask and a blur: each silhouette is drawn in its colour, see {@link getCastTint}.
      */
     getBatchShadow(slot: ShadowSlot = 'shadow'): NormalisedDropShadowOptions | undefined {
-        if (slot === 'glow' && this.suppressGlow) return;
-
         const shadow = this.getSlot(slot);
         if (shadow?.enabled !== true) return;
 
@@ -698,10 +693,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private castsOwnShadow(slot: ShadowSlot): boolean {
         if (
             slot === 'glow' &&
-            (this.suppressGlow ||
-                this.__fillGlow == null ||
-                this.__drawingMode !== 'cutout' ||
-                shadowPass.hoveredGlowsCast)
+            (this.__fillGlow == null || this.__drawingMode !== 'cutout' || shadowPass.hoveredGlowsCast)
         ) {
             return false;
         }
