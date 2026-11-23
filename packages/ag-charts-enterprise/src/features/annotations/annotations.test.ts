@@ -840,6 +840,42 @@ describe('Annotations', () => {
             );
             await compare();
         });
+
+        // A horizontal bar series swaps its axes, so the `y` of a point is the category axis.
+        it('should render and round-trip category `y` values on a horizontal bar chart', async () => {
+            const annotations = [
+                { type: 'line', start: { x: 5, y: 'Q1' }, end: { x: 5, y: 'Q3' } },
+                {
+                    type: 'line',
+                    start: { x: 20, y: { value: 'Q1', groupPercentage: -1 } },
+                    end: { x: 20, y: { value: 'Q3', groupPercentage: 1 } },
+                },
+                { type: 'arrow-up', x: 10, y: 'Q2' },
+                { type: 'horizontal-line', value: 'Q4' },
+            ] as AgAnnotation[];
+
+            await prepareChart(
+                { annotations },
+                {
+                    ...BAR_SERIES_OPTIONS,
+                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'category', position: 'left' },
+                        y: { type: 'number', position: 'bottom' },
+                    },
+                }
+            );
+            expectWarningsCalls().toHaveLength(0);
+            await compare();
+
+            // The state the chart writes must restore without losing the category `y`.
+            const state = chart.getState().annotations;
+            expect(state).toMatchObject(annotations);
+            await chart.setState({ ...chart.getState(), annotations: state });
+            await waitForChartStability(chart);
+            expectWarningsCalls().toHaveLength(0);
+            expect(chart.getState().annotations).toEqual(state);
+        });
     });
 
     describe('bigint coordinates (AG-16608)', () => {
