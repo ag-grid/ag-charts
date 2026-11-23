@@ -62,7 +62,8 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     }
 
     protected override valueTickSize() {
-        return this.scale.interval;
+        const size = this.scale.interval;
+        return size == null ? undefined : { size, inferred: this.options.unit == null };
     }
 
     private defaultUnit: UnitInterval = undefined;

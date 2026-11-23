@@ -47,10 +47,11 @@ export class NumberAxis<
 
     protected override valueTickSize() {
         const { tickSize } = this.options;
-        if (tickSize != null) return tickSize;
+        if (tickSize != null) return { size: tickSize, inferred: false };
 
         this.inferredTickSize ??= { value: inferValueTickSize(this.boundSeries, this.direction) };
-        return this.inferredTickSize.value;
+        const size = this.inferredTickSize.value;
+        return size == null ? undefined : { size, inferred: true };
     }
 
     protected override getLabelFormat() {

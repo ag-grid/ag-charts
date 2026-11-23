@@ -1427,6 +1427,14 @@ describe('Annotations', () => {
                     ['number', '0.25', '1.00'],
                 ],
                 [
+                    'a number at the format of the axis label ahead of the step of the data',
+                    numberOptions(THOUSANDTHS, { label: { format: '.1f' } }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', 'any', '1.0'],
+                ],
+                [
                     'a number at the format of the crosshair label ahead of both',
                     numberOptions(THOUSANDTHS, { tickSize: 0.25, crosshair: { label: { format: '.1f' } } }),
                     'horizontal-line',

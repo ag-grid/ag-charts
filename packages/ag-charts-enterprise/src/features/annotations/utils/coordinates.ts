@@ -77,7 +77,7 @@ export interface CoordinateField {
     value: string;
     /** The decimals a number is shown at: those of the axis's crosshair label, or else of its tick size. */
     fractionDigits?: number;
-    /** The tick size of a number's axis, which its spinner moves by, or the granularity of a time in seconds. */
+    /** The tick size a number's spinner moves by, or the granularity of a time in seconds. */
     step?: number;
     /** A time is shown down to the tick size of its axis, or else to the precision of its value. */
     timePrecision?: TimePrecision;
@@ -349,8 +349,8 @@ function createPointField(
         axis,
         kind,
         value: formatCoordinate(current, kind, timePrecision),
-        fractionDigits: getFractionDigits(kind, current, context),
-        step: timePrecision == null ? getNumberStep(kind, context) : TIME_STEPS[timePrecision],
+        step: timePrecision == null ? undefined : TIME_STEPS[timePrecision],
+        ...getNumberPrecision(kind, current, context),
         timePrecision,
         // A precision read from the value hides none of it.
         withHiddenTime:
@@ -391,20 +391,37 @@ function createOffsetPointFields(
 }
 
 /**
- * The decimals of the format the user gave the crosshair label, or else of the axis's tick size, or else of the
- * label's default text. Undefined where none is a plain number, such as the text of a custom formatter.
+ * The decimals and spinner step of a number. The decimals are the first of those that are a plain number: a format on
+ * the crosshair label, a tick size in the options, a format on the axis label, the step of the data, the default label.
+ * The spinner steps by a tick size in the options, or by the step of the data where the decimals are read from it.
  */
-function getFractionDigits(kind: CoordinateKind, current: PointType | undefined, context: AnnotationAxisContext) {
-    const value = getGroupingValue(current);
-    if (kind !== 'number' || typeof value !== 'number') {
-        return;
+function getNumberPrecision(
+    kind: CoordinateKind,
+    current: PointType | undefined,
+    context: AnnotationAxisContext
+): Pick<CoordinateField, 'fractionDigits' | 'step'> {
+    if (kind !== 'number') {
+        return {};
     }
-    const tickSize = getNumberStep(kind, context);
-    return (
-        countTextFractionDigits(context.formatWithCrosshairLabel(value)) ??
-        (tickSize == null ? undefined : countFractionDigits(tickSize)) ??
-        countTextFractionDigits(toPlainText(context.formatScaleValue(value, 'crosshair')))
-    );
+    const tick = context.valueTickSize();
+    const tickSize = typeof tick?.size === 'number' ? tick.size : undefined;
+    const step = tick?.inferred === false ? tickSize : undefined;
+
+    const value = getGroupingValue(current);
+    if (typeof value !== 'number') {
+        return { step };
+    }
+    const given =
+        countTextFractionDigits(context.formatWithLabel(value, 'crosshair')) ??
+        (step == null ? undefined : countFractionDigits(step)) ??
+        countTextFractionDigits(context.formatWithLabel(value, 'axis'));
+    if (given != null) {
+        return { fractionDigits: given, step };
+    }
+    if (tickSize != null) {
+        return { fractionDigits: countFractionDigits(tickSize), step: tickSize };
+    }
+    return { fractionDigits: countTextFractionDigits(toPlainText(context.formatScaleValue(value, 'crosshair'))) };
 }
 
 function countTextFractionDigits(text: string | undefined) {
@@ -414,11 +431,6 @@ function countTextFractionDigits(text: string | undefined) {
     }
     const match = /^\D*[\d,]+(?:\.(\d+))?\D*$/.exec(text);
     return match ? (match[1]?.length ?? 0) : undefined;
-}
-
-function getNumberStep(kind: CoordinateKind, context: AnnotationAxisContext) {
-    const tickSize = kind === 'number' ? context.valueTickSize() : undefined;
-    return typeof tickSize === 'number' ? tickSize : undefined;
 }
 
 /** A number's text at the decimals its input shows; the datum keeps the full precision. */
@@ -453,12 +465,11 @@ function isTimeKind(kind: CoordinateKind) {
 }
 
 function getTickPrecision(kind: CoordinateKind, context: AnnotationAxisContext): TimePrecision | undefined {
-    const tickSize = isTimeKind(kind) ? context.valueTickSize() : undefined;
-    if (tickSize == null) {
+    const size = isTimeKind(kind) ? context.valueTickSize()?.size : undefined;
+    if (size == null) {
         return;
     }
-    const unit = typeof tickSize === 'number' ? lowestGranularityForInterval(tickSize) : intervalUnit(tickSize);
-    return UNIT_PRECISIONS[unit];
+    return UNIT_PRECISIONS[typeof size === 'number' ? lowestGranularityForInterval(size) : intervalUnit(size)];
 }
 
 function getValuePrecision(kind: CoordinateKind, current: PointType | undefined): TimePrecision | undefined {
@@ -530,8 +541,7 @@ function createHeightField(
         kind: 'number',
         value: String(current),
         // A height is a distance along the y axis, so it is shown and stepped as a value on that axis is.
-        fractionDigits: getFractionDigits(kind, current, context),
-        step: getNumberStep(kind, context),
+        ...getNumberPrecision(kind, current, context),
         toProps: (parsed) => (isNumericValue(parsed) ? { [key]: parsed } : undefined),
     };
 }

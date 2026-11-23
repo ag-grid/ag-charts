@@ -317,7 +317,8 @@ export abstract class CartesianAxis<
 
     /** The granularity of the data on a time axis, which other axes leave unset. */
     protected override valueTickSize(): AxisValueTickSize | undefined {
-        return this.minimumTimeGranularity;
+        const size = this.minimumTimeGranularity;
+        return size == null ? undefined : { size, inferred: true };
     }
 
     override createAxisContext(): AxisContext {

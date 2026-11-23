@@ -847,12 +847,16 @@ describe('priceVolumePreset', () => {
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
 
-        it('shows a price in the annotation settings at the decimals of tickSize, which its spinner steps by', async () => {
+        // The prices of the stock data are a little off whole cents, so the step between them is not a tick size.
+        it.each<[string, AgFinancialChartOptions, string[]]>([
+            ['at the decimals of tickSize, which its spinner steps by', { tickSize: 0.5 }, ['0.5', '137.1']],
+            ['at the decimals of the price axis labels without tickSize', {}, ['any', '137.12']],
+        ])('shows a price in the annotation settings %s', async (_name, options, expected) => {
             const price = 137.123456;
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({
                     data: getStockData(),
-                    tickSize: 0.25,
+                    ...options,
                     initialState: { annotations: [{ type: 'horizontal-line', value: price }] },
                 })
             );
@@ -865,7 +869,7 @@ describe('priceVolumePreset', () => {
             });
 
             const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
-            expect([input.step, input.value]).toEqual(['0.25', '137.12']);
+            expect([input.step, input.value]).toEqual(expected);
         });
 
         it('rounds the pointer price inside a candle rather than snapping to its values', async () => {

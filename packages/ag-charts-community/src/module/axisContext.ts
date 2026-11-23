@@ -22,8 +22,12 @@ import type {
     FormatterParams,
 } from 'ag-charts-types';
 
-/** A number on a numeric axis; a unit, an interval or a number of milliseconds on a time axis. */
-export type AxisValueTickSize = number | AgTimeInterval | AgTimeIntervalUnit;
+export interface AxisValueTickSize {
+    /** A number on a numeric axis; a unit, an interval or a number of milliseconds on a time axis. */
+    size: number | AgTimeInterval | AgTimeIntervalUnit;
+    /** Whether the size is the step of the data, rather than one the options give. */
+    inferred: boolean;
+}
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => NormalisedTextOrSegments | undefined,
@@ -110,10 +114,10 @@ export interface AxisContext {
         label?: AxisFormattableLabel<FormatParams, FormatterParams<any>>
     ): string;
     /**
-     * The text that the `format` or `formatter` of the axis's crosshair label gives a value, or `undefined` when the
-     * label has neither, or its formatter leaves the value to the defaults.
+     * The text of a value from a format the options give: that of the axis's crosshair label, or that of the axis's
+     * own label or the chart's `formatter`. `undefined` when there is none, or it leaves the value to the defaults.
      */
-    formatWithCrosshairLabel(value: unknown): string | undefined;
+    formatWithLabel(value: unknown, label: 'crosshair' | 'axis'): string | undefined;
     /**
      * The smallest step between values on the axis: its `tickSize` option, or else the step of its data, which is
      * read when asked for rather than as the data is processed. Not the length of the axis's tick marks.
