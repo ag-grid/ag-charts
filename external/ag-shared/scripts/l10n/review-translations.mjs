@@ -47,7 +47,11 @@ export function splitVerdict(text) {
 }
 
 function setVerdict(verdict) {
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${verdict}\n`);
+    if (!process.env.GITHUB_OUTPUT) return;
+    appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${verdict}\n`);
+    // Surface the verdict on the run summary as a workflow annotation.
+    const level = verdict === 'unavailable' ? 'warning' : 'notice';
+    console.log(`::${level} title=Translation review::Verdict: ${verdict}`);
 }
 
 function git(args) {
@@ -85,11 +89,12 @@ async function callAnthropic(apiKey, system, userText) {
 
         if (res.ok) {
             const data = await res.json();
-            return data.content
+            const text = data.content
                 .filter((b) => b.type === 'text')
                 .map((b) => b.text)
                 .join('')
                 .trim();
+            return { text, stopReason: data.stop_reason };
         }
 
         // Retry transient failures; give up on client errors.
@@ -152,7 +157,13 @@ async function main() {
 
     const userText = `## en-US.ts (source of truth, for context)\n\n\`\`\`typescript\n${enUs}\n\`\`\`\n\n## Changed translations to review\n\n${diffs}`;
 
-    const { verdict, review } = splitVerdict(await callAnthropic(apiKey, system, userText));
+    const response = await callAnthropic(apiKey, system, userText);
+    let { verdict, review } = splitVerdict(response.text);
+    if (response.stopReason !== 'end_turn') {
+        // A reply that did not finish normally may be cut off, so it is never shown as clean.
+        verdict = 'issues';
+        review += `\n\n_The review response was incomplete (stop reason: \`${response.stopReason}\`)._`;
+    }
 
     const report = [
         '<!-- l10n-translation-review -->',
