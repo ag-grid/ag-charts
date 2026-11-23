@@ -138,7 +138,12 @@ class InternalMarker<D = any> extends Path<D> {
 
     // A custom shape draws whatever path it returns, whatever its size.
     protected override hasBoundedSilhouette(): boolean {
-        return false;
+        return typeof this.shape === 'string';
+    }
+
+    // A square snaps both edges to device pixels, which can move them up to a pixel past its bounds.
+    protected override isCrisp(): boolean {
+        return this.shape === 'square';
     }
 
     protected override computeBBox(): BBox {
