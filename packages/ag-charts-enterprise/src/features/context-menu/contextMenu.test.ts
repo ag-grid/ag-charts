@@ -401,53 +401,26 @@ describe('Context Menu', () => {
     });
 
     describe('series-node datum with overlapping nodes (AG-19428)', () => {
-        const OVERLAP_OPTIONS: AgChartOptions = {
-            data: [
-                { x: 0, y: 0, id: 'low' },
-                { x: 1, y: 1, id: 'A1' },
-                { x: 1, y: 1, id: 'A2' },
-                { x: 1, y: 1, id: 'A3' },
-                { x: 2, y: 2, id: 'high' },
+        const OVERLAP_DATA = [
+            { x: 0, y: 0, id: 'low' },
+            { x: 1, y: 1, id: 'A1' },
+            { x: 1, y: 1, id: 'A2' },
+            { x: 1, y: 1, id: 'A3' },
+            { x: 2, y: 2, id: 'high' },
+        ];
+
+        it.each<[string, AgChartOptions]>([
+            ['a single series', { data: OVERLAP_DATA, series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }] }],
+            [
+                'another series picked first',
+                {
+                    series: [
+                        { type: 'scatter', xKey: 'x', yKey: 'y', yName: 'A', data: OVERLAP_DATA },
+                        { type: 'scatter', xKey: 'x', yKey: 'y', yName: 'B', data: [{ x: 1, y: 1, id: 'B1' }] },
+                    ],
+                },
             ],
-            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-            tooltip: { pagination: true },
-        };
-
-        it('acts on the node the tooltip was paged to, not the first picked node', async () => {
-            const action = vi.fn();
-            const getItems = vi.fn((_params: any): AgContextMenuItem[] => [
-                { type: 'action', label: 'Open', showOn: 'series-node', action },
-            ]);
-            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, OVERLAP_OPTIONS));
-
-            // Hover the overlap, then page the tooltip twice: A1 -> A2 -> A3.
-            const { canvasX: x, canvasY: y } = datumCanvasPoint(1);
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
-            await clickAction(x, y)(chart);
-            await waitForChartStability(chart);
-
-            await contextMenuAction(x, y)(chart);
-            await waitForChartStability(chart);
-
-            expect(getItems).toHaveBeenCalledTimes(1);
-            const params = getItems.mock.calls[0][0];
-            expect(params.datum).toEqual({ x: 1, y: 1, id: 'A3' });
-            const nodeDatums = params.allShowOnParams
-                .filter((p: { showOn: string }) => p.showOn === 'series-node')
-                .map((p: { datum: { id: string } }) => p.datum.id);
-            expect(nodeDatums).toEqual(expect.arrayContaining(['A1', 'A2', 'A3']));
-
-            findContextMenuItem('Open').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-            await waitForChartStability(chart);
-
-            expect(action).toHaveBeenCalledTimes(1);
-            expect(action.mock.calls[0][0].datum).toEqual({ x: 1, y: 1, id: 'A3' });
-        });
-
-        it('acts on the paged node when another series is picked first', async () => {
+        ])('acts on the node the tooltip was paged to, with %s', async (_name, baseOptions) => {
             const action = vi.fn();
             const getItems = vi.fn((_params: any): AgContextMenuItem[] => [
                 { type: 'action', label: 'Open', showOn: 'series-node', action },
@@ -457,10 +430,7 @@ describe('Context Menu', () => {
                 chartOptions(
                     { enabled: true, getItems },
                     {
-                        series: [
-                            { type: 'scatter', xKey: 'x', yKey: 'y', yName: 'A', data: OVERLAP_OPTIONS.data },
-                            { type: 'scatter', xKey: 'x', yKey: 'y', yName: 'B', data: [{ x: 1, y: 1, id: 'B1' }] },
-                        ],
+                        ...baseOptions,
                         tooltip: { mode: 'shared', pagination: true },
                         listeners: { activeChange: ({ datum }: { datum?: { id: string } }) => (pagedId = datum?.id) },
                     }
@@ -479,9 +449,18 @@ describe('Context Menu', () => {
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            expect(getItems.mock.calls[0][0].datum).toEqual({ x: 1, y: 1, id: 'A3' });
+            expect(getItems).toHaveBeenCalledTimes(1);
+            const params = getItems.mock.calls[0][0];
+            expect(params.datum).toEqual({ x: 1, y: 1, id: 'A3' });
+            const nodeDatums = params.allShowOnParams
+                .filter((p: { showOn: string }) => p.showOn === 'series-node')
+                .map((p: { datum: { id: string } }) => p.datum.id);
+            expect(nodeDatums).toEqual(expect.arrayContaining(['A1', 'A2', 'A3']));
+
             findContextMenuItem('Open').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             await waitForChartStability(chart);
+
+            expect(action).toHaveBeenCalledTimes(1);
             expect(action.mock.calls[0][0].datum).toEqual({ x: 1, y: 1, id: 'A3' });
         });
     });
