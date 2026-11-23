@@ -809,7 +809,7 @@ function candidateFontAt(font: FontOptions): FontOptions {
 }
 // Per-datum inputs to `cascadeCandidates`, refilled by `placeAvoidingLabel` before it runs. Held here
 // rather than passed so the cascade can be re-run without allocating a closure or an argument list.
-let cascadeDatum: PointLabelDatum;
+let cascadeDatum: PointLabelDatum | undefined;
 let cascadeIndex = 0;
 let cascadePlacements: readonly LabelPlacement[] | undefined;
 let cascadeOrientations: AgChartLabelOrientation[] | undefined;
@@ -1432,35 +1432,81 @@ export function placeLabels(
     // Common keep-only case (line/area/bar with a single placement): no label queries the index, so
     // building it and seeding it with obstacles is wasted work.
     const useIndex = !noLabelQueriesIndex(placementData);
-    if (useIndex) {
-        buildObstacleIndex(placementData, obstacles, bounds);
-    }
 
-    let labelObstacleCount = 0;
-    for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
-        placementData
-    )) {
-        const labels: PlacedLabel[] = [];
-        if (datums[0]?.label == null) continue;
-        for (let index = 0, ln = datums.length; index < ln; index++) {
-            const d = datums[index];
-            // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
-            // they neither occupy a placement nor act as obstacles against labels that do have text.
-            if (d.label.text === '') continue;
-            const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
-            if (placed != null) {
-                labels.push(placed);
-                if (useIndex && d.obstacle !== false) {
-                    // Every placed label is a fixed obstacle for the labels resolved after it.
-                    labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+    try {
+        if (useIndex) {
+            buildObstacleIndex(placementData, obstacles, bounds);
+        }
+        let labelObstacleCount = 0;
+        for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
+            placementData
+        )) {
+            const labels: PlacedLabel[] = [];
+            if (datums[0]?.label == null) continue;
+            for (let index = 0, ln = datums.length; index < ln; index++) {
+                const d = datums[index];
+                // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
+                // they neither occupy a placement nor act as obstacles against labels that do have text.
+                if (d.label.text === '') continue;
+                const placed = tryPlaceLabel(
+                    d,
+                    defaults,
+                    index,
+                    padding,
+                    bounds,
+                    resolveCandidateStyle,
+                    resolveCandidate
+                );
+                if (placed != null) {
+                    labels.push(placed);
+                    if (useIndex && d.obstacle !== false) {
+                        // Every placed label is a fixed obstacle for the labels resolved after it.
+                        labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+                    }
                 }
             }
-        }
 
-        result.set(seriesId, labels);
+            result.set(seriesId, labels);
+        }
+    } finally {
+        if (useIndex) obstacleIndex.clear();
+        releaseSolveReferences();
     }
 
     return result;
+}
+
+// Stands in for a released region, so the scratch keeps no caller's box between solves.
+const releasedRegion: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+
+/** Drops the module scratch's hold on the last solve's datums, text, shapes and series callbacks. */
+function releaseSolveReferences() {
+    cascadeDatum = undefined;
+    cascadePlacements = undefined;
+    cascadeOrientations = undefined;
+    cascadeStyle = undefined;
+    cascadeFitSource = undefined;
+    cascadeRawRegion = releasedRegion;
+    cascadeRegion = releasedRegion;
+    cascadeFitRegion = undefined;
+    positionedDatum = undefined;
+    positionedBounds = releasedRegion;
+    positionedResolve = undefined;
+    positionedFitSource = undefined;
+    candidateAvoid = undefined;
+    candidateOwnBox = undefined;
+    candidateStack = undefined;
+    fittedLabel.text = '';
+    candidateLabel.text = '';
+    boundedFit.region = undefined;
+    releaseChoice(bestChoice);
+    releaseChoice(keptChoiceBackup);
+}
+
+function releaseChoice(choice: CandidateChoice) {
+    choice.text = '';
+    choice.candidate = undefined;
+    choice.stack = undefined;
 }
 
 /**
@@ -1476,13 +1522,12 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
-    const box = labelObstacleBox(placed);
     const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
             kind: 'rect',
-            box,
+            box: { x: 0, y: 0, width: 0, height: 0 },
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
             category: 'label',
             labelGroup,
@@ -1490,10 +1535,16 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
         };
         labelObstaclePool.push(obstacle);
     } else {
-        obstacle.box = box;
         obstacle.labelGroup = labelGroup;
         obstacle.outranks = outranks;
     }
+    // Copied rather than referenced: the pool outlives the solve, and the placed label holds its datum.
+    const { box } = obstacle;
+    const { x, y, width, height } = labelObstacleBox(placed);
+    box.x = x;
+    box.y = y;
+    box.width = width;
+    box.height = height;
     const { rotation } = placed;
     if (rotation != null && collidesByRotatedRect(placed.candidate, rotation)) {
         obstacle.kind = 'orientedRect';
@@ -2311,7 +2362,7 @@ function endFloorFallback() {
  * recorded against {@link bestChoice} instead, leaving `undefined` for the caller to resolve.
  */
 function cascadeCandidates(): PlacedLabel | undefined {
-    const d = cascadeDatum;
+    const d = cascadeDatum!;
     const candidateCount = cascadePlacements?.length ?? 1;
     const orientationCount = cascadeOrientations?.length ?? 1;
     // A trial can only win outright, so it records nothing, except the floor trial of a kept label.
@@ -2530,7 +2581,7 @@ function placeAvoidingLabel(
 }
 
 // Per-datum inputs to `positionedCandidatesPass`, so the font ladder can re-run it without allocating.
-let positionedDatum: PointLabelDatum;
+let positionedDatum: PointLabelDatum | undefined;
 let positionedIndex = 0;
 let positionedBounds: BoxBounds;
 let positionedResolve: PositionedCandidateResolver | undefined;
@@ -2599,7 +2650,7 @@ function placeFromPositionedCandidates(
 
 /** One pass of {@link placeFromPositionedCandidates}; a trial records nothing except at a kept label's floor. */
 function positionedCandidatesPass(): PlacedLabel | undefined {
-    const d = positionedDatum;
+    const d = positionedDatum!;
     const candidates = d.positionedCandidates!;
     const { fit } = d;
     const threshold = candidateThreshold;
