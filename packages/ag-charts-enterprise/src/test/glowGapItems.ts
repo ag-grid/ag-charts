@@ -20,31 +20,49 @@ export const sankeyLink = (glow: NormalisedDropShadowOptions) =>
         fillGlow: glow,
     });
 
-/** A body 30 across from y 80 to 140, with a wick 4 thick above it from y 40, which is a path of its own. */
-export const candlestick = (glow: NormalisedDropShadowOptions, x: number) => {
+/**
+ * The stroke of the body of an item, and whether its wicks share the body's path, as they do when styled as the body is. The
+ * `shift` moves the item along the axis of its wicks, so that a wick can end part way through a pixel.
+ */
+export interface WickOptions {
+    strokeWidth?: number;
+    wickInBodyPath?: boolean;
+    shift?: number;
+}
+
+/** A body 30 across from y 80 to 140, with a wick 4 thick above it from y 40 and below it to y 180, which is a path of its own. */
+export const candlestick = (
+    glow: NormalisedDropShadowOptions,
+    x: number,
+    { strokeWidth = 1, wickInBodyPath = false, shift = 0 }: WickOptions = {}
+) => {
     const node = new CandlestickNode();
-    node.setStaticProperties(x, 30, 40, 140, 80, 140, false, undefined, glow);
-    Object.assign(node, { fill: TRANSLUCENT_BLUE, stroke: TRANSLUCENT_BLUE, strokeWidth: 1 });
-    node.setWickProperties(WICK_COLOUR, 4, undefined, undefined, undefined);
+    node.setStaticProperties(x, 30, 40 + shift, 140, 80 + shift, 140 + shift, false, undefined, glow);
+    Object.assign(node, { fill: TRANSLUCENT_BLUE, stroke: TRANSLUCENT_BLUE, strokeWidth });
+    if (wickInBodyPath) node.setWickProperties(undefined, undefined, undefined, undefined, undefined);
+    else node.setWickProperties(WICK_COLOUR, 4, undefined, undefined, undefined);
     return node;
 };
 
 /** A box from x 120 to 280 and y 80 to 140, with whiskers 4 thick along y 110 out to x 40 and x 360, each a path of its own. */
-export const boxPlot = (glow: NormalisedDropShadowOptions) =>
+export const boxPlot = (
+    glow: NormalisedDropShadowOptions,
+    { strokeWidth = 1, wickInBodyPath = false, shift = 0 }: WickOptions = {}
+) =>
     Object.assign(new BoxPlotNode(), {
         horizontal: true,
-        center: 110,
+        center: 110 + shift,
         thickness: 60,
-        min: 40,
+        min: 40 + shift,
         q1: 120,
         median: 200,
         q3: 280,
-        max: 360,
+        max: 360 + shift,
         fill: TRANSLUCENT_BLUE,
         stroke: TRANSLUCENT_BLUE,
-        strokeWidth: 1,
-        wickStroke: WICK_COLOUR,
-        wickStrokeWidth: 4,
+        strokeWidth,
+        wickStroke: wickInBodyPath ? undefined : WICK_COLOUR,
+        wickStrokeWidth: wickInBodyPath ? undefined : 4,
         crisp: false,
         fillGlow: glow,
     });

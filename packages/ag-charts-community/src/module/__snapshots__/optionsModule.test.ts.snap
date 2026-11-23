@@ -207,7 +207,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -774,7 +774,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
   "tooltip": {
     "delay": 0,
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
     "pagination": false,
   },
   "touch": {
@@ -1007,7 +1007,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -1566,7 +1566,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   "tooltip": {
     "delay": 0,
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
     "pagination": false,
   },
   "touch": {
@@ -8674,7 +8674,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -9090,7 +9090,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   "tooltip": {
     "delay": 0,
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
     "pagination": false,
   },
   "touch": {
@@ -9262,7 +9262,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -9684,7 +9684,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   "tooltip": {
     "delay": 0,
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
     "pagination": false,
   },
   "touch": {
@@ -15538,7 +15538,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   "highlight": {
     "drawingMode": "cutout",
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -16097,7 +16097,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   "tooltip": {
     "delay": 0,
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
     "pagination": false,
   },
   "touch": {
@@ -18886,6 +18886,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "#b499b5",
         "#b7b5ba",
       ],
+      "gap": 1,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -18981,7 +18982,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "count",
-      "sectorSpacing": 1,
       "selection": {
         "containment": "any",
         "enabled": false,
@@ -19302,7 +19302,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
   "highlight": {
     "drawingMode": "overlay",
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
   },
   "keyboard": {
     "enabled": true,
@@ -19730,7 +19730,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
   "tooltip": {
     "delay": 0,
     "enabled": true,
-    "mode": "shared",
+    "mode": "single",
     "pagination": false,
   },
   "touch": {
@@ -19983,6 +19983,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "#72508c",
         "#b7b5ba",
       ],
+      "gap": 1,
       "glow": {
         "blur": 2,
         "enabled": false,
@@ -20045,7 +20046,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "population",
-      "sectorSpacing": 1,
       "selection": {
         "containment": "any",
         "enabled": false,

@@ -417,6 +417,42 @@ describe('Tooltip', () => {
             expect(element?.innerHTML).toContain('stroke="purple"');
         });
 
+        it('should resolve stock dash names in the symbol marker and line', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return {
+                                        symbol: {
+                                            marker: { stroke: 'purple', strokeWidth: 4, lineDash: 'dash' },
+                                            line: { enabled: true, stroke: 'orange', strokeWidth: 3, lineDash: 'dot' },
+                                        },
+                                    };
+                                },
+                            },
+                        },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
+                    },
+                })
+            );
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            // Resolved at the stroke width, then scaled to the 2px that the symbol draws: `dash` is `[12, 8]` at 4px
+            // and `dot` is `[3, 4.5]` at 3px.
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('stroke-dasharray="6 4"');
+            expect(element?.innerHTML).toContain('stroke-dasharray="2 3"');
+        });
+
         it('should default line.enabled to true when user provides line properties', async () => {
             chart = deproxy(
                 await createChart({

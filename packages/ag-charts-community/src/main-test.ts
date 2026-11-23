@@ -1,5 +1,6 @@
 // Undocumented APIs used by Enterprise Modules.
 export * from './chart/test/axisAccessors';
+export * from './chart/test/chartAccessors';
 export * from './chart/test/seriesAccessors';
 export * from './chart/test/utils';
 export * from './chart/test/axisTestCases';
@@ -12,6 +13,7 @@ export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
+    getSeriesLabelObstacles,
     withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './chart/test/communitySeriesAccessors';

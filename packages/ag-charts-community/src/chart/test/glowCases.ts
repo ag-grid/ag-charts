@@ -40,6 +40,13 @@ export interface GlowSeriesCase {
     seriesShadowOnly?: boolean;
     /** An `itemStyler` of this series also styles the parts of the other placements (treemap groups and tiles). */
     stylerCastsOtherParts?: boolean;
+    /**
+     * Gives an `itemStyler`'s glow only to the nodes that this accepts, where `place` puts the glow on one part of the series only
+     * (the tiles or the groups of a treemap): otherwise it reaches every part, and the equality with the placed glow fails.
+     */
+    stylerGlowOnly?: (params: { datum?: any }) => boolean;
+    /** What the snapshot of the hovered item places, where it is not the series shadow and glow. */
+    hoveredPlacement?: GlowPlacement;
     /** The existing test that snapshots the series shadow at rest, where there is one, so that it is not snapshotted twice. */
     shadowSnapshot?: string;
     /** The shadow and glow of the hovered item, where they are not `HIGHLIGHT_SHADOW` and `HIGHLIGHT_GLOW`. */

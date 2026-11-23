@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { random } from './randomHelpers';

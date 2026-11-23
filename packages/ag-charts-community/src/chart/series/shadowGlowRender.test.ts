@@ -120,13 +120,13 @@ describe('shadow and glow render', () => {
     describe('adjacent sectors that all glow', () => {
         const FILLS: Record<string, string> = { A: '#d0021b', B: '#7ed321', C: '#4a90e2' };
 
-        it('renders a donut with sector spacing, each glow ending midway between its sector and the next', async () => {
+        it('renders a donut with a gap, each glow ending midway between its sector and the next', async () => {
             await create(
                 [
                     {
                         type: 'donut',
                         angleKey: 'value',
-                        sectorSpacing: 12,
+                        gap: 12,
                         itemStyler: ({ datum }: { datum: { category: string } }) => ({
                             glow: { ...RED_GLOW, fill: FILLS[datum.category] },
                         }),
@@ -157,7 +157,7 @@ describe('shadow and glow render', () => {
                     highlight: { [state]: { glow: GLOWS[state] } },
                 })),
                 COLUMNS,
-                { ...RENDER_OPTIONS, legend: { enabled: true, position: 'bottom' } }
+                { ...RENDER_OPTIONS, highlight: { mode: 'shared' }, legend: { enabled: true, position: 'bottom' } }
             );
             if (state === 'highlightedSeries') await hoverLegendItem(chart(), 0);
             else await hoverDatum(chart(), 0, 1);

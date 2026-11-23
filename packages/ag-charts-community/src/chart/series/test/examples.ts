@@ -941,7 +941,7 @@ export const SUNBURST_SERIES_LABELS: AgHierarchyChartOptions = {
             colorScale: {
                 fills: [{ color: '#d73027' }, { color: '#fee08b' }, { color: '#1a9850' }, { color: 'rgb(0, 116, 52)' }],
             },
-            sectorSpacing: 3,
+            gap: 3,
         },
     ],
     title: {

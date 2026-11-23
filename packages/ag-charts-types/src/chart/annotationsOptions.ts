@@ -1,8 +1,4 @@
-import type {
-    AgStateSerializableBigInt,
-    AgStateSerializableGroupingValueType,
-    AgStateSerializableValueType,
-} from '../api/stateTypes';
+import type { AgStateSerializableGroupingValueType, AgStateSerializableValueType } from '../api/stateTypes';
 import type {
     FillOptions,
     LineDashOptions,
@@ -221,32 +217,9 @@ export interface AgLineAnnotation
     text?: AgLineAnnotationText;
 }
 
-/** A named datum of a series that a horizontal-line annotation can follow. */
-export type AgAnnotationFollowName = 'first' | 'last';
-
-export interface AgAnnotationFollowOptions {
-    /** The named datum to follow. */
-    follow: AgAnnotationFollowName;
-    /** The `id` of the series to follow. If not set, the first visible series bound to the y-axis is used. */
-    seriesId?: string;
-}
-
-export type AgAnnotationFollow = AgAnnotationFollowName | AgAnnotationFollowOptions;
-
-export interface AgHorizontalLineAnnotation extends Omit<AgCrossLineAnnotation, 'value'> {
+export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
-    /** Position of the annotation specified in terms of the y-axis value. Required unless `follow` is set. */
-    value?: AgAnnotationValue;
-    /**
-     * Make the annotation follow the `'first'` or `'last'` datum of a series, so it moves when the data changes. A
-     * followed annotation cannot be dragged and `value` is ignored.
-     *
-     * The series' value is its `yKey`, or its `closeKey` for financial series. Pass an object to choose the series
-     * with `seriesId`, which must be bound to the y-axis the annotation is on. A series chosen this way is followed
-     * even while it is hidden.
-     */
-    follow?: AgAnnotationFollow;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
 }
@@ -558,8 +531,8 @@ interface AnnotationLinePoints {
 export interface AgAnnotationPoint {
     /** The x-value of the point. */
     x: AgAnnotationValue;
-    /** The y-value of the point. A number, or a serialised value object. */
-    y: number | AgStateSerializableBigInt;
+    /** The y-value of the point. */
+    y: AgAnnotationValue;
 }
 
 interface Writeable {

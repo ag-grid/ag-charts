@@ -1,5 +1,3 @@
-import type { AgAnnotationFollow } from 'ag-charts-types';
-
 import {
     type AnnotationDatumBase,
     type AxisLabelDatum,
@@ -25,8 +23,6 @@ export interface CrossLineTypeDatum extends AnnotationDatumBase, StrokeFields, L
 
 export interface HorizontalLineDatum extends CrossLineTypeDatum {
     type: AnnotationType.HorizontalLine;
-    /** Makes the line follow a named datum of a series; while set, `value` is ignored and the line cannot be dragged. */
-    follow?: AgAnnotationFollow;
 }
 
 export interface VerticalLineDatum extends CrossLineTypeDatum {

@@ -197,7 +197,7 @@ type SunburstRequiredKeys =
     | 'strokeOpacity'
     | 'cornerRadius'
     | 'shadow'
-    | 'sectorSpacing'
+    | 'gap'
     | 'padding'
     | 'label'
     | 'secondaryLabel'

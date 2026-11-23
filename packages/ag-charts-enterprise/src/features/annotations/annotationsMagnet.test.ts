@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgAnnotationMagnet, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     clickAction,
+    deproxy,
     dragAction,
     getSeriesRect,
     hoverAction,
@@ -336,5 +337,31 @@ describe('Annotations magnet', () => {
         await updateMagnet({ enabled: true });
         await updateMagnet({ enabled: false });
         expect(getAnnotationMagnetEnabled(chart)).toBe(false);
+    });
+
+    it('shows the toolbar magnet button as a switch that follows the magnet', async () => {
+        chart = await createAnnotationsChart({
+            ...ANNOTATIONS_EXAMPLE_OPTIONS,
+            annotations: {
+                ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations,
+                magnet: { enabled: false, mode: 'strong' },
+                toolbar: { enabled: true, buttons: [{ icon: 'magnet', value: 'magnet', tooltip: 'Magnet' }] },
+            },
+        } as AgCartesianChartOptions);
+        const magnetButton = () =>
+            deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('.ag-charts-shared-toolbar button')!;
+
+        expect(magnetButton().getAttribute('role')).toBe('switch');
+        expect(magnetButton().getAttribute('aria-checked')).toBe('false');
+        expect(magnetButton().hasAttribute('aria-pressed')).toBe(false);
+
+        magnetButton().click();
+        await waitForChartStability(chart);
+        expect(getAnnotationMagnetEnabled(chart)).toBe(true);
+        expect(magnetButton().getAttribute('aria-checked')).toBe('true');
+
+        magnetButton().click();
+        await waitForChartStability(chart);
+        expect(magnetButton().getAttribute('aria-checked')).toBe('false');
     });
 });

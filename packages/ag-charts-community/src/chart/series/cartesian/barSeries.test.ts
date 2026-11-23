@@ -2317,6 +2317,61 @@ describe('BarSeries', () => {
             chart = await createChart(options);
             await compare();
         });
+
+        // Neither label may sit on the visible part of the other bar: the front bar is drawn over the back one.
+        it('moves a label off the edge of an overlapping bar from another series', async () => {
+            const collision = { alwaysShow: true, threshold: 0, collideWith: { shapes: false, labels: false } };
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'Q1', back: 100, front: 50 },
+                    { x: 'Q2', back: 80, front: 40 },
+                    { x: 'Q3', back: 110, front: 55 },
+                    { x: 'Q4', back: 90, front: 45 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'back',
+                        grouped: false,
+                        label: { placement: ['inside-center', 'outside-end'], color: 'black', collision },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'front',
+                        grouped: false,
+                        label: { placement: ['outside-end', 'inside-center'], color: 'black', collision },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await compare();
+        });
+
+        // Aggregated stack segments get nested boxes, so the label overhanging its short segment crosses its sibling's top.
+        it('keeps an aggregated stacked label inside the segment that crosses its sibling bar', async () => {
+            const rows = HIGH_VOLUME_COUNT;
+            const label = {
+                placement: ['inside-center', 'outside-end'] as AgBarSeriesLabelPlacement[],
+                collision: { threshold: -3, collideWith: { labels: false } },
+            };
+            chart = await createChart({
+                data: Array.from({ length: rows }, (_, i) => ({ x: i, low: 50 + (i % 7) * 10, high: 2 + (i % 5) })),
+                axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'low', stacked: true, label },
+                    { type: 'bar', xKey: 'x', yKey: 'high', stacked: true, label },
+                ],
+            });
+
+            const upper = getBarSeriesContextNodeData(chart, 1).nodeData;
+            // Guards the premise: fewer nodes than rows means the bars were aggregated.
+            expect(upper.length).toBeLessThan(rows);
+            const placements = upper.map(({ label: placed }) => (placed?.hidden ? 'hidden' : placed?.placement));
+            expect(new Set(placements)).toEqual(new Set(['inside-center']));
+        });
     });
 
     describe('item styler', () => {
@@ -3074,8 +3129,8 @@ describe('BarSeries', () => {
                 'vertical-dashed-lines',
                 'horizontal-dashed-lines',
                 'waves',
-                'criss-cross',
-                'zig-zag',
+                'crosshatch',
+                'zigzag',
                 'hollow-circles',
                 'polka-dots',
             ] as const;
@@ -4860,7 +4915,7 @@ describe('BarSeries', () => {
                     { x: 'A', y: 3 },
                     { x: 'B', y: 5 },
                 ],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                series: [{ id: 'bars', type: 'bar', xKey: 'x', yKey: 'y' }],
             };
             chart = await createChart(options);
 
@@ -4869,10 +4924,12 @@ describe('BarSeries', () => {
 
             expect(nodeData).toHaveLength(2);
             expect(obstacles).toEqual(
-                nodeData.map(({ x, y, width, height }) => ({
+                nodeData.map(({ x, y, width, height, datumIndex }) => ({
                     kind: 'rect',
                     box: { x, y, width, height },
                     category: 'shape',
+                    sourceId: 'bars',
+                    entityIndex: datumIndex,
                 }))
             );
         });
@@ -5074,6 +5131,7 @@ describe('BarSeries', () => {
             return {
                 data,
                 animation: { enabled: false },
+                tooltip: { mode: 'shared' },
                 series: [
                     { id: 'y1', type: 'bar', xKey: 'x', yKey: 'y1' },
                     { id: 'y2', type: 'bar', xKey: 'x', yKey: 'y2' },

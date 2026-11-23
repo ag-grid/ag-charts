@@ -1,12 +1,15 @@
-import { Group, SeriesZIndexMap, clamp, compareZIndex } from 'ag-charts-core';
+import { Group, SeriesZIndexMap, type ZIndex, clamp, compareZIndex } from 'ag-charts-core';
 
 import type { SeriesGrouping } from '../../module/seriesGrouping';
 
 interface SeriesConfig {
+    id: string;
     internalId: string;
     seriesGrouping: SeriesGrouping | undefined;
     contentGroup: Group;
     bringToFront(): boolean;
+    raisedAtRest(): boolean;
+    atRestZIndex(): ZIndex;
     renderToOffscreenCanvas(): boolean;
     type: string;
 }
@@ -24,16 +27,18 @@ export class SeriesLayerManager {
     private readonly groups = new Map<string, Map<string | number, LayerState>>();
     private readonly series = new Map<
         string,
-        { layerState: LayerState; seriesConfig: SeriesConfig; bringToFront: boolean }
+        { layerState: LayerState; seriesConfig: SeriesConfig; bringToFront: boolean; raisedAtRest: boolean }
     >();
 
     private expectedSeriesCount = 1;
     private mode: 'normal' | 'aggressive-grouping' = 'normal';
+    private paintOrder?: Map<string, number>;
 
     constructor(private readonly seriesRoot: Group) {}
 
     public setSeriesCount(count: number) {
         this.expectedSeriesCount = count;
+        this.paintOrder = undefined;
     }
 
     private getGroupIndex(seriesConfig: SeriesConfig) {
@@ -55,6 +60,7 @@ export class SeriesLayerManager {
         if (seriesInfo != null) {
             throw new Error(`AG Charts - series already has an allocated layer: ${JSON.stringify(seriesInfo)}`);
         }
+        this.paintOrder = undefined;
 
         // Re-evaluate mode only on first series addition - we can't swap strategy mid-setup.
         if (this.series.size === 0) {
@@ -90,7 +96,8 @@ export class SeriesLayerManager {
             group.set(lookupIndex, groupInfo);
         }
 
-        this.series.set(internalId, { layerState: groupInfo, seriesConfig, bringToFront });
+        const raisedAtRest = seriesConfig.raisedAtRest();
+        this.series.set(internalId, { layerState: groupInfo, seriesConfig, bringToFront, raisedAtRest });
 
         groupInfo.seriesIds.push(internalId);
         groupInfo.group.appendChild(seriesContentGroup);
@@ -105,14 +112,17 @@ export class SeriesLayerManager {
 
         const oldGroup = this.series.get(internalId);
         const oldType = oldGroup ? this.getGroupType(oldGroup.seriesConfig, oldGroup.bringToFront) : undefined;
+        // Called whenever the series' order or raise changes, either of which can reorder it.
+        this.paintOrder = undefined;
 
         const groupIndex = this.getGroupIndex(seriesConfig);
         const lookupIndex = this.lookupIdx(groupIndex);
 
         const groupInfo = this.groups.get(type)?.get(lookupIndex);
 
-        if (oldType === type && groupInfo?.seriesIds.includes(internalId) === true) {
-            // Already in the right group, nothing to do.
+        if (oldGroup != null && oldType === type && groupInfo?.seriesIds.includes(internalId) === true) {
+            // Already in the right group: only the at-rest raise it reports can have changed.
+            oldGroup.raisedAtRest = seriesConfig.raisedAtRest();
             return;
         }
 
@@ -134,6 +144,7 @@ export class SeriesLayerManager {
         if (!this.series.has(internalId)) {
             throw new Error(`AG Charts - series doesn't have an allocated layer: ${internalId}`);
         }
+        this.paintOrder = undefined;
 
         const groupInfo = this.series.get(internalId)?.layerState;
         if (groupInfo) {
@@ -174,6 +185,50 @@ export class SeriesLayerManager {
                 group.zIndex = this.getLowestSeriesZIndex(seriesIds);
             }
         }
+    }
+
+    /** Each series' rank in the draw order the scene last applied, ignoring highlight raises, keyed by series id. */
+    public atRestPaintOrder(): ReadonlyMap<string, number> {
+        if (this.paintOrder != null) return this.paintOrder;
+
+        type Layer = { lowestZIndex: ZIndex; serial: number };
+        type Entry = { id: string; layer: Layer; zIndex: ZIndex; serial: number };
+        const layers = new Map<LayerState | string, Layer>();
+        const entries: Entry[] = [];
+        for (const [internalId, { layerState, seriesConfig, bringToFront, raisedAtRest }] of this.series) {
+            let layer: LayerState | string = layerState;
+            if (bringToFront && !raisedAtRest) {
+                // A highlight raise: the layer it returns to, or a new one drawn after the rest when that is gone.
+                const lookupIndex = this.lookupIdx(this.getGroupIndex(seriesConfig));
+                layer = this.groups.get(seriesConfig.type)?.get(lookupIndex) ?? internalId;
+            }
+            const zIndex = seriesConfig.atRestZIndex();
+            let entryLayer = layers.get(layer);
+            if (entryLayer == null) {
+                const serial = typeof layer === 'string' ? Infinity : layer.group.serialNumber;
+                entryLayer = { lowestZIndex: zIndex, serial };
+                layers.set(layer, entryLayer);
+            } else if (compareZIndex(zIndex, entryLayer.lowestZIndex) < 0) {
+                entryLayer.lowestZIndex = zIndex;
+            }
+            entries.push({
+                id: seriesConfig.id,
+                layer: entryLayer,
+                zIndex,
+                serial: seriesConfig.contentGroup.serialNumber,
+            });
+        }
+        // As `Group` draws children: layers by their lowest member's z-index, then members; ties by serial number.
+        entries.sort((a, b) => {
+            const byLayer = compareZIndex(a.layer.lowestZIndex, b.layer.lowestZIndex);
+            if (byLayer !== 0) return byLayer;
+            if (a.layer.serial !== b.layer.serial) return a.layer.serial < b.layer.serial ? -1 : 1;
+            const byZIndex = compareZIndex(a.zIndex, b.zIndex);
+            return byZIndex === 0 ? a.serial - b.serial : byZIndex;
+        });
+
+        this.paintOrder = new Map(entries.map(({ id }, rank) => [id, rank]));
+        return this.paintOrder;
     }
 
     private lookupIdx(groupIndex: number | string) {

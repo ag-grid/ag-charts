@@ -83,6 +83,11 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     /** The connector glow converted from the `glow` option it was made from, so that it is the same object on every update. */
     private connectorGlowCache?: { source: unknown; shadow: NormalisedDropShadowOptions | undefined };
 
+    // Only the connectors glow, in every highlight state, so no item casts a glow that a highlight changes.
+    protected override getSeriesGlows() {
+        return [];
+    }
+
     // Connectors have no highlight options, so their glow is the series-level one in every highlight state.
     protected override connectorGlow(): NormalisedDropShadowOptions | undefined {
         const source = this.options.glow;

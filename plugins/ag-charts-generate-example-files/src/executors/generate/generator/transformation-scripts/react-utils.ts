@@ -21,15 +21,17 @@ export function convertStyles(code: string) {
     });
 }
 
-/**
- * React needs boolean attributes as JSX expressions, and uncontrolled inputs to use the default*
- * props. Runs before event conversion, while the tag is still plain HTML — once a handler becomes
- * an arrow function its `>` breaks any regex that relies on `[^>]` to stay inside the tag.
- */
+// Steps over whole attributes, so a word inside an attribute value (`placeholder="a disabled input"`) is not matched.
+const attributesBefore = (tag: string) => `(<${tag}(?:\\s+[\\w:-]+(?:="[^"]*"|='[^']*')?)*?\\s+)`;
+
+/** Boolean attributes become JSX expressions and uncontrolled inputs use default* props. */
 function convertBooleanAttributes(template: string) {
     return template
-        .replace(/(<input[^>]*?\s)checked(?:="[^"]*")?(?=[\s/>])/g, '$1defaultChecked')
-        .replace(/(<[a-z][^>]*?\s)disabled(?:="[^"]*")?(?=[\s/>])/g, '$1disabled={true}');
+        .replace(new RegExp(`${attributesBefore('input')}checked(?:="[^"]*")?(?=[\\s/>])`, 'g'), '$1defaultChecked')
+        .replace(
+            new RegExp(`${attributesBefore('[a-z][\\w-]*')}disabled(?:="[^"]*")?(?=[\\s/>])`, 'g'),
+            '$1disabled={true}'
+        );
 }
 
 export function convertTemplate(template: string) {
@@ -63,8 +65,25 @@ export function convertTemplate(template: string) {
     return convertStyles(template);
 }
 
-export function convertFunctionalTemplate(template: string) {
+// Handler arguments are untyped HTML attributes, so assert each to the type the handler declares.
+function typeHandlerArgs(handler: string, args: string): string {
+    return (
+        args
+            .split(',')
+            // `target` is an `EventTarget`; the element the handler is on is what `this` was in the HTML attribute
+            .map((arg, index) =>
+                /^\s*event\.currentTarget\.(value|selectedOptions\[0\]\.text)\s*$/.test(arg)
+                    ? `${arg.trim()} as Parameters<typeof ${handler}>[${index}]`
+                    : arg.trim()
+            )
+            .join(', ')
+    );
+}
+
+export function convertFunctionalTemplate(template: string, { typed = false } = {}) {
     template = convertBooleanAttributes(template);
+    // Before the handlers become JSX expressions, whose generics (`Parameters<typeof fn>`) contain a `>`
+    template = template.replace(/<input (.+?[^=])>/g, '<input $1 />');
 
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
@@ -84,9 +103,15 @@ export function convertFunctionalTemplate(template: string) {
             if (meta) {
                 // 0 original call, 1 function name, 2 arguments
                 if (meta[2]) {
-                    const containsEventKeyword = meta[2].includes('event');
+                    // `this` in an inline handler attribute is the element, which an arrow function cannot see
+                    const withElement = meta[2].replace(/(?<![.\w])this\./g, 'event.currentTarget.');
+                    const containsEventKeyword = withElement.includes('event');
                     const args = containsEventKeyword ? '(event)' : '()';
-                    template = template.replace(matcher, `${jsEvent}={${args} => $1($2)}`);
+                    // Handlers are written against the DOM `Event`, not React's `SyntheticEvent`.
+                    let handlerArgs = withElement.replace(/(?<![.\w])event(?![\w.])/g, 'event.nativeEvent');
+                    if (typed) handlerArgs = handlerArgs.replace(/event\.target\./g, 'event.currentTarget.');
+                    if (typed) handlerArgs = typeHandlerArgs(meta[1], handlerArgs);
+                    template = template.replace(matcher, `${jsEvent}={${args} => $1(${handlerArgs})}`);
                 } else {
                     template = template.replace(matcher, `${jsEvent}={$1}`);
                 }
@@ -98,7 +123,6 @@ export function convertFunctionalTemplate(template: string) {
 
     template = template
         .replace(/,\s+event([),])/g, '$1')
-        .replace(/<input (.+?[^=])>/g, '<input $1 />')
         .replace(/<input (.*)value=/g, '<input $1defaultValue=')
         .replace(/ class=/g, ' className=')
         .replace(/ for=/g, ' htmlFor=')

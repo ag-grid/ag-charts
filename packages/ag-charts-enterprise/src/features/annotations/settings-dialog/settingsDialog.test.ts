@@ -6,12 +6,15 @@ import { CategoryScale, LinearScale, TimeScale } from 'ag-charts-core';
 
 import { getAnnotationsModuleContext } from '../../../test/featureAccessors';
 import type { AnnotationContext } from '../annotationTypes';
-import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import type { SettingsDialogDatumType } from '../annotationsSuperTypes';
+import { calloutDatum } from '../callout/calloutDatum';
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
+import { disjointChannelDatum } from '../disjoint-channel/disjointChannelDatum';
 import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart, createAxesContext } from '../test/fixture';
+import { textDatum } from '../text/textDatum';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settingsDialog';
 
 describe('AnnotationSettingsDialog coordinates', () => {
@@ -28,7 +31,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         start: { x: 'Pears', y: 2 },
         end: { x: 'Apples', y: 4 },
     });
-    const show = <Datum extends LinearDialogDatumType = ReturnType<typeof defaultDatum>>(
+    const show = <Datum extends SettingsDialogDatumType = ReturnType<typeof defaultDatum>>(
         context: AnnotationContext,
         datum: Datum = defaultDatum() as Datum
     ) => {
@@ -38,6 +41,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
             onChangeCoordinates,
             onChangeLine: noop,
             onChangeText: noop,
+            onChangeTextContent: noop,
             onChangeFillColor: noop,
             onChangeHideFillColor: noop,
             onChangeLineColor: noop,
@@ -98,6 +102,23 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(2);
     });
 
+    it('shows the heights of a parallel and a disjoint channel at the decimals of the y axis crosshair label', () => {
+        const yScale = new LinearScale();
+        yScale.domain = [0, 5000];
+        const context = createAxesContext(new CategoryScale(), yScale, (value) => Number(value).toFixed(1));
+
+        show(context, { ...parallelChannelDatum.create(), height: 12.34567 });
+        expect(inputs().at(-1)!.value).toBe('12.3');
+        dialog.hide();
+
+        show(context, { ...disjointChannelDatum.create(), startHeight: 1.98765, endHeight: 20 });
+        expect(
+            inputs()
+                .slice(-2)
+                .map((input) => input.value)
+        ).toEqual(['2.0', '20']);
+    });
+
     it('follows the annotation when it changes behind the dialog', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
@@ -154,7 +175,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(onChangeCoordinates).toHaveBeenCalledTimes(1);
     });
 
-    it('lays out the x and y of a point on one row with labels above, a single value or offset with its label alongside, and a height with its label above', () => {
+    it('lays out the x and y of a point on one row with labels above, a single value, offset or height with its label alongside, and bounds the offset', () => {
         const yScale = new LinearScale();
         yScale.domain = [0, 50];
         const context = createAxesContext(new CategoryScale(), yScale);
@@ -168,6 +189,13 @@ describe('AnnotationSettingsDialog coordinates', () => {
 
         show(context);
         expect(inputs()[2].getAttribute('aria-label')).toBe('Start offset: X (%)');
+        expect(inputs()[2].min).toBe('-50');
+        expect(inputs()[2].max).toBe('50');
+
+        const offset = inputs()[2].value;
+        commit(inputs()[2], '51');
+        expect(inputs()[2].value).toBe(offset);
+        expect(onChangeCoordinates).not.toHaveBeenCalled();
         expect(layout()).toEqual([
             [
                 { label: 'Start: X', inline: false },
@@ -187,7 +215,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         dialog.hide();
 
         show(context, { ...parallelChannelDatum.create(), height: 10 });
-        expect(layout().at(-1)).toEqual([{ label: 'Height', inline: false }]);
+        expect(layout().at(-1)).toEqual([{ label: 'Height', inline: true }]);
     });
 
     it('labels every input of a point on two category axes, so that no label is a missing locale key', () => {
@@ -211,6 +239,45 @@ describe('AnnotationSettingsDialog coordinates', () => {
             'Retracement end: Y',
             'Retracement end offset: X (%)',
             'Retracement end offset: Y (%)',
+        ]);
+    });
+
+    it('labels the inputs of a point annotation X and Y and commits them as x and y, where a callout keeps its start and end', () => {
+        const xScale = new CategoryScale<string>();
+        xScale.domain = ['Apples', 'Pears'];
+        const yScale = new LinearScale();
+        yScale.domain = [0, 50];
+        const label = (input: HTMLInputElement) => input.getAttribute('aria-label');
+
+        show(createAxesContext(xScale, yScale), { ...textDatum.create(), x: 'Pears', y: 4 });
+        expect(inputs().map(label)).toEqual(['X', 'Y', 'Offset: X (%)']);
+        const [x, y] = inputs();
+        commit(x, 'Apples');
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ x: { value: 'Apples', groupPercentage: 0 } });
+        commit(y, '20');
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ y: 20 });
+        dialog.hide();
+
+        show(createAxesContext(new CategoryScale(), new CategoryScale()), {
+            ...textDatum.create(),
+            x: 'Pears',
+            y: 'Pears',
+        });
+        expect(inputs().map(label)).toEqual(['X', 'Y', 'Offset: X (%)', 'Offset: Y (%)']);
+        dialog.hide();
+
+        show(createAxesContext(new CategoryScale(), yScale), {
+            ...calloutDatum.create(),
+            start: { x: 'Pears', y: 2 },
+            end: { x: 'Apples', y: 4 },
+        });
+        expect(inputs().map(label)).toEqual([
+            'Start: X',
+            'Start: Y',
+            'Start offset: X (%)',
+            'End: X',
+            'End: Y',
+            'End offset: X (%)',
         ]);
     });
 });
