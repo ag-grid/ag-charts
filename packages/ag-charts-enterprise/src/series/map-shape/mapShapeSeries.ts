@@ -20,6 +20,7 @@ import type {
     Point,
     PointLabelDatum,
     Position,
+    ZIndex,
 } from 'ag-charts-core';
 import {
     ColorScale,
@@ -263,10 +264,13 @@ export class MapShapeSeries
         }
     }
 
+    protected override contentZIndex(zIndex: number): ZIndex {
+        return [MapZIndexMap.ShapeLine, zIndex];
+    }
+
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.ShapeLine, zIndex];
         this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, zIndex];
 
         return true;

@@ -327,11 +327,7 @@ export interface PointLabelDatum {
      * bar-family labels, whose rect-relative candidates the compass-vector engine can't express.
      */
     readonly positionedCandidates?: readonly PositionedLabelCandidate[];
-    /**
-     * The label's own bar rect. Obstacles intersecting it are treated as non-colliding, so a bar label
-     * never collides with its own bar, except a `shape` owned by another datum whose edge the label
-     * crosses (see {@link entityIndex} and {@link stackId}).
-     */
+    /** The label's own bar rect; obstacles intersecting it don't collide, except other datums' shapes. */
     readonly ownBox?: BoxBounds;
     /** The label's datum: its own shape is the `shape` obstacle with this `entityIndex` and its series' `sourceId`. */
     readonly entityIndex?: number;
@@ -732,7 +728,7 @@ let candidateAvoid: LabelAvoidance | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
 // negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
 let candidateThreshold = 0;
-// How far the candidate may poke out of a foreign shape yet lie on it: the overlap a negative threshold allows.
+// How far the candidate may poke out of its own bar yet lie on it: the overlap a negative threshold allows.
 let candidateContainSlack = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
@@ -741,13 +737,19 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// The candidate's own bar rect: obstacles intersecting it are excluded, except straddled foreign shapes.
+// The candidate's own bar rect: obstacles intersecting it are excluded, except foreign shapes.
 let candidateOwnBox: BoxBounds | undefined;
 // Series id and datum index naming the candidate's own shape among the owned `shape` obstacles.
 let candidateSourceId: string | undefined;
 let candidateEntityIndex: number | undefined;
 // The stack of the candidate's bar, whose shapes all count as its own.
 let candidateStackId: number | undefined;
+// The drawn box of the candidate's own shape, looked up from the index on first need per label.
+let candidateOwnShape: BoxBounds | undefined;
+let candidateOwnShapeResolved = false;
+// Each source's rank in the solve's paint order (higher drawn over lower), and the candidate series' rank.
+let solvePaintOrder: ReadonlyMap<string, number> | undefined;
+let candidatePaintRank: number | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
@@ -923,14 +925,32 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
-/** True when the candidate crosses the edge of `o`, another datum's bar overlapping its own, beyond threshold slack. */
-function straddlesForeignShape(o: LabelObstacle, category: ObstacleCategory): boolean {
-    // A shape or label without an owner keeps the plain own-box exclusion.
+/** True when `o` is a shape owned by a datum other than the candidate's, outside the candidate's stack. */
+function isForeignShape(o: LabelObstacle, category: ObstacleCategory): boolean {
     if (o.kind !== 'rect' || category !== 'shape' || o.entityIndex == null || candidateEntityIndex == null)
         return false;
     if (o.entityIndex === candidateEntityIndex && o.sourceId === candidateSourceId) return false;
     // Stack siblings (and aggregated buckets) overlap one another, so the whole stack is its own.
-    if (o.stackId != null && o.stackId === candidateStackId) return false;
+    return o.stackId == null || o.stackId !== candidateStackId;
+}
+
+function matchOwnShape(o: LabelObstacle): boolean {
+    if (o.kind !== 'rect' || (o.category ?? 'shape') !== 'shape') return false;
+    if (o.entityIndex !== candidateEntityIndex || o.sourceId !== candidateSourceId) return false;
+    candidateOwnShape = o.box;
+    return true;
+}
+
+/** True when the candidate's overlap with `under` lies on its own drawn bar, within the slack a negative threshold allows. */
+function overlapLiesOnOwnShape(under: BoxBounds): boolean {
+    if (!candidateOwnShapeResolved) {
+        candidateOwnShapeResolved = true;
+        candidateOwnShape = undefined;
+        if (candidateOwnBox != null) obstacleIndex.query(candidateOwnBox, matchOwnShape);
+    }
+    const own = candidateOwnShape;
+    if (own == null) return false;
+    let x0: number, y0: number, x1: number, y1: number;
     if (candidateOriented) {
         // The rect already carries the threshold, so take back any positive part to measure the label itself.
         const { cx, cy, cos, sin } = candidateRect;
@@ -938,11 +958,31 @@ function straddlesForeignShape(o: LabelObstacle, category: ObstacleCategory): bo
         const halfHeight = candidateRect.halfHeight - Math.max(candidateThreshold, 0);
         const extentX = Math.abs(cos) * halfWidth + Math.abs(sin) * halfHeight;
         const extentY = Math.abs(sin) * halfWidth + Math.abs(cos) * halfHeight;
-        return !boxContains(o.box, cx - extentX, cy - extentY, 2 * extentX, 2 * extentY);
+        x0 = cx - extentX;
+        y0 = cy - extentY;
+        x1 = cx + extentX;
+        y1 = cy + extentY;
+    } else {
+        const slack = candidateContainSlack;
+        const { x, y, width, height } = candidateBox;
+        x0 = x + slack;
+        y0 = y + slack;
+        x1 = x + width - slack;
+        y1 = y + height - slack;
     }
-    const slack = candidateContainSlack;
-    const { x, y, width, height } = candidateBox;
-    return !boxContains(o.box, x + slack, y + slack, width - 2 * slack, height - 2 * slack);
+    x0 = Math.max(x0, under.x);
+    y0 = Math.max(y0, under.y);
+    x1 = Math.min(x1, under.x + under.width);
+    y1 = Math.min(y1, under.y + under.height);
+    return x0 >= x1 || y0 >= y1 || boxContains(own, x0, y0, x1 - x0, y1 - y0);
+}
+
+/** True when foreign shape `o` is painted under the candidate's own bar, which covers all of it the label overlaps. */
+function foreignShapeHidden(o: LabelObstacle): boolean {
+    // A bar of the candidate's own series shares its paint level, so is never under it.
+    if (candidatePaintRank == null || o.sourceId == null || o.sourceId === candidateSourceId) return false;
+    const rank = solvePaintOrder?.get(o.sourceId);
+    return rank != null && rank < candidatePaintRank && overlapLiesOnOwnShape(o.box);
 }
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
@@ -968,13 +1008,15 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    // Excludes all but overlays and straddled foreign shapes; `ownBoxLabelsCollide` keeps range-bar's sibling labels.
-    if (
+    // Another datum's bar blocks wherever it shows; the own bar hides it only where painted over it.
+    if (isForeignShape(o, category)) {
+        if (foreignShapeHidden(o)) return true;
+    } else if (
+        // Excludes all but overlays; `ownBoxLabelsCollide` keeps range-bar's sibling labels.
         candidateOwnBox != null &&
         !isOverlayCategory(category) &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
-        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height) &&
-        !straddlesForeignShape(o, category)
+        boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
         return true;
     }
@@ -1435,15 +1477,18 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
  * @param obstacles External obstacles (e.g. bar rects, pie sectors) every label must avoid, in
  * addition to markers and already-placed labels. All obstacles block all labels, regardless of order.
  * A function is only called when some label will query the obstacle index.
+ * @param paintOrder Each source's paint rank by source id, higher drawn over lower.
  * @returns Placed labels for all series.
  */
 export function placeLabels(
     data: Map<string, SeriesLabels>,
     bounds: BoxBounds,
     padding = 5,
-    obstacles: LabelObstacles = []
+    obstacles: LabelObstacles = [],
+    paintOrder?: ReadonlyMap<string, number>
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
+    solvePaintOrder = paintOrder;
 
     // placeLabels runs on every chart update; a chart with no labels must not touch the index.
     if (!hasAnyLabels(data)) return result;
@@ -1475,6 +1520,7 @@ export function placeLabels(
         const labels: PlacedLabel[] = [];
         if (datums[0]?.label == null) continue;
         candidateSourceId = seriesId;
+        candidatePaintRank = paintOrder?.get(seriesId);
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
@@ -2545,6 +2591,7 @@ function placeAvoidingLabel(
     candidateLabelGroup = d.labelGroup;
     candidateEntityIndex = d.entityIndex;
     candidateStackId = d.stackId;
+    candidateOwnShapeResolved = false;
     candidateYields = d.yields === true;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
@@ -2610,6 +2657,7 @@ function placeFromPositionedCandidates(
     candidateLabelGroup = d.labelGroup;
     candidateEntityIndex = d.entityIndex;
     candidateStackId = d.stackId;
+    candidateOwnShapeResolved = false;
     candidateYields = d.yields === true;
 
     const { fit } = d;

@@ -2318,7 +2318,7 @@ describe('BarSeries', () => {
             await compare();
         });
 
-        // The back label would straddle the front bar's end so falls through; the front label lies wholly on the back bar.
+        // Neither label may sit on the visible part of the other bar: the front bar is drawn over the back one.
         it('moves a label off the edge of an overlapping bar from another series', async () => {
             const collision = { alwaysShow: true, threshold: 0, collideWith: { shapes: false, labels: false } };
             const options: AgChartOptions = {
@@ -2352,8 +2352,7 @@ describe('BarSeries', () => {
 
         // Aggregated stack segments get nested boxes, so the label overhanging its short segment crosses its sibling's top.
         it('keeps an aggregated stacked label inside the segment that crosses its sibling bar', async () => {
-            // Fewer than ~4.1k rows stay unaggregated on the test canvas, so this keeps a margin above that.
-            const rows = 5000;
+            const rows = HIGH_VOLUME_COUNT;
             const label = {
                 placement: ['inside-center', 'outside-end'] as AgBarSeriesLabelPlacement[],
                 collision: { threshold: -3, collideWith: { labels: false } },
@@ -2368,6 +2367,7 @@ describe('BarSeries', () => {
             });
 
             const upper = getBarSeriesContextNodeData(chart, 1).nodeData;
+            // Guards the premise: fewer nodes than rows means the bars were aggregated.
             expect(upper.length).toBeLessThan(rows);
             const placements = upper.map(({ label: placed }) => (placed?.hidden ? 'hidden' : placed?.placement));
             expect(new Set(placements)).toEqual(new Set(['inside-center']));

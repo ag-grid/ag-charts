@@ -1719,7 +1719,8 @@ describe('placeLabels positioned candidates', () => {
         alwaysShow = true,
         avoid = { marker: true, label: true, shape: true, seriesArea: true },
         threshold = 0,
-        stackId?: number
+        stackId?: number,
+        paintOrder?: ReadonlyMap<string, number>
     ) => {
         const target: BarLabelTarget = { rotation: 0 };
         const datum = buildBarPositionedLabelDatum(
@@ -1738,9 +1739,8 @@ describe('placeLabels positioned candidates', () => {
             0,
             stackId
         );
-        const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get(
-            's'
-        ) as PlacedLabel[];
+        const data = new Map([['s', seriesLabels([datum])]]);
+        const placed = placeLabels(data, bounds, 5, obstacles, paintOrder).get('s') as PlacedLabel[];
         return { placed, target };
     };
 
@@ -2018,6 +2018,29 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(55, 48),
                 placement: 'outside-end',
             };
+            // Pokes 2px out of the top of its own bar.
+            const poking: BarCandidate = {
+                box: { x: 44, y: 58, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 66),
+                placement: 'inside-end',
+            };
+            // Pokes 8px out of the top of its own bar.
+            const overhangingEnd: BarCandidate = {
+                box: { x: 44, y: 52, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 60),
+                placement: 'inside-end',
+            };
+            // Turned 45deg about its bar's top edge, so its turned box spans y 49..71.
+            const rotatedEnd: BarCandidate = {
+                box: { x: 40, y: 45, width: 30, height: 30 },
+                region: bounds,
+                rotation: 45,
+                orientedCollision: true,
+                anchor: anchorOf(55, 60),
+                placement: 'inside-end',
+            };
             const elsewhere: BarCandidate = {
                 box: { x: 120, y: 100, width: 22, height: 16 },
                 region: bounds,
@@ -2048,6 +2071,12 @@ describe('placeLabels positioned candidates', () => {
                 placement: 'inside-start',
             };
             const shapes = { marker: true, label: true, shape: true, seriesArea: true };
+            // The label's series 's' is drawn over series 'under' and under series 'over'; 'unranked' has no rank.
+            const paintOrder = new Map([
+                ['under', 0],
+                ['s', 1],
+                ['over', 2],
+            ]);
             // The label is datum 0 of series 's'; another datum's bar is owned by datum 1.
             const other = (box: BoxBounds, entityIndex = 1, sourceId = 's', stackId?: number): LabelObstacle => ({
                 kind: 'rect',
@@ -2057,128 +2086,238 @@ describe('placeLabels positioned candidates', () => {
                 entityIndex,
                 stackId,
             });
+            const under = (box: BoxBounds, entityIndex = 1) => other(box, entityIndex, 'under');
+            const over = (box: BoxBounds, entityIndex = 1) => other(box, entityIndex, 'over');
+            const shorter = { x: 40, y: 70, width: 30, height: 90 };
+            const containing = { x: 38, y: 55, width: 34, height: 30 };
 
-            it.each<[string, BarCandidate, LabelObstacle, Partial<typeof shapes>, number, BarCandidate]>([
+            it.each<
                 [
-                    'falls through across the end of a shorter bar',
+                    string,
+                    BarCandidate,
+                    LabelObstacle,
+                    Partial<typeof shapes>,
+                    number,
+                    BoxBounds | undefined,
+                    BarCandidate,
+                ]
+            >([
+                [
+                    'stays on its bar across the end of a bar drawn under it',
                     insideStart,
-                    other({ x: 40, y: 70, width: 30, height: 90 }),
+                    under(shorter),
                     {},
                     0,
-                    elsewhere,
+                    undefined,
+                    insideStart,
                 ],
                 [
-                    'falls through across the end of a taller bar containing its own',
+                    'stays on its bar wholly inside a bar drawn under it',
+                    insideStart,
+                    under(containing),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays on its bar across the end of a bar drawn under it with the same datum index',
+                    insideStart,
+                    under(shorter, 0),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays on its drawn bar when its own box is inset from it, as a heatmap cell gives',
+                    insideStart,
+                    under(shorter),
+                    {},
+                    0,
+                    { x: 43, y: 63, width: 24, height: 94 },
+                    insideStart,
+                ],
+                [
+                    'falls through off its bar across the end of a taller bar drawn under it',
                     outsideEnd,
-                    other({ x: 40, y: 50, width: 30, height: 110 }),
+                    under({ x: 40, y: 50, width: 30, height: 110 }),
                     {},
                     0,
+                    undefined,
                     elsewhere,
                 ],
                 [
-                    "falls through across the edge of another datum's bar overlapping its end",
+                    'falls through off its bar wholly inside a taller bar drawn under it',
+                    outsideEnd,
+                    under({ x: 40, y: 30, width: 30, height: 130 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through across the end of a bar drawn over its own',
                     insideStart,
-                    other({ x: 40, y: 20, width: 30, height: 43 }),
+                    over(shorter),
                     {},
                     0,
+                    undefined,
                     elsewhere,
                 ],
                 [
-                    'falls through across the side of a neighbouring bar overlapping its own',
+                    'falls through wholly inside a bar drawn over its own',
+                    insideStart,
+                    over(containing),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through across a bar drawn over its own with the same datum index',
+                    insideStart,
+                    over(shorter, 0),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through wholly inside a bar of a series without a paint rank',
+                    insideStart,
+                    other(containing, 1, 'unranked'),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through wholly inside a neighbouring bar of its own series',
+                    insideStart,
+                    other(containing),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through across the side of a neighbouring bar of its own series',
                     insideStart,
                     other({ x: 60, y: 30, width: 30, height: 130 }),
                     {},
                     0,
+                    undefined,
                     elsewhere,
                 ],
                 [
-                    'falls through when the edge crosses it beyond a negative threshold',
+                    'stays across a bar drawn over its own when allowed to overlap shapes',
                     insideStart,
-                    other({ x: 40, y: 64, width: 30, height: 96 }),
-                    {},
-                    -1,
-                    elsewhere,
-                ],
-                [
-                    'stays when the edge crosses it within a negative threshold',
-                    insideStart,
-                    other({ x: 40, y: 64, width: 30, height: 96 }),
-                    {},
-                    -3,
-                    insideStart,
-                ],
-                [
-                    'stays when it lies wholly inside a different bar',
-                    insideStart,
-                    other({ x: 38, y: 55, width: 34, height: 30 }),
-                    {},
-                    0,
-                    insideStart,
-                ],
-                [
-                    'stays across the edge when allowed to overlap shapes',
-                    insideStart,
-                    other({ x: 40, y: 70, width: 30, height: 90 }),
+                    over(shorter),
                     { shape: false },
                     0,
+                    undefined,
                     insideStart,
                 ],
                 [
-                    'stays when it lies wholly inside a different bar within a positive threshold of its edges',
-                    insideStart,
-                    other({ x: 42, y: 60, width: 26, height: 30 }),
+                    'stays poking out of its bar within a negative threshold, across a taller bar drawn under it',
+                    poking,
+                    under({ x: 40, y: 50, width: 30, height: 110 }),
                     {},
-                    3,
-                    insideStart,
+                    -3,
+                    undefined,
+                    poking,
                 ],
                 [
-                    'stays rotated when its turned box lies wholly inside a different bar but its footprint does not',
-                    rotated,
-                    other({ x: 40, y: 68, width: 30, height: 92 }),
+                    'falls through poking out of its bar beyond a negative threshold, across a taller bar drawn under it',
+                    poking,
+                    under({ x: 40, y: 50, width: 30, height: 110 }),
                     {},
-                    0,
-                    rotated,
-                ],
-                [
-                    'falls through rotated when the edge of a different bar crosses its turned box',
-                    rotated,
-                    other({ x: 40, y: 75, width: 30, height: 85 }),
-                    {},
-                    0,
+                    -1,
+                    undefined,
                     elsewhere,
                 ],
                 [
-                    'falls through across the end of a bar of another series with the same datum index',
-                    insideStart,
-                    other({ x: 40, y: 70, width: 30, height: 90 }, 0, 'other'),
+                    'stays off its bar where it overlaps a bar drawn under it only on its own bar',
+                    overhangingEnd,
+                    under({ x: 40, y: 66, width: 30, height: 94 }),
                     {},
                     0,
+                    undefined,
+                    overhangingEnd,
+                ],
+                [
+                    'falls through off its bar where it overlaps a bar drawn under it beyond its own bar',
+                    overhangingEnd,
+                    under({ x: 40, y: 56, width: 30, height: 104 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays rotated off its bar where its turned box overlaps a bar drawn under it only on its own bar',
+                    rotatedEnd,
+                    under({ x: 40, y: 66, width: 30, height: 94 }),
+                    {},
+                    0,
+                    undefined,
+                    rotatedEnd,
+                ],
+                [
+                    'falls through rotated where its turned box overlaps a bar drawn under it beyond its own bar',
+                    rotatedEnd,
+                    under({ x: 40, y: 55, width: 30, height: 105 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays rotated on its bar when the edge of a bar drawn under it crosses its turned box',
+                    rotated,
+                    under({ x: 40, y: 75, width: 30, height: 85 }),
+                    {},
+                    0,
+                    undefined,
+                    rotated,
+                ],
+                [
+                    'falls through rotated when its turned box lies wholly inside a bar drawn over its own',
+                    rotated,
+                    over({ x: 40, y: 68, width: 30, height: 92 }),
+                    {},
+                    0,
+                    undefined,
                     elsewhere,
                 ],
                 [
                     'stays across the end of a bar without an owner',
                     insideStart,
-                    shapeRect({ x: 40, y: 70, width: 30, height: 90 }),
+                    shapeRect(shorter),
                     {},
                     0,
+                    undefined,
                     insideStart,
                 ],
-                ['stays across a marker overlapping its own bar', insideStart, marker, {}, 0, insideStart],
+                ['stays across a marker overlapping its own bar', insideStart, marker, {}, 0, undefined, insideStart],
                 // Stacked siblings share or nest within the column, and aggregated buckets of one series overlap.
                 [
                     'stays on its stacked column when it overhangs it and a sibling series shares the column box',
                     overhanging,
-                    other({ ...ownBar }, 0, 'sibling', 0),
+                    other({ ...ownBar }, 0, 'over', 0),
                     {},
                     0,
+                    undefined,
                     overhanging,
                 ],
                 [
-                    'stays across the end of a sibling nested in its stack',
+                    'stays across the end of a sibling drawn over it in its stack',
                     insideStart,
-                    other({ x: 40, y: 70, width: 30, height: 90 }, 7, 'sibling', 0),
+                    other(shorter, 7, 'over', 0),
                     {},
                     0,
+                    undefined,
                     insideStart,
                 ],
                 [
@@ -2187,26 +2326,29 @@ describe('placeLabels positioned candidates', () => {
                     other({ x: 60, y: 30, width: 30, height: 130 }, 1, 's', 0),
                     {},
                     0,
+                    undefined,
                     insideStart,
                 ],
                 [
-                    'falls through across the end of a bar in another stack',
-                    insideStart,
-                    other({ x: 40, y: 70, width: 30, height: 90 }, 7, 'sibling', 1),
+                    'falls through across the end of a bar drawn under it in another stack, off its bar',
+                    outsideEnd,
+                    other({ x: 40, y: 50, width: 30, height: 110 }, 7, 'under', 1),
                     {},
                     0,
+                    undefined,
                     elsewhere,
                 ],
-            ])('%s', (_, candidate, foreign, avoid, threshold, expected) => {
+            ])('%s', (_, candidate, foreign, avoid, threshold, ownBox, expected) => {
                 // The label and its own bar sit in stack 0.
                 const { placed } = place(
                     [candidate, elsewhere],
                     [other(ownBar, 0, 's', 0), foreign],
-                    ownBar,
+                    ownBox ?? ownBar,
                     true,
                     { ...shapes, ...avoid },
                     threshold,
-                    0
+                    0,
+                    paintOrder
                 );
                 expect(placed[0].candidate).toBe(expected);
             });
@@ -2219,35 +2361,41 @@ describe('placeLabels positioned candidates', () => {
                 expect(placed[0].candidate).toBe(overhanging);
             });
 
-            it("turns an orientation-path label whose own box is inset from its bar off another bar's edge", () => {
-                const anchor: OrientationAnchor = { x: 55, y: 80, textAlign: 'center', textBaseline: 'middle' };
-                const region = { x: 40, y: 64, width: 30, height: 92 };
-                const datum = buildBarLabelDatum(
-                    anchor,
-                    'label',
-                    26,
-                    10,
-                    ['vertical', 'horizontal'],
-                    region,
-                    shapes,
-                    0,
-                    { rotation: 0 },
-                    undefined,
-                    0
-                );
-                const obstacles = [other(ownBar, 0), other({ x: 40, y: 72, width: 30, height: 88 })];
+            it.each([
+                { drawn: 'under', rotation: -90 },
+                { drawn: 'over', rotation: undefined },
+            ])(
+                'turns an orientation-path label with an inset own box by a bar drawn $drawn its own',
+                ({ drawn, rotation }) => {
+                    const anchor: OrientationAnchor = { x: 55, y: 80, textAlign: 'center', textBaseline: 'middle' };
+                    const region = { x: 40, y: 64, width: 30, height: 92 };
+                    const datum = buildBarLabelDatum(
+                        anchor,
+                        'label',
+                        26,
+                        10,
+                        ['vertical', 'horizontal'],
+                        region,
+                        shapes,
+                        0,
+                        { rotation: 0 },
+                        undefined,
+                        0
+                    );
+                    // Its top edge crosses the vertical box (y 67..93) but not the horizontal one (y 75..85).
+                    const obstacles = [other(ownBar, 0), other({ x: 40, y: 88, width: 30, height: 72 }, 1, drawn)];
 
-                const [label] = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get('s')!;
+                    const [label] = placeLabels(
+                        new Map([['s', seriesLabels([datum])]]),
+                        bounds,
+                        5,
+                        obstacles,
+                        paintOrder
+                    ).get('s')!;
 
-                // The horizontal box lies wholly on the other bar; the vertical one would cross its top edge at y=72.
-                expect(label.rotation).toBeUndefined();
-                expect({ x: label.x, y: label.y, width: label.width, height: label.height }).toEqual({
-                    x: 42,
-                    y: 75,
-                    width: 26,
-                    height: 10,
-                });
-            });
+                    expect(label.rotation).toBe(rotation);
+                }
+            );
         });
     });
 
