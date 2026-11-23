@@ -148,7 +148,7 @@ To create an icon uri:
 }
 
 .ag-charts-icon-magnet {
-    --icon: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0ibm9uZSI+PHBhdGggZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNNCAxNmg0di03YTIgMiAwIDAgMSA0IDB2N2g0di03YTYgNiAwIDAgMC0xMiAwdjdabTEuNS0xLjV2LTJoMXYyaC0xWm03IDB2LTJoMXYyaC0xWiIvPjwvc3ZnPg==);
+    --icon: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDIwIDIwIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTAgNi41YTMgMyAwIDAgMSAzIDNWMTNoM1Y5LjVhNiA2IDAgMCAwLTEyIDBWMTNoM1Y5LjVhMyAzIDAgMCAxIDMtM000IDE2aDN2LTJINHptOSAwaDN2LTJoLTN6bTQgMWgtNVY5LjVhMiAyIDAgMSAwLTQgMFYxN0gzVjkuNWE3IDcgMCAwIDEgMTQgMHoiLz48L3N2Zz4=);
 }
 
 .ag-charts-icon-measurer-drawing {
