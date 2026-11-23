@@ -1171,7 +1171,8 @@ describe('MapMarkerSeries', () => {
                 .filter((text) => text.visible)
                 .map((text) => text.text);
             expect(placed.length).toBeLessThan(data.length);
-            expect(drawn.toSorted()).toEqual(placed.toSorted());
+            expect(new Set(drawn)).toEqual(new Set(placed));
+            expect(drawn).toHaveLength(placed.length);
         });
     });
 });
