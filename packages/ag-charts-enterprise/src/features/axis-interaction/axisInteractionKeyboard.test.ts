@@ -41,6 +41,7 @@ describe('AxisInteraction keyboard navigation', () => {
 
     afterEach(() => {
         chart?.destroy();
+        vi.restoreAllMocks();
     });
 
     async function createChart(options: AgCartesianChartOptions) {
@@ -119,6 +120,39 @@ describe('AxisInteraction keyboard navigation', () => {
         for (const button of getTickButtons(chart, 'y')) {
             expect(button.getBounds().x).toBeGreaterThanOrEqual(yTitle.x + yTitle.width - EPSILON);
         }
+    });
+
+    test.each([false, true])('ArrowRight/ArrowLeft follow the visual tick order (enableRtl: %s)', async (enableRtl) => {
+        // jsdom leaves the computed `direction` empty, so resolve it from the nearest `dir` attribute.
+        const getComputedStyle = globalThis.getComputedStyle;
+        vi.spyOn(globalThis, 'getComputedStyle').mockImplementation((elem, pseudo) => {
+            const style = getComputedStyle(elem, pseudo);
+            const dir = elem.closest('[dir]')?.getAttribute('dir');
+            return dir == null ? style : Object.assign(style, { direction: dir });
+        });
+
+        await createChart({
+            enableRtl,
+            data: DATA,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', listeners: { click: () => {} } },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        const buttons = getTickButtons(chart, 'x');
+        expect(buttons.length).toBeGreaterThan(1);
+        expect(buttons[1].getBounds().x).toBeGreaterThan(buttons[0].getBounds().x);
+
+        const press = (key: string) =>
+            document.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+
+        buttons[0].getElement().focus();
+        press('ArrowRight');
+        expect(document.activeElement).toBe(buttons[1].getElement());
+        press('ArrowLeft');
+        expect(document.activeElement).toBe(buttons[0].getElement());
     });
 
     test('removing and re-adding a titled axis leaves a single title', async () => {
