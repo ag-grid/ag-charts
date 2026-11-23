@@ -362,7 +362,7 @@ describe('Group shadow compositor', () => {
             const batched = Array.from(ctx().getImageData(100, 20, 60, 180).data);
 
             expect(alone.some((value) => value !== 0)).toBe(true);
-            expect(Math.max(...alone.filter((_, i) => i % 4 === 3))).toBeLessThan(255);
+            expect(maxAlpha(alone)).toBeLessThan(255);
             expect(batched).toEqual(alone);
         });
 

@@ -46,9 +46,6 @@ const CASES: { name: string; built: keyof FakeContext; key: string; make: () => 
 ];
 
 describe.each(CASES)('$name cache', ({ built, key, make }) => {
-    const builds = (...contexts: FakeContext[]) =>
-        contexts.reduce((total, ctx) => total + ctx[built].mock.calls.length, 0);
-
     it('should build once per context', () => {
         const paint = make();
         const [a, b] = [fakeContext(), fakeContext()];
@@ -73,6 +70,6 @@ describe.each(CASES)('$name cache', ({ built, key, make }) => {
         paint(ctx as unknown as CanvasRenderingContext2D, true);
         paint(ctx as unknown as CanvasRenderingContext2D, true);
 
-        expect(builds(ctx)).toBe(2);
+        expect(ctx[built]).toHaveBeenCalledTimes(2);
     });
 });
