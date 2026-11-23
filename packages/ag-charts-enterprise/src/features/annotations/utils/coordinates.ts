@@ -75,7 +75,7 @@ export interface CoordinateField {
     kind: CoordinateKind;
     /** The datum's current value, formatted for the input. */
     value: string;
-    /** The decimals a number is shown at: those of the axis's crosshair label, or else of its tick size. */
+    /** The decimals a number is shown at, read from the formats and the tick size of its axis. */
     fractionDigits?: number;
     /** The tick size a number's spinner moves by, or the granularity of a time in seconds. */
     step?: number;
