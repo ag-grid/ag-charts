@@ -4,7 +4,8 @@
 export class LRUCache<V, K = string> {
     private readonly store = new Map<K, V>();
     // The last key in the store's order, so a hit on it skips the refresh that would leave the order as it is.
-    private newest: { key: K } | undefined;
+    private hasNewest = false;
+    private newestKey: K | undefined;
 
     constructor(private readonly maxCacheSize: number) {
         if (maxCacheSize <= 0) {
@@ -14,7 +15,7 @@ export class LRUCache<V, K = string> {
 
     get(key: K) {
         // OPTIMIZATION: a run of hits on one key, as a measurer sees for one font, costs one lookup each.
-        if (this.newest != null && this.newest.key === key) return this.store.get(key);
+        if (this.hasNewest && this.newestKey === key) return this.store.get(key);
         if (!this.store.has(key)) return;
 
         // Refresh key.
@@ -47,14 +48,12 @@ export class LRUCache<V, K = string> {
 
     clear() {
         this.store.clear();
-        this.newest = undefined;
+        this.hasNewest = false;
+        this.newestKey = undefined;
     }
 
     private markNewest(key: K) {
-        if (this.newest == null) {
-            this.newest = { key };
-        } else {
-            this.newest.key = key;
-        }
+        this.hasNewest = true;
+        this.newestKey = key;
     }
 }
