@@ -630,7 +630,7 @@ export const BAR_LABEL_COLLISION_THEME = {
 function sharedModeOpacity(singleModeOpacity: number): Operation {
     return {
         $if: [
-            { $eq: [{ $path: '/highlight/mode' }, 'shared'] },
+            { $eq: [{ $circular: { $path: '/highlight/mode' } }, 'shared'] },
             { $path: '/series/$index/highlight/unhighlightedSeries/opacity' },
             singleModeOpacity,
         ],
