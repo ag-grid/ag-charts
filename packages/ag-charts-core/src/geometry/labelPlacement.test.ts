@@ -4169,3 +4169,173 @@ describe('placeLabels (positioned candidates)', () => {
         expect(shapeBlocked).toBe(true);
     });
 });
+
+describe('placeLabels solve references', () => {
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+    const CENTRE: OrientationAnchor = { x: 200, y: 200, textAlign: 'center', textBaseline: 'middle' };
+
+    type Track = <T extends object>(name: string, value: T) => T;
+    type Solve = (track: Track) => Map<string, PlacedLabel[]>;
+
+    const boundsOf = (track: Track) => track('bounds', { x: 0, y: 0, width: 400, height: 400 });
+    const wideShape = (): FitRegion => ({ spanAt: () => [-500, 500], extentAbove: Infinity, extentBelow: Infinity });
+    // Covers every candidate around the centre, so a label it blocks walks its shrink ladder before it settles.
+    const wall = (track: Track): LabelObstacle =>
+        track('obstacle', {
+            kind: 'rect',
+            box: track('obstacle box', { x: 150, y: 150, width: 100, height: 100 }),
+            category: 'label',
+        });
+    const fitOf = (track: Track, region?: FitRegion) =>
+        track('fit', {
+            text: track('fit text', [
+                { type: 'text' as const, text: 'WWWWW' },
+                { type: 'image' as const, url: 'icon.png', width: 10, height: 10, padding: track('image padding', {}) },
+            ]),
+            policy: track('fit policy', { overflowStrategy: 'ellipsis' as const, minimumFontSize: 6, region }),
+            font: FONT,
+            boxPadding: NO_PADDING,
+            boundByRegion: true,
+        });
+    const ownDatum = (track: Track) => ({
+        point: track('point', { x: 200, y: 200, size: 10 }),
+        label: track('label', { text: 'WWWWW', width: 50, height: 20 }),
+        anchor: undefined,
+        placement: undefined,
+        // Clear of the wall, which an own box it touched would exclude.
+        ownBox: track('own box', { x: 0, y: 0, width: 10, height: 10 }),
+    });
+    const markerSeries = (track: Track): SeriesLabels =>
+        seriesLabels([
+            track('marker datum', {
+                point: { x: 50, y: 50, size: 10 },
+                label: { text: 'M', width: 10, height: 20 },
+                anchor: undefined,
+                placement: 'bottom',
+            }),
+        ]);
+
+    const compassCascade =
+        (styled: boolean): Solve =>
+        (track) => {
+            const datum: PointLabelDatum = track('datum', {
+                ...ownDatum(track),
+                fit: fitOf(track, track('fit shape', wideShape())),
+                placements: track('placements', ['top', 'bottom'] as LabelPlacement[]),
+                orientation: track('orientations', ['horizontal', 'vertical'] as AgChartLabelOrientation[]),
+                gap: 5,
+                region: track('region', { x: 0, y: 0, width: 400, height: 400 }),
+                alwaysShow: true,
+            });
+            const compass: SeriesLabels = {
+                datums: [datum],
+                defaults: track('defaults', { avoid: track('avoid', { label: true, marker: true }) }),
+                resolveCandidateStyle: styled
+                    ? track('style resolver', () => ({ font: FONT, boxPadding: NO_PADDING }))
+                    : undefined,
+            };
+            const data = new Map([
+                ['markers', markerSeries(track)],
+                ['compass', compass],
+            ]);
+            return placeLabels(data, boundsOf(track), 0, [wall(track)]);
+        };
+
+    const positionedCandidates: Solve = (track) => {
+        const candidate = track('candidate', {
+            box: track('candidate box', { x: 175, y: 190, width: 50, height: 20 }),
+            region: track('candidate region', { x: 0, y: 0, width: 400, height: 400 }),
+            fitTo: track('fit target', {
+                container: { width: 60, height: 30 },
+                shape: track('candidate shape', wideShape()),
+                anchor: CENTRE,
+                padding: NO_PADDING,
+            }),
+        });
+        const datum: PointLabelDatum = track('datum', {
+            ...ownDatum(track),
+            fit: fitOf(track),
+            positionedCandidates: track('candidates', [candidate]),
+            neverDrop: true,
+        });
+        const resolveCandidate: PositionedCandidateResolver = track('candidate resolver', (_d, c) => c);
+        const data = new Map<string, SeriesLabels>([
+            ['markers', markerSeries(track)],
+            ['positioned', { datums: [datum], resolveCandidate }],
+        ]);
+        const paintOrder = track(
+            'paint order',
+            new Map([
+                ['markers', 0],
+                ['positioned', 1],
+            ])
+        );
+        return placeLabels(data, boundsOf(track), 0, [wall(track)], paintOrder);
+    };
+
+    const shapeFittedStack =
+        (blocked: boolean): Solve =>
+        (track) => {
+            const fit = fitOf(track);
+            const datum: PointLabelDatum = track('datum', {
+                ...ownDatum(track),
+                // Markerless, so only the wall can block it.
+                point: track('point', { x: 200, y: 200, size: 0 }),
+                fit,
+                stack: track('stack', { blocks: track('stack blocks', [track('stack block', { fit })]), spacing: 0 }),
+                positionedCandidates: [
+                    {
+                        box: { x: 175, y: 190, width: 50, height: 20 },
+                        fitTo: { shape: track('stack shape', wideShape()), anchor: CENTRE, padding: NO_PADDING },
+                    },
+                ],
+                neverDrop: true,
+            });
+            const data = new Map([
+                ['markers', markerSeries(track)],
+                ['stacked', seriesLabels([datum])],
+            ]);
+            return placeLabels(data, boundsOf(track), 0, blocked ? [wall(track)] : []);
+        };
+
+    // Synchronous, so no suspended async frame can keep the solve's objects alive across the await below.
+    function solveTracked(solve: Solve, track: Track): number {
+        let placedCount = 0;
+        for (const [seriesId, labels] of solve(track)) {
+            for (const label of labels) {
+                placedCount++;
+                track(`placed ${seriesId}`, label);
+                if (typeof label.text === 'object') track(`placed ${seriesId} text`, label.text);
+                if (label.stack != null) track(`placed ${seriesId} stack`, label.stack);
+            }
+        }
+        return placedCount;
+    }
+
+    /** Runs `solve` and names every object it tracked or placed that is still reachable once it returns. */
+    async function retainedAfter(solve: Solve) {
+        const { gc } = globalThis;
+        if (gc == null) throw new Error('Run with --expose-gc');
+        const refs = new Map<string, WeakRef<object>>();
+        const placedCount = solveTracked(solve, (name, value) => {
+            refs.set(name, new WeakRef(value));
+            return value;
+        });
+        // A WeakRef keeps its target alive until the job that created it ends.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        gc();
+        const retained = [...refs].filter(([, ref]) => ref.deref() != null).map(([name]) => name);
+        return { placedCount, retained };
+    }
+
+    it.each([
+        { path: 'a compass cascade', solve: compassCascade(false) },
+        { path: 'a styled compass cascade', solve: compassCascade(true) },
+        { path: 'positioned candidates', solve: positionedCandidates },
+        { path: 'a shape-fitted stack', solve: shapeFittedStack(false) },
+        { path: 'a blocked shape-fitted stack', solve: shapeFittedStack(true) },
+    ])('keeps no reference to the labels, datums or callbacks of $path once it returns', async ({ solve }) => {
+        expect(await retainedAfter(solve)).toEqual({ placedCount: 2, retained: [] });
+    });
+});
