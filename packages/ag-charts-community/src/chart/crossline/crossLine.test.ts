@@ -3835,14 +3835,15 @@ describe('CrossLine label fitting', () => {
             expect(footprint.y + footprint.height).toBeLessThanOrEqual(CANVAS_HEIGHT);
         });
 
-        it.each([0, 0.05])('keeps a label on a line at %s, at the series-area edge, shown', async (value) => {
-            chart = deproxy(
-                await createChart(fitChart({ type: 'line', value, label: { text: 'Target', placement: 'top' } }, 'x'))
-            );
+        it('lets a label at the series-area edge reach over the axis and no further', async () => {
+            const chartPadding = 40;
+            const options = fitChart({ type: 'line', value: 0, label: { text: LONG_WORDS, placement: 'top' } }, 'x');
+            chart = deproxy(await createChart({ ...options, padding: { left: chartPadding } }));
 
-            const node = crossLineLabelNode(chart, 'x');
-            expect(node.visible).toBe(true);
-            expect(String(node.text)).toMatch(/^T.*\u2026$/);
+            const { text, footprint } = renderedLabel('x');
+            expect(text).toMatch(/^Quarterly.*\u2026$/s);
+            expect(footprint.x).toBeLessThan(getSeriesRect(chart).x);
+            expect(footprint.x).toBeGreaterThanOrEqual(chartPadding - 1);
         });
 
         it.each<['x' | 'y', AgCartesianCrossLineLabelOptions, AgCartesianCrossLineLabelOptions]>([

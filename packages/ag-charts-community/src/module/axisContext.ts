@@ -65,6 +65,13 @@ export interface AxisA11YTickData {
     readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
 }
 
+export interface CrossLineLabelRoom {
+    /** The axis area on each side of the series area. */
+    readonly axes: Readonly<Record<AgCartesianAxisPosition, number>>;
+    /** The axis area plus the padding budget a label padding the chart can claim on that side. */
+    readonly outer: Readonly<Record<AgCartesianAxisPosition, number>>;
+}
+
 export interface AxisContext {
     /**
      * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
@@ -87,8 +94,8 @@ export interface AxisContext {
     readonly gridLength: number;
     readonly gridPadding: number;
     readonly range: readonly [number, number];
-    /** The most a label padding the chart can reach past each side of the series area. */
-    readonly outerLabelRoom: Readonly<Record<AgCartesianAxisPosition, number>> | undefined;
+    /** How far past each side of the series area a cross-line label may reach. */
+    readonly labelRoom: CrossLineLabelRoom | undefined;
     /** False while the chart hides its series area because the axes overflow it. */
     readonly seriesAreaVisible: boolean;
     /** False on axes the user cannot interact with, such as those of the navigator mini chart. */

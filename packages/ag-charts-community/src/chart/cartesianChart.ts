@@ -501,14 +501,22 @@ export class CartesianChartType implements ChartTypeInstance {
             // Halved when the opposite side pads too, so the pair fits `clampPaddingPair` without scaling.
             return (outerSpace.get(side) ?? 0) + (pluginPadding[opposite] > 0 ? budget / 2 : budget);
         };
-        const outerLabelRoom = {
-            top: outerRoom('top', 'bottom', slackY),
-            right: outerRoom('right', 'left', slackX),
-            bottom: outerRoom('bottom', 'top', slackY),
-            left: outerRoom('left', 'right', slackX),
+        const labelRoom = {
+            axes: {
+                top: outerSpace.get('top') ?? 0,
+                right: outerSpace.get('right') ?? 0,
+                bottom: outerSpace.get('bottom') ?? 0,
+                left: outerSpace.get('left') ?? 0,
+            },
+            outer: {
+                top: outerRoom('top', 'bottom', slackY),
+                right: outerRoom('right', 'left', slackX),
+                bottom: outerRoom('bottom', 'top', slackY),
+                left: outerRoom('left', 'right', slackX),
+            },
         };
         for (const axis of this.axes) {
-            axis.outerLabelRoom = outerLabelRoom;
+            axis.labelRoom = labelRoom;
         }
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {

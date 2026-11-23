@@ -55,7 +55,6 @@ import type {
     AgAxisListeners,
     AgAxisValue,
     AgBaseAxisLabelStyleOptions,
-    AgCartesianAxisPosition,
     AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
     AgGroupedCategoryValue,
@@ -78,6 +77,7 @@ import type {
     AxisContext,
     AxisFormattableLabel,
     AxisValuePick,
+    CrossLineLabelRoom,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -356,7 +356,7 @@ export abstract class Axis<
      */
     gridPadding = 0;
 
-    outerLabelRoom: Record<AgCartesianAxisPosition, number> | undefined = undefined;
+    labelRoom: CrossLineLabelRoom | undefined = undefined;
 
     /**
      * Is used to avoid collisions between axis labels and series.
@@ -1419,8 +1419,8 @@ export abstract class Axis<
             get range() {
                 return axis.range;
             },
-            get outerLabelRoom() {
-                return axis.outerLabelRoom;
+            get labelRoom() {
+                return axis.labelRoom;
             },
             get seriesAreaVisible() {
                 return axis.seriesAreaVisible;

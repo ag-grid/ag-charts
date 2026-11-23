@@ -86,8 +86,8 @@ function anchorAlong(rangeDir: AnchorDirection, start: number, size: number, pad
     return start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
 }
 
-/** Room along one axis between the anchor on the band and the edges of the series area, `low` to `high`. */
-function seriesAreaRoom(
+/** Room along one axis between the anchor on the band and the bounds `low` to `high`. */
+function anchorRoom(
     rangeDir: AnchorDirection,
     labelDir: AnchorDirection,
     pad: number,
@@ -652,14 +652,14 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     /**
-     * The room the series area leaves from the anchor, or the chart can pad on the side the label grows out to.
+     * The room the series and axis areas leave from the anchor, or the chart can pad on the side the label grows out to.
      * Measured zoomed out and before the label pads the chart, so zoom, pan and padding never rewrap it.
      */
     private seriesAreaTurnedBounds(fit: Pick<LabelFit, 'maxWidth'>, anchor: Anchor): TurnedBounds | undefined {
-        const outerLabelRoom = this.ctx.parent.outerLabelRoom;
+        const labelRoom = this.ctx.parent.labelRoom;
         const { unzoomedData, label } = this;
         const clipped = label.overflow === 'clip-text';
-        if (fit.maxWidth != null || clipped || outerLabelRoom == null || unzoomedData == null) return;
+        if (fit.maxWidth != null || clipped || labelRoom == null || unzoomedData == null) return;
 
         const band = this.bandBounds(unzoomedData);
         const [areaStart, areaEnd] = findMinMax(this.clippedRange);
@@ -667,32 +667,33 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const side = this.paddingSideOf(anchor);
         const spacing = this.boxed ? pad : 2 * pad;
-        const outer = side == null ? 0 : outerLabelRoom[side] - spacing;
+        const outer = side == null ? 0 : labelRoom.outer[side] - spacing;
+        const { axes } = labelRoom;
         const roomX =
             side === 'left' || side === 'right'
                 ? outer
-                : seriesAreaRoom(
+                : anchorRoom(
                       anchor.rangeH,
                       anchor.labelH,
                       pad,
                       band.x,
                       band.width,
                       xPaddingDiff,
-                      area.x,
-                      area.x + area.width
+                      area.x - axes.left,
+                      area.x + area.width + axes.right
                   );
         const roomY =
             side === 'top' || side === 'bottom'
                 ? outer
-                : seriesAreaRoom(
+                : anchorRoom(
                       anchor.rangeV,
                       anchor.labelV,
                       pad,
                       band.y,
                       band.height,
                       yPaddingDiff,
-                      area.y,
-                      area.y + area.height
+                      area.y - axes.top,
+                      area.y + area.height + axes.bottom
                   );
 
         return this.turnedRoom(roomX, roomY);
