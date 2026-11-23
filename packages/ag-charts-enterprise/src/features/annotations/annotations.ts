@@ -495,6 +495,7 @@ export class Annotations extends AbstractModuleInstance {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
+                    onHide: () => this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, false),
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {

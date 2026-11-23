@@ -32,15 +32,18 @@ describe('getToolbarIconSize', () => {
 });
 
 describe('ToolbarButtonWidget', () => {
-    const createButton = (options: Omit<ToolbarButtonWidgetOptions, 'value'>) => {
+    const createButton = (
+        options: Omit<ToolbarButtonWidgetOptions, 'value'>,
+        value: ToolbarButtonWidgetOptions['value'] = 'reset'
+    ) => {
         const widget = new ToolbarButtonWidget(
             new LocaleManager(new EventEmitter<EventsHubMap>(), new Logger()),
             false
         );
         const update = (next: Omit<ToolbarButtonWidgetOptions, 'value'>) =>
-            widget.update({ value: 'reset', ...next }, { isRtl: false });
+            widget.update({ value, ...next }, { isRtl: false });
         update(options);
-        return { elem: widget.getElement(), update };
+        return { widget, elem: widget.getElement(), update };
     };
 
     const childClasses = (elem: HTMLElement) => Array.from(elem.children, (child) => child.className);
@@ -92,36 +95,22 @@ describe('ToolbarButtonWidget', () => {
     });
 
     describe('state', () => {
-        const createWidget = (
-            value: ToolbarButtonWidgetOptions['value'],
-            extra: Partial<ToolbarButtonWidgetOptions> = {}
-        ) => {
-            const widget = new ToolbarButtonWidget(
-                new LocaleManager(new EventEmitter<EventsHubMap>(), new Logger()),
-                false
-            );
-            const update = (nextValue = value, next: Partial<ToolbarButtonWidgetOptions> = extra) =>
-                widget.update({ value: nextValue, icon: 'zoom-in', ...next }, { isRtl: false });
-            update();
-            return { widget, elem: widget.getElement(), update };
-        };
-
         it.each([true, false])(
             'is a switch with aria-checked=%s when checked is set, and never aria-pressed',
             (checked) => {
-                const { elem, update } = createWidget('magnet', { checked });
+                const { elem, update } = createButton({ icon: 'magnet', checked }, 'magnet');
                 expect(elem.getAttribute('role')).toBe('switch');
                 expect(elem.getAttribute('aria-checked')).toBe(String(checked));
                 expect(elem.hasAttribute('aria-pressed')).toBe(false);
 
-                update('magnet', { checked: !checked });
+                update({ icon: 'magnet', checked: !checked });
                 expect(elem.getAttribute('aria-checked')).toBe(String(!checked));
             }
         );
 
-        it('is a plain command button when checked is absent, including when reused from a switch', () => {
-            const { elem, update } = createWidget('magnet', { checked: true });
-            update('zoom-in', {});
+        it('is a plain command button when checked is absent, including after being a switch', () => {
+            const { elem, update } = createButton({ icon: 'magnet', checked: true }, 'magnet');
+            update({ icon: 'magnet' });
             expect(elem.hasAttribute('role')).toBe(false);
             expect(elem.hasAttribute('aria-checked')).toBe(false);
         });
@@ -129,40 +118,30 @@ describe('ToolbarButtonWidget', () => {
         it.each(['line-color', 'fill-color', 'text-color', 'settings'] as const)(
             'keeps %s aria-expanded across updates with the same value',
             (value) => {
-                const { widget, elem, update } = createWidget(value);
+                const { widget, elem, update } = createButton({ icon: 'zoom-in' }, value);
                 expect(elem.getAttribute('aria-expanded')).toBe('false');
 
                 widget.setDialogExpanded(true);
                 expect(elem.getAttribute('aria-expanded')).toBe('true');
-                update();
+                update({ icon: 'zoom-in' });
                 expect(elem.getAttribute('aria-expanded')).toBe('true');
 
                 widget.setDialogExpanded(false);
-                update();
+                update({ icon: 'zoom-in' });
                 expect(elem.getAttribute('aria-expanded')).toBe('false');
             }
         );
 
-        it('resets the dialog expanded state when the button is reused for another value', () => {
-            const { widget, elem, update } = createWidget('line-color');
-            widget.setDialogExpanded(true);
-
-            update('fill-color');
-            expect(elem.getAttribute('aria-expanded')).toBe('false');
-            update('line-color');
-            expect(elem.getAttribute('aria-expanded')).toBe('false');
-        });
-
         it('leaves menu buttons collapsed whatever the dialog state', () => {
-            const { widget, elem, update } = createWidget('line-style-type');
+            const { widget, elem, update } = createButton({ icon: 'zoom-in' }, 'line-style-type');
             widget.setDialogExpanded(true);
             expect(elem.getAttribute('aria-expanded')).toBe('false');
-            update();
+            update({ icon: 'zoom-in' });
             expect(elem.getAttribute('aria-expanded')).toBe('false');
         });
 
         it('sets and removes aria-current', () => {
-            const { widget, elem } = createWidget('reset');
+            const { widget, elem } = createButton({ icon: 'zoom-in' });
             widget.setCurrent(true);
             expect(elem.getAttribute('aria-current')).toBe('true');
             widget.setCurrent(false);

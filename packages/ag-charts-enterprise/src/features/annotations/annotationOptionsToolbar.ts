@@ -224,7 +224,6 @@ export class AnnotationOptionsToolbar {
     public hideOverlays() {
         this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
-        this.collapseDialogButtons();
         this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
@@ -244,18 +243,11 @@ export class AnnotationOptionsToolbar {
     public clearActiveButton() {
         this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
-        this.collapseDialogButtons();
     }
 
     public setDialogExpanded(value: AnnotationOptions, expanded: boolean) {
         const index = this.visibleButtons.findIndex((button) => button.value === value);
         this.toolbar.setDialogExpandedByIndex(index, expanded);
-    }
-
-    private collapseDialogButtons() {
-        for (const index of this.visibleButtons.keys()) {
-            this.toolbar.setDialogExpandedByIndex(index, false);
-        }
     }
 
     private getOpenOverlay() {

@@ -1743,9 +1743,8 @@ describe('Annotations', () => {
             const expanded = (title: string) =>
                 chartBody().querySelector<HTMLElement>(`button[title="${title}"]`)!.getAttribute('aria-expanded');
             const LINE = 'button[title="Line Color"]';
-            const pressEscapeOnPicker = () => pressEscape();
             const closers: Array<[string, () => Promise<void>]> = [
-                ['Escape', pressEscapeOnPicker],
+                ['Escape', () => pressEscape()],
                 ['cancel', () => press(CANCEL)],
                 ['confirm', () => press(CONFIRM)],
                 ['pressing the button again', () => press(LINE)],
@@ -1773,15 +1772,13 @@ describe('Annotations', () => {
             it('is false after the annotation is deselected with the picker open', async () => {
                 await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
                 await press(LINE);
-                expect(expanded('Line Color')).toBe('true');
+                const lineButton = chartBody().querySelector<HTMLElement>(LINE)!;
+                expect(lineButton.getAttribute('aria-expanded')).toBe('true');
 
-                const { x, y, width, height } = getSeriesRect(chart);
+                const { x, y } = getSeriesRect(chart);
                 await clickAt({ x: x + 5, y: y + 5 });
                 expect(hasPicker()).toBe(false);
-
-                const centre = { x: x + width / 2, y: y + height / 2 };
-                await clickAt(centre);
-                expect(expanded('Line Color')).toBe('false');
+                expect(lineButton.getAttribute('aria-expanded')).toBe('false');
             });
 
             it.each([
