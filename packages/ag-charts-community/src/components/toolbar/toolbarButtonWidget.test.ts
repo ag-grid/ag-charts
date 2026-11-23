@@ -32,15 +32,18 @@ describe('getToolbarIconSize', () => {
 });
 
 describe('ToolbarButtonWidget', () => {
-    const createButton = (options: Omit<ToolbarButtonWidgetOptions, 'value'>) => {
+    const createButton = (
+        options: Omit<ToolbarButtonWidgetOptions, 'value'>,
+        value: ToolbarButtonWidgetOptions['value'] = 'reset'
+    ) => {
         const widget = new ToolbarButtonWidget(
             new LocaleManager(new EventEmitter<EventsHubMap>(), new Logger()),
             false
         );
         const update = (next: Omit<ToolbarButtonWidgetOptions, 'value'>) =>
-            widget.update({ value: 'reset', ...next }, { isRtl: false });
+            widget.update({ value, ...next }, { isRtl: false });
         update(options);
-        return { elem: widget.getElement(), update };
+        return { widget, elem: widget.getElement(), update };
     };
 
     const childClasses = (elem: HTMLElement) => Array.from(elem.children, (child) => child.className);
@@ -91,14 +94,58 @@ describe('ToolbarButtonWidget', () => {
         expect(elem.hasAttribute('aria-label')).toBe(false);
     });
 
-    it('shows whether a toggle button is pressed, and nothing on a button that is reused for another', () => {
-        const { elem, update } = createButton({ icon: 'magnet', pressed: true });
-        expect(elem.getAttribute('aria-pressed')).toBe('true');
+    describe('state', () => {
+        it.each([true, false])(
+            'is a switch with aria-checked=%s when checked is set, and never aria-pressed',
+            (checked) => {
+                const { elem, update } = createButton({ icon: 'magnet', checked }, 'magnet');
+                expect(elem.getAttribute('role')).toBe('switch');
+                expect(elem.getAttribute('aria-checked')).toBe(String(checked));
+                expect(elem.hasAttribute('aria-pressed')).toBe(false);
 
-        update({ icon: 'magnet', pressed: false });
-        expect(elem.getAttribute('aria-pressed')).toBe('false');
+                update({ icon: 'magnet', checked: !checked });
+                expect(elem.getAttribute('aria-checked')).toBe(String(!checked));
+            }
+        );
 
-        update({ icon: 'zoom-in' });
-        expect(elem.hasAttribute('aria-pressed')).toBe(false);
+        it('is a plain command button when checked is absent, including after being a switch', () => {
+            const { elem, update } = createButton({ icon: 'magnet', checked: true }, 'magnet');
+            update({ icon: 'magnet' });
+            expect(elem.hasAttribute('role')).toBe(false);
+            expect(elem.hasAttribute('aria-checked')).toBe(false);
+        });
+
+        it.each(['line-color', 'fill-color', 'text-color', 'settings'] as const)(
+            'keeps %s aria-expanded across updates with the same value',
+            (value) => {
+                const { widget, elem, update } = createButton({ icon: 'zoom-in' }, value);
+                expect(elem.getAttribute('aria-expanded')).toBe('false');
+
+                widget.setDialogExpanded(true);
+                expect(elem.getAttribute('aria-expanded')).toBe('true');
+                update({ icon: 'zoom-in' });
+                expect(elem.getAttribute('aria-expanded')).toBe('true');
+
+                widget.setDialogExpanded(false);
+                update({ icon: 'zoom-in' });
+                expect(elem.getAttribute('aria-expanded')).toBe('false');
+            }
+        );
+
+        it('leaves menu buttons collapsed whatever the dialog state', () => {
+            const { widget, elem, update } = createButton({ icon: 'zoom-in' }, 'line-style-type');
+            widget.setDialogExpanded(true);
+            expect(elem.getAttribute('aria-expanded')).toBe('false');
+            update({ icon: 'zoom-in' });
+            expect(elem.getAttribute('aria-expanded')).toBe('false');
+        });
+
+        it('sets and removes aria-current', () => {
+            const { widget, elem } = createButton({ icon: 'zoom-in' });
+            widget.setCurrent(true);
+            expect(elem.getAttribute('aria-current')).toBe('true');
+            widget.setCurrent(false);
+            expect(elem.hasAttribute('aria-current')).toBe(false);
+        });
     });
 });

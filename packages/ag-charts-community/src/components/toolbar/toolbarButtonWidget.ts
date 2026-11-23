@@ -4,7 +4,6 @@ import {
     createElement,
     getIconClassNames,
     hasNoModifiers,
-    setAttribute,
 } from 'ag-charts-core';
 import type { KeyboardClickBindingPredicate, KeyboardWidgetEvent } from 'ag-charts-core';
 import type {
@@ -37,8 +36,8 @@ export interface ToolbarButtonWidgetOptions {
     tooltip?: string;
     value: ButtonValue;
     buttonSize?: number;
-    /** Whether a button that toggles a mode on and off is on, rather than starting an action. */
-    pressed?: boolean;
+    /** Makes the button a switch that is on when `true`; a command button when absent. */
+    checked?: boolean;
 }
 
 export interface ToolbarButtonInteractionOptions {
@@ -151,6 +150,8 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private lastTooltip?: string;
     private lastButtonSize?: number;
     private lastIconSize?: number;
+    private opensDialog = false;
+    private dialogExpanded = false;
     private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(
@@ -181,16 +182,18 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const ariaLabel = options.ariaLabel == null ? undefined : localeManager.t(options.ariaLabel);
         this.setAriaLabel(ariaLabel ?? tooltip ?? content.label);
 
-        setAttribute(this.elem, 'aria-pressed', options.pressed);
+        this.setAriaRole(options.checked == null ? undefined : 'switch');
+        this.setAriaChecked(options.checked);
 
         const haspopup = getAriaHasPopupOfValue(options.value);
+        this.opensDialog = haspopup === 'dialog';
         if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
             this.setAriaExpanded(undefined);
             this.arrowKeyPredicate = falsePredicate;
         } else {
             this.setAriaHasPopup(haspopup);
-            this.setAriaExpanded(false);
+            this.setAriaExpanded(this.opensDialog && this.dialogExpanded);
             this.arrowKeyPredicate = interactionOptions.isRtl ? isArrowLeftPredicate : isArrowRightPredicate;
         }
 
@@ -232,8 +235,15 @@ export class ToolbarButtonWidget extends ButtonWidget {
         setToolbarSizeProperties(this.elem, buttonSize, iconSize);
     }
 
-    public setChecked(checked: boolean) {
-        setAttribute(this.elem, 'aria-checked', checked);
+    /** Reports whether the dialog this button opens is open. Ignored by buttons that do not open a dialog. */
+    public setDialogExpanded(expanded: boolean) {
+        this.dialogExpanded = expanded;
+        if (this.opensDialog) this.setAriaExpanded(expanded);
+    }
+
+    /** Marks the button as the current one in its set, such as the selected range. */
+    public setCurrent(current: boolean) {
+        this.setAriaCurrent(current ? true : undefined);
     }
 }
 

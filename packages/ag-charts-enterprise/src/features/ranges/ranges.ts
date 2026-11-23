@@ -409,7 +409,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onZoomChanged() {
-        this.buttonsToolbar?.clearActiveButton();
+        this.clearSelectedButton();
 
         if (this.isDropdown) {
             this.resetDropdownButton();
@@ -438,7 +438,7 @@ export class Ranges extends AbstractModuleInstance {
 
         this.buttonsToolbar?.setHidden(false);
         this.dropdownToolbar?.setHidden(true);
-        this.buttonsToolbar?.clearActiveButton();
+        this.clearSelectedButton();
         this.dropdownMenu?.hide();
     }
 
@@ -504,6 +504,12 @@ export class Ranges extends AbstractModuleInstance {
         }
 
         this.buttonsToolbar?.toggleActiveButtonByIndex(index);
+        this.buttonsToolbar?.setCurrentButtonByIndex(index);
+    }
+
+    private clearSelectedButton() {
+        this.buttonsToolbar?.clearActiveButton();
+        this.buttonsToolbar?.setCurrentButtonByIndex(undefined);
     }
 
     private getUpdateWithFn(value: AgRangesButtonValue): {

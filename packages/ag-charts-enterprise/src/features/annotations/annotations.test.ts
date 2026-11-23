@@ -1208,22 +1208,24 @@ describe('Annotations', () => {
             await clickAction(centre.x, centre.y)(chart);
             await waitForChartStability(chart);
 
-            const lockSwitch = () =>
-                deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-checked]');
-            expect(lockSwitch()?.getAttribute('aria-checked')).toBe('true');
-            expect(lockSwitch()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
-            expect(lockSwitch()?.title).toBe('Unlock');
-            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Lock');
-            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
+            const lockButton = () =>
+                deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-label="Lock"]');
+            expect(lockButton()?.hasAttribute('role')).toBe(false);
+            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
+            expect(lockButton()?.title).toBe('Unlock');
+            expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
+            expect(lockButton()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
 
-            lockSwitch()!.click();
+            lockButton()!.click();
             await waitForChartStability(chart);
 
-            expect(lockSwitch()?.getAttribute('aria-checked')).toBe('false');
-            expect(lockSwitch()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
-            expect(lockSwitch()?.title).toBe('Lock');
-            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Lock');
-            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
+            expect(lockButton()?.hasAttribute('role')).toBe(false);
+            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
+            expect(lockButton()?.title).toBe('Lock');
+            expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
+            expect(lockButton()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
         });
     });
 
@@ -1735,6 +1737,76 @@ describe('Annotations', () => {
             historyManager.redo();
             await waitForChartStability(chart);
             expect(annotation().stroke).toBe('#00ff00');
+        });
+
+        describe('aria-expanded of the options toolbar', () => {
+            const expanded = (title: string) =>
+                chartBody().querySelector<HTMLElement>(`button[title="${title}"]`)!.getAttribute('aria-expanded');
+            const LINE = 'button[title="Line Color"]';
+            const closers: Array<[string, () => Promise<void>]> = [
+                ['Escape', () => pressEscape()],
+                ['cancel', () => press(CANCEL)],
+                ['confirm', () => press(CONFIRM)],
+                ['pressing the button again', () => press(LINE)],
+            ];
+
+            it.each(closers)(
+                'is true while the colour picker is open and false after %s closes it',
+                async (_, close) => {
+                    await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
+                    expect(expanded('Line Color')).toBe('false');
+
+                    await press(LINE);
+                    expect(hasPicker()).toBe(true);
+                    expect(expanded('Line Color')).toBe('true');
+
+                    await pickColor(GREEN);
+                    expect(expanded('Line Color')).toBe('true');
+
+                    await close();
+                    expect(hasPicker()).toBe(false);
+                    expect(expanded('Line Color')).toBe('false');
+                }
+            );
+
+            it('is false after the annotation is deselected with the picker open', async () => {
+                await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
+                await press(LINE);
+                const lineButton = chartBody().querySelector<HTMLElement>(LINE)!;
+                expect(lineButton.getAttribute('aria-expanded')).toBe('true');
+
+                const { x, y } = getSeriesRect(chart);
+                await clickAt({ x: x + 5, y: y + 5 });
+                expect(hasPicker()).toBe(false);
+                expect(lineButton.getAttribute('aria-expanded')).toBe('false');
+            });
+
+            it.each([
+                ['the toolbar button', async () => press('button[title="Settings"]')],
+                [
+                    'a double-click on the annotation',
+                    async () => {
+                        const { x, y, width, height } = getSeriesRect(chart);
+                        await hoverAction(x + width / 2, y + height / 2)(chart);
+                        await doubleClickAction(x + width / 2, y + height / 2)(chart);
+                        await waitForChartStability(chart);
+                    },
+                ],
+            ])(
+                'is true on Settings while the dialog opened by %s is open and false after it closes',
+                async (_, open) => {
+                    await select([{ type: 'horizontal-line', value: 50, stroke: RED, strokeWidth: 4 }]);
+                    expect(expanded('Settings')).toBe('false');
+
+                    await open();
+                    expect(chartBody().querySelector('.ag-charts-dialog')).not.toBeNull();
+                    expect(expanded('Settings')).toBe('true');
+
+                    await press('.ag-charts-dialog__close-button');
+                    expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+                    expect(expanded('Settings')).toBe('false');
+                }
+            );
         });
 
         it('cancels a colour from the settings dialog without undoing earlier dialog edits', async () => {
@@ -2532,9 +2604,9 @@ describe('Annotations', () => {
             it('shows it as locked when the restored annotation is locked', async () => {
                 await restoreWhileSelected({ type: 'horizontal-line', value: 50, locked: true });
 
-                const lockSwitch = body().querySelector<HTMLElement>('button[aria-checked]');
-                expect(lockSwitch?.getAttribute('aria-checked')).toBe('true');
-                expect(lockSwitch?.getAttribute('aria-label')).toBe('Unlock');
+                const lockButton = body().querySelector<HTMLElement>('button[aria-label="Unlock"]');
+                expect(lockButton).not.toBeNull();
+                expect(lockButton?.hasAttribute('aria-checked')).toBe(false);
             });
         });
 

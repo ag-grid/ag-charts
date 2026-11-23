@@ -220,6 +220,10 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-checked', ariaChecked);
     }
 
+    setAriaCurrent(ariaCurrent: BaseAttributeTypeMap['aria-current'] | undefined) {
+        setAttribute(this.elem, 'aria-current', ariaCurrent);
+    }
+
     setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
         setAttribute(this.elem, 'aria-selected', ariaSelected);
     }
