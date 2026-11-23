@@ -1,6 +1,7 @@
 import type { AgChartLabelOrientation, AgMarkerShape, PaddingOptions, TextWrap } from 'ag-charts-types';
 
 import { markerShapeAnchor } from '../chart/markerShapes';
+import { isSupportedMarkerShape } from '../chart/markerUtil';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedErrorBarSeriesLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
@@ -631,11 +632,18 @@ export function applyStyledMarker(
 ): void {
     // Assigned even when undefined, so a size from an earlier update cannot linger.
     datum.markerSize = style?.size;
-    datum.markerShape = style?.shape ?? seriesShape;
+    datum.markerShape = tracedShape(style?.shape, datum.markerSize ?? datum.point.size) ?? seriesShape;
     // The label and the marker obstacle both offset from the point by the anchor of the shape drawn there.
     datum.anchor = markerShapeAnchor(datum.markerShape);
     datum.markerRestyled =
         datum.markerShape !== seriesShape || (datum.markerSize != null && datum.markerSize !== datum.point.size);
+}
+
+/** A styled shape the label may trace: none for a marker that is not drawn or a name with no built-in shape. */
+function tracedShape(shape: AgMarkerShape | undefined, size: number): AgMarkerShape | undefined {
+    const drawn = size > 0;
+    if (!drawn || shape == null) return undefined;
+    return typeof shape === 'function' || isSupportedMarkerShape(shape) ? shape : undefined;
 }
 
 /**
@@ -1426,7 +1434,8 @@ function markerCentreOf(d: PointLabelDatum) {
     const { anchor } = d;
     markerCentre.cx = x;
     markerCentre.cy = y;
-    markerCentre.outline = markerOutline(d.markerShape);
+    // An undrawn marker's shape is never traced, as it is never drawn.
+    markerCentre.outline = size > 0 ? markerOutline(d.markerShape) : undefined;
     if (anchor != null) {
         markerCentre.cx -= (anchor.x - 0.5) * size;
         markerCentre.cy -= (anchor.y - 0.5) * size;

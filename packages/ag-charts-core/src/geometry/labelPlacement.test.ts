@@ -4488,4 +4488,20 @@ describe('placeLabels marker outlines', () => {
         const placed = placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5);
         expect(placed.get('s')!.map((l) => l.datum)).toEqual([datum]);
     });
+
+    // Neither is drawn, so the label keeps the series' shape rather than tracing the styled one.
+    it.each([
+        ['an unknown name', 'no-such-shape', 20],
+        ['a shape on an undrawn marker', 'square', 0],
+    ])('keeps the series shape for %s', (_name, shape, size) => {
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'X', width: 10, height: 10 },
+            markerShape: 'pin',
+            placement: 'bottom',
+        };
+        applyStyledMarker(datum, { size, shape }, 'pin');
+        expect(datum.markerShape).toBe('pin');
+        expect(datum.anchor).toBe(markerShapeAnchor('pin'));
+    });
 });

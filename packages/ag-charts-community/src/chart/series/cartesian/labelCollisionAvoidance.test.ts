@@ -24,6 +24,7 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
+    expectWarningsCalls,
     getVisibleLabelNodes,
     prepareTestOptions,
     setupMockCanvas,
@@ -1405,6 +1406,58 @@ describe('label collision avoidance', () => {
                     : { shape: 'circle', size: 60, itemStyler: () => ({ shape: 'heart' }) };
             expect(await placed(restyled)).toEqual(drawn);
         });
+
+        // A marker styled to size 0 is never drawn, so its shape is never traced and cannot throw.
+        const throwingShape = () => {
+            throw new Error('traced');
+        };
+        // Validation drops an unknown name from the styler's result, with a warning, before any label sees it.
+        const droppedName = [[expect.stringContaining('"no-such-shape"')]];
+        it.each([
+            ['line', 'an unknown name', 'no-such-shape', droppedName],
+            ['line', 'a throwing function', throwingShape, []],
+            ['scatter', 'an unknown name', 'no-such-shape', droppedName],
+            ['scatter', 'a throwing function', throwingShape, []],
+            ['bubble', 'an unknown name', 'no-such-shape', droppedName],
+            ['bubble', 'a throwing function', throwingShape, []],
+        ] as const)(
+            '%s: fits an inside label to a hidden marker styled to %s as to any hidden marker',
+            async (type, _by, shape, warnings) => {
+                const data = [{ x: 5, y: 5, s: 1, l: 'Alpha' }];
+                const placed = async (itemStyler: () => object) => {
+                    chart?.destroy();
+                    // Kept on a marker too small to hold it, so there is a label to compare.
+                    const label = { enabled: true, placement: 'inside', collision: { alwaysShow: true } };
+                    const series =
+                        type === 'line'
+                            ? {
+                                  type,
+                                  data,
+                                  xKey: 'x',
+                                  yKey: 'y',
+                                  marker: { enabled: true, shape: 'circle', size: 30, itemStyler },
+                                  label: { ...label, formatter: ({ datum }: any) => datum.l },
+                              }
+                            : {
+                                  type,
+                                  data,
+                                  xKey: 'x',
+                                  yKey: 'y',
+                                  labelKey: 'l',
+                                  ...(type === 'bubble' ? { sizeKey: 's', minSize: 30, maxSize: 30 } : { size: 30 }),
+                                  shape: 'circle',
+                                  itemStyler,
+                                  label,
+                              };
+                    chart = await createChart({ legend: { enabled: false }, series: [series] } as any);
+                    return placedBoxes();
+                };
+                const hidden = await placed(() => ({ size: 0 }));
+                expect(await placed(() => ({ shape, size: 0 }))).toEqual(hidden);
+                expect(hidden).toHaveLength(1);
+                expectWarningsCalls().toEqual(warnings);
+            }
+        );
 
         it('treats a styler returning the series own custom shape as no restyle', async () => {
             const shape = ({ path, x, y, size }: any) => {
