@@ -3460,7 +3460,7 @@ describe('Group shadow compositor', () => {
                 });
 
                 it('should draw the pixels that the whole mask draws', () => {
-                    expect(maxAlphaOf(full.pixels)).toBeGreaterThan(0);
+                    expect(maxAlpha(full.pixels)).toBeGreaterThan(0);
                     expect(bounded.pixels).toHaveLength(full.pixels.length);
                     expectEqualPixels(bounded, full);
                 });
@@ -3468,7 +3468,7 @@ describe('Group shadow compositor', () => {
                 it('should blit the pixels of a kept cast that the whole mask draws', () => {
                     const keptBounded = castScenario(scenario, false, true);
                     const keptFull = castScenario(scenario, true, true);
-                    expect(maxAlphaOf(keptFull.pixels)).toBeGreaterThan(0);
+                    expect(maxAlpha(keptFull.pixels)).toBeGreaterThan(0);
                     expectEqualPixels(keptBounded, keptFull);
                     // The cast that was kept draws what a direct one does.
                     expectEqualPixels(keptBounded, bounded);
@@ -4248,7 +4248,7 @@ describe('Group shadow compositor', () => {
                     const before = offscreenCanvases();
                     startShadowFrame(scene);
                     const expected = castPixels('small');
-                    expect(maxAlphaOf(expected)).toBeGreaterThan(0);
+                    expect(maxAlpha(expected)).toBeGreaterThan(0);
                     destroyShadowScratch(scene);
 
                     frame('large');
