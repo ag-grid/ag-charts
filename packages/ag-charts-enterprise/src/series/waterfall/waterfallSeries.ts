@@ -1218,7 +1218,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     config: fontWithSize(label, node.label?.fittedFontSize),
                     box: expandPlacementLabelBoxExtent(label),
                 };
-            }
+            },
+            this.id
         );
     }
 
@@ -1275,6 +1276,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                             configuredFit == null || styled == null
                                 ? configuredFit
                                 : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding },
+                        entityIndex: node.datumIndex,
                     }))
                 );
             } else {
@@ -1293,7 +1295,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         threshold,
                         false,
                         configuredFit,
-                        node
+                        node,
+                        node.datumIndex
                     )
                 );
             }

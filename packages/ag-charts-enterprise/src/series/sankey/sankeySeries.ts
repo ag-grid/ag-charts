@@ -822,6 +822,7 @@ export class SankeySeries extends FlowProportionSeries<
                     ],
                     ownBox: nodeDatum,
                     ownBoxLabelsCollide: true,
+                    entityIndex: nodeDatum.datumIndex,
                     target,
                 });
             }
@@ -833,8 +834,9 @@ export class SankeySeries extends FlowProportionSeries<
         const obstacles: LabelObstacle[] = [];
         for (const datum of this.contextNodeData?.nodeData ?? []) {
             if (datum.type !== FlowProportionDatumType.Node) continue;
-            const { x, y, width, height } = datum;
-            obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'shape' });
+            const { x, y, width, height, datumIndex } = datum;
+            const box = { x, y, width, height };
+            obstacles.push({ kind: 'rect', box, category: 'shape', sourceId: this.id, entityIndex: datumIndex });
         }
         return obstacles;
     }
