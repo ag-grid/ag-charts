@@ -9,7 +9,7 @@ globs: ['packages/ag-charts-community/src/**/series/**/*.ts', 'packages/ag-chart
 
 ## Architecture
 
-`Series` (base) → `CartesianSeries` (Line/Area/Bar…), `PolarSeries` (Pie/Donut, enterprise Radar/Radial…), `HierarchySeries` (Treemap/Sunburst…), enterprise `FlowProportionSeries` (Sankey/Chord) and `TopologySeries` (Map series). Enterprise series extend community base classes; every series ships as a module that users register with `ModuleRegistry.registerModules()`.
+`Series` (base) → `CartesianSeries` (Line/Area/Bar…), `PolarSeries` (Pie/Donut, enterprise Radar/Radial…), enterprise `HierarchySeries` (Treemap/Sunburst…), enterprise `FlowProportionSeries` (Sankey/Chord) and `TopologySeries` (Map series). Enterprise series extend community base classes; every series ships as a module that users register with `ModuleRegistry.registerModules()`.
 
 **Key files:**
 
