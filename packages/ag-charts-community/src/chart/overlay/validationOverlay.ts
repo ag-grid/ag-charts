@@ -167,5 +167,6 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
     container.addChild(panel);
     // TODO: Phase 3 "Common Widget Ancestor" - the overlay renderer contract (shared with user renderers) and the
     // DOMElementProxy it is mounted through both take a raw HTMLElement.
+    // eslint-disable-next-line aglint/widget-boundary -- the overlay renderer contract returns a raw element (Phase 3).
     return container.getElement();
 }

@@ -30,8 +30,10 @@ mcp.json
 !/rules/data-model.md
 !/rules/defaults.md
 !/rules/demo-ports.md
+!/rules/dom-graph.md
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
+!/rules/generated-examples.md
 !/rules/module-definitions.md
 !/rules/module-support.md
 !/rules/numeric-values.md
@@ -39,3 +41,4 @@ mcp.json
 !/rules/test-harness-contracts.md
 !/rules/website-e2e-testing.md
 !/rules/server-side-rendering.md
+!/rules/redirects-and-edge-tests.md

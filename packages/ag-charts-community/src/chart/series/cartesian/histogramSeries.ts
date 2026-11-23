@@ -932,13 +932,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { id: seriesId } = this;
         const { xKey, yKey } = this.options;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const castState = this.getHighlightState(activeHighlight, isHighlight, bin.binIndex);
+        const { shadow, glow } = this.options;
 
         return {
             seriesId,
             xKey,
             yKey,
             ...this.binParams(bin),
-            highlightState: this.getHighlightStateString(activeHighlight, isHighlight, bin.binIndex),
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: toHighlightString(castState),
             selectionState: this.getSelectionStateString(bin.binIndex),
             candidateState: this.getCandidateStateString(bin.binIndex),
             ...this.resolvedStyle(style),
@@ -1061,7 +1065,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => node.label
+            (node) => node.label,
+            this.id
         );
     }
 
@@ -1162,7 +1167,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         threshold,
                         false,
                         fitFor(nodeLabel.text),
-                        node
+                        node,
+                        node.datumIndex
                     )
                 );
             }
@@ -1198,6 +1204,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                     fit == null || styledBox == null
                         ? fit
                         : { ...fit, font: styledBox.font, boxPadding: styledBox.boxPadding },
+                entityIndex: node.datumIndex,
             };
         });
     }

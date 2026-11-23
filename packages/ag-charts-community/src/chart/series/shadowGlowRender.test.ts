@@ -3,7 +3,7 @@ import { describe, it } from 'vitest';
 import { COMMUNITY_GLOW_SERIES } from '../test/glowCases';
 import { HARD_GAP_GLOW, HARD_GLOW, RENDER_OPTIONS, ROOM, hoverDatum } from '../test/glowRender';
 import { HIGHLIGHT_STATES, describeGlowSeries, useGlowCharts } from '../test/glowRenderSuite';
-import { CATEGORY_DATA, ITEM_GLOW, ITEM_SHADOW } from '../test/shadowFixtures';
+import { CATEGORY_DATA, ITEM_GLOW, ITEM_SHADOW, SERIES_SHADOW } from '../test/shadowFixtures';
 import { createChart, hoverLegendItem, waitForChartStability } from '../test/utils';
 
 const RED_GLOW = { ...HARD_GLOW, fill: '#d0021b', spread: 12 };
@@ -157,11 +157,33 @@ describe('shadow and glow render', () => {
                     highlight: { [state]: { glow: GLOWS[state] } },
                 })),
                 COLUMNS,
-                { ...RENDER_OPTIONS, legend: { enabled: true, position: 'bottom' } }
+                { ...RENDER_OPTIONS, highlight: { mode: 'shared' }, legend: { enabled: true, position: 'bottom' } }
             );
             if (state === 'highlightedSeries') await hoverLegendItem(chart(), 0);
             else await hoverDatum(chart(), 0, 1);
             await waitForChartStability(chart());
+            await snapshot();
+        });
+    });
+
+    describe('a shadow on a segmented series', () => {
+        it('renders no shadow within a segment, beside the shadows of the bars outside it', async () => {
+            await create(
+                [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'value',
+                        shadow: SERIES_SHADOW,
+                        segmentation: {
+                            key: 'x',
+                            segments: [{ start: 'B', stop: 'B', fill: '#d0021b', strokeWidth: 0 }],
+                        },
+                    },
+                ],
+                CATEGORY_DATA,
+                HEADROOM_AXES
+            );
             await snapshot();
         });
     });

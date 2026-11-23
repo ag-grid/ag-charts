@@ -45,6 +45,11 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         this.path = patternOptions.path;
     }
 
+    /** Whether the tile is large enough to draw. A shape paints its plain fill instead when it is not. */
+    get drawable(): boolean {
+        return this.width * this.scale >= 1 && this.height * this.scale >= 1;
+    }
+
     private getPath(pixelRatio: number) {
         const { pattern, width, height, padding, strokeWidth, path: svgPath } = this;
 
@@ -66,7 +71,8 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
 
     private renderStroke(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
         const { stroke, strokeWidth, strokeOpacity } = this;
-        if (strokeWidth === 0 || Number.isNaN(strokeWidth)) return;
+        // `strokeStyle = 'none'` is ignored by the canvas, which would stroke in its default black.
+        if (stroke === 'none' || strokeWidth === 0 || Number.isNaN(strokeWidth)) return;
         ctx.strokeStyle = stroke;
         ctx.lineWidth = strokeWidth;
         ctx.globalAlpha = strokeOpacity;
@@ -88,7 +94,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     ): CanvasPattern | null {
         const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
-        if (width * scale < 1 || height * scale < 1) {
+        if (!this.drawable) {
             logger.warnOnce('Pattern fill is too small to render, ignoring.');
             return null;
         }
@@ -131,18 +137,19 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         pattern.setTransform(new DOMMatrixCtor([cos, sin, -sin, cos, tx, ty]));
     }
 
-    private _cache:
-        { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number } | undefined =
-        undefined;
+    // Per context, as a shadow mask and its layer paint the same fill and would evict one shared entry every frame.
+    private _cache?: WeakMap<CanvasRenderingContext2D, { pattern: CanvasPattern | undefined; pixelRatio: number }>;
     createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number, logger: Logger): CanvasPattern | undefined {
-        if (this._cache?.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
-            return this._cache.pattern;
+        const cached = this._cache?.get(ctx);
+        if (cached?.pixelRatio === pixelRatio) {
+            return cached.pattern;
         }
 
         const pattern = this.createCanvasPattern(ctx, pixelRatio, logger);
         if (pattern == null) return;
 
-        this._cache = { ctx, pattern, pixelRatio };
+        this._cache ??= new WeakMap();
+        this._cache.set(ctx, { pattern, pixelRatio });
 
         return pattern;
     }

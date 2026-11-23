@@ -1,3 +1,4 @@
+// @ag-skip-fws
 /* @ag-options-extract */
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 

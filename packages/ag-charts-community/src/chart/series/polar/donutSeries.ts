@@ -117,7 +117,7 @@ import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import type { SeriesAreaLayout, UnknownSeries } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import { isUnselected } from '../seriesProperties';
+import { isUnselected, toHighlightString } from '../seriesProperties';
 import { HighlightState } from '../seriesTypes';
 import {
     pickByMatchingAngle,
@@ -281,13 +281,17 @@ export class DonutSeries extends PolarSeries<
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomGroup = this.contentGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: 'shared' })
+    );
     private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
     );
-    protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomHighlightGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: true })
+    );
     private readonly phantomHighlightSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomHighlightGroup,
         () => this.nodeFactory(),
@@ -951,6 +955,12 @@ export class DonutSeries extends PolarSeries<
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.options;
 
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        const castState = this.getHighlightState(
+            this.ctx.highlightManager?.getActiveHighlight(),
+            isHighlight,
+            datumIndex
+        );
+        const { shadow, glow } = this.options;
 
         return {
             datum,
@@ -961,11 +971,9 @@ export class DonutSeries extends PolarSeries<
             legendItemKey,
             ...style,
             fill,
-            highlightState: this.getHighlightStateString(
-                this.ctx.highlightManager?.getActiveHighlight(),
-                isHighlight,
-                datumIndex
-            ),
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: toHighlightString(castState),
             selectionState: this.getSelectionStateString(datumIndex),
             candidateState: this.getCandidateStateString(datumIndex),
             seriesId: this.id,
@@ -1391,7 +1399,11 @@ export class DonutSeries extends PolarSeries<
         } else {
             this.glowRing.release();
         }
-        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        this.phantomSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, false, 'overlay');
+            // A phantom casts its shadow with the sectors', but no glow of its own.
+            node.fillGlow = undefined;
+        });
 
         this.innerCircleCutoutSelection.each((sector, datum) => {
             // Resolved exactly as the real sector's is, so the erased outline matches what is drawn.
@@ -1423,6 +1435,7 @@ export class DonutSeries extends PolarSeries<
         });
         this.phantomHighlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
+            node.fillGlow = undefined;
 
             node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });

@@ -2,12 +2,15 @@ import { afterEach, vi } from 'vitest';
 
 import type { ContentSegment, ImageSegment, TextSegment, TextWrap } from 'ag-charts-types';
 
+import { isArray } from '../data/typeGuards';
 import type { FitRegion } from '../geometry/fitRegion';
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { cachedTextMeasurer, measureTextSegments } from '../rendering/textMeasurer';
 import type { ITextMeasurer, MeasuredSegment } from '../types/text';
 import { EllipsisChar, appendEllipsis } from './textUtil';
 import type { FontOptions } from './textUtil';
 import {
+    type LabelFit,
     clipLines,
     fitLabelText,
     fitLabelTextToRegion,
@@ -1618,6 +1621,208 @@ describe('fitLabelText bounded by a shape', () => {
             canvasMetrics.ellipsisExtra = 0;
             cachedTextMeasurer.clear();
         }
+    });
+
+    describe('in a shape one line tall', () => {
+        const region: FitRegion = {
+            spanAt: () => [-25, 25],
+            extentAbove: LINE_HEIGHT / 2,
+            extentBelow: LINE_HEIGHT / 2,
+        };
+
+        it.each([
+            ['fitLabelText', (fit: LabelFit) => fitLabelText('AAAA BBBB', fit, font)],
+            ['fitLabelTextToRegion', (fit: LabelFit) => fitLabelTextToRegion('AAAA BBBB', fit, font).text],
+        ])('%s keeps a preserved block whole', (_, fitText) => {
+            expect(fitText({ region, wrapping: 'on-space' })).toBe('AAAA\nBBBB');
+        });
+
+        it('keeps a preserved rich-text block whole', () => {
+            const fitted = fitLabelText([text('AAAA BBBB')], { region, wrapping: 'on-space' }, font);
+            expect(textOf(fitted as MeasuredSegment[])).toBe('AAAA\nBBBB');
+        });
+
+        it('keeps an image taller than the shape in a preserved rich-text block', () => {
+            const segments = [text('AA '), image('flag', { width: 20, height: 30 })];
+            const fitted = fitLabelText(segments, { region, wrapping: 'on-space' }, font) as MeasuredSegment[];
+            expect(imageUrls(fitted)).toEqual(['https://example.com/flag.png']);
+        });
+
+        it.each([
+            ['ellipsis', `AAAA${E}`],
+            ['hide', ''],
+        ] as const)('still holds a %s block to the shape', (overflowStrategy, expected) => {
+            expect(fitLabelText('AAAA BBBB', { region, wrapping: 'on-space', overflowStrategy }, font)).toBe(expected);
+        });
+    });
+
+    describe('overflowing a shape that offers nothing below its last row', () => {
+        // Two rows, 50px then 90px, and no room past them, as a probed wedge reports.
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => {
+                if (bottom <= LINE_HEIGHT) return [-25, 25];
+                return bottom <= 2 * LINE_HEIGHT ? [-45, 45] : [0, 0];
+            },
+            extentAbove: 0,
+            extentBelow: 2 * LINE_HEIGHT,
+        };
+        const fit: LabelFit = { region, regionAlign: 'start', wrapping: 'on-space' };
+        const source = 'AAAA BBBB CCCC DDDD EEEE FFFF';
+        const wrapped = 'AAAA\nBBBB CCCC\nDDDD EEEE\nFFFF';
+
+        it('wraps preserved lines past the shape at the width of its last row when the block hangs', () => {
+            const fitted = fitLabelTextToRegion(source, fit, font, false, 'hang');
+            expect(fitted.text).toBe(wrapped);
+            // The block hangs from the top of the shape rather than centring on it.
+            expect(fitted.offsetY).toBe(2 * LINE_HEIGHT);
+        });
+
+        it('keeps the layout preserved rich text already had, as it loses nothing to the shape', () => {
+            const fitted = fitLabelTextToRegion([text(source)], fit, font, false, 'hang');
+            expect(textOf(fitted.text as MeasuredSegment[])).toBe('AAAA\nBBBB CCCC\nDDDD EEEE FFFF');
+            expect(fitted.offsetY).toBe(LINE_HEIGHT);
+        });
+    });
+});
+
+describe('a preserved block in a shape', () => {
+    const font: FontOptions = { fontSize: 10, fontFamily: 'sans-serif' };
+    const asText = (fitted: NormalisedTextOrSegments) =>
+        isArray(fitted) ? textOf(fitted as MeasuredSegment[]) : String(fitted);
+
+    /** Rows of LINE_HEIGHT with the given widths, top to bottom, the anchor `extentAbove` below the first. */
+    function rowsRegion(widths: number[], extentAbove: number): FitRegion {
+        const extentBelow = widths.length * LINE_HEIGHT - extentAbove;
+        return {
+            spanAt: (top, bottom) => {
+                if (top < -extentAbove || bottom > extentBelow) return [0, 0];
+                const first = Math.floor((top + extentAbove) / LINE_HEIGHT);
+                const last = Math.ceil((bottom + extentAbove) / LINE_HEIGHT) - 1;
+                const half = Math.min(...widths.slice(first, last + 1)) / 2;
+                return [-half, half];
+            },
+            extentAbove,
+            extentBelow,
+        };
+    }
+
+    describe.each([
+        ['plain', (source: string): NormalisedTextOrSegments => source],
+        ['rich', (source: string): NormalisedTextOrSegments => [text(source)]],
+    ])('as %s text', (_, input) => {
+        // Narrower above the anchor than below and offset to the right of it, so a movable block shifts.
+        const lopsided: FitRegion = {
+            spanAt: (top) => (top < 0 ? [-20, 60] : [-50, 50]),
+            extentAbove: 40,
+            extentBelow: 40,
+        };
+
+        it.each([
+            ['center', false, false, 'AAAA\nBBBB CCCC', 0, 0],
+            ['start', false, false, 'AAAA BBBB\nCCCC', 0, 20],
+            ['end', true, false, 'AAAA\nBBBB\nCCCC', 0, -10],
+            ['center', true, true, 'AAAA\nBBBB\nCCCC', 0, 0],
+        ] as const)(
+            'that fits keeps the layout it fits in at %s (anchored %s, boxed %s)',
+            (regionAlign, anchored, boxed, expected, offsetX, offsetY) => {
+                const fit: LabelFit = { region: lopsided, regionAlign, boxed, wrapping: 'on-space' };
+                for (const overflowPlacement of ['centre', 'hang', 'none'] as const) {
+                    const fitted = fitLabelTextToRegion(
+                        input('AAAA BBBB CCCC'),
+                        fit,
+                        font,
+                        anchored,
+                        overflowPlacement
+                    );
+                    expect(asText(fitted.text)).toBe(expected);
+                    expect([fitted.offsetX, fitted.offsetY]).toEqual([offsetX, offsetY]);
+                }
+            }
+        );
+    });
+
+    it.each([
+        ['center', 'AAAA\nBBBB\nCCCC DDDD\nEEEE', 0],
+        ['start', 'AAAA BBBB\nCCCC DDDD\nEEEE', 30],
+        ['end', 'AAAA\nBBBB\nCCCC\nDDDD\nEEEE', -50],
+    ] as const)(
+        'too tall is placed on the anchor at %s, rows outside the shape at its edge rows',
+        (regionAlign, expected, offsetY) => {
+            const fit: LabelFit = { region: rowsRegion([60, 100], LINE_HEIGHT), regionAlign, wrapping: 'on-space' };
+            const fitted = fitLabelTextToRegion('AAAA BBBB CCCC DDDD EEEE', fit, font, true);
+            expect(fitted.text).toBe(expected);
+            expect(fitted.offsetY).toBe(offsetY);
+        }
+    );
+
+    it("too tall hangs from the shape's top for a caller drawing at the offset", () => {
+        const fit: LabelFit = { region: rowsRegion([60, 100], LINE_HEIGHT), wrapping: 'on-space' };
+        const fitted = fitLabelTextToRegion('AAAA BBBB CCCC DDDD EEEE', fit, font, true, 'hang');
+        expect(fitted.text).toBe('AAAA\nBBBB CCCC\nDDDD EEEE');
+        expect(fitted.offsetY).toBe(LINE_HEIGHT / 2);
+    });
+
+    it('too tall wraps each row for every shorter block it may be drawn as, so the last wrap draws its own height', () => {
+        // Wrapped for where it lands in a four-row block, 'CC DD' would land in the 40px row of the five it draws.
+        const fit: LabelFit = { region: rowsRegion([40, 50, 20], 30), wrapping: 'on-space' };
+        const fitted = fitLabelTextToRegion('AA BB CC DD EE', fit, font, true);
+        expect(fitted.text).toBe('AA\nBB\nCC\nDD\nEE');
+        expect(fitted.offsetY).toBe(0);
+    });
+
+    it.each([
+        ['center', 'AA\nBB\nCC\nDD EE\nFF GG', 0],
+        ['start', 'AA\nBB CC DD\nEE FF GG', 30],
+    ] as const)(
+        'too tall holds rows above an apex to its first row with room at %s',
+        (regionAlign, expected, offsetY) => {
+            const fit: LabelFit = { region: rowsRegion([0, 40, 80], 30), regionAlign, wrapping: 'on-space' };
+            const fitted = fitLabelTextToRegion('AA BB CC DD EE FF GG', fit, font, true);
+            expect(fitted.text).toBe(expected);
+            expect(fitted.offsetY).toBe(offsetY);
+        }
+    );
+
+    it.each(['start', 'end'] as const)(
+        'that drops an image too wide for it stays where it fits at %s',
+        (regionAlign) => {
+            const region: FitRegion = { spanAt: () => [-25, 25], extentAbove: 30, extentBelow: 30 };
+            const fit: LabelFit = { region, regionAlign, maxWidth: 40, wrapping: 'on-space' };
+            const segments = [text('AA BB CC '), image('wide', { width: 80, height: 10 })];
+            const fitted = fitLabelTextToRegion(segments, fit, font, true);
+            expect(imageUrls(fitted.text as MeasuredSegment[])).toEqual([]);
+            expect(textOf(fitted.text as MeasuredSegment[])).toBe('AA\nBB\nCC ');
+            expect(fitted.offsetY).toBe(0);
+        }
+    );
+
+    it('too tall with an image taller than a row holds its rows to the height the block is drawn at', () => {
+        // Widening from 20px at the top to 80px at the bottom, so an image line's room depends on the block height.
+        const region: FitRegion = {
+            spanAt: (top, bottom) => {
+                if (top < -30 || bottom > 30) return [0, 0];
+                const half = (20 + top + 30) / 2;
+                return [-half, half];
+            },
+            extentAbove: 30,
+            extentBelow: 30,
+        };
+        const segments = [image('icon', { width: 20, height: 70 }), text(' 1')];
+        const fitted = fitLabelTextToRegion(segments, { region, wrapping: 'on-space' }, font, true);
+        expect(imageUrls(fitted.text as MeasuredSegment[])).toEqual(['https://example.com/icon.png']);
+        expect(textOf(fitted.text as MeasuredSegment[])).toBe('\n 1');
+        expect(fitted.offsetY).toBe(0);
+    });
+
+    it('too tall and boxed holds every line to the narrowest open row the box spans', () => {
+        const fit: LabelFit = { region: rowsRegion([0, 60, 100], 30), boxed: true, wrapping: 'on-space' };
+        expect(fitLabelText('AA BB CC DD EE FF GG', fit, font)).toBe('AA BB\nCC DD\nEE FF\nGG');
+    });
+
+    it('too tall for any candidate the anchor can draw is laid out where it is drawn', () => {
+        // 'AA BB CC' fits the 100px row of a one-line block but lands in the 60px row of a two-line one.
+        const fit: LabelFit = { region: rowsRegion([60, 100, 30], 30), wrapping: 'on-space' };
+        expect(fitLabelText('AA BB CC DD EE', fit, font)).toBe('AA BB\nCC\nDD\nEE');
     });
 });
 

@@ -607,6 +607,43 @@ describe('placeLabels', () => {
         expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
     });
 
+    it('ignores non-finite obstacles and forgets earlier ones', () => {
+        const place = (obstacles: LabelObstacle[]) => {
+            const datum: PointLabelDatum = {
+                point: { x: 300, y: 200, size: 0 },
+                label: { text: 'A', width: 100, height: 20 },
+                anchor: undefined,
+                placement: 'top',
+                placements: ['top', 'bottom'],
+                gap: 10,
+                alwaysShow: true,
+            };
+            return placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get('s');
+        };
+        const blocksTop: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 250, y: 165, width: 100, height: 20 },
+            category: 'label',
+        };
+        const nonFinite: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 0, y: Number.NaN, width: 10, height: Number.NaN },
+            category: 'shape',
+        };
+
+        const infinitelyWide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 0, y: 165, width: Infinity, height: 20 },
+            category: 'shape',
+        };
+
+        expect(place([blocksTop])).toMatchObject([{ placement: 'bottom' }]);
+        expect(place([nonFinite])).toMatchObject([{ placement: 'top' }]);
+        expect(place([nonFinite, blocksTop])).toMatchObject([{ placement: 'bottom' }]);
+        expect(place([infinitelyWide])).toMatchObject([{ placement: 'top' }]);
+        expect(place([])).toMatchObject([{ placement: 'top' }]);
+    });
+
     describe('kept candidate when every placement collides', () => {
         // The label sits at (300, 200) with a 100x20 box and a 10px gap, so its `top` candidate spans
         // x 250..350 / y 165..185 and its `left` candidate x 185..285 / y 190..210.
@@ -791,45 +828,47 @@ describe('placeLabels', () => {
         expect(result.some((l) => l.datum === label)).toBe(false);
     });
 
-    it('keeps a label clear of its own anchor marker until the threshold exceeds its spacing', () => {
-        // A labelled point that also renders a marker: the label sits `spacing` from that marker's edge,
-        // so it is exempt from threshold inflation until the threshold demands more clearance than spacing.
-        const labelled = (): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement: 'top',
-            placements: ['top'],
-            spacing: 10,
-        });
-        const place = (threshold: number, d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]), bounds, 5).get('s')!;
-
-        const kept = labelled();
-        const dropped = labelled();
-        // threshold == spacing: still clear of its own marker.
-        expect(place(10, kept).some((l) => l.datum === kept)).toBe(true);
-        // threshold > spacing: the box reaches back onto its own marker, so the label is dropped.
-        expect(place(20, dropped).some((l) => l.datum === dropped)).toBe(false);
+    // Spacing 10 under a threshold of 30: clearing its own marker by the threshold would drop the label.
+    const besideOwnMarker = (placement: LabelPlacement): PointLabelDatum => ({
+        point: { x: 100, y: 100, size: 20 },
+        label: { text: 'X', width: 30, height: 12 },
+        anchor: undefined,
+        placement,
+        placements: [placement],
+        spacing: 10,
     });
 
-    it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
-        // A diagonal label's corner gap is √2·(r + spacing) − r ≈ 18.3, not `spacing` = 10.
-        const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement,
-            placements: [placement],
-            spacing: 10,
-        });
-        const place = (d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 12 })]]), bounds, 5).get('s')!;
+    it.each<LabelPlacement>(['top', 'top-right', 'right', 'bottom-left'])(
+        'never clears its own marker by the threshold, placed %s',
+        (placement) => {
+            const d = besideOwnMarker(placement);
+            const placed = placeLabels(
+                new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 30 })]]),
+                bounds,
+                5
+            ).get('s')!;
+            expect(placed.some((l) => l.datum === d)).toBe(true);
+        }
+    );
 
-        const above = labelled('top');
-        const diagonal = labelled('top-right');
-        expect(place(above).some((l) => l.datum === above)).toBe(false);
-        expect(place(diagonal).some((l) => l.datum === diagonal)).toBe(true);
+    it.each([
+        { threshold: 0, kept: false },
+        { threshold: 30, kept: false },
+        { threshold: -30, kept: true },
+    ])('drawn over its own marker, threshold $threshold, kept $kept', ({ threshold, kept }) => {
+        const d: PointLabelDatum = { ...besideOwnMarker('top'), placement: undefined, placements: undefined };
+        const placed = placeLabels(
+            new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]),
+            bounds,
+            5
+        ).get('s')!;
+        expect(placed.some((l) => l.datum === d)).toBe(kept);
+    });
+
+    it("clears another series' coincident marker by the threshold", () => {
+        const label = besideOwnMarker('top');
+        const marker: PointLabelDatum = { ...besideOwnMarker('top'), label: { text: '', width: 0, height: 0 } };
+        expect(placeAgainstOtherMarker(marker, label, 30).some((l) => l.datum === label)).toBe(false);
     });
 
     it('keeps a label flush against the shared bounds at a positive threshold', () => {
@@ -1465,38 +1504,53 @@ describe('bar label placement helpers', () => {
     });
 
     describe('rectLabelObstacles', () => {
-        it('maps rect node data to shape rect obstacles', () => {
-            const result = rectLabelObstacles([
-                { x: 0, y: 10, width: 20, height: 30 },
-                { x: 50, y: 5, width: 15, height: 25 },
-            ]);
+        it('maps rect node data to shape rect obstacles owned by their series, datum and stack', () => {
+            const result = rectLabelObstacles(
+                [
+                    { x: 0, y: 10, width: 20, height: 30, datumIndex: 0 },
+                    { x: 50, y: 5, width: 15, height: 25, datumIndex: 1 },
+                ],
+                's',
+                2
+            );
+            const owned = { category: 'shape', sourceId: 's', stackId: 2 } as const;
             expect(result).toEqual([
-                { kind: 'rect', box: { x: 0, y: 10, width: 20, height: 30 }, category: 'shape' },
-                { kind: 'rect', box: { x: 50, y: 5, width: 15, height: 25 }, category: 'shape' },
+                { kind: 'rect', box: { x: 0, y: 10, width: 20, height: 30 }, ...owned, entityIndex: 0 },
+                { kind: 'rect', box: { x: 50, y: 5, width: 15, height: 25 }, ...owned, entityIndex: 1 },
             ]);
         });
 
         it('skips phantom nodes', () => {
-            const result = rectLabelObstacles([
-                { x: 0, y: 0, width: 10, height: 10, phantom: true },
-                { x: 0, y: 0, width: 10, height: 10, phantom: false },
+            const result = rectLabelObstacles(
+                [
+                    { x: 0, y: 0, width: 10, height: 10, phantom: true },
+                    { x: 0, y: 0, width: 10, height: 10, phantom: false },
+                ],
+                's'
+            );
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape', sourceId: 's' },
             ]);
-            expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
         it('skips zero-area rects', () => {
-            const result = rectLabelObstacles([
-                { x: 0, y: 0, width: 0, height: 10 },
-                { x: 0, y: 0, width: 10, height: 0 },
-                { x: 0, y: 0, width: 10, height: 10 },
+            const result = rectLabelObstacles(
+                [
+                    { x: 0, y: 0, width: 0, height: 10 },
+                    { x: 0, y: 0, width: 10, height: 0 },
+                    { x: 0, y: 0, width: 10, height: 10 },
+                ],
+                's'
+            );
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape', sourceId: 's' },
             ]);
-            expect(result).toEqual([{ kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'shape' }]);
         });
 
         it('returns undefined when there is nothing to contribute', () => {
-            expect(rectLabelObstacles(undefined)).toBeUndefined();
-            expect(rectLabelObstacles([])).toBeUndefined();
-            expect(rectLabelObstacles([{ x: 0, y: 0, width: 0, height: 0, phantom: true }])).toBeUndefined();
+            expect(rectLabelObstacles(undefined, 's')).toBeUndefined();
+            expect(rectLabelObstacles([], 's')).toBeUndefined();
+            expect(rectLabelObstacles([{ x: 0, y: 0, width: 0, height: 0, phantom: true }], 's')).toBeUndefined();
         });
     });
 
@@ -1665,13 +1719,30 @@ describe('placeLabels positioned candidates', () => {
         obstacles: LabelObstacle[] = [],
         ownBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 },
         alwaysShow = true,
-        avoid = { marker: true, label: true, shape: true, seriesArea: true }
+        avoid = { marker: true, label: true, shape: true, seriesArea: true },
+        threshold = 0,
+        stackId?: number,
+        paintOrder?: ReadonlyMap<string, number>
     ) => {
         const target: BarLabelTarget = { rotation: 0 };
-        const datum = buildBarPositionedLabelDatum('label', 20, 10, candidates, target, ownBox, alwaysShow, avoid);
-        const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get(
-            's'
-        ) as PlacedLabel[];
+        const datum = buildBarPositionedLabelDatum(
+            'label',
+            20,
+            10,
+            candidates,
+            target,
+            ownBox,
+            alwaysShow,
+            avoid,
+            threshold,
+            false,
+            undefined,
+            undefined,
+            0,
+            stackId
+        );
+        const data = new Map([['s', seriesLabels([datum])]]);
+        const placed = placeLabels(data, bounds, 5, obstacles, paintOrder).get('s') as PlacedLabel[];
         return { placed, target };
     };
 
@@ -1934,6 +2005,400 @@ describe('placeLabels positioned candidates', () => {
             const { placed } = place([insideFront, elsewhere], [shapeRect(frontBar), shapeRect(behindBar)], frontBar);
             expect(placed[0].candidate).toBe(insideFront);
         });
+
+        describe('another bar overlapping its own', () => {
+            const ownBar = { x: 40, y: 60, width: 30, height: 100 };
+            const insideStart: BarCandidate = {
+                box: { x: 44, y: 62, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 70),
+                placement: 'inside-start',
+            };
+            const outsideEnd: BarCandidate = {
+                box: { x: 44, y: 40, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 48),
+                placement: 'outside-end',
+            };
+            // Pokes 2px out of the top of its own bar.
+            const poking: BarCandidate = {
+                box: { x: 44, y: 58, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 66),
+                placement: 'inside-end',
+            };
+            // Pokes 8px out of the top of its own bar.
+            const overhangingEnd: BarCandidate = {
+                box: { x: 44, y: 52, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 60),
+                placement: 'inside-end',
+            };
+            // Turned 45deg about its bar's top edge, so its turned box spans y 49..71.
+            const rotatedEnd: BarCandidate = {
+                box: { x: 40, y: 45, width: 30, height: 30 },
+                region: bounds,
+                rotation: 45,
+                orientedCollision: true,
+                anchor: anchorOf(55, 60),
+                placement: 'inside-end',
+            };
+            const elsewhere: BarCandidate = {
+                box: { x: 120, y: 100, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(131, 108),
+                placement: 'outside-start',
+            };
+            const marker: LabelObstacle = {
+                kind: 'circle',
+                cx: 55,
+                cy: 62,
+                r: 6,
+                box: { x: 49, y: 56, width: 12, height: 12 },
+                category: 'marker',
+            };
+            // A 20x10 label turned 45deg spans about 21px each way, inside this looser 30px footprint.
+            const rotated: BarCandidate = {
+                box: { x: 40, y: 65, width: 30, height: 30 },
+                region: bounds,
+                rotation: 45,
+                orientedCollision: true,
+                anchor: anchorOf(55, 80),
+                placement: 'inside-start',
+            };
+            const overhanging: BarCandidate = {
+                box: { x: 36, y: 62, width: 38, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 70),
+                placement: 'inside-start',
+            };
+            const shapes = { marker: true, label: true, shape: true, seriesArea: true };
+            // The label's series 's' is drawn over series 'under' and under series 'over'; 'unranked' has no rank.
+            const paintOrder = new Map([
+                ['under', 0],
+                ['s', 1],
+                ['over', 2],
+            ]);
+            // The label is datum 0 of series 's'; another datum's bar is owned by datum 1.
+            const other = (box: BoxBounds, entityIndex = 1, sourceId = 's', stackId?: number): LabelObstacle => ({
+                kind: 'rect',
+                box,
+                category: 'shape',
+                sourceId,
+                entityIndex,
+                stackId,
+            });
+            const under = (box: BoxBounds, entityIndex = 1) => other(box, entityIndex, 'under');
+            const over = (box: BoxBounds, entityIndex = 1) => other(box, entityIndex, 'over');
+            const shorter = { x: 40, y: 70, width: 30, height: 90 };
+            const containing = { x: 38, y: 55, width: 34, height: 30 };
+
+            it.each<
+                [
+                    string,
+                    BarCandidate,
+                    LabelObstacle,
+                    Partial<typeof shapes>,
+                    number,
+                    BoxBounds | undefined,
+                    BarCandidate,
+                ]
+            >([
+                [
+                    'stays on its bar across the end of a bar drawn under it',
+                    insideStart,
+                    under(shorter),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays on its bar wholly inside a bar drawn under it',
+                    insideStart,
+                    under(containing),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays on its bar across the end of a bar drawn under it with the same datum index',
+                    insideStart,
+                    under(shorter, 0),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays on its drawn bar when its own box is inset from it, as a heatmap cell gives',
+                    insideStart,
+                    under(shorter),
+                    {},
+                    0,
+                    { x: 43, y: 63, width: 24, height: 94 },
+                    insideStart,
+                ],
+                [
+                    'falls through off its bar across the end of a taller bar drawn under it',
+                    outsideEnd,
+                    under({ x: 40, y: 50, width: 30, height: 110 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through off its bar wholly inside a taller bar drawn under it',
+                    outsideEnd,
+                    under({ x: 40, y: 30, width: 30, height: 130 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through across the end of a bar drawn over its own',
+                    insideStart,
+                    over(shorter),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through wholly inside a bar drawn over its own',
+                    insideStart,
+                    over(containing),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through across a bar drawn over its own with the same datum index',
+                    insideStart,
+                    over(shorter, 0),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through wholly inside a bar of a series without a paint rank',
+                    insideStart,
+                    other(containing, 1, 'unranked'),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through wholly inside a neighbouring bar of its own series',
+                    insideStart,
+                    other(containing),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'falls through across the side of a neighbouring bar of its own series',
+                    insideStart,
+                    other({ x: 60, y: 30, width: 30, height: 130 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays across a bar drawn over its own when allowed to overlap shapes',
+                    insideStart,
+                    over(shorter),
+                    { shape: false },
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays poking out of its bar within a negative threshold, across a taller bar drawn under it',
+                    poking,
+                    under({ x: 40, y: 50, width: 30, height: 110 }),
+                    {},
+                    -3,
+                    undefined,
+                    poking,
+                ],
+                [
+                    'falls through poking out of its bar beyond a negative threshold, across a taller bar drawn under it',
+                    poking,
+                    under({ x: 40, y: 50, width: 30, height: 110 }),
+                    {},
+                    -1,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays off its bar where it overlaps a bar drawn under it only on its own bar',
+                    overhangingEnd,
+                    under({ x: 40, y: 66, width: 30, height: 94 }),
+                    {},
+                    0,
+                    undefined,
+                    overhangingEnd,
+                ],
+                [
+                    'falls through off its bar where it overlaps a bar drawn under it beyond its own bar',
+                    overhangingEnd,
+                    under({ x: 40, y: 56, width: 30, height: 104 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays rotated off its bar where its turned box overlaps a bar drawn under it only on its own bar',
+                    rotatedEnd,
+                    under({ x: 40, y: 66, width: 30, height: 94 }),
+                    {},
+                    0,
+                    undefined,
+                    rotatedEnd,
+                ],
+                [
+                    'falls through rotated where its turned box overlaps a bar drawn under it beyond its own bar',
+                    rotatedEnd,
+                    under({ x: 40, y: 55, width: 30, height: 105 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays rotated on its bar when the edge of a bar drawn under it crosses its turned box',
+                    rotated,
+                    under({ x: 40, y: 75, width: 30, height: 85 }),
+                    {},
+                    0,
+                    undefined,
+                    rotated,
+                ],
+                [
+                    'falls through rotated when its turned box lies wholly inside a bar drawn over its own',
+                    rotated,
+                    over({ x: 40, y: 68, width: 30, height: 92 }),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+                [
+                    'stays across the end of a bar without an owner',
+                    insideStart,
+                    shapeRect(shorter),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                ['stays across a marker overlapping its own bar', insideStart, marker, {}, 0, undefined, insideStart],
+                // Stacked siblings share or nest within the column, and aggregated buckets of one series overlap.
+                [
+                    'stays on its stacked column when it overhangs it and a sibling series shares the column box',
+                    overhanging,
+                    other({ ...ownBar }, 0, 'over', 0),
+                    {},
+                    0,
+                    undefined,
+                    overhanging,
+                ],
+                [
+                    'stays across the end of a sibling drawn over it in its stack',
+                    insideStart,
+                    other(shorter, 7, 'over', 0),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'stays across the side of a neighbouring bucket of its own stacked series',
+                    insideStart,
+                    other({ x: 60, y: 30, width: 30, height: 130 }, 1, 's', 0),
+                    {},
+                    0,
+                    undefined,
+                    insideStart,
+                ],
+                [
+                    'falls through across the end of a bar drawn under it in another stack, off its bar',
+                    outsideEnd,
+                    other({ x: 40, y: 50, width: 30, height: 110 }, 7, 'under', 1),
+                    {},
+                    0,
+                    undefined,
+                    elsewhere,
+                ],
+            ])('%s', (_, candidate, foreign, avoid, threshold, ownBox, expected) => {
+                // The label and its own bar sit in stack 0.
+                const { placed } = place(
+                    [candidate, elsewhere],
+                    [other(ownBar, 0, 's', 0), foreign],
+                    ownBox ?? ownBar,
+                    true,
+                    { ...shapes, ...avoid },
+                    threshold,
+                    0,
+                    paintOrder
+                );
+                expect(placed[0].candidate).toBe(expected);
+            });
+
+            it.each([
+                ['the same box', ownBar],
+                ['a box padded inside it, as a heatmap cell gives', { x: 43, y: 63, width: 24, height: 94 }],
+            ])('stays on its own bar when it overhangs it, with an own box of %s', (_, ownBox) => {
+                const { placed } = place([overhanging, elsewhere], [other({ ...ownBar }, 0)], ownBox);
+                expect(placed[0].candidate).toBe(overhanging);
+            });
+
+            it.each([
+                { drawn: 'under', rotation: -90 },
+                { drawn: 'over', rotation: undefined },
+            ])(
+                'turns an orientation-path label with an inset own box by a bar drawn $drawn its own',
+                ({ drawn, rotation }) => {
+                    const anchor: OrientationAnchor = { x: 55, y: 80, textAlign: 'center', textBaseline: 'middle' };
+                    const region = { x: 40, y: 64, width: 30, height: 92 };
+                    const datum = buildBarLabelDatum(
+                        anchor,
+                        'label',
+                        26,
+                        10,
+                        ['vertical', 'horizontal'],
+                        region,
+                        shapes,
+                        0,
+                        { rotation: 0 },
+                        undefined,
+                        0
+                    );
+                    // Its top edge crosses the vertical box (y 67..93) but not the horizontal one (y 75..85).
+                    const obstacles = [other(ownBar, 0), other({ x: 40, y: 88, width: 30, height: 72 }, 1, drawn)];
+
+                    const [label] = placeLabels(
+                        new Map([['s', seriesLabels([datum])]]),
+                        bounds,
+                        5,
+                        obstacles,
+                        paintOrder
+                    ).get('s')!;
+
+                    expect(label.rotation).toBe(rotation);
+                }
+            );
+        });
     });
 
     describe('error bar collision', () => {
@@ -2080,6 +2545,38 @@ describe('placeLabels sole positioned candidate', () => {
         expect(place()).toEqual([]);
         expect(place(true)).toMatchObject([{ x: 190, y: -5 }]);
     });
+
+    it.each([
+        { edge: 'near', axis: 'y', min: 243.79875896039962, extent: 13.798828125, size: 13.798828125 },
+        { edge: 'near', axis: 'x', min: 0.1, extent: 7.7, size: 7.7 },
+        { edge: 'far', axis: 'x', min: 321.8701364108688, extent: 78.55700019214163, size: 22.206326980634202 },
+        { edge: 'far', axis: 'y', min: -17.3, extent: 7.7, size: 7.6999923 },
+    ])(
+        'flushes a droppable box inside its region where rounding would push it past the $edge edge ($axis)',
+        ({ axis, min, extent, size }) => {
+            const wideBounds: BoxBounds = { x: -50, y: -50, width: 500, height: 500 };
+            const region =
+                axis === 'x'
+                    ? { x: min, y: 0, width: extent, height: 20 }
+                    : { x: 0, y: min, width: 20, height: extent };
+            const contained = [min - extent, min + extent].map((offer) => {
+                const box =
+                    axis === 'x'
+                        ? { x: offer, y: 5, width: size, height: 10 }
+                        : { x: 5, y: offer, width: 10, height: size };
+                const label: PointLabelDatum = { ...movableLabel(), positionedCandidates: [{ box, region }] };
+                const placed = placeLabels(
+                    new Map([['s', seriesLabels([label], { alwaysShow: false })]]),
+                    wideBounds,
+                    5
+                );
+                const [placedLabel] = placed.get('s') ?? [];
+                return placedLabel != null && boxContains(region, placedLabel.x, placedLabel.y, box.width, box.height);
+            });
+
+            expect(contained).toEqual([true, true]);
+        }
+    );
 });
 
 describe('placeLabels rotated labels', () => {
@@ -2245,6 +2742,20 @@ describe('resolveLabelFit', () => {
     it('lets truncate:true win over collision avoidance', () => {
         expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
     });
+
+    it.each([
+        [undefined, false, 'ellipsis'],
+        [undefined, true, 'ellipsis'],
+        [true, false, 'ellipsis'],
+        [false, false, undefined],
+        [false, true, 'hide'],
+    ] as const)(
+        'resolves truncate:%s with collision avoidance %s against a default to truncate to %s',
+        (truncate, hideOnOverflow, expected) => {
+            const fit = resolveLabelFit({ wrapping: 'on-space', truncate }, hideOnOverflow, true);
+            expect(fit?.overflowStrategy).toBe(expected);
+        }
+    );
 });
 
 describe('sectorLabelContainer', () => {
@@ -2397,6 +2908,13 @@ describe('placeLabels per-candidate fit', () => {
         const blocked = placeOne(fittedLabel(region), [blocker]);
         expect(blocked.text).toBe('WW…');
         expect(blocked.x).toBeGreaterThanOrEqual(20);
+    });
+
+    it.each([0, 6])('fits the whole of its own region at threshold %i', (threshold) => {
+        const region = { x: 0, y: 0, width: 50, height: 20 };
+        const placed = placeOne(fittedLabel(region, { ownBox: region, threshold }));
+        expect(placed.text).toBe(TEXT);
+        expect(placed.rotation).toBeUndefined();
     });
 
     it('leaves the text unfitted when the datum carries no fit descriptor', () => {
@@ -2610,6 +3128,47 @@ describe('placeLabels per-candidate fit', () => {
                 expect(placed.text).toBe('WW…');
             }
         );
+
+        // The 50px container holds the whole text exactly, so any clearance taken off it truncates.
+        const ownShapeFit = { text: TEXT, policy: { overflowStrategy: 'ellipsis' as const }, font: FONT };
+        it.each([
+            { stacked: false, threshold: 0 },
+            { stacked: false, threshold: 6 },
+            { stacked: true, threshold: 0 },
+            { stacked: true, threshold: 6 },
+        ])('fits the whole of its own shape, stacked $stacked, threshold $threshold', ({ stacked, threshold }) => {
+            const datum = buildBarPositionedLabelDatum(
+                TEXT,
+                50,
+                20,
+                [
+                    {
+                        box: { x: 25, y: 30, width: 50, height: 40 },
+                        fitTo: { container: { width: 50, height: 40 }, anchor, padding },
+                    },
+                ],
+                target(),
+                { x: 25, y: 30, width: 50, height: 40 },
+                true,
+                {},
+                threshold,
+                false,
+                ownShapeFit
+            );
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            stacked ? { ...datum, stack: { blocks: [{ fit: ownShapeFit }], spacing: 0 } } : datum,
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+            expect(placed.text).toBe(TEXT);
+        });
 
         describe('nudging along the bar', () => {
             const region = { x: 20, y: 20, width: 60, height: 60 };
@@ -3415,12 +3974,14 @@ describe('placeLabels positioned shrink ladder', () => {
 // generic containment/obstacle/flush/least-overflow logic there, so it can be restated directly.
 // Deliberately covers the no-fit case only — a datum without `fit` skips every shrink and re-fit
 // branch, leaving the candidate cascade itself as the thing under test.
+// Only labels meet an own box here (callers assert no shape does); 'another bar overlapping its own' covers shapes.
 function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
     const category = o.category ?? 'shape';
     const { ownBox } = d;
     if (
         ownBox != null &&
-        !(d.ownBoxLabelsCollide === true && category === 'label') &&
+        category === 'label' &&
+        d.ownBoxLabelsCollide !== true &&
         boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height)
     ) {
         return true;
@@ -3431,7 +3992,16 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
 
 function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
     if (size > extent) return pos;
-    return Math.min(Math.max(pos, min), min + extent - size);
+    let far = min + extent - size;
+    while (far > min && far + size > min + extent) far = nextDownOracle(far);
+    return Math.min(Math.max(pos, min), Math.max(min, far));
+}
+
+function nextDownOracle(value: number): number {
+    if (value === 0) return -Number.MIN_VALUE;
+    const bits = new BigInt64Array(new Float64Array([value]).buffer);
+    bits[0] += value > 0 ? -1n : 1n;
+    return new Float64Array(bits.buffer)[0];
 }
 
 function regionOverflowOracle(region: BoxBounds, x: number, y: number, w: number, h: number): number {
@@ -3576,14 +4146,196 @@ describe('placeLabels (positioned candidates)', () => {
 
     it('matches the brute-force oracle with cross-series obstacles', () => {
         const obstacles: LabelObstacle[] = [
-            { kind: 'rect', category: 'shape', box: { x: 100, y: 150, width: 120, height: 80 } },
+            // In the gap between the second and third bars, so it blocks labels wider than their bar but overlaps none.
+            { kind: 'rect', category: 'shape', box: { x: 132, y: 0, width: 2.5, height: 400 } },
             { kind: 'rect', category: 'label', box: { x: 380, y: 60, width: 90, height: 40 } },
         ];
+        let shapeBlocked = false;
         for (let seed = 1; seed <= 12; seed++) {
             const data = makePositionedFixture(2, 9, bounds, seed);
-            expect(normalise(placeLabels(data, bounds, 5, obstacles))).toEqual(
-                normalise(placePositionedLabelsOracle(data, bounds, obstacles))
-            );
+            const ownBoxesUnderShapes = [...data.values()]
+                .flatMap(({ datums }) => datums.map(({ ownBox }) => ownBox!))
+                .filter((own) =>
+                    obstacles.some(
+                        (o) => o.category === 'shape' && boxCollides(o.box, own.x, own.y, own.width, own.height)
+                    )
+                );
+            expect(ownBoxesUnderShapes).toEqual([]);
+            const placed = normalise(placeLabels(data, bounds, 5, obstacles));
+            expect(placed).toEqual(normalise(placePositionedLabelsOracle(data, bounds, obstacles)));
+            const withoutShape = normalise(placeLabels(data, bounds, 5, obstacles.slice(1)));
+            shapeBlocked ||= JSON.stringify(placed) !== JSON.stringify(withoutShape);
         }
+        expect(shapeBlocked).toBe(true);
+    });
+});
+
+describe('placeLabels solve references', () => {
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+    const CENTRE: OrientationAnchor = { x: 200, y: 200, textAlign: 'center', textBaseline: 'middle' };
+
+    type Track = <T extends object>(name: string, value: T) => T;
+    type Solve = (track: Track) => Map<string, PlacedLabel[]>;
+
+    const boundsOf = (track: Track) => track('bounds', { x: 0, y: 0, width: 400, height: 400 });
+    const wideShape = (): FitRegion => ({ spanAt: () => [-500, 500], extentAbove: Infinity, extentBelow: Infinity });
+    // Covers every candidate around the centre, so a label it blocks walks its shrink ladder before it settles.
+    const wall = (track: Track): LabelObstacle =>
+        track('obstacle', {
+            kind: 'rect',
+            box: track('obstacle box', { x: 150, y: 150, width: 100, height: 100 }),
+            category: 'label',
+        });
+    const fitOf = (track: Track, region?: FitRegion) =>
+        track('fit', {
+            text: track('fit text', [
+                { type: 'text' as const, text: 'WWWWW' },
+                { type: 'image' as const, url: 'icon.png', width: 10, height: 10, padding: track('image padding', {}) },
+            ]),
+            policy: track('fit policy', { overflowStrategy: 'ellipsis' as const, minimumFontSize: 6, region }),
+            font: FONT,
+            boxPadding: NO_PADDING,
+            boundByRegion: true,
+        });
+    const ownDatum = (track: Track) => ({
+        point: track('point', { x: 200, y: 200, size: 10 }),
+        label: track('label', { text: 'WWWWW', width: 50, height: 20 }),
+        anchor: undefined,
+        placement: undefined,
+        // Clear of the wall, which an own box it touched would exclude.
+        ownBox: track('own box', { x: 0, y: 0, width: 10, height: 10 }),
+    });
+    const markerSeries = (track: Track): SeriesLabels =>
+        seriesLabels([
+            track('marker datum', {
+                point: { x: 50, y: 50, size: 10 },
+                label: { text: 'M', width: 10, height: 20 },
+                anchor: undefined,
+                placement: 'bottom',
+            }),
+        ]);
+
+    const compassCascade =
+        (styled: boolean): Solve =>
+        (track) => {
+            const datum: PointLabelDatum = track('datum', {
+                ...ownDatum(track),
+                fit: fitOf(track, track('fit shape', wideShape())),
+                placements: track('placements', ['top', 'bottom'] as LabelPlacement[]),
+                orientation: track('orientations', ['horizontal', 'vertical'] as AgChartLabelOrientation[]),
+                gap: 5,
+                region: track('region', { x: 0, y: 0, width: 400, height: 400 }),
+                alwaysShow: true,
+            });
+            const compass: SeriesLabels = {
+                datums: [datum],
+                defaults: track('defaults', { avoid: track('avoid', { label: true, marker: true }) }),
+                resolveCandidateStyle: styled
+                    ? track('style resolver', () => ({ font: FONT, boxPadding: NO_PADDING }))
+                    : undefined,
+            };
+            const data = new Map([
+                ['markers', markerSeries(track)],
+                ['compass', compass],
+            ]);
+            return placeLabels(data, boundsOf(track), 0, [wall(track)]);
+        };
+
+    const positionedCandidates: Solve = (track) => {
+        const candidate = track('candidate', {
+            box: track('candidate box', { x: 175, y: 190, width: 50, height: 20 }),
+            region: track('candidate region', { x: 0, y: 0, width: 400, height: 400 }),
+            fitTo: track('fit target', {
+                container: { width: 60, height: 30 },
+                shape: track('candidate shape', wideShape()),
+                anchor: CENTRE,
+                padding: NO_PADDING,
+            }),
+        });
+        const datum: PointLabelDatum = track('datum', {
+            ...ownDatum(track),
+            fit: fitOf(track),
+            positionedCandidates: track('candidates', [candidate]),
+            neverDrop: true,
+        });
+        const resolveCandidate: PositionedCandidateResolver = track('candidate resolver', (_d, c) => c);
+        const data = new Map<string, SeriesLabels>([
+            ['markers', markerSeries(track)],
+            ['positioned', { datums: [datum], resolveCandidate }],
+        ]);
+        const paintOrder = track(
+            'paint order',
+            new Map([
+                ['markers', 0],
+                ['positioned', 1],
+            ])
+        );
+        return placeLabels(data, boundsOf(track), 0, [wall(track)], paintOrder);
+    };
+
+    const shapeFittedStack =
+        (blocked: boolean): Solve =>
+        (track) => {
+            const fit = fitOf(track);
+            const datum: PointLabelDatum = track('datum', {
+                ...ownDatum(track),
+                // Markerless, so only the wall can block it.
+                point: track('point', { x: 200, y: 200, size: 0 }),
+                fit,
+                stack: track('stack', { blocks: track('stack blocks', [track('stack block', { fit })]), spacing: 0 }),
+                positionedCandidates: [
+                    {
+                        box: { x: 175, y: 190, width: 50, height: 20 },
+                        fitTo: { shape: track('stack shape', wideShape()), anchor: CENTRE, padding: NO_PADDING },
+                    },
+                ],
+                neverDrop: true,
+            });
+            const data = new Map([
+                ['markers', markerSeries(track)],
+                ['stacked', seriesLabels([datum])],
+            ]);
+            return placeLabels(data, boundsOf(track), 0, blocked ? [wall(track)] : []);
+        };
+
+    // Synchronous, so no suspended async frame can keep the solve's objects alive across the await below.
+    function solveTracked(solve: Solve, track: Track): number {
+        let placedCount = 0;
+        for (const [seriesId, labels] of solve(track)) {
+            for (const label of labels) {
+                placedCount++;
+                track(`placed ${seriesId}`, label);
+                if (typeof label.text === 'object') track(`placed ${seriesId} text`, label.text);
+                if (label.stack != null) track(`placed ${seriesId} stack`, label.stack);
+            }
+        }
+        return placedCount;
+    }
+
+    /** Runs `solve` and names every object it tracked or placed that is still reachable once it returns. */
+    async function retainedAfter(solve: Solve) {
+        const { gc } = globalThis;
+        if (gc == null) throw new Error('Run with --expose-gc');
+        const refs = new Map<string, WeakRef<object>>();
+        const placedCount = solveTracked(solve, (name, value) => {
+            refs.set(name, new WeakRef(value));
+            return value;
+        });
+        // A WeakRef keeps its target alive until the job that created it ends.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        gc();
+        const retained = [...refs].filter(([, ref]) => ref.deref() != null).map(([name]) => name);
+        return { placedCount, retained };
+    }
+
+    it.each([
+        { path: 'a compass cascade', solve: compassCascade(false) },
+        { path: 'a styled compass cascade', solve: compassCascade(true) },
+        { path: 'positioned candidates', solve: positionedCandidates },
+        { path: 'a shape-fitted stack', solve: shapeFittedStack(false) },
+        { path: 'a blocked shape-fitted stack', solve: shapeFittedStack(true) },
+    ])('keeps no reference to the labels, datums or callbacks of $path once it returns', async ({ solve }) => {
+        expect(await retainedAfter(solve)).toEqual({ placedCount: 2, retained: [] });
     });
 });

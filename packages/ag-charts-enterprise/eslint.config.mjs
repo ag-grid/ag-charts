@@ -1,8 +1,9 @@
-import base, { sonarjsConfig } from '../../eslint.config.mjs';
+import base, { sonarjsConfig, widgetBoundaryConfig } from '../../eslint.config.mjs';
 
 export default [
     ...sonarjsConfig,
     ...base,
+    widgetBoundaryConfig,
     {
         files: ['**/typings.test.d.ts'],
         rules: {

@@ -1,4 +1,4 @@
-import type { BindingImport } from './parser-utils';
+import { type BindingImport, replaceOptionsReferences } from './parser-utils';
 
 const optionsDotRe = /(?<!\w)options(?:!)?\./g;
 const optionsSquareRe = /(?<!\w)options(?:!)?\[/g;
@@ -24,13 +24,17 @@ export function wrapOptionsUpdateCode(
     }
 
     if (!optionsDotRe.test(code) && !optionsSquareRe.test(code)) {
-        return code;
+        // No member access, so nothing is updated, but the code may still read `options` whole
+        // (`const { series } = options`, `{ ...options }`), which is a class or ref member here.
+        return replaceOptionsReferences(code, ['options'], () => inputVar);
     }
 
-    return code
-        .replace(optionsDotRe, localVar + '.')
-        .replace(optionsSquareRe, localVar + '[')
-        .replace(/(.*?)\{(.*)\}/s, `$1{\n${before}\n$2\n${after}\n}`);
+    // A bare `options` (an argument, say) is the same variable as the member accesses, so is the local copy too
+    return replaceOptionsReferences(
+        code.replace(optionsDotRe, localVar + '.').replace(optionsSquareRe, localVar + '['),
+        ['options'],
+        () => localVar
+    ).replace(/(.*?)\{(.*)\}/s, `$1{\n${before}\n$2\n${after}\n}`);
 }
 
 export function getChartImports(imports: BindingImport[], usesChartApi: boolean): string {

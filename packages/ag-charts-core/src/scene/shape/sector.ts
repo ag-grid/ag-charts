@@ -16,7 +16,7 @@ import {
     sectorBox,
 } from '../util/sector';
 import { Path } from './path';
-import type { CanvasContext } from './shape';
+import type { CanvasContext, MitreApex } from './shape';
 
 const corners: SectorCornerRadii = { startOuter: 0, endOuter: 0, startInner: 0, endInner: 0 };
 
@@ -87,6 +87,12 @@ export class Sector<D = unknown> extends Path<D> {
 
     @SceneObjectChangeDetection({ equals: (lhs: SectorBox, rhs: SectorBox) => lhs.equals(rhs) })
     clipSector: SectorBox | undefined = undefined;
+
+    private hasApex = false;
+    private apexX = 0;
+    private apexY = 0;
+    private apexStart = 0;
+    private apexEnd = 0;
 
     @SceneChangeDetection()
     innerEdgeInset: number = 0;
@@ -202,6 +208,18 @@ export class Sector<D = unknown> extends Path<D> {
                 this.glowEndOuter
             );
         }
+        return true;
+    }
+
+    /** The vertex that {@link updatePath} last drew where the sector's straight edges meet, if it drew one. */
+    protected override getMitreApex(out: MitreApex): boolean {
+        this.updatePathIfDirty();
+        if (!this.hasApex) return false;
+
+        out.x = this.apexX;
+        out.y = this.apexY;
+        out.start = this.apexStart;
+        out.end = this.apexEnd;
         return true;
     }
 
@@ -397,6 +415,14 @@ export class Sector<D = unknown> extends Path<D> {
         return arc;
     }
 
+    private setApex(x: number, y: number, start: number, end: number) {
+        this.hasApex = true;
+        this.apexX = x;
+        this.apexY = y;
+        this.apexStart = start;
+        this.apexEnd = end;
+    }
+
     override updatePath(): void {
         const delta = 1e-6;
         const { path, centerX, centerY, innerEdgeInset, radialEdgeInset } = this;
@@ -408,6 +434,7 @@ export class Sector<D = unknown> extends Path<D> {
         const fullPie = sweepAngle >= 2 * Math.PI - delta;
 
         path.clear();
+        this.hasApex = false;
 
         const outerCornerDistance = insetChord(outerRadius, sweepAngle, radialEdgeInset);
         const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > innerEdgeInset;
@@ -523,6 +550,9 @@ export class Sector<D = unknown> extends Path<D> {
             const r = Math.max(radialEdgeInset / Math.sin(Math.min(sweepAngle, Math.PI) / 2), innerRadius);
             const angle = centreArc ? startAngle + Math.PI * 0.5 : startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
+            if (!centreArc && clipSector == null && sweepAngle < Math.PI) {
+                this.setApex(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle), startAngle, endAngle);
+            }
         } else if (startInnerArc?.isValid() === true || innerArc?.isValid() === true) {
             // The first point of the path will be the first point on an arc
             // We don't need to call moveTo here - it's implicit
@@ -532,6 +562,9 @@ export class Sector<D = unknown> extends Path<D> {
             const cx = innerRadius * Math.cos(midAngle);
             const cy = innerRadius * Math.sin(midAngle);
             path.moveTo(centerX + cx, centerY + cy);
+            if (innerRadius <= 0 && clipSector == null && sweepAngle < Math.PI) {
+                this.setApex(centerX + cx, centerY + cy, startAngle, endAngle);
+            }
         }
 
         if (startOuterArc?.isValid() === true) {

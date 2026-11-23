@@ -35,9 +35,9 @@ type FileListParams = {
 };
 
 const PLACEHOLDER_MAIN_TS = `
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, type AgChartOptions } from 'ag-charts-community';
 
-const options = {
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Frameworks not supported' },
     subtitle: { text: 'Switch to Javascript' },

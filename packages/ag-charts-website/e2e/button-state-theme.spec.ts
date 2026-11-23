@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 const BLACK = 'rgb(0, 0, 0)';
 const ORANGE = 'rgb(255, 109, 0)';
@@ -110,6 +110,28 @@ test.describe('shared toolbar button state', () => {
         const below = page.getByTitle('Trend Lines');
         await below.hover();
         await expect(below).toHaveCSS('border-inline-start-color', ORANGE);
+    });
+
+    test('enabled buttons keep a complete border beside disabled ones', async ({ page }) => {
+        // The data spans less than a year, so the longer ranges are disabled.
+        await expect(page.getByRole('button', { name: '1 year' })).toHaveAttribute('aria-disabled', 'true');
+        await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot(
+            'button-state-disabled-range-buttons.png',
+            { animations: 'disabled' }
+        );
+
+        // Locking an annotation disables its other options.
+        await page.getByTitle('Trend Lines').click();
+        await page.locator('.ag-charts-menu__row', { hasText: 'Horizontal Line' }).click();
+        await page.locator(SELECTORS.seriesArea).click();
+        await page.getByTitle('Lock').click();
+        await expect(page.getByTitle('Line Stroke Width')).toHaveAttribute('aria-disabled', 'true');
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(TRANSITION_SETTLE_MS);
+        await expect(page.locator('.ag-charts-floating-toolbar')).toHaveScreenshot(
+            'button-state-locked-annotation-toolbar.png',
+            { animations: 'disabled' }
+        );
     });
 
     test('an annotation menu button is no longer active once its menu is dismissed', async ({ page }) => {

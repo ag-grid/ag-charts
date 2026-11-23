@@ -36,6 +36,7 @@ export type BaseAttributeTypeMap = {
     role: AriaRole;
     'aria-checked': boolean;
     'aria-controls': ElementID;
+    'aria-current': boolean;
     'aria-describedby': ElementID;
     'aria-disabled': boolean;
     'aria-expanded': boolean;
@@ -81,6 +82,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     role: stringParser<AriaRole>,
     'aria-checked': booleanParser,
     'aria-controls': stringParser<ElementID>,
+    'aria-current': booleanParser,
     'aria-describedby': stringParser<ElementID>,
     'aria-disabled': booleanParser,
     'aria-expanded': booleanParser,
