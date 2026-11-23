@@ -1,8 +1,4 @@
-import type {
-    AgStateSerializableBigInt,
-    AgStateSerializableGroupingValueType,
-    AgStateSerializableValueType,
-} from '../api/stateTypes';
+import type { AgStateSerializableGroupingValueType, AgStateSerializableValueType } from '../api/stateTypes';
 import type {
     FillOptions,
     LineDashOptions,
@@ -536,7 +532,7 @@ export interface AgAnnotationPoint {
     /** The x-value of the point. */
     x: AgAnnotationValue;
     /** The y-value of the point. A number, or a serialised value object. */
-    y: number | AgStateSerializableBigInt;
+    y: AgAnnotationValue;
 }
 
 interface Writeable {
