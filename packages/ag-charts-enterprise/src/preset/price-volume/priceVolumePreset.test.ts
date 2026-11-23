@@ -7,6 +7,7 @@ import {
     deproxy,
     expectWarningsCalls,
     getSeriesNodeData,
+    getSeriesOptions,
     getSeriesRect,
     getSwapChainText,
     hoverAction,
@@ -31,6 +32,7 @@ import type {
 } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
+import { getMiniChartSeriesOptions } from '../../test/featureAccessors';
 import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
 import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
@@ -211,6 +213,21 @@ describe('priceVolumePreset', () => {
         expect(getSwapChainText()).toContain('close');
         await pressKey(internal, 'ArrowDown');
         expect(getSwapChainText()).toContain('volume');
+    });
+
+    it('leaves the navigator volume line solid when the price line is dashed', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                chartType: 'line',
+                navigator: true,
+                data: getStockData().slice(0, 40),
+                theme: { overrides: { line: { series: { lineDash: 'dash' } } } },
+            } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        expect(getSeriesOptions(chart, 1).lineDash).toEqual([6, 4]);
+        expect(getMiniChartSeriesOptions(chart).lineDash).toEqual([0]);
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {

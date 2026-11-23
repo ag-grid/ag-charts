@@ -2,6 +2,7 @@ import {
     type AgMiniChartSeriesOptions,
     type AgNavigatorHandleOptions,
     type AgNavigatorOptions,
+    type Operation,
     type WithThemeParams,
 } from 'ag-charts-community';
 import {
@@ -59,7 +60,6 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'glow',
     'highlight',
     'lineDash',
-    'lineDashOffset',
     'strokeWidth',
 ];
 
@@ -133,8 +133,20 @@ const miniChartLineDashLocations: Record<
     },
 };
 
-// A mini-chart line or area takes no dash from the main series (the price volume preset maps an area to a line).
-const MINI_CHART_TYPES_WITHOUT_MAIN_DASH = new Set(['line', 'area']);
+/**
+ * The main series' `lineDash` at `keys`, rescaled from the width it resolved at to the one the mini-chart series draws
+ * it at: the `strokeWidth` set there, else `copiedWidth`, which defaults to the main series' as the copy carries it.
+ */
+function inheritedLineDash(keys: string[] = [], copiedWidth?: StrokeWidth) {
+    const main = ['/series/$index', ...keys].join('/');
+    const mainWidth: StrokeWidth = { $path: `${main}/strokeWidth` };
+    return {
+        $rescaleLineDash: [{ $path: `${main}/lineDash` }, mainWidth, copiedWidth ?? strokeWidthOr(mainWidth)],
+    } satisfies Operation;
+}
+
+// A mini-chart line copies no `strokeWidth`, so the main series' dash is rescaled to the line's default width.
+const INHERITED_LINE_DASH = inheritedLineDash([], DEFAULT_STROKE_WIDTH);
 
 /**
  * The `lineDash` defaults of a mini-chart series type, each with the main series' value as its default, so a name
@@ -143,25 +155,22 @@ const MINI_CHART_TYPES_WITHOUT_MAIN_DASH = new Set(['line', 'area']);
 function miniChartLineDashTheme(type: string, { own, nested = [] }: (typeof miniChartLineDashLocations)[string]) {
     const theme: Record<string, any> = {};
     if (own != null) {
-        const inherited = MINI_CHART_TYPES_WITHOUT_MAIN_DASH.has(type)
-            ? undefined
-            : { $path: '/series/$index/lineDash' };
+        const inherited = type === 'line' ? INHERITED_LINE_DASH : inheritedLineDash();
         theme.lineDash = lineDashThemeDefault(inherited, own === true ? undefined : own);
     }
     for (const entry of nested) {
         const [location, strokeWidth] = typeof entry === 'string' ? [entry, undefined] : entry;
         const keys = location.split('.');
-        const inherited = { $path: `/series/$index/${[...keys, 'lineDash'].join('/')}` };
 
         let node = theme;
         for (const key of keys) node = node[key] ??= {};
-        node.lineDash = lineDashThemeDefault(inherited, strokeWidth);
+        node.lineDash = lineDashThemeDefault(inheritedLineDash(keys), strokeWidth);
     }
     return theme;
 }
 
 const miniChartMarkerTheme = {
-    // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow and
+    // The omit lists name no nested keys and the first grafted value for a key wins, so the nested marker shadow and
     // glow are switched off here rather than alongside the omit.
     shadow: { enabled: false },
     glow: { enabled: false },
@@ -170,8 +179,19 @@ const miniChartMarkerTheme = {
     },
 };
 
+/** The dotted paths of the `lineDash` locations of a mini-chart series type. */
+function lineDashPaths(type: string) {
+    const { own, nested = [] } = miniChartLineDashLocations[type];
+    const paths = nested.map((entry) => `${typeof entry === 'string' ? entry : entry[0]}.lineDash`);
+    return own == null ? paths : ['lineDash', ...paths];
+}
+
 /** `resolveLineDash` is for the series that the user sets here, as the main series that the others copy resolved its names. */
 function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineDash = false) {
+    // A copied dash would merge by index over the rescaled one that the `lineDash` default supplies.
+    const ignored = (type: string, ignoredProperties: readonly string[]) =>
+        resolveLineDash ? [...ignoredProperties, ...lineDashPaths(type)] : ignoredProperties;
+
     return {
         $merge: [
             ...(resolveLineDash
@@ -187,13 +207,13 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineD
                           ],
                       },
                   ]
-                : []),
+                : [{ $switch: [typePath, {}, ['line', { lineDash: INHERITED_LINE_DASH }]] }]),
             {
                 $switch: [
                     typePath,
                     {},
                     [['area', 'line'], { marker: miniChartMarkerTheme }],
-                    // Waterfall keeps its shadows and glows under `item.*`, which `$omit` does not reach.
+                    // Waterfall keeps its shadows and glows under `item.*`, which its omit list does not name.
                     [
                         'waterfall',
                         {
@@ -234,21 +254,33 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineD
                         $switch: [
                             typePath,
                             omitInheritedShadow(commonIgnoredMiniChartProperties),
-                            ['bar', omitInheritedShadow(barIgnoredMiniChartProperties)],
-                            ['box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties)],
-                            ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
+                            ['bar', ignored('bar', omitInheritedShadow(barIgnoredMiniChartProperties))],
+                            ['box-plot', ignored('box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties))],
+                            ['bubble', ignored('bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties))],
                             ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
-                            ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
-                            ['hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties)],
+                            [
+                                'histogram',
+                                ignored('histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)),
+                            ],
+                            ['hlc', ignored('hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties))],
                             // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow` and `glow`.
                             [
                                 'line',
-                                [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],
+                                ignored('line', [
+                                    ...lineIgnoredMiniChartProperties,
+                                    ...priceVolumePresetIgnoredMiniChartProperties,
+                                ]),
                             ],
-                            ['range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)],
-                            ['range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)],
-                            ['scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties)],
-                            ['waterfall', waterfallIgnoredMiniChartProperties],
+                            [
+                                'range-area',
+                                ignored('range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)),
+                            ],
+                            [
+                                'range-bar',
+                                ignored('range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)),
+                            ],
+                            ['scatter', ignored('scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties))],
+                            ['waterfall', ignored('waterfall', waterfallIgnoredMiniChartProperties)],
                         ],
                     },
                     seriesPath,
