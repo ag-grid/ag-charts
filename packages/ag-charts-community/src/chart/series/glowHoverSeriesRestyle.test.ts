@@ -7,7 +7,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 import { Marker } from '../marker/marker';
 import { differingBytes } from '../test/expectSamePixels';
 import { endHover, hoverDatum } from '../test/glowRender';
-import { getItemsStyledDuring, getSeriesAt } from '../test/seriesAccessors';
+import { getItemsStyledDuring, getSeriesAt, getSeriesHasChangesOnHighlight } from '../test/seriesAccessors';
 import { SERIES_GLOW, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
@@ -62,8 +62,27 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
     };
 
     describe('with highlight.unhighlightedSeries.opacity: 1', () => {
-        // No dimming from either state, so the opacity of every item is the same entered, left or at rest.
+        // Items of the other series may still dim for `unhighlightedItem`, which a series that is not entered doesn't have.
         const highlight = { unhighlightedSeries: { opacity: 1 }, unhighlightedItem: { opacity: 1 } };
+
+        it('should not restyle a series with an unchanged glow when the hover enters another series', async () => {
+            await create(highlight);
+
+            const visited = await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
+
+            expect(visited).toEqual([]);
+            expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(false);
+        });
+
+        it('should not restyle a series with an unchanged glow when the hover leaves another series', async () => {
+            await create(highlight);
+            await hoverDatum(chart, 0, 0);
+
+            const visited = await getItemsStyledDuring(chart, 1, () => endHover(chart));
+
+            expect(visited).toEqual([]);
+            expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(false);
+        });
 
         it('should not restyle a series that a move from one series to another leaves unlit throughout', async () => {
             await create(highlight);
