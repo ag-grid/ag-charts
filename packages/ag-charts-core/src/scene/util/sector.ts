@@ -126,11 +126,26 @@ export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: Se
 export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
     const x1 = box.x + box.width;
     const y1 = box.y + box.height;
+    const { startAngle, endAngle } = sector;
+    if (startAngle === endAngle) return false;
+    const minRadius = Math.min(sector.innerRadius, sector.outerRadius);
+    const maxRadius = Math.max(sector.innerRadius, sector.outerRadius);
     if (
-        !isPointInSector(box.x, box.y, sector) ||
-        !isPointInSector(x1, box.y, sector) ||
-        !isPointInSector(x1, y1, sector) ||
-        !isPointInSector(box.x, y1, sector)
+        !isWithinRadii(box.x, box.y, minRadius, maxRadius) ||
+        !isWithinRadii(x1, box.y, minRadius, maxRadius) ||
+        !isWithinRadii(x1, y1, minRadius, maxRadius) ||
+        !isWithinRadii(box.x, y1, minRadius, maxRadius)
+    ) {
+        return false;
+    }
+    const start180 = normalizeAngle180(startAngle);
+    const end180 = normalizeAngle180(endAngle);
+    const inset = sector.radialEdgeInset ?? 0;
+    if (
+        !isWithinAngles(box.x, box.y, startAngle, endAngle, start180, end180, inset) ||
+        !isWithinAngles(x1, box.y, startAngle, endAngle, start180, end180, inset) ||
+        !isWithinAngles(x1, y1, startAngle, endAngle, start180, end180, inset) ||
+        !isWithinAngles(box.x, y1, startAngle, endAngle, start180, end180, inset)
     ) {
         return false;
     }
@@ -151,28 +166,51 @@ function edgeCrossesBox(box: BoxBounds, angle: number, radius: number) {
 }
 
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {
+    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    if (startAngle === endAngle) return false;
+    if (!isWithinRadii(x, y, Math.min(innerRadius, outerRadius), Math.max(innerRadius, outerRadius))) return false;
+    const start180 = normalizeAngle180(startAngle);
+    const end180 = normalizeAngle180(endAngle);
+    return isWithinAngles(x, y, startAngle, endAngle, start180, end180, sector.radialEdgeInset ?? 0);
+}
+
+/** {@link isPointInSector} with the sector resolved once, for a caller testing many points against it. */
+export function sectorPointTest(sector: SectorBoundaries): (x: number, y: number) => boolean {
+    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    if (startAngle === endAngle) return () => false;
+    const minRadius = Math.min(innerRadius, outerRadius);
+    const maxRadius = Math.max(innerRadius, outerRadius);
+    const start180 = normalizeAngle180(startAngle);
+    const end180 = normalizeAngle180(endAngle);
+    const inset = sector.radialEdgeInset ?? 0;
+    return (x, y) =>
+        isWithinRadii(x, y, minRadius, maxRadius) &&
+        isWithinAngles(x, y, startAngle, endAngle, start180, end180, inset);
+}
+
+function isWithinRadii(x: number, y: number, minRadius: number, maxRadius: number) {
     const radius = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-    const { innerRadius, outerRadius } = sector;
+    return radius >= minRadius && radius <= maxRadius;
+}
 
-    if (
-        sector.startAngle === sector.endAngle ||
-        radius < Math.min(innerRadius, outerRadius) ||
-        radius > Math.max(innerRadius, outerRadius)
-    ) {
-        return false;
-    }
-
-    const startAngle = normalizeAngle180(sector.startAngle);
-    const endAngle = normalizeAngle180(sector.endAngle);
+/** The angular half of {@link isPointInSector}, given both raw angles and their {@link normalizeAngle180} forms. */
+function isWithinAngles(
+    x: number,
+    y: number,
+    startAngle: number,
+    endAngle: number,
+    start180: number,
+    end180: number,
+    inset: number
+) {
     const angle = Math.atan2(y, x);
     // Sector can cross axis start
     const inAngle =
-        startAngle < endAngle
-            ? angle <= endAngle && angle >= startAngle
-            : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
-    const inset = sector.radialEdgeInset ?? 0;
+        start180 < end180
+            ? angle <= end180 && angle >= start180
+            : (angle <= end180 && angle >= -Math.PI) || (angle >= start180 && angle <= Math.PI);
     if (!inAngle || inset <= 0) return inAngle;
-    return isClearOfEdge(x, y, sector.startAngle, inset, 1) && isClearOfEdge(x, y, sector.endAngle, inset, -1);
+    return isClearOfEdge(x, y, startAngle, inset, 1) && isClearOfEdge(x, y, endAngle, inset, -1);
 }
 
 // OPTIMIZATION: label fitting probes the same two edges thousands of times per label, so each edge's direction is

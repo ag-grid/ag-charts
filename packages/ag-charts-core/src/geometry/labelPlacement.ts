@@ -85,14 +85,27 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
-    const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
-    let overflowStrategy: OverflowStrategy | undefined;
-    if (truncate || defaultToTruncate) {
-        overflowStrategy = 'ellipsis';
-    } else if (hideOnOverflow) {
-        overflowStrategy = 'hide';
-    }
-    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
+    const overflowStrategy = resolveOverflowStrategy(fit.truncate, hideOnOverflow, defaultToTruncate);
+    if (overflowStrategy == null && fit.wrapping == null && fit.minimumFontSize == null) return undefined;
+    return toLabelFit(fit, overflowStrategy);
+}
+
+/** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
+export function resolveAlwaysLabelFit(fit: LabelFitOptions): LabelFit {
+    return toLabelFit(fit, resolveOverflowStrategy(fit.truncate, false, false));
+}
+
+function resolveOverflowStrategy(
+    truncate: boolean | undefined,
+    hideOnOverflow: boolean,
+    defaultToTruncate: boolean
+): OverflowStrategy | undefined {
+    if (truncate || defaultToTruncate) return 'ellipsis';
+    return hideOnOverflow ? 'hide' : undefined;
+}
+
+function toLabelFit(fit: LabelFitOptions, overflowStrategy: OverflowStrategy | undefined): LabelFit {
+    const { maxWidth, maxHeight, wrapping, minimumFontSize } = fit;
     return { maxWidth, maxHeight, wrapping, overflowStrategy, minimumFontSize };
 }
 

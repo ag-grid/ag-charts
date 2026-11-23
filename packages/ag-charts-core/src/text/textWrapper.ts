@@ -643,6 +643,16 @@ export function hasRealChars(text: NormalisedTextOrSegments): boolean {
     return false;
 }
 
+/** Whether a fitted label still shows a character or an image; see {@link hasRealChars}. */
+export function showsContent(text: NormalisedTextOrSegments): boolean {
+    if (hasRealChars(text)) return true;
+    if (!isArray(text)) return false;
+    for (const segment of text) {
+        if (segment.type === 'image') return true;
+    }
+    return false;
+}
+
 /**
  * Fits `text` to `fit`, falling back to `fitOverflow` when that leaves nothing to draw. An erased label is
  * dropped by the placement engine, so one that must always show overflows its bound rather than vanishing.

@@ -1,8 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
-import { isPointInSector } from '../scene/util/sector';
-import { fitSectorLabelRect, sectorLabelRoom } from './sectorLabelFit';
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { isBoxInSector, isPointInSector } from '../scene/util/sector';
+import type { OverflowStrategy } from '../text/textWrapper';
+import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
+
+vi.mock('../rendering/canvasUtil', async (importOriginal) =>
+    (await import('../test/fixedWidthCanvas')).fixedWidthCanvasUtil(importOriginal)
+);
 
 const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
     startAngle: midAngle - halfSpan,
@@ -55,6 +61,17 @@ describe('fitSectorLabelRect', () => {
         expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
     });
 
+    it('leaves a measured block on the anchor when it passes the wedge test there but not the arc clearance', () => {
+        const s = sector(Math.PI / 2, Math.PI / 4, 40, 100);
+        const anchor = anchorAt(90, Math.PI / 2);
+        const block = { width: 20, height: 18.2 };
+        const box = { x: anchor.x - block.width / 2, y: anchor.y - block.height / 2, ...block };
+        const clearOfArcs = { ...s, innerRadius: 40.75, outerRadius: 99.25 };
+        expect([isBoxInSector(box, s), isBoxInSector(box, clearOfArcs)]).toEqual([true, false]);
+        const rect = fitSectorLabelRect(anchor, s, 14, block);
+        expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
+    });
+
     it('moves a measured block off the anchor only when the wedge cannot hold it there', () => {
         const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
         const anchor = anchorAt(85, -Math.PI / 3);
@@ -100,5 +117,74 @@ describe('sectorLabelRoom', () => {
     it('holds fewer lines, and so less text, as the lines grow taller', () => {
         const room = sectorLabelRoom(anchor, s, 14);
         expect(room.capacityAt(28)).toBeLessThan(room.capacityAt(14));
+    });
+});
+
+describe('sectorLabelPlacer', () => {
+    const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+    const image = (size: number) => ({
+        type: 'image' as const,
+        url: 'https://example.com/logo.png',
+        width: size,
+        height: size,
+    });
+    const place = (
+        text: NormalisedTextOrSegments,
+        s: ReturnType<typeof sector>,
+        anchor: { x: number; y: number },
+        overflowStrategy: OverflowStrategy | undefined,
+        minimumFontSize?: number
+    ) =>
+        sectorLabelPlacer(
+            anchor,
+            s,
+            NO_PADDING,
+            {},
+            0,
+            0
+        )({
+            text,
+            policy: { overflowStrategy, minimumFontSize },
+            font: { fontSize: 12, fontFamily: 'sans-serif' },
+            boundByRegion: true,
+        });
+
+    describe.each<[string, OverflowStrategy | undefined]>([
+        ['without an overflow strategy', undefined],
+        ['with an ellipsis', 'ellipsis'],
+    ])('%s', (_name, overflowStrategy) => {
+        it.each<[string, NormalisedTextOrSegments]>([
+            ['plain text', 'Alpha'],
+            ['text segments', [{ text: 'Alpha' }, { text: 'Bravo' }]],
+            ['an image only', [image(16)]],
+            ['an image and text', [image(16), { text: 'Alpha' }]],
+        ])('places %s whole and at full size in a roomy wedge', (_, text) => {
+            const content = Array.isArray(text) ? text.map((segment) => expect.objectContaining(segment)) : text;
+            const wedge = sector(Math.PI / 2, Math.PI / 3, 0, 300);
+            const placed = place(text, wedge, anchorAt(150, Math.PI / 2), overflowStrategy, 6);
+            expect(placed).toEqual({
+                text: content,
+                x: expect.any(Number),
+                y: expect.any(Number),
+                fontSize: undefined,
+            });
+        });
+
+        it.each([undefined, 6])(
+            'keeps an image-only label on its anchor in a wedge only just deep enough (minimumFontSize %s)',
+            (minimumFontSize) => {
+                const anchor = anchorAt(122, Math.PI / 3);
+                const wedge = sector(Math.PI / 3, Math.PI / 8, 100, 144);
+                const placed = place([image(16)], wedge, anchor, overflowStrategy, minimumFontSize);
+                expect(placed?.text).toEqual([expect.objectContaining(image(16))]);
+                expect(placed?.x).toBeCloseTo(anchor.x);
+                expect(placed?.y).toBeCloseTo(anchor.y);
+            }
+        );
+
+        it('places nothing when the wedge cannot hold an image-only label', () => {
+            const wedge = sector(Math.PI / 2, Math.PI / 16, 100, 120);
+            expect(place([image(40)], wedge, anchorAt(110, Math.PI / 2), overflowStrategy)).toBeUndefined();
+        });
     });
 });

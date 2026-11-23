@@ -88,7 +88,9 @@ export function probedFitRegion(
         const step = (bottom - top) / (sampled - 1);
         const insideBand = (t: number) => {
             const x = anchor.x + direction * t;
-            for (let i = 0; i < sampled; i += 1) {
+            // OPTIMISATION: a band usually leaves the shape at its edge rows, so those are tested first.
+            if (!contains(x, anchor.y + top) || !contains(x, anchor.y + top + step * (sampled - 1))) return false;
+            for (let i = 1; i < sampled - 1; i += 1) {
                 if (!contains(x, anchor.y + top + step * i)) return false;
             }
             return true;

@@ -8,6 +8,7 @@ import {
     isBoxInSector,
     isPointInSector,
     radiiScalingFactor,
+    sectorPointTest,
 } from './sector';
 
 const TAU = 2 * Math.PI;
@@ -205,6 +206,38 @@ describe('isBoxInSector', () => {
         const box: BoxBounds = { x: 60, y: -20, width: 50, height: 40 };
         expect(boxInSectorBySampling(box, reflex)).toBe(true);
         expect(isBoxInSector(box, reflex)).toBe(true);
+    });
+});
+
+describe.each([
+    ['isPointInSector', (x: number, y: number, sector: Sector) => isPointInSector(x, y, sector)],
+    ['sectorPointTest', (x: number, y: number, sector: Sector) => sectorPointTest(sector)(x, y)],
+])('%s', (_name, contains) => {
+    const at = (radius: number, angle: number): [number, number] => [
+        radius * Math.cos(angle),
+        radius * Math.sin(angle),
+    ];
+    const ring = (startAngle: number, endAngle: number, innerRadius = 50, outerRadius = 100): Sector => ({
+        startAngle,
+        endAngle,
+        innerRadius,
+        outerRadius,
+    });
+
+    it.each<[string, Sector, [number, number], boolean]>([
+        ['inside a plain sector', ring(0, Math.PI / 2), at(75, Math.PI / 4), true],
+        ['beyond the outer radius', ring(0, Math.PI / 2), at(120, Math.PI / 4), false],
+        ['inside the hole', ring(0, Math.PI / 2), at(20, Math.PI / 4), false],
+        ['outside the angles', ring(0, Math.PI / 2), at(75, Math.PI), false],
+        ['on a sector with equal angles', ring(1, 1), at(75, 1), false],
+        ['between swapped radii', ring(0, Math.PI / 2, 100, 50), at(75, Math.PI / 4), true],
+        ['outside swapped radii', ring(0, Math.PI / 2, 100, 50), at(120, Math.PI / 4), false],
+        ['anywhere on a full circle', ring(0, TAU), at(75, 2.5), true],
+        ['across the wrap of a sector crossing zero', ring((5 * Math.PI) / 3, TAU + Math.PI / 3), at(75, 0), true],
+        ['opposite a sector crossing zero', ring((5 * Math.PI) / 3, TAU + Math.PI / 3), at(75, Math.PI), false],
+        ['inside a sector with negative angles', ring(-Math.PI / 2, -Math.PI / 4), at(75, -Math.PI / 3), true],
+    ])('answers for a point %s', (_, sector, [x, y], inside) => {
+        expect(contains(x, y, sector)).toBe(inside);
     });
 });
 
