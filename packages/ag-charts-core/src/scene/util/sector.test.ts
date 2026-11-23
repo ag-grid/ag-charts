@@ -11,8 +11,10 @@ import {
     isPointInSector,
     radiiScalingFactor,
     sectorColumnTest,
-    sectorPointTest,
 } from './sector';
+
+const sectorPointTest = (sector: Parameters<SectorPointTester['reset']>[0]) =>
+    new SectorPointTester().reset(sector).contains;
 
 const TAU = 2 * Math.PI;
 
@@ -216,7 +218,7 @@ const at = (radius: number, angle: number): [number, number] => [radius * Math.c
 
 describe.each([
     ['isPointInSector', (x: number, y: number, sector: Sector) => isPointInSector(x, y, sector)],
-    ['sectorPointTest', (x: number, y: number, sector: Sector) => sectorPointTest(sector)(x, y)],
+    ['SectorPointTester', (x: number, y: number, sector: Sector) => sectorPointTest(sector)(x, y)],
 ])('%s', (_name, contains) => {
     const ring = (startAngle: number, endAngle: number, innerRadius = 50, outerRadius = 100): Sector => ({
         startAngle,
@@ -253,7 +255,7 @@ describe('sector point tests with a radialEdgeInset', () => {
 
     describe.each([
         ['isPointInSector', (x: number, y: number) => isPointInSector(x, y, quarter)],
-        ['sectorPointTest', sectorPointTest(quarter)],
+        ['SectorPointTester', sectorPointTest(quarter)],
     ])('%s', (_name, contains) => {
         it.each([
             { point: [50, 3], inside: false, at: 'within the inset of the start edge' },

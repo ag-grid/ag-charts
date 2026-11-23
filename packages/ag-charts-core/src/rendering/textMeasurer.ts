@@ -98,7 +98,7 @@ export class TextMeasurer implements ITextMeasurer {
 
 const instanceMap = new LRUCache<TextMeasurer>(50);
 // OPTIMIZATION: the font last asked for by its options, so a run of asks for one font skips building its string.
-const lastFont: Required<Omit<FontOptions, 'lineHeight'>> & { measurer?: TextMeasurer } = {
+const lastFont: Omit<FontOptions, 'lineHeight'> & { measurer?: TextMeasurer } = {
     fontSize: 0,
     fontStyle: 'normal',
     fontWeight: 'normal',
@@ -118,9 +118,9 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
         }
         const measurer = cachedTextMeasurer(toFontString(font));
         lastFont.fontSize = font.fontSize;
-        lastFont.fontStyle = font.fontStyle!;
-        lastFont.fontWeight = font.fontWeight!;
-        lastFont.fontFamily = font.fontFamily!;
+        lastFont.fontStyle = font.fontStyle;
+        lastFont.fontWeight = font.fontWeight;
+        lastFont.fontFamily = font.fontFamily;
         lastFont.measurer = measurer;
         return measurer;
     }

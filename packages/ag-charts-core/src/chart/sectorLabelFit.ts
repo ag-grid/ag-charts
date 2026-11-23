@@ -76,22 +76,8 @@ function furthestInside(limit: number, inside: (t: number) => boolean, knownInsi
 }
 
 /**
- * Rectangle a horizontal label should fill inside an origin-centred annular wedge. {@link sectorLabelContainer}
- * sizes a box that fits the wedge centred on `anchor`, but a horizontal label is not symmetric about the sector
- * bisector, so that box hugs one side. Keeping the (safe) size, we slide it to the middle of the room the wedge
- * actually offers on each axis — probed with {@link isPointInSector} — so the label sits centred both ways
- * instead of against an edge. `lineHeight` seeds the size search with a single line's height.
- *
- * A multi-line box spans a radial band whose width varies with height, so sizing it symmetrically about the
- * bisector caps its width at the nearer radial edge and the slide above cannot recover the room the far side
- * offers — the label ends up hugging one edge. Such a box is instead fitted to the wedge's true horizontal
- * extent across its own band (see {@link centreSectorLabelInBand}); the symmetric slide is kept for
- * single-line boxes, whose thin band cannot exhibit this.
- *
- * `block` replaces the estimated size once the caller knows what its text wrapped to: a block sized from one
- * line is placed where a thin box fits, which is not where the block it grew into belongs. A block that fits
- * on the anchor stays on it — the sector nominates that point for its label, and both searches below trade
- * centring for room a block this size does not need.
+ * Rectangle a horizontal label fills in an origin-centred wedge, centred on the room the wedge offers rather than
+ * hugging one radial edge. A known wrapped `block` that fits on the anchor stays there, as the sector nominates it.
  */
 export function fitSectorLabelRect(
     anchor: Point,
@@ -450,13 +436,8 @@ function fitSectorLabelToWedge(
             rectHeight: rect.height,
         };
     };
-    /**
-     * The wedge is sized for a block before its text has wrapped, and the region samples the wedge rather
-     * than proving it, so each placement is measured on the node: one that overruns the wedge is re-fitted
-     * with more clearance, and one whose block is not the size the wedge was sized for is placed again
-     * for the size it turned out to be — a block only earns the anchor, or the band that suits it, once
-     * its own width and height are known.
-     */
+    // The region samples the wedge rather than proving it, so each placement is checked on the node and re-placed
+    // with more clearance, or for the block size it turned out to be.
     const placeInWedgeAs = (sized: FontOptions, atFloor: boolean, overflow: OverflowPlacement) => {
         let inset = 0;
         let block: BlockSize | undefined;

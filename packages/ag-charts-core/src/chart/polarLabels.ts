@@ -71,10 +71,7 @@ export function polarLabelData(
     return data;
 }
 
-/**
- * Label solve input for one label drawn at `(centreX, centreY)` plus its own offset. `fit` is the label's own
- * descriptor, used in place of the one {@link PolarLabelStyle.fit} would build.
- */
+/** Label solve input for one label drawn at `(centreX, centreY)` plus its own offset; `fit` overrides the style's. */
 export function polarLabelDatum(
     label: PolarLabelDatum,
     style: PolarLabelStyle,

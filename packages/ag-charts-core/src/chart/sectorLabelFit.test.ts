@@ -182,7 +182,6 @@ describe('sectorLabelPlacer', () => {
                 expect(placed?.y).toBeCloseTo(anchor.y);
             }
         );
-
     });
 
     describe('an image-only label the wedge cannot hold', () => {

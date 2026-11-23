@@ -74,9 +74,7 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
  * its hole and entered again beyond it, so a plain bisection over `[0, limit]` can settle on the far arm
  * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `probes`
  * samples first, and bisected only inside the interval where the shape was first left.
- *
- * `holdsColumn(x, top, bottom)` vouches that a column whose ends are inside is inside throughout, and
- * `rays` where along a ray `contains` is already known, so probes there skip it.
+ * `holdsColumn` and `rays` vouch for probes `contains` would answer anyway, so those probes skip it.
  */
 export function probedFitRegion(
     anchor: { x: number; y: number },
@@ -222,10 +220,7 @@ function insetSpan(region: FitRegion, dx: number, dy: number, top: number, botto
     return [Math.min(left + dx, mid), Math.max(right - dx, mid)];
 }
 
-/**
- * {@link insetFitRegion} as one reusable region, for a caller that insets afresh on every pass of a fit: each
- * band is worked out once per {@link reset}, in maps kept across resets, so a pass allocates no memo of its own.
- */
+/** {@link insetFitRegion} reset in place on every pass of a fit, so a pass allocates no band memo of its own. */
 export class ReusableInsetRegion implements FitRegion {
     extentAbove = 0;
     extentBelow = 0;

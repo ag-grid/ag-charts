@@ -180,21 +180,13 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     );
 }
 
-/** {@link isPointInSector} with the sector resolved once, for a caller testing many points against it. */
-export function sectorPointTest(sector: SectorBoundaries): (x: number, y: number) => boolean {
-    return new SectorPointTester().reset(sector).contains;
-}
-
 const enum PointTestMode {
     Empty,
     Exact,
     Fast,
 }
 
-/**
- * {@link sectorPointTest} as one reusable tester, which also answers how far along a ray its test is sure to
- * pass: a fit probing thousands of points per label can then skip every probe short of that distance.
- */
+/** {@link isPointInSector} resolved once per sector, which also bounds where along a ray its answer is known. */
 export class SectorPointTester {
     private mode = PointTestMode.Empty;
     private minRadius = 0;
@@ -249,7 +241,7 @@ export class SectorPointTester {
 
     readonly contains = (x: number, y: number): boolean => {
         if (this.mode !== PointTestMode.Fast) return this.mode === PointTestMode.Exact && this.exact(x, y);
-        // OPTIMIZATION: fitting probes thousands of points per label, so one clear of every boundary skips sqrt and atan2.
+        // OPTIMIZATION: fitting probes thousands of points per label; one clear of every boundary skips sqrt and atan2.
         const squared = x * x + y * y;
         if (squared > this.outerOut || squared < this.innerOut) return false;
         if (squared < this.innerIn || squared > this.outerIn) return this.exact(x, y);
@@ -269,12 +261,7 @@ export class SectorPointTester {
         return x * endCos + y * endSin < 0 || beforeEnd < 0 || beforeEnd >= inset;
     };
 
-    /**
-     * How far along `(dx, dy)` from `(px, py)` every point passes {@link contains}, or -1 when that cannot be
-     * vouched for at the start. The bound keeps each boundary at a margin of {@link RAY_TEST_MARGIN} of the
-     * coordinates the ray spans up to `limit`, so neither rounding nor the test's own near-boundary path can
-     * tell such a point otherwise.
-     */
+    /** How far along `(dx, dy)` from `(px, py)` every point passes {@link contains} by a margin, else -1. */
     readonly insideUntil = (px: number, py: number, dx: number, dy: number, limit: number): number => {
         if (this.mode !== PointTestMode.Fast || this.anyAngle || this.wide) return -1;
         const margin = RAY_TEST_MARGIN * (Math.abs(px) + Math.abs(py) + limit * (Math.abs(dx) + Math.abs(dy)));
@@ -310,11 +297,7 @@ export class SectorPointTester {
         return until >= 0 ? until : -1;
     };
 
-    /**
-     * How far along `(dx, dy)` from `(px, py)` a ray has to go before every point beyond fails {@link contains},
-     * or Infinity when that cannot be vouched for. Only exits for good count: the outer rim, and the edge lines
-     * up to a half turn, each passed by the {@link insideUntil} margin.
-     */
+    /** From where along `(dx, dy)` every point fails {@link contains} for good, past the rim or an edge; else Infinity. */
     readonly outsideFrom = (px: number, py: number, dx: number, dy: number, limit: number): number => {
         if (this.mode !== PointTestMode.Fast) return Infinity;
         const margin = RAY_TEST_MARGIN * (Math.abs(px) + Math.abs(py) + limit * (Math.abs(dx) + Math.abs(dy)));
@@ -400,10 +383,8 @@ function eitherUntil(u0: number, u1: number, v0: number, v1: number, margin: num
 }
 
 /**
- * True only when the point lies outside the sector's radii, or outside its angular range up to a half turn, by a
- * margin of `scale` (a bound on the coordinates in play) that rounding cannot close. A box holding such a point
- * then fails {@link isBoxInSector}: the radii and the angular range are convex, so one of its corners lies at
- * least as far out. The edge inset is left out, as the strip it excludes is not something corners can reveal.
+ * True only when the point is outside the radii, or the angular range up to a half turn, by more than rounding at
+ * `scale` can close; a box holding it then fails {@link isBoxInSector}, as one of its corners is as far out.
  */
 export function isPointClearOfSector(x: number, y: number, sector: SectorBoundaries, scale: number) {
     const { startAngle, endAngle, innerRadius, outerRadius } = sector;
