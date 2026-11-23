@@ -228,6 +228,33 @@ describe('sectorLabelPlacer', () => {
             place('Alpha Bravo', wedge, anchorAt(100, Math.PI / 2), 'ellipsis', minimumFontSize);
             expect(layouts.mock.calls.length).toBeGreaterThan(1);
         });
+
+        it.each([
+            { text: 'Alpha', mid: Math.PI / 2, halfSpan: Math.PI / 3, inner: 0, outer: 300, radius: 150, pad: 0 },
+            { text: 'Alpha', mid: Math.PI / 2, halfSpan: Math.PI / 3, inner: 0, outer: 300, radius: 150, pad: 6 },
+            { text: 'Alpha Bravo', mid: 0.4, halfSpan: 0.5, inner: 60, outer: 200, radius: 130, pad: 2 },
+            { text: 'Revenue', mid: -2.1, halfSpan: 0.35, inner: 80, outer: 260, radius: 200, pad: 4 },
+            { text: 'Delta', mid: 2.8, halfSpan: 0.25, inner: 100, outer: 300, radius: 200, pad: 0 },
+        ])(
+            'keeps $text on its anchor exactly where the full fit places it (padding $pad)',
+            ({ text, mid, halfSpan, inner, outer, radius, pad }) => {
+                const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+                const padding = { top: pad, right: pad, bottom: pad, left: pad };
+                const fitWith = (maxWidth?: number) =>
+                    sectorLabelPlacer(
+                        anchorAt(radius, mid),
+                        sector(mid, halfSpan, inner, outer),
+                        padding,
+                        {},
+                        0,
+                        0
+                    )({ text, policy: { maxWidth }, font: { fontSize: 12, fontFamily: 'sans-serif' } });
+                const onAnchor = fitWith();
+                expect(layouts).toHaveBeenCalledTimes(1);
+                // A width bound turns the anchor shortcut off without bounding a line the wedge holds.
+                expect(fitWith(Infinity)).toEqual(onAnchor);
+            }
+        );
     });
 
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
