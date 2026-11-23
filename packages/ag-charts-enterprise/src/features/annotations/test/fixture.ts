@@ -1,5 +1,13 @@
 import { type AgAnnotation, type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
-import { compareImageSnapshot, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import {
+    type ChartOrProxy,
+    clickAction,
+    compareImageSnapshot,
+    deproxy,
+    hoverAction,
+    setupMockCanvas,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { ContinuousScale, DiscreteTimeScale } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../../test/utils';
@@ -18,18 +26,34 @@ export const ANNOTATIONS_EXAMPLE_OPTIONS: AgCartesianChartOptions = {
     annotations: { enabled: true, toolbar: { enabled: false } },
 };
 
-/** The axes of an annotation context, which is all the coordinate editing reads; the rest of the interface is unused. */
+type AxisOverrides = Partial<Pick<AnnotationAxisContext, 'formatWithCrosshairLabel' | 'valueTickSize'>>;
+
+/**
+ * The axes of an annotation context, which is all the coordinate editing reads; the rest of the interface is unused.
+ * An axis has no tick size and no format on its crosshair label unless `overrides` gives one.
+ */
 export function createAxesContext(
     xScale: AnnotationAxisContext['scale'],
     yScale: AnnotationAxisContext['scale'],
-    formatYValue: (value: unknown) => string = String
+    formatYValue: (value: unknown) => string = String,
+    overrides: { x?: AxisOverrides; y?: AxisOverrides } = {}
 ): AnnotationContext {
-    const axis = (scale: AnnotationAxisContext['scale'], format: (value: unknown) => string = String) => ({
+    const axis = (
+        scale: AnnotationAxisContext['scale'],
+        format: (value: unknown) => string,
+        axisOverrides?: AxisOverrides
+    ) => ({
         scale,
         continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
         formatScaleValue: format,
+        formatWithCrosshairLabel: () => undefined,
+        valueTickSize: () => undefined,
+        ...axisOverrides,
     });
-    return { xAxis: axis(xScale), yAxis: axis(yScale, formatYValue) } as unknown as AnnotationContext;
+    return {
+        xAxis: axis(xScale, String, overrides.x),
+        yAxis: axis(yScale, formatYValue, overrides.y),
+    } as unknown as AnnotationContext;
 }
 
 export async function createAnnotationsChart(options: AgCartesianChartOptions) {
@@ -37,6 +61,19 @@ export async function createAnnotationsChart(options: AgCartesianChartOptions) {
     const chart = AgCharts.create(options);
     await waitForChartStability(chart);
     return chart;
+}
+
+/** Selects the annotation at a point of the canvas and opens its settings dialog; gives the body the dialog is in. */
+export async function openAnnotationSettings(chartOrProxy: ChartOrProxy<any>, { x, y }: { x: number; y: number }) {
+    const chart = deproxy(chartOrProxy);
+    await hoverAction(x, y)(chart);
+    await clickAction(x, y)(chart);
+    await waitForChartStability(chart);
+
+    const { body } = chart.ctx.agDocument;
+    body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
+    await waitForChartStability(chart);
+    return body;
 }
 
 /** Restores onto the SAME chart (the mock canvas only tracks the first chart per test); accepts malformed state. */

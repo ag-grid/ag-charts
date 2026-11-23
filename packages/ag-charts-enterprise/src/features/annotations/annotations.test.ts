@@ -9,6 +9,7 @@ import {
     expectErrorsCalls,
     expectWarningsCalls,
     findAxis,
+    getAxisCoordinate,
     getAxisLayoutState,
     getSeriesRect,
     hoverAction,
@@ -37,6 +38,7 @@ import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
     createAnnotationsChart,
+    openAnnotationSettings,
     restoreAnnotations,
 } from './test/fixture';
 
@@ -93,8 +95,8 @@ describe('Annotations', () => {
     async function commitInput(container: HTMLElement, label: string, value: string) {
         const input = container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
         input.value = value;
-        // A date-time input commits on blur, the others on change.
-        input.dispatchEvent(new Event(input.type === 'datetime-local' ? 'blur' : 'change'));
+        // A date or date-time input commits on blur, the others on change.
+        input.dispatchEvent(new Event(input.type === 'number' || input.type === 'text' ? 'change' : 'blur'));
         await waitForChartStability(chart);
     }
 
@@ -1253,25 +1255,27 @@ describe('Annotations', () => {
             return scale;
         };
 
-        // Selects the vertical line through the centre of the band of `at`, and opens its settings.
-        async function openVerticalLineCoordinates(
+        // Selects the cross line at `at` on its axis, or through the centre of the band of `at`, and opens its settings.
+        async function openCrossLineSettings(
+            options: AgCartesianChartOptions,
+            type: 'horizontal-line' | 'vertical-line',
+            value: AgAnnotationValue,
+            at: string | number | Date
+        ) {
+            await prepareChart({ annotations: [{ type, value }] }, options);
+            const { x, y, width, height } = getSeriesRect(chart);
+            const position = type === 'horizontal-line' ? 'left' : 'bottom';
+            const along = getAxisCoordinate(chart, position, at) + (findAxis(chart, position).scale.bandwidth ?? 0) / 2;
+            return openAnnotationSettings(
+                chart,
+                type === 'horizontal-line' ? { x: x + width / 2, y: y + along } : { x: x + along, y: y + height / 2 }
+            );
+        }
+        const openVerticalLineCoordinates = (
             options: AgCartesianChartOptions,
             value: AgAnnotationValue,
             at: string | Date
-        ) {
-            await prepareChart({ annotations: [{ type: 'vertical-line', value }] }, options);
-            const scale = getBandScale();
-            const { x, y, height } = getSeriesRect(chart);
-            const lineX = x + scale.convert(at) + scale.bandwidth / 2;
-            await hoverAction(lineX, y + height / 2)(chart);
-            await clickAction(lineX, y + height / 2)(chart);
-            await waitForChartStability(chart);
-
-            const { body } = deproxy(chart).ctx.agDocument;
-            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
-            await waitForChartStability(chart);
-            return body;
-        }
+        ) => openCrossLineSettings(options, 'vertical-line', value, at);
 
         describe('on a category axis', () => {
             const categoryOptions: AgCartesianChartOptions = {
@@ -1342,7 +1346,7 @@ describe('Annotations', () => {
                 );
                 const typed = (date: Date) => {
                     const pad = (n: number) => String(n).padStart(2, '0');
-                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T00:00:00`;
+                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
                 };
                 const stateDate = () =>
                     (chart.getState().annotations as Array<{ value: { value: { value: string } } }>)[0].value.value
@@ -1361,15 +1365,147 @@ describe('Annotations', () => {
             await prepareChart({ annotations });
             const { x, y, width, height } = getSeriesRect(chart);
             const at = { x: x + width / 2, y: y + height / 2 };
-            await hoverAction(at.x, at.y)(chart);
-            await clickAction(at.x, at.y)(chart);
-            await waitForChartStability(chart);
-
-            const { body } = deproxy(chart).ctx.agDocument;
-            body.querySelector<HTMLElement>('button[title="Settings"]')!.click();
-            await waitForChartStability(chart);
-            return { at, body };
+            return { at, body: await openAnnotationSettings(chart, at) };
         }
+
+        describe('at the tick size of the axis', () => {
+            const times = (start: number, step: number) => [0, 1, 2, 3].map((i) => new Date(start + i * step));
+            const MINUTE = 60_000;
+            const DAY = 24 * 60 * MINUTE;
+            const QUARTER_HOURS = times(Date.UTC(2024, 0, 5, 9), 15 * MINUTE);
+            // Midnight UTC, which is 01:00 in the time zone of the tests.
+            const SUMMER_DAYS = times(Date.UTC(2024, 6, 2), DAY);
+            const date = (value: Date) => ({ __type: 'date' as const, value: value.toISOString() });
+
+            // `axis` is spread in, as `tickSize` is not one of the public axis options.
+            const numberOptions = (values: number[], axis: object = {}): AgCartesianChartOptions => ({
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: values.map((value, index) => ({ x: index, y: value })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left', ...axis } },
+            });
+            const timeOptions = (
+                values: Date[],
+                axis: object,
+                series: 'line' | 'bar' = 'line'
+            ): AgCartesianChartOptions => ({
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                data: values.map((value, index) => ({ x: value, y: index + 1 })),
+                series: [{ type: series, xKey: 'x', yKey: 'y' }],
+                axes: { x: { position: 'bottom', ...axis }, y: { type: 'number', position: 'left' } },
+            });
+            const banded = (value: Date) => ({ value: date(value), groupPercentage: 0.5 });
+
+            const THOUSANDTHS = [1, 1.001, 1.002, 1.004];
+            const POWERS_OF_TEN = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+            const BETWEEN_QUARTER_HOURS = new Date(Date.UTC(2024, 0, 5, 9, 20, 30, 500));
+
+            it.each<
+                [
+                    string,
+                    AgCartesianChartOptions,
+                    'horizontal-line' | 'vertical-line',
+                    AgAnnotationValue,
+                    number | Date,
+                    string[],
+                ]
+            >([
+                [
+                    'a number at the step of the data',
+                    numberOptions(THOUSANDTHS),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', '0.001', '1.002'],
+                ],
+                [
+                    'a number at a `tickSize` ahead of the data',
+                    numberOptions(THOUSANDTHS, { tickSize: 0.25 }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', '0.25', '1.00'],
+                ],
+                [
+                    'a number at the format of the crosshair label ahead of both',
+                    numberOptions(THOUSANDTHS, { tickSize: 0.25, crosshair: { label: { format: '.1f' } } }),
+                    'horizontal-line',
+                    1.0015432,
+                    1.0015432,
+                    ['number', '0.25', '1.0'],
+                ],
+                [
+                    'a number on a log axis at the step of the data',
+                    numberOptions(POWERS_OF_TEN, { type: 'log' }),
+                    'horizontal-line',
+                    12.3456,
+                    12.3456,
+                    ['number', '0.09', '12.35'],
+                ],
+                [
+                    'a time to the minute for data a quarter of an hour apart',
+                    timeOptions(QUARTER_HOURS, { type: 'time' }),
+                    'vertical-line',
+                    date(BETWEEN_QUARTER_HOURS),
+                    BETWEEN_QUARTER_HOURS,
+                    ['datetime-local', '60', '2024-01-05T09:20'],
+                ],
+                [
+                    'a time as a date at a `tickSize` of a day',
+                    timeOptions(QUARTER_HOURS, { type: 'time', tickSize: 'day' }),
+                    'vertical-line',
+                    date(BETWEEN_QUARTER_HOURS),
+                    BETWEEN_QUARTER_HOURS,
+                    ['date', '', '2024-01-05'],
+                ],
+                [
+                    'a time as a date for daily data',
+                    timeOptions(SUMMER_DAYS, { type: 'time' }),
+                    'vertical-line',
+                    date(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1],
+                    ['date', '', '2024-07-03'],
+                ],
+                [
+                    'a time band as a date for bands of a day',
+                    timeOptions(SUMMER_DAYS, { type: 'unit-time', unit: 'day' }, 'bar'),
+                    'vertical-line',
+                    banded(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1],
+                    ['date', '', '2024-07-03'],
+                ],
+                [
+                    'an ordinal time as a date for daily bars',
+                    timeOptions(SUMMER_DAYS, { type: 'ordinal-time' }, 'bar'),
+                    'vertical-line',
+                    banded(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1],
+                    ['date', '', '2024-07-03'],
+                ],
+            ])('shows %s', async (_name, options, type, value, at, expected) => {
+                const body = await openCrossLineSettings(options, type, value, at);
+                const label = type === 'horizontal-line' ? 'Value: Y' : 'Value: X';
+
+                const input = body.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!;
+
+                expect([input.type, input.getAttribute('step') ?? '', input.value]).toEqual(expected);
+            });
+
+            it('changes the date of a time and keeps its time of day, and takes an unchanged date as no change', async () => {
+                const body = await openCrossLineSettings(
+                    timeOptions(SUMMER_DAYS, { type: 'time' }),
+                    'vertical-line',
+                    date(SUMMER_DAYS[1]),
+                    SUMMER_DAYS[1]
+                );
+
+                await commitInput(body, 'Value: X', '2024-07-03');
+                expect(chart.getState().annotations).toMatchObject([{ value: date(SUMMER_DAYS[1]) }]);
+
+                await commitInput(body, 'Value: X', '2024-07-05');
+                expect(chart.getState().annotations).toMatchObject([{ value: date(SUMMER_DAYS[3]) }]);
+            });
+        });
 
         it('edits the selected annotation and follows an undo', async () => {
             const { body } = await openHorizontalLineSettings([{ type: 'horizontal-line', value: 50 }]);

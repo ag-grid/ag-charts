@@ -6,6 +6,7 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getAxisCoordinate,
     getSeriesNodeData,
     getSeriesRect,
     getSwapChainText,
@@ -30,6 +31,7 @@ import type {
     AgThemeOverrides,
 } from 'ag-charts-types';
 
+import { openAnnotationSettings } from '../../features/annotations/test/fixture';
 import { setupEnterpriseModules } from '../../setup';
 import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
@@ -843,6 +845,27 @@ describe('priceVolumePreset', () => {
             const value = annotations![0].type === 'horizontal-line' ? annotations![0].value : undefined;
             expect(Number(value).toFixed(2)).toBe(labels.at(-1)?.price);
             expect(isTickMultiple(String(value))).toBe(snapped);
+        });
+
+        it('shows a price in the annotation settings at the decimals of tickSize, which its spinner steps by', async () => {
+            const price = 137.123456;
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data: getStockData(),
+                    tickSize: 0.25,
+                    initialState: { annotations: [{ type: 'horizontal-line', value: price }] },
+                })
+            );
+            await waitForChartStability(chart);
+            const { x, y, width } = getSeriesRect(chart);
+
+            const body = await openAnnotationSettings(chart, {
+                x: x + width / 2,
+                y: y + getAxisCoordinate(chart, 'right', price),
+            });
+
+            const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
+            expect([input.step, input.value]).toEqual(['0.25', '137.12']);
         });
 
         it('rounds the pointer price inside a candle rather than snapping to its values', async () => {

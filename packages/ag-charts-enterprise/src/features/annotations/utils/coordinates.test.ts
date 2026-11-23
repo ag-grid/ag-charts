@@ -87,6 +87,18 @@ describe('annotation coordinates', () => {
             }
         });
 
+        it('formats a date down to a precision, and reads a date without a time as local midnight', () => {
+            const date = new Date(2024, 6, 5, 9, 30, 15, 70);
+
+            expect(formatCoordinate(date, 'time', 'day')).toBe('2024-07-05');
+            expect(formatCoordinate(date, 'time', 'minute')).toBe('2024-07-05T09:30');
+            expect(formatCoordinate(date, 'time', 'second')).toBe('2024-07-05T09:30:15');
+            expect(formatCoordinate(date, 'time', 'millisecond')).toBe('2024-07-05T09:30:15.070');
+
+            expect(parseCoordinate('2024-07-05', 'time')).toEqual(new Date(2024, 6, 5));
+            expect(parseCoordinate('2024-07-05T09:30', 'time')).toEqual(new Date(2024, 6, 5, 9, 30));
+        });
+
         it('formats the value of a grouped point, and a missing value as empty', () => {
             expect(formatCoordinate({ value: 3, groupPercentage: 0.5 }, 'number')).toBe('3');
             expect(formatCoordinate(undefined, 'number')).toBe('');
@@ -161,6 +173,32 @@ describe('annotation coordinates', () => {
             ]);
             expect(fields.filter((f) => f.axis === 'y').map((f) => f.step)).toEqual([undefined, undefined]);
         });
+
+        it.each([
+            ['day', 'day', '2024-01-05', undefined, new Date(2024, 1, 1, 9, 30, 15, 70)],
+            [{ unit: 'month', step: 3 }, 'day', '2024-01-05', undefined, new Date(2024, 1, 1, 9, 30, 15, 70)],
+            ['hour', 'minute', '2024-01-05T09:30', 60, new Date(2024, 1, 1, 12, 45, 15, 70)],
+            [{ unit: 'minute', step: 15 }, 'minute', '2024-01-05T09:30', 60, new Date(2024, 1, 1, 12, 45, 15, 70)],
+            [1000, 'second', '2024-01-05T09:30:15', 1, new Date(2024, 1, 1, 12, 45, 50, 70)],
+            ['millisecond', 'millisecond', '2024-01-05T09:30:15.070', 0.001, new Date(2024, 1, 1, 12, 45, 50, 500)],
+        ] as const)(
+            'shows a time down to a tick size of %j, and keeps the finer parts of the value it replaces',
+            (tickSize, precision, value, step, resolved) => {
+                const datum = {
+                    ...lineDatum.create(),
+                    start: { x: new Date(2024, 0, 5, 9, 30, 15, 70), y: 2 },
+                    end: { x: DAY, y: 4 },
+                };
+                const timeContext = createAxesContext(timeScale([DAY, DAY]), numberScale([0, 50]), String, {
+                    x: { valueTickSize: () => tickSize },
+                });
+
+                const [startX] = getCoordinateFields(datum, timeContext);
+
+                expect([startX.timePrecision, startX.value, startX.step]).toEqual([precision, value, step]);
+                expect(resolveCoordinate(startX, new Date(2024, 1, 1, 12, 45, 50, 500), timeContext)).toEqual(resolved);
+            }
+        );
 
         it('lists the single value of a cross line on its own axis', () => {
             const horizontal = { ...horizontalLineDatum.create(), value: 20 };
@@ -312,6 +350,39 @@ describe('annotation coordinates', () => {
 
     describe('decimals of a number', () => {
         const datum = { ...lineDatum.create(), start: { x: 1, y: 4366.2765 }, end: { x: 2, y: 20 } };
+        const twoDecimals = (value: unknown) => Number(value).toFixed(2);
+
+        it.each([
+            ['the tick size ahead of the default label', { valueTickSize: () => 0.5 }, 1, 0.5],
+            ['none for a whole tick size', { valueTickSize: () => 5 }, 0, 5],
+            [
+                'a format given to the crosshair label ahead of the tick size',
+                { valueTickSize: () => 0.25, formatWithCrosshairLabel: () => '$4,366.277' },
+                3,
+                0.25,
+            ],
+            [
+                'the tick size where the crosshair label is not a plain number',
+                { valueTickSize: () => 0.25, formatWithCrosshairLabel: () => 'Q3 2024' },
+                2,
+                0.25,
+            ],
+            ['the default label without a tick size', {}, 2, undefined],
+            [
+                'the default label for a time interval, which is not a number',
+                { valueTickSize: () => 'day' as const },
+                2,
+                undefined,
+            ],
+        ])('follow %s, and the spinner steps by the tick size', (_name, y, fractionDigits, step) => {
+            const parallel = { ...parallelChannelDatum.create(), start: datum.start, end: datum.end, height: 12.3456 };
+            const context = createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), twoDecimals, { y });
+
+            const fields = getCoordinateFields(parallel, context).filter((f) => f.axis === 'y');
+
+            expect(fields.map((f) => f.row)).toEqual(['start', 'end', 'height']);
+            expect(fields.map((f) => [f.fractionDigits, f.step])).toEqual(Array(3).fill([fractionDigits, step]));
+        });
         const digitsOf = (format: (value: unknown) => string) =>
             getCoordinateFields(datum, createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), format))
                 .filter((f) => f.axis === 'y')
