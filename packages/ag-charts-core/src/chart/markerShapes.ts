@@ -181,11 +181,11 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
     },
 };
 
-/** `shape` traced at `size` on the origin; empty for a name with no built-in shape. */
+/** `shape` traced at `size` on the origin. */
 export function traceMarkerShape(shape: AgMarkerShape, size: number, pixelRatio = 1): ExtendedPath2D {
     const path = new ExtendedPath2D();
-    const draw: AgMarkerShapeFn | undefined = typeof shape === 'string' ? MARKER_SHAPES[shape] : shape;
-    draw?.({ path, x: 0, y: 0, size, pixelRatio });
+    const draw = typeof shape === 'string' ? MARKER_SHAPES[shape] : shape;
+    draw({ path, x: 0, y: 0, size, pixelRatio });
     return path;
 }
 

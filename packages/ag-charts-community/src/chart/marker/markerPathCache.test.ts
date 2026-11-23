@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
+import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { clearMarkerPathCache, getSharedMarkerPath } from './markerPathCache';
 
@@ -11,6 +11,11 @@ describe('markerPathCache', () => {
         const b = getSharedMarkerPath('circle', 12);
         expect(a).toBe(b);
         expect(a.getPath2D()).toBe(b.getPath2D());
+    });
+
+    it('throws for a name with no built-in shape', () => {
+        clearMarkerPathCache();
+        expect(() => getSharedMarkerPath('no-such-shape' as AgMarkerShape, 12)).toThrow(TypeError);
     });
 
     it('returns distinct paths for different sizes', () => {

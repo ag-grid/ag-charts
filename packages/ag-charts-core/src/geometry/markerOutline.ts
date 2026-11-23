@@ -1,6 +1,7 @@
 import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 
 import { memoiseByMarkerShape, traceMarkerShape } from '../chart/markerShapes';
+import { isSupportedMarkerShape } from '../chart/markerUtil';
 import type { Point } from '../types/scene';
 
 /** A marker shape's outline centred on the origin: at size `s` each vertex is `scale * s + offset`. */
@@ -40,7 +41,11 @@ const cachedOutline = memoiseByMarkerShape(
 
 /** The shape's outline, analysed once; `undefined` for a circle or unmeasurable shape, which collide as circles. */
 export function markerOutline(shape: AgMarkerShape | undefined): MarkerOutline | undefined {
-    return shape == null || shape === 'circle' ? undefined : cachedOutline(shape);
+    // A name with no built-in shape draws nothing to outline, so it keeps the nominal circle.
+    if (shape == null || shape === 'circle' || (typeof shape === 'string' && !isSupportedMarkerShape(shape))) {
+        return undefined;
+    }
+    return cachedOutline(shape);
 }
 
 function builtInOutline(shape: AgMarkerShape): MarkerOutline | undefined {

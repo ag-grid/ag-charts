@@ -42,8 +42,8 @@ function distanceToPolygon(xy: Float64Array, x: number, y: number) {
 }
 
 describe('markerOutline', () => {
-    it.each([undefined, 'circle'] as const)('leaves %s to the circle test', (shape) => {
-        expect(markerOutline(shape)).toBeUndefined();
+    it.each([undefined, 'circle', 'no-such-shape'])('leaves %s to the circle test', (shape) => {
+        expect(markerOutline(shape as AgMarkerShape | undefined)).toBeUndefined();
     });
 
     it.each(BUILT_IN_SHAPES)('gives %s an outline within its unit box, analysed once', (shape) => {
