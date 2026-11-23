@@ -301,6 +301,7 @@ export * from './chart/chartTypeContract';
 export * from './chart/circleLayout';
 export * from './chart/crossLine';
 export * from './chart/legendUtil';
+export * from './chart/markerPathCache';
 export * from './chart/markerShapes';
 export * from './rendering/lineDash';
 export * from './chart/markerUtil';

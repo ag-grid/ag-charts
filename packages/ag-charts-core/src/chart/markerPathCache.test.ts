@@ -1,8 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
+import { stubPath2D } from '../test/stubPath2D';
 import { clearMarkerPathCache, getSharedMarkerPath } from './markerPathCache';
+
+beforeAll(stubPath2D);
 
 describe('markerPathCache', () => {
     it('returns the same ExtendedPath2D for the same (shape, size)', () => {

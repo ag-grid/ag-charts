@@ -9,11 +9,10 @@ import {
     TRIPLE_EQ,
     Translatable,
     align,
+    getSharedMarkerPath,
     markerShapeAnchor,
 } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
-
-import { getSharedMarkerPath } from './markerPathCache';
 
 // Scratch BBoxes shared across all markers — drawPath is synchronous and markers don't
 // render recursively, so only one marker is mid-draw at any time.
