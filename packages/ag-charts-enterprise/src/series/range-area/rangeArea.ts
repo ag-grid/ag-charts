@@ -25,6 +25,7 @@ import {
     type DeepRequired,
     type DomainWithMetadata,
     type DynamicContext,
+    HIDDEN_MARKER_STYLE,
     type LabelMeasureContext,
     type LabelPlacement,
     type Normalised,
@@ -1473,7 +1474,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             const { item } = this.options;
             for (const datum of labelData) {
                 const { marker } = item[datum.itemType];
-                if (marker.enabled) applyStyledMarker(datum, datum.markerDatum.style, marker.shape);
+                if (!marker.enabled) continue;
+                const { style } = datum.markerDatum;
+                // Labels keep the configured marker while it is hidden until selected.
+                applyStyledMarker(datum, style === HIDDEN_MARKER_STYLE ? undefined : style, marker.shape);
             }
         }
         return labelData;

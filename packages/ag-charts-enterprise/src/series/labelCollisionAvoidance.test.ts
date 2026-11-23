@@ -1379,6 +1379,48 @@ describe('label collision avoidance', () => {
                 expect(placedBoxes(index)).toEqual(plain);
                 expect(plain.length).toBeGreaterThan(0);
             });
+
+            // Too dense to draw markers, so selection keeps them at size 0 until selected; too few to aggregate.
+            const dense = Array.from({ length: 990 }, (_, i) => ({
+                x: i,
+                y: i % 3,
+                high: 5 + (i % 3),
+                name: i % 300 === 150 ? 'Item' : '',
+            }));
+            const denseSeries = {
+                area: { type: 'area', yKey: 'y' },
+                'range-area': { type: 'range-area', yLowKey: 'y', yHighKey: 'high' },
+            };
+            it.each([
+                ['area', 'top'],
+                ['area', 'inside'],
+                ['range-area', 'outside'],
+                ['range-area', 'inside'],
+            ] as const)(
+                '%s places the same %s labels with and without it on hidden selectable markers',
+                async (type, placement) => {
+                    const options = (styled: boolean): AgChartOptions => ({
+                        animation: { enabled: false },
+                        legend: { enabled: false },
+                        series: [
+                            {
+                                ...denseSeries[type],
+                                data: dense,
+                                xKey: 'x',
+                                selection: { enabled: true },
+                                marker: marker(styled),
+                                label: { enabled: true, placement, formatter: ({ datum }: any) => datum.name },
+                            } as NonNullable<AgCartesianChartOptions['series']>[number],
+                        ],
+                    });
+                    chart = await createEnterpriseChart(options(false));
+                    const plain = placedBoxes(0);
+                    chart.destroy();
+                    chart = await createEnterpriseChart(options(true));
+                    expect(placedBoxes(0)).toEqual(plain);
+                    expect(plain.length).toBeGreaterThan(0);
+                }
+            );
         });
     });
     // Funnel, cone funnel and pyramid value labels all cascade through the bar candidate list. Funnel and

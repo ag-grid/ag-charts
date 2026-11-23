@@ -36,6 +36,7 @@ import {
     EventEmitter,
     GLOW_THEME_DEFAULTS,
     Group,
+    HIDDEN_MARKER_STYLE,
     LRUCache,
     PointerEvents,
     SERIES_GLOW_OVERLAY_Z_INDEX,
@@ -2279,7 +2280,7 @@ export abstract class Series<
         const candidateState: SelectionState | undefined = this.getDataCandidacyState(datumIndex);
 
         if (hideWithSize0 && isUnselected(stagedSelectionState(selectionState, candidateState))) {
-            return { size: 0 } satisfies NormalisedSeriesMarkerStyle;
+            return HIDDEN_MARKER_STYLE;
         }
 
         // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.

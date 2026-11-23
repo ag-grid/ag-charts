@@ -23,6 +23,7 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     Group,
+    HIDDEN_MARKER_STYLE,
     Path,
     PointerEvents,
     SeriesContentZIndexMap,
@@ -1675,7 +1676,9 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     protected override labelMarkerStyle(datum: LabelSelectionDatum) {
-        return datum.markerDatum?.style;
+        const style = datum.markerDatum?.style;
+        // Labels keep the configured marker while it is hidden until selected.
+        return style === HIDDEN_MARKER_STYLE ? undefined : style;
     }
 
     protected override writeLabelPoint(datum: LabelSelectionDatum, x: number, y: number): LabelSelectionDatum {
