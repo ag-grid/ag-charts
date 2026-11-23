@@ -20,6 +20,7 @@ import {
     ChartAxisDirection,
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
+    HIDDEN_MARKER_STYLE,
     PointerEvents,
     extent,
     isDefined,
@@ -1104,7 +1105,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected override labelMarkerStyle(datum: LineNodeDatum) {
-        return datum.style;
+        const { style } = datum;
+        // Labels keep the configured marker while it is hidden until selected, unless an itemStyler sized it.
+        return style === HIDDEN_MARKER_STYLE && this.options.marker.itemStyler == null ? undefined : style;
     }
 
     protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {

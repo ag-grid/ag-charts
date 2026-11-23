@@ -1209,6 +1209,71 @@ describe('label collision avoidance', () => {
             }
         );
 
+        // A diamond series whose `styler` draws squares: the label must clear the square, not the diamond.
+        const DIAMOND = { shape: 'diamond', size: 40 } as const;
+        const SQUARE = { shape: 'square', size: 40 } as const;
+        const MARKER = { enabled: true, ...DIAMOND };
+        it.each<[string, object]>([
+            ['line', { type: 'line', yKey: 'y', marker: MARKER, styler: () => ({ marker: SQUARE }) }],
+            ['area', { type: 'area', yKey: 'y', marker: MARKER, styler: () => ({ marker: SQUARE }) }],
+            ['scatter', { type: 'scatter', yKey: 'y', labelKey: 'l', ...DIAMOND, styler: () => SQUARE }],
+            [
+                'bubble',
+                {
+                    type: 'bubble',
+                    yKey: 'y',
+                    sizeKey: 's',
+                    labelKey: 'l',
+                    shape: 'diamond',
+                    minSize: 40,
+                    maxSize: 40,
+                    styler: () => ({ shape: 'square' }),
+                },
+            ],
+            [
+                'range-area',
+                {
+                    type: 'range-area',
+                    yLowKey: 'y',
+                    yHighKey: 'high',
+                    marker: MARKER,
+                    styler: () => ({ item: { low: { marker: SQUARE }, high: { marker: SQUARE } } }),
+                },
+            ],
+        ])('%s: moves a label off the corner of the square a series styler draws', async (_type, series) => {
+            chart = await createEnterpriseChart({
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+                series: [
+                    {
+                        data: [{ x: 5, y: 5, high: 9, s: 1, l: 'A' }],
+                        xKey: 'x',
+                        label: { enabled: true, formatter: () => 'A' },
+                        ...(series as NonNullable<AgCartesianChartOptions['series']>[number]),
+                    },
+                    {
+                        type: 'scatter',
+                        data: [{ x: 5.7, ny: 5.7, l: 'Label' }],
+                        xKey: 'x',
+                        yKey: 'ny',
+                        labelKey: 'l',
+                        size: 4,
+                        label: {
+                            enabled: true,
+                            placement: ['bottom-left', 'top-right'],
+                            truncate: false,
+                            wrapping: 'never',
+                            collision: { alwaysShow: false },
+                        },
+                    },
+                ],
+            });
+            expect(getPlacedLabelData<{ placement?: string }>(chart, 1).map((l) => l.placement)).toEqual(['top-right']);
+        });
+
         // Both markers share a point; the diagonal placements land only on corners the circle misses.
         it.each([false, true])(
             'map-marker: hides a label that reaches over a square marker on every side (styled: %s)',
@@ -1253,12 +1318,14 @@ describe('label collision avoidance', () => {
         );
 
         // A styler that only recolours draws the same markers, so it must leave every label where it was.
-        describe('colour-only itemStyler', () => {
+        describe('colour-only styler', () => {
+            type Styling = 'none' | 'itemStyler' | 'styler';
             const CASCADE = {
                 enabled: true,
                 placement: ['top', 'right', 'bottom', 'left'],
                 collision: { alwaysShow: false },
             } as const;
+            const RED = { fill: 'red' };
             const points = Array.from({ length: 24 }, (_, i) => ({
                 x: i % 6,
                 y: Math.floor(i / 6) + (i % 2) * 0.4,
@@ -1274,42 +1341,46 @@ describe('label collision avoidance', () => {
                 },
                 series: [series as NonNullable<AgCartesianChartOptions['series']>[number]],
             });
-            const marker = (styled: boolean) => ({
+            const itemStyler = (styling: Styling) => (styling === 'itemStyler' ? { itemStyler: () => RED } : {});
+            const styler = (styling: Styling, result: object) => (styling === 'styler' ? { styler: () => result } : {});
+            const marker = (styling: Styling) => ({
                 enabled: true,
                 shape: 'square' as const,
                 size: 14,
-                ...(styled ? { itemStyler: () => ({ fill: 'red' }) } : {}),
+                ...itemStyler(styling),
             });
-            const cases: Array<[string, (styled: boolean) => AgChartOptions, number]> = [
+            const cases: Array<[string, (styling: Styling) => AgChartOptions, number]> = [
                 [
                     'line',
-                    (styled) =>
+                    (styling) =>
                         cartesian({
                             type: 'line',
                             data: points,
                             xKey: 'x',
                             yKey: 'y',
-                            marker: marker(styled),
+                            marker: marker(styling),
+                            ...styler(styling, { marker: RED }),
                             label: CASCADE,
                         }),
                     0,
                 ],
                 [
                     'area',
-                    (styled) =>
+                    (styling) =>
                         cartesian({
                             type: 'area',
                             data: points,
                             xKey: 'x',
                             yKey: 'y',
-                            marker: marker(styled),
+                            marker: marker(styling),
+                            ...styler(styling, { marker: RED }),
                             label: CASCADE,
                         }),
                     0,
                 ],
                 [
                     'scatter',
-                    (styled) =>
+                    (styling) =>
                         cartesian({
                             type: 'scatter',
                             data: points,
@@ -1318,29 +1389,50 @@ describe('label collision avoidance', () => {
                             labelKey: 'name',
                             shape: 'square',
                             size: 14,
-                            ...(styled ? { itemStyler: () => ({ fill: 'red' }) } : {}),
+                            ...itemStyler(styling),
+                            ...styler(styling, RED),
+                            label: CASCADE,
+                        }),
+                    0,
+                ],
+                [
+                    'bubble',
+                    (styling) =>
+                        cartesian({
+                            type: 'bubble',
+                            data: points,
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            labelKey: 'name',
+                            shape: 'square',
+                            minSize: 6,
+                            maxSize: 24,
+                            ...itemStyler(styling),
+                            ...styler(styling, RED),
                             label: CASCADE,
                         }),
                     0,
                 ],
                 [
                     'range-area',
-                    (styled) =>
+                    (styling) =>
                         cartesian({
                             type: 'range-area',
                             data: points,
                             xKey: 'x',
                             yLowKey: 'y',
                             yHighKey: 'high',
-                            marker: marker(styled),
+                            marker: marker(styling),
+                            ...styler(styling, { item: { low: { marker: RED }, high: { marker: RED } } }),
                             label: { ...CASCADE, placement: ['outside', 'inside'] },
                         }),
                     0,
                 ],
                 [
-                    // Sized by `sizeKey`, so each drawn marker differs from the configured size.
+                    // Sized by `sizeKey`, so each drawn marker differs from the configured size. No series styler.
                     'map-marker',
-                    (styled) => ({
+                    (styling) => ({
                         topology: ukTopology,
                         series: [
                             { type: 'map-shape-background' },
@@ -1354,7 +1446,7 @@ describe('label collision avoidance', () => {
                                 shape: 'square',
                                 size: 6,
                                 maxSize: 24,
-                                ...(styled ? { itemStyler: () => ({ fill: 'red' }) } : {}),
+                                ...itemStyler(styling),
                                 label: { ...CASCADE, placement: [...CASCADE.placement] },
                             } satisfies AgMapMarkerSeriesOptions,
                         ],
@@ -1362,6 +1454,11 @@ describe('label collision avoidance', () => {
                     1,
                 ],
             ];
+            const stylings = cases.flatMap(([name, options, index]) =>
+                (['itemStyler', 'styler'] as const)
+                    .filter((styling) => name !== 'map-marker' || styling === 'itemStyler')
+                    .map((styling) => [name, styling, options, index] as const)
+            );
             const placedBoxes = (index: number) =>
                 getPlacedLabelData<Box & { text: unknown }>(chart, index).map(({ x, y, width, height, text }) => ({
                     x,
@@ -1371,11 +1468,12 @@ describe('label collision avoidance', () => {
                     text,
                 }));
 
-            it.each(cases)('%s places the same labels with and without it', async (_name, options, index) => {
-                chart = await createEnterpriseChart(options(false));
+            it.each(stylings)('%s places the same labels with and without a colour-only %s', async (...args) => {
+                const [, styling, options, index] = args;
+                chart = await createEnterpriseChart(options('none'));
                 const plain = placedBoxes(index);
                 chart.destroy();
-                chart = await createEnterpriseChart(options(true));
+                chart = await createEnterpriseChart(options(styling));
                 expect(placedBoxes(index)).toEqual(plain);
                 expect(plain.length).toBeGreaterThan(0);
             });
@@ -1388,35 +1486,51 @@ describe('label collision avoidance', () => {
                 name: i % 300 === 150 ? 'Item' : '',
             }));
             const denseSeries = {
-                area: { type: 'area', yKey: 'y' },
-                'range-area': { type: 'range-area', yLowKey: 'y', yHighKey: 'high' },
+                line: { type: 'line', yKey: 'y', styler: () => ({ marker: RED }) },
+                area: { type: 'area', yKey: 'y', styler: () => ({ marker: RED }) },
+                'range-area': {
+                    type: 'range-area',
+                    yLowKey: 'y',
+                    yHighKey: 'high',
+                    styler: () => ({ item: { low: { marker: RED }, high: { marker: RED } } }),
+                },
             };
+            // A line marker itemStyler sized hidden markers at 0 before, so only its series styler is compared.
             it.each([
-                ['area', 'top'],
-                ['area', 'inside'],
-                ['range-area', 'outside'],
-                ['range-area', 'inside'],
+                ['area', 'top', 'itemStyler'],
+                ['area', 'inside', 'itemStyler'],
+                ['range-area', 'outside', 'itemStyler'],
+                ['range-area', 'inside', 'itemStyler'],
+                ['line', 'top', 'styler'],
+                ['area', 'top', 'styler'],
+                ['area', 'inside', 'styler'],
+                ['range-area', 'outside', 'styler'],
+                ['range-area', 'inside', 'styler'],
             ] as const)(
-                '%s places the same %s labels with and without it on hidden selectable markers',
-                async (type, placement) => {
-                    const options = (styled: boolean): AgChartOptions => ({
-                        animation: { enabled: false },
-                        legend: { enabled: false },
-                        series: [
-                            {
-                                ...denseSeries[type],
-                                data: dense,
-                                xKey: 'x',
-                                selection: { enabled: true },
-                                marker: marker(styled),
-                                label: { enabled: true, placement, formatter: ({ datum }: any) => datum.name },
-                            } as NonNullable<AgCartesianChartOptions['series']>[number],
-                        ],
-                    });
-                    chart = await createEnterpriseChart(options(false));
+                '%s places the same %s labels with and without a colour-only %s on hidden selectable markers',
+                async (type, placement, styling) => {
+                    const options = (s: Styling): AgChartOptions => {
+                        const { styler: seriesStyler, ...series } = denseSeries[type];
+                        return {
+                            animation: { enabled: false },
+                            legend: { enabled: false },
+                            series: [
+                                {
+                                    ...series,
+                                    ...(s === 'styler' ? { styler: seriesStyler } : {}),
+                                    data: dense,
+                                    xKey: 'x',
+                                    selection: { enabled: true },
+                                    marker: marker(s),
+                                    label: { enabled: true, placement, formatter: ({ datum }: any) => datum.name },
+                                } as NonNullable<AgCartesianChartOptions['series']>[number],
+                            ],
+                        };
+                    };
+                    chart = await createEnterpriseChart(options('none'));
                     const plain = placedBoxes(0);
                     chart.destroy();
-                    chart = await createEnterpriseChart(options(true));
+                    chart = await createEnterpriseChart(options(styling));
                     expect(placedBoxes(0)).toEqual(plain);
                     expect(plain.length).toBeGreaterThan(0);
                 }

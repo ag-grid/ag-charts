@@ -4517,7 +4517,7 @@ describe('placeLabels marker outlines', () => {
             markerShape: seriesShape,
             placement,
         };
-        applyStyledMarker(datum, { size: 20, shape }, seriesShape);
+        applyStyledMarker(datum, { size: 20, shape }, seriesShape, true);
         const placed = placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5);
         expect(placed.get('s')!.map((l) => l.datum)).toEqual([datum]);
     });
@@ -4533,7 +4533,7 @@ describe('placeLabels marker outlines', () => {
             markerShape: 'pin',
             placement: 'bottom',
         };
-        applyStyledMarker(datum, { size, shape }, 'pin');
+        applyStyledMarker(datum, { size, shape }, 'pin', true);
         expect(datum.markerShape).toBe('pin');
         expect(datum.anchor).toBe(markerShapeAnchor('pin'));
     });

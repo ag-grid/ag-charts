@@ -170,13 +170,13 @@ export abstract class PlacedLabelCartesianSeries<
         return measurePlacedLabel(labelText, this.labelProperty, ctx);
     }
 
-    /** The series' marker, whose `itemStyler` may restyle the markers its labels avoid. */
+    /** The series' marker, which its `styler`, `itemStyler` or state may restyle where drawn. */
     protected abstract get labelMarker(): {
         readonly enabled: boolean;
         readonly shape: AgMarkerShape;
         readonly itemStyler?: unknown;
     };
-    /** What the marker `itemStyler` resolved for the marker drawn at the label's point. */
+    /** The style resolved for the marker drawn at the label's point. */
     protected abstract labelMarkerStyle(
         datum: LabelOf<TTypes>
     ): { readonly size?: number; readonly shape?: AgMarkerShape } | undefined;
@@ -185,10 +185,12 @@ export abstract class PlacedLabelCartesianSeries<
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
         const { enabled, itemStyler, shape } = this.labelMarker;
-        // A marker itemStyler resolves size and shape after node data, so stamp them from the drawn marker.
-        if (enabled && itemStyler != null) {
+        // Stylers and state resolve size and shape after node data, so stamp them from the drawn marker. Only
+        // then does a per-datum style pass run; otherwise markers draw as configured.
+        if (enabled && this.hasItemStylers()) {
+            const itemStyled = itemStyler != null;
             for (const datum of labelData) {
-                applyStyledMarker(datum, this.labelMarkerStyle(datum), shape);
+                applyStyledMarker(datum, this.labelMarkerStyle(datum), shape, itemStyled);
             }
         }
         return labelData;

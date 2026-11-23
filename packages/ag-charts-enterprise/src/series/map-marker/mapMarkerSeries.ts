@@ -411,8 +411,8 @@ export class MapMarkerSeries
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
         };
-        // The node's style already holds what the itemStyler resolved for the drawn marker.
-        if (itemStyler != null) applyStyledMarker(labelDatum, node.style, shape);
+        // The node's style already holds what its state and itemStyler resolved for the drawn marker.
+        if (this.hasItemStylers()) applyStyledMarker(labelDatum, node.style, shape, itemStyler != null);
         return labelDatum;
     }
 

@@ -629,10 +629,13 @@ export function applyStyledMarker(
         anchor?: Point;
     },
     style: { size?: number; shape?: AgMarkerShape } | undefined,
-    seriesShape: AgMarkerShape | undefined
+    seriesShape: AgMarkerShape | undefined,
+    itemStyled: boolean
 ): void {
-    // Assigned even when undefined, so a size from an earlier update cannot linger.
-    datum.markerSize = style?.size;
+    // An itemStyler's size supersedes the gap baked from the configured size; any other style's only when it
+    // resizes the marker. Assigned even when undefined, so a size from an earlier update cannot linger.
+    const size = style?.size;
+    datum.markerSize = itemStyled || size !== datum.point.size ? size : undefined;
     datum.markerShape = tracedShape(style?.shape, datum.markerSize ?? datum.point.size) ?? seriesShape;
     // The label and the marker obstacle both offset from the point by the anchor of the shape drawn there.
     datum.anchor = markerShapeAnchor(datum.markerShape);
