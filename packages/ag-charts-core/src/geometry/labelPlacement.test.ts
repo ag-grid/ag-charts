@@ -851,14 +851,18 @@ describe('placeLabels', () => {
         }
     );
 
-    it.each([0, 30])('still collides with its own marker when drawn over it, threshold %i', (threshold) => {
+    it.each([
+        { threshold: 0, kept: false },
+        { threshold: 30, kept: false },
+        { threshold: -30, kept: true },
+    ])('drawn over its own marker, threshold $threshold, kept $kept', ({ threshold, kept }) => {
         const d: PointLabelDatum = { ...besideOwnMarker('top'), placement: undefined, placements: undefined };
         const placed = placeLabels(
             new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]),
             bounds,
             5
         ).get('s')!;
-        expect(placed.some((l) => l.datum === d)).toBe(false);
+        expect(placed.some((l) => l.datum === d)).toBe(kept);
     });
 
     it("clears another series' coincident marker by the threshold", () => {

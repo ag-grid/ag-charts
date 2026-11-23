@@ -925,9 +925,9 @@ function coincidesWithOwnMarker(o: LabelObstacle): boolean {
     );
 }
 
-/** The box `o` is tested against: the label's own marker never sees the threshold. */
+/** The box `o` is tested against: the label's own marker never sees a positive threshold. */
 function obstacleTestBox(o: LabelObstacle): BoxBounds | undefined {
-    if (o.sourceId === candidateSourceId && coincidesWithOwnMarker(o)) return candidateBox;
+    if (candidateThreshold > 0 && o.sourceId === candidateSourceId && coincidesWithOwnMarker(o)) return candidateBox;
     return candidateTestBox();
 }
 
