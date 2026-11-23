@@ -91,8 +91,8 @@ export function resolveLabelFit(
 }
 
 /** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
-export function resolveAlwaysLabelFit(fit: LabelFitOptions): LabelFit {
-    return toLabelFit(fit, resolveOverflowStrategy(fit.truncate, false, false));
+export function resolveAlwaysLabelFit(fit: LabelFitOptions, hideOnOverflow = false): LabelFit {
+    return toLabelFit(fit, resolveOverflowStrategy(fit.truncate, hideOnOverflow, false));
 }
 
 function resolveOverflowStrategy(

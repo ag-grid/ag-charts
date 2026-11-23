@@ -630,6 +630,16 @@ export function keptCharacters(text: NormalisedTextOrSegments): number {
     return kept;
 }
 
+/** {@link keptCharacters} plus one per image, so an image-only label scores as content. */
+export function keptContent(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return keptCharacters(text);
+    let kept = 0;
+    for (const segment of text) {
+        kept += segment.type === 'image' ? 1 : survivingCharacters(toTextString(segment.text));
+    }
+    return kept;
+}
+
 /**
  * Whether a fitted label still shows a character, ignoring the ellipsis and whitespace it can be reduced
  * to. A budget too narrow for any real character leaves a bare `…`, which reads as an artefact rather than

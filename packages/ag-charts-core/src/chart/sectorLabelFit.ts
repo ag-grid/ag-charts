@@ -1,6 +1,5 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
-import { isArray } from '../data/typeGuards';
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import { type FitRegion, insetFitRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
 import type { LabelFitDescriptor, PlacedFit } from '../geometry/labelPlacement';
@@ -16,7 +15,7 @@ import {
     fitLabelTextToRegion,
     fontWithSize,
     isErased,
-    keptCharacters,
+    keptContent,
     resolveMinimumFontSize,
     showsContent,
     withFitRegion,
@@ -456,15 +455,4 @@ export function sectorLabelPlacer(
         if (!showsContent(placed.text)) return undefined;
         return { text: placed.text, x: centreX + placed.x, y: centreY + placed.y, fontSize: placed.fontSize };
     };
-}
-
-/** Characters kept plus images kept, so an image-only label scores as content. */
-function keptContent(text: NormalisedTextOrSegments): number {
-    let kept = keptCharacters(text);
-    if (isArray(text)) {
-        for (const segment of text) {
-            if (segment.type === 'image') kept += 1;
-        }
-    }
-    return kept;
 }

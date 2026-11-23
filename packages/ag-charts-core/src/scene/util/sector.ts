@@ -151,13 +151,11 @@ export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
     }
     const nearestX = Math.min(Math.max(0, box.x), x1);
     const nearestY = Math.min(Math.max(0, box.y), y1);
-    const innerRadius = Math.min(sector.innerRadius, sector.outerRadius);
-    if (nearestX ** 2 + nearestY ** 2 < innerRadius ** 2) return false;
+    if (nearestX ** 2 + nearestY ** 2 < minRadius ** 2) return false;
     // Nor is the angular range settled by the corners once the sector is wider than half a turn: the wedge
     // it excludes can pass between them, so the box has to be clear of both boundary edges as well.
-    if (angleBetween(sector.startAngle, sector.endAngle) <= Math.PI) return true;
-    const radius = Math.max(sector.innerRadius, sector.outerRadius);
-    return !edgeCrossesBox(box, sector.startAngle, radius) && !edgeCrossesBox(box, sector.endAngle, radius);
+    if (angleBetween(startAngle, endAngle) <= Math.PI) return true;
+    return !edgeCrossesBox(box, startAngle, maxRadius) && !edgeCrossesBox(box, endAngle, maxRadius);
 }
 
 /** True when the sector edge at `angle`, from the centre out to `radius`, crosses `box`. */

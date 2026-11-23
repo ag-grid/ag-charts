@@ -2328,6 +2328,13 @@ describe('resolveAlwaysLabelFit', () => {
     ])('returns a policy for %s', (_, fit, policy) => {
         expect(resolveAlwaysLabelFit(fit)).toEqual(policy);
     });
+
+    it.each<[string, LabelFitOptions, string]>([
+        ['hides an overflow', {}, 'hide'],
+        ['truncates when asked to', { truncate: true }, 'ellipsis'],
+    ])('with hideOnOverflow %s', (_, fit, overflowStrategy) => {
+        expect(resolveAlwaysLabelFit(fit, true)).toEqual({ overflowStrategy });
+    });
 });
 
 describe('sectorLabelContainer', () => {

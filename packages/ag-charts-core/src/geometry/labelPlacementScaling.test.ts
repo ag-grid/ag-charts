@@ -4,21 +4,9 @@ import type { SizedPoint } from '../types/scene';
 import type { BoxBounds } from './boxBounds';
 import { type LabelPlacement, type PointLabelDatum, type SeriesLabels, placeLabels } from './labelPlacement';
 
-// jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws.
-vi.mock('../rendering/canvasUtil', () => ({
-    createCanvasContext: () => ({
-        font: '',
-        measureText(text: string) {
-            return {
-                width: [...text].length * 10,
-                fontBoundingBoxAscent: 16,
-                fontBoundingBoxDescent: 4,
-                emHeightAscent: 16,
-                emHeightDescent: 4,
-            };
-        },
-    }),
-}));
+vi.mock('../rendering/canvasUtil', async (importOriginal) =>
+    (await import('../test/fixedWidthCanvas')).fixedWidthCanvasUtil(importOriginal)
+);
 
 const PLACEMENTS: LabelPlacement[] = ['top', 'bottom', 'left', 'right', 'top-left', 'bottom-right'];
 
