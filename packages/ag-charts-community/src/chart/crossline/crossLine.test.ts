@@ -17,7 +17,7 @@ import {
     getDocument,
     mapValues,
 } from 'ag-charts-core';
-import { expectWarningsCalls } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
@@ -2105,7 +2105,7 @@ describe('CrossLine', () => {
         it('shows a hidden label again once a resize clears what it collided with', async () => {
             const container = getDocument().createElement('div');
             getDocument().body.append(container);
-            const options = prepareTestOptions(collisionChart({ values: [3, 6] }), container);
+            const options = prepareTestOptions(collisionChart({ values: [4, 6] }), container);
             delete options.width;
             delete options.height;
             // Bespoke: custom container, and the size is removed after preparation.
@@ -3785,5 +3785,100 @@ describe('CrossLine label fitting', () => {
         );
 
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    describe('series-area bound', () => {
+        const LONG_WORDS = 'Quarterly revenue forecast review '.repeat(30).trim();
+        const rangeWith = (label: AgCartesianCrossLineLabelOptions): AgCartesianCrossLineOptions => ({
+            type: 'range',
+            range: [2, 4],
+            label: { text: LONG_WORDS, ...label },
+        });
+        const longLine = (label: AgCartesianCrossLineLabelOptions) => lineWith({ text: LONG_WORDS, ...label });
+
+        // The bound is the series area before any label padding, so it is read from the chart without cross lines.
+        const unpaddedSeriesLength = async (rotation: number | undefined) => {
+            const reference = deproxy(await createChart(fitChart(longLine({}), 'x', { x: { crossLines: [] } })));
+            const { width, height } = getSeriesRect(reference);
+            reference.destroy();
+            return rotation === 90 ? height : width;
+        };
+
+        it.each<[string, 'x' | 'y', AgCartesianCrossLineOptions, number | undefined]>([
+            ['a vertical line at top', 'x', longLine({ placement: 'top' }), undefined],
+            ['a vertical line at inside', 'x', longLine({ placement: 'inside' }), undefined],
+            ['a horizontal line at left', 'y', longLine({ placement: 'left' }), undefined],
+            ['a horizontal line at inside', 'y', longLine({ placement: 'inside' }), undefined],
+            ['a rotated vertical line', 'x', longLine({ placement: 'top', rotation: 90 }), 90],
+            ['a range at top', 'x', rangeWith({ placement: 'top' }), undefined],
+            ['a range at bottom', 'x', rangeWith({ placement: 'bottom' }), undefined],
+            ['a range at left', 'y', rangeWith({ placement: 'left' }), undefined],
+            ['a range at top-left', 'x', rangeWith({ placement: 'top-left' }), undefined],
+            ['a rotated range at top', 'x', rangeWith({ placement: 'top', rotation: 90 }), 90],
+        ])('fits %s label to the series area', async (_, axisId, crossLine, rotation) => {
+            const limit = await unpaddedSeriesLength(rotation);
+            chart = deproxy(await createChart(fitChart(crossLine, axisId)));
+
+            const rendered = renderedLabel(axisId);
+            expect(rendered.text.replaceAll('\n', ' ').startsWith('Quarterly revenue')).toBe(true);
+            expect(rendered.text.includes('\n') || rendered.text.endsWith('\u2026')).toBe(true);
+            // The bbox is turned, so a label on its side runs along its height.
+            expect(rotation === 90 ? rendered.height : rendered.width).toBeLessThanOrEqual(limit + 1);
+            const { footprint } = rendered;
+            expect(footprint.x).toBeGreaterThanOrEqual(0);
+            expect(footprint.y).toBeGreaterThanOrEqual(0);
+            expect(footprint.x + footprint.width).toBeLessThanOrEqual(CANVAS_WIDTH);
+            expect(footprint.y + footprint.height).toBeLessThanOrEqual(CANVAS_HEIGHT);
+        });
+
+        it('lets an explicit maxWidth beyond the series area replace the bound', async () => {
+            const maxWidth = 3000;
+            chart = deproxy(await createChart(fitChart(longLine({ placement: 'top', maxWidth }), 'x')));
+
+            const rendered = renderedLabel('x');
+            expect(rendered.width).toBeGreaterThan(getSeriesRect(chart).width);
+            expect(rendered.width).toBeLessThanOrEqual(maxWidth);
+        });
+
+        it('does not lift the bound for a maxHeight alone', async () => {
+            chart = deproxy(await createChart(fitChart(longLine({ placement: 'top', maxHeight: 400 }), 'x')));
+
+            expect(renderedLabel('x').width).toBeLessThanOrEqual(getSeriesRect(chart).width + 1);
+        });
+
+        it('renders the full text when wrapping and truncation are off', async () => {
+            chart = deproxy(
+                await createChart(fitChart(longLine({ placement: 'top', wrapping: 'never', truncate: false }), 'x'))
+            );
+
+            const rendered = renderedLabel('x');
+            expect(rendered.text).toBe(LONG_WORDS);
+            expect(rendered.width).toBeGreaterThan(getSeriesRect(chart).width);
+        });
+
+        it('keeps fitting a range label inside its band to the band', async () => {
+            chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'inside' }), 'x')));
+
+            const rendered = renderedLabel('x');
+            const band = Transformable.toCanvas(rendered.crossLine.rangeGroup).width;
+            expect(band).toBeLessThan(getSeriesRect(chart).width / 2);
+            expect(rendered.text.includes('\n') || rendered.text.endsWith('\u2026')).toBe(true);
+            expect(rendered.width).toBeLessThanOrEqual(band + 1);
+        });
+
+        it('renders wrapped line and outside range labels', async () => {
+            const xCrossLines: AgCartesianCrossLineOptions[] = [
+                longLine({ placement: 'top' }),
+                rangeWith({ placement: 'bottom', fill: 'lightyellow' }),
+            ];
+            const yCrossLines: AgCartesianCrossLineOptions[] = [longLine({ placement: 'inside' })];
+            chart = deproxy(
+                await createChart(
+                    fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+                )
+            );
+
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
     });
 });

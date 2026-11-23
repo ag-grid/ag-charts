@@ -87,6 +87,11 @@ export interface AxisContext {
     readonly gridLength: number;
     readonly gridPadding: number;
     readonly range: readonly [number, number];
+    /**
+     * The most a label padding the chart can reach past each side of the series area. Measured before
+     * plugins pad the chart, so that padding cannot change it.
+     */
+    readonly outerLabelRoom: Readonly<Record<AgCartesianAxisPosition, number>> | undefined;
     /** False while the chart hides its series area because the axes overflow it. */
     readonly seriesAreaVisible: boolean;
     /** False on axes the user cannot interact with, such as those of the navigator mini chart. */

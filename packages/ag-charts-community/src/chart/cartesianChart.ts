@@ -490,6 +490,20 @@ export class CartesianChartType implements ChartTypeInstance {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const pluginPadding = this.buildAxisPluginPadding(outerSpace);
         const collectedPadding = { ...pluginPadding };
+        // The most `clampPaddingPair` lets a side's plugin padding grow, beyond the space it overlaps.
+        const outerRoom = (side: AgCartesianAxisPosition, slack: number) =>
+            (outerSpace.get(side) ?? 0) + Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+        const slackX = axisAreaBound.width - totalWidth;
+        const slackY = axisAreaBound.height - totalHeight;
+        const outerLabelRoom = {
+            top: outerRoom('top', slackY),
+            right: outerRoom('right', slackX),
+            bottom: outerRoom('bottom', slackY),
+            left: outerRoom('left', slackX),
+        };
+        for (const axis of this.axes) {
+            axis.outerLabelRoom = outerLabelRoom;
+        }
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering

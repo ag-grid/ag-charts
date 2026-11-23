@@ -55,6 +55,7 @@ import type {
     AgAxisListeners,
     AgAxisValue,
     AgBaseAxisLabelStyleOptions,
+    AgCartesianAxisPosition,
     AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
     AgGroupedCategoryValue,
@@ -354,6 +355,8 @@ export abstract class Axis<
      * The distance between the grid ticks and the axis ticks.
      */
     gridPadding = 0;
+
+    outerLabelRoom: Record<AgCartesianAxisPosition, number> | undefined = undefined;
 
     /**
      * Is used to avoid collisions between axis labels and series.
@@ -1415,6 +1418,9 @@ export abstract class Axis<
             },
             get range() {
                 return axis.range;
+            },
+            get outerLabelRoom() {
+                return axis.outerLabelRoom;
             },
             get seriesAreaVisible() {
                 return axis.seriesAreaVisible;
