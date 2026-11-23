@@ -348,7 +348,8 @@ function fitSectorLabelToWedge(
         const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
         // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
         // room on one side: the text would be wrapped for bands it is then not drawn in.
-        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored);
+        // The label is drawn at the offset the fit returns, so a block too tall for the wedge hangs from its top.
+        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored, true);
         return {
             placed: { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY + fitted.offsetY },
             rectHeight: rect.height,
@@ -410,6 +411,8 @@ function fitSectorLabelToWedge(
     if (floor >= font.fontSize) return placeInWedge(font, true).placed;
     // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
     const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
+    // The floor rung is always placed, so its placement is the fallback rather than placed twice.
+    let atFloorPlaced: PlacedSectorLabel | undefined;
     // A smaller size can reflow into a wider block, so the ladder is scanned down rather than bisected.
     const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
         const sized = fontWithSize(font, fontSize);
@@ -421,10 +424,11 @@ function fitSectorLabelToWedge(
             return undefined;
         }
         const { placed, inWedge } = placeInWedge(sized, atFloor);
+        if (atFloor) atFloorPlaced = placed;
         if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });
-    return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
+    return found ?? atFloorPlaced ?? placeInWedge(fontWithSize(font, floor), true).placed;
 }
 
 /**

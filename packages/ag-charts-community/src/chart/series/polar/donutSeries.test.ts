@@ -1,7 +1,7 @@
 import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
-import { Transformable, boxOverlapsSector } from 'ag-charts-core';
+import { EllipsisChar, Transformable, boxOverlapsSector } from 'ag-charts-core';
 import type { BBox, Line, Sector, Shape, Text } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
@@ -1458,6 +1458,36 @@ describe('DonutSeries', () => {
             const labels = await drawnLabels({ fontSize: 12, lineHeight: 60, minimumFontSize: 6 });
             expect(labels).toHaveLength(6);
             expect(Math.max(...labels.map((node) => node.fontSize))).toBeLessThanOrEqual(8);
+        });
+    });
+
+    describe('AG-18765 sectorLabel in a ring shorter than it', () => {
+        test('hides a label that does not truncate rather than ending it in an ellipsis', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Delta Echo Foxtrot', size: 2 },
+                        { name: 'Golf', size: 4 },
+                        { name: 'Alpha Bravo Charlie', size: 1 },
+                        { name: 'Revenue', size: 6 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.88,
+                            sectorLabel: { fontSize: 14, wrapping: 'on-space', truncate: false },
+                        },
+                    ],
+                })
+            );
+            const texts = getVisibleLabelTextNodes(chart).map((node) => String(node.text));
+            expect(texts).toContain('Golf');
+            expect(texts.filter((text) => /Delta|Alpha/.test(text))).toEqual([]);
+            expect(texts.filter((text) => text.includes(EllipsisChar))).toEqual([]);
+            await compare();
         });
     });
 

@@ -87,7 +87,8 @@ export function resolveLabelFit(
 ): LabelFit | undefined {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
-    if (truncate || defaultToTruncate) {
+    // An explicit `truncate: false` beats the series' default to truncate.
+    if (truncate ?? defaultToTruncate) {
         overflowStrategy = 'ellipsis';
     } else if (hideOnOverflow) {
         overflowStrategy = 'hide';

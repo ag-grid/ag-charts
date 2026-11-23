@@ -2314,6 +2314,20 @@ describe('resolveLabelFit', () => {
     it('lets truncate:true win over collision avoidance', () => {
         expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
     });
+
+    it.each([
+        [undefined, false, 'ellipsis'],
+        [undefined, true, 'ellipsis'],
+        [true, false, 'ellipsis'],
+        [false, false, undefined],
+        [false, true, 'hide'],
+    ] as const)(
+        'resolves truncate:%s with collision avoidance %s against a default to truncate to %s',
+        (truncate, hideOnOverflow, expected) => {
+            const fit = resolveLabelFit({ wrapping: 'on-space', truncate }, hideOnOverflow, true);
+            expect(fit?.overflowStrategy).toBe(expected);
+        }
+    );
 });
 
 describe('sectorLabelContainer', () => {
