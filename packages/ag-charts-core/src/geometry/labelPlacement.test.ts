@@ -828,45 +828,47 @@ describe('placeLabels', () => {
         expect(result.some((l) => l.datum === label)).toBe(false);
     });
 
-    it('keeps a label clear of its own anchor marker until the threshold exceeds its spacing', () => {
-        // A labelled point that also renders a marker: the label sits `spacing` from that marker's edge,
-        // so it is exempt from threshold inflation until the threshold demands more clearance than spacing.
-        const labelled = (): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement: 'top',
-            placements: ['top'],
-            spacing: 10,
-        });
-        const place = (threshold: number, d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]), bounds, 5).get('s')!;
-
-        const kept = labelled();
-        const dropped = labelled();
-        // threshold == spacing: still clear of its own marker.
-        expect(place(10, kept).some((l) => l.datum === kept)).toBe(true);
-        // threshold > spacing: the box reaches back onto its own marker, so the label is dropped.
-        expect(place(20, dropped).some((l) => l.datum === dropped)).toBe(false);
+    // Spacing 10 under a threshold of 30: clearing its own marker by the threshold would drop the label.
+    const besideOwnMarker = (placement: LabelPlacement): PointLabelDatum => ({
+        point: { x: 100, y: 100, size: 20 },
+        label: { text: 'X', width: 30, height: 12 },
+        anchor: undefined,
+        placement,
+        placements: [placement],
+        spacing: 10,
     });
 
-    it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
-        // A diagonal label's corner gap is √2·(r + spacing) − r ≈ 18.3, not `spacing` = 10.
-        const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement,
-            placements: [placement],
-            spacing: 10,
-        });
-        const place = (d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 12 })]]), bounds, 5).get('s')!;
+    it.each<LabelPlacement>(['top', 'top-right', 'right', 'bottom-left'])(
+        'never clears its own marker by the threshold, placed %s',
+        (placement) => {
+            const d = besideOwnMarker(placement);
+            const placed = placeLabels(
+                new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 30 })]]),
+                bounds,
+                5
+            ).get('s')!;
+            expect(placed.some((l) => l.datum === d)).toBe(true);
+        }
+    );
 
-        const above = labelled('top');
-        const diagonal = labelled('top-right');
-        expect(place(above).some((l) => l.datum === above)).toBe(false);
-        expect(place(diagonal).some((l) => l.datum === diagonal)).toBe(true);
+    it.each([
+        { threshold: 0, kept: false },
+        { threshold: 30, kept: false },
+        { threshold: -30, kept: true },
+    ])('drawn over its own marker, threshold $threshold, kept $kept', ({ threshold, kept }) => {
+        const d: PointLabelDatum = { ...besideOwnMarker('top'), placement: undefined, placements: undefined };
+        const placed = placeLabels(
+            new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]),
+            bounds,
+            5
+        ).get('s')!;
+        expect(placed.some((l) => l.datum === d)).toBe(kept);
+    });
+
+    it("clears another series' coincident marker by the threshold", () => {
+        const label = besideOwnMarker('top');
+        const marker: PointLabelDatum = { ...besideOwnMarker('top'), label: { text: '', width: 0, height: 0 } };
+        expect(placeAgainstOtherMarker(marker, label, 30).some((l) => l.datum === label)).toBe(false);
     });
 
     it('keeps a label flush against the shared bounds at a positive threshold', () => {
@@ -2908,6 +2910,13 @@ describe('placeLabels per-candidate fit', () => {
         expect(blocked.x).toBeGreaterThanOrEqual(20);
     });
 
+    it.each([0, 6])('fits the whole of its own region at threshold %i', (threshold) => {
+        const region = { x: 0, y: 0, width: 50, height: 20 };
+        const placed = placeOne(fittedLabel(region, { ownBox: region, threshold }));
+        expect(placed.text).toBe(TEXT);
+        expect(placed.rotation).toBeUndefined();
+    });
+
     it('leaves the text unfitted when the datum carries no fit descriptor', () => {
         const region = { x: 0, y: 0, width: 34, height: 200 };
         const placed = placeOne(fittedLabel(region, { fit: undefined }));
@@ -3119,6 +3128,47 @@ describe('placeLabels per-candidate fit', () => {
                 expect(placed.text).toBe('WW…');
             }
         );
+
+        // The 50px container holds the whole text exactly, so any clearance taken off it truncates.
+        const ownShapeFit = { text: TEXT, policy: { overflowStrategy: 'ellipsis' as const }, font: FONT };
+        it.each([
+            { stacked: false, threshold: 0 },
+            { stacked: false, threshold: 6 },
+            { stacked: true, threshold: 0 },
+            { stacked: true, threshold: 6 },
+        ])('fits the whole of its own shape, stacked $stacked, threshold $threshold', ({ stacked, threshold }) => {
+            const datum = buildBarPositionedLabelDatum(
+                TEXT,
+                50,
+                20,
+                [
+                    {
+                        box: { x: 25, y: 30, width: 50, height: 40 },
+                        fitTo: { container: { width: 50, height: 40 }, anchor, padding },
+                    },
+                ],
+                target(),
+                { x: 25, y: 30, width: 50, height: 40 },
+                true,
+                {},
+                threshold,
+                false,
+                ownShapeFit
+            );
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            stacked ? { ...datum, stack: { blocks: [{ fit: ownShapeFit }], spacing: 0 } } : datum,
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+            expect(placed.text).toBe(TEXT);
+        });
 
         describe('nudging along the bar', () => {
             const region = { x: 20, y: 20, width: 60, height: 60 };
