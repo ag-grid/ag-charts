@@ -481,9 +481,9 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const refreshes = new Map<string, (next: CoordinateField) => void>();
         const panel = this.createTabPanel();
-        // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
+        // A single value, offset or height has its label alongside; an offset is on a row of its own.
         const addRow = (rowFields: CoordinateField[], follows = false) => {
-            const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
+            const inline = rowFields.length === 1;
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
                 refreshes.set(getCoordinateLabelKey(field), refresh);
@@ -521,6 +521,7 @@ export class AnnotationSettingsDialog extends Dialog {
             type: COORDINATE_INPUT_TYPES[field.kind],
             value: displayCoordinate(field.value, field.fractionDigits),
             step: field.step,
+            range: field.range,
             list: suggestions?.id,
             onChange: (text) => {
                 const context = options.getContext();
