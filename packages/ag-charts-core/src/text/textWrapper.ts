@@ -859,10 +859,9 @@ export function hasRealChars(text: NormalisedTextOrSegments): boolean {
 
 /** Whether a fitted label still shows a character or an image; see {@link hasRealChars}. */
 export function showsContent(text: NormalisedTextOrSegments): boolean {
-    if (hasRealChars(text)) return true;
-    if (!isArray(text)) return false;
+    if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
     for (const segment of text) {
-        if (segment.type === 'image') return true;
+        if (segment.type === 'image' || survivingCharacters(toTextString(segment.text)) > 0) return true;
     }
     return false;
 }
