@@ -42,7 +42,13 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
         vi.restoreAllMocks();
     });
 
-    const create = async (highlight?: object, glow: object = SERIES_GLOW, itemStyler?: unknown) => {
+    const create = async (
+        highlight?: object,
+        glow: object = SERIES_GLOW,
+        itemStyler?: unknown,
+        seriesExtra: object = {},
+        chartExtra: object = {}
+    ) => {
         chart?.destroy();
         chart = deproxy(
             await createChart({
@@ -50,7 +56,16 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
                 animation: { enabled: false },
                 legend: { enabled: false },
                 ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
-                series: ['a', 'b', 'c'].map((yKey) => ({ type, xKey: 'x', yKey, glow, highlight, itemStyler })),
+                ...chartExtra,
+                series: ['a', 'b', 'c'].map((yKey) => ({
+                    type,
+                    xKey: 'x',
+                    yKey,
+                    glow,
+                    highlight,
+                    itemStyler,
+                    ...seriesExtra,
+                })),
             } as AgChartOptions)
         );
         await waitForChartStability(chart);
@@ -104,6 +119,73 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
             await hoverDatum(chart, 1, 3);
 
             expect(differingBytes(moved, pixelsOf())).toBe(0);
+        });
+    });
+
+    describe('where the skip cannot be proved, the series is restyled and draws what its state draws', () => {
+        const noDimming = { unhighlightedSeries: { opacity: 1 }, unhighlightedItem: { opacity: 1 } };
+
+        it('with a styler that returns a fill for the state', async () => {
+            const styler = ({ highlightState }: { highlightState?: string }) =>
+                highlightState === 'unhighlighted-series' ? { fill: '#ff0000' } : {};
+            await create(noDimming, SERIES_GLOW, undefined, { styler });
+
+            const entered = await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
+            expect(entered).toHaveLength(DATA.length);
+
+            const hovered = pixelsOf();
+            await create(noDimming, SERIES_GLOW, undefined, { styler });
+            await hoverDatum(chart, 0, 0);
+            expect(differingBytes(hovered, pixelsOf())).toBe(0);
+        });
+
+        it('with a glow that the state of an unlit series changes', async () => {
+            const highlight = { unhighlightedSeries: { opacity: 1, glow: { blur: 13 } } };
+            await create(highlight);
+            const shapes = () => shapesOf(getSeriesAt(chart, 1).contentGroup, kinds[type]);
+
+            await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
+            for (const shape of shapes())
+                expect(shape.fillGlow).toMatchObject(glowShadow({ ...SERIES_GLOW, blur: 13 }));
+
+            await endHover(chart);
+            for (const shape of shapes()) expect(shape.fillGlow).toMatchObject(glowShadow(SERIES_GLOW));
+        });
+
+        it('with highlight.mode shared', async () => {
+            await create(noDimming, SERIES_GLOW, undefined, {}, { highlight: { mode: 'shared' } });
+
+            const entered = await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
+
+            expect(entered.length).toBeGreaterThan(0);
+        });
+
+        it('with a state that sets an opacity other than the one the series draws at', async () => {
+            await create({ unhighlightedSeries: { opacity: 0.5 } });
+
+            const entered = await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
+
+            expect(entered).toHaveLength(DATA.length);
+        });
+    });
+
+    describe('with series-level opacities and highlight.unhighlightedSeries.opacity: 1', () => {
+        it('should draw the chart at rest again, and the series that was not entered as it was, after the hover', async () => {
+            const seriesExtra = { fillOpacity: 0.4, strokeOpacity: 0.7, strokeWidth: 2 };
+            await create({ unhighlightedSeries: { opacity: 1 } }, SERIES_GLOW, undefined, seriesExtra);
+            const rest = pixelsOf();
+            const shapes = () => shapesOf(getSeriesAt(chart, 1).contentGroup, kinds[type]);
+            const styleOf = () =>
+                shapes().map(({ opacity, fillOpacity, strokeOpacity }) => [opacity, fillOpacity, strokeOpacity]);
+            const restStyle = styleOf();
+            expect(restStyle[0]).toEqual([1, 0.4, 0.7]);
+
+            await hoverDatum(chart, 0, 0);
+            expect(styleOf()).toEqual(restStyle);
+            await endHover(chart);
+
+            expect(styleOf()).toEqual(restStyle);
+            expect(differingBytes(pixelsOf(), rest)).toBe(0);
         });
     });
 
