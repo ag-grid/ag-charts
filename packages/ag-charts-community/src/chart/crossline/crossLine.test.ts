@@ -3812,6 +3812,8 @@ describe('CrossLine label fitting', () => {
             ['a horizontal line at left', 'y', longLine({ placement: 'left' }), undefined],
             ['a horizontal line at inside', 'y', longLine({ placement: 'inside' }), undefined],
             ['a rotated vertical line', 'x', longLine({ placement: 'top', rotation: 90 }), 90],
+            ['a vertical line at 45°', 'x', longLine({ placement: 'top', rotation: 45 }), undefined],
+            ['a horizontal line at 45°', 'y', longLine({ placement: 'left', rotation: 45 }), undefined],
             ['a range at top', 'x', rangeWith({ placement: 'top' }), undefined],
             ['a range at bottom', 'x', rangeWith({ placement: 'bottom' }), undefined],
             ['a range at left', 'y', rangeWith({ placement: 'left' }), undefined],

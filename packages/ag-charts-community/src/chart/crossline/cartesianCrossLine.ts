@@ -695,23 +695,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                       area.y + area.height
                   );
 
-        const rotation = toRadians(label.rotation ?? 0);
-        const insets = this.boxed ? resolvePadding(label.padding) : undefined;
-        const insetsH = insets == null ? 0 : insets.left + insets.right;
-        const width = turnedSpan(roomX, roomY, Math.abs(Math.cos(rotation)), Math.abs(Math.sin(rotation)));
-        return { rotation: 0, width: Math.max(width - insetsH, 0), height: Infinity };
+        return this.turnedRoom(roomX, roomY);
     }
 
-    /** The room the visible band leaves a turned label inside it; an explicit bound frees that dimension of it. */
-    private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
-        const { labelBounds: band, label } = this;
-        if (band == null) return;
-        if (fit.maxWidth != null && fit.maxHeight != null) return;
-
-        const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
-        const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
-        const roomY = bandRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
-
+    /** `roomX` by `roomY` less the boxing insets, turned to the label's rotation. */
+    private turnedRoom(roomX: number, roomY: number): TurnedBounds {
+        const { label } = this;
         const rotation = label.rotation ?? 0;
         const cos = Math.abs(Math.cos(toRadians(rotation)));
         const sin = Math.abs(Math.sin(toRadians(rotation)));
@@ -720,7 +709,25 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const insetsV = insets == null ? 0 : insets.top + insets.bottom;
         const width = Math.max(roomX - insetsH * cos - insetsV * sin, 0);
         const height = Math.max(roomY - insetsH * sin - insetsV * cos, 0);
-        if (fit.maxWidth == null && fit.maxHeight == null) return { rotation, width, height };
+        return { rotation, width, height };
+    }
+
+    /** The room the visible band leaves a turned label inside it; an explicit bound frees that dimension of it. */
+    private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
+        const { labelBounds: band } = this;
+        if (band == null) return;
+        if (fit.maxWidth != null && fit.maxHeight != null) return;
+
+        const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
+        const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
+        const roomY = bandRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
+
+        const turned = this.turnedRoom(roomX, roomY);
+        if (fit.maxWidth == null && fit.maxHeight == null) return turned;
+
+        const { width, height } = turned;
+        const cos = Math.abs(Math.cos(toRadians(turned.rotation)));
+        const sin = Math.abs(Math.sin(toRadians(turned.rotation)));
 
         // In the label's own frame, hence unturned: the band bounds only the dimension left without a bound.
         return fit.maxWidth == null
