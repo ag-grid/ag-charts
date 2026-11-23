@@ -79,7 +79,7 @@ import {
     resolvePlacementLabelBoxExtent,
     resolvePlacementLabelStyle,
 } from './label';
-import { markerLabelRect } from './marker/markerLabelRect';
+import { type MarkerLabelRect, markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -202,21 +202,28 @@ export function boundLabelFit(
 
 /**
  * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
- * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). A negative
- * `threshold` grows that rectangle on every side by the spill it allows; a positive one leaves it. Pair
- * with {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not
- * be marker-centred.
+ * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
+ * {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not be
+ * marker-centred.
  */
 export function insideMarkerContainer(
     markerSize: number,
     shape?: AgMarkerShape,
     threshold = 0
 ): { width: number; height: number } {
-    const rect = markerLabelRect(shape);
-    const inset = Math.min(threshold, 0);
+    return markerRectContainer(markerSize, markerLabelRect(shape), threshold);
+}
+
+/** Room `rect` gives an `inside` label; a negative `threshold` grows it on every side by the spill it allows. */
+export function markerRectContainer(
+    markerSize: number,
+    rect: MarkerLabelRect,
+    threshold: number
+): { width: number; height: number } {
+    const spill = Math.min(threshold, 0);
     return {
-        width: Math.max(0, markerSize * rect.width - 2 * inset),
-        height: Math.max(0, markerSize * rect.height - 2 * inset),
+        width: markerSize * rect.width - 2 * spill,
+        height: markerSize * rect.height - 2 * spill,
     };
 }
 

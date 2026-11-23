@@ -64,8 +64,8 @@ export function insideBarValueInsets(
  * Inside-label containment region: the bar rect inset by the {@link insideBarValueInsets} `spacing`
  * reservation on the value axis — the gap the label keeps from the end(s) it is anchored against. The
  * engine flushes and contains labels against this region, so the gap survives orientation/placement
- * resolution, not just the anchor. Collision clearance is not part of it; the engine applies
- * `collision.threshold` to every region uniformly.
+ * resolution, not just the anchor. Collision clearance is not part of it; only a negative
+ * `collision.threshold` reaches it, as spill.
  */
 export function insideBarRegion(
     rect: BoxBounds,

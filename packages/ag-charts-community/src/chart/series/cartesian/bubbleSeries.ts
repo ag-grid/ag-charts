@@ -91,6 +91,7 @@ import {
     compassCandidatePlacement,
     createCandidateStyleResolver,
     getLabelStyles,
+    markerRectContainer,
     pickPlacementStyle,
 } from '../../labelUtil';
 import {
@@ -1007,14 +1008,10 @@ export abstract class BubbleScatterSeries<
         );
 
         const rect = ctx.labelInsideRect;
+        const threshold = ctx.label.collision.threshold ?? 0;
+        const container = rect ? markerRectContainer(markerSize, rect, threshold) : undefined;
         // Only a negative threshold reaches the marker, as spill.
-        const inset = Math.min(ctx.label.collision.threshold ?? 0, 0);
-        const container = rect
-            ? {
-                  width: Math.max(0, markerSize * rect.width - 2 * inset),
-                  height: Math.max(0, markerSize * rect.height - 2 * inset),
-              }
-            : undefined;
+        const inset = Math.min(threshold, 0);
         const region =
             ctx.labelInsideMask == null || rect == null
                 ? undefined
