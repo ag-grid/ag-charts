@@ -312,8 +312,8 @@ export class ContextMenu extends AbstractModuleInstance {
         const regions = this.seriesNodeRegions(this.pickedNodes, event);
         if (regions.length === 0) throw new Error(`this.pickedNodes is empty`);
 
-        // The topmost node (hit-test order) wins. Nodes overlapping it at this contextmenu point are broadcast in
-        // the allShowOnParams property.
+        // The first picked node wins: the highlighted node when it is under the pointer. Nodes overlapping it at
+        // this contextmenu point are broadcast in the allShowOnParams property.
         const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active, event), ...regions];
         // FIXME: params should be of type CallbackParamRules<AgContextMenuGetItemsParamsSeriesNode>
         const params: AgContextMenuGetItemsParamsSeriesNode = {
