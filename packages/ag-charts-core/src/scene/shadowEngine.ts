@@ -41,6 +41,12 @@ const MAX_CACHED_CASTS = 4;
 /** The most pixels that the kept shadows of a scene hold between them: about 16 MB, or one 1200 x 800 layer at 2x (3.84M). */
 const MAX_CACHED_AREA = MAX_MASK_AREA / 4;
 
+/**
+ * The most pixels that the kept parts of overlay glows hold between them: about 32 MB, or two parts of a 2800 x 1200 layer (3.4M each).
+ * They are counted apart from the kept shadows, as a hover keeps the parts that it does not change, beside the cast it blits.
+ */
+const MAX_CACHED_PART_AREA = MAX_MASK_AREA / 2;
+
 /** The pixels that a kept shadow may reach past what the blur's Gaussian covers, for the rounding of its edge. */
 const CACHED_EXTENT_MARGIN = 2;
 /** The most casters a key has for its blur to be clipped to their extent, which is measured caster by caster. */
@@ -202,6 +208,8 @@ interface ScratchPool {
     cutCanvas: SpreadCanvas | undefined;
     /** The pixels of the canvases that the scene's caches hold. */
     cachedArea: number;
+    /** The pixels of the canvases that the scene's kept glow parts hold, see {@link GlowPart}. */
+    partArea: number;
     /** The frames of the scene that have started, which the pool counts shrinking in. A pool outside a scene has none. */
     frame: number;
     uses: Record<PoolCanvas, CanvasUse>;
@@ -236,6 +244,7 @@ function getPool(scene: object | undefined): ScratchPool {
             gapCanvas: undefined,
             cutCanvas: undefined,
             cachedArea: 0,
+            partArea: 0,
             frame: 0,
             uses: { scratch: newUse(), gapCanvas: newUse(), cutCanvas: newUse() },
         };
@@ -400,6 +409,8 @@ interface ShadowCache {
     valid: boolean;
     /** The pixels the scene's kept shadows held when this cast was refused room, until its signature changes. */
     declinedAt: number | undefined;
+    /** The glows of the parts of an overlay's keys that the cast kept, which outlast the cast's signature changing. */
+    readonly parts: GlowPart[];
 }
 
 const caches = new WeakMap<object, ShadowCache[]>();
@@ -416,6 +427,12 @@ function freeCanvas(cache: ShadowCache) {
 }
 
 function freeCache(cache: ShadowCache) {
+    freeKept(cache);
+    freeParts(cache.parts, 0);
+}
+
+/** Frees what a cast of the cache holds but its parts, which a cast too large to keep still has. */
+function freeKept(cache: ShadowCache) {
     freeCanvas(cache);
     cache.declinedAt = undefined;
     cache.signature.length = 0;
@@ -441,19 +458,64 @@ function getCache(user: object, cast: number): ShadowCache | undefined {
             pool: undefined,
             valid: false,
             declinedAt: undefined,
+            parts: [],
         };
         userCaches[cast] = cache;
     }
     return cache;
 }
 
-function putSignature(cache: ShadowCache, value: number | string) {
+/** What {@link putSignature} writes to: the signature of a cast, or of a part of one. */
+type SignatureTarget = Pick<ShadowCache, 'signature' | 'cursor' | 'changed'>;
+
+function putSignature(cache: SignatureTarget, value: number | string) {
     const { signature, cursor } = cache;
     if (signature[cursor] !== value) {
         signature[cursor] = value;
         cache.changed = true;
     }
     cache.cursor = cursor + 1;
+}
+
+/** Writes what a cast of the key reads of it: its shadow and clips, and each caster's revision and frame. */
+function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, frames }: ShadowKey) {
+    putSignature(cache, slot);
+    putSignature(cache, shadow.fill ?? '');
+    putSignature(cache, shadow.fillOpacity ?? 1);
+    putSignature(cache, shadow.xOffset);
+    putSignature(cache, shadow.yOffset);
+    putSignature(cache, shadow.blur);
+    putSignature(cache, shadow.spread ?? 0);
+    putSignature(cache, shadow.gap ?? -1);
+    putSignature(cache, shadow.selfCut === true ? 1 : 0);
+    putSignature(cache, clip?.length ?? -1);
+    if (clip != null) {
+        for (const corner of clip) putSignature(cache, corner);
+    }
+    if (clips != null) {
+        putSignature(cache, clips.length);
+        for (const region of clips) {
+            putSignature(cache, region.length);
+            for (const contour of region) {
+                putSignature(cache, contour.length);
+                for (const corner of contour) putSignature(cache, corner);
+            }
+        }
+    }
+    putSignature(cache, casters.length);
+    let frame: ShadowFrame | undefined;
+    for (let i = 0; i < casters.length; i++) {
+        const caster = casters[i];
+        putSignature(cache, caster.serialNumber);
+        putSignature(cache, caster.revision);
+        // The casters of a frame follow one another.
+        const next = frames?.[i];
+        if (next != null && next !== frame) {
+            frame = next;
+            putSignature(cache, next.alpha);
+            for (const element of next.matrix) putSignature(cache, element);
+        }
+    }
 }
 
 /** Overwrites the signature with what the cast reads, and returns whether it held that already. */
@@ -481,45 +543,7 @@ function matchSignature(
     putSignature(cache, transform.f);
     if (unchanged && cache.signature.length > cache.cursor) return !cache.changed;
 
-    for (const { slot, shadow, clip, clips, casters, frames } of keys) {
-        putSignature(cache, slot);
-        putSignature(cache, shadow.fill ?? '');
-        putSignature(cache, shadow.fillOpacity ?? 1);
-        putSignature(cache, shadow.xOffset);
-        putSignature(cache, shadow.yOffset);
-        putSignature(cache, shadow.blur);
-        putSignature(cache, shadow.spread ?? 0);
-        putSignature(cache, shadow.gap ?? -1);
-        putSignature(cache, shadow.selfCut === true ? 1 : 0);
-        putSignature(cache, clip?.length ?? -1);
-        if (clip != null) {
-            for (const corner of clip) putSignature(cache, corner);
-        }
-        if (clips != null) {
-            putSignature(cache, clips.length);
-            for (const region of clips) {
-                putSignature(cache, region.length);
-                for (const contour of region) {
-                    putSignature(cache, contour.length);
-                    for (const corner of contour) putSignature(cache, corner);
-                }
-            }
-        }
-        putSignature(cache, casters.length);
-        let frame: ShadowFrame | undefined;
-        for (let i = 0; i < casters.length; i++) {
-            const caster = casters[i];
-            putSignature(cache, caster.serialNumber);
-            putSignature(cache, caster.revision);
-            // The casters of a frame follow one another.
-            const next = frames?.[i];
-            if (next != null && next !== frame) {
-                frame = next;
-                putSignature(cache, next.alpha);
-                for (const element of next.matrix) putSignature(cache, element);
-            }
-        }
-    }
+    for (const key of keys) signKey(cache, key);
 
     if (cache.signature.length !== cache.cursor) {
         cache.signature.length = cache.cursor;
@@ -1161,6 +1185,203 @@ function getSmallKeyExtent(
     );
 }
 
+/**
+ * The blurred glow of one part of an overlay key, which a cast kept, so that a hover that leaves the part's casters as they were
+ * draws it again rather than drawing its mask and blurring it. A cast keeps its parts beyond its own signature changing, as
+ * a hover changes that, and the parts that it leaves as they were are the most of its casters.
+ */
+interface GlowPart {
+    /** What the part's cast read, see {@link signGlowPart}. */
+    signature: (number | string)[];
+    /** The canvas, which covers what the key's glow can reach, and is counted against the pool's part budget while it is held. */
+    kept: SpreadCanvas | undefined;
+    pool: ScratchPool | undefined;
+    /** Whether the canvas holds the glow that the signature describes. */
+    valid: boolean;
+    /** Whether the cast under way has drawn the part, so a part of a cast that went before is the one to free or write over. */
+    used: boolean;
+}
+
+/** What the cast of a part reads that is not its key's, which {@link signGlowPart} writes with it. */
+interface GlowPartContext {
+    readonly transform: DOMMatrix;
+    readonly renderCtx: RenderContext;
+    readonly width: number;
+    readonly height: number;
+    /** Where the part's canvas is on the merged canvas, and the merged canvas's place on the layer and its resolution to it. */
+    readonly reach: Extent;
+    readonly region: Extent;
+    readonly scaleX: number;
+    readonly scaleY: number;
+    /** Whether the part is clipped to its key's clips as it is blurred, as a glow that is cut on a canvas of its own is not. */
+    readonly clipped: boolean;
+}
+
+/** The signature that a part is read into, to tell whether a part that was kept holds it. */
+const partSignature: { signature: (number | string)[]; cursor: number; changed: boolean } = {
+    signature: [],
+    cursor: 0,
+    changed: false,
+};
+
+function freeGlowPart(part: GlowPart) {
+    part.valid = false;
+    const { kept, pool } = part;
+    if (kept == null) return;
+
+    if (pool != null) pool.partArea -= kept.canvas.width * kept.canvas.height;
+    disposeCanvas(kept.canvas);
+    part.kept = undefined;
+    part.pool = undefined;
+}
+
+/** Frees the parts kept after the first `keep`, or the parts that no cast has drawn since `markPartsUnused`, when `unusedOnly`. */
+function freeParts(parts: GlowPart[], keep: number, unusedOnly: boolean = false) {
+    let kept = keep;
+    for (let i = keep; i < parts.length; i++) {
+        const part = parts[i];
+        if (unusedOnly && part.used) {
+            parts[kept++] = part;
+            continue;
+        }
+        freeGlowPart(part);
+    }
+    parts.length = kept;
+}
+
+/**
+ * Writes what the cast of a part of an overlay key reads: its key's, and the plan that draws its mask and blurs it, down to the
+ * place that its glow is drawn at. A part of the same casters that signs the same draws the same glow.
+ */
+function signGlowPart(plan: KeyPlan, context: GlowPartContext) {
+    const target = partSignature;
+    target.cursor = 0;
+    target.changed = false;
+    const { transform, renderCtx, reach, region } = context;
+    putSignature(target, context.width);
+    putSignature(target, context.height);
+    putSignature(target, renderCtx.devicePixelRatio);
+    putSignature(target, renderCtx.direction);
+    putSignature(target, renderCtx.ctx.globalAlpha);
+    putSignature(target, transform.a);
+    putSignature(target, transform.b);
+    putSignature(target, transform.c);
+    putSignature(target, transform.d);
+    putSignature(target, transform.e);
+    putSignature(target, transform.f);
+    for (const value of [
+        reach.x,
+        reach.y,
+        reach.width,
+        reach.height,
+        region.x,
+        region.y,
+        region.width,
+        region.height,
+    ]) {
+        putSignature(target, value);
+    }
+    putSignature(target, context.scaleX);
+    putSignature(target, context.scaleY);
+    putSignature(target, context.clipped ? 1 : 0);
+    const { extent } = plan;
+    for (const value of [extent?.x, extent?.y, extent?.width, extent?.height]) putSignature(target, value ?? -1);
+    putSignature(target, plan.blur);
+    putSignature(target, plan.offsetX);
+    putSignature(target, plan.offsetY);
+    putSignature(target, plan.padLeft);
+    putSignature(target, plan.padTop);
+    putSignature(target, plan.maskWidth);
+    putSignature(target, plan.maskHeight);
+    putSignature(target, plan.canvasWidth);
+    putSignature(target, plan.canvasHeight);
+    putSignature(target, plan.scaleX);
+    putSignature(target, plan.scaleY);
+    putSignature(target, plan.colour);
+    putSignature(target, plan.opaque ? 1 : 0);
+    putSignature(target, plan.tinted ? 1 : 0);
+    putSignature(target, plan.alpha);
+    putSignature(target, plan.key.shadow.overlay === true ? 1 : 0);
+    signKey(target, plan.key);
+    target.signature.length = target.cursor;
+}
+
+function sameSignature(a: readonly (number | string)[], b: readonly (number | string)[]) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+/** Starts a cast of the parts, which frees those that it does not draw once it has drawn the ones that it does. */
+function markPartsUnused(parts: GlowPart[]) {
+    for (const part of parts) part.used = false;
+}
+
+/**
+ * The part that holds the glow of the plan, which `hit` says is drawn already, or the part to draw it on, or undefined if
+ * the scene's kept parts leave no room for it, when the glow is cast directly as it is without one.
+ */
+function takeGlowPart(
+    parts: GlowPart[],
+    scene: object | undefined,
+    plan: KeyPlan,
+    context: GlowPartContext
+): { part: GlowPart; hit: boolean } | undefined {
+    const { width, height } = context.reach;
+    const pool = getPool(scene);
+    // Past the budget only a part that is held can be drawn again, so a cast with none held has nothing to read.
+    if (parts.length === 0 && pool.partArea + width * height > MAX_CACHED_PART_AREA) return;
+
+    signGlowPart(plan, context);
+    const { signature } = partSignature;
+    for (const part of parts) {
+        if (!part.used && part.valid && part.kept != null && sameSignature(part.signature, signature)) {
+            part.used = true;
+            return { part, hit: true };
+        }
+    }
+
+    // A part that an earlier cast kept and this one has not drawn is written over, as is its canvas if it is as large as needed.
+    let part = parts.find(
+        (held) => !held.used && held.kept?.canvas.width === width && held.kept.canvas.height === height
+    );
+    if (part == null) {
+        for (const held of parts) {
+            if (!held.used) freeGlowPart(held);
+        }
+        if (pool.partArea + width * height > MAX_CACHED_PART_AREA) return;
+
+        const kept = allocateCanvas(width, height);
+        if (kept == null) return;
+
+        part = { signature: [], kept, pool, valid: false, used: false };
+        pool.partArea += width * height;
+        parts.push(part);
+    }
+    part.used = true;
+    part.valid = false;
+    // The part takes the array that was just written, and the cast writes the next into the one that it held.
+    partSignature.signature = part.signature;
+    part.signature = signature;
+    return { part, hit: false };
+}
+
+/** Draws the glow that a part holds onto `dest`, which holds the merged canvas, at the place that the part covers. */
+function drawGlowPart(dest: Ctx, { kept }: GlowPart, reach: Extent) {
+    if (kept == null) return;
+
+    dest.save();
+    try {
+        dest.setTransform(1, 0, 0, 1, 0, 0);
+        dest.globalAlpha = 1;
+        dest.drawImage(kept.canvas, reach.x, reach.y);
+    } finally {
+        dest.restore();
+    }
+}
+
 /** Casts the glows of an overlay's keys merged onto `target`, cut by every key's footprints. Returns whether every caster drew. */
 function castOverlay(
     plans: readonly KeyPlan[],
@@ -1175,7 +1396,8 @@ function castOverlay(
     cuts: readonly ShadowKey[] | undefined,
     keysExtent: Extent | undefined,
     measuredExtents: ReadonlyMap<ShadowKey, Extent> | undefined,
-    measuredKeys: MeasuredKeys
+    measuredKeys: MeasuredKeys,
+    parts?: GlowPart[]
 ): boolean {
     const { canvas } = renderCtx.ctx;
     let extent = keysExtent;
@@ -1264,7 +1486,48 @@ function castOverlay(
             own.context.clearRect(reach.x, reach.y, reach.width, reach.height);
         }
         for (const plan of group) {
-            rendered = drawMask(plan, scratch, transform, renderCtx) && rendered;
+            // The part of a key of many casters that a hover leaves as it was is drawn again, rather than cast.
+            const kept =
+                parts == null || sourceOf(plan.key).casters.length < MIN_STRENGTH_SPLIT_CASTERS
+                    ? undefined
+                    : takeGlowPart(parts, scene, plan, {
+                          transform,
+                          renderCtx,
+                          width,
+                          height,
+                          reach,
+                          region,
+                          scaleX,
+                          scaleY,
+                          clipped: own == null,
+                      });
+            if (kept?.hit === true) {
+                drawGlowPart(dest, kept.part, reach);
+                continue;
+            }
+
+            const drew = drawMask(plan, scratch, transform, renderCtx);
+            rendered = drew && rendered;
+            const keptContext = kept?.part.kept?.context;
+            if (kept != null && keptContext != null) {
+                // The part is blurred onto a canvas of its own, at the place that it has on the merged canvas, and drawn from there.
+                const left = region.x + reach.x / scaleX;
+                const top = region.y + reach.y / scaleY;
+                keptContext.setTransform(1, 0, 0, 1, 0, 0);
+                keptContext.clearRect(0, 0, reach.width, reach.height);
+                keptContext.save();
+                try {
+                    if (own == null) clipToKey(plan.key, keptContext, transform, left, top, scaleX, scaleY);
+                    blurMask(plan, scratch.canvas, keptContext, left, top, scaleX, scaleY);
+                } finally {
+                    keptContext.restore();
+                }
+                // A caster that failed to draw is drawn again by the next cast, rather than left out of the glow for good.
+                kept.part.valid = drew;
+                drawGlowPart(dest, kept.part, reach);
+                continue;
+            }
+
             dest.save();
             try {
                 dest.setTransform(1, 0, 0, 1, 0, 0);
@@ -1658,8 +1921,11 @@ export function castShadows(
     const transform = ctx.getTransform();
 
     let cache = getCache(user, index);
+    // The parts of an overlay's glows are kept by a cast that can't keep its own shadows, and by one whose signature changes.
+    const parts = overlay === true && width * height <= MAX_MASK_AREA ? cache?.parts : undefined;
     if (cache != null && !mayKeep(cache, scene, width * height)) {
-        freeCache(cache);
+        freeKept(cache);
+        if (parts == null) freeParts(cache.parts, 0);
         cache = undefined;
     }
     const repeated =
@@ -1742,6 +2008,7 @@ export function castShadows(
                     : undefined,
         };
     });
+    if (parts != null) markPartsUnused(parts);
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
     if (scratch == null) {
         // The groups have drawn without their glows by now, so the glows are lost for the frame.
@@ -1783,7 +2050,8 @@ export function castShadows(
                 cuts,
                 keysExtent,
                 keyExtents,
-                measured
+                measured,
+                parts
             );
         } else {
             for (const plan of plans) {
@@ -1820,7 +2088,8 @@ export function castShadows(
             cuts,
             undefined,
             undefined,
-            measured
+            measured,
+            parts
         );
     } else {
         // A refused cast's extent is about the layer, so clipping to it would only cost a measure.
@@ -1830,5 +2099,7 @@ export function castShadows(
             castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, measured, bound);
         }
     }
+    // The parts that this cast left undrawn are of casters that are no longer a part of the glows, so they are freed.
+    if (parts != null) freeParts(parts, 0, true);
     return true;
 }

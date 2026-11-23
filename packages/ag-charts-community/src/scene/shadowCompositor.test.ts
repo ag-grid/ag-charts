@@ -3835,10 +3835,20 @@ describe('Group shadow compositor', () => {
                         crowded: true,
                         held: { width: 360, height: 117 },
                     };
-                    // One mask for each strength, and a kept cast clears each at the extent of the key.
-                    const { masks } = expectSameAsWhole(scenario);
-                    expect(masks).toHaveLength(2);
-                    expect(masks[0]).toEqual(masks[1]);
+                    // One mask for each strength, cleared whole by a direct cast.
+                    const bounded = castScenario(scenario, false);
+                    const full = castScenario(scenario, true);
+                    expectSameCast(bounded, full);
+                    expectWhole(bounded, full);
+                    expect(bounded.masks).toHaveLength(2);
+                    expect(bounded.masks[0]).toEqual(bounded.masks[1]);
+
+                    // A cast that repeats it draws each part from the glow that the cast before kept, so it blurs no mask.
+                    const keptBounded = castScenario(scenario, false, true);
+                    const keptFull = castScenario(scenario, true, true);
+                    expectSameCast(keptBounded, keptFull);
+                    expectEqualPixels(keptBounded, bounded);
+                    expect(keptFull.sources).toHaveLength(0);
                 });
 
                 it('should draw the pixels of the whole mask for an overlay glow cut by an item that casts none', () => {
