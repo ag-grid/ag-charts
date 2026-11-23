@@ -103,8 +103,8 @@ describe('insideMarkerPolicy', () => {
         expect(policy).toMatchObject({ maxWidth: 10, maxHeight: 5 });
     });
 
-    // Latest's bubble series bounded a masked inside label by this region, insetting only by spill.
-    const bubbleRegion = (threshold: number) => {
+    // The shape's rows inset only by spill: a positive threshold never shrinks the label's own room.
+    const spillInsetRegion = (threshold: number) => {
         const rect = markerLabelRect('diamond');
         const spill = Math.min(threshold, 0);
         const mask = markerRowSpans('diamond')!;
@@ -115,10 +115,10 @@ describe('insideMarkerPolicy', () => {
         );
     };
 
-    it.each([6, -6])('bounds a masked label as the bubble series did, at threshold %d', (threshold) => {
+    it.each([6, -6])('bounds a masked label by the shape rows inset only by spill, at threshold %d', (threshold) => {
         const sized = policyAt(threshold, true);
         const unsized = policyAt(0, true);
-        const reference = bubbleRegion(threshold);
+        const reference = spillInsetRegion(threshold);
         for (const [top, bottom] of [
             [-20, 20],
             [-5, 5],

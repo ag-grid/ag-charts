@@ -104,7 +104,7 @@ export function insideMarkerPolicy(
         policy.maxWidth = Math.min(base.maxWidth ?? Infinity, size * rect.width - 2 * spill);
         if (policy.region != null) policy.region = undefined;
     } else {
-        policy.maxWidth = Math.min(base.maxWidth ?? Infinity, Infinity);
+        policy.maxWidth = base.maxWidth ?? Infinity;
         const region = scratch?.region ?? new InsetMaskFitRegion();
         policy.region = region.set(mask, size, rect.cx * size, rect.cy * size, spill);
     }

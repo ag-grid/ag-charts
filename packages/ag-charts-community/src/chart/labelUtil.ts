@@ -186,7 +186,7 @@ export function fitLabelToContainerAutoSize(
  * and the container. Returns `fit` unchanged when there is no fit or no container. Series with an
  * invariant container should call this once at context-build time rather than per datum.
  */
-export function boundLabelFit(
+function boundLabelFit(
     fit: LabelFit | undefined,
     container: { width: number; height: number } | undefined
 ): LabelFit | undefined {

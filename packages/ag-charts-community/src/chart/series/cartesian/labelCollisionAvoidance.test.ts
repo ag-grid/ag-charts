@@ -1241,6 +1241,8 @@ describe('label collision avoidance', () => {
                 collision: { alwaysShow: false },
             },
         };
+        const placedBoxes = () =>
+            getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({ text, x, y, width, height }));
         const squareMarkerOptions = (type: 'line' | 'area' | 'scatter', styled: boolean): any => ({
             legend: { enabled: false },
             axes: {
@@ -1298,13 +1300,7 @@ describe('label collision avoidance', () => {
                 const placed = async (styled: boolean) => {
                     chart?.destroy();
                     chart = await createChart(insideLabelOptions(styled));
-                    return getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({
-                        text,
-                        x,
-                        y,
-                        width,
-                        height,
-                    }));
+                    return placedBoxes();
                 };
                 const drawnAsTriangle = await placed(false);
                 expect(drawnAsTriangle).toHaveLength(1);
@@ -1333,13 +1329,7 @@ describe('label collision avoidance', () => {
                         },
                     ],
                 } as any);
-                return getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({
-                    text,
-                    x,
-                    y,
-                    width,
-                    height,
-                }));
+                return placedBoxes();
             };
             const unstyled = await placed();
             expect(unstyled.map((l) => l.text)).toEqual(['Wide label']);
@@ -1397,13 +1387,7 @@ describe('label collision avoidance', () => {
             const placed = async (marker: Parameters<typeof series>[0]) => {
                 chart?.destroy();
                 chart = await createChart({ legend: { enabled: false }, series: [series(marker)] } as any);
-                return getPlacedLabelData(chart).map(({ text, x, y, width, height }) => ({
-                    text,
-                    x,
-                    y,
-                    width,
-                    height,
-                }));
+                return placedBoxes();
             };
             const drawn = await placed(by === 'size' ? { shape: 'circle', size: 60 } : { shape: 'heart', size: 60 });
             expect(drawn.length).toBeGreaterThan(0);
