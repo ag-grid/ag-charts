@@ -37,8 +37,8 @@ export interface ToolbarButtonWidgetOptions {
     tooltip?: string;
     value: ButtonValue;
     buttonSize?: number;
-    /** Whether a button that toggles a mode on and off is on, rather than starting an action. */
-    pressed?: boolean;
+    /** Makes the button a switch that is on when `true`; a command button when absent. */
+    checked?: boolean;
 }
 
 export interface ToolbarButtonInteractionOptions {
@@ -151,6 +151,8 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private lastTooltip?: string;
     private lastButtonSize?: number;
     private lastIconSize?: number;
+    private lastValue?: ButtonValue;
+    private dialogExpanded = false;
     private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(
@@ -181,7 +183,14 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const ariaLabel = options.ariaLabel == null ? undefined : localeManager.t(options.ariaLabel);
         this.setAriaLabel(ariaLabel ?? tooltip ?? content.label);
 
-        setAttribute(this.elem, 'aria-pressed', options.pressed);
+        this.setAriaRole(options.checked == null ? undefined : 'switch');
+        setAttribute(this.elem, 'aria-checked', options.checked);
+
+        // Toolbars reuse widgets by index, so a different button must not inherit an open dialog state.
+        if (options.value !== this.lastValue) {
+            this.lastValue = options.value;
+            this.dialogExpanded = false;
+        }
 
         const haspopup = getAriaHasPopupOfValue(options.value);
         if (haspopup == 'false') {
@@ -190,7 +199,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
             this.arrowKeyPredicate = falsePredicate;
         } else {
             this.setAriaHasPopup(haspopup);
-            this.setAriaExpanded(false);
+            this.setAriaExpanded(haspopup === 'dialog' && this.dialogExpanded);
             this.arrowKeyPredicate = interactionOptions.isRtl ? isArrowLeftPredicate : isArrowRightPredicate;
         }
 
@@ -232,8 +241,17 @@ export class ToolbarButtonWidget extends ButtonWidget {
         setToolbarSizeProperties(this.elem, buttonSize, iconSize);
     }
 
-    public setChecked(checked: boolean) {
-        setAttribute(this.elem, 'aria-checked', checked);
+    /** Reports whether the dialog this button opens is open. Ignored by buttons that do not open a dialog. */
+    public setDialogExpanded(expanded: boolean) {
+        this.dialogExpanded = expanded;
+        if (this.lastValue != null && getAriaHasPopupOfValue(this.lastValue) === 'dialog') {
+            this.setAriaExpanded(expanded);
+        }
+    }
+
+    /** Marks the button as the current one in its set, such as the selected range. */
+    public setCurrent(current: boolean) {
+        setAttribute(this.elem, 'aria-current', current ? true : undefined);
     }
 }
 

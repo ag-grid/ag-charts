@@ -224,6 +224,7 @@ export class AnnotationOptionsToolbar {
     public hideOverlays() {
         this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
+        this.collapseDialogButtons();
         this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
@@ -243,6 +244,18 @@ export class AnnotationOptionsToolbar {
     public clearActiveButton() {
         this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
+        this.collapseDialogButtons();
+    }
+
+    public setDialogExpanded(value: AnnotationOptions, expanded: boolean) {
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        this.toolbar.setDialogExpandedByIndex(index, expanded);
+    }
+
+    private collapseDialogButtons() {
+        for (const index of this.visibleButtons.keys()) {
+            this.toolbar.setDialogExpandedByIndex(index, false);
+        }
     }
 
     private getOpenOverlay() {
@@ -364,6 +377,7 @@ export class AnnotationOptionsToolbar {
             case AnnotationOptions.TextColor: {
                 this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
+                this.setDialogExpanded(button.value, true);
                 this.colorPicker.show({
                     color: getDefaultColor(datum, button.value),
                     opacity: getDefaultOpacity(datum, button.value),
@@ -379,6 +393,7 @@ export class AnnotationOptionsToolbar {
                             cancelled,
                         });
                     }).bind(this, button.value),
+                    onHide: () => this.setDialogExpanded(button.value, false),
                 });
                 break;
             }
@@ -508,7 +523,6 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.toolbar.toggleSwitchCheckedByIndex(index, locked);
                 this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
