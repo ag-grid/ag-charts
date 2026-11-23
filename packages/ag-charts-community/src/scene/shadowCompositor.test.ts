@@ -28,7 +28,7 @@ import type { RenderContext, ResolvedDropShadowOptions, ShadowKey, Shape } from 
 
 import { differingBytes } from '../chart/test/expectSamePixels';
 import { setupMockCanvas } from '../util/test/mockCanvas';
-import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
+import { BLACK, type Pixel, box, isHalfRed, maxAlpha } from '../util/test/shadowPixels';
 
 const WIDTH = 400;
 const HEIGHT = 220;
@@ -41,7 +41,6 @@ const GAPPED_GLOW = { ...IN_PLACE, spread: 8, gap: 0, glow: true as const };
 
 const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
-const maxAlphaOf = (data: number[]) => data.reduce((max, value, i) => (i % 4 === 3 ? Math.max(max, value) : max), 0);
 const BLUE_PIXEL = [0, 0, 255, 255];
 const CLEAR = [0, 0, 0, 0];
 
@@ -368,7 +367,7 @@ describe('Group shadow compositor', () => {
             const batched = Array.from(ctx().getImageData(100, 20, 60, 180).data);
 
             expect(alone.some((value) => value !== 0)).toBe(true);
-            expect(Math.max(...alone.filter((_, i) => i % 4 === 3))).toBeLessThan(255);
+            expect(maxAlpha(alone)).toBeLessThan(255);
             expect(batched).toEqual(alone);
         });
 
@@ -396,7 +395,7 @@ describe('Group shadow compositor', () => {
                     const alone = rendered(1, bars[name](), false);
 
                     expect(alone.some((value) => value !== 0)).toBe(true);
-                    expect(maxAlphaOf(alone)).toBeLessThan(255);
+                    expect(maxAlpha(alone)).toBeLessThan(255);
                     expect(rendered(1, bars[name]())).toEqual(alone);
                 }
             );
@@ -420,7 +419,7 @@ describe('Group shadow compositor', () => {
                     const alone = renderScene(false);
 
                     expect(alone.some((value) => value !== 0)).toBe(true);
-                    expect(maxAlphaOf(alone)).toBeLessThan(255);
+                    expect(maxAlpha(alone)).toBeLessThan(255);
                     expect(renderScene(true)).toEqual(alone);
                 }
             );
@@ -3084,7 +3083,7 @@ describe('Group shadow compositor', () => {
                     const ungapped = tintingDifference({ ...GLOW, blur: 6 });
                     const gapped = tintingDifference({ ...GAPPED, blur: 6 });
 
-                    expect(maxAlphaOf(gapped.tinted)).toBeGreaterThan(0);
+                    expect(maxAlpha(gapped.tinted)).toBeGreaterThan(0);
                     expect(gapped.worst).toBeLessThanOrEqual(ungapped.worst + 2);
                     // The cut is where the item is.
                     expect(Math.abs(pixelAtOf(gapped.tinted, 40, 80)[3] - 128)).toBeLessThanOrEqual(1);
@@ -3461,7 +3460,7 @@ describe('Group shadow compositor', () => {
                 });
 
                 it('should draw the pixels that the whole mask draws', () => {
-                    expect(maxAlphaOf(full.pixels)).toBeGreaterThan(0);
+                    expect(maxAlpha(full.pixels)).toBeGreaterThan(0);
                     expect(bounded.pixels).toHaveLength(full.pixels.length);
                     expectEqualPixels(bounded, full);
                 });
@@ -3469,7 +3468,7 @@ describe('Group shadow compositor', () => {
                 it('should blit the pixels of a kept cast that the whole mask draws', () => {
                     const keptBounded = castScenario(scenario, false, true);
                     const keptFull = castScenario(scenario, true, true);
-                    expect(maxAlphaOf(keptFull.pixels)).toBeGreaterThan(0);
+                    expect(maxAlpha(keptFull.pixels)).toBeGreaterThan(0);
                     expectEqualPixels(keptBounded, keptFull);
                     // The cast that was kept draws what a direct one does.
                     expectEqualPixels(keptBounded, bounded);
@@ -4249,7 +4248,7 @@ describe('Group shadow compositor', () => {
                     const before = offscreenCanvases();
                     startShadowFrame(scene);
                     const expected = castPixels('small');
-                    expect(maxAlphaOf(expected)).toBeGreaterThan(0);
+                    expect(maxAlpha(expected)).toBeGreaterThan(0);
                     destroyShadowScratch(scene);
 
                     frame('large');
@@ -4297,7 +4296,7 @@ describe('Group shadow compositor', () => {
             it.each(LAYOUTS)('should cast %s as it casts the same shadow', (_name, nodes) => {
                 renderNodes(nodes('fillShadow'), batchShadows);
                 const asShadow = pixels();
-                expect(maxAlphaOf(asShadow)).toBeGreaterThan(0);
+                expect(maxAlpha(asShadow)).toBeGreaterThan(0);
 
                 renderNodes(nodes('fillGlow'), batchShadows);
 
