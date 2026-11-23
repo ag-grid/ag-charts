@@ -148,6 +148,9 @@ const MAX_ITEM_CASTS = 16;
 const ITEM_SHADOW_INDEX = 0;
 const ITEM_GLOW_INDEX = 1;
 
+/** The `shadow` an item styler is given: the one the item would cast, with no deprecated `color`. */
+type StylerShadow = Readonly<Omit<NormalisedDropShadowOptions, 'color'>>;
+
 /** The `shadow` that `highlightedItem` sets. */
 type HighlightedItemShadow = NonNullable<AgShadowHighlightStyleOptions['shadow']>;
 
@@ -1137,11 +1140,33 @@ export abstract class Series<
     public getStylerShadow(
         seriesShadow: NormalisedDropShadowOptions | undefined,
         highlightState: HighlightState
-    ): Readonly<NormalisedDropShadowOptions> | undefined {
+    ): StylerShadow | undefined {
         const bucket = highlightState === HighlightState.Item ? this.getItemShadowBucket() : null;
         const shadow =
             bucket != null && seriesShadow != null ? this.getCascadedShadow(seriesShadow, bucket) : seriesShadow;
-        return shadow?.enabled ? shadow : undefined;
+        return this.toStylerShadow(shadow);
+    }
+
+    /** Memoises {@link toStylerShadow} by the shadow it was made from, so a styler is given one object per shadow. */
+    private stylerShadows?: WeakMap<NormalisedDropShadowOptions, StylerShadow>;
+
+    /**
+     * The `shadow` for an item styler's params: unset where it casts none, and with no deprecated `color`, which the
+     * `shadow` that a styler returns cannot have, so that a styler can return, or spread, what it was given.
+     * It is the shadow itself where it has no `color`, and one cached copy of it otherwise, so nothing is allocated per item.
+     */
+    protected toStylerShadow(shadow: NormalisedDropShadowOptions | undefined): StylerShadow | undefined {
+        if (!shadow?.enabled) return undefined;
+        if (!('color' in shadow)) return shadow;
+
+        const cache = (this.stylerShadows ??= new WeakMap());
+        let stylerShadow = cache.get(shadow);
+        if (stylerShadow == null) {
+            const { color, ...rest } = shadow;
+            stylerShadow = { ...rest, fill: rest.fill ?? color };
+            cache.set(shadow, stylerShadow);
+        }
+        return stylerShadow;
     }
 
     private resolveGlowCascade(seriesGlow: DeepPartial<AgGlowOptions> | undefined, highlightState: HighlightState) {

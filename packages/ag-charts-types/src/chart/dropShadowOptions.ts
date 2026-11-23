@@ -92,8 +92,11 @@ export interface AgItemShadowStyle {
 
 /** What an `itemStyler` is given of the `shadow` and `glow` that its item casts, for the highlight state of the call. */
 export interface AgItemShadowStylerParams {
-    /** The `shadow` that this item would cast, which the `shadow` an `itemStyler` returns is merged over. Unset if nothing sets it. */
-    readonly shadow?: Readonly<AgDropShadowOptions>;
+    /**
+     * The `shadow` that this item would cast, which the `shadow` an `itemStyler` returns is merged over. Unset if nothing sets it.
+     * It has no deprecated `color`, so it can be returned, or spread into the `shadow` that is returned.
+     */
+    readonly shadow?: Readonly<Omit<AgDropShadowOptions, 'color'>>;
     /** The `glow` that this item would cast, which the `glow` an `itemStyler` returns is merged over. Unset if nothing sets it. */
     readonly glow?: Readonly<AgGlowOptions>;
 }
