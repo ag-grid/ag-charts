@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { Text } from '../scene/shape/text';
 import { isBoxInSector, isPointInSector } from '../scene/util/sector';
 import type { OverflowStrategy } from '../text/textWrapper';
 import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
@@ -185,6 +186,36 @@ describe('sectorLabelPlacer', () => {
         it('places nothing when the wedge cannot hold an image-only label', () => {
             const wedge = sector(Math.PI / 2, Math.PI / 16, 100, 120);
             expect(place([image(40)], wedge, anchorAt(110, Math.PI / 2), overflowStrategy)).toBeUndefined();
+        });
+    });
+
+    describe('layout passes', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('lays out a label its anchor holds once, and keeps it there whole', () => {
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const anchor = anchorAt(150, Math.PI / 2);
+            const placed = place('Alpha', sector(Math.PI / 2, Math.PI / 3, 0, 300), anchor, undefined);
+            expect(placed).toEqual({ text: 'Alpha', x: anchor.x, y: anchor.y, fontSize: undefined });
+            expect(layouts).toHaveBeenCalledTimes(1);
+        });
+
+        it('fits a label in a wedge wider than a half turn in full, even where its anchor holds it', () => {
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            place('Alpha', sector(Math.PI / 2, (3 * Math.PI) / 4, 0, 300), anchorAt(150, Math.PI / 2), undefined);
+            expect(layouts.mock.calls.length).toBeGreaterThan(1);
+        });
+
+        it.each([
+            ['its anchor cannot hold', undefined],
+            ['may shrink', 6],
+        ])('fits a label %s to the wedge in full', (_, minimumFontSize) => {
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const wedge = sector(Math.PI / 2, Math.PI / 10, 0, 200);
+            place('Alpha Bravo', wedge, anchorAt(100, Math.PI / 2), 'ellipsis', minimumFontSize);
+            expect(layouts.mock.calls.length).toBeGreaterThan(1);
         });
     });
 });

@@ -141,11 +141,15 @@ export function isBoxInSector(box: BoxBounds, sector: SectorBoundaries) {
     const start180 = normalizeAngle180(startAngle);
     const end180 = normalizeAngle180(endAngle);
     const inset = sector.radialEdgeInset ?? 0;
+    const startCos = Math.cos(startAngle);
+    const startSin = Math.sin(startAngle);
+    const endCos = Math.cos(endAngle);
+    const endSin = Math.sin(endAngle);
     if (
-        !isWithinAngles(box.x, box.y, startAngle, endAngle, start180, end180, inset) ||
-        !isWithinAngles(x1, box.y, startAngle, endAngle, start180, end180, inset) ||
-        !isWithinAngles(x1, y1, startAngle, endAngle, start180, end180, inset) ||
-        !isWithinAngles(box.x, y1, startAngle, endAngle, start180, end180, inset)
+        !isWithinAngles(box.x, box.y, start180, end180, inset, startCos, startSin, endCos, endSin) ||
+        !isWithinAngles(x1, box.y, start180, end180, inset, startCos, startSin, endCos, endSin) ||
+        !isWithinAngles(x1, y1, start180, end180, inset, startCos, startSin, endCos, endSin) ||
+        !isWithinAngles(box.x, y1, start180, end180, inset, startCos, startSin, endCos, endSin)
     ) {
         return false;
     }
@@ -167,9 +171,13 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     const { startAngle, endAngle, innerRadius, outerRadius } = sector;
     if (startAngle === endAngle) return false;
     if (!isWithinRadii(x, y, Math.min(innerRadius, outerRadius), Math.max(innerRadius, outerRadius))) return false;
-    const start180 = normalizeAngle180(startAngle);
-    const end180 = normalizeAngle180(endAngle);
-    return isWithinAngles(x, y, startAngle, endAngle, start180, end180, sector.radialEdgeInset ?? 0);
+    const inAngle = isWithinAngleRange(Math.atan2(y, x), normalizeAngle180(startAngle), normalizeAngle180(endAngle));
+    const inset = sector.radialEdgeInset ?? 0;
+    if (!inAngle || inset <= 0) return inAngle;
+    return (
+        isClearOfEdge(x, y, Math.cos(startAngle), Math.sin(startAngle), inset, 1) &&
+        isClearOfEdge(x, y, Math.cos(endAngle), Math.sin(endAngle), inset, -1)
+    );
 }
 
 /** {@link isPointInSector} with the sector resolved once, for a caller testing many points against it. */
@@ -181,9 +189,57 @@ export function sectorPointTest(sector: SectorBoundaries): (x: number, y: number
     const start180 = normalizeAngle180(startAngle);
     const end180 = normalizeAngle180(endAngle);
     const inset = sector.radialEdgeInset ?? 0;
-    return (x, y) =>
+    const startCos = Math.cos(startAngle);
+    const startSin = Math.sin(startAngle);
+    const endCos = Math.cos(endAngle);
+    const endSin = Math.sin(endAngle);
+    const exact = (x: number, y: number) =>
         isWithinRadii(x, y, minRadius, maxRadius) &&
-        isWithinAngles(x, y, startAngle, endAngle, start180, end180, inset);
+        isWithinAngles(x, y, start180, end180, inset, startCos, startSin, endCos, endSin);
+    // Squared radii only order non-negative bounds.
+    if (minRadius < 0) return exact;
+    // The sweep as isWithinAngleRange reads it: equal ends hold every angle.
+    const sweep = start180 < end180 ? end180 - start180 : end180 - start180 + 2 * Math.PI;
+    const anyAngle = start180 === end180;
+    const wide = sweep > Math.PI;
+    const innerOut = (minRadius * (1 - POINT_TEST_MARGIN)) ** 2;
+    const innerIn = (minRadius * (1 + POINT_TEST_MARGIN)) ** 2;
+    const outerIn = (maxRadius * (1 - POINT_TEST_MARGIN)) ** 2;
+    const outerOut = (maxRadius * (1 + POINT_TEST_MARGIN)) ** 2;
+    // OPTIMIZATION: fitting probes thousands of points per label, so one clear of every boundary skips sqrt and atan2.
+    return (x, y) => {
+        const squared = x * x + y * y;
+        if (squared > outerOut || squared < innerOut) return false;
+        if (squared < innerIn || squared > outerIn) return exact(x, y);
+        if (!anyAngle) {
+            const margin = POINT_TEST_MARGIN * (Math.abs(x) + Math.abs(y));
+            const pastStart = y * startCos - x * startSin;
+            const beforeEnd = x * endSin - y * endCos;
+            if (Math.abs(pastStart) <= margin || Math.abs(beforeEnd) <= margin) return exact(x, y);
+            const inAngle = wide ? pastStart > 0 || beforeEnd > 0 : pastStart > 0 && beforeEnd > 0;
+            if (!inAngle) return false;
+        }
+        if (inset <= 0) return true;
+        return isClearOfEdge(x, y, startCos, startSin, inset, 1) && isClearOfEdge(x, y, endCos, endSin, inset, -1);
+    };
+}
+
+// Relative distance from a boundary inside which a point takes the exact test; float error is ~1e-15 of it.
+const POINT_TEST_MARGIN = 1e-9;
+
+/** A `holdsColumn` for {@link probedFitRegion}: up to a quarter turn the inset sector is convex but for its hole. */
+export function sectorColumnTest(
+    sector: SectorBoundaries
+): ((x: number, top: number, bottom: number) => boolean) | undefined {
+    const sweep = sector.endAngle - sector.startAngle;
+    if (!(sweep > 0 && sweep <= Math.PI / 2)) return undefined;
+    const minRadius = Math.min(sector.innerRadius, sector.outerRadius);
+    if (minRadius <= 0) return () => true;
+    const holeSquared = minRadius * minRadius;
+    return (x, top, bottom) => {
+        const nearestY = Math.min(Math.max(0, Math.min(top, bottom)), Math.max(top, bottom));
+        return x * x + nearestY * nearestY > holeSquared;
+    };
 }
 
 function isWithinRadii(x: number, y: number, minRadius: number, maxRadius: number) {
@@ -191,42 +247,35 @@ function isWithinRadii(x: number, y: number, minRadius: number, maxRadius: numbe
     return radius >= minRadius && radius <= maxRadius;
 }
 
-/** The angular half of {@link isPointInSector}, given both raw angles and their {@link normalizeAngle180} forms. */
+/** The angular half of {@link isPointInSector}, given the {@link normalizeAngle180} angles and edge directions. */
 function isWithinAngles(
     x: number,
     y: number,
-    startAngle: number,
-    endAngle: number,
     start180: number,
     end180: number,
-    inset: number
+    inset: number,
+    startCos: number,
+    startSin: number,
+    endCos: number,
+    endSin: number
 ) {
-    const angle = Math.atan2(y, x);
-    // Sector can cross axis start
-    const inAngle =
-        start180 < end180
-            ? angle <= end180 && angle >= start180
-            : (angle <= end180 && angle >= -Math.PI) || (angle >= start180 && angle <= Math.PI);
+    const inAngle = isWithinAngleRange(Math.atan2(y, x), start180, end180);
     if (!inAngle || inset <= 0) return inAngle;
-    return isClearOfEdge(x, y, startAngle, inset, 1) && isClearOfEdge(x, y, endAngle, inset, -1);
+    return isClearOfEdge(x, y, startCos, startSin, inset, 1) && isClearOfEdge(x, y, endCos, endSin, inset, -1);
 }
 
-// OPTIMIZATION: label fitting probes the same two edges thousands of times per label, so each edge's direction is
-// kept until its angle changes. Shared by every caller, so not re-entrant.
-const edgeDirections = { 1: { angle: Number.NaN, cos: 1, sin: 0 }, [-1]: { angle: Number.NaN, cos: 1, sin: 0 } };
+function isWithinAngleRange(angle: number, start180: number, end180: number) {
+    // Sector can cross axis start
+    return start180 < end180
+        ? angle <= end180 && angle >= start180
+        : (angle <= end180 && angle >= -Math.PI) || (angle >= start180 && angle <= Math.PI);
+}
 
 /**
- * False when the point lies within `inset` of the straight edge at `angle`, on the side `interior` faces. Assumes the
- * sector runs clockwise from its start edge (`interior` 1) to its end edge (`interior` -1).
+ * False when the point lies within `inset` of the straight edge in direction `(cos, sin)`, on the side `interior`
+ * faces. Assumes the sector runs clockwise from its start edge (`interior` 1) to its end edge (`interior` -1).
  */
-function isClearOfEdge(x: number, y: number, angle: number, inset: number, interior: 1 | -1) {
-    const direction = edgeDirections[interior];
-    if (direction.angle !== angle) {
-        direction.angle = angle;
-        direction.cos = Math.cos(angle);
-        direction.sin = Math.sin(angle);
-    }
-    const { cos, sin } = direction;
+function isClearOfEdge(x: number, y: number, cos: number, sin: number, inset: number, interior: 1 | -1) {
     if (x * cos + y * sin < 0) return true;
     const across = interior * (y * cos - x * sin);
     return across < 0 || across >= inset;

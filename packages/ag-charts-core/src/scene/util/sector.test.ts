@@ -8,6 +8,7 @@ import {
     isBoxInSector,
     isPointInSector,
     radiiScalingFactor,
+    sectorColumnTest,
     sectorPointTest,
 } from './sector';
 
@@ -209,14 +210,12 @@ describe('isBoxInSector', () => {
     });
 });
 
+const at = (radius: number, angle: number): [number, number] => [radius * Math.cos(angle), radius * Math.sin(angle)];
+
 describe.each([
     ['isPointInSector', (x: number, y: number, sector: Sector) => isPointInSector(x, y, sector)],
     ['sectorPointTest', (x: number, y: number, sector: Sector) => sectorPointTest(sector)(x, y)],
 ])('%s', (_name, contains) => {
-    const at = (radius: number, angle: number): [number, number] => [
-        radius * Math.cos(angle),
-        radius * Math.sin(angle),
-    ];
     const ring = (startAngle: number, endAngle: number, innerRadius = 50, outerRadius = 100): Sector => ({
         startAngle,
         endAngle,
@@ -266,11 +265,90 @@ describe('sector point tests with a radialEdgeInset', () => {
         });
     });
 
+    it('agrees with isPointInSector on every sector shape, on and beside each boundary', () => {
+        const rng = makeRng(0x51ed270b);
+        const nudges = [0, 1e-15, -1e-15, 1e-12, -1e-12, 1e-9, -1e-9, 1e-6, -1e-6, 0.01, -0.01];
+        let checked = 0;
+        for (let i = 0; i < 300; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sweep = [rng() * 0.3, rng() * Math.PI, Math.PI + rng() * Math.PI, TAU, TAU + rng(), -rng() * 2][
+                i % 6
+            ];
+            const radii = [rng() * 60, 60 + rng() * 140];
+            const sector = {
+                startAngle,
+                endAngle: startAngle + sweep,
+                innerRadius: i % 7 === 0 ? 0 : radii[i % 2],
+                outerRadius: radii[(i + 1) % 2],
+                radialEdgeInset: i % 3 === 0 ? rng() * 6 : 0,
+            };
+            const contains = sectorPointTest(sector);
+            const probe = (x: number, y: number) => {
+                expect(contains(x, y)).toBe(isPointInSector(x, y, sector));
+                checked++;
+            };
+            for (let j = 0; j < 40; j++) probe((rng() - 0.5) * 440, (rng() - 0.5) * 440);
+            const anyAngle = startAngle + rng() * sweep;
+            for (const nudge of nudges) {
+                for (const radius of [sector.innerRadius, sector.outerRadius]) {
+                    probe(...at(radius * (1 + nudge), anyAngle));
+                }
+                for (const angle of [sector.startAngle, sector.endAngle]) {
+                    probe(...at(radii[1] / 2, angle + nudge));
+                    probe(...at(radii[1] / 2, angle + nudge + Math.PI));
+                }
+            }
+        }
+        expect(checked).toBeGreaterThan(30000);
+    });
+
     it('insets only along each edge, not across the line it lies on', () => {
         // Three quarters of a turn: (-50, 3) is within 5px of the line through the start edge, but on the far
         // side of the centre from the edge itself.
         const reflex: Sector = { ...quarter, endAngle: Math.PI * 1.5 };
         expect(isPointInSector(-50, 3, reflex)).toBe(true);
+    });
+});
+
+describe('sectorColumnTest', () => {
+    const wedge = (sweep: number, innerRadius: number): Sector => ({
+        startAngle: 0.3,
+        endAngle: 0.3 + sweep,
+        innerRadius,
+        outerRadius: 100,
+        radialEdgeInset: 0.5,
+    });
+
+    it('vouches for no column of a sector wider than a quarter turn', () => {
+        expect(sectorColumnTest(wedge(Math.PI / 2 + 0.01, 0))).toBeUndefined();
+    });
+
+    it('refuses a column passing through the hole between its ends', () => {
+        const holds = sectorColumnTest(wedge(Math.PI / 2, 40))!;
+        expect(holds(20, -60, 60)).toBe(false);
+        expect(holds(50, -60, 60)).toBe(true);
+    });
+
+    it.each([
+        ['a pie wedge', 0],
+        ['a donut wedge', 40],
+    ])('holds every row of a vouched column whose ends %s holds', (_, innerRadius) => {
+        const rng = makeRng(0x2545f491);
+        let checked = 0;
+        for (let i = 0; i < 4000; i++) {
+            const sector = wedge(0.05 + rng() * (Math.PI / 2 - 0.05), innerRadius);
+            const contains = sectorPointTest(sector);
+            const holds = sectorColumnTest(sector)!;
+            const x = rng() * 200 - 100;
+            const top = rng() * 200 - 100;
+            const bottom = top + rng() * 60;
+            if (!contains(x, top) || !contains(x, bottom) || !holds(x, top, bottom)) continue;
+            checked++;
+            for (let row = 1; row < 16; row++) {
+                expect(contains(x, top + ((bottom - top) * row) / 16)).toBe(true);
+            }
+        }
+        expect(checked).toBeGreaterThan(50);
     });
 });
 

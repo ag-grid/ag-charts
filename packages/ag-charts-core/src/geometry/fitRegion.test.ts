@@ -117,6 +117,18 @@ describe('probedFitRegion over a shape with a hole', () => {
         expect(left).toBeCloseTo(-50, 1);
     });
 
+    test('reports the same spans for fewer containment tests when the shape vouches for its columns', () => {
+        const probe = (holdsColumn?: () => boolean) => {
+            const contains = vi.fn(inCircle(100));
+            const region = probedFitRegion({ x: 20, y: 10 }, contains, 200, holdsColumn);
+            return { span: region.spanAt(-15, 25), calls: contains.mock.calls.length };
+        };
+        const sampled = probe();
+        const vouched = probe(() => true);
+        expect(vouched.span).toEqual(sampled.span);
+        expect(vouched.calls).toBeLessThan(sampled.calls);
+    });
+
     test('stops at the hole rather than reporting the room beyond it', () => {
         // Anchored on the left arm, the reach to the right leaves the annulus at the hole and enters it
         // again 100px further on: the room reported is the near arm's, not the far one's.

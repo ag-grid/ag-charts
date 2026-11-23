@@ -392,7 +392,32 @@ function measureText(text: NormalisedTextOrSegments, font: FontOptions) {
 
 /** Characters of the source that survived a fit, ignoring the layout and the ellipsis marking the loss. */
 function survivingCharacters(text: string) {
-    return text.replaceAll(EllipsisChar, '').replaceAll(/[\s\u200B]/g, '').length;
+    // OPTIMIZATION: counted in place rather than by stripping copies, as the region fit scores every candidate.
+    let kept = 0;
+    for (let i = 0; i < text.length; i += 1) {
+        if (!isDroppedCharCode(text.charCodeAt(i))) kept += 1;
+    }
+    return kept;
+}
+
+const ELLIPSIS_CODE = EllipsisChar.codePointAt(0)!;
+
+/** The ellipsis, a zero-width space, or a code unit the regular expression `\s` matches. */
+function isDroppedCharCode(code: number) {
+    if (code <= 0x20) return code === 0x20 || (code >= 0x09 && code <= 0x0d);
+    if (code < 0xa0) return false;
+    return (
+        code === ELLIPSIS_CODE ||
+        code === 0xa0 ||
+        code === 0x1680 ||
+        (code >= 0x2000 && code <= 0x200b) ||
+        code === 0x2028 ||
+        code === 0x2029 ||
+        code === 0x202f ||
+        code === 0x205f ||
+        code === 0x3000 ||
+        code === 0xfeff
+    );
 }
 
 /** Where the top of a block of `height` sits against the anchor, kept inside the room the shape has. */

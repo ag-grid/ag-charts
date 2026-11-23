@@ -74,11 +74,14 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
  * its hole and entered again beyond it, so a plain bisection over `[0, limit]` can settle on the far arm
  * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `probes`
  * samples first, and bisected only inside the interval where the shape was first left.
+ *
+ * `holdsColumn(x, top, bottom)` vouches that a column whose ends are inside is inside throughout.
  */
 export function probedFitRegion(
     anchor: { x: number; y: number },
     contains: (x: number, y: number) => boolean,
     limit: number,
+    holdsColumn?: (x: number, top: number, bottom: number) => boolean,
     steps = 20,
     rows = 5,
     probes = 16
@@ -86,10 +89,13 @@ export function probedFitRegion(
     const reach = (top: number, bottom: number, direction: number) => {
         const sampled = Math.max(2, rows);
         const step = (bottom - top) / (sampled - 1);
+        const firstY = anchor.y + top;
+        const lastY = anchor.y + top + step * (sampled - 1);
         const insideBand = (t: number) => {
             const x = anchor.x + direction * t;
             // OPTIMIZATION: a band usually leaves the shape at its edge rows, so those are tested first.
-            if (!contains(x, anchor.y + top) || !contains(x, anchor.y + top + step * (sampled - 1))) return false;
+            if (!contains(x, firstY) || !contains(x, lastY)) return false;
+            if (holdsColumn?.(x, firstY, lastY) === true) return true;
             for (let i = 1; i < sampled - 1; i += 1) {
                 if (!contains(x, anchor.y + top + step * i)) return false;
             }
@@ -139,13 +145,18 @@ function firstOutside(inside: (t: number) => boolean, limit: number, probes: num
 
 /** Caches a region's `spanAt` by band, as wrapping asks for the same band once per candidate word. */
 export function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {
-    const cache = new Map<string, readonly [number, number]>();
+    // OPTIMIZATION: keyed by the two numbers rather than a string built from them, so a hit allocates nothing.
+    const cache = new Map<number, Map<number, readonly [number, number]>>();
     return (top: number, bottom: number) => {
-        const key = `${top},${bottom}`;
-        let span = cache.get(key);
+        let byBottom = cache.get(top);
+        if (byBottom == null) {
+            byBottom = new Map();
+            cache.set(top, byBottom);
+        }
+        let span = byBottom.get(bottom);
         if (span == null) {
             span = spanAt(top, bottom);
-            cache.set(key, span);
+            byBottom.set(bottom, span);
         }
         return span;
     };

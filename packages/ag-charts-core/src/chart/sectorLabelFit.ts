@@ -1,5 +1,6 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
+import { isArray } from '../data/typeGuards';
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import { type FitRegion, insetFitRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
 import type { LabelFitDescriptor, PlacedFit } from '../geometry/labelPlacement';
@@ -7,7 +8,13 @@ import type { NormalisedTextOrSegments } from '../options/normalised/normalisedC
 import { measureLabelText } from '../rendering/textMeasurer';
 import { BBox } from '../scene/bbox';
 import { Text, type TextBoxingProperties } from '../scene/shape/text';
-import { type SectorBoundaries, isBoxInSector, isPointInSector, sectorPointTest } from '../scene/util/sector';
+import {
+    type SectorBoundaries,
+    isBoxInSector,
+    isPointInSector,
+    sectorColumnTest,
+    sectorPointTest,
+} from '../scene/util/sector';
 import {
     type LabelFit,
     drawnLineHeight,
@@ -318,6 +325,38 @@ function sameBlock(a: BlockSize | undefined, b: BlockSize | undefined) {
     return a.width === b.width && a.height === b.height;
 }
 
+/** A plain fixed-size label whose padded single line the wedge holds at the anchor, where the full fit settles. */
+function placeOnAnchor(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    font: FontOptions,
+    anchor: Point,
+    sector: SectorBoundaries,
+    padding: Required<PaddingOptions>,
+    layout: WedgeLabelLayout
+): PlacedSectorLabel | undefined {
+    // A width or height bound can wrap a line the wedge would hold, so only the wedge may bound an accepted one.
+    if (isArray(text) || fit.maxWidth != null || fit.maxHeight != null) return undefined;
+    // Past a half turn the wedge is not convex, so the full fit may move a label its anchor holds.
+    if (Math.abs(sector.endAngle - sector.startAngle) > Math.PI) return undefined;
+    if (resolveMinimumFontSize(fit.minimumFontSize, font.fontSize) < font.fontSize) return undefined;
+    const placed = { text, x: anchor.x, y: anchor.y };
+    const boxes = layout(placed, font);
+    if (boxes.length !== 1) return undefined;
+    // The fit insets the wedge by the larger padding of each pair on both sides, so the box is held to that too.
+    const box = boxes[0];
+    const padX = Math.max(padding.left, padding.right);
+    const padY = Math.max(padding.top, padding.bottom);
+    heldBox.x = box.x - padX;
+    heldBox.y = box.y - padY;
+    heldBox.width = box.width + 2 * padX;
+    heldBox.height = box.height + 2 * padY;
+    return isBoxInSector(heldBox, sector) ? placed : undefined;
+}
+
+// OPTIMIZATION: scratch for placeOnAnchor's padded box, which it tests once per label.
+const heldBox = { x: 0, y: 0, width: 0, height: 0 };
+
 /** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
 function fitSectorLabelToWedge(
     text: NormalisedTextOrSegments,
@@ -328,7 +367,10 @@ function fitSectorLabelToWedge(
     padding: Required<PaddingOptions>,
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
+    const onAnchor = placeOnAnchor(text, fit, font, anchor, sector, padding, layout);
+    if (onAnchor != null) return onAnchor;
     const inSector = sectorPointTest(sector);
+    const holdsColumn = sectorColumnTest(sector);
     // A retry that only adds clearance keeps the line height and block, so it reuses their rect and region.
     let probed: { lineHeight: number; block?: BlockSize; rect: SectorLabelRect; region: FitRegion } | undefined;
     const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
@@ -340,7 +382,7 @@ function fitSectorLabelToWedge(
                 lineHeight,
                 block,
                 rect,
-                region: probedFitRegion(at, inSector, Math.abs(sector.outerRadius) * 2),
+                region: probedFitRegion(at, inSector, Math.abs(sector.outerRadius) * 2, holdsColumn),
             };
         }
         const { rect } = probed;

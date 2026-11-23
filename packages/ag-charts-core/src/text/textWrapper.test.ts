@@ -11,10 +11,17 @@ import {
     clipLines,
     fitLabelText,
     fitLabelTextToRegion,
+    keptCharacters,
     truncateLine,
     wrapLines,
     wrapTextSegments,
 } from './textWrapper';
+
+describe('keptCharacters', () => {
+    it('counts neither the ellipsis, a zero-width space nor any whitespace', () => {
+        expect(keptCharacters(`A\t\u00a0B\u3000\ufeff${EllipsisChar}\u200b\u2028C\u200a `)).toBe(3);
+    });
+});
 
 // Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and wrapTextSegments run
 // against deterministic metrics: every grapheme cluster is CHAR_WIDTH px wide, every line LINE_HEIGHT px tall.
