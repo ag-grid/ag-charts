@@ -29,6 +29,7 @@ import {
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    getVisibleLabelNodes,
     hoverLegendItem,
     isTooltipVisible,
     keyDownAction,
@@ -43,7 +44,7 @@ import {
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
-import type { CanvasPoint, Shape, Text } from 'ag-charts-core';
+import type { CanvasPoint, Shape } from 'ag-charts-core';
 
 import { getErrorBarGroupOpacity, getSelectionDragRect } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
@@ -1093,17 +1094,18 @@ describe('DataSelection', () => {
             selection: { enabled: true },
         };
 
-        const lineLabels = () =>
-            getSeriesSelectionNodes<Text>(chart, 'labelSelection', 1)
-                .filter((node) => node.visible)
-                .map((node) => node.text);
+        const lineLabels = () => getVisibleLabelNodes(chart, 1).map((node) => node.text);
 
         it('drops them once a selection raises the scatter over the line, but not for a hover raise', async () => {
-            chart = await createEnterpriseChart(options);
+            const activeChange = vi.fn();
+            chart = await createEnterpriseChart({ ...options, listeners: { activeChange } });
             expect(lineLabels()).toEqual(['A', 'B']);
 
             await hoverLegendItem(chart, 0);
             await waitForChartStability(chart);
+            expect(activeChange).toHaveBeenLastCalledWith(
+                expect.objectContaining({ activeItem: expect.objectContaining({ type: 'legend', seriesId: 'under' }) })
+            );
             expect(lineLabels()).toEqual(['A', 'B']);
 
             await setChartSelectionArray([{ seriesId: 'under', itemId: 'a' }]);
