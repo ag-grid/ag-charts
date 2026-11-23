@@ -210,6 +210,12 @@ export class PickManager {
         return { active: this.active };
     }
 
+    /** Moves the active node to the front of `matches` when it is among them. */
+    activeFirst(matches: PickedNode[]): PickedNode[] {
+        const index = indexOf(matches, this.active);
+        return index <= 0 ? matches : [matches[index], ...matches.filter((_, i) => i !== index)];
+    }
+
     wasActivationPrevented(): boolean {
         return this.activationPrevented;
     }

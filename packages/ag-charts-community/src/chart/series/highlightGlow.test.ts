@@ -21,8 +21,10 @@ import {
     HISTOGRAM_DATA,
     SERIES_SHADOW,
     XY_DATA,
+    expectParamsInState,
     glowShadow,
     itShadowsTheHoveredItem,
+    recordParamsByHighlightState,
     shapesOf,
 } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
@@ -166,12 +168,8 @@ describe('highlight glow', () => {
     };
 
     describe.each(SERIES)('$name', (testCase) => {
-        it('gives the itemStyler params no glow, in any highlight state', async () => {
-            const params: object[] = [];
-            const itemStyler = (itemParams: object) => {
-                params.push(itemParams);
-                return {};
-            };
+        it('gives the itemStyler params the glow that the highlight state casts', async () => {
+            const { byState, styler: itemStyler } = recordParamsByHighlightState();
             // Marker series take the styler on the marker, the others on the series.
             const styled: SeriesCase = {
                 ...testCase,
@@ -188,8 +186,7 @@ describe('highlight glow', () => {
                 unhighlightedSeries: { glow: HIGHLIGHT_GLOW },
             });
 
-            expect(params.length).toBeGreaterThan(0);
-            for (const itemParams of params) expect(itemParams).not.toHaveProperty('glow');
+            expectParamsInState(byState, 'highlighted-item', { glow: HIGHLIGHT_GLOW });
         });
 
         it.each(['cutout', 'overlay'] as const)(
@@ -802,12 +799,8 @@ describe('highlight glow', () => {
                     for (const item of inPlace) expect(item.fillShadow?.enabled).not.toBe(true);
                 });
 
-                it('gives the itemStyler params no shadow', async () => {
-                    const params: object[] = [];
-                    const itemStyler = (itemParams: object) => {
-                        params.push(itemParams);
-                        return {};
-                    };
+                it('gives the itemStyler params the shadow that the highlight state casts', async () => {
+                    const { byState, styler: itemStyler } = recordParamsByHighlightState();
                     const styled: SeriesCase = {
                         ...testCase,
                         series: (seriesShadow, extra) => {
@@ -818,8 +811,7 @@ describe('highlight glow', () => {
                     };
                     await hoverFirstItem(styled, SERIES_SHADOW, { highlightedItem: { shadow: HIGHLIGHT_SHADOW } });
 
-                    expect(params.length).toBeGreaterThan(0);
-                    for (const itemParams of params) expect(itemParams).not.toHaveProperty('shadow');
+                    expectParamsInState(byState, 'highlighted-item', { shadow: HIGHLIGHT_SHADOW });
                 });
             });
         });

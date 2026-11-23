@@ -6,6 +6,7 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgDropShadowOptions,
+    AgItemShadowStyle,
     AgLineSeriesOptions,
     AgMarkerShape,
     AgMarkerShapeFn,
@@ -16,6 +17,7 @@ import type {
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { getSeriesPaths } from '../../test/communitySeriesAccessors';
+import { hoverDatum } from '../../test/glowRender';
 import { getSeriesAt, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
@@ -38,7 +40,7 @@ const SCATTER_DATA = [
 /** The marker settings the cases below vary: the shape, and a styler whose params differ by series type. */
 interface MarkerOverrides {
     shape?: AgMarkerShape | AgMarkerShapeFn;
-    itemStyler?: (params: any) => AgSeriesMarkerStyle | undefined;
+    itemStyler?: (params: any) => (AgSeriesMarkerStyle & AgItemShadowStyle) | undefined;
 }
 
 const markerSeriesOptions = {
@@ -183,7 +185,7 @@ describe('marker shadow', () => {
 
     describe('itemStyler', () => {
         it.each(['scatter', 'bubble', 'line', 'area'] as const)(
-            '%s keeps the marker shadow and does not pass it to the itemStyler params',
+            '%s keeps the marker shadow and passes it to the itemStyler params',
             async (type) => {
                 const received: any[] = [];
                 const itemStyler = (params: any) => {
@@ -198,7 +200,7 @@ describe('marker shadow', () => {
 
                 expect(received.length).toBeGreaterThan(0);
                 for (const params of received) {
-                    expect(params).not.toHaveProperty('shadow');
+                    expect(params).toMatchObject({ shadow: MARKER_SHADOW });
                 }
 
                 const markers = visibleMarkers();
@@ -220,6 +222,50 @@ describe('marker shadow', () => {
                 expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
         });
+    });
+
+    describe('the hovered marker with a series styler that sizes it by highlight state', () => {
+        const SIZE_BY_STATE: Record<string, number> = { 'highlighted-item': 20 };
+        const DEFAULT_SIZE = 8;
+
+        it.each(['line', 'area'] as const)(
+            '%s casts the shadow from the marker size of its highlighted-item call, in place',
+            async (type) => {
+                const calls: Array<{ highlightState: string; size: number; xValue: number }> = [];
+                const series = {
+                    ...markerSeriesOptions[type]({
+                        itemStyler: (params: any) => {
+                            calls.push({
+                                highlightState: params.highlightState,
+                                size: params.size,
+                                xValue: params.xValue,
+                            });
+                            return { shadow: { enabled: true, blur: params.size } };
+                        },
+                    }),
+                    styler: (params: any) => ({
+                        marker: { size: SIZE_BY_STATE[params.highlightState] ?? DEFAULT_SIZE },
+                    }),
+                } satisfies AgLineSeriesOptions | AgAreaSeriesOptions;
+                await create({ data: SCATTER_DATA, series: [series] });
+                const blurs = () => visibleMarkers().map((marker) => marker.fillShadow?.blur);
+                expect(blurs()).toEqual(SCATTER_DATA.map(() => DEFAULT_SIZE));
+
+                await hoverDatum(chart);
+
+                // The styler is called for the hovered datum in the highlighted-item state, with the size of that state...
+                const hoveredCalls = calls.filter(
+                    (call) => call.highlightState === 'highlighted-item' && call.xValue === SCATTER_DATA[0].x
+                );
+                expect(hoveredCalls).not.toHaveLength(0);
+                for (const call of hoveredCalls) expect(call.size).toBe(SIZE_BY_STATE['highlighted-item']);
+                // ...and the hovered marker casts the shadow derived from it in place, the others from their own.
+                expect(blurs()).toEqual([
+                    SIZE_BY_STATE['highlighted-item'],
+                    ...SCATTER_DATA.slice(1).map(() => DEFAULT_SIZE),
+                ]);
+            }
+        );
     });
 
     describe('tooltip renderer', () => {

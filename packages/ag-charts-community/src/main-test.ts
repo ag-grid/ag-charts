@@ -13,6 +13,7 @@ export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
+    getSeriesLabelObstacles,
     withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './chart/test/communitySeriesAccessors';
@@ -27,7 +28,7 @@ export * from './chart/test/shadowFixtures';
 export * from './chart/test/glowCases';
 export * from './chart/test/glowRender';
 export * from './chart/test/glowRenderSuite';
-export { differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
+export { byteDifference, differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
 export * from './chart/test/prepareOptions';
 export { optionAt } from './module/test/moduleAccessors';
 export * from './chart/test/syncFixtures';

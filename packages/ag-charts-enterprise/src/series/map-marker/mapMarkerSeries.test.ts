@@ -40,8 +40,10 @@ import {
     getEnterpriseSelectionNodes,
     getMapMarkerSizeRange,
     getMapMarkerStyleSize,
+    getPlacedLabelData,
     getSeriesGroup,
     getSeriesInstance,
+    getSeriesLabelTexts,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
@@ -1108,6 +1110,69 @@ describe('MapMarkerSeries', () => {
             }
 
             deproxy(proxy).destroy();
+        });
+    });
+
+    describe('labels after zoom', () => {
+        it('draws only the labels placed for the current zoom level', async () => {
+            const data = Array.from({ length: 96 }, (_, i) => {
+                const x = Math.floor(i / 8);
+                const y = i % 8;
+                return { name: `P${x}-${y}`, lon: x * 2, lat: y * 2 };
+            });
+            const instance = await createEnterpriseChart({
+                animation: { enabled: false },
+                topology: {
+                    type: 'FeatureCollection',
+                    features: [
+                        {
+                            type: 'Feature',
+                            properties: { name: 'Area' },
+                            geometry: {
+                                type: 'Polygon',
+                                coordinates: [
+                                    [
+                                        [-1, -1],
+                                        [23, -1],
+                                        [23, 15],
+                                        [-1, 15],
+                                        [-1, -1],
+                                    ],
+                                ],
+                            },
+                        },
+                    ],
+                },
+                zoom: { enabled: true },
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        data,
+                        labelKey: 'name',
+                        latitudeKey: 'lat',
+                        longitudeKey: 'lon',
+                        size: 6,
+                        label: { enabled: true },
+                    },
+                ],
+            });
+
+            chart = instance;
+
+            await instance.setState({
+                ...instance.getState(),
+                zoom: { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } },
+            });
+            await waitForChartStability(chart);
+
+            const placed = getPlacedLabelData<{ text: string }>(chart, 1).map((label) => label.text);
+            const drawn = getSeriesLabelTexts(chart, 1)
+                .filter((text) => text.visible)
+                .map((text) => text.text);
+            expect(placed.length).toBeLessThan(data.length);
+            expect(new Set(drawn)).toEqual(new Set(placed));
+            expect(drawn).toHaveLength(placed.length);
         });
     });
 });

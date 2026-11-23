@@ -127,6 +127,60 @@ describe('LabelManager', () => {
             expect(replacement.getLabelData).toHaveBeenCalledTimes(1);
             expect(placedTexts(replacement)).toEqual(['two']);
         });
+
+        it.each([
+            { case: 're-solves when the paint order changes', next: 1, solves: 2 },
+            { case: 'reuses the cached solve while the paint order is unchanged', next: 0, solves: 1 },
+        ])('$case', ({ next, solves }) => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+
+            manager.updateLabels([series], NO_PADDING, RECT, NO_PADDING, () => new Map([['a', 0]]));
+            manager.updateLabels([series], NO_PADDING, RECT, NO_PADDING, () => new Map([['a', next]]));
+
+            expect(series.getLabelData).toHaveBeenCalledTimes(solves);
+        });
+
+        it.each([
+            { drawn: 'under', rank: 0, placed: ['I'] },
+            { drawn: 'over', rank: 2, placed: [] },
+        ])('places a bar label lying on its bar over another bar drawn $drawn it: $placed', ({ rank, placed }) => {
+            const manager = new LabelManager();
+            const ownBar = { x: 80, y: 80, width: 40, height: 100 };
+            const own = fakeSeries({
+                id: 'own',
+                datums: [
+                    {
+                        ...labelDatum(100, 90, 'I'),
+                        positionedCandidates: [{ box: { x: 90, y: 85, width: 20, height: 10 }, region: ownBar }],
+                        ownBox: ownBar,
+                        entityIndex: 0,
+                        avoid: { marker: true, label: true, shape: true, seriesArea: true },
+                    },
+                ],
+                obstacles: [{ kind: 'rect', box: ownBar, category: 'shape', sourceId: 'own', entityIndex: 0 }],
+            });
+            const other = fakeSeries({
+                id: 'other',
+                obstacles: [
+                    {
+                        kind: 'rect',
+                        box: { x: 80, y: 60, width: 40, height: 120 },
+                        category: 'shape',
+                        sourceId: 'other',
+                        entityIndex: 0,
+                    },
+                ],
+            });
+
+            const paintOrder = new Map([
+                ['own', 1],
+                ['other', rank],
+            ]);
+            manager.updateLabels([own, other], NO_PADDING, RECT, NO_PADDING, () => paintOrder);
+
+            expect(placedTexts(own)).toEqual(placed);
+        });
     });
 
     describe('no placed-label series', () => {

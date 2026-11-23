@@ -963,7 +963,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { xKey, yKey, colorKey } = options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightState = _ModuleSupport.toHighlightString(castState);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -974,6 +975,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             xKey,
             yKey,
             colorKey,
+            shadow: this.getStylerShadow(options.shadow, castState),
+            glow: this.getStylerGlow(options.glow, castState),
             highlightState,
             selectionState,
             candidateState,
@@ -1177,10 +1180,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const nodeData = this.contextNodeData?.nodeData;
         if (nodeData == null || nodeData.length === 0) return undefined;
         const obstacles: LabelObstacle[] = [];
-        for (const { point, width, height } of nodeData) {
+        for (const { point, width, height, datumIndex } of nodeData) {
             if (width <= 0 || height <= 0) continue;
             const box = { x: point.x - width / 2, y: point.y - height / 2, width, height };
-            obstacles.push({ kind: 'rect', box, category: 'shape' });
+            obstacles.push({ kind: 'rect', box, category: 'shape', sourceId: this.id, entityIndex: datumIndex });
         }
         return obstacles;
     }
@@ -1221,6 +1224,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 threshold,
                 positionedCandidates: [candidate],
                 ownBox: region,
+                entityIndex: labelDatum.datumIndex,
                 target: labelDatum,
             });
         }

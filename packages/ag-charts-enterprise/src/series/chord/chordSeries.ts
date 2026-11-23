@@ -559,7 +559,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { fromKey, toKey, sizeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -567,7 +567,9 @@ export class ChordSeries extends FlowProportionSeries<
         return {
             seriesId,
             datum,
-            highlightState,
+            shadow: this.getStylerShadow(this.options.node.shadow, castState),
+            glow: this.getStylerGlow(this.options.node.glow, castState),
+            highlightState: _ModuleSupport.toHighlightString(castState),
             selectionState,
             candidateState,
             ...style,
@@ -665,17 +667,15 @@ export class ChordSeries extends FlowProportionSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        fromNodeDatumIndex
-                    );
+                    const castState = this.getHighlightState(activeHighlight, isHighlight, fromNodeDatumIndex);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'link'],
                         this.callWithContext(itemStyler, {
                             seriesId,
                             datum,
-                            highlightState,
+                            shadow: this.getStylerShadow(this.options.link.shadow, castState),
+                            glow: this.getStylerGlow(this.options.link.glow, castState),
+                            highlightState: _ModuleSupport.toHighlightString(castState),
                             ...style,
                         })
                     );

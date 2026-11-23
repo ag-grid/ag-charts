@@ -1,11 +1,13 @@
 import {
     type AgItemShadowStyle,
+    type AgItemShadowStylerParams,
     type AgSunburstHighlightState,
     type AgSunburstSeriesLabelFormatterParams,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BBox,
+    CUT_ONLY_GLOW,
     type CallbackParamRules,
     type DynamicContext,
     type FitRegion,
@@ -30,6 +32,7 @@ import {
     Selection,
     Text,
     TransformableText,
+    clamp,
     cycledValue,
     datumKeyReader,
     drawnLineHeight,
@@ -40,7 +43,6 @@ import {
     isGradientFill,
     measureLabelText,
     mergeDefaults,
-    normalizeAngle360,
     readDatumKey,
     sectorEdgeInset,
     setSectorGlowEnds,
@@ -91,6 +93,7 @@ interface LabelLayout {
     theta: number;
     width: number;
     height: number;
+    boxPadding: Required<PaddingOptions>;
 }
 
 /** The annular sector a node's labels are fitted to, in the series' centred frame. */
@@ -152,6 +155,11 @@ function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) 
     return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
 }
 
+/** How far out the near side of a perpendicular label `width` across may sit, clear of the drawn straight edges. */
+function perpendicularNearSide(ring: SunburstLabelRing, width: number) {
+    return ring.wedge ? wedgeApexRadius(ring, width) : Math.max(ring.innerRadius, edgeSpanRadius(ring, width));
+}
+
 /** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
 function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
     return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
@@ -172,15 +180,21 @@ function sectorLabelRadius(
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
-            const nearSide = parallelNearSide(ring);
-            const minimumRadius = nearSide > innerRadius ? nearSide + padding + height : 0;
+            const minimumRadius = parallelNearSide(ring) + padding + height;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
             return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
-            if (!wedge) return (innerRadius + outerRadius) * 0.5;
-            const minimumRadius = wedgeApexRadius(ring, height) + width * 0.5;
+            if (!wedge) {
+                const span = height + 2 * padding;
+                const minimumRadius = perpendicularNearSide(ring, span) + padding + width * 0.5;
+                const maximumRadius =
+                    Math.sqrt(Math.max(0, outerRadius ** 2 - (span * 0.5) ** 2)) - padding - width * 0.5;
+                const middle = (innerRadius + outerRadius) * 0.5;
+                return minimumRadius > maximumRadius ? middle : clamp(minimumRadius, middle, maximumRadius);
+            }
+            const minimumRadius = perpendicularNearSide(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             return (minimumRadius + maximumRadius) * 0.5;
         }
@@ -228,6 +242,57 @@ enum TextNodeTag {
     Secondary,
 }
 
+/** Translates `text` by `radial` along the direction `(cos, sin)` and `tangential` along its normal towards increasing angle. */
+function setPolarTranslation(text: TransformableText, cos: number, sin: number, radial: number, tangential: number) {
+    text.translationX = cos * radial - sin * tangential;
+    text.translationY = sin * radial + cos * tangential;
+}
+
+/** Positions and rotates `text` on its sector for the layout's placement. */
+function placeLabelText(text: TransformableText, label: LabelLayout, primary: boolean, contentHeight: number) {
+    const { labelPlacement, circleQuarter, radius: textRadius, theta } = label;
+    // Uneven padding grows the box off its fitted footprint; each case shifts the text back along its own axes.
+    const { top, right, bottom, left } = label.boxPadding;
+    const boxOffsetX = (left - right) * 0.5;
+    switch (labelPlacement) {
+        case LabelPlacement.CenterCircle:
+            // No precedence to arbitrate against the inner labels: this placement is only
+            // chosen when no hole is carved, which is exactly when no centre circle resolves.
+            text.textAlign = 'center';
+            text.textBaseline = 'top';
+            text.translationX = boxOffsetX;
+            text.translationY = (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5 + top;
+            text.rotation = 0;
+            break;
+        case LabelPlacement.Parallel: {
+            const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
+            const outerEdge = primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
+            const translationRadius = outerEdge - (topHalf ? bottom : top);
+            // The text's x-axis runs against the tangent in the top half and along it in the bottom half.
+            const tangential = topHalf ? -boxOffsetX : boxOffsetX;
+            text.textAlign = 'center';
+            text.textBaseline = topHalf ? 'bottom' : 'top';
+            setPolarTranslation(text, Math.cos(theta), Math.sin(theta), translationRadius, tangential);
+            text.rotation = topHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+            break;
+        }
+        case LabelPlacement.Perpendicular: {
+            const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
+            const stackOffset =
+                primary === !rightHalf ? (contentHeight - label.height) * 0.5 : (label.height - contentHeight) * 0.5;
+            // The text's axes are the radial and tangent in the right half, both reversed in the left half.
+            const direction = rightHalf ? 1 : -1;
+            const radial = textRadius + direction * boxOffsetX;
+            const tangential = stackOffset + direction * (top - bottom) * 0.5;
+            text.textAlign = 'center';
+            text.textBaseline = 'middle';
+            setPolarTranslation(text, Math.cos(theta), Math.sin(theta), radial, tangential);
+            text.rotation = rightHalf ? theta : theta + Math.PI;
+            break;
+        }
+    }
+}
+
 type ItemStyle = Required<NormalisedSunburstSeriesStyle> & { opacity: number };
 
 export class SunburstSeries extends HierarchySeries<
@@ -244,7 +309,13 @@ export class SunburstSeries extends HierarchySeries<
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
     private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer' })
+    );
+    /** Casts the glow of the highlight copy above every fill, in depth order: its sectors paint nothing. */
+    private readonly highlightGlowGroup = this.scalingGroup.appendChild(
+        new Group<SunburstNode>({ batchShadows: 'by-layer', castsHoveredGlows: true })
+    );
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
     private readonly innerCircleGroup = this.scalingGroup.appendChild(new Group());
@@ -256,6 +327,7 @@ export class SunburstSeries extends HierarchySeries<
     readonly datumSelection = Selection.select<Sector<SunburstNode>>(this.sectorGroup, Sector<SunburstNode>);
     private readonly labelSelection = Selection.select<Group<SunburstNode>>(this.sectorLabelGroup, Group);
     private readonly highlightSelection = Selection.select<Sector<SunburstNode>>(this.highlightSectorGroup, Sector);
+    private readonly highlightGlowSelection = Selection.select<Sector<SunburstNode>>(this.highlightGlowGroup, Sector);
     private readonly innerCircleSelection = Selection.select<Sector<{ radius: number }>>(
         this.innerCircleGroup,
         Sector<{ radius: number }>
@@ -341,7 +413,9 @@ export class SunburstSeries extends HierarchySeries<
                     const params = this.makeItemStylerParams(
                         nodeDatum,
                         style,
-                        toHierarchyHighlightString(highlightState)
+                        toHierarchyHighlightString(highlightState),
+                        this.getHierarchyStylerShadow(this.options.shadow),
+                        this.getNodeStylerGlow(highlightState)
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -359,7 +433,13 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight, this.options.glow);
+
+    /** The glow a node casts without an item styler in `highlightState`, as {@link getNodeGlow} selects it. */
+    private getNodeStylerGlow(highlightState: HierarchyHighlightState) {
+        if (!this.options.highlight.enabled && this.options.glow?.enabled !== true) return;
+        return this.getHierarchyStylerGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
+    }
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(
@@ -368,8 +448,8 @@ export class SunburstSeries extends HierarchySeries<
         highlightedNode: SunburstNode | undefined,
         itemGlow?: AgGlowOptions
     ) {
-        // A glow from an item styler casts whether or not the highlight is on, over the highlight state's.
-        if (!this.options.highlight.enabled && itemGlow == null) return;
+        // A series-level glow, or one from an item styler, casts whether or not the highlight is on.
+        if (!this.options.highlight.enabled && itemGlow == null && this.options.glow?.enabled !== true) return;
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
         return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow, itemGlow);
@@ -387,7 +467,13 @@ export class SunburstSeries extends HierarchySeries<
         };
     }
 
-    private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
+    private makeItemStylerParams(
+        nodeDatum: SunburstNode,
+        style: ItemStyle,
+        highlightState: AgSunburstHighlightState,
+        shadow: AgItemShadowStylerParams['shadow'],
+        glow: AgItemShadowStylerParams['glow']
+    ) {
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.options;
         // `style` is the resolved item style, so its `fill` never carries unresolved colour refs.
@@ -402,6 +488,8 @@ export class SunburstSeries extends HierarchySeries<
             sizeKey,
             labelKey,
             secondaryLabelKey,
+            shadow,
+            glow,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             candidateState: this.getCandidateStateString(nodeDatum.datumIndex),
@@ -583,7 +671,7 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         const highlightedNode = this.getActiveHighlightNode();
-        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
+        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean, glowOnly = false) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
@@ -604,18 +692,18 @@ export class SunburstSeries extends HierarchySeries<
             const hoveredStyle = hoveredInPlace ? this.getItemStyle(nodeDatum, true) : undefined;
             sector.fillShadow = this.resolveNodeShadow(
                 shadow,
-                glow,
-                highlighted,
-                highlightedNode,
-                nodeDatum,
+                highlighted || glowOnly,
                 hoveredStyle == null ? style.shadow : hoveredStyle.shadow
             );
             sector.fillGlow = this.resolveNodeGlow(
                 glow,
                 highlighted,
                 hoveredInPlace,
-                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null
+                hoveredStyle != null && this.getNodeGlow(nodeDatum, true, highlightedNode, hoveredStyle.glow) != null,
+                glowOnly
             );
+            sector.glowOnly = glowOnly;
+            if (glowOnly) sector.pointerEvents = PointerEvents.None;
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -631,13 +719,28 @@ export class SunburstSeries extends HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
+        // The glow of the hovered node and of each node of its branch that glows is cast by a glow-only copy, which is in the
+        // hovered layer: so the in-place copy of a branch node only cuts its footprint out of the overlay.
+        const glowCopies: SunburstNode[] = highlightedNode == null ? [] : [highlightedNode];
+        const branchSectors: Sector[] = [];
         let glowing = false;
         this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, false);
-            glowing ||= sector.fillGlow?.enabled === true;
+            if (this.castsBranchGlow(datum, sector.fillGlow, highlightedNode)) {
+                glowCopies.push(datum);
+                branchSectors.push(sector);
+            } else {
+                // A branch sector becomes cut-only below, so only the rest stay overlay casters.
+                glowing ||= sector.fillGlow?.enabled === true && sector.fillGlow.cutOnly !== true;
+            }
         });
+        for (const sector of branchSectors) sector.fillGlow = CUT_ONLY_GLOW;
         this.highlightSelection.each((rect, datum) => {
             updateSector(datum, rect, true);
+        });
+        this.highlightGlowSelection.update(glowCopies, undefined, (node) => node.datumIndex);
+        this.highlightGlowSelection.each((rect, datum) => {
+            updateSector(datum, rect, datum.datumIndex === highlightedNode?.datumIndex, true);
         });
         if (glowing) {
             this.updateGlowEnds(angleOffset);
@@ -754,27 +857,16 @@ export class SunburstSeries extends HierarchySeries<
         const straightEdges = sweep < Math.PI ? edgeSpanAt(ring, innerRadius) : Infinity;
         const nearSide = parallelNearSide(ring);
         const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
-        let perpendicularWidth: ((height: number) => number) | undefined;
-        if (wedge) {
-            perpendicularWidth = (height) => chordAt(height * 0.5) - wedgeApexRadius(ring, height);
-        } else if (normalizeAngle360(sweep) < Math.PI / 4) {
-            // Measured across the sector's full height at its inner edge, however short the text.
-            const across = chordAt(straightEdges * 0.5) - innerRadius;
-            perpendicularWidth = () => across;
-        }
-        if (perpendicularWidth == null) {
+        if (!wedge && sweep >= Math.PI / 4) {
             return [
                 this.sectorLabelCandidate(ring, LabelPlacement.Parallel, heightBoundRegion(padding, parallelWidth)),
             ];
         }
 
-        const widthAcross = perpendicularWidth;
+        const widthAcross = (height: number) => chordAt(height * 0.5) - perpendicularNearSide(ring, height);
         const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
         const parallel = heightBoundRegion(padding, (height) => (parallelWins(height) ? parallelWidth(height) : 0));
-        const perpendicular = heightBoundRegion(padding, (height) => {
-            if (parallelWins(height) || (!wedge && height > straightEdges)) return 0;
-            return widthAcross(height);
-        });
+        const perpendicular = heightBoundRegion(padding, (height) => (parallelWins(height) ? 0 : widthAcross(height)));
         const candidates = [
             this.sectorLabelCandidate(ring, LabelPlacement.Parallel, parallel),
             this.sectorLabelCandidate(ring, LabelPlacement.Perpendicular, perpendicular),
@@ -793,7 +885,9 @@ export class SunburstSeries extends HierarchySeries<
         const cos = Math.cos(theta);
         const sin = Math.sin(theta);
         const centreFor = (width: number, height: number) => {
-            const radius = sectorLabelRadius(ring, labelPlacement, width, height, padding);
+            // A parallel stack is drawn inwards from this radius, so its centre lies half its height further in.
+            const edge = sectorLabelRadius(ring, labelPlacement, width, height, padding);
+            const radius = labelPlacement === LabelPlacement.Parallel ? edge - height / 2 : edge;
             return { x: centreX + cos * radius, y: centreY + sin * radius };
         };
         const { x, y } = centreFor(0, 0);
@@ -870,6 +964,7 @@ export class SunburstSeries extends HierarchySeries<
                 theta,
                 width: fitted.width,
                 height: fitted.height + box.top + box.bottom,
+                boxPadding: box,
             };
             if (primary) {
                 node.label = layout;
@@ -919,8 +1014,6 @@ export class SunburstSeries extends HierarchySeries<
                 return;
             }
 
-            const { labelPlacement, circleQuarter, radius: textRadius, theta } = label;
-
             const highlightState = this.getHierarchyHighlightState(highlighted, highlightedNode, node);
 
             const { opacity: highlightOpacity } =
@@ -940,41 +1033,7 @@ export class SunburstSeries extends HierarchySeries<
             text.fill = style.color;
             text.setBoxing(style);
 
-            switch (labelPlacement) {
-                case LabelPlacement.CenterCircle:
-                    // No precedence to arbitrate against the inner labels: this placement is only
-                    // chosen when no hole is carved, which is exactly when no centre circle resolves.
-                    text.textAlign = 'center';
-                    text.textBaseline = 'top';
-                    text.translationX = 0;
-                    text.translationY = (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5;
-                    text.rotation = 0;
-                    break;
-                case LabelPlacement.Parallel: {
-                    const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
-                    const translationRadius =
-                        primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
-                    text.textAlign = 'center';
-                    text.textBaseline = topHalf ? 'bottom' : 'top';
-                    text.translationX = Math.cos(theta) * translationRadius;
-                    text.translationY = Math.sin(theta) * translationRadius;
-                    text.rotation = topHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
-                    break;
-                }
-                case LabelPlacement.Perpendicular: {
-                    const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
-                    const translation =
-                        primary === !rightHalf
-                            ? (contentHeight - label.height) * 0.5
-                            : (label.height - contentHeight) * 0.5;
-                    text.textAlign = 'center';
-                    text.textBaseline = 'middle';
-                    text.translationX = Math.cos(theta) * textRadius + Math.cos(theta + Math.PI / 2) * translation;
-                    text.translationY = Math.sin(theta) * textRadius + Math.sin(theta + Math.PI / 2) * translation;
-                    text.rotation = rightHalf ? theta : theta + Math.PI;
-                    break;
-                }
-            }
+            placeLabelText(text, label, primary, contentHeight);
             text.visible = true;
         };
         for (const text of this.labelSelection.selectByClass(TransformableText)) {

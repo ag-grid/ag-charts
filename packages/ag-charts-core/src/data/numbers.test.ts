@@ -14,6 +14,7 @@ import {
     modulus,
     roundTo,
     roundToMultiple,
+    smallestPositiveGap,
     toNumber,
 } from './numbers';
 
@@ -144,5 +145,16 @@ describe('Number Utilities', () => {
         expect(countFractionDigits(400 - 0.6)).toBe(1); // AG-10143
         expect(countFractionDigits(1e-8)).toBe(8);
         expect(countFractionDigits(1.23e-8)).toBe(10);
+    });
+
+    test.each<[string, number[] | Float64Array, number | undefined]>([
+        ['unsorted values', [5, 1, 3.5, 3], 0.5],
+        ['repeated values', [2, 2, 4, 4], 2],
+        ['a typed array', Float64Array.of(10, -2, 1), 3],
+        ['values that do not differ', [7, 7], undefined],
+        ['a single value', [7], undefined],
+        ['no values', [], undefined],
+    ])('smallestPositiveGap of %s', (_name, values, expected) => {
+        expect(smallestPositiveGap(values)).toBe(expected);
     });
 });

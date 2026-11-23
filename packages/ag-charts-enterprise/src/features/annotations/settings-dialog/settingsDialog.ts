@@ -142,6 +142,10 @@ const COORDINATE_INPUT_TYPES = {
     offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
+function getCoordinateInputType({ kind, timePrecision }: CoordinateField) {
+    return timePrecision === 'day' ? 'date' : COORDINATE_INPUT_TYPES[kind];
+}
+
 const COLOR_PICKER_ALT_TEXT = {
     'line-color': 'toolbarAnnotationsLineColor',
     'fill-color': 'dialogInputFillColorPickerAltText',
@@ -481,9 +485,9 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const refreshes = new Map<string, (next: CoordinateField) => void>();
         const panel = this.createTabPanel();
-        // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
+        // A single value, offset or height has its label alongside; an offset is on a row of its own.
         const addRow = (rowFields: CoordinateField[], follows = false) => {
-            const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
+            const inline = rowFields.length === 1;
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
                 refreshes.set(getCoordinateLabelKey(field), refresh);
@@ -518,9 +522,10 @@ export class AnnotationSettingsDialog extends Dialog {
         let committed = field.value;
         const input = this.createInput({
             ariaLabel,
-            type: COORDINATE_INPUT_TYPES[field.kind],
+            type: getCoordinateInputType(field),
             value: displayCoordinate(field.value, field.fractionDigits),
             step: field.step,
+            range: field.range,
             list: suggestions?.id,
             onChange: (text) => {
                 const context = options.getContext();
@@ -533,7 +538,7 @@ export class AnnotationSettingsDialog extends Dialog {
                 }
 
                 // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
-                const formatted = formatCoordinate(resolved, field.kind);
+                const formatted = formatCoordinate(resolved, field.kind, field.timePrecision);
                 input.value = displayCoordinate(formatted, field.fractionDigits);
                 if (formatted !== committed) {
                     committed = formatted;
@@ -546,9 +551,11 @@ export class AnnotationSettingsDialog extends Dialog {
         const refresh = (next: CoordinateField) => {
             field = next;
             committed = next.value;
-            if (next.step != null) {
-                input.setStep(next.step);
+            const type = getCoordinateInputType(next);
+            if (type === 'date' || type === 'datetime-local') {
+                input.setType(type);
             }
+            input.setStep(next.step);
             if (!input.isFocused()) {
                 input.value = displayCoordinate(committed, field.fractionDigits);
             }

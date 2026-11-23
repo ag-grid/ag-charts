@@ -3,6 +3,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Monthly Sales' },
+    tooltip: { mode: 'shared' },
     data: [
         { month: 'Jan', sales: 50, purchases: 60 },
         { month: 'Feb', sales: 75, purchases: 70 },

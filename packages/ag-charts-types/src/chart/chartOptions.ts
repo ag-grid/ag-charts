@@ -179,7 +179,9 @@ export interface AgChartHighlightOptions {
      * - `'single'` highlights the active item only.
      * - `'shared'` also highlights the item of every other series that shares the active item's category.
      *
-     * Defaults to `'shared'` for most charts with 2 or 3 series otherwise `'single'`. Follows `tooltip.mode` if specified.
+     * Follows `tooltip.mode` if specified.
+     *
+     * Default: `'single'`
      */
     mode?: AgChartHighlightMode;
     /**

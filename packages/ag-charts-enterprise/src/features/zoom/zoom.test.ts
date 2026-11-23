@@ -2096,6 +2096,7 @@ describe('Zoom', () => {
                         x: { type: 'number', position: 'bottom', min: 0, max: 1500 },
                         y: { type: 'number', position: 'left' },
                     },
+                    tooltip: { mode: 'shared' },
                     series: [
                         {
                             id: 'a',

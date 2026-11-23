@@ -245,6 +245,11 @@ export class AnnotationOptionsToolbar {
         this.toolbar.clearActiveButton();
     }
 
+    public setDialogExpanded(value: AnnotationOptions, expanded: boolean) {
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        this.toolbar.setDialogExpandedByIndex(index, expanded);
+    }
+
     private getOpenOverlay() {
         switch (this.openOverlay) {
             case AnnotationOptions.LineStyleType:
@@ -364,6 +369,7 @@ export class AnnotationOptionsToolbar {
             case AnnotationOptions.TextColor: {
                 this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
+                this.setDialogExpanded(button.value, true);
                 this.colorPicker.show({
                     color: getDefaultColor(datum, button.value),
                     opacity: getDefaultOpacity(datum, button.value),
@@ -379,6 +385,7 @@ export class AnnotationOptionsToolbar {
                             cancelled,
                         });
                     }).bind(this, button.value),
+                    onHide: () => this.setDialogExpanded(button.value, false),
                 });
                 break;
             }
@@ -434,19 +441,19 @@ export class AnnotationOptionsToolbar {
 
             switch (button.value) {
                 case AnnotationOptions.LineStrokeWidth: {
-                    this.lineStrokeWidthMenuMinWidth = bounds.width + 1;
+                    this.lineStrokeWidthMenuMinWidth = bounds.width;
                     this.lineStrokeWidthMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
 
                 case AnnotationOptions.LineStyleType: {
-                    this.lineStyleTypeMenuMinWidth = bounds.width + 1;
+                    this.lineStyleTypeMenuMinWidth = bounds.width;
                     this.lineStyleTypeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
 
                 case AnnotationOptions.TextSize: {
-                    this.textSizeMenuMinWidth = bounds.width + 1;
+                    this.textSizeMenuMinWidth = bounds.width;
                     this.textSizeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
@@ -508,7 +515,6 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.toolbar.toggleSwitchCheckedByIndex(index, locked);
                 this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
