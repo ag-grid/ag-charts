@@ -191,8 +191,16 @@ expect "direct removal clears git's registration" test ! -d "$DIRECT_GIT_DIR"
 git -C "$CWD" worktree add -q "$WTS/agent-misremove" -b agent-misremove 2>/dev/null
 echo "$(cd -P "$WTS" && pwd)/agent-misremove" >"$(git -C "$WTS/agent-misremove" rev-parse --absolute-git-dir)/claude-moved-from"
 git -C "$CWD" worktree move "$WTS/agent-misremove" "$WTS/elsewhere-misremove"
-(cd "$CWD" && jq -n --arg path "$WTS/agent-misremove" '{worktree_path: $path}' | bash "$REMOVE") 2>>"$LOG"
+remove "$WTS/agent-misremove"
 expect "direct removal removes a worktree where a restore left it" gone elsewhere-misremove
+
+# With nothing beside the path, the session's directory names the repository.
+mkdir -p "$T/solo"
+git -C "$CWD" worktree add -q "$T/solo/agent-solo" -b agent-solo 2>/dev/null
+echo "$(cd -P "$T/solo" && pwd)/agent-solo" >"$(git -C "$T/solo/agent-solo" rev-parse --absolute-git-dir)/claude-moved-from"
+git -C "$CWD" worktree move "$T/solo/agent-solo" "$T/solo-elsewhere"
+jq -n --arg path "$T/solo/agent-solo" --arg cwd "$CWD" '{worktree_path: $path, cwd: $cwd}' | (cd / && bash "$REMOVE") 2>>"$LOG"
+expect "direct removal finds a misplaced worktree through the session's directory" test ! -e "$T/solo-elsewhere"
 
 # A misplaced worktree nested inside whatever now occupies its path: which one was meant is ambiguous.
 git -C "$CWD" worktree add -q "$WTS/agent-ambiguous" -b agent-ambiguous 2>/dev/null
@@ -201,7 +209,7 @@ git -C "$CWD" worktree move "$WTS/agent-ambiguous" "$WTS/elsewhere-ambiguous"
 mkdir "$WTS/agent-ambiguous"
 echo 1 >"$WTS/agent-ambiguous/other"
 git -C "$CWD" worktree move "$WTS/elsewhere-ambiguous" "$WTS/agent-ambiguous/nested"
-if (cd "$CWD" && jq -n --arg path "$WTS/agent-ambiguous" '{worktree_path: $path}' | bash "$REMOVE") 2>>"$LOG"; then
+if remove "$WTS/agent-ambiguous"; then
     fail "an occupied path with a misplaced worktree fails the remover"
 else
     pass "an occupied path with a misplaced worktree fails the remover"

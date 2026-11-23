@@ -10,6 +10,7 @@ set -euo pipefail
 
 INPUT=$(cat)
 WT_PATH=$(echo "$INPUT" | jq -r '.worktree_path')
+SESSION_CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 
 log() { echo "[claude-wt-rm] $*" >&2; }
 
@@ -28,6 +29,26 @@ holds_other_worktree() {
     local found
     found=$(find "$1" -mindepth 2 -name .git -print -quit 2>/dev/null) || return 0
     [[ -n "$found" || -d "$1/.git" ]]
+}
+# Prints the registered worktree whose record names the path, searching the repositories of the session's directory
+# and of the entries beside the path, so the lookup does not depend on where this hook runs.
+recorded_worktree() {
+    local dir repo entry found found_git_dir
+    while IFS= read -r -d '' repo; do
+        while IFS= read -r -d '' entry; do
+            [[ "$entry" == "worktree "* ]] || continue
+            found=${entry#worktree }
+            found_git_dir=$(git -C "$found" rev-parse --absolute-git-dir 2>/dev/null) || continue
+            if [[ "$(cat "$found_git_dir/claude-moved-from" 2>/dev/null)" == "$1" ]]; then
+                echo "$found"
+                return
+            fi
+        done < <(git --git-dir="$repo" worktree list --porcelain -z 2>/dev/null)
+    done < <(
+        for dir in "$SESSION_CWD" "$WT_DIR"/* "$WT_DIR"/.[!.]* "$WT_DIR"/..?*; do
+            [[ -n "$dir" && -d "$dir" ]] && git -C "$dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null | tr '\n' '\0'
+        done | sort -zu
+    )
 }
 force_remove() {
     if holds_other_worktree "$WT_PATH"; then
@@ -66,23 +87,17 @@ if [[ -n "$WT_PATH" && -z "${CLAUDE_WT_CLEANUP_LOCKED:-}" && -d "$WT_DIR" ]]; th
         git -C "$HIDDEN" worktree repair >/dev/null 2>&1 || true
         WT_PATH=$HIDDEN
     else
-        # Or wherever a restore that landed elsewhere left it: a worktree of the current repository whose record
-        # names this path. If something else now occupies the path, which one was meant is ambiguous.
-        WANTED="$(cd -P "$WT_DIR" && pwd)/$(basename "$WT_PATH")"
-        while IFS= read -r -d '' ENTRY; do
-            [[ "$ENTRY" == "worktree "* ]] || continue
-            FOUND=${ENTRY#worktree }
-            FOUND_GIT_DIR=$(git -C "$FOUND" rev-parse --absolute-git-dir 2>/dev/null) || continue
-            [[ "$(cat "$FOUND_GIT_DIR/claude-moved-from" 2>/dev/null)" == "$WANTED" ]] || continue
-            [[ "$(cd -P "$WT_PATH" 2>/dev/null && pwd)" == "$FOUND" ]] && break
+        # Or wherever a restore that landed elsewhere left it. If something else now occupies the path, which one
+        # was meant is ambiguous.
+        FOUND=$(recorded_worktree "$(cd -P "$WT_DIR" && pwd)/$(basename "$WT_PATH")")
+        if [[ -n "$FOUND" && "$(cd -P "$WT_PATH" 2>/dev/null && pwd)" != "$FOUND" ]]; then
             if [[ -e "$WT_PATH" || -L "$WT_PATH" ]]; then
                 log "${WT_PATH} is occupied while the worktree recorded for it is at ${FOUND}; not removing either"
                 exit 1
             fi
             log "Removing ${WT_PATH} from where a restore left it: ${FOUND}"
             WT_PATH=$FOUND
-            break
-        done < <(git worktree list --porcelain -z 2>/dev/null)
+        fi
     fi
 fi
 
