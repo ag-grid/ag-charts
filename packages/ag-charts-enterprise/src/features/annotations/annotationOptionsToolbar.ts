@@ -89,7 +89,7 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
 // Appended whenever the toolbar opens from the keyboard, whatever the `buttons` options say, since a keyboard user has
 // no other way to move an annotation.
 const KEYBOARD_ONLY_BUTTONS: AnnotationOptionsButtonOptions[] = [
-    { type: 'button', value: AnnotationOptions.Move, icon: 'drag-handle', tooltip: 'toolbarAnnotationsMove' },
+    { type: 'button', value: AnnotationOptions.Move, icon: 'move', tooltip: 'toolbarAnnotationsMove' },
 ];
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
