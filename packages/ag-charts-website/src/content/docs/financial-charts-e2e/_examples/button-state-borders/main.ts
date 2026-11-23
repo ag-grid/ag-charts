@@ -23,6 +23,9 @@ const options: AgFinancialChartOptions = {
                         visible: 'always',
                     },
                 },
+                ranges: {
+                    enableOutOfRange: false,
+                },
             },
         },
     },
