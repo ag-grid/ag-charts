@@ -3352,9 +3352,7 @@ describe('Group shadow compositor', () => {
                     expect(shrinkable(before) * 4).toBeLessThan(large);
                 });
 
-                const itShaped = path.shapes ? it : it.skip;
-
-                itShaped(
+                it.runIf(path.shapes)(
                     'should count a frame that grows the canvas by the largest of its casts, not the one that grew it',
                     () => {
                         const before = offscreenCanvases();
@@ -3448,7 +3446,7 @@ describe('Group shadow compositor', () => {
                     });
                 });
 
-                itShaped('should keep its size when casts that are small alone are not together', () => {
+                it.runIf(path.shapes)('should keep its size when casts that are small alone are not together', () => {
                     const before = offscreenCanvases();
                     frame('large');
                     const large = shrinkable(before);
