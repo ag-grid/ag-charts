@@ -1260,8 +1260,8 @@ describe('SunburstSeries', () => {
         it.each([
             { side: 'left', padding: { left: 24, right: 0 }, even: { left: 12, right: 12 } },
             { side: 'right', padding: { left: 0, right: 24 }, even: { left: 12, right: 12 } },
-            { side: 'top', padding: { top: 8, bottom: 0 }, even: { top: 4, bottom: 4 } },
-            { side: 'bottom', padding: { top: 0, bottom: 8 }, even: { top: 4, bottom: 4 } },
+            { side: 'top', padding: { top: 4, bottom: 0 }, even: { top: 2, bottom: 2 } },
+            { side: 'bottom', padding: { top: 0, bottom: 4 }, even: { top: 2, bottom: 2 } },
         ])('centres a $side-padded label box where an evenly padded one sits', async ({ padding, even }) => {
             const evenCentres = await labelBoxCentres(even);
             const centres = await labelBoxCentres(padding);
