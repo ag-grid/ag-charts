@@ -130,7 +130,7 @@ export function priceVolume(
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(volumeProfile),
+            ...createPriceAxis(volumeProfile, tickSize),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
@@ -304,12 +304,14 @@ function createPriceVolumeProfileSeries(
     return createVolumeProfileSeries(getTheme, PRICE_AXIS_KEY, levels, undefined, volumeProfile, false);
 }
 
-function createPriceAxis(volumeProfile: AgVolumeProfileOptions | undefined) {
+function createPriceAxis(volumeProfile: AgVolumeProfileOptions | undefined, tickSize: number | undefined) {
     return {
         [PRICE_AXIS_KEY]: {
             type: 'number',
             position: 'right',
             spacing: 0,
+            // Spread in, as the axis's `tickSize` is outside the public axis types.
+            ...(tickSize == null ? undefined : { tickSize }),
             ...createTotalSegmentAxisOptions(
                 volumeProfile?.totalSegment,
                 volumeProfile?.placement === 'left' ? 'left' : 'right'

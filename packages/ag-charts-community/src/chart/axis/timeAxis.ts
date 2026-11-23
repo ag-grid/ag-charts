@@ -111,6 +111,10 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
         );
     }
 
+    protected override valueTickSize() {
+        return this.options.tickSize ?? this.minimumTimeGranularity;
+    }
+
     override tickFormatParams(
         domain: (number | Date)[],
         ticks: (number | Date)[],

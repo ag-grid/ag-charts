@@ -77,6 +77,7 @@ import type {
     AxisContext,
     AxisFormattableLabel,
     AxisValuePick,
+    AxisValueTickSize,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -736,6 +737,11 @@ export abstract class Axis<
     /** See {@link AxisLayout.label.boxOffset}. Only axes that offset a boxed tick label report one. */
     protected getLabelBoxOffset(): number {
         return 0;
+    }
+
+    /** See {@link AxisContext.valueTickSize}. */
+    protected valueTickSize(): AxisValueTickSize | undefined {
+        return undefined;
     }
 
     protected getTickSize(tick: { enabled: boolean; size: number } = this.options.tick) {
@@ -1456,6 +1462,7 @@ export abstract class Axis<
                     allowNull
                 );
             },
+            valueTickSize: () => this.valueTickSize(),
             attachLabel: (node: Node) => this.attachLabel(node),
             attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
