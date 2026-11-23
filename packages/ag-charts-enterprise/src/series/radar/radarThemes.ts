@@ -6,6 +6,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
+    PALETTE_LINE_DASH_THEME_DEFAULT,
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_GLOW_BUCKETS,
@@ -23,6 +24,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        lineDash: PALETTE_LINE_DASH_THEME_DEFAULT,
         connectMissingData: false,
         label: {
             ...LABEL_BOXING_DEFAULTS,

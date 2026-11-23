@@ -13,9 +13,7 @@ exports[`RangeAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
       "highlightState": "none",
       "item": {
         "high": {
-          "lineDash": [
-            0,
-          ],
+          "lineDash": [],
           "lineDashOffset": 0,
           "marker": {
             "fill": "#f3622d",
@@ -35,9 +33,7 @@ exports[`RangeAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
           "strokeWidth": 1,
         },
         "low": {
-          "lineDash": [
-            0,
-          ],
+          "lineDash": [],
           "lineDashOffset": 0,
           "marker": {
             "fill": "#f3622d",
@@ -75,9 +71,7 @@ exports[`RangeAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
       "highlightState": "none",
       "item": {
         "high": {
-          "lineDash": [
-            0,
-          ],
+          "lineDash": [],
           "lineDashOffset": 0,
           "marker": {
             "fill": "lime",
@@ -97,9 +91,7 @@ exports[`RangeAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
           "strokeWidth": 1,
         },
         "low": {
-          "lineDash": [
-            0,
-          ],
+          "lineDash": [],
           "lineDashOffset": 0,
           "marker": {
             "fill": "lime",

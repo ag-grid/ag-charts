@@ -10,6 +10,7 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_NODE_TOOLTIP_THEME,
+    PALETTE_LINE_DASH_THEME_DEFAULT,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
@@ -37,6 +38,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         stroke: SAFE_STROKE_FILL_OPERATION,
         strokeWidth: 2,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        lineDash: PALETTE_LINE_DASH_THEME_DEFAULT,
         connectMissingData: false,
         interpolation: interpolationThemeTemplate(),
         marker: {

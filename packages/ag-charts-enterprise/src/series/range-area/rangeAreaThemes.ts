@@ -13,6 +13,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
+    PALETTE_LINE_DASH_THEME_DEFAULT,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
@@ -30,7 +31,7 @@ import {
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
-    lineDash: lineDashThemeDefault({ $path: '/series/$index/lineDash' }),
+    lineDash: lineDashThemeDefault({ $path: '/series/$index/lineDash' }, undefined, 'solid'),
     lineDashOffset: {
         $path: '/series/$index/lineDashOffset',
     },
@@ -136,6 +137,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        lineDash: PALETTE_LINE_DASH_THEME_DEFAULT,
         marker: {
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,

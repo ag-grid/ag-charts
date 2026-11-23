@@ -666,12 +666,18 @@ export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickR
 /** The `strokeWidth` beside the `lineDash`, by which a stock dash name scales. */
 const SIBLING_STROKE_WIDTH = { $path: './strokeWidth' } as const;
 
-/** The `lineDash` theme default: the `defaultDash`, and the `strokeWidth` that a stock dash name scales by. */
+/**
+ * The `lineDash` theme default: the `defaultDash`, and the `strokeWidth` that a stock dash name scales by. A `setBase`
+ * replaces the `defaultDash` as the dash that a user, theme override or styler value layers over.
+ */
 export function lineDashThemeDefault(
     defaultDash: AgLineDashName | number[] | Operation | undefined,
-    strokeWidth: Operation = SIBLING_STROKE_WIDTH
+    strokeWidth: Operation = SIBLING_STROKE_WIDTH,
+    setBase?: AgLineDashName
 ) {
-    return { $applyLineDash: [defaultDash, strokeWidth] } satisfies Operation;
+    return {
+        $applyLineDash: setBase == null ? [defaultDash, strokeWidth] : [defaultDash, strokeWidth, setBase],
+    } satisfies Operation;
 }
 
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
@@ -680,6 +686,12 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
     lineDash: lineDashThemeDefault('solid'),
     lineDashOffset: 0,
 };
+
+/**
+ * A series stroke's `lineDash` default: the palette's pattern at the series index. A set `lineDash` layers over solid
+ * instead, so no element of the palette's pattern shows through a shorter array.
+ */
+export const PALETTE_LINE_DASH_THEME_DEFAULT = lineDashThemeDefault({ $palette: 'lineDash' }, undefined, 'solid');
 
 /** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
 export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
