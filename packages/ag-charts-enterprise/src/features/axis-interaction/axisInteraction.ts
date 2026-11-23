@@ -99,6 +99,8 @@ export class AxisInteraction extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
+            // Axes animate to their new layout after `layout:complete`, so the proxies are measured again once they settle.
+            ctx.animationManager.addListener('animation-stop', () => this.refresh()),
             ctx.eventsHub.on('axis-interaction:update', (event) => this.onUpdate(event)),
             ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
