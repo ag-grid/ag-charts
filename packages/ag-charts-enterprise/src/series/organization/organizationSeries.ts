@@ -1057,7 +1057,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 () => {
                     const params = this.makeLinkItemStylerParams(dataModel, processedData, fromIndex, toIndex, style);
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
+                        ['series', `${this.declarationOrder}`, 'link'],
                         this.callWithContext(linkStyler, params)
                     );
                 }
@@ -1364,7 +1364,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
+                    ['series', `${this.declarationOrder}`, 'node'],
                     this.callWithContext(styler, params)
                 );
             }
@@ -1404,7 +1404,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
+                    ['series', `${this.declarationOrder}`, 'expander'],
                     this.callWithContext(styler, params)
                 );
             }
@@ -1445,6 +1445,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     datumState,
                     { ...style, lineHeight }
                 );
+                // A text style has no `lineDash`, so nothing in its result needs the dash defaults of a deeper path.
                 return this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.callWithContext(styler, params)

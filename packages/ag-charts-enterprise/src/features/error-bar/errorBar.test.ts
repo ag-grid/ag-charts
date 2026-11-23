@@ -34,7 +34,7 @@ import { compareZIndex } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { getSeriesPlacedLabels } from '../../test/featureAccessors';
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { collectShapes, createEnterpriseChart, drawnLineDashes, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const SERIES_CANADA = {
     data: [
@@ -856,6 +856,61 @@ describe('ErrorBars', () => {
         expect(result).toStrictEqual(['unhighlighted-item']);
     });
 
+    it('resolves a stock dash name that the itemStyler returns while highlighted', async () => {
+        chart = await createEnterpriseChart({
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'line',
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        itemStyler: (param: AgErrorBarItemStylerParams<any>) => ({
+                            strokeWidth: 2,
+                            lineDash: param.highlightState === 'highlighted-item' ? 'dash' : 'dot',
+                        }),
+                    },
+                },
+            ],
+        });
+        const drawnDashes = () => {
+            const { unresolved, drawn } = drawnLineDashes(collectShapes(getSeriesAt(chart).annotationGroup));
+            expect(unresolved).toEqual([]);
+            return drawn;
+        };
+        expect(drawnDashes()).toEqual(new Set(['2,3']));
+
+        const { x, y } = getItemCoords(4);
+        await hoverAction(x, y - 20)(chart);
+        await waitForChartStability(chart);
+        // `dot` is `[1, 1.5]` and `dash` is `[3, 2]`, in multiples of the 2px stroke.
+        expect(drawnDashes()).toEqual(new Set(['2,3', '6,4']));
+        await compare();
+    });
+
+    it('keeps a configured cap option below the stroke that the itemStyler returns', async () => {
+        chart = await createEnterpriseChart({
+            data: [
+                { x: 'a', y: 5, lo: 3, hi: 7 },
+                { x: 'b', y: 6, lo: 4, hi: 8 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    errorBar: {
+                        yLowerKey: 'lo',
+                        yUpperKey: 'hi',
+                        cap: { stroke: 'blue' },
+                        itemStyler: () => ({ stroke: 'red', cap: { length: 20 } }),
+                    },
+                },
+            ],
+        });
+        const strokes = collectShapes(getSeriesAt(chart).annotationGroup).map((shape) => shape.stroke);
+        expect(new Set(strokes)).toEqual(new Set(['red']));
+    });
+
     it('AG-14263 should set itemStyler seriesId', async () => {
         type TDatum = { x: string; y: number; yLower: number; yUpper: number };
         const barSeriesItemStyler = vi.fn((_p: AgBarSeriesItemStylerParams<TDatum>): AgBarSeriesStyle => {
@@ -1377,6 +1432,33 @@ describe('ErrorBars', () => {
             });
             expect(placedLabelsOf(1).map((placed) => placed.placement)).toEqual(['right', 'right', 'right']);
             expect(placedLabelsOf(2).map((placed) => placed.placement)).toEqual(['top', 'top', 'top']);
+            await compare();
+        });
+
+        it('avoids the other error bars when one whisker end is NaN', async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 1, y: 5, lo: 0, hi: 10, a: 3 },
+                    { x: 2, y: 5, lo: 0, hi: 10, a: 3 },
+                    { x: 3, y: 5, lo: 0, hi: Number.NaN, a: 3 },
+                ],
+                series: [
+                    { type: 'scatter', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' } },
+                    { type: 'line', xKey: 'x', yKey: 'a', label: { placement: ['top', 'right'], spacing: SPACING } },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 4 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+            });
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [number] for [ScatterSeries-1 / yValue-errors-upper] ignored:",
+    "[NaN]",
+  ],
+]
+`);
             await compare();
         });
 

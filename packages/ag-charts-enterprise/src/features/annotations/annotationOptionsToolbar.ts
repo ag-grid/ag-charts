@@ -29,7 +29,7 @@ import {
     TEXT_SIZE_ITEMS,
 } from './annotationsMenuOptions';
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
-import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
+import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasSettings, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isFibonacciType, isTextType } from './utils/types';
 
@@ -83,15 +83,6 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     strokeWidth?: number;
     isMultiColor?: boolean;
 }
-
-// The checked state shows only what `checkedOverrides` sets; the unchecked button's own text and icon are cleared.
-const UNSET_TOOLBAR_BUTTON: ToolbarButton = {
-    icon: undefined,
-    iconPosition: undefined,
-    label: undefined,
-    ariaLabel: undefined,
-    tooltip: undefined,
-};
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     public constructor(localeManager: _ModuleSupport.LocaleManager) {
@@ -169,6 +160,7 @@ export class AnnotationOptionsToolbar {
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             // Menus close on a window mousedown before the click lands, so capture what was open first.
+            // eslint-disable-next-line aglint/widget-boundary -- Widget listeners offer no 'pointerdown' event.
             attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
                 this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
             }),
@@ -212,7 +204,7 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.TextColor]: hasTextColor(datum),
             [AnnotationOptions.FillColor]: hasFillColor(datum),
             [AnnotationOptions.TextSize]: hasFontSize(datum),
-            [AnnotationOptions.Settings]: hasLineText(datum),
+            [AnnotationOptions.Settings]: hasSettings(datum),
             [AnnotationOptions.Lock]: true,
             [AnnotationOptions.Delete]: true,
         };
@@ -517,10 +509,7 @@ export class AnnotationOptionsToolbar {
             if (button == null) continue;
             if (button.type === 'switch') {
                 this.toolbar.toggleSwitchCheckedByIndex(index, locked);
-                this.updateButtonByIndex(
-                    index,
-                    locked ? { ...UNSET_TOOLBAR_BUTTON, ...button.checkedOverrides } : button
-                );
+                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }

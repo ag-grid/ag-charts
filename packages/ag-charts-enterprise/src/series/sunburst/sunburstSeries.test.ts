@@ -62,6 +62,36 @@ import {
 import type { HierarchyNode } from '../hierarchy/hierarchySeries';
 import { SunburstSeries } from './sunburstSeries';
 
+/** The corners of a text's box, in drawing order, on the canvas. */
+function canvasCorners(text: TransformableText) {
+    const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
+    return [
+        [x, y],
+        [x + width, y],
+        [x + width, y + height],
+        [x, y + height],
+    ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
+}
+
+/** How far the segment from `a` to `b` comes to the origin. */
+function distanceToSegment(a: { x: number; y: number }, b: { x: number; y: number }) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const t = Math.min(1, Math.max(0, -(a.x * dx + a.y * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(a.x + t * dx, a.y + t * dy);
+}
+
+/** Which placement, and which half of the circle, a label drawn at `rotation` on `sector` takes. */
+function labelPlacementOf(sector: Sector, rotation: number) {
+    if (sector.endAngle - sector.startAngle >= 2 * Math.PI) return 'centre-circle';
+    const midAngle = (sector.startAngle + sector.endAngle) / 2;
+    // Parallel text turns square to the mid-angle; perpendicular text runs along it.
+    if (Math.abs(Math.sin(rotation - midAngle)) > 0.5) {
+        return Math.sin(midAngle) >= 0 ? 'parallel (top half)' : 'parallel (bottom half)';
+    }
+    return Math.cos(midAngle) >= 0 ? 'perpendicular (right half)' : 'perpendicular (left half)';
+}
+
 describe('SunburstSeries', () => {
     setupMockConsole();
     let chart: any;
@@ -1071,6 +1101,178 @@ describe('SunburstSeries', () => {
                 ],
             });
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
+        });
+
+        const parallelStackSeries: AgSunburstSeriesOptions = {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'gdp',
+            secondaryLabelKey: 'gdpChange',
+            label: { fill: 'olive', fontSize: 24, wrapping: 'on-space' },
+            secondaryLabel: { fill: 'blue', fontSize: 24 },
+        };
+        const parallelStackOptions: AgChartOptions = { data, series: [parallelStackSeries] };
+
+        it("keeps a sector's labels beside a parallel label stack in the ring inside it", async () => {
+            chart = await createEnterpriseChart(parallelStackOptions);
+            const visibleTexts = (name: string) => {
+                const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(
+                    chart,
+                    'labelSelection'
+                ).find((node) => node.datum?.datum?.name === name)!;
+                return Selection.selectByClass(group, TransformableText)
+                    .filter((text) => text.visible)
+                    .map((text) => text.text);
+            };
+            expect(visibleTexts('EU')).toEqual(['EU', '0.08']);
+            expect(visibleTexts('Germany')).toEqual(['Germany', '0.09']);
+        });
+
+        it('renders large labels beside a parallel label stack in the ring inside it', async () => {
+            chart = await createEnterpriseChart(parallelStackOptions);
+            await compare();
+        });
+
+        const centreData = [{ name: 'Worldwide', gdpChange: 0.07, children: data }];
+        const leftPadding = { left: 24, right: 0 };
+        it.each([
+            {
+                placement: 'parallel',
+                form: 'parallel',
+                data,
+                name: 'United States',
+                expected: ['United States', '0.06'],
+            },
+            {
+                placement: 'centre-circle',
+                form: 'centre-circle',
+                data: centreData,
+                name: 'Worldwide',
+                expected: ['Worldwide', '0.07'],
+            },
+            {
+                placement: 'left-padded parallel',
+                form: 'parallel',
+                padding: leftPadding,
+                data,
+                name: 'United States',
+                expected: ['United States', '0.06'],
+            },
+            {
+                placement: 'left-padded centre-circle',
+                form: 'centre-circle',
+                padding: leftPadding,
+                data: centreData,
+                name: 'Worldwide',
+                expected: ['Worldwide', '0.07'],
+            },
+            {
+                placement: 'unevenly padded perpendicular',
+                form: 'perpendicular',
+                padding: { top: 0, bottom: 16, left: 24, right: 0 },
+                data,
+                name: 'Germany',
+                expected: ['Germany', '0.09'],
+            },
+        ])('keeps every $placement label box inside its sector', async (testCase) => {
+            const { form, padding, data: sectorData, name, expected } = testCase;
+            const label = { ...parallelStackSeries.label, padding };
+            chart = await createEnterpriseChart({ data: sectorData, series: [{ ...parallelStackSeries, label }] });
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const labelGroups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const named = labelGroups.find((group) => group.datum?.datum?.name === name)!;
+            const namedTexts = Selection.selectByClass(named, TransformableText).filter((text) => text.visible);
+            expect(namedTexts.map((text) => text.text)).toEqual(expected);
+            const namedSector = sectors.find((node) => node.datum === named.datum)!;
+            const midAngle = (namedSector.startAngle + namedSector.endAngle) / 2;
+            // Centre-circle text stays level; ring text turns square to (parallel) or along (perpendicular) the mid-angle.
+            expect(
+                namedTexts.map((text) =>
+                    form === 'centre-circle' ? text.rotation : Math.abs(Math.sin(text.rotation - midAngle))
+                )
+            ).toEqual(namedTexts.map(() => expect.closeTo(form === 'parallel' ? 1 : 0)));
+            const overruns: Array<{ text: string; overrun: number }> = [];
+            for (const group of labelGroups) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const centre = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY);
+                const inner = sector.innerRadius + sector.innerEdgeInset;
+                const outer = sector.outerRadius - sector.outerEdgeInset;
+                const full = sector.endAngle - sector.startAngle >= 2 * Math.PI;
+                const [start, end] = [sector.startAngle, sector.endAngle].map((angle) => ({
+                    x: Math.cos(angle),
+                    y: Math.sin(angle),
+                }));
+                for (const text of Selection.selectByClass(group, TransformableText).filter((node) => node.visible)) {
+                    const corners = canvasCorners(text).map(({ canvasX, canvasY }) => ({
+                        x: canvasX - centre.canvasX,
+                        y: canvasY - centre.canvasY,
+                    }));
+                    // The nearest point of the box can lie mid-edge; the farthest is always a corner.
+                    const nearest = Math.min(
+                        ...corners.map((a, i) => distanceToSegment(a, corners[(i + 1) % corners.length]))
+                    );
+                    // Square to each straight edge; every sector here but the centre is narrower than half a turn.
+                    const edgeClearances = corners.map(({ x, y }) =>
+                        full ? Infinity : Math.min(start.x * y - start.y * x, end.y * x - end.x * y)
+                    );
+                    const overrun = Math.max(
+                        inner - nearest,
+                        ...corners.map(({ x, y }) => Math.hypot(x, y) - outer),
+                        ...edgeClearances.map((clearance) => sector.radialEdgeInset - clearance)
+                    );
+                    if (overrun > 1e-6) overruns.push({ text: String(text.text), overrun });
+                }
+            }
+            expect(overruns).toEqual([]);
+        });
+
+        /** Each visible label box's canvas centre, keyed by datum and line, with the placement and half it sits in. */
+        const labelBoxCentres = async (padding: { top?: number; right?: number; bottom?: number; left?: number }) => {
+            const label = { ...parallelStackSeries.label, padding };
+            chart = await createEnterpriseChart({ data: centreData, series: [{ ...parallelStackSeries, label }] });
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const groups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const centres = new Map<string, { x: number; y: number; at: string }>();
+            for (const group of groups) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const texts = Selection.selectByClass(group, TransformableText).filter((text) => text.visible);
+                for (const [line, text] of texts.entries()) {
+                    const corners = canvasCorners(text);
+                    const x = corners.reduce((sum, { canvasX }) => sum + canvasX, 0) / corners.length;
+                    const y = corners.reduce((sum, { canvasY }) => sum + canvasY, 0) / corners.length;
+                    const at = labelPlacementOf(sector, text.rotation);
+                    centres.set(`${group.datum?.datum?.name}/${line}/${String(text.text)}`, { x, y, at });
+                }
+            }
+            chart.destroy();
+            chart = undefined;
+            return centres;
+        };
+
+        // Any placement or half that shifted its box the wrong way would part it from the evenly padded one.
+        const everyPlacement = [
+            'centre-circle',
+            'parallel (top half)',
+            'parallel (bottom half)',
+            'perpendicular (right half)',
+            'perpendicular (left half)',
+        ];
+        it.each([
+            { side: 'left', padding: { left: 24, right: 0 }, even: { left: 12, right: 12 } },
+            { side: 'right', padding: { left: 0, right: 24 }, even: { left: 12, right: 12 } },
+            { side: 'top', padding: { top: 8, bottom: 0 }, even: { top: 4, bottom: 4 } },
+            { side: 'bottom', padding: { top: 0, bottom: 8 }, even: { top: 4, bottom: 4 } },
+        ])('centres a $side-padded label box where an evenly padded one sits', async ({ padding, even }) => {
+            const evenCentres = await labelBoxCentres(even);
+            const centres = await labelBoxCentres(padding);
+            expect([...centres.keys()]).toEqual([...evenCentres.keys()]);
+            expect(new Set([...centres.values()].map(({ at }) => at))).toEqual(new Set(everyPlacement));
+            const shifts = [...centres].map(([key, { x, y }]) => ({
+                key,
+                dx: x - evenCentres.get(key)!.x,
+                dy: y - evenCentres.get(key)!.y,
+            }));
+            expect(shifts).toEqual(shifts.map(({ key }) => ({ key, dx: expect.closeTo(0), dy: expect.closeTo(0) })));
         });
     });
 
@@ -2461,14 +2663,7 @@ describe('SunburstSeries', () => {
                     placement === 'parallel' ? 1 : 0
                 );
 
-                const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
-                const corners = [
-                    [x, y],
-                    [x + width, y],
-                    [x, y + height],
-                    [x + width, y + height],
-                ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
-                for (const { canvasX, canvasY } of corners) {
+                for (const { canvasX, canvasY } of canvasCorners(text)) {
                     const dx = canvasX - centre.canvasX;
                     const dy = canvasY - centre.canvasY;
                     // Square to each straight edge, positive inside; from half a turn up the cut-out lies behind the centre.

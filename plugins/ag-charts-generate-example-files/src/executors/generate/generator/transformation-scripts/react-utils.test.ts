@@ -1,4 +1,4 @@
-import { convertTemplate, getImport } from './react-utils';
+import { convertFunctionalTemplate, convertTemplate, getImport } from './react-utils';
 
 describe('convertTemplate', () => {
     it('converts event handlers', () => {
@@ -142,5 +142,118 @@ describe('getImport', () => {
         const importStatement = getImport(name);
 
         expect(importStatement).toBe("import MyComponent from './myComponent.jsx';");
+    });
+});
+
+describe('convertFunctionalTemplate', () => {
+    describe('event handlers', () => {
+        it('passes the DOM event, which handlers are written against, not the React SyntheticEvent', () => {
+            const converted = convertFunctionalTemplate('<select onchange="onChange(event)"></select>');
+
+            expect(converted).toBe('<select onChange={(event) => onChange(event.nativeEvent)}></select>');
+        });
+
+        it('passes the DOM event in the position the handler takes it', () => {
+            const converted = convertFunctionalTemplate('<button onclick="foo(1, event)">Go</button>');
+
+            expect(converted).toBe('<button onClick={(event) => foo(1, event.nativeEvent)}>Go</button>');
+        });
+
+        it('keeps an event member access as it is', () => {
+            const converted = convertFunctionalTemplate('<button onclick="foo(event.shiftKey)">Go</button>');
+
+            expect(converted).toBe('<button onClick={(event) => foo(event.shiftKey)}>Go</button>');
+        });
+
+        it('reads `this` in an inline handler from the element, which an arrow function cannot see as `this`', () => {
+            const converted = convertFunctionalTemplate('<input type="range" oninput="setSize(this.value)">');
+
+            expect(converted).toBe('<input type="range" onInput={(event) => setSize(event.currentTarget.value)} />');
+        });
+
+        it('closes the input tag before its handler arguments are converted', () => {
+            const converted = convertFunctionalTemplate('<input type="text" oninput="set(this.value)">', {
+                typed: true,
+            });
+
+            expect(converted).toMatch(/ \/>$/);
+            expect(converted.match(/\/>/g)).toHaveLength(1);
+        });
+    });
+
+    describe('typed handlers', () => {
+        it('asserts a value read from the element to the type the handler declares', () => {
+            const converted = convertFunctionalTemplate('<select onchange="setMode(this.value)"></select>', {
+                typed: true,
+            });
+
+            expect(converted).toBe(
+                '<select onChange={(event) => setMode(event.currentTarget.value as Parameters<typeof setMode>[0])}></select>'
+            );
+        });
+
+        it('asserts the right parameter of the handler to each argument', () => {
+            const converted = convertFunctionalTemplate('<select onchange="set(1, this.value)"></select>', {
+                typed: true,
+            });
+
+            expect(converted).toContain('set(1, event.currentTarget.value as Parameters<typeof set>[1])');
+        });
+
+        it('asserts the selected option text too', () => {
+            const converted = convertFunctionalTemplate(
+                '<select onchange="set(event.currentTarget.selectedOptions[0].text)"></select>',
+                { typed: true }
+            );
+
+            expect(converted).toContain('as Parameters<typeof set>[0]');
+        });
+
+        it('reads from the element the handler is on, not event.target, which is an EventTarget', () => {
+            const converted = convertFunctionalTemplate('<input type="text" oninput="set(event.target.value)">', {
+                typed: true,
+            });
+
+            expect(converted).toContain('set(event.currentTarget.value as Parameters<typeof set>[0])');
+            expect(converted).not.toContain('event.target');
+        });
+
+        it('leaves arguments that are not read from the element', () => {
+            const converted = convertFunctionalTemplate('<button onclick="set(\'a\', 2)">Go</button>', { typed: true });
+
+            expect(converted).toBe(`<button onClick={() => set('a', 2)}>Go</button>`);
+        });
+
+        it('does not assert types unless asked to', () => {
+            const converted = convertFunctionalTemplate('<select onchange="setMode(this.value)"></select>');
+
+            expect(converted).not.toContain('Parameters');
+        });
+    });
+
+    describe('boolean attributes', () => {
+        it('does not mistake a word inside another attribute value for the attribute', () => {
+            const converted = convertFunctionalTemplate('<input type="text" placeholder="a disabled input">');
+
+            expect(converted).toBe('<input type="text" placeholder="a disabled input" />');
+        });
+
+        it('still converts the attribute after one whose value contains it', () => {
+            const converted = convertFunctionalTemplate('<button title="not disabled" disabled>Go</button>');
+
+            expect(converted).toBe('<button title="not disabled" disabled={true}>Go</button>');
+        });
+
+        it('does not mistake checked inside an attribute value', () => {
+            const converted = convertFunctionalTemplate(`<input type="checkbox" aria-label='is checked' checked>`);
+
+            expect(converted).toBe(`<input type="checkbox" aria-label='is checked' defaultChecked />`);
+        });
+
+        it('converts a disabled attribute on a hyphenated element', () => {
+            const converted = convertFunctionalTemplate('<my-button disabled></my-button>');
+
+            expect(converted).toBe('<my-button disabled={true}></my-button>');
+        });
     });
 });

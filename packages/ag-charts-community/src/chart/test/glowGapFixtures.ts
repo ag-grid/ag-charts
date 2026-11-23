@@ -77,3 +77,50 @@ export function useGlowScenes() {
         };
     };
 }
+
+/** A stretch of pixels of one class, going along a column or a row. */
+export interface PixelRun {
+    class: string;
+    length: number;
+}
+
+/** Groups consecutive pixels of the same class into runs, which is how the layers of a glow read going out from an item. */
+export function classRuns(classes: Iterable<string>): PixelRun[] {
+    const runs: PixelRun[] = [];
+    for (const pixelClass of classes) {
+        const last = runs.at(-1);
+        if (last?.class === pixelClass) last.length++;
+        else runs.push({ class: pixelClass, length: 1 });
+    }
+    return runs;
+}
+
+/** A rectangle of pixels, with each edge included. */
+export interface PixelWindow {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+}
+
+/** The distance from each pixel of a red glow in the window to the nearest pixel that the item paints, which is found without the glow. */
+export function glowDistances(
+    bare: (x: number, y: number) => Pixel,
+    glowing: (x: number, y: number) => Pixel,
+    { left, right, top, bottom }: PixelWindow
+): number[] {
+    const isPainted = (x: number, y: number) => bare(x, y)[3] >= 128;
+    const edge: [number, number][] = [];
+    const glow: [number, number][] = [];
+    for (let y = top; y <= bottom; y++) {
+        for (let x = left; x <= right; x++) {
+            if (!isPainted(x, y)) {
+                if (glowing(x, y)[0] > 0) glow.push([x, y]);
+            } else if (!isPainted(x - 1, y) || !isPainted(x + 1, y) || !isPainted(x, y - 1) || !isPainted(x, y + 1)) {
+                // Only a pixel on the edge of the item can be the nearest to a pixel outside it.
+                edge.push([x, y]);
+            }
+        }
+    }
+    return glow.map(([x, y]) => Math.sqrt(Math.min(...edge.map(([px, py]) => (x - px) ** 2 + (y - py) ** 2))));
+}

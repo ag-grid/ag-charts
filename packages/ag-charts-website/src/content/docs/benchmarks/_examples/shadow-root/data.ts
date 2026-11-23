@@ -15,10 +15,12 @@ function sfc32(a: number, b: number, c: number, d: number) {
     };
 }
 
-const random = sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, 75023847123 ^ 0xdeadbeef);
-
-/** Rows of `{ x, y0 ... y<seriesCount - 1> }`, each series a random walk, so that series overlap one another. */
+/**
+ * Rows of `{ x, y0 ... y<seriesCount - 1> }`, each series a random walk, so that series overlap one another.
+ * The generator is seeded on every call, so a variant gets the same rows whichever variants ran before it.
+ */
 export function getRows(pointCount: number, seriesCount: number, categorical: boolean) {
+    const random = sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, 75023847123 ^ 0xdeadbeef);
     const levels = Array.from({ length: seriesCount }, (_, s) => 40 + s * 2);
     const rows: Record<string, number | string>[] = [];
     for (let i = 0; i < pointCount; i++) {

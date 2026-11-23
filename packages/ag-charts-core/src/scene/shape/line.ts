@@ -5,8 +5,9 @@ import { SceneChangeDetection } from '../../rendering/changeDetectable';
 import { snapDeviceCentre } from '../../rendering/pixel';
 import type { SerializedLineProps, SerializedNodeState } from '../../types/scene';
 import { BBox } from '../bbox';
+import { extendLineEnd } from '../extendedPath2D';
 import type { NodeOptions, RenderContext } from '../node';
-import { Shape } from './shape';
+import { type CanvasContext, Shape } from './shape';
 
 export class Line<D = unknown> extends Shape<D> implements DistantObject {
     static override readonly className = 'Line';
@@ -75,6 +76,25 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         return lineDistanceSquared(px, py, x1, y1, x2, y2, Infinity);
     }
 
+    /** The ends of the line as it was last drawn, which are snapped to the pixel grid. */
+    private drawnX1 = 0;
+    private drawnY1 = 0;
+    private drawnX2 = 0;
+    private drawnY2 = 0;
+
+    protected override hasButtEnds(): boolean {
+        return true;
+    }
+
+    protected override strokeButtEnds(ctx: CanvasContext, reach: number) {
+        if (reach <= 0) return;
+
+        const { drawnX1: x1, drawnY1: y1, drawnX2: x2, drawnY2: y2 } = this;
+        // A butt cap on a line with no length draws nothing, so it has no end to reach past.
+        const began = extendLineEnd(ctx, x2, y2, x1, y1, reach, false);
+        if (extendLineEnd(ctx, x1, y1, x2, y2, reach, began)) ctx.stroke();
+    }
+
     override render(renderCtx: RenderContext) {
         const { ctx, devicePixelRatio } = renderCtx;
 
@@ -93,6 +113,11 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
             y1 = y;
             y2 = y;
         }
+
+        this.drawnX1 = x1;
+        this.drawnY1 = y1;
+        this.drawnX2 = x2;
+        this.drawnY2 = y2;
 
         ctx.beginPath();
         ctx.moveTo(x1, y1);

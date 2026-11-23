@@ -61,7 +61,8 @@ export function useGlowCharts(factory: (options: AgChartOptions) => Promise<AgCh
     return {
         create,
         chart: () => chart!,
-        snapshot: () => compareImageSnapshot(chart!, { ...ctx, bbox: RENDER_CROP }),
+        /** Snapshots the part of the canvas in `bbox`, which is {@link RENDER_CROP} unless a test crops closer. */
+        snapshot: (bbox: typeof RENDER_CROP = RENDER_CROP) => compareImageSnapshot(chart!, { ...ctx, bbox }),
         /** The render of a chart, as read from its own canvas, so that two charts of a test can be compared. */
         render: async (
             testCase: GlowSeriesCase,

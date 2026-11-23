@@ -8,6 +8,8 @@ import {
     boolean,
     defined,
     interpolationThemeTemplate,
+    optionsDefs,
+    or,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -17,8 +19,9 @@ import {
     undocumentedDefs,
     union,
 } from 'ag-charts-core';
-import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
+import type { AgBaseFinancialPresetOptions, AgLastPriceLineOptions, AgPriceVolumePreset } from 'ag-charts-types';
 
+import { lastPriceLineStyleDefs } from '../../features/annotations/annotationOptionsDefs';
 import { AxisInsetValueModule } from '../../features/axis-inset-value/axisInsetValueModule';
 import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
@@ -39,6 +42,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     volumeKey: string,
     navigator: boolean,
     volume: boolean,
+    lastPriceLine: or(boolean, optionsDefs<AgLastPriceLineOptions>(lastPriceLineStyleDefs)),
     volumeProfile: {
         enabled: boolean,
         data: required(array),
@@ -118,6 +122,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
             annotations: {
                 ...annotationsTheme,
+                // The default colours of the last price line, which takes the one for the last bar's direction
+                lastPriceLine: { up: { $palette: 'up.stroke' }, down: { $palette: 'down.stroke' } } as any,
                 axesButtons: {
                     // @ts-expect-error undocumented option
                     snap: { $path: '/axes/y/crosshair/snap' },
