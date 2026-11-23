@@ -105,7 +105,7 @@ This covers every Playwright `toHaveScreenshot` baseline, including the `ag-char
 Baselines are named per project, so `*-firefox-linux.png` and `*-webkit-linux.png` are a normal part of a snapshot-branch diff alongside the Chromium set — the cross-browser projects never reuse a Chromium baseline. Two consequences when taking a drop onto your branch:
 
 -   The sharded `e2e` job and the `e2e_cross_browser` job push to the **same** `gha/snapshots-<your-branch>`, so check out the paths you meant to update rather than merging the branch wholesale.
--   A spec newly added to `PART_A_SPECS` in `playwright.cross-browser.config.ts` must be pinned to the vanilla framework variant — via `pinNonChromiumToVanilla`, a self-filter, or hardcoded vanilla URLs. Screenshot names carry no framework component, so an unpinned spec has all six variants writing the *same* baseline: under `-u` the last one wins, every run reports an update, and the job never converges to green.
+-   A spec newly added to `PART_A_SPECS` or `PART_B_SPECS` in `playwright.cross-browser.config.ts` must be pinned to the vanilla framework variant — via `pinNonChromiumToVanilla`, a self-filter, or hardcoded vanilla URLs. Screenshot names carry no framework component, so an unpinned spec has all six variants writing the *same* baseline: under `-u` the last one wins, every run reports an update, and the job never converges to green.
 
 ## `NX_BASE` must resolve, or be unset — never a ref that only exists in CI
 
