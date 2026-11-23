@@ -181,6 +181,29 @@ describe('Annotations keyboard navigation', () => {
             expect(ratioY).not.toEqual({ start: 0.4, end: 0.6 });
             expect((ratioY?.end ?? 0) - (ratioY?.start ?? 0)).toBeCloseTo(0.2);
         });
+
+        it('pans a line longer than the viewport into view without zooming out', async () => {
+            await prepareChart(
+                [
+                    {
+                        type: 'line',
+                        start: { x: { __type: 'date', value: '2024-01-10' }, y: 90 },
+                        end: { x: { __type: 'date', value: '2024-12-20' }, y: 95 },
+                    },
+                ],
+                {
+                    zoom: { enabled: true, axes: 'xy' },
+                    initialState: { zoom: { ratioX: { start: 0.25, end: 0.5 }, ratioY: { start: 0.2, end: 0.4 } } },
+                }
+            );
+
+            await focusItem(0);
+
+            const { ratioX, ratioY } = chart.getState().zoom ?? {};
+            expect(ratioX).toEqual({ start: 0.25, end: 0.5 });
+            expect((ratioY?.end ?? 0) - (ratioY?.start ?? 0)).toBeCloseTo(0.2);
+            expect(ratioY?.end).toBeGreaterThan(0.85);
+        });
     });
 
     describe('Annotation Options Toolbar', () => {
@@ -241,6 +264,38 @@ describe('Annotations keyboard navigation', () => {
 
             expect(toolbarButtons().length).toBeGreaterThan(0);
             expect(moveButton()).toBeUndefined();
+        });
+
+        it('moves the focus to another annotation when an update makes the annotation read-only', async () => {
+            await prepareChart([
+                { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 60 },
+            ]);
+            await openOptions(0);
+
+            await chart.setState({
+                ...chart.getState(),
+                annotations: [
+                    { type: 'horizontal-line', value: 30, readOnly: true },
+                    { type: 'horizontal-line', value: 60 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(toolbarPopover()).toBeNull();
+            expect(activeElement()).toBe(items()[0]);
+            expect(items()[0].textContent).toBe('60, Horizontal Line annotation');
+        });
+
+        it('moves the focus to the series area when an update removes the only annotation', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await openOptions(0);
+
+            await chart.setState({ ...chart.getState(), annotations: [] });
+            await waitForChartStability(chart);
+
+            expect(toolbarPopover()).toBeNull();
+            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
         });
 
         it('moves focus to the next annotation after deleting one', async () => {
@@ -353,6 +408,21 @@ describe('Annotations keyboard navigation', () => {
             await chart.updateDelta({ annotations: { enabled: true } });
             await waitForChartStability(chart);
             expect(horizontalLineValue()).toBe(50);
+        });
+
+        it('ends the move when an update locks the annotation, moving the focus to its list item', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await startMove();
+            const handle = activeElement();
+
+            await chart.setState({
+                ...chart.getState(),
+                annotations: [{ type: 'horizontal-line', value: 50, locked: true }],
+            });
+            await waitForChartStability(chart);
+
+            expect(activeElement()).toBe(items()[0]);
+            expect((handle as HTMLElement).style.display).toBe('none');
         });
 
         it('records the move in the history, so that undo reverts it', async () => {

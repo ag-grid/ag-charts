@@ -153,13 +153,14 @@ export class Annotations extends AbstractModuleInstance {
         onMoveKeyUp: (sourceEvent) => this.onKeyUp({ sourceEvent }),
         onMoveEnd: () => this.endMove(),
         onMoveBlur: () => this.onMoveBlur(),
-        onFocusLost: () => this.ctx.widgets.seriesWidget.focus(),
     });
 
     /** Whether the Annotation Options Toolbar was opened with the keyboard, which adds its keyboard-only buttons. */
     private keyboardOptions = false;
     /** The id of the annotation that the arrow keys move after the Move Annotation button is pressed, if any. */
     private movingId?: string;
+    /** The annotation whose list item, keyboard-opened toolbar or mover the keyboard is on, if any. */
+    private keyboardFocusId?: string;
     // OPTIMIZATION: reused while their key matches, as formatting a label runs the axis formatters.
     private readonly labels = new Map<string, { inputs: unknown[]; label: string }>();
 
@@ -648,16 +649,9 @@ export class Annotations extends AbstractModuleInstance {
 
             // Annotation Options Toolbar
             optionsToolbar.events.on('pressed-delete', () => {
-                const { keyboardOptions } = this;
                 this.cancel();
                 this.delete();
                 this.reset();
-                if (keyboardOptions) {
-                    // The deleted annotation's list item is removed on the next update, so focus moves on after it.
-                    this.postUpdateFns.push(() => {
-                        this.focusListOrSeries();
-                    });
-                }
             }),
             optionsToolbar.events.on('pressed-move', () => this.startMove()),
             optionsToolbar.events.on('pressed-escape', ({ sourceEvent }) => this.onOptionsEscape(sourceEvent)),
@@ -943,7 +937,7 @@ export class Annotations extends AbstractModuleInstance {
     private onPreRender() {
         if (!(this.opts.enabled ?? true)) {
             this.domProxy.clear();
-            if (this.movingId != null) this.abandonMove();
+            this.reconcileKeyboardFocus();
             return;
         }
         this.updateAnnotations();
@@ -1084,6 +1078,7 @@ export class Annotations extends AbstractModuleInstance {
             fn();
         }
         this.postUpdateFns = [];
+        this.reconcileKeyboardFocus();
     }
 
     private updateLastPriceLine(context: AnnotationContext, showAnnotations: boolean) {
@@ -1187,6 +1182,7 @@ export class Annotations extends AbstractModuleInstance {
         if (!context || event.device === 'keyboard') return;
 
         this.keyboardOptions = false;
+        this.keyboardFocusId = undefined;
 
         // The states finish an endpoint from the last hover, so it is refreshed to the click's own point and modifiers.
         if (!state.isIdle()) this.onHover(event);
@@ -1263,6 +1259,7 @@ export class Annotations extends AbstractModuleInstance {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
         this.keyboardOptions = false;
+        this.keyboardFocusId = undefined;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -1412,7 +1409,6 @@ export class Annotations extends AbstractModuleInstance {
         const { domProxy, optionsToolbar, movingId } = this;
         if (!showAnnotations) {
             domProxy.clear();
-            this.endMoveIfUnlisted();
             return;
         }
 
@@ -1443,7 +1439,6 @@ export class Annotations extends AbstractModuleInstance {
 
         domProxy.setHasPopup(optionsToolbar.isEnabled());
         domProxy.update(items, seriesRect);
-        this.endMoveIfUnlisted();
     }
 
     private getLabel(datum: AnnotationDatum, context: AnnotationContext) {
@@ -1463,25 +1458,28 @@ export class Annotations extends AbstractModuleInstance {
         }
     }
 
-    private endMoveIfUnlisted() {
-        const { movingId, domProxy } = this;
-        if (movingId == null || domProxy.isListed(movingId)) return;
+    /** Keeps the keyboard on a listed annotation's control, and on one that can still move for the mover. */
+    private reconcileKeyboardFocus() {
+        const { keyboardFocusId: id, domProxy } = this;
+        if (id == null) return;
 
-        // After the render, which the state changes must not interleave with.
-        this.postUpdateFns.push(() => {
-            if (this.movingId === movingId) this.abandonMove();
-        });
-    }
+        const datum = domProxy.isListed(id) ? this.annotationData.find((d) => d.id === id) : undefined;
+        const moving = this.movingId === id;
+        if (datum != null && (!moving || isWriteable(datum))) return;
 
-    private abandonMove() {
-        this.stopMove();
+        this.keyboardFocusId = undefined;
+        // The mover had the focus, which hiding it loses.
+        const focusLost = moving || this.ctx.agDocument.hasNoFocus();
+        if (moving) this.stopMove();
         this.cancel();
         this.reset();
-        this.focusListOrSeries();
-    }
+        if (!focusLost) return;
 
-    private focusListOrSeries() {
-        if (!this.domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
+        if (datum == null) {
+            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
+        } else {
+            domProxy.focus(id);
+        }
     }
 
     private findIndexById(id: string) {
@@ -1490,6 +1488,7 @@ export class Annotations extends AbstractModuleInstance {
 
     /** Pans an annotation that the keyboard focuses into view, as keyboard navigation of the series does. */
     private onKeyboardFocus(id: string) {
+        this.keyboardFocusId = id;
         const context = this.getAnnotationContext();
         const node = this.annotations.at(this.findIndexById(id));
         if (context == null || node == null) return;
@@ -1515,6 +1514,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const wasActive = this.state.getActive() === index;
         this.keyboardOptions = true;
+        this.keyboardFocusId = id;
         this.state.transition('selectIndex', index);
 
         if (!this.optionsToolbar.isEnabled()) return;
@@ -1558,6 +1558,7 @@ export class Annotations extends AbstractModuleInstance {
         if (datum == null || !isWriteable(datum)) return;
 
         this.movingId = datum.id;
+        this.keyboardFocusId = datum.id;
         this.optionsToolbar.hide();
         this.domProxy.startMove(datum.id);
         this.update();
@@ -1597,6 +1598,7 @@ export class Annotations extends AbstractModuleInstance {
 
     /** Leaving the annotation while it moves, such as with Tab, keeps the move and deselects the annotation. */
     private onMoveBlur() {
+        this.keyboardFocusId = undefined;
         this.stopMove();
         this.cancel();
         this.reset();
