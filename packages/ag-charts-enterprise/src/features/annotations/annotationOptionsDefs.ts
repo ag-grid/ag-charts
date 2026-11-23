@@ -4,6 +4,7 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
+    buttonNameAdvisory,
     colorOrRef,
     fillOptionsDef,
     fontOptionsDef,
@@ -258,60 +259,64 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         enabled: boolean,
         padding: positiveNumber,
         buttonSize: positiveNumber,
-        buttons: arrayOfDefs<AgAnnotationsToolbarButton>(
-            {
-                ...toolbarButtonOptionsDefs,
-                value: union(
-                    'line-menu',
-                    'fibonacci-menu',
-                    'text-menu',
-                    'shape-menu',
-                    'measurer-menu',
-                    'line',
-                    'horizontal-line',
-                    'vertical-line',
-                    'parallel-channel',
-                    'disjoint-channel',
-                    'fibonacci-retracement',
-                    'fibonacci-retracement-trend-based',
-                    'text',
-                    'comment',
-                    'callout',
-                    'note',
-                    'magnet',
-                    'clear'
-                ),
-            },
-            'annotation toolbar buttons array'
+        buttons: buttonNameAdvisory(
+            arrayOfDefs<AgAnnotationsToolbarButton>(
+                {
+                    ...toolbarButtonOptionsDefs,
+                    value: union(
+                        'line-menu',
+                        'fibonacci-menu',
+                        'text-menu',
+                        'shape-menu',
+                        'measurer-menu',
+                        'line',
+                        'horizontal-line',
+                        'vertical-line',
+                        'parallel-channel',
+                        'disjoint-channel',
+                        'fibonacci-retracement',
+                        'fibonacci-retracement-trend-based',
+                        'text',
+                        'comment',
+                        'callout',
+                        'note',
+                        'magnet',
+                        'clear'
+                    ),
+                },
+                'annotation toolbar buttons array'
+            )
         ),
     },
     optionsToolbar: {
         enabled: boolean,
         buttonSize: positiveNumber,
-        buttons: arrayOf(
-            or(
-                optionsDefs<AgAnnotationOptionsToolbarButton>({
-                    ...toolbarButtonOptionsDefs,
-                    type: union('button'),
-                    value: required(
-                        union(
-                            'line-stroke-width',
-                            'line-style-type',
-                            'line-color',
-                            'fill-color',
-                            'text-color',
-                            'text-size',
-                            'delete',
-                            'settings'
-                        )
-                    ),
-                }),
-                optionsDefs<AgAnnotationOptionsToolbarSwitch>({
-                    ...toolbarButtonOptionsDefs,
-                    type: required(union('switch')),
-                    value: required(union('lock')),
-                    checkedOverrides: toolbarButtonOptionsDefs,
-                })
+        buttons: buttonNameAdvisory(
+            arrayOf(
+                or(
+                    optionsDefs<AgAnnotationOptionsToolbarButton>({
+                        ...toolbarButtonOptionsDefs,
+                        type: union('button'),
+                        value: required(
+                            union(
+                                'line-stroke-width',
+                                'line-style-type',
+                                'line-color',
+                                'fill-color',
+                                'text-color',
+                                'text-size',
+                                'delete',
+                                'settings'
+                            )
+                        ),
+                    }),
+                    optionsDefs<AgAnnotationOptionsToolbarSwitch>({
+                        ...toolbarButtonOptionsDefs,
+                        type: required(union('switch')),
+                        value: required(union('lock')),
+                        checkedOverrides: toolbarButtonOptionsDefs,
+                    })
+                )
             )
         ),
     },

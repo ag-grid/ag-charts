@@ -84,15 +84,6 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     isMultiColor?: boolean;
 }
 
-// The checked state shows only what `checkedOverrides` sets; the unchecked button's own text and icon are cleared.
-const UNSET_TOOLBAR_BUTTON: ToolbarButton = {
-    icon: undefined,
-    iconPosition: undefined,
-    label: undefined,
-    ariaLabel: undefined,
-    tooltip: undefined,
-};
-
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     public constructor(localeManager: _ModuleSupport.LocaleManager) {
         super(localeManager, false);
@@ -518,10 +509,7 @@ export class AnnotationOptionsToolbar {
             if (button == null) continue;
             if (button.type === 'switch') {
                 this.toolbar.toggleSwitchCheckedByIndex(index, locked);
-                this.updateButtonByIndex(
-                    index,
-                    locked ? { ...UNSET_TOOLBAR_BUTTON, ...button.checkedOverrides } : button
-                );
+                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }

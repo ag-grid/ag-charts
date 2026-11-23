@@ -953,6 +953,35 @@ describe('Annotations', () => {
             expect(getAnnotationToolbarsEnabled(chart).optionsToolbar).toBe(true);
         });
 
+        it('warns once for each custom toolbar button that sets none of ariaLabel, tooltip or label', async () => {
+            const options = withAnnotations({
+                enabled: true,
+                toolbar: {
+                    buttons: [
+                        { icon: 'text-annotation', value: 'text-menu' },
+                        { label: 'Lines', value: 'line-menu' },
+                    ],
+                },
+                optionsToolbar: {
+                    buttons: [
+                        { ariaLabel: 'Delete', value: 'delete' },
+                        { icon: 'delete', value: 'delete' },
+                    ],
+                },
+            });
+            await prepareChart(undefined, options);
+            await chart.update(prepareEnterpriseTestOptions(options));
+
+            expectWarningsCalls().toEqual([
+                [
+                    'AG Charts - Option `annotations.toolbar.buttons[0]` has no accessible name; set one of `ariaLabel`, `tooltip` or `label`.',
+                ],
+                [
+                    'AG Charts - Option `annotations.optionsToolbar.buttons[1]` has no accessible name; set one of `ariaLabel`, `tooltip` or `label`.',
+                ],
+            ]);
+        });
+
         it('keeps the options toolbar enabled when only the toolbar is disabled', async () => {
             await prepareChart();
 
@@ -1148,7 +1177,7 @@ describe('Annotations', () => {
             });
         });
 
-        it('swaps the lock switch to its checked overrides while the selected annotation is locked', async () => {
+        it('merges the checked overrides onto the lock switch while the selected annotation is locked', async () => {
             await prepareChart(
                 { annotations: [{ type: 'horizontal-line', value: 50, locked: true }] },
                 {
@@ -1162,6 +1191,7 @@ describe('Annotations', () => {
                                     value: 'lock',
                                     icon: 'unlocked',
                                     label: 'Lock',
+                                    ariaLabel: 'toolbarAnnotationsLock',
                                     tooltip: 'toolbarAnnotationsLock',
                                     checkedOverrides: { icon: 'locked', tooltip: 'toolbarAnnotationsUnlock' },
                                 },
@@ -1183,8 +1213,8 @@ describe('Annotations', () => {
             expect(lockSwitch()?.getAttribute('aria-checked')).toBe('true');
             expect(lockSwitch()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
             expect(lockSwitch()?.title).toBe('Unlock');
-            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Unlock');
-            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')).toBeNull();
+            expect(lockSwitch()?.getAttribute('aria-label')).toBe('Lock');
+            expect(lockSwitch()?.querySelector('.ag-charts-toolbar__label')?.textContent).toBe('Lock');
 
             lockSwitch()!.click();
             await waitForChartStability(chart);
@@ -2504,6 +2534,7 @@ describe('Annotations', () => {
 
                 const lockSwitch = body().querySelector<HTMLElement>('button[aria-checked]');
                 expect(lockSwitch?.getAttribute('aria-checked')).toBe('true');
+                expect(lockSwitch?.getAttribute('aria-label')).toBe('Unlock');
             });
         });
 
