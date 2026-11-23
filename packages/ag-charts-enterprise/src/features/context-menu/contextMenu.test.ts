@@ -446,6 +446,44 @@ describe('Context Menu', () => {
             expect(action).toHaveBeenCalledTimes(1);
             expect(action.mock.calls[0][0].datum).toEqual({ x: 1, y: 1, id: 'A3' });
         });
+
+        it('acts on the paged node when another series is picked first', async () => {
+            const action = vi.fn();
+            const getItems = vi.fn((_params: any): AgContextMenuItem[] => [
+                { type: 'action', label: 'Open', showOn: 'series-node', action },
+            ]);
+            let pagedId: string | undefined;
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    { enabled: true, getItems },
+                    {
+                        series: [
+                            { type: 'scatter', xKey: 'x', yKey: 'y', yName: 'A', data: OVERLAP_OPTIONS.data },
+                            { type: 'scatter', xKey: 'x', yKey: 'y', yName: 'B', data: [{ x: 1, y: 1, id: 'B1' }] },
+                        ],
+                        tooltip: { mode: 'shared', pagination: true },
+                        listeners: { activeChange: ({ datum }: { datum?: { id: string } }) => (pagedId = datum?.id) },
+                    }
+                )
+            );
+
+            const { canvasX: x, canvasY: y } = datumCanvasPoint(1);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+            for (let i = 0; i < 4 && pagedId !== 'A3'; i++) {
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
+            }
+            expect(pagedId).toBe('A3');
+
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems.mock.calls[0][0].datum).toEqual({ x: 1, y: 1, id: 'A3' });
+            findContextMenuItem('Open').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            await waitForChartStability(chart);
+            expect(action.mock.calls[0][0].datum).toEqual({ x: 1, y: 1, id: 'A3' });
+        });
     });
 
     describe('series-node items on a markerless series (AG-10226)', () => {
