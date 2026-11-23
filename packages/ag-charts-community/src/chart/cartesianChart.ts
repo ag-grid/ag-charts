@@ -530,7 +530,7 @@ export class CartesianChartType implements ChartTypeInstance {
             left: axisArea.left + pluginPadding.left,
         };
         for (const axis of this.axes) {
-            axis.labelRoom = { axes: axisArea, across, outer };
+            axis.labelRoom = { across, outer };
         }
 
         const { scene } = this.ctx;

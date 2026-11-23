@@ -599,7 +599,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     /**
      * The label fitted at `anchor`. Keyed on the measurer, which a web font load replaces, and on the bounds.
-     * `held` fits it to the series and axis areas alone, which is what the label pads the chart for.
+     * `held` fits it to the padding budget rather than the padding reserved, which is what the label pads the chart for.
      */
     private fittedLabel(anchor: Anchor = this.anchor, held = false): FittedLabel {
         const { label } = this;
@@ -682,7 +682,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         // Drawn, the label keeps within the padding it was held to, which the chart reserves for it.
         const heldExtent = side == null || held ? undefined : this.paddingExtent(side, anchor, true);
         const outer = side == null ? 0 : (heldExtent ?? labelRoom.outer[side]) - spacing;
-        const across = held ? labelRoom.axes : labelRoom.across;
+        const { across } = labelRoom;
         const roomX =
             side === 'left' || side === 'right'
                 ? outer
