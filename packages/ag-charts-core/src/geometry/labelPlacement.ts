@@ -2268,9 +2268,11 @@ function shrinkCompassCandidate(
     // Most re-fits fail by breaking a word the budget cannot hold, so the reduction the text can afford
     // caps the query and rejects the candidate before any text is wrapped. A floor that cannot be told
     // leaves the reduction uncapped: a preserving policy hands back its text however little room is left.
-    const floor = unstyled ? minRefitWidth(fit) : Infinity;
+    // A restyled marker's rows bound the re-fit by its own region, which the series policy's floors do not model.
+    const plainRefit = unstyled && candidatePolicy.region == null;
+    const floor = plainRefit ? minRefitWidth(fit) : Infinity;
     const affordableWidth = floor === Infinity ? Infinity : candidateLabel.glyphWidth - floor;
-    const affordableHeight = unstyled && erasesOnLostLine(fit) ? 0 : Infinity;
+    const affordableHeight = plainRefit && erasesOnLostLine(fit) ? 0 : Infinity;
     const widthCap = upright ? affordableWidth : affordableHeight;
     const heightCap = upright ? affordableHeight : affordableWidth;
     // Neither axis can give anything up, so no reduction the obstacles ask for is worth measuring.
