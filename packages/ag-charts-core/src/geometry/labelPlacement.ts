@@ -1436,7 +1436,6 @@ function markerCentreOf(d: PointLabelDatum) {
 /** Inserts a pooled obstacle for every sized marker into the obstacle index, shaped as the marker is drawn. */
 function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let circleCount = 0;
-    let outlineCount = 0;
     for (const [seriesId, { datums }] of data) {
         for (const d of datums) {
             const size = markerSizeOf(d);
@@ -1445,11 +1444,10 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
             if (markerCentre.outline == null) {
                 insertCircleObstacle(circleCount++, size, seriesId);
             } else {
-                insertOutlineObstacle(outlineCount++, size, markerCentre.outline, seriesId);
+                insertOutlineObstacle(placedOutlineCount++, size, markerCentre.outline, seriesId);
             }
         }
     }
-    placedOutlineCount = outlineCount;
 }
 
 /** Inserts the pooled circle obstacle at `index` for the marker of diameter `size` at {@link markerCentre}. */
