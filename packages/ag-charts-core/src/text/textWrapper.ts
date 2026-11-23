@@ -1382,8 +1382,8 @@ type OrphanLine = typeof PREV_LINE | typeof LAST_LINE;
 
 /** The second-last and last lines the orphan rule reads, whether held as strings or as segments. */
 interface OrphanLines {
-    /** Offset of the first, or `fromEnd` the last, character in `[lo, hi)` that is or is not a break space, or -1. */
-    find(line: OrphanLine, lo: number, hi: number, breakSpace: boolean, fromEnd: boolean): number;
+    /** Offset of the first, or `fromEnd` the last, break space in `[lo, hi)` of `line`, or -1. */
+    findBreak(line: OrphanLine, lo: number, hi: number, fromEnd: boolean): number;
     graphemes(line: OrphanLine, lo: number, hi: number): number;
 }
 
@@ -1399,10 +1399,10 @@ function orphanWordSplit(
     prevEdges: number,
     lastEdges: number
 ) {
-    if (lines.find(LAST_LINE, lastFrom, lastTo, true, false) !== -1) return -1;
-    const split = lines.find(PREV_LINE, 0, prevTo, true, true);
+    if (lines.findBreak(LAST_LINE, lastFrom, lastTo, false) !== -1) return -1;
+    const split = lines.findBreak(PREV_LINE, 0, prevTo, true);
     // With a single break space, moving the second word would leave the first alone above.
-    if (split === -1 || split === lines.find(PREV_LINE, 0, prevTo, true, false)) return -1;
+    if (split === -1 || split === lines.findBreak(PREV_LINE, 0, prevTo, false)) return -1;
     const prevGraphemes = lines.graphemes(PREV_LINE, 0, prevTo) + prevEdges;
     return prevGraphemes < lines.graphemes(LAST_LINE, lastFrom, lastTo) + lastEdges ? -1 : split;
 }
@@ -1410,16 +1410,16 @@ function orphanWordSplit(
 const stringOrphanLines = {
     prev: '',
     last: '',
-    find(line: OrphanLine, lo: number, hi: number, breakSpace: boolean, fromEnd: boolean) {
+    findBreak(line: OrphanLine, lo: number, hi: number, fromEnd: boolean) {
         const text = line === PREV_LINE ? this.prev : this.last;
         if (fromEnd) {
             for (let i = hi - 1; i >= lo; i--) {
-                if (isBreakSpace(text[i]) === breakSpace) return i;
+                if (isBreakSpace(text[i])) return i;
             }
             return -1;
         }
         for (let i = lo; i < hi; i++) {
-            if (isBreakSpace(text[i]) === breakSpace) return i;
+            if (isBreakSpace(text[i])) return i;
         }
         return -1;
     },
@@ -1433,7 +1433,10 @@ const stringOrphanLines = {
 function orphanSplit(prev: string, last: string) {
     stringOrphanLines.prev = prev;
     stringOrphanLines.last = last;
-    return orphanWordSplit(stringOrphanLines, prev.length, 0, last.length, 0, 0);
+    const split = orphanWordSplit(stringOrphanLines, prev.length, 0, last.length, 0, 0);
+    stringOrphanLines.prev = '';
+    stringOrphanLines.last = '';
+    return split;
 }
 
 /** {@link orphanSplit} for the last two `lines`, when the last line still fits with the word on it. */
@@ -1643,10 +1646,10 @@ const segmentOrphanLines = {
     prevStart: 0,
     lastStart: 0,
     end: 0,
-    find(line: OrphanLine, lo: number, hi: number, breakSpace: boolean, fromEnd: boolean) {
+    findBreak(line: OrphanLine, lo: number, hi: number, fromEnd: boolean) {
         const from = line === PREV_LINE ? this.prevStart : this.lastStart;
         const to = line === PREV_LINE ? this.lastStart : this.end;
-        return (fromEnd ? findLastInLine : findInLine)(this.segments, from, to, lo, hi, breakSpace);
+        return (fromEnd ? findLastInLine : findInLine)(this.segments, from, to, lo, hi, true);
     },
     graphemes(line: OrphanLine, lo: number, hi: number) {
         const from = line === PREV_LINE ? this.prevStart : this.lastStart;
