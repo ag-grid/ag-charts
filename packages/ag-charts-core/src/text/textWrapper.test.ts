@@ -1026,6 +1026,23 @@ describe('wrapTextSegments — orphans', () => {
     });
 });
 
+describe('wrapTextSegments references', () => {
+    it("keeps no reference to an inline image's padding once it returns", async () => {
+        const { gc } = globalThis;
+        if (gc == null) throw new Error('Run with --expose-gc');
+        // Measured segments are copies, so the padding is what the wrap's scratch would share with the caller.
+        const ref = (() => {
+            const padding = {};
+            const segments = [text('AA BB CC DD '), image('flag', { width: 10, height: 10, padding }), text(' E')];
+            wrapTextSegments(segments, { font: baseFont, maxWidth: 90 });
+            return new WeakRef(padding);
+        })();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        gc();
+        expect(ref.deref()).toBeUndefined();
+    });
+});
+
 describe('wrapTextSegments — block-leading image', () => {
     it('keeps a block image at the front and wraps subsequent segments unchanged when there is room', () => {
         const segments: ContentSegment[] = [

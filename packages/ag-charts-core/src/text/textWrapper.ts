@@ -1965,6 +1965,23 @@ function splitIntoBlockGroups(textSegments: NormalisedContentSegment[]): Segment
 }
 
 export function wrapTextSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
+    try {
+        return wrapSegmentGroups(textSegments, options);
+    } finally {
+        releaseWrapReferences();
+    }
+}
+
+/** Drops the module scratch's hold on the last wrap's segments, so none outlives the call. */
+function releaseWrapReferences() {
+    groupFitLines.metrics = undefined;
+    runFitLines.metrics = undefined;
+    keptPieces.length = 0;
+    movedPieces.length = 0;
+    segmentOrphanLines.segments = NO_SEGMENTS;
+}
+
+function wrapSegmentGroups(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const groups = splitIntoBlockGroups(textSegments);
     if (groups.length === 0) return [];
 
