@@ -6,6 +6,7 @@ import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
+import { hoverDatum } from '../test/glowRender';
 import { getSeriesAt, getSeriesNodeData, getSeriesOptions } from '../test/seriesAccessors';
 import {
     SERIES_GLOW,
@@ -363,10 +364,6 @@ describe('series-level glow on phantom nodes', () => {
     const glowing = (root: Group) =>
         shapesOf(root, Shape).filter((shape) => shape.visible && shape.fillGlow?.enabled === true);
     const phantomsOf = (root: Group) => shapesOf(root, Shape).filter((shape) => shape.parentNode?.name === 'phantom');
-    const highlight = async () => {
-        chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
-        await waitForChartStability(chart);
-    };
 
     // The bar phantoms are not batched: the items cast the glow, the phantoms none.
     it('casts the glow of bar items and not of their phantoms', async () => {
@@ -382,7 +379,7 @@ describe('series-level glow on phantom nodes', () => {
         expect(glowing(contentGroup)).toHaveLength(PHANTOM_DATA.length * 2);
         expect(uncastGlows(contentGroup)).toEqual(phantoms);
 
-        await highlight();
+        await hoverDatum(chart);
 
         for (const label of uncastGlows(contentGroup)) expect(label).toContain('"phantom"');
         expect(glowing(highlightGroup).length).toBeGreaterThan(uncastGlows(highlightGroup).length);
@@ -401,7 +398,7 @@ describe('series-level glow on phantom nodes', () => {
         expect(uncastGlows(contentGroup)).toEqual([]);
         for (const phantom of phantomsOf(contentGroup)) expect(glowing(contentGroup)).not.toContain(phantom);
 
-        await highlight();
+        await hoverDatum(chart);
 
         expect(phantomsOf(highlightGroup).length).toBeGreaterThan(0);
         expect(glowing(highlightGroup).length).toBeGreaterThan(0);
