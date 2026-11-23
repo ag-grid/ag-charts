@@ -3,7 +3,13 @@
 import { AgCartesianChartOptions, AgCharts, AgDropShadowOptions, AgGlowOptions, VERSION } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
+import {
+    ChartRef,
+    hover,
+    performDatumHighlight,
+    performInitialLoad,
+    waitForAsyncEventTriggeredUpdate,
+} from './benchmarkUtils';
 import { getHeatmapRows, getRows } from './data';
 
 (window as any).agChartsDebug = 'scene:stats';
@@ -18,6 +24,7 @@ const GAP_GLOW: AgGlowOptions = { enabled: true, fill: '#000', fillOpacity: 0.35
 /** The `glow.gap` of a gap scenario: left unset, or set to a number of pixels. */
 type Gap = number | 'unset';
 const GAPS: Gap[] = ['unset', 0, 5];
+const SERIES_POINTS = 5000;
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -46,7 +53,8 @@ type Scenario =
     | 'item-shadow-scatter'
     | 'item-shadow-heatmap'
     | 'glow-gap-bar'
-    | 'glow-gap-scatter';
+    | 'glow-gap-scatter'
+    | 'glow-gap-scatter-series';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
@@ -81,6 +89,32 @@ function buildOptions(scenario: Scenario, shadowOn: boolean, gap: Gap = 'unset')
             height: 600,
             data: getRows(5000, 10, false),
             axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+                glow: gapGlow,
+            })),
+        };
+    }
+
+    if (scenario === 'glow-gap-scatter-series') {
+        // The axes are fixed to the data, so that the pixel of each point of the first series is known to the hover.
+        const data = getRows(SERIES_POINTS, 10, false);
+        const ys = data.flatMap((row) =>
+            Object.keys(row)
+                .filter((key) => key !== 'x')
+                .map((key) => Number(row[key]))
+        );
+        return {
+            width: 1400,
+            height: 600,
+            data,
+            axes: {
+                x: { type: 'number', min: 0, max: SERIES_POINTS - 1, nice: false },
+                y: { type: 'number', min: Math.min(...ys), max: Math.max(...ys), nice: false },
+            },
             series: Array.from({ length: 10 }, (_, i) => ({
                 type: 'scatter' as const,
                 xKey: 'x',
@@ -249,6 +283,28 @@ async function performRedrawFirstSeries(chartOptions: AgCartesianChartOptions): 
     return performance.now() - start;
 }
 
+// Hovers consecutive points of the first series, so that each move is between items of one series.
+/** inScope */
+async function performSeriesHover(chartOptions: AgCartesianChartOptions, count: number): Promise<number> {
+    const rows = chartOptions.data ?? [];
+    const yAxis = chartOptions.axes?.y as { min: number; max: number };
+    const seriesArea = container.querySelector('.ag-charts-series-area') as HTMLElement;
+    const { width, height } = seriesArea.getBoundingClientRect();
+    const middle = Math.floor(rows.length / 2);
+
+    const start = performance.now();
+    for (let i = 0; i < count; i++) {
+        const row = rows[middle + i * 10];
+        const x = (Number(row.x) / (rows.length - 1)) * width;
+        const y = (1 - (Number(row.y0) - yAxis.min) / (yAxis.max - yAxis.min)) * height;
+        hover(container, x, y);
+        await waitForAsyncEventTriggeredUpdate(chartRef.current!);
+    }
+
+    seriesArea.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+    return performance.now() - start;
+}
+
 // Hovers the legend items in turn, as a pointer entering each does, so that each series is highlighted in its turn.
 /** inScope */
 async function performLegendHover(count: number): Promise<number> {
@@ -394,6 +450,13 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 variants: gapVariantsOf('glow-gap-scatter', {
                     'Chart Create': create,
                     'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
+                }),
+            },
+            {
+                id: 'glow-gap-scatter-series',
+                label: '10 scatter series x 5,000 points, glow.gap, moves within one series',
+                variants: gapVariantsOf('glow-gap-scatter-series', {
+                    'Hover x10 (one series)': (chartOptions) => performSeriesHover(chartOptions, 10),
                 }),
             },
         ],
