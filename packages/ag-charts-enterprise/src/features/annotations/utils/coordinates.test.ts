@@ -227,6 +227,14 @@ describe('annotation coordinates', () => {
                 ['endHeight', '6'],
             ]);
             expect(both[1].toProps(1)).toEqual({ endHeight: 1 });
+            expect(getCoordinateFields(disjoint, context).map((f) => f.row)).toEqual([
+                'start',
+                'start',
+                'startHeight',
+                'end',
+                'end',
+                'endHeight',
+            ]);
 
             const timeY = timeScale([new Date(2024, 0, 1), new Date(2024, 0, 31)]);
             expect(heights(parallel, createAxesContext(numberScale([0, 100]), timeY))).toEqual([]);

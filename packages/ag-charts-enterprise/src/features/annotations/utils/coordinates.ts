@@ -260,6 +260,8 @@ export function getCoordinateFields(datum: SettingsDialogDatumType, context: Ann
             : [];
     }
 
+    // A channel's height is a distance along the y axis, which only a numeric axis can measure.
+    const heights = y?.kind === 'number' ? getHeightFields(datum, y) : [];
     const fields: CoordinateField[] = [];
     for (const [row, point] of getPointRows(datum)) {
         const toProps =
@@ -280,12 +282,9 @@ export function getCoordinateFields(datum: SettingsDialogDatumType, context: Ann
         if (y) {
             fields.push(...createOffsetPointFields(row, y, point.y, toYProps));
         }
+        fields.push(...heights.filter((field) => field.row === `${row}Height`));
     }
-
-    // A channel's offset is a distance along the y axis, which only a numeric axis can measure.
-    if (y?.kind === 'number') {
-        fields.push(...getHeightFields(datum, y));
-    }
+    fields.push(...heights.filter((field) => field.row === 'height'));
 
     return fields;
 }
