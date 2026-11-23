@@ -114,7 +114,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         show(context, { ...disjointChannelDatum.create(), startHeight: 1.98765, endHeight: 20 });
         expect(
             inputs()
-                .slice(-2)
+                .filter((input) => input.getAttribute('aria-label')?.endsWith('height: Y'))
                 .map((input) => input.value)
         ).toEqual(['2.0', '20']);
     });
@@ -188,7 +188,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
             );
 
         show(context);
-        expect(inputs()[2].getAttribute('aria-label')).toBe('Start offset: X (%)');
+        expect(inputs()[2].getAttribute('aria-label')).toBe('Start: X offset %');
         expect(inputs()[2].min).toBe('-50');
         expect(inputs()[2].max).toBe('50');
 
@@ -201,12 +201,12 @@ describe('AnnotationSettingsDialog coordinates', () => {
                 { label: 'Start: X', inline: false },
                 { label: 'Start: Y', inline: false },
             ],
-            [{ label: 'Start offset: X (%)', inline: true }],
+            [{ label: 'Start: X offset %', inline: true }],
             [
                 { label: 'End: X', inline: false },
                 { label: 'End: Y', inline: false },
             ],
-            [{ label: 'End offset: X (%)', inline: true }],
+            [{ label: 'End: X offset %', inline: true }],
         ]);
         dialog.hide();
 
@@ -216,6 +216,23 @@ describe('AnnotationSettingsDialog coordinates', () => {
 
         show(context, { ...parallelChannelDatum.create(), height: 10 });
         expect(layout().at(-1)).toEqual([{ label: 'Height', inline: true }]);
+        dialog.hide();
+
+        show(context, { ...disjointChannelDatum.create(), startHeight: 10, endHeight: 20 });
+        expect(layout()).toEqual([
+            [
+                { label: 'Start: X', inline: false },
+                { label: 'Start: Y', inline: false },
+            ],
+            [{ label: 'Start: X offset %', inline: true }],
+            [{ label: 'Start height', inline: true }],
+            [
+                { label: 'End: X', inline: false },
+                { label: 'End: Y', inline: false },
+            ],
+            [{ label: 'End: X offset %', inline: true }],
+            [{ label: 'End height', inline: true }],
+        ]);
     });
 
     it('labels every input of a point on two category axes, so that no label is a missing locale key', () => {
@@ -229,16 +246,16 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(inputs().map((input) => input.getAttribute('aria-label'))).toEqual([
             'Start: X',
             'Start: Y',
-            'Start offset: X (%)',
-            'Start offset: Y (%)',
+            'Start: X offset %',
+            'Start: Y offset %',
             'End: X',
             'End: Y',
-            'End offset: X (%)',
-            'End offset: Y (%)',
-            'Retracement end: X',
-            'Retracement end: Y',
-            'Retracement end offset: X (%)',
-            'Retracement end offset: Y (%)',
+            'End: X offset %',
+            'End: Y offset %',
+            'Retracement: X',
+            'Retracement: Y',
+            'Retracement: X offset %',
+            'Retracement: Y offset %',
         ]);
     });
 
@@ -274,10 +291,10 @@ describe('AnnotationSettingsDialog coordinates', () => {
         expect(inputs().map(label)).toEqual([
             'Start: X',
             'Start: Y',
-            'Start offset: X (%)',
+            'Start: X offset %',
             'End: X',
             'End: Y',
-            'End offset: X (%)',
+            'End: X offset %',
         ]);
     });
 });

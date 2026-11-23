@@ -511,7 +511,7 @@ export const numberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgNumber
     type: constant('number'),
     label: cartesianNumericAxisLabel,
     crosshair: { ...cartesianAxisCrosshairOptions(true), snapInterval: positiveNumberNonZero },
-    ...undocumentedDefs({ axisInsetValue: axisInsetValueOptionsDefs }),
+    ...undocumentedDefs({ axisInsetValue: axisInsetValueOptionsDefs, tickSize: positiveNumberNonZero }),
 };
 
 export const logAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgLogAxisOptions>> = {
@@ -524,6 +524,7 @@ export const logAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgLogAxisOp
     ),
     label: cartesianNumericAxisLabel,
     crosshair: { ...cartesianAxisCrosshairOptions(true), snapInterval: positiveNumberNonZero },
+    ...undocumentedDefs({ tickSize: positiveNumberNonZero }),
 };
 
 export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxisOptions>> = {
@@ -536,6 +537,7 @@ export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxis
         ...cartesianAxisCrosshairOptions(true, true),
         snapInterval: or(positiveNumberNonZero, timeIntervalUnit, timeInterval),
     },
+    ...undocumentedDefs({ tickSize: or(positiveNumberNonZero, timeIntervalUnit, timeInterval) }),
 };
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgUnitTimeAxisOptions>> = {
