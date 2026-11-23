@@ -844,6 +844,7 @@ describe('priceVolumePreset', () => {
         });
 
         it.each<[string, AgFinancialChartOptions, string[]]>([
+            ['the step of the data', {}, ['0.009994', '137.123456']],
             ['the tickSize', { tickSize: 0.25 }, ['0.25', '137.12']],
             [
                 'the tickSize ahead of the one of the volume profile',
