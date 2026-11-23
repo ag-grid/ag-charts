@@ -19,6 +19,13 @@ export const isHalf = (pixel: Pixel, [red, green, blue]: readonly [number, numbe
 
 export const isHalfRed = (pixel: Pixel) => isHalf(pixel, [255, 0, 0]);
 
+/** The strongest alpha in a run of RGBA bytes: with an unblurred shadow on a transparent layer, the strength of the shadow. */
+export const maxAlpha = (data: ArrayLike<number>) => {
+    let max = 0;
+    for (let i = 3; i < data.length; i += 4) max = Math.max(max, data[i]);
+    return max;
+};
+
 export const box = (x: number, y: number, width: number, height: number, mixin: Partial<Rect> = {}) => {
     const node = new Rect();
     Object.assign(node, { x, y, width, height, fill: 'black', stroke: undefined, strokeWidth: 0, ...mixin });
