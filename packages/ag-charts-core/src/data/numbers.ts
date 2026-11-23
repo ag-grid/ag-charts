@@ -110,6 +110,22 @@ export function roundToMultiple(value: number, step: number) {
     return stripFloatNoise(Math.round(stripFloatNoise(value / step)) * step);
 }
 
+/** The smallest gap between two different values, or `undefined` when no two differ. Sorts `values` in place. */
+export function smallestPositiveGap(values: number[] | Float64Array): number | undefined {
+    if (values instanceof Float64Array) {
+        values.sort();
+    } else {
+        values.sort((a, b) => a - b);
+    }
+
+    let smallest = Infinity;
+    for (let i = 1; i < values.length; i++) {
+        const gap = values[i] - values[i - 1];
+        if (gap > 0 && gap < smallest) smallest = gap;
+    }
+    return Number.isFinite(smallest) ? smallest : undefined;
+}
+
 export function ceilTo(value: number, decimals: number = 2) {
     const base = 10 ** decimals;
     return Math.ceil(value * base) / base;

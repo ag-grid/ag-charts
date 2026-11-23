@@ -18,6 +18,7 @@ import {
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
     normalisedTimeExtentWithMetadata,
+    smallestPositiveGap,
     timeValueToNumber,
 } from 'ag-charts-core';
 import type {
@@ -231,7 +232,7 @@ export function calculateDefaultUnit(
 
     interval ??= Math.abs(end - start);
 
-    interval = Math.min(interval, minNonZeroDifference(domainValues));
+    interval = Math.min(interval, smallestPositiveGap(domainValues) ?? Infinity);
 
     const unit = lowestGranularityForInterval(interval);
     let step = interval / intervalMilliseconds(unit);
@@ -244,20 +245,4 @@ export function calculateDefaultUnit(
     const epoch = step === 1 ? undefined : intervalFloor(unit, start);
 
     return { unit, step, epoch };
-}
-
-function minNonZeroDifference(values: number[]): number {
-    values.sort((a, b) => a - b);
-
-    let minDiff = Infinity;
-    for (let i = 1; i < values.length; i++) {
-        const d0 = values[i - 1];
-        const d1 = values[i];
-        const delta = d1 - d0;
-        if (delta > 0) {
-            minDiff = Math.min(minDiff, Math.abs(d1 - d0));
-        }
-    }
-
-    return minDiff;
 }
