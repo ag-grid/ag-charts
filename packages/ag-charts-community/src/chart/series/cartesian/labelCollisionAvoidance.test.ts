@@ -1211,24 +1211,43 @@ describe('label collision avoidance', () => {
     });
 
     describe('inside labels over markers of other series', () => {
+        type ScatterPoint = { x: number; y: number; name: string };
+
         // Each line label overlaps the marker of a scatter point just right of it.
-        const scatter = (xs: number[], fill: string): AgScatterSeriesOptions => ({
+        const scatter = (
+            points: ScatterPoint[],
+            fill: string,
+            placement: 'bottom' | 'inside'
+        ): AgScatterSeriesOptions => ({
             type: 'scatter',
             xKey: 'x',
             yKey: fill,
-            labelKey: 'x',
-            data: xs.map((x) => ({ x, [fill]: 5 })),
+            labelKey: placement === 'inside' ? 'name' : 'x',
+            data: points.map(({ x, y, name }) => ({ x, [fill]: y, name })),
             size: 28,
             fill,
-            label: { enabled: true, placement: 'bottom' },
+            label: { enabled: true, placement },
         });
-        // Series paint in declaration order, so the scatter declared first is under the line.
-        const options = (seriesOrder: 'tomato-line-blue' | 'blue-line-tomato'): AgCartesianChartOptions => {
+        const points = (xs: number[], prefix: string) => xs.map((x, i) => ({ x, y: 5, name: `${prefix}${i + 1}` }));
+        // Series paint in declaration order, so the scatter declared first is under the line. With `inside`
+        // scatter labels, each series also gets one point clear of everything else.
+        const options = (
+            seriesOrder: 'tomato-line-blue' | 'blue-line-tomato',
+            scatterPlacement: 'bottom' | 'inside' = 'bottom'
+        ): AgCartesianChartOptions => {
+            const linePoints = ['A', 'B', 'C', 'D'].map((name, i) => ({ x: i + 1, y: 5, name }));
+            const tomatoPoints = points([1.1, 2.1], 'T');
+            const bluePoints = points([3.1, 4.1], 'B');
+            if (scatterPlacement === 'inside') {
+                linePoints.push({ x: 4.8, y: 5, name: 'E' });
+                tomatoPoints.push({ x: 1.6, y: 8.5, name: 'T3' });
+                bluePoints.push({ x: 3.6, y: 8.5, name: 'B3' });
+            }
             const line: AgLineSeriesOptions = {
                 type: 'line',
                 xKey: 'x',
                 yKey: 'y',
-                data: ['A', 'B', 'C', 'D'].map((name, i) => ({ x: i + 1, y: 5, name })),
+                data: linePoints,
                 marker: { size: 36, fill: 'gold' },
                 label: {
                     enabled: true,
@@ -1238,8 +1257,8 @@ describe('label collision avoidance', () => {
                     collision: { alwaysShow: false },
                 },
             };
-            const tomato = scatter([1.1, 2.1], 'tomato');
-            const blue = scatter([3.1, 4.1], 'dodgerblue');
+            const tomato = scatter(tomatoPoints, 'tomato', scatterPlacement);
+            const blue = scatter(bluePoints, 'dodgerblue', scatterPlacement);
             return {
                 legend: { enabled: false },
                 axes: {
@@ -1263,6 +1282,18 @@ describe('label collision avoidance', () => {
 
         it('renders labels over markers painted under them, dropping those under markers painted over', async () => {
             await renderAndSnapshot(options('tomato-line-blue'));
+        });
+
+        it('keeps scatter inside labels over markers painted under them, dropping those under markers painted over', async () => {
+            chart = await createChart(options('tomato-line-blue', 'inside'));
+            const visibleTexts = (seriesIndex: number) =>
+                getVisibleLabelTextNodes(chart, seriesIndex).map((node) => node.text);
+            expect([visibleTexts(0), visibleTexts(1), visibleTexts(2)]).toEqual([
+                ['T3'],
+                ['A', 'B', 'E'],
+                ['B1', 'B2', 'B3'],
+            ]);
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
 
