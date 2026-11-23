@@ -12,7 +12,6 @@ import {
     type SectorBoundaries,
     SectorPointTester,
     isBoxInSector,
-    isPointClearOfSector,
     isPointInSector,
     sectorColumnTest,
 } from '../scene/util/sector';
@@ -340,6 +339,7 @@ function placeOnAnchor(
     font: FontOptions,
     anchor: Point,
     sector: SectorBoundaries,
+    wedge: SectorPointTester,
     padding: Required<PaddingOptions>,
     layout: WedgeLabelLayout
 ): PlacedSectorLabel | undefined {
@@ -354,8 +354,8 @@ function placeOnAnchor(
     // OPTIMIZATION: the drawn box holds the line across the anchor, so an end of it clear of the wedge rejects unlaid.
     const half = cachedTextMeasurer(font).measureText(line.trim()).width / 2;
     const scale = Math.abs(anchor.x) + Math.abs(anchor.y) + 2 * half;
-    if (isPointClearOfSector(anchor.x - half, anchor.y, sector, scale)) return undefined;
-    if (isPointClearOfSector(anchor.x + half, anchor.y, sector, scale)) return undefined;
+    if (wedge.isClear(anchor.x - half, anchor.y, scale) || wedge.isClear(anchor.x + half, anchor.y, scale))
+        return undefined;
     const placed = { text, x: anchor.x, y: anchor.y };
     const boxes = layout(placed, font);
     if (boxes.length !== 1) return undefined;
@@ -391,9 +391,9 @@ function fitSectorLabelToWedge(
     padding: Required<PaddingOptions>,
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
-    const onAnchor = placeOnAnchor(text, fit, font, anchor, sector, padding, layout);
-    if (onAnchor != null) return onAnchor;
     const inSector = wedgeTester.reset(sector).contains;
+    const onAnchor = placeOnAnchor(text, fit, font, anchor, sector, wedgeTester, padding, layout);
+    if (onAnchor != null) return onAnchor;
     const holdsColumn = sectorColumnTest(sector);
     // A retry that only adds clearance keeps the line height and block, so it reuses their rect and region.
     let probed: { lineHeight: number; block?: BlockSize; rect: SectorLabelRect; region: FitRegion } | undefined;

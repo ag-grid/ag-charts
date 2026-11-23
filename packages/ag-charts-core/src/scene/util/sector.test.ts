@@ -7,7 +7,6 @@ import {
     clampSectorCornerRadii,
     clockwiseAngles,
     isBoxInSector,
-    isPointClearOfSector,
     isPointInSector,
     radiiScalingFactor,
     sectorColumnTest,
@@ -404,6 +403,7 @@ describe('sector point tests with a radialEdgeInset', () => {
 
     it('clears a point only when every box holding it fails isBoxInSector', () => {
         const rng = makeRng(0x9e3779b9);
+        const tester = new SectorPointTester();
         let cleared = 0;
         for (let i = 0; i < 4000; i++) {
             const startAngle = (rng() - 0.5) * 4 * TAU;
@@ -415,7 +415,7 @@ describe('sector point tests with a radialEdgeInset', () => {
                 radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
             };
             const [x, y] = at(rng() * 220, startAngle + (rng() - 0.25) * 2);
-            if (!isPointClearOfSector(x, y, sector, Math.abs(x) + Math.abs(y))) continue;
+            if (!tester.reset(sector).isClear(x, y, Math.abs(x) + Math.abs(y))) continue;
             cleared++;
             const [w, h] = [rng() * 80, rng() * 30];
             const box = { x: x - rng() * w, y: y - rng() * h, width: w, height: h };

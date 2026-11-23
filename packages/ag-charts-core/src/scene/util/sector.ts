@@ -319,6 +319,21 @@ export class SectorPointTester {
         return result >= 0 ? result : Infinity;
     };
 
+    /**
+     * True only when the point is outside the radii, or the angular range up to a half turn, by more than rounding at
+     * `scale` can close; a box holding it then fails {@link isBoxInSector}, as one of its corners is as far out.
+     */
+    isClear(x: number, y: number, scale: number): boolean {
+        const { minRadius, maxRadius } = this;
+        const slack = CLEAR_MARGIN * (scale + Math.abs(minRadius) + Math.abs(maxRadius));
+        const radius = Math.sqrt(x * x + y * y);
+        if (radius > maxRadius + slack) return true;
+        if (radius < minRadius - slack) return true;
+        if (this.anyAngle || this.wide) return false;
+        if (y * this.startCos - x * this.startSin < -slack) return true;
+        return x * this.endSin - y * this.endCos < -slack;
+    }
+
     private exact(x: number, y: number) {
         return (
             isWithinRadii(x, y, this.minRadius, this.maxRadius) &&
@@ -380,24 +395,6 @@ function eitherUntil(u0: number, u1: number, v0: number, v1: number, margin: num
         until = Infinity;
     }
     return until;
-}
-
-/**
- * True only when the point is outside the radii, or the angular range up to a half turn, by more than rounding at
- * `scale` can close; a box holding it then fails {@link isBoxInSector}, as one of its corners is as far out.
- */
-export function isPointClearOfSector(x: number, y: number, sector: SectorBoundaries, scale: number) {
-    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
-    const slack = CLEAR_MARGIN * (scale + Math.abs(innerRadius) + Math.abs(outerRadius));
-    const radius = Math.sqrt(x * x + y * y);
-    if (radius > Math.max(innerRadius, outerRadius) + slack) return true;
-    if (radius < Math.min(innerRadius, outerRadius) - slack) return true;
-    const start180 = normalizeAngle180(startAngle);
-    const end180 = normalizeAngle180(endAngle);
-    const sweep = start180 < end180 ? end180 - start180 : end180 - start180 + 2 * Math.PI;
-    if (start180 === end180 || sweep > Math.PI) return false;
-    if (y * Math.cos(startAngle) - x * Math.sin(startAngle) < -slack) return true;
-    return x * Math.sin(endAngle) - y * Math.cos(endAngle) < -slack;
 }
 
 // Relative margin, against the coordinates in play, past which rounding (~1e-15 of them) cannot move a point back.
