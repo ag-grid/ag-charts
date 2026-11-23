@@ -1297,7 +1297,7 @@ describe('Annotations', () => {
             it('places an offset of 50 at the midpoint between the band and the next, padding included', async () => {
                 const body = await openAtQ2();
 
-                await commitInput(body, 'Value offset: X (%)', '50');
+                await commitInput(body, 'Value: X offset %', '50');
 
                 const [{ value }] = chart.getState().annotations as Array<{
                     value: { value: string; groupPercentage: number };
