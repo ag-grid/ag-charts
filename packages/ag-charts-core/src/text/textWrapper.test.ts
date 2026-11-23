@@ -1723,7 +1723,7 @@ describe('a preserved block in a shape', () => {
             ['end', true, false, 'AAAA\nBBBB\nCCCC', 0, -10],
             ['center', true, true, 'AAAA\nBBBB\nCCCC', 0, 0],
         ] as const)(
-            'that fits is laid out as before at %s (anchored %s, boxed %s)',
+            'that fits keeps the layout it fits in at %s (anchored %s, boxed %s)',
             (regionAlign, anchored, boxed, expected, offsetX, offsetY) => {
                 const fit: LabelFit = { region: lopsided, regionAlign, boxed, wrapping: 'on-space' };
                 for (const hangsOverflow of [false, true]) {

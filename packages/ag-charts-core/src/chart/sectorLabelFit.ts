@@ -428,7 +428,7 @@ function fitSectorLabelToWedge(
         if (!inWedge || isErased(placed.text)) return undefined;
         return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
     });
-    return found ?? atFloorPlaced ?? placeInWedge(fontWithSize(font, floor), true).placed;
+    return found ?? atFloorPlaced!;
 }
 
 /**

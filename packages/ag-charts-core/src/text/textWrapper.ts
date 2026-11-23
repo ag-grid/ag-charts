@@ -1,6 +1,7 @@
 import type { ImageSegment, TextWrap } from 'ag-charts-types';
 
 import { findMaxValue } from '../data/binarySearch';
+import { countLines } from '../data/strings';
 import { isArray, isFiniteNumber } from '../data/typeGuards';
 import { toRadians } from '../geometry/angle';
 import { type FitRegion, regionWidthAt } from '../geometry/fitRegion';
@@ -671,12 +672,6 @@ function openEdge(region: FitRegion, rowHeight: number, offsetX: number, edge: n
 function edgeRowWidth(region: FitRegion, top: number, bottom: number, offsetX: number) {
     if (!Number.isFinite(top) || !Number.isFinite(bottom)) return 0;
     return regionWidthAt(region, Math.max(top, -region.extentAbove), Math.min(bottom, region.extentBelow), offsetX);
-}
-
-function countLines(text: string) {
-    let count = 1;
-    for (let i = text.indexOf('\n'); i !== -1; i = text.indexOf('\n', i + 1)) count += 1;
-    return count;
 }
 
 /**
