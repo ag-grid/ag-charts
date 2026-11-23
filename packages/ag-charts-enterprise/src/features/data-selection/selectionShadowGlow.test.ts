@@ -122,8 +122,12 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
         const styledFor = (state: string, cast: object) =>
             bars(({ selectionState }) => (selectionState === state ? cast : {}));
 
+        /** The same cast, given to the same bars by their datum, not by the state of selection: the first bar is the one clicked. */
+        const styledByDatum = (state: string, cast: object) =>
+            bars(({ datum }) => ((datum.category === 'A') === (state === 'selected-item') ? cast : {}));
+
         it.each(CASTS.flatMap(([name, cast]) => STATES.map((state) => [name, state, cast] as const)))(
-            'renders the %s of an itemStyler for %s, and not before the click',
+            'renders the %s of an itemStyler for %s, as given by datum instead, and not before the click',
             async (_name, state, cast) => {
                 const rest = await atRest(bars());
                 expectSamePixels(await atRest(styledFor(state, cast)), rest);
@@ -134,6 +138,10 @@ describe('shadow and glow from an itemStyler that branches on the state of an it
                 await create(bars(), CATEGORY_DATA, OPTIONS);
                 await clickBar(chart());
                 expect(differingBytes(styled, canvasImage(chart()))).toBeGreaterThan(0);
+
+                await create(styledByDatum(state, cast), CATEGORY_DATA, OPTIONS);
+                await clickBar(chart());
+                expectSamePixels(canvasImage(chart()), styled);
             }
         );
 

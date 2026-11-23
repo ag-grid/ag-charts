@@ -120,6 +120,16 @@ describe('insideMarkerContainer', () => {
         expect(large.width).toBeGreaterThan(90);
     });
 
+    it.each([
+        { threshold: 6, grow: 0 },
+        { threshold: -6, grow: 12 },
+    ])('grows by a negative threshold but never shrinks by a positive one ($threshold)', ({ threshold, grow }) => {
+        const base = insideMarkerContainer(100, 'square');
+        const sized = insideMarkerContainer(100, 'square', threshold);
+        expect(sized.width).toBeCloseTo(base.width + grow);
+        expect(sized.height).toBeCloseTo(base.height + grow);
+    });
+
     it('gives a heart a wide, short box and a diamond a smaller near-square one', () => {
         const heart = insideMarkerContainer(100, 'heart');
         const diamond = insideMarkerContainer(100, 'diamond');
