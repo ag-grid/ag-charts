@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { differingBytes, expectSamePixels } from './expectSamePixels';
+import { byteDifference, differingBytes, expectSamePixels } from './expectSamePixels';
 import { type GlowPlacement, type GlowSeriesCase, type HighlightStep, glowSeries, glowThemeOptions } from './glowCases';
 import { RENDER_CROP, RENDER_OPTIONS, canvasImage, endHover, hoverDatum, hoverNode, hoverSeries } from './glowRender';
 import { HIGHLIGHT_GLOW, HIGHLIGHT_SHADOW, SERIES_GLOW, SERIES_SHADOW } from './shadowFixtures';
@@ -265,8 +265,12 @@ export function describeGlowSeries(
 export interface GlowOptionsEntry {
     testCase: GlowSeriesCase;
     options: object;
-    /** How far a byte may differ where a gap of 0 and no gap meet at an anti-aliased curved edge, which a bar's pixel-aligned edge has none of. */
-    edgeTolerance?: number;
+    /**
+     * How much of the render, as {@link byteDifference}, a gap of 0 and no gap may differ by: the anti-aliased edges that the cut
+     * leaves, which a pixel-aligned edge (a bar, a treemap tile) has none of. Each budget is set just above what the entry measures,
+     * and the cell fails unless a glow with a `fillOpacity` of 0.4 instead of 0.5 differs by more.
+     */
+    edgeBudget?: { series: number; hovered: number };
     /** The part of the series (`tile`, `node`, `link`) that takes the `fillOpacity` that makes its items opaque, where the series itself does not. */
     opaquePart?: string;
     /** The highlight of the hovered item takes no `shadow`, so none of its cells is drawn. */
@@ -310,7 +314,7 @@ const withOpaqueItems = (series: object, part?: string) =>
 export function describeGlowOptions(entries: GlowOptionsEntry[], { create, chart }: ReturnType<typeof useGlowCharts>) {
     describe.each(entries)(
         '$testCase.name',
-        ({ testCase, options, edgeTolerance = 0, opaquePart, noHoveredShadow }) => {
+        ({ testCase, options, edgeBudget = { series: 0, hovered: 0 }, opaquePart, noHoveredShadow }) => {
             describe.each([
                 ['the series', false],
                 ['the hovered item', true],
@@ -319,7 +323,10 @@ export function describeGlowOptions(entries: GlowOptionsEntry[], { create, chart
                     const series = hovered
                         ? glowSeries(testCase, {}, { highlightedItem: placement })
                         : glowSeries(testCase, placement);
-                    await create([opaque ? withOpaqueItems(series, opaquePart) : series], testCase.data, options);
+                    await create([opaque ? withOpaqueItems(series, opaquePart) : series], testCase.data, {
+                        ...options,
+                        ...testCase.chartOptions,
+                    });
                     if (hovered) await hoverCase(chart(), testCase);
                     return canvasImage(chart());
                 };
@@ -339,14 +346,21 @@ export function describeGlowOptions(entries: GlowOptionsEntry[], { create, chart
                 describe('the glow gap', () => {
                     const glow = (gap?: number) => ({ glow: { ...SERIES_GLOW, gap } });
 
+                    const budget = hovered ? edgeBudget.hovered : edgeBudget.series;
+
                     it('renders a gap of 0 as it renders no gap, on an opaque item', async () => {
-                        expectSamePixels(await draw(glow(0), true), await draw(glow(), true), edgeTolerance);
+                        const gapOfZero = await draw(glow(0), true);
+                        expect(differingBytes(gapOfZero, await draw({}, true))).toBeGreaterThan(0);
+                        expect(byteDifference(gapOfZero, await draw(glow(), true))).toBeLessThanOrEqual(budget);
+
+                        const fainter = { glow: { ...SERIES_GLOW, gap: 0, fillOpacity: 0.4 } };
+                        expect(byteDifference(gapOfZero, await draw(fainter, true))).toBeGreaterThan(budget);
                     });
 
                     it('renders a gap above 0 differently from none', async () => {
-                        const none = await draw(glow(0));
-                        expect(differingBytes(await draw(glow(4)), none, edgeTolerance)).toBeGreaterThan(0);
-                        expect(differingBytes(await draw(glow(12)), none, edgeTolerance)).toBeGreaterThan(0);
+                        const none = await draw(glow(), true);
+                        expect(byteDifference(await draw(glow(4), true), none)).toBeGreaterThan(budget);
+                        expect(byteDifference(await draw(glow(12), true), none)).toBeGreaterThan(budget);
                     });
                 });
             });
