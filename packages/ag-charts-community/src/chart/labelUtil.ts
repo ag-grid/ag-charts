@@ -446,13 +446,22 @@ export function barLabelObstaclesFor<TParams, TElement>(
     nodeData: readonly RectObstacleSource[] | undefined,
     labelData: Iterable<TElement> | undefined,
     includeBaked: boolean,
-    pick: (element: TElement) => BakedBarLabel | undefined
+    pick: (element: TElement) => BakedBarLabel | undefined,
+    sourceId: string,
+    stackId?: number
 ) {
     const box = expandPlacementLabelBoxExtent(label);
-    return barLabelObstacles(nodeData, labelData, includeBaked, (element) => {
-        const picked = pick(element);
-        return { label: picked, config: fontWithSize(label, picked?.fittedFontSize), box };
-    });
+    return barLabelObstacles(
+        nodeData,
+        labelData,
+        includeBaked,
+        (element) => {
+            const picked = pick(element);
+            return { label: picked, config: fontWithSize(label, picked?.fittedFontSize), box };
+        },
+        sourceId,
+        stackId
+    );
 }
 
 /** Adds an obstacle for every whisker and cap drawn over the series' shapes to `obstacles`. */

@@ -1319,7 +1319,7 @@ describe('HistogramSeries', () => {
         it('contributes a shape rect obstacle per bin', async () => {
             const options: AgCartesianChartOptions = {
                 data: [1, 2, 3, 4, 11, 12, 21, 22, 23].map((x) => ({ x })),
-                series: [{ type: 'histogram', xKey: 'x', binCount: 3 }],
+                series: [{ id: 'bins', type: 'histogram', xKey: 'x', binCount: 3 }],
             };
             chart = await createChart(options);
 
@@ -1328,10 +1328,12 @@ describe('HistogramSeries', () => {
 
             expect(nodeData.length).toBeGreaterThan(0);
             expect(obstacles).toEqual(
-                nodeData.map(({ x, y, width, height }) => ({
+                nodeData.map(({ x, y, width, height, datumIndex }) => ({
                     kind: 'rect',
                     box: { x, y, width, height },
                     category: 'shape',
+                    sourceId: 'bins',
+                    entityIndex: datumIndex,
                 }))
             );
         });

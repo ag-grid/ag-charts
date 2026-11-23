@@ -1,6 +1,11 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -53,6 +58,7 @@ export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = ContextDefau
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgPyramidSeriesOptionsKeys<TDatum>,
         Required<Omit<AgPyramidSeriesStyle, 'lineDash'>>,
         ResolvedLineDash {}

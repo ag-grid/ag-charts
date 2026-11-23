@@ -1,5 +1,10 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
@@ -52,6 +57,7 @@ export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDef
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgChordSeriesOptionsKeys<TDatum>,
         Required<Omit<AgChordSeriesLinkStyle, 'lineDash'>>,
         ResolvedLineDash {}
@@ -60,6 +66,7 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDef
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgChordSeriesOptionsKeys<TDatum>,
         Required<Omit<AgChordSeriesNodeStyle, 'lineDash'>>,
         ResolvedLineDash {

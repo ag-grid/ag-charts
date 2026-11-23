@@ -1483,7 +1483,8 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect,
-            this.getSeriesAreaPadding()
+            this.getSeriesAreaPadding(),
+            () => this.seriesLayerManager.atRestPaintOrder()
         );
         if (relayout) {
             this.update(ChartUpdateType.PERFORM_LAYOUT);
@@ -1497,10 +1498,13 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         if (series.contentGroup.isRoot()) return;
 
         const seriesContentNode = this.seriesLayerManager.changeGroup({
+            id: series.id,
             internalId: series.internalId,
             type: series.type,
             contentGroup: series.contentGroup,
             bringToFront: () => series.bringToFront(),
+            raisedAtRest: () => series.raisedAtRest(),
+            atRestZIndex: () => series.atRestZIndex(),
             renderToOffscreenCanvas: () => series.renderToOffscreenCanvas(),
             seriesGrouping,
         });

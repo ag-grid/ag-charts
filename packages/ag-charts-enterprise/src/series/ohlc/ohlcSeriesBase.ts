@@ -912,7 +912,7 @@ export abstract class OhlcSeriesBase<
 
         const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
         const candidateStateString = this.getCandidateStateString(datumIndex);
 
@@ -925,7 +925,9 @@ export abstract class OhlcSeriesBase<
             closeKey,
             highKey,
             lowKey,
-            highlightState: highlightStateString,
+            shadow: this.getStylerShadow(options.shadow, castState),
+            glow: this.getStylerGlow(options.glow, castState),
+            highlightState: _ModuleSupport.toHighlightString(castState),
             selectionState: selectionStateString,
             candidateState: candidateStateString,
             ...style,
