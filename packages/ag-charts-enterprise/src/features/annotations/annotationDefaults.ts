@@ -57,6 +57,7 @@ export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
     private fontSizes: DefaultFontSizes = new Map([
         [AnnotationType.Callout, undefined],
         [AnnotationType.Comment, undefined],
+        [AnnotationType.Note, undefined],
         [AnnotationType.Text, undefined],
         [AnnotationType.Arrow, undefined],
         [AnnotationType.Line, undefined],

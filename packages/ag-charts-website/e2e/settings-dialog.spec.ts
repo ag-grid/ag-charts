@@ -27,7 +27,9 @@ test.describe('settings dialog', () => {
         await expect(page.getByRole('tab', { name: 'Text' })).toHaveAttribute('aria-selected', 'false');
         await expect(page.getByRole('tabpanel', { name: 'Line' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Text Color' })).toBeVisible();
+        await expect(
+            page.getByRole('tabpanel', { name: 'Line' }).getByRole('button', { name: 'Line Color' })
+        ).toBeVisible();
         await expect(page.getByRole('combobox', { name: 'Line Weight' })).toBeVisible();
         await expect(page.getByRole('radiogroup', { name: 'Dash' })).toBeVisible();
         await expect(page.getByRole('radio', { name: 'Solid' })).toHaveAttribute('aria-checked', 'true');

@@ -6,12 +6,14 @@ import { CategoryScale, LinearScale, TimeScale } from 'ag-charts-core';
 
 import { getAnnotationsModuleContext } from '../../../test/featureAccessors';
 import type { AnnotationContext } from '../annotationTypes';
-import type { LinearDialogDatumType } from '../annotationsSuperTypes';
+import type { SettingsDialogDatumType } from '../annotationsSuperTypes';
+import { calloutDatum } from '../callout/calloutDatum';
 import { horizontalLineDatum } from '../cross-line/crossLineDatum';
 import { fibonacciRetracementTrendBasedDatum } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedDatum';
 import { lineDatum } from '../line/lineDatum';
 import { parallelChannelDatum } from '../parallel-channel/parallelChannelDatum';
 import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart, createAxesContext } from '../test/fixture';
+import { textDatum } from '../text/textDatum';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settingsDialog';
 
 describe('AnnotationSettingsDialog coordinates', () => {
@@ -28,7 +30,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
         start: { x: 'Pears', y: 2 },
         end: { x: 'Apples', y: 4 },
     });
-    const show = <Datum extends LinearDialogDatumType = ReturnType<typeof defaultDatum>>(
+    const show = <Datum extends SettingsDialogDatumType = ReturnType<typeof defaultDatum>>(
         context: AnnotationContext,
         datum: Datum = defaultDatum() as Datum
     ) => {
@@ -38,6 +40,7 @@ describe('AnnotationSettingsDialog coordinates', () => {
             onChangeCoordinates,
             onChangeLine: noop,
             onChangeText: noop,
+            onChangeTextContent: noop,
             onChangeFillColor: noop,
             onChangeHideFillColor: noop,
             onChangeLineColor: noop,
@@ -211,6 +214,45 @@ describe('AnnotationSettingsDialog coordinates', () => {
             'Retracement end: Y',
             'Retracement end offset: X (%)',
             'Retracement end offset: Y (%)',
+        ]);
+    });
+
+    it('labels the inputs of a point annotation X and Y and commits them as x and y, where a callout keeps its start and end', () => {
+        const xScale = new CategoryScale<string>();
+        xScale.domain = ['Apples', 'Pears'];
+        const yScale = new LinearScale();
+        yScale.domain = [0, 50];
+        const label = (input: HTMLInputElement) => input.getAttribute('aria-label');
+
+        show(createAxesContext(xScale, yScale), { ...textDatum.create(), x: 'Pears', y: 4 });
+        expect(inputs().map(label)).toEqual(['X', 'Y', 'Offset: X (%)']);
+        const [x, y] = inputs();
+        commit(x, 'Apples');
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ x: { value: 'Apples', groupPercentage: 0 } });
+        commit(y, '20');
+        expect(onChangeCoordinates).toHaveBeenLastCalledWith({ y: 20 });
+        dialog.hide();
+
+        show(createAxesContext(new CategoryScale(), new CategoryScale()), {
+            ...textDatum.create(),
+            x: 'Pears',
+            y: 'Pears',
+        });
+        expect(inputs().map(label)).toEqual(['X', 'Y', 'Offset: X (%)', 'Offset: Y (%)']);
+        dialog.hide();
+
+        show(createAxesContext(new CategoryScale(), yScale), {
+            ...calloutDatum.create(),
+            start: { x: 'Pears', y: 2 },
+            end: { x: 'Apples', y: 4 },
+        });
+        expect(inputs().map(label)).toEqual([
+            'Start: X',
+            'Start: Y',
+            'Start offset: X (%)',
+            'End: X',
+            'End: Y',
+            'End offset: X (%)',
         ]);
     });
 });

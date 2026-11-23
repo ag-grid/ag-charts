@@ -530,7 +530,7 @@ export class ChordSeries extends FlowProportionSeries<
                 () => {
                     const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
+                        ['series', `${this.declarationOrder}`, 'node'],
                         this.callWithContext(itemStyler, params)
                     );
                 }
@@ -669,7 +669,7 @@ export class ChordSeries extends FlowProportionSeries<
                 () => {
                     const castState = this.getHighlightState(activeHighlight, isHighlight, fromNodeDatumIndex);
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
+                        ['series', `${this.declarationOrder}`, 'link'],
                         this.callWithContext(itemStyler, {
                             seriesId,
                             datum,

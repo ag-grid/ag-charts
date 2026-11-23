@@ -5,6 +5,10 @@ import {
     chartApi,
     convertFunctionToConstProperty,
     convertFunctionToProperty,
+    ensureNamedImport,
+    getPropertyOptionsType,
+    splitReferencedOptions,
+    usesDefaultOptionsType,
 } from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
@@ -35,6 +39,11 @@ function needsWrappingInFragment(bindings: any) {
     );
 }
 
+// The component's `options` prop is a plain `AgChartOptions`, which generic or intersection option types are not assignable to.
+function needsOptionsCast(property: any): boolean {
+    return /[<&]/.test(property.typeInfo?.typeStr ?? '');
+}
+
 function getImports(componentFilenames: string[], bindings: any, styleFileNames: string[]): string[] {
     const type = components[chartApi(bindings)];
     const reactImports = ['useState'];
@@ -50,15 +59,13 @@ function getImports(componentFilenames: string[], bindings: any, styleFileNames:
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
+    const packageName = bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'";
     if (bindings.usesChartApi) {
-        const packageName = bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'";
-        const existingImport = chartImports.find((i) => i.module === packageName);
-
-        if (existingImport) {
-            existingImport.imports = Array.from(new Set(existingImport.imports).add('AgChartsInstance'));
-        } else {
-            chartImports.push({ module: packageName, isNamespaced: false, imports: ['AgChartsInstance'] });
-        }
+        ensureNamedImport(chartImports, packageName, 'AgChartInstance');
+    }
+    if (usesDefaultOptionsType(bindings) || bindings.properties.some(needsOptionsCast)) {
+        // `getComponentMetadata` types each options state with `AgChartOptions` when the example doesn't.
+        ensureNamedImport(chartImports, packageName, 'AgChartOptions');
     }
 
     if (chartImports.length > 0) {
@@ -97,22 +104,26 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
 
     template = template.replace(/<hr>/g, '<hr />');
 
-    return convertFunctionalTemplate(template);
+    return convertFunctionalTemplate(template, { typed: true });
 }
 
 function getComponentMetadata(bindings: any, id: string, property: any) {
-    const { optionsTypeInfo } = bindings;
-
     const stateProperties = [];
     const componentAttributes = [];
 
-    const chartOptionsType = optionsTypeInfo?.typeStr ?? 'AgChartOptions';
+    const chartOptionsType = getPropertyOptionsType(property);
 
+    // Each chart is its own component, so one whose options read another chart's declares that chart's options too.
+    const declare = (dependency: any) =>
+        `const ${dependency.name}: ${getPropertyOptionsType(dependency)} = ${dependency.value};`;
+    const { before, after } = splitReferencedOptions(bindings, property);
     stateProperties.push(
-        `const [${property.name}, set${toTitleCase(property.name)}] = useState<${chartOptionsType}>(${property.value});`
+        ...before.map(declare),
+        `const [${property.name}, set${toTitleCase(property.name)}] = useState<${chartOptionsType}>(${property.value});`,
+        ...after.map(declare)
     );
 
-    componentAttributes.push(`options={${property.name}}`);
+    componentAttributes.push(`options={${property.name}${needsOptionsCast(property) ? ' as AgChartOptions' : ''}}`);
     const modules = bindings.chartModules[property.name];
     if (modules) {
         componentAttributes.push(`modules={${modules}}`);
@@ -175,7 +186,7 @@ ${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '
             `)}
 
             const ChartExample = () => {
-                ${bindings.usesChartApi ? `const chartRef = useRef<AgChartsInstance>(null);` : ''}
+                ${bindings.usesChartApi ? `const chartRef = useRef<AgChartInstance>(null);` : ''}
                 ${stateProperties.join(',\n            ')}
 
                 ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}
@@ -218,7 +229,7 @@ ${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '
             components.set(id, `<${componentName} />`);
         });
 
-        let wrapper = convertFunctionalTemplate(bindings.template);
+        let wrapper = convertFunctionalTemplate(bindings.template, { typed: true });
         Object.entries(bindings.placeholders).forEach(([id, template]: [string, string]) => {
             wrapper = wrapper.replace(template, components.get(id)!);
         });

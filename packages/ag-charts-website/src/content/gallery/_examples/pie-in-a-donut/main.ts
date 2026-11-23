@@ -1,7 +1,7 @@
 import {
     AgCharts,
+    AgPieSeriesOptions,
     AgStandaloneChartOptions,
-    AgStandaloneSeriesOptions,
     ContextMenuModule,
     DonutSeriesModule,
     LegendModule,
@@ -12,7 +12,7 @@ import {
 import { getData2020, getData2022 } from './data';
 
 ModuleRegistry.registerModules([DonutSeriesModule, LegendModule, PieSeriesModule]);
-const sharedSeriesOptions: AgStandaloneSeriesOptions = {
+const sharedSeriesOptions: AgPieSeriesOptions = {
     type: 'pie' as const,
     sectorLabelKey: 'share',
     angleKey: 'share',

@@ -5074,6 +5074,7 @@ describe('BarSeries', () => {
             return {
                 data,
                 animation: { enabled: false },
+                tooltip: { mode: 'shared' },
                 series: [
                     { id: 'y1', type: 'bar', xKey: 'x', yKey: 'y1' },
                     { id: 'y2', type: 'bar', xKey: 'x', yKey: 'y2' },

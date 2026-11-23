@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 (window as any).agChartsDebug = ['scene:stats'];

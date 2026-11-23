@@ -13,6 +13,7 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
+    buttonNameAdvisory,
     callback,
     color,
     colorOrRef,
@@ -69,19 +70,21 @@ export const rangesOptionsDefs: OptionsDefs<AgRangesOptions> = {
     gap: positiveNumber,
     spacing: positiveNumber,
     ...stylesOptions,
-    buttons: arrayOfDefs<AgRangesButton>(
-        {
-            ...toolbarButtonOptionsDefs,
-            enabled: boolean,
-            value: or(
-                number,
-                and(arrayOf(or(number, date)), arrayLength(2, 2)),
-                timeInterval,
-                timeIntervalUnit,
-                callback
-            ),
-        },
-        'range button options array'
+    buttons: buttonNameAdvisory(
+        arrayOfDefs<AgRangesButton>(
+            {
+                ...toolbarButtonOptionsDefs,
+                enabled: boolean,
+                value: or(
+                    number,
+                    and(arrayOf(or(number, date)), arrayLength(2, 2)),
+                    timeInterval,
+                    timeIntervalUnit,
+                    callback
+                ),
+            },
+            'range button options array'
+        )
     ),
     ...undocumentedDefs({
         minSize: positiveNumber,

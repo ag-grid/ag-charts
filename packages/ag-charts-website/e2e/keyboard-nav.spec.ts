@@ -156,7 +156,11 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowDown');
-        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), '3rd-datum-2nd-series-focus.png');
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
+            '3rd-datum-2nd-series-focus-after-click.png'
+        );
 
         await page.mouse.move(547, 310);
         await expectChartScreenshot(

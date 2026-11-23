@@ -4,6 +4,7 @@ import type {
     EphemeralDatumType,
     LineDatumType,
     MeasurerDatumType,
+    SettingsDialogDatumType,
     ShapeDatumType,
     TextualDatumType,
 } from '../annotationsSuperTypes';
@@ -75,4 +76,9 @@ export function hasTextColor(datum?: AnnotationDatum) {
 
 export function hasLineText(datum?: AnnotationDatum): datum is StyledLineDatumType {
     return hasLineStyle(datum);
+}
+
+/** Whether the options toolbar offers the settings dialog for the annotation, which text and arrow marker annotations have too. */
+export function hasSettings(datum?: AnnotationDatum): datum is SettingsDialogDatumType {
+    return hasLineText(datum) || isTextType(datum) || isShapeType(datum);
 }

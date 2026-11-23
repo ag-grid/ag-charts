@@ -9,7 +9,7 @@ globs: ['packages/ag-charts-community/src/**/series/**/*.ts', 'packages/ag-chart
 
 ## Architecture
 
-`Series` (base) → `CartesianSeries` (Line/Area/Bar…), `PolarSeries` (Pie/Donut, enterprise Radar/Radial…), `HierarchySeries` (Treemap/Sunburst…), enterprise `FlowProportionSeries` (Sankey/Chord) and `TopologySeries` (Map series). Enterprise series extend community base classes; every series ships as a module that users register with `ModuleRegistry.registerModules()`.
+`Series` (base) → `CartesianSeries` (Line/Area/Bar…), `PolarSeries` (Pie/Donut, enterprise Radar/Radial…), enterprise `HierarchySeries` (Treemap/Sunburst…), enterprise `FlowProportionSeries` (Sankey/Chord) and `TopologySeries` (Map series). Enterprise series extend community base classes; every series ships as a module that users register with `ModuleRegistry.registerModules()`.
 
 **Key files:**
 
@@ -45,5 +45,5 @@ Each series is a `SeriesModuleDefinition` (`packages/ag-charts-core/src/modules/
 
 ## Testing
 
--   Visual snapshot tests live in `*.test.ts` alongside the series; use `prepareTestOptions()` (community) / `prepareEnterpriseTestOptions()` (enterprise)
+-   Visual snapshot tests live in `*.test.ts` alongside the series; create charts through the shared factories `createChart` (community) / `createEnterpriseChart` (enterprise), as the `test-harness-contracts` rule describes
 -   When modifying community series, check enterprise extensions too

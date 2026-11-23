@@ -14,7 +14,7 @@ import type { AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { maybeWrapText } from './text/util';
 import { applyAnnotationOptions, isWriteable } from './utils/datum';
-import { hasLineStyle, hasLineText } from './utils/has';
+import { hasLineStyle, hasLineText, hasSettings } from './utils/has';
 import { resizeFont, setColor, setLineStyle, setLineTextPosition } from './utils/styles';
 import { isEphemeralType, isTextType } from './utils/types';
 
@@ -306,6 +306,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             if (!datum) return false;
             return hasLineText(datum) && isWriteable(datum);
         };
+        const guardActiveHasSettings = () => {
+            const { active, datum } = this;
+            if (active == null) return false;
+            if (!datum) return false;
+            return hasSettings(datum) && isWriteable(datum);
+        };
         const guardActiveNotEphemeral = () => this.active != null && !isEphemeralType(this.datum);
         const guardHovered = () => this.hovered != null;
 
@@ -454,8 +460,18 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     action: actionUpdateTextInputBBox,
                 },
 
+                textContent: {
+                    guard: guardActive,
+                    action: (text: string) => {
+                        const { datum } = this;
+                        if (!isTextType(datum)) return;
+                        datum.text = text;
+                        ctx.update();
+                    },
+                },
+
                 toolbarPressSettings: {
-                    guard: guardActiveHasLineText,
+                    guard: guardActiveHasSettings,
                     action: (sourceEvent: Event) => {
                         ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
