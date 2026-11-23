@@ -82,15 +82,11 @@ function turnedSpan(width: number, height: number, along: number, across: number
     );
 }
 
-/** The point along one axis that the anchor pins the label to. */
 function anchorAlong(rangeDir: AnchorDirection, start: number, size: number, paddingDiff: number): number {
     return start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
 }
 
-/**
- * Room the series area leaves along one axis for a label anchored on the band. A label growing out of the
- * area without padding for it is held to the area's length instead, as it has no room inside.
- */
+/** Room the series area leaves along one axis for a label anchored on the band, or its length if it grows out unpadded. */
 function seriesAreaRoom(
     rangeDir: AnchorDirection,
     labelDir: AnchorDirection,
@@ -658,9 +654,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     /**
-     * Holds the text to the room the series area leaves it from its anchor, or that the chart can pad for it
-     * on the side it grows out to. Measured with the axis zoomed out and before the label pads the chart, so
-     * neither zoom, pan nor that padding changes the line count.
+     * The room the series area leaves from the anchor, or the chart can pad on the side the label grows out to.
+     * Measured zoomed out and before the label pads the chart, so zoom, pan and padding never rewrap it.
      */
     private seriesAreaTurnedBounds(fit: Pick<LabelFit, 'maxWidth'>, anchor: Anchor): TurnedBounds | undefined {
         const outerLabelRoom = this.ctx.parent.outerLabelRoom;

@@ -1977,10 +1977,10 @@ describe('Zoom', () => {
             return String((label as TransformableText).text);
         }
 
-        it('wraps the label the same at every zoom, as the series area is its bound', async () => {
+        it('wraps the label the same when zoomed and panned off-centre', async () => {
             const full = await renderedLabelText({ start: 0, end: 1 });
             chart.destroy();
-            const zoomed = await renderedLabelText({ start: 0.4, end: 0.6 });
+            const zoomed = await renderedLabelText({ start: 0.45, end: 0.65 });
 
             expect(full.includes('\n')).toBe(true);
             expect(zoomed).toBe(full);

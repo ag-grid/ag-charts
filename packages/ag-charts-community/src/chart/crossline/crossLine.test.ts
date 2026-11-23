@@ -3796,7 +3796,7 @@ describe('CrossLine label fitting', () => {
         });
         const longLine = (label: AgCartesianCrossLineLabelOptions) => lineWith({ text: LONG_WORDS, ...label });
 
-        // The bound is the series area before any label padding, so it is read from the chart without cross lines.
+        // Labels pad the chart, so the series length is read from a chart without them.
         const unpaddedSeriesLength = async (rotation: number | undefined) => {
             const reference = deproxy(await createChart(fitChart(longLine({}), 'x', { x: { crossLines: [] } })));
             const { width, height } = getSeriesRect(reference);
