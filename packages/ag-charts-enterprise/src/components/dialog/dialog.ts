@@ -51,6 +51,8 @@ interface InputOptions {
     value: string;
     /** The granularity of a `datetime-local` input, in seconds. */
     step?: number;
+    /** The bounds of a `number` input. */
+    range?: { min: number; max: number };
     /** The id of the datalist the input suggests from. */
     list?: ElementID;
     /** Called when the user commits a value; a `datetime-local` input may commit a value that has not changed. */
@@ -284,9 +286,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createInput({ ariaLabel, type, value, step, onChange, list }: InputOptions) {
+    protected createInput({ ariaLabel, type, value, step, range, onChange, list }: InputOptions) {
         const input = new InputWidget(type, 'ag-charts-dialog__input');
         if (step != null) input.setStep(step);
+        if (range) input.setRange(range.min, range.max);
         input.value = value;
         input.addCommitListener((event) => onChange(input.value, event));
         input.setAriaLabel(ariaLabel);

@@ -14,6 +14,7 @@ import type {
     SegmentedPath,
     Selection,
     Writeable,
+    ZIndex,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_Y_MAX,
@@ -362,15 +363,18 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return super.setSeriesIndex(index, isStackedChanged);
     }
 
+    protected override contentZIndex(zIndex: number): ZIndex {
+        if (this.isStacked()) return [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
+        return [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND, 1];
+    }
+
     override setZIndex(zIndex: number) {
         super.setZIndex(zIndex);
 
         if (this.isStacked()) {
             this.backgroundGroup.zIndex = [SeriesZIndexMap.BACKGROUND, zIndex];
-            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
         } else {
             this.backgroundGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND, 0];
-            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND, 1];
         }
     }
 

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    type AgBarSeriesLabelPlacement,
     AgBubbleSeriesOptions,
     type AgCartesianChartOptions,
     type AgChartInstance,
@@ -28,6 +29,7 @@ import {
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    hoverLegendItem,
     isTooltipVisible,
     keyDownAction,
     mouseDownAction,
@@ -987,6 +989,68 @@ describe('DataSelection', () => {
 
             chart.clearSelection();
             expect([...chart.getSelection()]).toHaveLength(0);
+        });
+    });
+
+    describe('bar labels over an overlapping bar', () => {
+        const label = {
+            placement: ['inside-center', 'outside-end'] as AgBarSeriesLabelPlacement[],
+            collision: { alwaysShow: true, threshold: 0, collideWith: { shapes: false, labels: false } },
+        };
+        const rows = [
+            { id: 'q1', x: 'Q1', back: 80, front: 40 },
+            { id: 'q2', x: 'Q2', back: 60, front: 30 },
+            { id: 'q3', x: 'Q3', back: 70, front: 35 },
+        ];
+        const options: AgCartesianChartOptions = {
+            dataIdKey: 'id',
+            data: rows,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', max: 100 },
+            },
+            series: [
+                { id: 'back', type: 'bar', xKey: 'x', yKey: 'back', grouped: false, label },
+                { id: 'front', type: 'bar', xKey: 'x', yKey: 'front', grouped: false, label },
+            ],
+            selection: { enabled: true },
+        };
+
+        const backPlacements = () =>
+            (getSeriesContextNodeData(chart, 0).nodeData as { label?: { placement?: string } }[]).map(
+                (node) => node.label?.placement
+            );
+
+        it('re-solves for a selection raising the back series over the front one, but not for a hover raise', async () => {
+            chart = await createEnterpriseChart(options);
+            // The back label would sit on the front bar drawn over it, so goes outside.
+            expect(backPlacements()).toEqual(['outside-end', 'outside-end', 'outside-end']);
+
+            await setChartSelectionArray([{ seriesId: 'back', itemId: 'q1' }]);
+            expect(backPlacements()).toEqual(['inside-center', 'inside-center', 'inside-center']);
+
+            // Hovering the front series draws it over the back one only while it is highlighted.
+            await hoverLegendItem(chart, 1);
+            await waitForChartStability(chart);
+            expect(backPlacements()).toEqual(['inside-center', 'inside-center', 'inside-center']);
+        });
+
+        it.each([
+            { drop: 'cleared', apply: () => clearChartSelection() },
+            { drop: 'removed by a transaction', apply: () => chart.applyTransaction({ remove: [{ id: 'q1' }] }) },
+            {
+                drop: 'dropped by a data update',
+                apply: () => chart.update(prepareEnterpriseTestOptions({ ...options, data: rows.slice(1) })),
+            },
+        ])('restores placement once the selection is $drop', async ({ apply }) => {
+            chart = await createEnterpriseChart(options);
+            await setChartSelectionArray([{ seriesId: 'back', itemId: 'q1' }]);
+            expect(backPlacements()).toContain('inside-center');
+
+            await apply();
+            await waitForChartStability(chart);
+
+            expect(new Set(backPlacements())).toEqual(new Set(['outside-end']));
         });
     });
 

@@ -27,6 +27,7 @@ import type {
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
     SizedPoint,
+    ZIndex,
 } from 'ag-charts-core';
 import {
     BBox,
@@ -583,6 +584,8 @@ export abstract class Series<
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
                 this.bucketLookup?.refresh();
+                // A selection raises the series at once, not on the next highlight change.
+                this.setSeriesIndex(this.declarationOrder);
             })
         );
     }
@@ -608,12 +611,22 @@ export abstract class Series<
 
     declarationOrder: number = -1;
     private _broughtToFront = false;
+    private _raisedAtRest = false;
     setSeriesIndex(index: number, forceUpdate = false) {
         const bringToFront = this.bringToFront();
-        if (!forceUpdate && index === this.declarationOrder && bringToFront === this._broughtToFront) return false;
+        const raisedAtRest = this.raisedAtRest();
+        if (
+            !forceUpdate &&
+            index === this.declarationOrder &&
+            bringToFront === this._broughtToFront &&
+            raisedAtRest === this._raisedAtRest
+        ) {
+            return false;
+        }
 
         this.declarationOrder = index;
         this._broughtToFront = bringToFront;
+        this._raisedAtRest = raisedAtRest;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
         // A hovered item drawn beneath the glow overlay has its glow cast above it.
         this.highlightGroup.castsHoveredGlows =
@@ -624,8 +637,18 @@ export abstract class Series<
         return true;
     }
 
+    /** The content group's z-index for order `zIndex`. */
+    protected contentZIndex(zIndex: number): ZIndex {
+        return [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
+    }
+
+    /** The content group's z-index with no highlight raising the series. */
+    atRestZIndex(): ZIndex {
+        return this.contentZIndex(this._raisedAtRest ? Number.MAX_VALUE : this.declarationOrder);
+    }
+
     setZIndex(zIndex: number) {
-        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
+        this.contentGroup.zIndex = this.contentZIndex(zIndex);
         this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.HIGHLIGHT];
         this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.LABEL];
         this.annotationGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.ANNOTATION];
@@ -1105,8 +1128,13 @@ export abstract class Series<
         if (redrawnIndex != null) indices.add(redrawnIndex);
     }
 
+    /** Whether the series is drawn over the others with no highlight, which only a data selection does. */
+    public raisedAtRest() {
+        return this.hasDataSelection();
+    }
+
     public bringToFront() {
-        if (this.hasDataSelection()) return true;
+        if (this.raisedAtRest()) return true;
         const { highlight } = this.options;
         if (highlight?.enabled === false || highlight?.bringToFront === false) return false;
         return this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight());

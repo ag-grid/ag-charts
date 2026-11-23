@@ -13,6 +13,7 @@ export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
+    getSeriesLabelObstacles,
     withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './chart/test/communitySeriesAccessors';

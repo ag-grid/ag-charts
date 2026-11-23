@@ -22,6 +22,7 @@ import {
     type SizedPoint,
     StateMachine,
     Text,
+    type ZIndex,
     applySizeMode,
     configureColorScale,
     datumKeyReader,
@@ -244,10 +245,13 @@ export class MapMarkerSeries
         }
     }
 
+    protected override contentZIndex(zIndex: number): ZIndex {
+        return [MapZIndexMap.Marker, zIndex];
+    }
+
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.Marker, zIndex];
         this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, zIndex];
 
         return true;

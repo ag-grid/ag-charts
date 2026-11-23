@@ -1180,10 +1180,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const nodeData = this.contextNodeData?.nodeData;
         if (nodeData == null || nodeData.length === 0) return undefined;
         const obstacles: LabelObstacle[] = [];
-        for (const { point, width, height } of nodeData) {
+        for (const { point, width, height, datumIndex } of nodeData) {
             if (width <= 0 || height <= 0) continue;
             const box = { x: point.x - width / 2, y: point.y - height / 2, width, height };
-            obstacles.push({ kind: 'rect', box, category: 'shape' });
+            obstacles.push({ kind: 'rect', box, category: 'shape', sourceId: this.id, entityIndex: datumIndex });
         }
         return obstacles;
     }
@@ -1224,6 +1224,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 threshold,
                 positionedCandidates: [candidate],
                 ownBox: region,
+                entityIndex: labelDatum.datumIndex,
                 target: labelDatum,
             });
         }
