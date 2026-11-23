@@ -182,23 +182,42 @@ function firstOutside(
     return lo;
 }
 
-/** Caches a region's `spanAt` by band, as wrapping asks for the same band once per candidate word. */
-export function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {
-    // OPTIMIZATION: keyed by the two numbers rather than a string built from them, so a hit allocates nothing.
-    const cache = new Map<number, Map<number, readonly [number, number]>>();
-    return (top: number, bottom: number) => {
-        let byBottom = cache.get(top);
+type Span = readonly [number, number];
+
+// OPTIMIZATION: keyed by the two numbers rather than a string built from them, so a hit allocates nothing.
+class BandMemo {
+    private readonly byTop = new Map<number, Map<number, Span>>();
+    private readonly spare: Map<number, Span>[] = [];
+
+    constructor(private readonly compute: (top: number, bottom: number) => Span) {}
+
+    readonly get = (top: number, bottom: number): Span => {
+        let byBottom = this.byTop.get(top);
         if (byBottom == null) {
-            byBottom = new Map();
-            cache.set(top, byBottom);
+            byBottom = this.spare.pop() ?? new Map();
+            this.byTop.set(top, byBottom);
         }
         let span = byBottom.get(bottom);
         if (span == null) {
-            span = spanAt(top, bottom);
+            span = this.compute(top, bottom);
             byBottom.set(bottom, span);
         }
         return span;
     };
+
+    /** Forgets every band, keeping the emptied maps for the next fill. */
+    clear() {
+        for (const byBottom of this.byTop.values()) {
+            byBottom.clear();
+            this.spare.push(byBottom);
+        }
+        this.byTop.clear();
+    }
+}
+
+/** Caches a region's `spanAt` by band, as wrapping asks for the same band once per candidate word. */
+export function memoiseByBand(spanAt: (top: number, bottom: number) => Span) {
+    return new BandMemo(spanAt).get;
 }
 
 /**
@@ -214,7 +233,7 @@ export function insetFitRegion(region: FitRegion, dx: number, dy: number): FitRe
     };
 }
 
-function insetSpan(region: FitRegion, dx: number, dy: number, top: number, bottom: number): readonly [number, number] {
+function insetSpan(region: FitRegion, dx: number, dy: number, top: number, bottom: number): Span {
     const [left, right] = region.spanAt(top - dy, bottom + dy);
     const mid = (left + right) / 2;
     return [Math.min(left + dx, mid), Math.max(right - dx, mid)];
@@ -227,8 +246,8 @@ export class ReusableInsetRegion implements FitRegion {
     private region?: FitRegion;
     private dx = 0;
     private dy = 0;
-    private readonly byTop = new Map<number, Map<number, readonly [number, number]>>();
-    private readonly spare: Map<number, readonly [number, number]>[] = [];
+    private readonly bands = new BandMemo((top, bottom) => insetSpan(this.region!, this.dx, this.dy, top, bottom));
+    readonly spanAt = this.bands.get;
 
     reset(region: FitRegion, dx: number, dy: number): this {
         this.release();
@@ -242,27 +261,9 @@ export class ReusableInsetRegion implements FitRegion {
 
     /** Drops the region and the bands worked out for it, keeping only the emptied maps. */
     release() {
-        for (const byBottom of this.byTop.values()) {
-            byBottom.clear();
-            this.spare.push(byBottom);
-        }
-        this.byTop.clear();
+        this.bands.clear();
         this.region = undefined;
     }
-
-    readonly spanAt = (top: number, bottom: number): readonly [number, number] => {
-        let byBottom = this.byTop.get(top);
-        if (byBottom == null) {
-            byBottom = this.spare.pop() ?? new Map();
-            this.byTop.set(top, byBottom);
-        }
-        let span = byBottom.get(bottom);
-        if (span == null) {
-            span = insetSpan(this.region!, this.dx, this.dy, top, bottom);
-            byBottom.set(bottom, span);
-        }
-        return span;
-    };
 }
 
 /** A shape sampled into rows of inside spans, in units scaled by {@link maskFitRegion}'s `scale`. */
