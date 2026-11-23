@@ -32,6 +32,7 @@ import {
     createVolumeProfileSeries,
     createVolumeProfileStatusBarOptions,
     groupVolumeProfile,
+    resolveVolumeProfileTickSize,
 } from '../volume-profile/volumeProfile';
 import type { VolumeProfileDatum } from '../volume-profile/volumeProfileUtils';
 
@@ -117,9 +118,14 @@ export function priceVolume(
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
     const suppressFieldDotNotation = opts.suppressFieldDotNotation ?? false;
+    // The levels of a profile are tick sizes apart, so the price axis steps by the same.
+    const profileTickSize = volumeProfile
+        ? resolveVolumeProfileTickSize(volumeProfile.data, volumeProfile.priceKey, tickSize, suppressFieldDotNotation)
+        : tickSize;
     const profileLevels =
         volumeProfile &&
-        groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, suppressFieldDotNotation, logger);
+        groupVolumeProfile(volumeProfile.data, volumeProfile, profileTickSize, suppressFieldDotNotation, logger);
+    const priceTickSize = (profileLevels?.length ?? 0) > 0 ? profileTickSize : tickSize;
 
     return {
         animation: { enabled: false },
@@ -130,7 +136,7 @@ export function priceVolume(
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(volumeProfile, tickSize),
+            ...createPriceAxis(volumeProfile, priceTickSize),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
