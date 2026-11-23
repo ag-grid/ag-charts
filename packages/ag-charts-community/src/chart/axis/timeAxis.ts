@@ -112,8 +112,7 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     }
 
     protected override valueTickSize() {
-        const { tickSize } = this.options;
-        return tickSize == null ? super.valueTickSize() : { size: tickSize, inferred: false };
+        return this.options.tickSize ?? this.minimumTimeGranularity;
     }
 
     override tickFormatParams(

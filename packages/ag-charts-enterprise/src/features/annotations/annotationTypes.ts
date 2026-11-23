@@ -100,7 +100,7 @@ export interface AnnotationAxisContext extends Pick<
     | 'scale'
     | 'scaleInvert'
     | 'formatScaleValue'
-    | 'formatWithLabel'
+    | 'formatWithCrosshairLabel'
     | 'valueTickSize'
     | 'attachLabel'
     | 'inRange'

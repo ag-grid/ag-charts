@@ -1198,37 +1198,33 @@ export abstract class Axis<
 
         const f = this.createCallWithContext(contextProvider);
 
+        // Formatting an arbitrary datum rather than a rendered tick, so there is no tick index to hand the
+        // label formatter. Where the value is one this axis stacks in rows — `grouped-category` — the tick
+        // it belongs to does carry an identity, and the formatter must see the same one a click reports.
+        // Resolving it means scanning the tick data, so this stays inside the branch that consumes it:
+        // formatting a datum runs on every pointer move that moves a crosshair.
+        const formatWithAxisLabel = () => {
+            const identity = this.options.label.formatter == null ? undefined : this.resolveTickIdentity(value);
+            const rowIdentity = identity?.depth == null ? undefined : identity;
+            return formatAxisLabelValue(
+                this.options.label,
+                this.formatterCache,
+                f,
+                formatParams,
+                rowIdentity?.index ?? Number.NaN,
+                // Only the callback is told the depth. `formatParams` keeps none, so the default
+                // formatting a tooltip or crosshair falls back to stays the whole joined path.
+                rowIdentity && { depth: rowIdentity.depth, dateStyle: undefined, truncateDate: undefined }
+            );
+        };
+
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            this.formatDatumWithAxisLabel(f, formatParams) ??
+            formatWithAxisLabel() ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
-    }
-
-    // Formatting an arbitrary datum rather than a rendered tick, so there is no tick index to hand the
-    // label formatter. Where the value is one this axis stacks in rows — `grouped-category` — the tick
-    // it belongs to does carry an identity, and the formatter must see the same one a click reports.
-    // Resolving it means scanning the tick data, so callers leave this until nothing ahead of it formats
-    // the value: formatting a datum runs on every pointer move that moves a crosshair.
-    private formatDatumWithAxisLabel(
-        f: ReturnType<typeof this.createCallWithContext>,
-        formatParams: FormatterParams<any>
-    ) {
-        const identity =
-            this.options.label.formatter == null ? undefined : this.resolveTickIdentity(formatParams.value);
-        const rowIdentity = identity?.depth == null ? undefined : identity;
-        return formatAxisLabelValue(
-            this.options.label,
-            this.formatterCache,
-            f,
-            formatParams,
-            rowIdentity?.index ?? Number.NaN,
-            // Only the callback is told the depth. `formatParams` keeps none, so the default
-            // formatting a tooltip or crosshair falls back to stays the whole joined path.
-            rowIdentity && { depth: rowIdentity.depth, dateStyle: undefined, truncateDate: undefined }
-        );
     }
 
     private datumFormatterParams(
@@ -1275,20 +1271,14 @@ export abstract class Axis<
         );
     }
 
-    /** See {@link AxisContext.formatWithLabel}. */
-    private formatWithLabel(input: unknown, label: 'crosshair' | 'axis'): string | undefined {
-        if (input == null) return undefined;
+    /** See {@link AxisContext.formatWithCrosshairLabel}. */
+    private formatWithCrosshairLabel(input: unknown): string | undefined {
+        const label = this.getModuleMap().getModule<AxisFormattableLabel<any, any>>('crosshair');
+        if (label == null || input == null) return undefined;
 
         const formatParams = this.datumFormatterParams(input, 'crosshair');
         const { type, value } = formatParams;
-        const f = this.createCallWithContext(undefined);
-        const text =
-            label === 'crosshair'
-                ? this.getModuleMap()
-                      .getModule<AxisFormattableLabel<any, any>>('crosshair')
-                      ?.formatValue(f, type, value, formatParams)
-                : (this.moduleCtx.formatManager.format(f, formatParams) ??
-                  this.formatDatumWithAxisLabel(f, formatParams));
+        const text = label.formatValue(this.createCallWithContext(undefined), type, value, formatParams);
         return text == null ? undefined : toPlainText(text);
     }
 
@@ -1491,7 +1481,7 @@ export abstract class Axis<
                     allowNull
                 );
             },
-            formatWithLabel: (value, label) => this.formatWithLabel(value, label),
+            formatWithCrosshairLabel: (value) => this.formatWithCrosshairLabel(value),
             valueTickSize: () => this.valueTickSize(),
             attachLabel: (node: Node) => this.attachLabel(node),
             attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),

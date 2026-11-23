@@ -26,11 +26,11 @@ export const ANNOTATIONS_EXAMPLE_OPTIONS: AgCartesianChartOptions = {
     annotations: { enabled: true, toolbar: { enabled: false } },
 };
 
-type AxisOverrides = Partial<Pick<AnnotationAxisContext, 'formatWithLabel' | 'valueTickSize'>>;
+type AxisOverrides = Partial<Pick<AnnotationAxisContext, 'formatWithCrosshairLabel' | 'valueTickSize'>>;
 
 /**
  * The axes of an annotation context, which is all the coordinate editing reads; the rest of the interface is unused.
- * An axis has no tick size and no format on its labels unless `overrides` gives one.
+ * An axis has no tick size and no format on its crosshair label unless `overrides` gives one.
  */
 export function createAxesContext(
     xScale: AnnotationAxisContext['scale'],
@@ -46,7 +46,7 @@ export function createAxesContext(
         scale,
         continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
         formatScaleValue: format,
-        formatWithLabel: () => undefined,
+        formatWithCrosshairLabel: () => undefined,
         valueTickSize: () => undefined,
         ...axisOverrides,
     });

@@ -190,7 +190,7 @@ describe('annotation coordinates', () => {
                     end: { x: DAY, y: 4 },
                 };
                 const timeContext = createAxesContext(timeScale([DAY, DAY]), numberScale([0, 50]), String, {
-                    x: { valueTickSize: () => ({ size: tickSize, inferred: false }) },
+                    x: { valueTickSize: () => tickSize },
                 });
 
                 const [startX] = getCoordinateFields(datum, timeContext);
@@ -352,43 +352,36 @@ describe('annotation coordinates', () => {
         const datum = { ...lineDatum.create(), start: { x: 1, y: 4366.2765 }, end: { x: 2, y: 20 } };
         const twoDecimals = (value: unknown) => Number(value).toFixed(2);
 
-        const given = (size: number) => () => ({ size, inferred: false });
-        const fromData = (size: number) => () => ({ size, inferred: true });
-        const labelled =
-            (texts: { crosshair?: string; axis?: string }) => (_value: unknown, label: 'crosshair' | 'axis') =>
-                texts[label];
-
         it.each([
+            ['the tick size ahead of the default label', { valueTickSize: () => 0.5 }, 1, 0.5],
+            ['none for a whole tick size', { valueTickSize: () => 5 }, 0, 5],
             [
-                'a format on the crosshair label ahead of a tick size in the options',
-                { valueTickSize: given(0.25), formatWithLabel: labelled({ crosshair: '$4,366.277' }) },
-                [3, 0.25],
+                'a format given to the crosshair label ahead of the tick size',
+                { valueTickSize: () => 0.25, formatWithCrosshairLabel: () => '$4,366.277' },
+                3,
+                0.25,
             ],
             [
-                'a tick size in the options where the crosshair label is not a plain number',
-                { valueTickSize: given(0.25), formatWithLabel: labelled({ crosshair: 'Q3 2024' }) },
-                [2, 0.25],
+                'the tick size where the crosshair label is not a plain number',
+                { valueTickSize: () => 0.25, formatWithCrosshairLabel: () => 'Q3 2024' },
+                2,
+                0.25,
             ],
+            ['the default label without a tick size', {}, 2, undefined],
             [
-                'a tick size in the options ahead of a format on the axis label',
-                { valueTickSize: given(0.5), formatWithLabel: labelled({ axis: '4366.277' }) },
-                [1, 0.5],
+                'the default label for a time interval, which is not a number',
+                { valueTickSize: () => 'day' as const },
+                2,
+                undefined,
             ],
-            [
-                'a format on the axis label ahead of the step of the data, which the spinner then leaves',
-                { valueTickSize: fromData(0.001), formatWithLabel: labelled({ axis: '4366.3' }) },
-                [1, undefined],
-            ],
-            ['the step of the data ahead of the default label', { valueTickSize: fromData(0.001) }, [3, 0.001]],
-            ['the default label without a tick size', {}, [2, undefined]],
-        ])('follow %s, as does the spinner step', (_name, y, digitsAndStep) => {
+        ])('follow %s, and the spinner steps by the tick size', (_name, y, fractionDigits, step) => {
             const parallel = { ...parallelChannelDatum.create(), start: datum.start, end: datum.end, height: 12.3456 };
             const context = createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), twoDecimals, { y });
 
             const fields = getCoordinateFields(parallel, context).filter((f) => f.axis === 'y');
 
             expect(fields.map((f) => f.row)).toEqual(['start', 'end', 'height']);
-            expect(fields.map((f) => [f.fractionDigits, f.step])).toEqual(Array(3).fill(digitsAndStep));
+            expect(fields.map((f) => [f.fractionDigits, f.step])).toEqual(Array(3).fill([fractionDigits, step]));
         });
         const digitsOf = (format: (value: unknown) => string) =>
             getCoordinateFields(datum, createAxesContext(numberScale([0, 100]), numberScale([0, 5000]), format))
