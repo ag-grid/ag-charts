@@ -494,18 +494,18 @@ export class CartesianChartType implements ChartTypeInstance {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const pluginPadding = this.buildAxisPluginPadding(outerSpace);
         const collectedPadding = { ...pluginPadding };
-        const outerRoom = (side: AgCartesianAxisPosition, slack: number) => {
-            const space = outerSpace.get(side) ?? 0;
-            // Upper bound: `clampPaddingPair` shares the budget when both sides of a pair pad.
-            return { space, padded: space + crossLinePaddingBudget(slack) };
-        };
         const slackX = axisAreaBound.width - totalWidth;
         const slackY = axisAreaBound.height - totalHeight;
+        const outerRoom = (side: AgCartesianAxisPosition, opposite: AgCartesianAxisPosition, slack: number) => {
+            const budget = crossLinePaddingBudget(slack);
+            // Halved when the opposite side pads too, so the pair fits `clampPaddingPair` without scaling.
+            return (outerSpace.get(side) ?? 0) + (pluginPadding[opposite] > 0 ? budget / 2 : budget);
+        };
         const outerLabelRoom = {
-            top: outerRoom('top', slackY),
-            right: outerRoom('right', slackX),
-            bottom: outerRoom('bottom', slackY),
-            left: outerRoom('left', slackX),
+            top: outerRoom('top', 'bottom', slackY),
+            right: outerRoom('right', 'left', slackX),
+            bottom: outerRoom('bottom', 'top', slackY),
+            left: outerRoom('left', 'right', slackX),
         };
         for (const axis of this.axes) {
             axis.outerLabelRoom = outerLabelRoom;

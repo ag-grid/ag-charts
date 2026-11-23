@@ -10,7 +10,6 @@ import {
     type TurnedBounds,
     bandRangeExpansion,
     cachedTextMeasurer,
-    clamp,
     clampArray,
     createId,
     crossLineHitTolerance,
@@ -87,7 +86,7 @@ function anchorAlong(rangeDir: AnchorDirection, start: number, size: number, pad
     return start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
 }
 
-/** Room for a label on the band, reaching `outer` past the series `area` and capped at the area's length. */
+/** Room along one axis between the anchor on the band and the edges of the series area, `low` to `high`. */
 function seriesAreaRoom(
     rangeDir: AnchorDirection,
     labelDir: AnchorDirection,
@@ -95,14 +94,10 @@ function seriesAreaRoom(
     start: number,
     size: number,
     paddingDiff: number,
-    [areaLow, areaHigh]: [number, number],
-    [outerLow, outerHigh]: [number, number]
+    low: number,
+    high: number
 ): number {
-    const anchorAt = anchorAlong(rangeDir, start, size, paddingDiff);
-    const areaLength = areaHigh - areaLow;
-    if (labelDir !== 0 && availableExtent(anchorAt, labelDir, pad, areaLow, areaHigh) <= 0) return areaLength;
-    const room = availableExtent(anchorAt, labelDir, pad, areaLow - outerLow, areaHigh + outerHigh);
-    return clamp(0, room, areaLength);
+    return Math.max(availableExtent(anchorAlong(rangeDir, start, size, paddingDiff), labelDir, pad, low, high), 0);
 }
 
 /** Room the band leaves along one axis for a label anchored inside it. */
@@ -663,7 +658,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private seriesAreaTurnedBounds(fit: Pick<LabelFit, 'maxWidth'>, anchor: Anchor): TurnedBounds | undefined {
         const outerLabelRoom = this.ctx.parent.outerLabelRoom;
         const { unzoomedData, label } = this;
-        if (fit.maxWidth != null || outerLabelRoom == null || unzoomedData == null) return;
+        const clipped = label.overflow === 'clip-text';
+        if (fit.maxWidth != null || clipped || outerLabelRoom == null || unzoomedData == null) return;
 
         const band = this.bandBounds(unzoomedData);
         const [areaStart, areaEnd] = findMinMax(this.clippedRange);
@@ -671,34 +667,33 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const side = this.paddingSideOf(anchor);
         const spacing = this.boxed ? pad : 2 * pad;
-        const outer = side == null ? 0 : outerLabelRoom[side].padded - spacing;
-        const { top, right, bottom, left } = outerLabelRoom;
-        const padsX = side === 'left' || side === 'right';
-        const padsY = side === 'top' || side === 'bottom';
-        const roomX = padsX
-            ? outer
-            : seriesAreaRoom(
-                  anchor.rangeH,
-                  anchor.labelH,
-                  pad,
-                  band.x,
-                  band.width,
-                  xPaddingDiff,
-                  [area.x, area.x + area.width],
-                  [left.space, right.space]
-              );
-        const roomY = padsY
-            ? outer
-            : seriesAreaRoom(
-                  anchor.rangeV,
-                  anchor.labelV,
-                  pad,
-                  band.y,
-                  band.height,
-                  yPaddingDiff,
-                  [area.y, area.y + area.height],
-                  [top.space, bottom.space]
-              );
+        const outer = side == null ? 0 : outerLabelRoom[side] - spacing;
+        const roomX =
+            side === 'left' || side === 'right'
+                ? outer
+                : seriesAreaRoom(
+                      anchor.rangeH,
+                      anchor.labelH,
+                      pad,
+                      band.x,
+                      band.width,
+                      xPaddingDiff,
+                      area.x,
+                      area.x + area.width
+                  );
+        const roomY =
+            side === 'top' || side === 'bottom'
+                ? outer
+                : seriesAreaRoom(
+                      anchor.rangeV,
+                      anchor.labelV,
+                      pad,
+                      band.y,
+                      band.height,
+                      yPaddingDiff,
+                      area.y,
+                      area.y + area.height
+                  );
 
         const rotation = toRadians(label.rotation ?? 0);
         const insets = this.boxed ? resolvePadding(label.padding) : undefined;

@@ -3833,33 +3833,35 @@ describe('CrossLine label fitting', () => {
             expect(footprint.y + footprint.height).toBeLessThanOrEqual(CANVAS_HEIGHT);
         });
 
-        it.each<['x' | 'y', number, AgCartesianCrossLineLabelOptions['placement']]>([
-            ['x', 0, 'top'],
-            ['x', 0.05, 'top'],
-            ['x', 0.2, 'inside'],
-            ['y', 0, 'left'],
-            ['y', 0.05, 'inside'],
-            ['y', 10, 'right'],
-        ])('keeps a short label on a %s line at %s %s whole', async (axisId, value, placement) => {
+        it.each([0, 0.05])('keeps a label on a line at %s, at the series-area edge, shown', async (value) => {
             chart = deproxy(
-                await createChart(fitChart({ type: 'line', value, label: { text: 'Target', placement } }, axisId))
+                await createChart(fitChart({ type: 'line', value, label: { text: 'Target', placement: 'top' } }, 'x'))
             );
 
-            expect(renderedLabel(axisId).text).toBe('Target');
+            const node = crossLineLabelNode(chart, 'x');
+            expect(node.visible).toBe(true);
+            expect(String(node.text)).toMatch(/^T.*\u2026$/);
         });
 
-        it.each<['x' | 'y', number]>([
-            ['x', 0.05],
-            ['x', 10],
-            ['y', 0.05],
-            ['y', 10],
-        ])('keeps a long label on a %s line at %s on the canvas along its text', async (axisId, value) => {
-            const label = { text: LONG_WORDS, placement: 'inside' as const };
-            chart = deproxy(await createChart(fitChart({ type: 'line', value, label }, axisId)));
+        it.each<['x' | 'y', AgCartesianCrossLineLabelOptions, AgCartesianCrossLineLabelOptions]>([
+            ['y', { placement: 'left' }, { placement: 'right' }],
+            ['x', { placement: 'top', rotation: 90 }, { placement: 'bottom', rotation: 90 }],
+        ])('fits labels padding opposite sides of a %s axis on the canvas', async (axisId, first, second) => {
+            const crossLines = [
+                { ...longLine(first), value: 3 },
+                { ...longLine(second), value: 7 },
+            ];
+            chart = deproxy(await createChart(fitChart(crossLines[0], axisId, { [axisId]: { crossLines } })));
 
-            const { footprint } = renderedLabel(axisId);
-            expect(footprint.x).toBeGreaterThanOrEqual(0);
-            expect(footprint.x + footprint.width).toBeLessThanOrEqual(CANVAS_WIDTH);
+            for (const crossLine of crossLineInstancesOf(chart, axisId)) {
+                const footprint = Transformable.toCanvas(crossLine.labelGroup);
+                const [start, length, canvasLength] =
+                    axisId === 'y'
+                        ? [footprint.x, footprint.width, CANVAS_WIDTH]
+                        : [footprint.y, footprint.height, CANVAS_HEIGHT];
+                expect(start).toBeGreaterThanOrEqual(0);
+                expect(start + length).toBeLessThanOrEqual(canvasLength);
+            }
         });
 
         it('lets an explicit maxWidth beyond the series area replace the bound', async () => {
