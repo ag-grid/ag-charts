@@ -844,15 +844,16 @@ describe('priceVolumePreset', () => {
         });
 
         it.each<[string, AgFinancialChartOptions, string[]]>([
+            ['the default crosshair label and the step of the data', {}, ['0.009994', '137.12']],
             ['the tickSize', { tickSize: 0.25 }, ['0.25', '137.12']],
             [
-                'the tickSize ahead of the one of the volume profile',
+                'the tickSize ahead of the levels of the volume profile',
                 { tickSize: 0.25, volumeProfile },
                 ['0.25', '137.12'],
             ],
-            ['the tick size of the levels of the volume profile', { volumeProfile }, ['2.5', '137.1']],
+            ['the levels of the volume profile', { volumeProfile }, ['2.5', '137.1']],
         ])(
-            'shows a price in the annotation settings at the decimals of %s, which its spinner steps by',
+            'shows a price in the annotation settings at the decimals and step of %s',
             async (_name, options, expected) => {
                 const price = 137.123456;
                 chart = AgCharts.createFinancialChart(

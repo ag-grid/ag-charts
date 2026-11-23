@@ -1411,12 +1411,12 @@ describe('Annotations', () => {
                 ]
             >([
                 [
-                    'a number at the step of the data',
+                    'a number at the default format of the crosshair label, which the step of the data is left to',
                     numberOptions(THOUSANDTHS),
                     'horizontal-line',
                     1.0015432,
                     1.0015432,
-                    ['number', '0.001', '1.002'],
+                    ['number', '0.001', '1.0015'],
                 ],
                 [
                     'a number at a `tickSize` ahead of the data',
@@ -1443,12 +1443,12 @@ describe('Annotations', () => {
                     ['number', 'any', '1.002'],
                 ],
                 [
-                    'a number on a log axis at the step of the data',
+                    'a number on a log axis at the default format of the crosshair label',
                     numberOptions(POWERS_OF_TEN, { type: 'log' }),
                     'horizontal-line',
                     12.3456,
                     12.3456,
-                    ['number', '0.09', '12.35'],
+                    ['number', '0.09', '12.346'],
                 ],
                 [
                     'a time to the minute for data a quarter of an hour apart',
