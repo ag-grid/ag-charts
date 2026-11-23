@@ -110,6 +110,11 @@ export interface AxisContext {
         label?: AxisFormattableLabel<FormatParams, FormatterParams<any>>
     ): string;
     /**
+     * The text that the `format` or `formatter` of the axis's crosshair label gives a value, or `undefined` when the
+     * label has neither, or its formatter leaves the value to the defaults.
+     */
+    formatWithCrosshairLabel(value: unknown): string | undefined;
+    /**
      * The smallest step between values on the axis: its `tickSize` option, or else the step of its data, which is
      * read when asked for rather than as the data is processed. Not the length of the axis's tick marks.
      */
