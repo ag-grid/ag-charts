@@ -139,7 +139,7 @@ function seededRandom(seed: number) {
 
 const E = EllipsisChar; // shorthand for assertions
 // One grapheme the mock measures at 9 characters wide, so it cannot fit beside an ellipsis.
-const WIDE_GRAPHEME = 'e' + '́'.repeat(8);
+const WIDE_GRAPHEME = 'e' + '\u0301'.repeat(8);
 
 // Words of 1-8 lowercase letters joined by single spaces, to probe fits at many break positions.
 function generateWords(random: () => number) {
