@@ -898,6 +898,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         tempText.rotation = toRadians(label.rotation ?? 0);
         tempText.textBaseline = 'middle';
         tempText.textAlign = 'center';
+        tempText.setBoxing(label);
 
         const bbox = tempText.getBBox();
         if (bbox == null) return;
@@ -945,11 +946,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { spacing } = this.label;
         const horizontalSide = side === 'left' || side === 'right';
         const labelSize = horizontalSide ? size.width : size.height;
-        // An unboxed label keeps its spacing clear on both sides; a boxed one adds its insets to the text.
-        if (!this.boxed) return Math.max(0, 2 * spacing + labelSize);
-
-        const padding = resolvePadding(this.label.padding);
-        const insets = horizontalSide ? padding.left + padding.right : padding.top + padding.bottom;
-        return Math.max(0, spacing + insets + labelSize);
+        // An unboxed label keeps its spacing clear on both sides; a boxed one is measured with its box.
+        return Math.max(0, (this.boxed ? spacing : 2 * spacing) + labelSize);
     }
 }

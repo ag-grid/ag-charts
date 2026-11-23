@@ -3846,6 +3846,22 @@ describe('CrossLine label fitting', () => {
             expect(footprint.x).toBeGreaterThanOrEqual(chartPadding - 1);
         });
 
+        it('pads for a rotated boxed label the room it is fitted to', async () => {
+            const label = {
+                text: 'Peak',
+                placement: 'top',
+                rotation: 90,
+                fill: 'lightgrey',
+                padding: { top: 0, bottom: 0, left: 20, right: 20 },
+            } as const;
+            chart = deproxy(await createChart(fitChart({ type: 'line', value: 5, label }, 'x')));
+
+            const { text, footprint } = renderedLabel('x');
+            expect(text).toBe('Peak');
+            expect(footprint.y).toBeGreaterThanOrEqual(0);
+            expect(footprint.y + footprint.height).toBeLessThanOrEqual(getSeriesRect(chart).y);
+        });
+
         it.each<['x' | 'y', AgCartesianCrossLineLabelOptions, AgCartesianCrossLineLabelOptions]>([
             ['y', { placement: 'left' }, { placement: 'right' }],
             ['x', { placement: 'top', rotation: 90 }, { placement: 'bottom', rotation: 90 }],
