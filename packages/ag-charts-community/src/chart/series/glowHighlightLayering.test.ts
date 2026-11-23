@@ -6,7 +6,7 @@ import type { AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
-import { shapesOf } from '../test/shadowFixtures';
+import { THEME_GLOW, shapesOf } from '../test/shadowFixtures';
 import {
     SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
     compareImageSnapshot,
@@ -115,7 +115,7 @@ describe('highlight glow beneath the neighbouring items that glow', () => {
                 await create(gap);
                 await hover();
 
-                expect(glowGaps()).toEqual(Array(glowing).fill(gap));
+                expect(glowGaps()).toEqual(Array(glowing).fill(gap ?? THEME_GLOW.gap));
                 await compareImageSnapshot(chart, ctx);
             }
         );

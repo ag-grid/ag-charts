@@ -201,8 +201,10 @@ export function describeGlowSeries(
         );
 
         it.each(hoverSteps)('renders the glow of $bucket, and renders it disabled as it renders none', async (step) => {
-            const glowOf = (glow: object) => ({ [step.bucket]: { glow } });
-            const plain = await renderState(step, {}, undefined, true);
+            // The hovered item glows by default, which the other buckets' glow is compared against with it off.
+            const noHoverGlow = { highlightedItem: { glow: { enabled: false } } };
+            const glowOf = (glow: object) => ({ ...noHoverGlow, [step.bucket]: { glow } });
+            const plain = await renderState(step, {}, noHoverGlow, true);
             const glowing = await renderState(step, {}, glowOf(HIGHLIGHT_GLOW), true);
             expect(differingBytes(glowing, plain)).toBeGreaterThan(0);
             expectSamePixels(await renderState(step, {}, glowOf({ ...HIGHLIGHT_GLOW, enabled: false }), true), plain);

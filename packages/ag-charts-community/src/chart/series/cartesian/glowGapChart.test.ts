@@ -30,8 +30,6 @@ const LAVENDER_GREEN = 128;
 
 /** Whether the pixel is pink: a glow is cast on it. */
 const isGlowing = (pixel: number[]) => pixel[0] === 255 && pixel[1] < 255;
-/** Whether the item is over a glow, which makes it darker than over white, as a translucent item shows a glow through it. */
-const showsGlow = (pixel: number[]) => pixel[1] < LAVENDER_GREEN - 30;
 /** Whether the item is over white, as a glow that is cut out of the footprint of the item leaves it. */
 const isClear = (pixel: number[]) => Math.abs(pixel[1] - LAVENDER_GREEN) <= 2 && pixel[2] === 255;
 
@@ -113,16 +111,15 @@ describe('glow gap in a chart', () => {
             });
         }
 
-        // The glow of the highlight copy is beneath the item, which shows it through, but the glow of the series is cast in an
-        // overlay above the series, which cuts the footprint of the item that glows out of it.
-        it('should cast a glow with no gap like a shadow, and show it through the translucent item only if hovered', async () => {
+        // With no gap set, the glow takes the theme's gap of 1, which cuts the item's footprint out of the glow in the highlight
+        // copy, as in the overlay that the series casts its glow in, so a translucent item does not show it through.
+        it('should cast a glow with the theme gap, and keep it out of the translucent item', async () => {
             const at = await createAndHover();
 
             expect(isGlowing(at(3))).toBe(true);
             expect(at(3)).toEqual(GLOW_PINK);
             expect(at(8)).toEqual(GLOW_PINK);
-            if (hovered) expect(showsGlow(at(-10))).toBe(true);
-            else expect(isClear(at(-10))).toBe(true);
+            expect(isClear(at(-10))).toBe(true);
         });
 
         it('should keep the glow out of the item with a gap of 0, and cast it as far out as with no gap', async () => {
