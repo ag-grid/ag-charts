@@ -69,7 +69,7 @@ export interface LabelFitOptions {
 /**
  * Resolves the label-surface fit fields to an engine {@link LabelFit}, mapping the public `truncate`
  * boolean onto the internal overflow strategy:
- *  - `truncate: true` or `defaultToTruncate` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
+ *  - `truncate: true`, or `defaultToTruncate` while `truncate` is unset → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
  *  - `truncate` unset + `hideOnOverflow` → `'hide'`: the bound is applied and the label hides if it overflows.
  *  - otherwise → a fit is produced only when `wrapping` or `minimumFontSize` is set (so wrap and font
  *    reduction apply on their own); with none of the three the full text renders unbounded, as before.
@@ -87,7 +87,7 @@ export function resolveLabelFit(
 ): LabelFit | undefined {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
-    if (truncate || defaultToTruncate) {
+    if (truncate ?? defaultToTruncate) {
         overflowStrategy = 'ellipsis';
     } else if (hideOnOverflow) {
         overflowStrategy = 'hide';

@@ -27,7 +27,11 @@ import {
     magnitudePair,
     scaleToBigIntFinite,
 } from '../../test/bigintExamples';
-import { getAxisGridLineVisibility, getXCoordinateRange } from '../../test/communitySeriesAccessors';
+import {
+    getAxisGridLineVisibility,
+    getVisibleLabelTextNodes,
+    getXCoordinateRange,
+} from '../../test/communitySeriesAccessors';
 import * as examples from '../../test/examples';
 import { type MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
@@ -131,6 +135,46 @@ describe('BubbleSeries', () => {
 
             chart = await createChart(options);
             await compare();
+        });
+    });
+
+    describe('AG-18765 inside label that does not truncate in a bubble shorter than it', () => {
+        it('keeps the label whole rather than ending it in an ellipsis', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 1, y: 1, size: 1, name: 'Alpha Bravo Charlie Delta Echo Foxtrot' },
+                    { x: 2, y: 2, size: 1, name: 'Golf Hotel India Juliet Kilo Lima' },
+                ],
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        labelKey: 'name',
+                        minSize: 70,
+                        maxSize: 70,
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            fontSize: 14,
+                            wrapping: 'on-space',
+                            truncate: false,
+                            collision: { alwaysShow: true },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                    y: { type: 'number', position: 'left', min: 0, max: 3 },
+                },
+                legend: { enabled: false },
+            };
+            chart = await createChart(prepareTestOptions(options));
+            const texts = getVisibleLabelTextNodes(deproxy(chart)).map((node) =>
+                String(node.text).replaceAll('\n', ' ')
+            );
+            expect(texts).toEqual(['Alpha Bravo Charlie Delta Echo Foxtrot', 'Golf Hotel India Juliet Kilo Lima']);
         });
     });
 
