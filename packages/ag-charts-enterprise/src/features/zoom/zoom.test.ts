@@ -1955,7 +1955,7 @@ describe('Zoom', () => {
     describe('line cross line label fitting', () => {
         const LABEL = 'Quarterly revenue forecast review '.repeat(30).trim();
 
-        async function renderedLabelText(ratioX: { start: number; end: number }) {
+        async function zoomedChart(ratioX: { start: number; end: number }) {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 101 }, (_, i) => ({ x: i, y: i % 7 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -1970,6 +1970,10 @@ describe('Zoom', () => {
             };
             await prepareChart({ axes: 'x' }, { ratioX }, options, false);
             await waitForChartStability(chart);
+        }
+
+        async function renderedLabelText(ratioX: { start: number; end: number }) {
+            await zoomedChart(ratioX);
 
             const [crossLine] = getCrossLinesPlugin(deproxy(chart).axes.findById('x')!)!.getInstances();
             const [label] = crossLine.labelGroup.children();
@@ -1984,6 +1988,15 @@ describe('Zoom', () => {
 
             expect(full.includes('\n')).toBe(true);
             expect(zoomed).toBe(full);
+        });
+
+        it('keeps the padding of a label panned out of view', async () => {
+            await zoomedChart({ start: 0, end: 1 });
+            const full = getSeriesRect(chart);
+            chart.destroy();
+            await zoomedChart({ start: 0, end: 0.3 });
+
+            expect(getSeriesRect(chart).y).toBe(full.y);
         });
     });
 

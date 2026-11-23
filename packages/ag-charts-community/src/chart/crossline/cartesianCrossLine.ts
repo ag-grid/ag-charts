@@ -172,6 +172,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private readonly candidateIndices = new Map<PositionedLabelCandidate, number>();
     private labelBounds: BBox | undefined = undefined;
     private fitted: FitCache | undefined = undefined;
+    private heldFitted: FitCache | undefined = undefined;
 
     constructor(private readonly ctx: DynamicContext<CrossLinesRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
@@ -198,6 +199,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.listeners = listeners;
         this.label = { reserveSpace: false, ...options.label };
         this.fitted = undefined;
+        this.heldFitted = undefined;
         this.anchors = undefined;
         this.chosen = 0;
     }
@@ -292,6 +294,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = Number.NaN;
 
+            if (yStart !== clampedYStart) return;
+            this.unzoomedData = [this.unzoomedPosition(clampedYStart), Number.NaN];
             if (yStart > clipMax + bandwidth || yStart < clipMin - bandwidth) {
                 return;
             }
@@ -324,6 +328,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                 clampedYEnd += bandwidth + rangePadding;
             }
 
+            this.unzoomedData = [this.unzoomedPosition(clampedYStart), this.unzoomedPosition(clampedYEnd)];
             if (clampedYStart >= clipMax || clampedYEnd <= clipMin) {
                 return;
             }
@@ -331,7 +336,6 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             return;
         }
 
-        this.unzoomedData = [this.unzoomedPosition(clampedYStart), this.unzoomedPosition(clampedYEnd)];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
 
@@ -438,7 +442,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (!unpadded) return region;
 
         // Laid out without padding for it, an outer label is tested against the room that padding would give it.
-        const extent = this.paddingExtent(side, anchor) ?? 0;
+        const extent = this.paddingExtent(side, anchor, true) ?? 0;
         if (side === 'left' || side === 'right') region.width += extent;
         else region.height += extent;
         if (side === 'left') region.x -= extent;
@@ -595,27 +599,33 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         crossLineLabel.setBoxing(label);
     }
 
-    /** The label fitted at `anchor`. Keyed on the measurer, which a web font load replaces, and on the bounds. */
-    private fittedLabel(anchor: Anchor = this.anchor): FittedLabel {
+    /**
+     * The label fitted at `anchor`. Keyed on the measurer, which a web font load replaces, and on the bounds.
+     * `held` fits it to the series and axis areas alone, which is what the label pads the chart for.
+     */
+    private fittedLabel(anchor: Anchor = this.anchor, held = false): FittedLabel {
         const { label } = this;
         const measurer = cachedTextMeasurer(label);
         const policy = resolveLabelFit(label, !this.keepsLabel);
-        const fit = policy == null ? undefined : this.boundLabel(policy, anchor);
+        const fit = policy == null ? undefined : this.boundLabel(policy, anchor, held);
         const key = fit?.rotated == null ? '' : `${fit.rotated.width}:${fit.rotated.height}`;
-        if (this.fitted?.measurer !== measurer || this.fitted.key !== key) {
-            const text = label.text ?? '';
-            const fitted = fitLabelTextAutoSize(text, fit, label);
-            const kept =
-                fit != null && this.keepsLabel && hasRealChars(text) && !hasRealChars(fitted.text)
-                    ? this.keptLabel(text, fit)
-                    : {
-                          text: typeof fitted.text === 'string' ? fitted.text : text,
-                          fontSize: fitted.fontSize ?? label.fontSize,
-                          rotated: fit?.rotated,
-                      };
-            this.fitted = { ...kept, measurer, key };
-        }
-        return this.fitted;
+        const cached = held ? this.heldFitted : this.fitted;
+        if (cached?.measurer === measurer && cached.key === key) return cached;
+
+        const text = label.text ?? '';
+        const fitted = fitLabelTextAutoSize(text, fit, label);
+        const kept =
+            fit != null && this.keepsLabel && hasRealChars(text) && !hasRealChars(fitted.text)
+                ? this.keptLabel(text, fit)
+                : {
+                      text: typeof fitted.text === 'string' ? fitted.text : text,
+                      fontSize: fitted.fontSize ?? label.fontSize,
+                      rotated: fit?.rotated,
+                  };
+        const entry = { ...kept, measurer, key };
+        if (held) this.heldFitted = entry;
+        else this.fitted = entry;
+        return entry;
     }
 
     /** Refits a kept label left without a character, its bounds grown as `fitPositionedCandidateAt` grows them. */
@@ -645,9 +655,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return resolveLabelFit(this.label, !this.keepsLabel) != null;
     }
 
-    private boundLabel(fit: LabelFit, anchor: Anchor): LabelFit {
+    private boundLabel(fit: LabelFit, anchor: Anchor, held: boolean): LabelFit {
         const inside = this.type === 'range' && anchor.labelH === anchor.rangeH && anchor.labelV === anchor.rangeV;
-        const rotated = inside ? this.bandTurnedBounds(fit, anchor) : this.seriesAreaTurnedBounds(fit, anchor);
+        const rotated = inside ? this.bandTurnedBounds(fit, anchor) : this.seriesAreaTurnedBounds(fit, anchor, held);
         return rotated == null ? fit : { ...fit, rotated, hideOverflowingEllipsis: true };
     }
 
@@ -655,7 +665,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
      * The room the series and axis areas leave from the anchor, or the chart can pad on the side the label grows out to.
      * Measured zoomed out and before the label pads the chart, so zoom, pan and padding never rewrap it.
      */
-    private seriesAreaTurnedBounds(fit: Pick<LabelFit, 'maxWidth'>, anchor: Anchor): TurnedBounds | undefined {
+    private seriesAreaTurnedBounds(
+        fit: Pick<LabelFit, 'maxWidth'>,
+        anchor: Anchor,
+        held: boolean
+    ): TurnedBounds | undefined {
         const labelRoom = this.ctx.parent.labelRoom;
         const { unzoomedData, label } = this;
         const clipped = label.overflow === 'clip-text';
@@ -667,8 +681,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
         const side = this.paddingSideOf(anchor);
         const spacing = this.boxed ? pad : 2 * pad;
-        const outer = side == null ? 0 : labelRoom.outer[side] - spacing;
-        const { axes } = labelRoom;
+        // Drawn, the label keeps within the padding it was held to, which the chart reserves for it.
+        const heldExtent = side == null || held ? undefined : this.paddingExtent(side, anchor, true);
+        const outer = side == null ? 0 : (heldExtent ?? labelRoom.outer[side]) - spacing;
+        const across = held ? labelRoom.axes : labelRoom.across;
         const roomX =
             side === 'left' || side === 'right'
                 ? outer
@@ -679,8 +695,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                       band.x,
                       band.width,
                       xPaddingDiff,
-                      area.x - axes.left,
-                      area.x + area.width + axes.right
+                      area.x - across.left,
+                      area.x + area.width + across.right
                   );
         const roomY =
             side === 'top' || side === 'bottom'
@@ -692,8 +708,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                       band.y,
                       band.height,
                       yPaddingDiff,
-                      area.y - axes.top,
-                      area.y + area.height + axes.bottom
+                      area.y - across.top,
+                      area.y + area.height + across.bottom
                   );
 
         return this.turnedRoom(roomX, roomY);
@@ -737,10 +753,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     /** False once the fit has erased the text of a label that `collision.alwaysShow: false` lets hide. */
-    private hasFittedText(anchor: Anchor = this.anchor): boolean {
+    private hasFittedText(anchor: Anchor = this.anchor, held = false): boolean {
         const { label } = this;
         if (label.enabled === false || label.text == null || label.text === '') return false;
-        return this.fittedLabel(anchor).text !== '';
+        return this.fittedLabel(anchor, held).text !== '';
     }
 
     private get horizontal(): boolean {
@@ -874,10 +890,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         crossLineLabel.rotationCenterY = y;
     }
 
-    private computeLabelSize(anchor: Anchor): { width: number; height: number } | undefined {
-        if (!this.hasFittedText(anchor)) return;
+    private computeLabelSize(anchor: Anchor, held: boolean): { width: number; height: number } | undefined {
+        if (!this.hasFittedText(anchor, held)) return;
         const { label } = this;
-        const { text, fontSize } = this.fittedLabel(anchor);
+        const { text, fontSize } = this.fittedLabel(anchor, held);
         const tempText = new TransformableText();
         tempText.setFont(fontWithSize(label, fontSize));
         tempText.text = text;
@@ -912,20 +928,20 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<CrossLineLabelPosition, number>>) {
         this.paddedSide = undefined;
-        if (!this.padsForLabel || this.labelBounds == null) return;
+        if (!this.padsForLabel || this.unzoomedData == null) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
 
-        const offset = this.paddingExtent(side, this.anchor);
+        const offset = this.paddingExtent(side, this.anchor, true);
         if (offset == null) return;
 
         into[side] = Math.max(into[side] ?? 0, offset);
         this.paddedSide = side;
     }
 
-    private paddingExtent(side: PaddingSide, anchor: Anchor): number | undefined {
-        const size = this.computeLabelSize(anchor);
+    private paddingExtent(side: PaddingSide, anchor: Anchor, held: boolean): number | undefined {
+        const size = this.computeLabelSize(anchor, held);
         if (!size) return;
 
         const { spacing } = this.label;

@@ -501,23 +501,12 @@ export class CartesianChartType implements ChartTypeInstance {
             // Halved when the opposite side pads too, so the pair fits `clampPaddingPair` without scaling.
             return (outerSpace.get(side) ?? 0) + (pluginPadding[opposite] > 0 ? budget / 2 : budget);
         };
-        const labelRoom = {
-            axes: {
-                top: outerSpace.get('top') ?? 0,
-                right: outerSpace.get('right') ?? 0,
-                bottom: outerSpace.get('bottom') ?? 0,
-                left: outerSpace.get('left') ?? 0,
-            },
-            outer: {
-                top: outerRoom('top', 'bottom', slackY),
-                right: outerRoom('right', 'left', slackX),
-                bottom: outerRoom('bottom', 'top', slackY),
-                left: outerRoom('left', 'right', slackX),
-            },
+        const outer = {
+            top: outerRoom('top', 'bottom', slackY),
+            right: outerRoom('right', 'left', slackX),
+            bottom: outerRoom('bottom', 'top', slackY),
+            left: outerRoom('left', 'right', slackX),
         };
-        for (const axis of this.axes) {
-            axis.labelRoom = labelRoom;
-        }
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering
@@ -526,6 +515,22 @@ export class CartesianChartType implements ChartTypeInstance {
             clampPaddingPair(pluginPadding, 'left', 'right', axisAreaBound.width - totalWidth);
             clampPaddingPair(pluginPadding, 'top', 'bottom', axisAreaBound.height - totalHeight);
             axisAreaBound.shrink(pluginPadding);
+        }
+
+        const axisArea = {
+            top: outerSpace.get('top') ?? 0,
+            right: outerSpace.get('right') ?? 0,
+            bottom: outerSpace.get('bottom') ?? 0,
+            left: outerSpace.get('left') ?? 0,
+        };
+        const across = {
+            top: axisArea.top + pluginPadding.top,
+            right: axisArea.right + pluginPadding.right,
+            bottom: axisArea.bottom + pluginPadding.bottom,
+            left: axisArea.left + pluginPadding.left,
+        };
+        for (const axis of this.axes) {
+            axis.labelRoom = { axes: axisArea, across, outer };
         }
 
         const { scene } = this.ctx;

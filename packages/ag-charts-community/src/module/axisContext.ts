@@ -68,6 +68,8 @@ export interface AxisA11YTickData {
 export interface CrossLineLabelRoom {
     /** The axis area on each side of the series area. */
     readonly axes: Readonly<Record<AgCartesianAxisPosition, number>>;
+    /** The axis area plus the padding cross-line labels hold on each side, which labels running across it may use. */
+    readonly across: Readonly<Record<AgCartesianAxisPosition, number>>;
     /** The axis area plus the padding budget a label padding the chart can claim on that side. */
     readonly outer: Readonly<Record<AgCartesianAxisPosition, number>>;
 }

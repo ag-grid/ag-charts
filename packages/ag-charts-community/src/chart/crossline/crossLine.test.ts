@@ -1917,7 +1917,7 @@ describe('CrossLine', () => {
                 await createChart(
                     overflowChart(
                         { overflow: 'pad-chart' },
-                        { overflow: 'realign-text' },
+                        { overflow: 'realign-text', label: 'x range underneath' },
                         { overflow: 'pad-chart', label: 'A'.repeat(400) },
                         { overflow: 'realign-text' }
                     )

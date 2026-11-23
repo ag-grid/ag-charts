@@ -141,7 +141,7 @@ In this example:
 - Use the controls to see how the labels wrap, shrink and truncate.
 - A label that exceeds `maxWidth` or `maxHeight` or does not fit within the series area, wraps according to `wrapping`, shrinks towards `minimumFontSize`, then is truncated if `truncate` is enabled. See [Series Label Collision Avoidance](./series-labels/#collision-avoidance) for details.
 - A `range` label with an `inside` placement fits within its band. `maxWidth` and `maxHeight` override the band's width and height.
-- A `line` label, or a `range` label placed outside its band, fits within the series area and its axes along the direction its text runs. `maxWidth` overrides this bound. The bound is measured with the chart zoomed out, so zooming and panning do not rewrap the label.
+- A `line` label, or a `range` label placed outside its band, fits within the series area, its axes and the padding other cross-line labels add, along the direction its text runs. `maxWidth` overrides this bound. The bound is measured with the chart zoomed out, so zooming and panning do not rewrap the label.
 - Labels default to `wrapping: 'on-space'`, `truncate: true` and `collision.alwaysShow: true`.
 
 ## Polar Axes Cross Lines
