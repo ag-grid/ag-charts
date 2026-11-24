@@ -49,6 +49,13 @@ export class SpatialIndex<R> {
         this.cellCount = count;
     }
 
+    /** Empties every cell, so a shared index holds no refs between passes. */
+    clear() {
+        for (let i = 0; i < this.cellCount; i++) {
+            this.cells[i].length = 0;
+        }
+    }
+
     insert(box: BoxBounds, ref: R) {
         const { cols, cells } = this;
         const minCx = this.clampCol(box.x);

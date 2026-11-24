@@ -20,6 +20,7 @@ import {
     isPlainObject,
     isString,
     isThemeOriginOperator,
+    rescaleLineDash,
     scaleLineDashName,
     without,
 } from 'ag-charts-core';
@@ -1383,7 +1384,19 @@ function omitOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     const object = graph.resolveVertexValue(vertex, objectVertex);
     if (!Array.isArray(keys) || !isPlainObject(object)) return;
 
-    return without(object, keys);
+    let result: PlainObject = without(object, keys);
+    for (const key of keys) {
+        if (isString(key) && key.includes('.')) result = withoutPath(result, key.split('.'));
+    }
+    return result;
+}
+
+/** `object` without the key at `path`, sharing every branch that the path does not pass through. */
+function withoutPath(object: PlainObject, [key, ...rest]: string[]): PlainObject {
+    if (rest.length === 0) return without(object, [key]);
+
+    const child = object[key];
+    return isPlainObject(child) ? { ...object, [key]: withoutPath(child, rest) } : object;
 }
 
 function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1456,11 +1469,13 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 enum NumericOperation {
     IsEven = '$isEven',
     Multiply = '$multiply',
+    RescaleLineDash = '$rescaleLineDash',
 }
 
 const numericOperations: Record<NumericOperation, OperationFns> = {
     $isEven: isEvenOperation,
     $multiply: multiplyOperation,
+    $rescaleLineDash: rescaleLineDashOperation,
 };
 
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1484,6 +1499,22 @@ function multiplyOperation(graph: OptionsGraphInterface, vertex: VertexInterface
             `\`$multiply\` json operation failed on [${String(a)}, ${String(b)}] at [${graph.getPathArray(vertex).join('.')}], expecting two numbers.`
         )
     );
+}
+
+function rescaleLineDashOperation(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    values: Array<VertexInterface>
+) {
+    const [dashVertex, resolvedWidthVertex, drawnWidthVertex] = values;
+    const dash = graph.resolveVertexValue(vertex, dashVertex);
+    if (!Array.isArray(dash)) return;
+
+    const resolvedWidth = graph.resolveVertexValue(vertex, resolvedWidthVertex);
+    const drawnWidth = graph.resolveVertexValue(vertex, drawnWidthVertex);
+    if (!isNumber(drawnWidth)) return dash;
+
+    return rescaleLineDash(dash, isNumber(resolvedWidth) ? resolvedWidth : undefined, drawnWidth);
 }
 
 // --- EXPORTS ---

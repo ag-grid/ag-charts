@@ -17,6 +17,7 @@ import {
     ButtonWidget,
     ChartAxisDirection,
     boxEmpty,
+    boxesEqual,
     callWithContext,
 } from 'ag-charts-core';
 
@@ -99,6 +100,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
+            ctx.animationManager.addListener('animation-stop', () => this.onAnimationStop()),
             ctx.eventsHub.on('axis-interaction:update', (event) => this.onUpdate(event)),
             ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
@@ -119,6 +121,26 @@ export class AxisInteraction extends AbstractModuleInstance {
         this.refresh();
     }
 
+    // Axes reach their new layout after `layout:complete`, so re-measure once they settle.
+    // Unchanged proxies must not be rewritten: DOM writes outside an update force a reflow on the next one.
+    private onAnimationStop() {
+        if (this.needsProxies() && this.axes.some((axis) => this.hasAxisMoved(axis))) {
+            this.refresh();
+        }
+    }
+
+    private hasAxisMoved(axis: ProxyAxis): boolean {
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axis.axisId);
+        if (axisCtx == null) return false;
+        if (!boxesEqual(axisCtx.getCanvasBounds(), axis.bounds)) return true;
+
+        const tickData = axisCtx.getA11YTickData();
+        return (
+            tickData.length !== axis.a11yTickData.length ||
+            tickData.some((tick, i) => !boxesEqual(tick.focusBounds, axis.a11yTickData[i].focusBounds))
+        );
+    }
+
     private onUpdate(event: AxisInteractionUpdateEvent) {
         const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
@@ -131,14 +153,19 @@ export class AxisInteraction extends AbstractModuleInstance {
         this.refresh();
     }
 
-    private refresh() {
-        const isEnabled =
+    private needsProxies() {
+        return (
             (this.isEnabled() &&
                 (this.isEnabledDoubleClick() ||
                     this.isEnabledDragging() ||
                     this.isEnabledScrolling() ||
                     this.isEnabledContextMenu())) ||
-            this.hasClickListeners();
+            this.hasClickListeners()
+        );
+    }
+
+    private refresh() {
+        const isEnabled = this.needsProxies();
 
         for (const axis of this.axes) {
             axis.div.setHidden(!isEnabled);

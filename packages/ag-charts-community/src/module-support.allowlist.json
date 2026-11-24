@@ -29,6 +29,7 @@
     "AxisLayout",
     "AxisTickFormatParams",
     "AxisValuePick",
+    "AxisValueTickSize",
     "Background",
     "BackgroundRegion",
     "barLabelDataContext",
