@@ -51,7 +51,6 @@ const options: AgChartOptions = {
         enabled: true,
         magnet: {
             enabled: true,
-            mode: 'weak',
             range: 30,
         },
         toolbar: {
@@ -66,10 +65,10 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setWeak() {
-    chart.updateDelta({ annotations: { magnet: { mode: 'weak' } } });
+function setRange() {
+    chart.updateDelta({ annotations: { magnet: { range: 30 } } });
 }
 
-function setStrong() {
-    chart.updateDelta({ annotations: { magnet: { mode: 'strong' } } });
+function setNearest() {
+    chart.updateDelta({ annotations: { magnet: { range: 'nearest' } } });
 }

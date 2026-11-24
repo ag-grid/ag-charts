@@ -107,18 +107,18 @@ describe('Annotations magnet', () => {
         // Off, so the line stays where it is clicked: 30.
         await drawHorizontalLine(at(30), 'click');
 
-        // Weak, so it snaps to the close, 55, from 6 pixels away but not to anything from 85, which is far above.
-        await updateMagnet({ enabled: true, mode: 'weak', range: 10 });
+        // With a range of 10 pixels, it snaps to the close, 55, from 6 pixels away but not to anything from 85, which is far above.
+        await updateMagnet({ enabled: true, range: 10 });
         await drawHorizontalLine(at(55, 6), 'click');
         await drawHorizontalLine(at(85), 'click');
 
-        // Strong, so it snaps to the high, 70, from the top of the chart, and to the low, 20, when drawn by dragging.
-        await updateMagnet({ enabled: true, mode: 'strong' });
+        // With the nearest range, it snaps to the high, 70, from the top of the chart, and to the low, 20, when drawn by dragging.
+        await updateMagnet({ enabled: true, range: 'nearest' });
         await drawHorizontalLine(at(98), 'click');
         await drawHorizontalLine(at(2), 'drag');
 
         // Holding Ctrl while it is off inverts it, so it snaps to the open, 40, from 4 pixels away.
-        await updateMagnet({ enabled: false, mode: 'weak', range: 10 });
+        await updateMagnet({ enabled: false, range: 10 });
         await drawHorizontalLine(at(40, 4), 'click', true);
 
         // The next line, drawn without Ctrl, is not inverted, so it stays where it is clicked: 45.
@@ -129,7 +129,7 @@ describe('Annotations magnet', () => {
 
     it('snaps the points of a line to the x and y values of the nearest candlestick', async () => {
         await prepareChart(
-            { enabled: true, mode: 'weak', range: 20 },
+            { enabled: true, range: 20 },
             {
                 data: CANDLESTICKS,
                 series: [
@@ -155,7 +155,7 @@ describe('Annotations magnet', () => {
         await draw('line', [near(FIRST_X, 5), near(LAST_X, 95)]);
 
         // A vertical line is placed by its x position alone, which snaps to the middle candlestick from 40 days away.
-        await updateMagnet({ enabled: true, mode: 'strong' });
+        await updateMagnet({ enabled: true, range: 'nearest' });
         await draw('vertical-line', [canvasPoint(X_MID + 40 * day, 100)]);
 
         await compareAnnotationsSnapshot(chart, ctx);
@@ -163,7 +163,7 @@ describe('Annotations magnet', () => {
 
     it('commits the end of a line with the Ctrl state of the click, not of the last hover', async () => {
         await prepareChart(
-            { enabled: true, mode: 'strong' },
+            { enabled: true, range: 'nearest' },
             {
                 data: CANDLESTICKS,
                 series: [
@@ -288,7 +288,7 @@ describe('Annotations magnet', () => {
         },
     ])('snaps to the values of $name', async ({ series, data, click, axes, range }: any) => {
         await prepareChart(
-            { enabled: true, mode: 'strong' },
+            { enabled: true, range: 'nearest' },
             {
                 series,
                 data,
@@ -302,7 +302,7 @@ describe('Annotations magnet', () => {
     });
 
     it('snaps the handle of an annotation that is dragged', async () => {
-        await prepareChart({ enabled: true, mode: 'strong' }, {});
+        await prepareChart({ enabled: true, range: 'nearest' }, {});
         const x = (time: number) => new Date(time);
         await restoreAnnotations(chart, ctx, [
             { type: 'line', start: { x: x(X_MID), y: 50 }, end: { x: x(LAST_X), y: 30 } },
@@ -327,11 +327,11 @@ describe('Annotations magnet', () => {
     });
 
     it('keeps a toggle of the toolbar button until the enabled option changes', async () => {
-        await prepareChart({ enabled: false, mode: 'strong' }, {});
+        await prepareChart({ enabled: false, range: 'nearest' }, {});
         expect(getAnnotationMagnetEnabled(chart)).toBe(false);
 
         pressAnnotationMagnetButton(chart);
-        await updateMagnet({ mode: 'weak' });
+        await updateMagnet({ range: 20 });
         expect(getAnnotationMagnetEnabled(chart)).toBe(true);
 
         await updateMagnet({ enabled: true });
@@ -344,7 +344,7 @@ describe('Annotations magnet', () => {
             ...ANNOTATIONS_EXAMPLE_OPTIONS,
             annotations: {
                 ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations,
-                magnet: { enabled: false, mode: 'strong' },
+                magnet: { enabled: false, range: 'nearest' },
                 toolbar: { enabled: true, buttons: [{ icon: 'magnet', value: 'magnet', tooltip: 'Magnet' }] },
             },
         } as AgCartesianChartOptions);

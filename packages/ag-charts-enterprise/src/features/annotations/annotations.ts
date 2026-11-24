@@ -20,9 +20,8 @@ import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWi
 import type {
     AgAnnotationAxesButtons,
     AgAnnotationMagnet,
-    AgAnnotationMagnetMode,
+    AgAnnotationMagnetRange,
     AgNumericValue,
-    PixelSize,
 } from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
@@ -60,7 +59,7 @@ import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
-import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
+import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
 import { isEphemeralType, isTextType } from './utils/types';
@@ -104,10 +103,9 @@ export class Annotations extends AbstractModuleInstance {
     private configuredMagnetEnabled?: boolean;
     /** Whether the magnet is on, as the options or the toolbar button have set it; holding Ctrl or Cmd inverts it. */
     private magnetEnabled = false;
-    private magnetStrength: AgAnnotationMagnetMode = DEFAULT_MAGNET.mode;
-    private magnetRange: PixelSize = DEFAULT_MAGNET.range;
+    private magnetRange: AgAnnotationMagnetRange = DEFAULT_MAGNET.range;
     /**
-     * Whether Ctrl or Cmd is held, which inverts the magnet mode. Every snap follows a pointer event that has set it
+     * Whether Ctrl or Cmd is held, which inverts the magnet. Every snap follows a pointer event that has set it
      * from its own modifiers, so it cannot stick when a `keyup` is missed.
      */
     private magnetInverted = false;
@@ -183,8 +181,7 @@ export class Annotations extends AbstractModuleInstance {
         );
     }
 
-    private applyMagnetOptions({ enabled, mode, range }: Required<AgAnnotationMagnet>) {
-        this.magnetStrength = mode;
+    private applyMagnetOptions({ enabled, range }: Required<AgAnnotationMagnet>) {
         this.magnetRange = range;
         if (enabled === this.configuredMagnetEnabled) return;
 
@@ -202,19 +199,19 @@ export class Annotations extends AbstractModuleInstance {
         if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
     }
 
-    /** Snaps an offset in the series area to a value of the nearest datum, at the datum's position, as the magnet mode says. */
+    /** Snaps an offset in the series area to a value of the nearest datum, at the datum's position, as the magnet range says. */
     private readonly magnetOffset = (offset: Point): Point => {
-        const mode = resolveMagnetMode(this.magnetEnabled, this.magnetStrength, this.magnetInverted);
+        const range = resolveMagnetRange(this.magnetEnabled, this.magnetRange, this.magnetInverted);
         const { xAxis, yAxis } = this;
         // The values of a category axis are bands, not positions to snap to.
-        if (mode == null || !xAxis || !yAxis?.context.continuous) return offset;
+        if (range == null || !xAxis || !yAxis?.context.continuous) return offset;
 
         const seriesIds = yAxis.context.seriesIds();
         const axes = { x: xAxis.context, y: yAxis.context };
         const points = this.ctx.chartService.series
             .filter((s) => s.visible && seriesIds.includes(s.id))
             .flatMap((s) => getMagnetPoints(s, offset, axes));
-        return applyMagnet(offset, points, mode, this.magnetRange);
+        return applyMagnet(offset, points, range);
     };
 
     private setupStateMachine() {

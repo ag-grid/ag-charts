@@ -252,8 +252,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     },
     magnet: {
         enabled: boolean,
-        mode: union('weak', 'strong'),
-        range: positiveNumber,
+        range: or(union('nearest'), positiveNumber),
     },
     toolbar: {
         enabled: boolean,
