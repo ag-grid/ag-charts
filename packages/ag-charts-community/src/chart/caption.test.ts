@@ -243,7 +243,7 @@ describe('Caption', () => {
                 maxWidth: 200,
                 maxHeight: 50,
             });
-            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product…');
+            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product l…');
             await compare(proxy);
             proxy.destroy();
         });

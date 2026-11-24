@@ -1429,7 +1429,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
     }
 
-    const clippedResult = clipLines(result, measurer, options);
+    const clippedResult = clipLines(result, measurer, options, breaksBefore);
     markLostText(clippedResult, text, measurer, options, blockTop, lineHeight);
     return settleOrphan(clippedResult, breaksBefore, measurer, options, text, clippedResult !== result);
 }
@@ -1457,7 +1457,15 @@ function getWordAt(text: string, position: number) {
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
-export function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+const NO_SOFT_BREAKS: readonly (string | undefined)[] = [];
+
+/** `breaksBefore[i]` is the break space wrapping consumed ahead of line `i`, unset after an explicit or mid-word break. */
+export function clipLines(
+    lines: string[],
+    measurer: ITextMeasurer,
+    options: WrapOptions,
+    breaksBefore: readonly (string | undefined)[] = NO_SOFT_BREAKS
+) {
     if (!isFiniteNumber(options.maxHeight)) {
         return lines;
     }
@@ -1479,9 +1487,20 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
             const maxWidth = lineMaxWidth(options, lineTop - lineHeightAt(i - 1), lineTop);
-            return clippedResults.concat(
-                isTextTruncated(lastLine) ? lastLine : truncateLine(lastLine, measurer, maxWidth, true)
-            );
+            if (isTextTruncated(lastLine)) return clippedResults.concat(lastLine);
+            // OPTIMIZATION: unmeasured lines are measured only as the refill reaches them, bounded by maxWidth.
+            let refilled = lastLine;
+            let width = measured?.lineMetrics[i - 1].width ?? measurer.textWidth(lastLine);
+            for (let j = i; j < lines.length && width <= maxWidth && rejoinsBreak(breaksBefore[j]); j++) {
+                // A line the wrap ellipsised for a narrower band ends the refill, its ellipsis redrawn once.
+                if (isTextTruncated(lines[j])) {
+                    refilled += breaksBefore[j] + lines[j].slice(0, -EllipsisChar.length);
+                    break;
+                }
+                refilled += breaksBefore[j] + lines[j];
+                width += measured?.lineMetrics[j].width ?? measurer.textWidth(lines[j]);
+            }
+            return clippedResults.concat(truncateLine(refilled, measurer, maxWidth, true));
         }
     }
 
@@ -2611,11 +2630,13 @@ function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions, li
     const lineMaxWidths: number[] = [];
     let top = 0;
     let fits = true;
+    let cutByHeight = false;
     const { lineMetrics } = measureTextSegments(segments, options.font);
     for (const { width, height } of lineMetrics) {
         const bottom = top + height;
         if (bottom > maxHeight) {
             fits = false;
+            cutByHeight = true;
             break;
         }
         const maxWidth = lineMaxWidth(options, top, bottom);
@@ -2633,39 +2654,108 @@ function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions, li
 
     lines.clipped = true;
     for (let line = lineMaxWidths.length - 1; line >= 0; line--) {
-        const { before, row } = splitAtLine(segments, line);
+        const refills = cutByHeight && line === lineMaxWidths.length - 1;
+        const through = refills ? refillThrough(lineMetrics, line, lineMaxWidths[line], lines.breaks) : line;
+        const { before, row } = splitAtLine(segments, line, through, lines.breaks);
         const ellipsised = ellipsiseRow(row, lineMaxWidths[line]);
         if (ellipsised != null) return trimToMeasuredFit([...before, ...ellipsised], options, lines);
     }
     return [];
 }
 
-/** The segments of the lines above `line` with their breaks, and those on `line` itself without one. */
-function splitAtLine(segments: MeasuredSegment[], line: number) {
+/**
+ * The last line the wrapped `line` is refilled through before its ellipsis: lines after breaks wrapping made,
+ * no taller than `line`, are rejoined only until their measured widths pass `maxWidth`.
+ */
+function refillThrough(
+    lineMetrics: readonly { width: number; height: number }[],
+    line: number,
+    maxWidth: number,
+    breaks: readonly (string | undefined)[]
+) {
+    let through = line;
+    let width = lineMetrics[line].width;
+    while (
+        through + 1 < lineMetrics.length &&
+        width <= maxWidth &&
+        rejoinsBreak(breaks[through + 1]) &&
+        lineMetrics[through + 1].height <= lineMetrics[line].height
+    ) {
+        through += 1;
+        width += lineMetrics[through].width;
+    }
+    return through;
+}
+
+/** Whether wrapping made the break, at a space or a segment's edge, rather than the source or a cut word. */
+function rejoinsBreak(kind: string | undefined) {
+    return kind != null && kind !== EXPLICIT_BREAK;
+}
+
+/**
+ * The segments of the lines above `line` with their breaks, and those on `line` through `through` without
+ * them, each break between those rejoined by the spaces it consumed.
+ */
+function splitAtLine(
+    segments: MeasuredSegment[],
+    line: number,
+    through: number,
+    breaks: readonly (string | undefined)[]
+) {
     const before: MeasuredSegment[] = [];
     const row: MeasuredSegment[] = [];
     let current = 0;
+    let startsLine = false;
     for (const segment of segments) {
-        if (current > line) break;
+        if (current > through) break;
         if (segment.type === 'image') {
             (current < line ? before : row).push(segment);
+            startsLine = false;
             continue;
         }
-        const parts = segment.text.split(LineSplitter);
-        const measurer = cachedTextMeasurer(segment);
-        for (let i = 0; i < parts.length && current <= line; i++) {
-            const text = parts[i];
-            const textMetrics = measurer.measureText(text);
-            const breaks = i < parts.length - 1;
-            if (current < line) {
-                before.push({ ...segment, text: breaks ? `${text}\n` : text, textMetrics });
-            } else if (text !== '') {
-                row.push({ ...segment, text, textMetrics });
-            }
-            if (breaks) current++;
-        }
+        current = splitSegmentAtLine(segment, current, startsLine, line, through, breaks, before, row);
+        startsLine = segment.text.endsWith('\n');
     }
     return { before, row };
+}
+
+/**
+ * {@link splitAtLine} for one text segment whose first line is `current`, and which `startsLine` when the
+ * segment before it broke the line; returns the line it ends on.
+ */
+function splitSegmentAtLine(
+    segment: MeasuredTextSegment,
+    current: number,
+    startsLine: boolean,
+    line: number,
+    through: number,
+    breaks: readonly (string | undefined)[],
+    before: MeasuredSegment[],
+    row: MeasuredSegment[]
+) {
+    const parts = segment.text.split(LineSplitter);
+    const measurer = cachedTextMeasurer(segment);
+    let text = '';
+    for (let i = 0; i < parts.length && current <= through; i++) {
+        const part = parts[i];
+        const breaksLine = i < parts.length - 1;
+        if (current < line) {
+            before.push({ ...segment, text: breaksLine ? `${part}\n` : part, textMetrics: measurer.measureText(part) });
+        } else if (part !== '') {
+            // The spaces a rejoined break consumed open its line, so an ellipsis that drops the line drops them too.
+            if (current > line && (i > 0 || startsLine)) text += breaks[current] ?? '';
+            // A line the wrap ellipsised for a narrower band ends the refill, its ellipsis redrawn once.
+            if (current > line && isTextTruncated(part)) {
+                text += part.slice(0, -EllipsisChar.length);
+                current = through + 1;
+                break;
+            }
+            text += part;
+        }
+        if (breaksLine) current++;
+    }
+    if (text !== '') row.push({ ...segment, text, textMetrics: measurer.measureText(text) });
+    return current;
 }
 
 /**
