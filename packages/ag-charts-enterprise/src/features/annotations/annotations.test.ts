@@ -2023,10 +2023,7 @@ describe('Annotations', () => {
             await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
             const { historyManager } = deproxy(chart).ctx;
             const edit = async () => {
-                const width = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
-                width.value = '8';
-                width.dispatchEvent(new Event('change'));
-                await waitForChartStability(chart);
+                await changeStrokeWidth('8');
                 await press('.ag-charts-dialog__color-picker-button');
                 await pickColor('#00ff00');
                 await pressEnterOn(PALETTE);
@@ -2075,9 +2072,7 @@ describe('Annotations', () => {
 
             // Enter is left to a button or select, and to a colour picker, which closes only itself.
             await press('button[title="Settings"]');
-            const widthSelect = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
-            widthSelect.value = '4';
-            widthSelect.dispatchEvent(new Event('change'));
+            await changeStrokeWidth('4');
             await pressEnterOn('select.ag-charts-dialog__select');
             expect(hasDialog()).toBe(true);
             await pressEnterOn('.ag-charts-dialog__color-picker-button');
@@ -2285,10 +2280,7 @@ describe('Annotations', () => {
                 await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }], options);
                 await press('button[title="Settings"]');
 
-                const strokeWidth = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
-                strokeWidth.value = '8';
-                strokeWidth.dispatchEvent(new Event('change'));
-                await waitForChartStability(chart);
+                await changeStrokeWidth('8');
 
                 const swatchesBefore = dialogSwatches();
                 await press('.ag-charts-dialog__color-picker-button');

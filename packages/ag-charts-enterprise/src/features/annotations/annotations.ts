@@ -995,6 +995,7 @@ export class Annotations extends AbstractModuleInstance {
         }
     }
 
+    /** A move made with the settings dialog open is one of its changes. */
     private markSettingsChanged() {
         if (this.holdsHistory) this.settingsDialog.markChanged();
     }
@@ -1268,7 +1269,6 @@ export class Annotations extends AbstractModuleInstance {
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        // A move made with the settings dialog open is one of its changes.
         this.markSettingsChanged();
         this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
@@ -1385,7 +1385,6 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         if (translation.x !== 0 || translation.y !== 0) {
-            // A move made with the settings dialog open is one of its changes.
             this.markSettingsChanged();
             state.transition('translate', { translation });
             sourceEvent.preventDefault();

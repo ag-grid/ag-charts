@@ -417,10 +417,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             const opening = { ...current };
             let settled = { ...opening };
             let opened = false;
-            const setSwatch = ({ color: c, opacity: o, isMultiColor: m }: typeof current) => {
-                colorEl.setCSSVariable('--color', !m && c != null && c !== '' ? toColorWithOpacity(c, o) : null);
-                colorEl.toggleClass(MULTI_COLOR_CLASS, !!m);
-            };
             const changeColor = (
                 newColorOpacity: string,
                 newColor: string,
@@ -457,7 +453,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     }
                     if (cancelled) {
                         // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
-                        setSwatch(opening);
+                        const { color: c, opacity: o, isMultiColor: m } = opening;
+                        colorEl.setCSSVariable(
+                            '--color',
+                            !m && c != null && c !== '' ? toColorWithOpacity(c, o) : null
+                        );
+                        colorEl.toggleClass(MULTI_COLOR_CLASS, !!m);
                     }
                     onChangeHide(cancelled);
                 },
