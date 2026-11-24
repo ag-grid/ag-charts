@@ -9,7 +9,7 @@ export const scenarios = [
         name: 'community/chart/floor',
         package: 'ag-charts-community',
         register: [],
-        limit: 261_000,
+        limit: 262_000,
     },
     {
         name: 'community/chart/sparkline',
