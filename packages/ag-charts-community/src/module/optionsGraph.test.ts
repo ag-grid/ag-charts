@@ -2412,6 +2412,15 @@ describe('OptionsGraph', () => {
             expect(graph.resolvePartial(testLogger, path, { fill: { type: 'solid' } })).toStrictEqual({ fill: 'red' });
         });
 
+        it('should replace an opacity set outside the partial, as a plain fill does', () => {
+            const { graph } = createGraph({ marker: { fillOpacity: 0.8 } });
+            const path = ['series', '0', 'marker'];
+            expect(graph.resolvePartial(testLogger, path, { fill: { ...solid } })).toStrictEqual({
+                fill: 'blue',
+                fillOpacity: 0.5,
+            });
+        });
+
         it('should resolve solid colours in a theme palette to colour strings', () => {
             const { palette } = getChartTheme({ palette: { fills: [solid, { type: 'solid', fill: 'red' }, pattern] } });
             expect(palette.fills).toStrictEqual(['rgba(0, 0, 255, 0.5)', 'red', pattern]);

@@ -224,6 +224,17 @@ const ATOMIC_LIST_OPTION_KEYS = new Set<string>([
     'crosshairSnapTo',
 ]);
 
+function containsSolidFill(node: unknown): boolean {
+    if (isSolidFill(node)) return true;
+    if (Array.isArray(node)) return node.some(containsSolidFill);
+    if (!isPlainObject(node)) return false;
+
+    for (const key of Object.keys(node)) {
+        if (!SHALLOW_OPTION_KEYS.has(key) && containsSolidFill(node[key])) return true;
+    }
+    return false;
+}
+
 /**
  * Rewrite solid colour objects as colour strings. A `fill` hands its opacity to the `fillOpacity` beside it, and a
  * solid with no colour in a list takes the palette colour at its index.
@@ -1766,12 +1777,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const shouldPick: boolean = resolveOptions?.pick ?? true;
             const partial = shouldPick ? (pick(getPathSafe(resolved, path) as T, pickedKeys) as Partial<T>) : pathed;
 
-            collapseSolidFills(
-                partial,
-                [...path],
-                (optionPath) => hasPathSafe(userPartialOptions, optionPath) || this.isOptionSet(optionPath),
-                this.paletteColour
-            );
+            // OPTIMIZATION: a styler's partial almost never holds a solid fill, so skip building the closure unless it does.
+            if (containsSolidFill(partial)) {
+                // Beside means within the partial: an option set outside it is replaced, as a plain `fill` would.
+                const isSetByPartial = (optionPath: Array<string>) => hasPathSafe(userPartialOptions, optionPath);
+                collapseSolidFills(partial, path, isSetByPartial, this.paletteColour);
+            }
 
             debug('vertex count', this.getVertexCount());
             debug('edge count', this.getEdgeCount());
