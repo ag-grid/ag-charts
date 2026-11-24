@@ -850,3 +850,61 @@ describe('series-level glow (enterprise series)', () => {
         );
     });
 });
+
+describe('the strength of the glow of translucent flow links', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    // The links are see-through by default, and their glow is red over a white chart, with no blur, so that the green
+    // channel of a pixel in it is 255 * (1 - strength). The glow is cut out of the links, and the nodes are blue.
+    const glowStrength = async (type: 'sankey' | 'chord', glow: object, link: object = {}) => {
+        chart = await createEnterpriseChart({
+            data: FLOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type,
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    node: { fill: '#0000ff', fillOpacity: 1 },
+                    link: {
+                        fill: '#0000ff',
+                        stroke: undefined,
+                        glow: { enabled: true, fill: 'red', blur: 0, spread: 6, ...glow },
+                        ...link,
+                    },
+                },
+            ],
+        } as AgChartOptions);
+        // The glow is the colour that most of the glow pixels have, as the edge of it is antialiased.
+        const { canvas } = deproxy(chart).ctx.scene;
+        const { data } = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
+        const greens = new Map<number, number>();
+        for (let i = 0; i < data.length; i += 4) {
+            if (data[i] === 255 && data[i + 1] === data[i + 2] && data[i + 1] < 255) {
+                greens.set(data[i + 1], (greens.get(data[i + 1]) ?? 0) + 1);
+            }
+        }
+        const [[green]] = [...greens].sort(([, a], [, b]) => b - a);
+        return 1 - green / 255;
+    };
+
+    it.each(['sankey', 'chord'] as const)(
+        'should cast a %s link glow with no fillOpacity at 0.4, not 0.2',
+        async (type) => {
+            expect(await glowStrength(type, {})).toBeCloseTo(0.4, 1);
+        }
+    );
+
+    it.each(['sankey', 'chord'] as const)('should cast a %s link glow with a fillOpacity of 1 as set', async (type) => {
+        expect(await glowStrength(type, { fillOpacity: 1 })).toBe(1);
+    });
+});
