@@ -1323,7 +1323,6 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     const wrapOnSpace = options.textWrap == null || options.textWrap === 'on-space';
     // The break spaces consumed ahead of each line, which moving an orphan back onto it restores.
     const breaksBefore = breaksOut ?? [];
-    breaksBefore.length = 0;
 
     for (const untrimmedLine of lines) {
         // A separator left by a continuation the wrap dropped must not attach to this source line's first row.
@@ -1565,10 +1564,7 @@ function orphanSplit(prev: string, last: string) {
     return split;
 }
 
-/**
- * {@link orphanSplit} for the last two `lines`, when wrapping broke them at a space and the last line still fits
- * with the word on it. An explicit or mid-word break is not one the wrap chose, so it is never rejoined.
- */
+/** {@link orphanSplit} for the last two `lines`, when the wrap broke them at a space and the last line still fits. */
 function orphanMoveSplit(lines: string[], breaksBefore: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (options.avoidOrphans === false || lines.length < 2 || breaksBefore[lines.length - 1] == null) return -1;
     const split = orphanSplit(lines.at(-2)!, lines.at(-1)!);
