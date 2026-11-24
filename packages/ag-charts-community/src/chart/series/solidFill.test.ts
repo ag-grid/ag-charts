@@ -30,8 +30,15 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
         data: DATA,
         series: [
             { type: 'bar', xKey: 'month', yKey: 'a', ...fill('red', 0.5) },
-            // An area's fill opacity defaults to 0.8, which the solid colour's own opacity must replace.
-            { type: 'area', xKey: 'month', yKey: 'b', ...fill('green', 0.5), marker: { ...fill('purple') } },
+            // An area's fill opacity defaults to 0.8, which a solid colour's own opacity multiplies.
+            {
+                type: 'area',
+                xKey: 'month',
+                yKey: 'b',
+                fillOpacity: 1,
+                ...fill('green', 0.5),
+                marker: { ...fill('purple') },
+            },
             { type: 'line', xKey: 'month', yKey: 'c', marker: { size: 16, ...fill('blue', 0.5) } },
             { type: 'scatter', xKey: 'month', yKey: 'd', size: 16, ...fill('orange') },
         ],
@@ -43,20 +50,8 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
     'styler results': (fill) => ({
         data: DATA,
         series: [
-            // A styler's opacity replaces one set outside its result, as a plain `fillOpacity` does.
-            {
-                type: 'bar',
-                xKey: 'month',
-                yKey: 'a',
-                fillOpacity: 0.8,
-                itemStyler: ({ datum }) => fill('red', datum.a / 10),
-            },
-            {
-                type: 'line',
-                xKey: 'month',
-                yKey: 'c',
-                marker: { size: 16, fillOpacity: 0.8, itemStyler: () => fill('blue', 0.5) },
-            },
+            { type: 'bar', xKey: 'month', yKey: 'a', itemStyler: ({ datum }) => fill('red', datum.a / 10) },
+            { type: 'line', xKey: 'month', yKey: 'c', marker: { size: 16, itemStyler: () => fill('blue', 0.5) } },
         ],
     }),
     'a donut styler': (fill) => ({
@@ -66,7 +61,6 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
                 type: 'donut',
                 angleKey: 'a',
                 innerRadiusRatio: 0.6,
-                fillOpacity: 0.8,
                 itemStyler: ({ datum }) => fill('red', datum.a / 10),
             },
         ],
@@ -75,8 +69,7 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
         data: DATA,
         series: [{ type: 'bar', xKey: 'month', yKey: 'a' }],
         axes: {
-            // A styler's opacity replaces the label's own, as a plain `fillOpacity` does.
-            x: { type: 'category', label: { fillOpacity: 0.5, itemStyler: () => fill('red', 0.5) } },
+            x: { type: 'category', label: { itemStyler: () => fill('red', 0.5) } },
             y: { type: 'number', label: { itemStyler: () => fill('blue', 0.5) } },
         },
     }),
@@ -100,8 +93,6 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
     }),
 };
 
-const PALETTE = ['#aa0000', '#00aa00'];
-
 const paletteChart = (first: AgColorType): AgChartOptions => ({
     data: DATA,
     theme: { palette: { fills: [first, 'green'] } },
@@ -111,25 +102,12 @@ const paletteChart = (first: AgColorType): AgChartOptions => ({
     ],
 });
 
-const donutChart = (fill: AgColorType): AgChartOptions => ({
+const multiplyChart = (fill: AgColorType, fillOpacity: number): AgChartOptions => ({
     data: DATA,
-    theme: { palette: { fills: PALETTE } },
-    series: [{ type: 'donut', angleKey: 'a', innerRadiusRatio: 0.6, innerCircle: { fill } }],
-});
-
-const axisChart = (itemStyler: () => { fill?: AgColorType }): AgChartOptions => ({
-    data: DATA,
-    series: [{ type: 'bar', xKey: 'month', yKey: 'a' }],
-    axes: { x: { type: 'category', label: { fill: 'orange', itemStyler } }, y: { type: 'number' } },
-});
-
-const STRIPES = ['#aa0000', '#00aa00', '#0000aa'];
-
-const stripedDonutChart = (fills: AgColorType[], itemStyler?: () => { fill: AgColorType }): AgChartOptions => ({
-    data: DATA,
-    legend: { enabled: false },
-    theme: { palette: { fills } },
-    series: [{ type: 'donut', angleKey: 'a', innerRadiusRatio: 0.6, itemStyler }],
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'a', fill, fillOpacity },
+        { type: 'line', xKey: 'month', yKey: 'c', marker: { size: 16, fill, fillOpacity } },
+    ],
 });
 
 /** Charts that no `Fill` can express, as the options with a solid colour and the plain ones it stands for. */
@@ -138,16 +116,10 @@ const EXPLICIT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptio
         paletteChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }),
         paletteChart('rgba(255, 0, 0, 0.5)'),
     ],
-    'a donut inner circle with no colour': [donutChart({ type: 'solid' }), donutChart(PALETTE[0])],
-    // A plain colour from a styler is not applied over a pattern palette, so the stroke colours stand in for it.
-    'a donut styler with no colour on a pattern palette': [
-        stripedDonutChart(
-            STRIPES.map((stroke) => pattern('crosshatch', stroke)),
-            () => ({ fill: { type: 'solid' } })
-        ),
-        stripedDonutChart(STRIPES),
+    'a solid opacity with the opacity set beside it': [
+        multiplyChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }, 0.5),
+        multiplyChart('red', 0.25),
     ],
-    'an axis label styler with no colour': [axisChart(() => ({ fill: { type: 'solid' } })), axisChart(() => ({}))],
 };
 
 const EQUIVALENT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptions]> = {

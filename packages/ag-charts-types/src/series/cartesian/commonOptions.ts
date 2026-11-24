@@ -118,7 +118,7 @@ export interface AgSolidColor {
      * using the stroke colour of a pattern.
      */
     fill?: CssColor;
-    /** The opacity of the fill colour. */
+    /** The opacity of the fill colour, multiplied with the `fillOpacity` set beside the `fill`. */
     fillOpacity?: Opacity;
 }
 

@@ -85,7 +85,7 @@ A solid fill can also be an object with type `solid`, which holds the colour and
 In this configuration:
 
 - `fill` is the colour. If it is not provided on a series or its markers, the colour comes from the [Theme Palette](./themes/#palette), using the stroke colour where the palette fill is a pattern.
-- `fillOpacity` is the opacity of the colour. If `fillOpacity` is also set beside the `fill`, the two are multiplied.
+- `fillOpacity` is the opacity of the colour. It is multiplied with the `fillOpacity` of the series or marker.
 
 In the example above, the palette fills are patterns, and the markers use a `solid` fill to take the stroke colour of their series' pattern. The markers of the last series also set a `fillOpacity`.
 

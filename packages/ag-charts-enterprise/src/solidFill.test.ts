@@ -32,6 +32,7 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
                 xKey: 'x',
                 yLowKey: 'low',
                 yHighKey: 'high',
+                fillOpacity: 1,
                 ...fill('green', 0.5),
                 marker: { enabled: true, size: 14, ...fill('purple') },
             },
@@ -84,7 +85,8 @@ describe('solid fill', () => {
         const plain = resolve(plainFill('blue', 0.5));
 
         const hover = optionAt(solid, 'scrollbar.thumb.hoverStyle.fill');
-        expect(hover).toBeDefined();
-        expect(hover).toBe(optionAt(plain, 'scrollbar.thumb.hoverStyle.fill'));
+        const plainHover = optionAt(plain, 'scrollbar.thumb.hoverStyle.fill');
+        expect(plainHover).toBeDefined();
+        expect(hover).toStrictEqual({ type: 'solid', fill: plainHover, fillOpacity: 0.5 });
     });
 });
