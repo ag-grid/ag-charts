@@ -67,7 +67,15 @@ export interface AxisA11YTickData {
     readonly depth: number | undefined;
     readonly groupPercentage: number | undefined;
     readonly ariaLabel: string;
-    readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
+    readonly focusBounds: BBox; // Relative to `getCanvasBounds()`, before `focusRotation` is applied.
+    /** Set for a label drawn off the right angles: a clockwise rotation in radians about a point in the `focusBounds` frame. */
+    readonly focusRotation?: AxisA11YFocusRotation;
+}
+
+export interface AxisA11YFocusRotation {
+    readonly angle: number;
+    readonly originX: number;
+    readonly originY: number;
 }
 
 export interface CrossLineLabelRoom {

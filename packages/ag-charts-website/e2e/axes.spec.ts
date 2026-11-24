@@ -172,6 +172,25 @@ test.describe('axes', () => {
         });
     });
 
+    test.describe('axis-focus-rotated-labels', () => {
+        test('outlines the focused tick with a box rotated to match its label', async ({ page }) => {
+            await gotoAxesExample(page, 'axis-focus-rotated-labels');
+            const focusedTick = page.locator('.ag-charts-proxy-axis button:focus');
+            for (let i = 0; i < 10 && (await focusedTick.count()) === 0; i++) {
+                await page.keyboard.press('Tab');
+            }
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
+
+            await expect(focusedTick).toHaveText('March 2025');
+            // The button's positioned wrapper carries the rotation; a CSS matrix's second term is sin(angle).
+            const transform = await focusedTick.evaluate((el) => getComputedStyle(el.parentElement!).transform);
+            const sin = Number(/^matrix\([^,]+, ([^,]+)/.exec(transform)![1]);
+            expect(sin).toBeCloseTo(Math.sin((335 * Math.PI) / 180), 3);
+            await expectChartScreenshot(page, page, 'axis-focus-rotated-labels.png', { animations: 'disabled' });
+        });
+    });
+
     test.describe('axis-title-bounds', () => {
         type BoundingBox = { x: number; y: number; width: number; height: number };
         const readBoundingBox = async (page: Page, text: string) => {
