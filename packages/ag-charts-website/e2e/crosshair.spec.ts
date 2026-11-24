@@ -51,6 +51,9 @@ test.describe('crosshair', () => {
 });
 
 test.describe('band highlight', () => {
+    // The default band fill is within the global 0.05 threshold of a white background.
+    const bandOptions = { threshold: 0.02 };
+
     test('hover over axisButton does not unhighlight the band', async ({ page }) => {
         const { url } = toExamplePageUrl('axes-crosshairs-e2e', 'band-highlight-with-annotations', 'vanilla');
         await gotoExample(page, url);
@@ -67,22 +70,34 @@ test.describe('band highlight', () => {
 
     for (const { framework, url } of toExamplePageUrls('axes-crosshairs', 'band-highlight')) {
         test.describe(`for ${framework}`, () => {
-            // The default band fill is within the global 0.05 threshold of a white background.
-            const options = { threshold: 0.02 };
-
             test('keynav highlights the band of the focused datum', async ({ page }) => {
                 await gotoExample(page, url);
 
                 await page.mouse.click(666, 400, { button: 'left' });
-                await expectChartScreenshot(page, page, 'band-keynav-mouse.png', options);
+                await expectChartScreenshot(page, page, 'band-keynav-mouse.png', bandOptions);
 
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
-                await expectChartScreenshot(page, page, 'band-keynav-right.png', options);
+                await expectChartScreenshot(page, page, 'band-keynav-right.png', bandOptions);
 
                 await page.keyboard.press('ArrowLeft');
-                await expectChartScreenshot(page, page, 'band-keynav-left.png', options);
+                await expectChartScreenshot(page, page, 'band-keynav-left.png', bandOptions);
             });
         });
     }
+
+    test('keynav highlights the bands on both category axes', async ({ page }) => {
+        const { url } = toExamplePageUrl('axes-crosshairs-e2e', 'band-highlight-both-axes', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.click(400, 300, { button: 'left' });
+        await expectChartScreenshot(page, page, 'band-both-axes-mouse.png', bandOptions);
+
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await expectChartScreenshot(page, page, 'band-both-axes-right.png', bandOptions);
+
+        await page.keyboard.press('ArrowLeft');
+        await expectChartScreenshot(page, page, 'band-both-axes-left.png', bandOptions);
+    });
 });
