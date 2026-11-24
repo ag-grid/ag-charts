@@ -32,6 +32,9 @@
       "ag-charts-core": [
         "packages/ag-charts-core/src/main.ts"
       ],
+      "ag-charts-core-test": [
+        "packages/ag-charts-core/src/main-test.ts"
+      ],
       "ag-charts-enterprise": [
         "packages/ag-charts-enterprise/src/main.ts"
       ],

@@ -5,7 +5,7 @@ import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 import { getSharedMarkerPath } from '../chart/markerPathCache';
 import { MARKER_SHAPES } from '../chart/markerShapes';
 import { ExtendedPath2D } from '../scene/extendedPath2D';
-import { seededRandom } from '../test/random';
+import { seedRandom } from '../test/random';
 import { stubPath2D } from '../test/stubPath2D';
 import { drawnMarkerShapeAnalysis } from './markerLabelRect';
 import { markerOutline, markerOutlineOverlapsRect, markerOutlineSpans, placeMarkerOutline } from './markerOutline';
@@ -261,7 +261,7 @@ describe('markerOutline shortcuts against a clipping oracle', () => {
     );
 
     it.each(ORACLE_SHAPES)('overlaps a rectangle exactly where %s shares area with it', (shape) => {
-        const random = seededRandom(18765);
+        const random = seedRandom(18765);
         const size = 20;
         const outline = placeMarkerOutline(markerOutline(shape, size)!, 0, 0, size);
         // Margins either side of the verdict, so only rectangles touching the outline go unjudged; clipping a
@@ -290,7 +290,7 @@ describe('markerOutline shortcuts against a clipping oracle', () => {
     });
 
     it.each(ORACLE_SHAPES)('measures %s across a band as its clipped outline does', (shape) => {
-        const random = seededRandom(18766);
+        const random = seedRandom(18766);
         const outline = placeMarkerOutline(markerOutline(shape, 20)!, 3, -2, 20);
         const xy = outlineInFrame(shape, 3, -2, 20);
         const spans = [
