@@ -655,6 +655,23 @@ describe('hovered item glow that the user turns off', () => {
     );
 });
 
+describe('hovered item glow of a series whose parts inherit marker.glow', () => {
+    const hoverGlowEnabled = (series: object) =>
+        (prepareProcessedOptions({ data: DATA, series: [series] }).processedOptions as any).series[0].highlight
+            .highlightedItem.glow.enabled;
+
+    // The parts' glows fall back to marker.glow, so the user turning that off turns off the hover glow they inherit.
+    it.each([
+        ['line', { type: 'line', xKey: 'category', yKey: 'value' }],
+        ['hlc', { type: 'hlc', xKey: 'category', highKey: 'high', lowKey: 'low', closeKey: 'close' }],
+        ['range-area', { type: 'range-area', xKey: 'category', yLowKey: 'low', yHighKey: 'high' }],
+    ])('%s: glows on hover unless marker.glow.enabled is set false', (_name, series) => {
+        expect(hoverGlowEnabled(series)).toBe(true);
+        expect(hoverGlowEnabled({ ...series, marker: { glow: { enabled: false } } })).toBe(false);
+        expect(hoverGlowEnabled({ ...series, marker: { glow: { enabled: true } } })).toBe(true);
+    });
+});
+
 describe('unhighlightedItem opacity by highlight mode', () => {
     const BARS = [
         { type: 'bar', xKey: 'category', yKey: 'value' },

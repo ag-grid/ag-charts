@@ -827,6 +827,8 @@ export interface GlowThemePaths {
      * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
      */
     readonly glow?: string | readonly string[];
+    /** The `glow` that the parts of a multi-part `glow` inherit from, such as `marker.glow`. A user's `enabled` there turns off the default hover glow. */
+    readonly inheritedGlow?: string;
     /**
      * Whether the highlighted item glows unless the user sets the series-level `glow`. Set to `false` for a series whose
      * highlighted item glows only when the series does.
@@ -850,7 +852,7 @@ export interface GlowThemePaths {
 export function withGlowThemeDefaults<T extends object>(
     highlight: T,
     buckets: readonly string[],
-    { glow = '/series/$index/glow', glowOnHover = true }: GlowThemePaths = {}
+    { glow = '/series/$index/glow', inheritedGlow, glowOnHover = true }: GlowThemePaths = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     const glowPaths = typeof glow === 'string' ? [glow] : glow;
@@ -878,10 +880,14 @@ export function withGlowThemeDefaults<T extends object>(
         const userParts: Operation = perPart ? { $and: userPartsEnabled } : userPartsEnabled[0];
         const userSet: Operation =
             seriesBucketPath == null ? userParts : { $or: [{ $isUserOption: seriesBucketPath }, userParts] };
+        const defaultOn: Operation | true =
+            inheritedGlow == null
+                ? true
+                : { $if: [{ $isUserOption: `${inheritedGlow}/enabled` }, { $path: `${inheritedGlow}/enabled` }, true] };
         result.highlightedItem = {
             ...(result.highlightedItem as object),
             glow: {
-                enabled: { $if: [userSet, perPart && seriesBucketPath == null ? undefined : itemEnabled, true] },
+                enabled: { $if: [userSet, perPart && seriesBucketPath == null ? undefined : itemEnabled, defaultOn] },
             },
         };
     }

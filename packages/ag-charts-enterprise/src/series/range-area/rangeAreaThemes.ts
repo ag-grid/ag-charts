@@ -176,6 +176,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             SERIES_GLOW_BUCKETS,
             {
                 glow: ['low', 'high'].map((item) => `/series/$index/item/${item}/marker/glow`),
+                inheritedGlow: '/series/$index/marker/glow',
             }
         ),
         selection: MARKER_SERIES_SELECTION_THEME,

@@ -158,6 +158,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
             SERIES_GLOW_BUCKETS,
             {
                 glow: ['high', 'low', 'close'].map((item) => `/series/$index/item/${item}/marker/glow`),
+                inheritedGlow: '/series/$index/marker/glow',
             }
         ),
         selection: MARKER_SERIES_SELECTION_THEME,
