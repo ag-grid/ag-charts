@@ -281,19 +281,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fill: ShapeColor | undefined = 'black';
     declare __fill: ShapeColor | undefined; // optimised field accessor
 
-    private fillSolid: AgSolidColor | undefined;
-
-    /** The fill that is painted: a solid fill's colour, or the fill itself. */
-    private get paintFill(): Exclude<ShapeColor, AgSolidColor> | undefined {
-        const { fillSolid } = this;
-        return fillSolid == null ? (this.__fill as Exclude<ShapeColor, AgSolidColor> | undefined) : fillSolid.fill;
-    }
-
-    /** The `fillOpacity` that is painted: the shape's, multiplied by that of a solid fill. */
-    private get paintFillOpacity(): number {
-        return (this.__fillOpacity ?? 1) * (this.fillSolid?.fillOpacity ?? 1);
-    }
-
     private getGradient(fill: ShapeColor | undefined) {
         if (isGradientFill(fill)) return this.createGradient(fill);
     }
@@ -315,6 +302,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             case 'conic':
                 return new ConicGradient(colorSpace, stops, rotation);
         }
+    }
+
+    private getSolid(fill: ShapeColor | undefined) {
+        if (isSolidFill(fill)) return fill;
     }
 
     private getPattern(fill: ShapeColor | undefined) {
@@ -344,7 +335,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this._fillAlpha;
     }
 
-    private _paintAlphaSource?: Gradient | Pattern;
+    private _paintAlphaSource?: Gradient | Pattern | AgSolidColor;
     private _paintAlpha: number = 1;
 
     /**
@@ -355,11 +346,15 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private getMaxFillAlpha(fill: ShapeColor): number {
         if (typeof fill === 'string') return this.getFillAlpha(fill);
 
-        const paint = this.fillGradient ?? this.fillPattern;
+        const paint = this.fillSolid ?? this.fillGradient ?? this.fillPattern;
         if (paint == null) return 1;
         if (paint !== this._paintAlphaSource) {
             this._paintAlphaSource = paint;
-            this._paintAlpha = paint instanceof Pattern ? patternAlpha(paint) : gradientAlpha(paint);
+            if (isSolidFill(paint)) {
+                this._paintAlpha = colourAlpha(paint.fill) * (paint.fillOpacity ?? 1);
+            } else {
+                this._paintAlpha = paint instanceof Pattern ? patternAlpha(paint) : gradientAlpha(paint);
+            }
         }
         return this._paintAlpha;
     }
@@ -383,14 +378,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         }
 
-        this.fillSolid = isSolidFill(this.fill) ? this.fill : undefined;
-
+        this.fillSolid = this.getSolid(this.fill);
         this.fillGradient = this.getGradient(this.fill);
         this.fillPattern = this.getPattern(this.fill);
         this.fillImage = this.getImage(this.fill);
         this._cachedFill = this.fill;
     }
 
+    protected fillSolid: AgSolidColor | undefined;
     protected fillGradient: Gradient | undefined;
     protected fillPattern: Pattern | undefined;
     protected fillImage: Image | undefined;
@@ -607,12 +602,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (shadow?.enabled !== true || shadow.cutOnly === true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
-        const {
-            paintFill: fill,
-            paintFillOpacity: fillOpacity,
-            __stroke: stroke,
-            __strokeOpacity: strokeOpacity,
-        } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
         let cast = slot === 'glow' ? this.castGlowMemo : this.castShadowMemo;
         if (
             cast?.shadow !== shadow ||
@@ -720,7 +710,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the fill has any alpha to cast a shadow from. */
     private hasCastableFill(): boolean {
-        const { paintFill: fill, paintFillOpacity: fillOpacity } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
         return fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0;
     }
 
@@ -840,10 +830,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         hasExtras: boolean,
         tinted: boolean
     ): number {
-        const { __opacity: opacity = 1, paintFillOpacity: fillOpacity, __strokeOpacity: strokeOpacity = 1 } = this;
+        const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
         let strength: number;
         if (drawsFill) {
-            strength = this.getMaxFillAlpha(this.paintFill!) * fillOpacity * opacity;
+            strength = this.getMaxFillAlpha(this.__fill!) * fillOpacity * opacity;
         } else if (drawsStroke) {
             strength = this.getStrokeAlpha(this.__stroke) * strokeOpacity * opacity;
         } else if (hasExtras) {
@@ -1238,7 +1228,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const { paintFill: fill, paintFillOpacity: fillOpacity } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
         const shadow = this.getSlot(slot);
         if (shadow?.enabled !== true) return;
 
@@ -1359,7 +1349,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const { paintFill: fill, paintFillOpacity: fillOpacity, fillPattern } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillSolid, fillPattern } = this;
         const mode = this.getShadowMode(slot);
         const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
 
@@ -1378,8 +1368,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let strength = 1;
         if (drawsFill) {
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
-            // The plain fill that replaces an undrawable pattern has its opacity in the context's alpha already.
-            strength = fillPattern?.drawable === false ? fillAlpha / fillPattern.fillOpacity : fillAlpha;
+            // A solid fill, and the plain fill that replaces an undrawable pattern, have their opacity in the context's alpha already.
+            const paintOpacity = fillPattern?.drawable === false ? fillPattern.fillOpacity : fillSolid?.fillOpacity;
+            strength = paintOpacity == null || paintOpacity === 0 ? fillAlpha : fillAlpha / paintOpacity;
         } else if (drawsStroke) {
             this.applyStrokeAndAlpha(ctx, bboxOverride);
             strength = strokeAlpha;
@@ -1507,7 +1498,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
-        const { paintFill: fill, paintFillOpacity: fillOpacity, fillImage } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;
             if (fillImage) {
@@ -1542,11 +1533,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     protected applyFillAndAlpha(ctx: CanvasContext, logger: Logger, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         const {
-            paintFill: fill,
+            __fill: fill,
+            fillSolid,
             fillGradient,
             fillPattern,
             fillImage,
-            paintFillOpacity: fillOpacity,
+            __fillOpacity: fillOpacity = 1,
             __opacity: opacity = 1,
         } = this;
 
@@ -1555,7 +1547,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalAlpha *= combinedOpacity;
         }
 
-        if (fillGradient) {
+        if (fillSolid) {
+            ctx.fillStyle = fillSolid.fill == null || fillSolid.fill === 'none' ? 'transparent' : fillSolid.fill;
+            ctx.globalAlpha *= fillSolid.fillOpacity ?? 1;
+        } else if (fillGradient) {
             const fillBBox =
                 fillBBoxOverride ??
                 this.fillBBox ??
@@ -1688,10 +1683,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     abstract isPointInPath(x: number, y: number): boolean;
 
     protected applySvgFillAttributes(element: SVGElement, defs?: SVGElement[]) {
-        const { paintFill: fill, paintFillOpacity: fillOpacity } = this;
+        const { fill, fillOpacity } = this;
 
         if (typeof fill === 'string') {
             element.setAttribute('fill', fill);
+        } else if (isSolidFill(fill)) {
+            element.setAttribute('fill', fill.fill ?? 'none');
         } else if (isGradientFill(fill) && this.fillGradient) {
             defs ??= [];
 
@@ -1730,7 +1727,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             element.setAttribute('fill', 'none');
         }
 
-        element.setAttribute('fill-opacity', String(fillOpacity));
+        element.setAttribute('fill-opacity', String(fillOpacity * (this.fillSolid?.fillOpacity ?? 1)));
 
         return defs;
     }
