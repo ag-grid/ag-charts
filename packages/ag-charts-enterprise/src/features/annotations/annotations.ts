@@ -987,6 +987,8 @@ export class Annotations extends AbstractModuleInstance {
         if (!annotationManager || outcome === 'unchanged') return;
 
         if (outcome === 'applied') {
+            // Before the record, so that the dialog's changes and the deletion of a cleared text are one undo step.
+            this.deleteTextClearedInSettings(false);
             // At once, as an undo or redo that applied the dialog first goes on to step back over this record.
             annotationManager.updateData(this.annotationData.map(serialiseAnnotation) as AgAnnotation[]);
             this.recordNow(`Change ${type} settings`, ['annotations', 'defaults']);
@@ -1442,7 +1444,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     /** As the inline editor does, deletes a text annotation left empty once the settings dialog closes. */
-    private deleteTextClearedInSettings() {
+    private deleteTextClearedInSettings(record = true) {
         const datum = this.settingsTextDatum;
         this.settingsTextDatum = undefined;
         if (datum?.text !== '') return;
@@ -1452,7 +1454,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const wasActive = this.state.isActive(index);
         this.annotationData.splice(index, 1);
-        this.recordActionAfterNextUpdate(`Delete ${datum.type} annotation`);
+        if (record) this.recordActionAfterNextUpdate(`Delete ${datum.type} annotation`);
         if (wasActive) this.reset();
         this.update();
     }

@@ -2198,6 +2198,54 @@ describe('Annotations', () => {
             expect(annotation().stroke).toBe(settled);
         });
 
+        describe('clearing the text of a text annotation in the dialog', () => {
+            const texts = () => (chart.getState().annotations ?? []).map((a) => (a as { text?: string }).text);
+
+            async function clearTextThenPress(button: string) {
+                await prepareChart(
+                    {
+                        annotations: [
+                            { type: 'text', text: 'Hello', x: { __type: 'date', value: '2024-02-01' }, y: 85 },
+                        ],
+                    },
+                    ACTION_BUTTONS_OPTIONS
+                );
+                const rect = getSeriesRect(chart);
+                const x = rect.x + findAxis(chart, 'bottom').scale.convert(new Date('2024-02-01')) + 5;
+                const y = rect.y + findAxis(chart, 'left').scale.convert(85) - 5;
+                await hoverAction(x, y)(chart);
+                await clickAction(x, y)(chart);
+                await waitForChartStability(chart);
+                await press('button[title="Settings"]');
+
+                const area = chartBody().querySelector<HTMLTextAreaElement>('.ag-charts-dialog textarea')!;
+                area.value = '';
+                area.dispatchEvent(new Event('input'));
+                await waitForChartStability(chart);
+                await press(button);
+                expect(hasDialog()).toBe(false);
+            }
+
+            it('deletes it on Apply as part of the dialog record, in one undo step', async () => {
+                await clearTextThenPress(DIALOG_APPLY);
+                expect(texts()).toEqual([]);
+
+                const { historyManager } = deproxy(chart).ctx;
+                historyManager.undo();
+                await waitForChartStability(chart);
+                expect(texts()).toEqual(['Hello']);
+
+                historyManager.redo();
+                await waitForChartStability(chart);
+                expect(texts()).toEqual([]);
+            });
+
+            it('keeps it on Cancel', async () => {
+                await clearTextThenPress(DIALOG_CANCEL);
+                expect(texts()).toEqual(['Hello']);
+            });
+        });
+
         describe('aria-expanded of the options toolbar', () => {
             const expanded = (title: string) =>
                 chartBody().querySelector<HTMLElement>(`button[title="${title}"]`)!.getAttribute('aria-expanded');
