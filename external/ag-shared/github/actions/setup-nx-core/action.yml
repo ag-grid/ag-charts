@@ -236,6 +236,37 @@ runs:
               restore-keys: cache-nx-v20-${{ inputs.nx_cache_hash }}-
               # fail-on-cache-miss: true
 
+        - name: Check Nx cache DB machine ID
+          # Nx only restores artifacts recorded in its cache DB, which it names after the machine ID
+          # (.nx/workspace-data/<id>-v6.db). The restored DB was written on another runner, so cache
+          # hits depend on hosted runners sharing one machine ID. If they stop sharing it, Nx ignores
+          # the whole restored cache and the only sign is a slower run, so warn here instead.
+          if: runner.os == 'Linux' && inputs.cache_mode != 'off' && inputs.nx_restore != 'false'
+          shell: bash
+          run: |
+              shopt -s nullglob
+              # Same lookup Nx uses on Linux (nx/src/utils/machine-id-cache.js).
+              raw_id=$( (cat /var/lib/dbus/machine-id /etc/machine-id 2>/dev/null || hostname) | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+              hashed_id=$(printf '%s' "$raw_id" | sha256sum | cut -d' ' -f1)
+              dbs=(.nx/workspace-data/*.db)
+              entries=$(find .nx/cache -mindepth 1 -maxdepth 1 -type d ! -name terminalOutputs 2>/dev/null | wc -l | tr -d ' ')
+              echo "Machine ID: ${raw_id} (sha256 ${hashed_id})"
+              echo "Restored Nx cache entries: ${entries}"
+              echo "Restored Nx cache DBs: ${dbs[*]:-none}"
+              if [ "${entries}" -eq 0 ]; then
+                  exit 0
+              fi
+              for db in "${dbs[@]}"; do
+                  name=$(basename "${db}" | tr '[:upper:]' '[:lower:]')
+                  case "${name}" in
+                      "${raw_id}"-* | "${hashed_id}"-*)
+                          echo "Restored Nx cache DB matches this machine."
+                          exit 0
+                          ;;
+                  esac
+              done
+              echo "::warning title=Nx cache DB from another machine::Restored ${entries} Nx cache entries, but no cache DB in .nx/workspace-data matches machine ID ${raw_id}. Nx will ignore the restored cache. See https://nx.dev/troubleshooting/unknown-local-cache"
+
         - name: Setup Node.js
           id: setup_node
           uses: actions/setup-node@v7
