@@ -67,6 +67,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
                                     { $isGradient: { $value: '$1' } },
                                     { $isPattern: { $value: '$1' } },
                                     { $isImage: { $value: '$1' } },
+                                    { $isSolid: { $value: '$1' } },
                                 ],
                             },
                             { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },

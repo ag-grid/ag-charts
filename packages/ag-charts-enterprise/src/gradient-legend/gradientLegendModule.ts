@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_BLANK_DEFAULTS,
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
+    fillSolidDefaults,
     gradientLegendOptionsDefs,
     themeLineHeight,
 } from 'ag-charts-core';
@@ -49,6 +50,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
                 { $ref: 'chartBackgroundColour' },
                 ['gradient', FILL_GRADIENT_BLANK_DEFAULTS],
                 ['pattern', FILL_PATTERN_BLANK_DEFAULTS],
+                ['solid', fillSolidDefaults(FILL_PATTERN_BLANK_DEFAULTS)],
                 ['image', FILL_IMAGE_BLANK_DEFAULTS],
             ],
         },

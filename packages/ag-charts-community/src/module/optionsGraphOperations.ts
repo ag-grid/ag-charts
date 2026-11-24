@@ -18,6 +18,7 @@ import {
     isObjectLike,
     isPatternFill,
     isPlainObject,
+    isSolidFill,
     isString,
     isThemeOriginOperator,
     scaleLineDashName,
@@ -259,6 +260,7 @@ enum ColorOperation {
     IsGradient = '$isGradient',
     IsImage = '$isImage',
     IsPattern = '$isPattern',
+    IsSolid = '$isSolid',
     IsTransparent = '$isTransparent',
     Mix = '$mix',
     Opacity = '$opacity',
@@ -271,6 +273,7 @@ const colorOperations: Record<ColorOperation, OperationFns> = {
     $isGradient: isGradientOperation,
     $isImage: isImageOperation,
     $isPattern: isPatternOperation,
+    $isSolid: isSolidOperation,
     $isTransparent: isTransparentOperation,
     $mix: mixOperation,
     $opacity: opacityOperation,
@@ -347,6 +350,12 @@ function isImageOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
     return isImageFill(value);
 }
 
+function isSolidOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    return isSolidFill(value);
+}
+
 function isPatternOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
@@ -384,6 +393,22 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     if (typeof colorA === 'string') {
         try {
             return Color.mix(Color.fromString(colorA), Color.fromString(colorB), ratio).toString();
+        } catch {
+            Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
+            return;
+        }
+    }
+
+    if (isSolidFill(colorA)) {
+        if (typeof colorA.fill !== 'string') {
+            Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
+            return;
+        }
+        try {
+            return {
+                ...colorA,
+                fill: Color.mix(Color.fromString(colorA.fill), Color.fromString(colorB), ratio).toString(),
+            };
         } catch {
             Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
             return;
