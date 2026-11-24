@@ -15,9 +15,12 @@ interface ChartFactory {
     prepare: (options: AgChartOptions) => AgChartOptions;
 }
 
+/** How far a byte may differ because a solid fill's opacity is rounded to 8 bits in its colour's alpha. */
+const ALPHA_ROUNDING = 2;
+
 /**
- * Renders `solid` and then `plain` on one chart, which must come out pixel for pixel the same. The zero-tolerance
- * comparison is deliberate: `expectPixelIdenticalAcrossUpdate` lets through a difference the size of a legend marker.
+ * Renders `solid` and then `plain` on one chart, which must come out the same bar that rounding. The per-byte comparison
+ * is deliberate: `expectPixelIdenticalAcrossUpdate` lets through a difference the size of a legend marker.
  */
 export async function expectSolidMatchesPlain(
     ctx: ReturnType<typeof setupMockCanvas>,
@@ -35,7 +38,7 @@ export async function expectSolidMatchesPlain(
         await chart.update(prepare(withoutAnimation(plain)));
         await waitForChartStability(chart);
 
-        expectSamePixels(ctx.snapshot(), solidImage);
+        expectSamePixels(ctx.snapshot(), solidImage, ALPHA_ROUNDING);
     } finally {
         chart.destroy();
     }
