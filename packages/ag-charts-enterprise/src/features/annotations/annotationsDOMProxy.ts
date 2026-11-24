@@ -99,9 +99,7 @@ export class AnnotationsDOMProxy {
         for (const item of items) {
             const button = this.buttons.get(item.id);
             if (button == null) continue;
-            if (button.getTextContent() !== item.label) {
-                button.setTextContent(item.label);
-            }
+            button.setTextContent(item.label);
             const bounds = getButtonBounds(item.bbox, seriesRect);
             button.setBounds(bounds);
             button.setAriaHasPopup(this.hasPopup ? 'dialog' : undefined);

@@ -91,6 +91,40 @@ describe('Annotations keyboard navigation', () => {
             }
         });
 
+        it('marks the annotations as opening a popup only while the Annotation Options Toolbar is enabled', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            const popupAttributes = () => [
+                items()[0].getAttribute('aria-haspopup'),
+                items()[0].getAttribute('aria-expanded'),
+            ];
+
+            await chart.updateDelta({ annotations: { optionsToolbar: { enabled: false } } });
+            await waitForChartStability(chart);
+            expect(popupAttributes()).toEqual([null, null]);
+
+            await chart.updateDelta({ annotations: { optionsToolbar: { enabled: true } } });
+            await waitForChartStability(chart);
+            expect(popupAttributes()).toEqual(['dialog', 'false']);
+        });
+
+        it('leaves the list attributes alone when an update changes nothing', async () => {
+            await prepareChart([
+                { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 60 },
+            ]);
+            const changed: Array<string | null> = [];
+            const observer = new MutationObserver((records) => {
+                changed.push(...records.map((record) => record.attributeName));
+            });
+            observer.observe(list()!, { attributes: true, subtree: true });
+
+            await chart.updateDelta({ annotations: { enabled: true } });
+            await waitForChartStability(chart);
+            observer.disconnect();
+
+            expect(changed).toEqual([]);
+        });
+
         it('makes only one annotation a tab stop, and moves between them with the arrow keys', async () => {
             await prepareChart([
                 { type: 'horizontal-line', value: 30 },

@@ -110,6 +110,73 @@ describe('Widget', () => {
         });
     });
 
+    describe('write on change', () => {
+        function observe(widget: NativeWidget) {
+            const observer = new MutationObserver(() => {});
+            observer.observe(widget.getElement(), {
+                attributes: true,
+                characterData: true,
+                childList: true,
+                subtree: true,
+            });
+            return () => {
+                const records = observer.takeRecords();
+                observer.disconnect();
+                return records.map((record) => record.attributeName ?? record.type);
+            };
+        }
+
+        it.each([
+            ['setAriaExpanded', 'aria-expanded', true, false],
+            ['setAriaHasPopup', 'aria-haspopup', 'dialog', 'menu'],
+            ['setAriaLabel', 'aria-label', 'Horizontal line', 'Vertical line'],
+            ['setAriaRole', 'role', 'button', 'listitem'],
+            ['setTabIndex', 'tabindex', 0, -1],
+            ['setTitle', 'title', 'Delete', 'Lock'],
+        ] as const)('%s skips the write when the value has not changed', (setter, attribute, value, other) => {
+            const widget = makeWidget();
+            const set = (v: typeof value | typeof other | undefined) => (widget[setter] as (v: unknown) => void)(v);
+            set(value);
+
+            let mutations = observe(widget);
+            set(value);
+            expect(mutations()).toEqual([]);
+
+            mutations = observe(widget);
+            set(other);
+            set(undefined);
+            expect(mutations()).toEqual([attribute, attribute]);
+            expect(widget.getElement().hasAttribute(attribute)).toBe(false);
+        });
+
+        it('setTextContent skips the write when the text has not changed', () => {
+            const widget = makeWidget();
+            widget.setTextContent('Series 1');
+
+            let mutations = observe(widget);
+            widget.setTextContent('Series 1');
+            expect(mutations()).toEqual([]);
+
+            mutations = observe(widget);
+            widget.setTextContent('Series 2');
+            expect(mutations()).not.toEqual([]);
+            expect(widget.getTextContent()).toBe('Series 2');
+        });
+
+        it('setTextContent replaces child elements even when their text matches', () => {
+            const widget = makeWidget();
+            const child = createElement('span');
+            child.textContent = 'Series 1';
+            widget.getElement().append(child);
+
+            widget.setTextContent('Series 1');
+
+            expect(child.isConnected).toBe(false);
+            expect(widget.getElement().childElementCount).toBe(0);
+            expect(widget.getTextContent()).toBe('Series 1');
+        });
+    });
+
     describe('isFocused', () => {
         it('reports whether the element is the active element', () => {
             const widget = new NativeWidget(createElement('button'));

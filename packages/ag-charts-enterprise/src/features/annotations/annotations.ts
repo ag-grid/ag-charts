@@ -58,12 +58,7 @@ import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, isWriteable, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
-import {
-    areDescriptionInputsEqual,
-    describeAnnotation,
-    describeAnnotationAxis,
-    getDescriptionInputs,
-} from './utils/describe';
+import { describeAnnotation, describeAnnotationAxis } from './utils/describe';
 import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
@@ -161,8 +156,6 @@ export class Annotations extends AbstractModuleInstance {
     private movingId?: string;
     /** The annotation whose list item, keyboard-opened toolbar or mover the keyboard is on, if any. */
     private keyboardFocusId?: string;
-    // OPTIMIZATION: reused while their key matches, as formatting a label runs the axis formatters.
-    private readonly labels = new Map<string, { inputs: unknown[]; label: string }>();
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
@@ -613,7 +606,6 @@ export class Annotations extends AbstractModuleInstance {
             // Services
             ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
-            ctx.eventsHub.on('locale:change', () => this.labels.clear()),
             ctx.eventsHub.on('update:pre-scene-render', this.onPreRender.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', () => this.onResize()),
             ctx.eventsHub.on('dom:resize', () => this.onResize()),
@@ -868,9 +860,6 @@ export class Annotations extends AbstractModuleInstance {
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         if (!(this.opts.enabled ?? true)) return;
-
-        // The axis formats, which the labels use, can change with the layout, such as while zooming.
-        this.labels.clear();
 
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
@@ -1427,35 +1416,14 @@ export class Annotations extends AbstractModuleInstance {
 
             items.push({
                 id: datum.id,
-                label: this.getLabel(datum, context),
+                label: describeAnnotation(datum, context),
                 bbox,
                 expanded: index === active && movingId == null,
             });
         });
 
-        if (this.labels.size > items.length) {
-            this.pruneLabels(items);
-        }
-
         domProxy.setHasPopup(optionsToolbar.isEnabled());
         domProxy.update(items, seriesRect);
-    }
-
-    private getLabel(datum: AnnotationDatum, context: AnnotationContext) {
-        const inputs = getDescriptionInputs(datum);
-        const cached = this.labels.get(datum.id);
-        if (cached != null && areDescriptionInputsEqual(cached.inputs, inputs)) return cached.label;
-
-        const label = describeAnnotation(datum, context);
-        this.labels.set(datum.id, { inputs, label });
-        return label;
-    }
-
-    private pruneLabels(items: AnnotationsDOMProxyItem[]) {
-        const ids = new Set(items.map((item) => item.id));
-        for (const id of this.labels.keys()) {
-            if (!ids.has(id)) this.labels.delete(id);
-        }
     }
 
     /** Keeps the keyboard on a listed annotation's control, and on one that can still move for the mover. */

@@ -94,8 +94,16 @@ export abstract class Widget<
 
     protected abstract destructor(): void;
 
+    private setAttributeIfChanged<A extends keyof BaseAttributeTypeMap>(
+        name: A,
+        value: BaseAttributeTypeMap[A] | undefined
+    ) {
+        const next = value == null || value === '' ? null : value.toString();
+        if (this.elem.getAttribute(name) !== next) setAttribute(this.elem, name, value);
+    }
+
     set id(elementId: ElementID | undefined) {
-        setAttribute(this.elem, 'id', elementId);
+        this.setAttributeIfChanged('id', elementId);
     }
 
     get id(): ElementID | undefined {
@@ -185,7 +193,10 @@ export abstract class Widget<
     }
 
     setTextContent(textContent: string | undefined) {
-        this.elem.textContent = textContent ?? null;
+        const text = textContent ?? '';
+        // Writing `textContent` also replaces child elements, so only text-only content can skip the write.
+        if (this.elem.childElementCount === 0 && this.elem.textContent === text) return;
+        this.elem.textContent = text;
     }
 
     getTextContent(): string {
@@ -210,35 +221,35 @@ export abstract class Widget<
     }
 
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
-        setAttribute(this.elem, 'role', role);
+        this.setAttributeIfChanged('role', role);
     }
 
     setAriaDescribedBy(ariaDescribedBy: BaseAttributeTypeMap['aria-describedby'] | undefined) {
-        setAttribute(this.elem, 'aria-describedby', ariaDescribedBy);
+        this.setAttributeIfChanged('aria-describedby', ariaDescribedBy);
     }
 
     setAriaHidden(ariaHidden: BaseAttributeTypeMap['aria-hidden'] | undefined) {
-        setAttribute(this.elem, 'aria-hidden', ariaHidden);
+        this.setAttributeIfChanged('aria-hidden', ariaHidden);
     }
 
     setAriaLabel(ariaLabel: BaseAttributeTypeMap['aria-label'] | undefined) {
-        setAttribute(this.elem, 'aria-label', ariaLabel);
+        this.setAttributeIfChanged('aria-label', ariaLabel);
     }
 
     setAriaExpanded(ariaExpanded: BaseAttributeTypeMap['aria-expanded'] | undefined) {
-        setAttribute(this.elem, 'aria-expanded', ariaExpanded);
+        this.setAttributeIfChanged('aria-expanded', ariaExpanded);
     }
 
     setAriaControls(ariaControls: BaseAttributeTypeMap['aria-controls'] | undefined) {
-        setAttribute(this.elem, 'aria-controls', ariaControls);
+        this.setAttributeIfChanged('aria-controls', ariaControls);
     }
 
     setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
-        setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
+        this.setAttributeIfChanged('aria-haspopup', ariaHasPopup);
     }
 
     setAriaChecked(ariaChecked: BaseAttributeTypeMap['aria-checked'] | undefined) {
-        setAttribute(this.elem, 'aria-checked', ariaChecked);
+        this.setAttributeIfChanged('aria-checked', ariaChecked);
     }
 
     setAriaCurrent(ariaCurrent: BaseAttributeTypeMap['aria-current'] | undefined) {
@@ -246,16 +257,16 @@ export abstract class Widget<
     }
 
     setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
-        setAttribute(this.elem, 'aria-selected', ariaSelected);
+        this.setAttributeIfChanged('aria-selected', ariaSelected);
     }
 
     setAriaLabelledBy(ariaLabelledBy: BaseAttributeTypeMap['aria-labelledby'] | undefined) {
-        setAttribute(this.elem, 'aria-labelledby', ariaLabelledBy);
+        this.setAttributeIfChanged('aria-labelledby', ariaLabelledBy);
     }
 
     /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
     setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
-        setAttribute(this.elem, 'title', title);
+        this.setAttributeIfChanged('title', title);
     }
 
     /**
@@ -438,15 +449,15 @@ export abstract class Widget<
     }
 
     setFocusOverride(focus: boolean | undefined) {
-        setAttribute(this.elem, 'data-focus-override', focus);
+        this.setAttributeIfChanged('data-focus-override', focus);
     }
 
     setPreventsDefault(preventDefault: boolean) {
-        setAttribute(this.elem, 'data-preventdefault', preventDefault);
+        this.setAttributeIfChanged('data-preventdefault', preventDefault);
     }
 
     setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
-        setAttribute(this.elem, 'tabindex', tabIndex);
+        this.setAttributeIfChanged('tabindex', tabIndex);
     }
 
     addChild(child: TChildWidget) {

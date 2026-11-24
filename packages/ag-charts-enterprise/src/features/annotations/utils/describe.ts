@@ -52,31 +52,3 @@ export function describeAnnotation(datum: AnnotationDatum, context: AnnotationCo
     const description = text === '' ? position : `${text}, ${position}`;
     return localeManager.t('ariaLabelAnnotation', { description, type });
 }
-
-/** The datum's inputs to `describeAnnotation()`; the caller must track the axis formats and locale. */
-export function getDescriptionInputs(datum: AnnotationDatum): unknown[] {
-    if (isCrossLineType(datum)) {
-        return [datum.type, getGroupingValue(datum.value)];
-    }
-    const text = isTextType(datum) ? datum.text : '';
-    if ('start' in datum) {
-        const { start, end } = datum;
-        return [
-            datum.type,
-            text,
-            getGroupingValue(start.x),
-            getGroupingValue(start.y),
-            getGroupingValue(end.x),
-            getGroupingValue(end.y),
-        ];
-    }
-    return [datum.type, text, getGroupingValue(datum.x), getGroupingValue(datum.y)];
-}
-
-export function areDescriptionInputsEqual(a: unknown[], b: unknown[]) {
-    return a.length === b.length && a.every((value, index) => isSameValue(value, b[index]));
-}
-
-function isSameValue(a: unknown, b: unknown) {
-    return a === b || (a instanceof Date && b instanceof Date && a.getTime() === b.getTime());
-}
