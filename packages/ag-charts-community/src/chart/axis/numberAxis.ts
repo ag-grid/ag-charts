@@ -11,6 +11,7 @@ import type { ChartRegistry } from '../../module/moduleContext';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
+import { inferValueTickSize } from './valueTickSize';
 
 export class NumberAxis<
     TOptions extends NormalisedNumberAxisOptions = NormalisedNumberAxisOptions,
@@ -34,6 +35,22 @@ export class NumberAxis<
     override hasDefinedDomain(): boolean {
         const { min, max } = this.options;
         return min != null && max != null && min < max;
+    }
+
+    /** Held from the first read after the data is processed until it is processed again. */
+    private inferredTickSize?: { value: number | undefined };
+
+    override processData() {
+        super.processData();
+        this.inferredTickSize = undefined;
+    }
+
+    protected override valueTickSize(infer = true) {
+        const { tickSize } = this.options;
+        if (tickSize != null || !infer) return tickSize;
+
+        this.inferredTickSize ??= { value: inferValueTickSize(this.boundSeries, this.direction) };
+        return this.inferredTickSize.value;
     }
 
     protected override getLabelFormat() {

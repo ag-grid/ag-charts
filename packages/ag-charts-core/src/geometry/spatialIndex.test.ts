@@ -58,12 +58,15 @@ describe('SpatialIndex', () => {
         expect(found).toBe(bruteForceCollides([stored], straddling));
     });
 
-    it('reuses backing storage across resets without leaking stale refs', () => {
+    it.each([
+        ['a reset', (index: SpatialIndex<string>) => index.reset(bounds, 30)],
+        ['a clear', (index: SpatialIndex<string>) => index.clear()],
+    ])('keeps no stale refs after %s', (_name, empty) => {
         const index = new SpatialIndex<string>();
         index.reset(bounds, 30);
         index.insert({ x: 0, y: 0, width: 10, height: 10 }, 'first');
 
-        index.reset(bounds, 30);
+        empty(index);
         const visited: string[] = [];
         index.query({ x: 0, y: 0, width: 10, height: 10 }, (ref) => {
             visited.push(ref);

@@ -44,7 +44,7 @@ describe('a shadow mask bounded to its casters, through a series', () => {
         data: object[];
         options?: object;
         hover?: number;
-        /** Whether a direct cast is bounded. A marker can't be measured at the cast, so it is cast whole, in both renders. */
+        /** Whether a direct cast is bounded. */
         bounded: boolean;
         /** Whether a key has more than 16 casters, which is bounded on a kept cast only: a direct cast of it is whole. */
         crowded?: boolean;
@@ -86,6 +86,7 @@ describe('a shadow mask bounded to its casters, through a series', () => {
             data: POINTS,
             options: OFFSET_AXES,
             bounded: false,
+            crowded: true,
         },
         {
             name: 'a scatter series of markers with a shadow and a spread',
@@ -93,6 +94,7 @@ describe('a shadow mask bounded to its casters, through a series', () => {
             data: POINTS,
             options: OFFSET_AXES,
             bounded: false,
+            crowded: true,
         },
         {
             name: 'the hovered marker of a scatter series',
@@ -107,7 +109,7 @@ describe('a shadow mask bounded to its casters, through a series', () => {
             data: POINTS,
             options: OFFSET_AXES,
             hover: 7,
-            bounded: false,
+            bounded: true,
         },
         {
             name: 'the hovered bar of a bar series',
