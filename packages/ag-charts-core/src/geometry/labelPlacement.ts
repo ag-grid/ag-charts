@@ -38,7 +38,7 @@ import {
     orientedRectsOverlap,
     writeOrientedRect,
 } from './orientedRect';
-import { getMinOuterRectSize } from './shapeUtil';
+import { getMinOuterRectSizeInto } from './shapeUtil';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type { LabelFit } from '../text/textWrapper';
@@ -1652,10 +1652,16 @@ function releaseChoice(choice: CandidateChoice) {
  * (the common path, zero-allocation); rotated labels return their outer axis-aligned footprint so
  * later labels avoid the true rotated extent, not the narrower measured box.
  */
-function labelObstacleBox(placed: PlacedLabel): BoxBounds {
-    if (placed.rotation == null) return placed;
-    const { width, height } = getMinOuterRectSize(placed.rotation, placed.width, placed.height);
-    return { x: placed.x, y: placed.y, width, height };
+function labelObstacleBoxInto(out: BoxBounds, placed: PlacedLabel): BoxBounds {
+    out.x = placed.x;
+    out.y = placed.y;
+    if (placed.rotation == null) {
+        out.width = placed.width;
+        out.height = placed.height;
+        return out;
+    }
+    getMinOuterRectSizeInto(out, placed.rotation, placed.width, placed.height);
+    return out;
 }
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
@@ -1687,11 +1693,7 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     }
     // Copied rather than referenced: the pool outlives the solve, and the placed label holds its datum.
     const { box } = obstacle;
-    const { x, y, width, height } = labelObstacleBox(placed);
-    box.x = x;
-    box.y = y;
-    box.width = width;
-    box.height = height;
+    labelObstacleBoxInto(box, placed);
     const { rotation } = placed;
     if (rotation != null && collidesByRotatedRect(placed.candidate, rotation)) {
         obstacle.kind = 'orientedRect';
@@ -2028,10 +2030,12 @@ function insertedAfterHolder(o: LabelObstacle): boolean {
     return ((o as Partial<PooledLabelObstacle>).insertOrder ?? 0) > tradeHolderOrder;
 }
 
+const footprintBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+
 /** Writes a label's footprint centre to `out` and returns its distance from its first choice's; a dropped label is as far as can be. */
 function footprintCost(out: Point, placed: PlacedLabel | undefined, baseline: BoxBounds): number {
     if (placed == null) return Infinity;
-    const { x, y, width, height } = labelObstacleBox(placed);
+    const { x, y, width, height } = labelObstacleBoxInto(footprintBox, placed);
     out.x = x + width / 2;
     out.y = y + height / 2;
     return Math.hypot(out.x - (baseline.x + baseline.width / 2), out.y - (baseline.y + baseline.height / 2));
