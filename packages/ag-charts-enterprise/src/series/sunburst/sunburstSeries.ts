@@ -39,8 +39,10 @@ import {
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
+    insetItemRegion,
     isFullSweep,
     isGradientFill,
+    itemLabelClearance,
     measureLabelText,
     mergeDefaults,
     readDatumKey,
@@ -125,11 +127,11 @@ const SUNBURST_SLOT = 0;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
-/** A region whose width depends only on the height of the stack it holds, minus `padding` on every side. */
-function heightBoundRegion(padding: number, widthFor: (height: number) => number): FitRegion {
+/** A region whose width depends only on the height of the stack it holds. */
+function heightBoundRegion(widthFor: (height: number) => number): FitRegion {
     return {
         spanAt(top, bottom) {
-            const half = (widthFor(bottom - top + 2 * padding) - 2 * padding) / 2;
+            const half = widthFor(bottom - top) / 2;
             return half > 0 ? [-half, half] : [0, 0];
         },
         extentAbove: Infinity,
@@ -847,10 +849,13 @@ export class SunburstSeries extends HierarchySeries<
      */
     private sectorLabelCandidates(ring: SunburstLabelRing, naturalHeight: number): SunburstLabelCandidate[] {
         const { padding } = this.options;
+        const clearance = itemLabelClearance(padding);
+        const paddedRegion = (widthFor: (height: number) => number) =>
+            insetItemRegion(heightBoundRegion(widthFor), clearance);
         const { innerRadius, outerRadius, sweep, wedge } = ring;
         const chordAt = (offset: number) => Math.sqrt(Math.max(0, outerRadius ** 2 - offset ** 2));
         if (ring.centreCircle) {
-            const shape = heightBoundRegion(padding, (height) => 2 * chordAt(height * 0.5));
+            const shape = paddedRegion((height) => 2 * chordAt(height * 0.5));
             return [this.sectorLabelCandidate(ring, LabelPlacement.CenterCircle, shape)];
         }
 
@@ -858,15 +863,13 @@ export class SunburstSeries extends HierarchySeries<
         const nearSide = parallelNearSide(ring);
         const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
         if (!wedge && sweep >= Math.PI / 4) {
-            return [
-                this.sectorLabelCandidate(ring, LabelPlacement.Parallel, heightBoundRegion(padding, parallelWidth)),
-            ];
+            return [this.sectorLabelCandidate(ring, LabelPlacement.Parallel, paddedRegion(parallelWidth))];
         }
 
         const widthAcross = (height: number) => chordAt(height * 0.5) - perpendicularNearSide(ring, height);
         const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
-        const parallel = heightBoundRegion(padding, (height) => (parallelWins(height) ? parallelWidth(height) : 0));
-        const perpendicular = heightBoundRegion(padding, (height) => (parallelWins(height) ? 0 : widthAcross(height)));
+        const parallel = paddedRegion((height) => (parallelWins(height) ? parallelWidth(height) : 0));
+        const perpendicular = paddedRegion((height) => (parallelWins(height) ? 0 : widthAcross(height)));
         const candidates = [
             this.sectorLabelCandidate(ring, LabelPlacement.Parallel, parallel),
             this.sectorLabelCandidate(ring, LabelPlacement.Perpendicular, perpendicular),

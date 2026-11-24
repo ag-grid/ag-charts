@@ -47,6 +47,7 @@ import {
     fitLabelText,
     fontWithSize,
     formatValue,
+    insetItemRect,
     isErased,
     isGradientFill,
     isNumberEqual,
@@ -1051,13 +1052,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const blocks = labelPairBlocks(primary, secondary);
         const tags = pairTags(primary, secondary);
 
-        const { padding } = tile;
-        const room = {
-            x: bbox.x + padding,
-            y: bbox.y + padding,
-            width: Math.max(0, bbox.width - 2 * padding),
-            height: Math.max(0, bbox.height - 2 * padding),
-        };
+        const room = insetItemRect(bbox, tile.padding);
         const alwaysShow = blocks.some(({ fit }) => fit.fitOverflow != null);
         const { threshold } = (primary == null ? tile.secondaryLabel : tile.label).collision ?? {};
         return this.placedLabelDatum(node, lead, room, tags, alwaysShow, threshold, {

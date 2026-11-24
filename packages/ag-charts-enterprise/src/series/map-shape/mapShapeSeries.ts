@@ -6,6 +6,7 @@ import type {
     FeatureCollection,
     FontOptions,
     Geometry,
+    ItemLabelClearance,
     LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
@@ -34,8 +35,9 @@ import {
     fitLabelTextToRegionAutoSize,
     formatValue,
     hasRealChars,
-    insetFitRegion,
+    insetItemRegion,
     isArray,
+    itemLabelClearance,
     keptCharacters,
     lineHeightAtSize,
     measureLabelText,
@@ -165,7 +167,7 @@ interface LabelFitting {
     fit: LabelFit;
     font: FontOptions;
     /** Series `padding` plus the drawn label box, kept clear of the shape edge on each side. */
-    inset: { x: number; y: number };
+    inset: ItemLabelClearance;
 }
 
 // The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
@@ -178,14 +180,10 @@ function resolveLabelFitting(
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = label;
     const { fontFamily, fontStyle, fontWeight, fontSize, lineHeight } = layoutFont;
     const fit = resolveLabelFit({ maxWidth, maxHeight, wrapping, truncate, minimumFontSize }, true);
-    const box = expandLabelBoxExtent(label);
     return {
         fit: { ...fit, boxed: labelHasBox(label) },
         font: { fontFamily, fontStyle, fontWeight, fontSize, lineHeight },
-        inset: {
-            x: padding + Math.max(box.left, box.right),
-            y: padding + Math.max(box.top, box.bottom),
-        },
+        inset: itemLabelClearance(padding, expandLabelBoxExtent(label)),
     };
 }
 export class MapShapeSeries
@@ -436,7 +434,7 @@ export class MapShapeSeries
 
         const fitAt = (fixedX: number, fixedY: number) => {
             const [x, y] = scale.convert(fixedScale.invert([fixedX, fixedY]));
-            const region = insetFitRegion(polygonFitRegion(polygon, x, y), inset.x, inset.y);
+            const region = insetItemRegion(polygonFitRegion(polygon, x, y), inset);
             const fitted = fitLabelTextToRegionAutoSize(labelText, withFitRegion(fit, region), font);
             const kept = keptCharacters(fitted.text);
             return { fixedX, fixedY, x: x + fitted.offsetX, y: y + fitted.offsetY, fitted, kept };

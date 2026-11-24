@@ -5,6 +5,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
     GLOW_THEME_DEFAULTS,
+    ITEM_PADDING_DEFAULT,
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -80,7 +81,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             },
         },
         gap: 2,
-        padding: 3,
+        padding: ITEM_PADDING_DEFAULT,
         glow: GLOW_THEME_DEFAULTS,
         highlight: withFollowedGlowThemeDefaults(
             {
