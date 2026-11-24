@@ -93,6 +93,8 @@ export class BandHighlight extends AbstractModuleInstance {
             animationManager.addListener('animation-start', () => this.clearAllHighlight()),
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
+            eventsHub.on('series:focus-enter', () => this.onSeriesFocus()),
+            eventsHub.on('series:focus-leave', () => this.onSeriesBlurred()),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
             eventsHub.on('highlight:change', (event) => this.onSeriesHighlightChange(event)),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
@@ -146,6 +148,10 @@ export class BandHighlight extends AbstractModuleInstance {
     private onSeriesHighlightChange({ currentHighlight, highlightInViewport }: _ModuleSupport.HighlightChangeEvent) {
         // Only recorded here: a pointer highlight must not move the band, which follows the pointer itself.
         this.seriesHighlight = highlightInViewport ? currentHighlight : undefined;
+    }
+
+    private onSeriesFocus() {
+        if (this.ctx.widgets.seriesWidget.focusIndicator?.isFocusVisible()) this.onKeyPress();
     }
 
     // Focus changes fire after the highlight change, so `seriesHighlight` is the newly focused datum.

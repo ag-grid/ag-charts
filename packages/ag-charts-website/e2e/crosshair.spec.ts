@@ -100,4 +100,17 @@ test.describe('band highlight', () => {
         await page.keyboard.press('ArrowLeft');
         await expectChartScreenshot(page, page, 'band-both-axes-left.png', bandOptions);
     });
+
+    test('tabbing in and out shows then clears the bands of the focused datum', async ({ page }) => {
+        const { url } = toExamplePageUrl('axes-crosshairs-e2e', 'band-highlight-both-axes', 'vanilla');
+        await gotoExample(page, url);
+
+        await expectChartScreenshot(page, page, 'band-tab-unfocused.png', { threshold: 0 });
+
+        await page.keyboard.press('Tab');
+        await expectChartScreenshot(page, page, 'band-tab-focused.png', bandOptions);
+
+        await page.keyboard.press('Tab');
+        await expectChartScreenshot(page, page, 'band-tab-unfocused.png', { threshold: 0 });
+    });
 });

@@ -183,6 +183,8 @@ export interface EventsHubMap {
     'rtl:change': null;
     'scrollbar:wheel': ScrollbarWheelEvent;
     'series:focus-change': null;
+    'series:focus-enter': null;
+    'series:focus-leave': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series:keynav-panx': SeriesKeyNavPanXEvent;
     'series:keynav-expand': SeriesKeyNavExpandEvent;
