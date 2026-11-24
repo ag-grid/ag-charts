@@ -22,7 +22,6 @@ import {
     isString,
     isThemeOriginOperator,
     scaleLineDashName,
-    solidFillColour,
     without,
 } from 'ag-charts-core';
 
@@ -368,11 +367,15 @@ function isTransparentOperation(graph: OptionsGraphInterface, vertex: VertexInte
     }
 }
 
+// The bare colour, as a plain `fill` gives: its opacity stays with the `fillOpacity` beside it, not in what is mixed.
+function solidAsColour(value: unknown) {
+    return isSolidFill(value) ? value.fill : value;
+}
+
 function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [colorAVertex, colorBVertex, ratioVertex] = values;
-    const fillA = graph.resolveVertexValue(vertex, colorAVertex);
-    const colorA = isSolidFill(fillA) ? solidFillColour(fillA) : fillA;
-    const colorB = graph.resolveVertexValue(vertex, colorBVertex);
+    const colorA = solidAsColour(graph.resolveVertexValue(vertex, colorAVertex));
+    const colorB = solidAsColour(graph.resolveVertexValue(vertex, colorBVertex));
     const ratio = graph.resolveVertexValue(vertex, ratioVertex);
 
     const pathArray = graph.getPathArray(vertex);

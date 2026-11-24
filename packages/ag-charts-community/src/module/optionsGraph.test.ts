@@ -2352,6 +2352,7 @@ describe('OptionsGraph', () => {
                         fillOpacity: 0.8,
                     },
                     stroke: { $mix: [{ $path: '/series/$index/marker/fill' }, 'white', 0.5] },
+                    mixedFill: { $mix: ['white', { $path: '/series/$index/marker/fill' }, 0.5] },
                 },
             },
         };
@@ -2386,10 +2387,12 @@ describe('OptionsGraph', () => {
             expect(series.marker).toStrictEqual({ fill: 'blue', fillOpacity: 0.25 });
         });
 
-        it('should mix a solid fill as its colour', () => {
+        it('should mix a solid fill as its colour, leaving its opacity out', () => {
             const marker = (fill: unknown) => createGraph({ marker: { fill } }).series;
-            expect(marker(solid).stroke).toBe(marker('rgba(0, 0, 255, 0.5)').stroke);
-            expect(marker(solid).stroke).toBeDefined();
+            for (const mixed of ['stroke', 'mixedFill']) {
+                expect(marker(solid)[mixed]).toBe(marker('blue')[mixed]);
+                expect(marker(solid)[mixed]).toBeDefined();
+            }
         });
 
         it('should fold the opacity into the colour of a fill in a list, and take a missing colour from the palette', () => {
