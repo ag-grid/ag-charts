@@ -3,22 +3,12 @@ import type { AgChartInstance, AgChartOptions, AgColorType } from 'ag-charts-typ
 import { expectSamePixels } from './expectSamePixels';
 import { expectNonBlank, type setupMockCanvas, waitForChartStability } from './utils';
 
-/**
- * A fill and the opacity beside it, given either as a solid colour object or as the plain options it stands for.
- * `outerOpacity` is a `fillOpacity` set on the option that the fill is returned over, which the solid colour multiplies.
- */
-export type Fill = (
-    colour: string,
-    fillOpacity?: number,
-    outerOpacity?: number
-) => { fill: AgColorType; fillOpacity?: number };
+/** A fill and the opacity beside it, given either as a solid colour object or as the plain options it stands for. */
+export type Fill = (colour: string, fillOpacity?: number) => { fill: AgColorType; fillOpacity?: number };
 
 export const solidFill: Fill = (fill, fillOpacity) => ({ fill: { type: 'solid', fill, fillOpacity } });
 
-export const plainFill: Fill = (fill, fillOpacity, outerOpacity) =>
-    fillOpacity == null && outerOpacity == null
-        ? { fill }
-        : { fill, fillOpacity: (fillOpacity ?? 1) * (outerOpacity ?? 1) };
+export const plainFill: Fill = (fill, fillOpacity) => (fillOpacity == null ? { fill } : { fill, fillOpacity });
 
 interface ChartFactory {
     create: (options: AgChartOptions) => Promise<AgChartInstance>;

@@ -719,7 +719,7 @@ export abstract class Axis<
                 const { fill, fillOpacity } = stylerOutput.fill;
                 stylerOutput = { ...stylerOutput, fill };
                 if (fillOpacity != null) {
-                    stylerOutput.fillOpacity = (stylerOutput.fillOpacity ?? label.fillOpacity ?? 1) * fillOpacity;
+                    stylerOutput.fillOpacity = (stylerOutput.fillOpacity ?? 1) * fillOpacity;
                 }
             }
         }

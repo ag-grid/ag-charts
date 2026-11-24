@@ -63,7 +63,8 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
         data: DATA,
         series: [{ type: 'bar', xKey: 'month', yKey: 'a' }],
         axes: {
-            x: { type: 'category', label: { fillOpacity: 0.5, itemStyler: () => fill('red', 0.5, 0.5) } },
+            // A styler's opacity replaces the label's own, as a plain `fillOpacity` does.
+            x: { type: 'category', label: { fillOpacity: 0.5, itemStyler: () => fill('red', 0.5) } },
             y: { type: 'number', label: { itemStyler: () => fill('blue', 0.5) } },
         },
     }),
