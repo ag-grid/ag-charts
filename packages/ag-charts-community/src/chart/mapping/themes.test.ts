@@ -266,6 +266,7 @@ describe('themes.ts', () => {
             { palette: { lineDashes: [[4, -2]] }, warns: true },
             { palette: { lineDashes: ['wiggle'] }, warns: true },
             { palette: { lineDashes: [[4, 2], 'dot', []] }, warns: false },
+            { palette: { lineDashes: [] }, warns: false },
         ])('validates palette $palette', async ({ palette, warns }) => {
             const chart = AgCharts.create({
                 ...opts,

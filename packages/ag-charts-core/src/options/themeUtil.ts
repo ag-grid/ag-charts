@@ -1036,7 +1036,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }),
+            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }, undefined, 'solid'),
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

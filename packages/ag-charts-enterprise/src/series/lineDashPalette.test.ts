@@ -18,6 +18,7 @@ type ResolvedOptions = {
     lineDash?: number[];
     marker?: { lineDash?: number[] };
     item?: Record<string, ResolvedOptions>;
+    segmentation?: { segments: ResolvedOptions[] };
 };
 
 interface Case {
@@ -27,6 +28,18 @@ interface Case {
     /** The option that names the series in the legend. */
     nameKey: string;
     items: string[];
+    /** An item `lineDash` set on the series at `index`, in place of the series' own. */
+    itemDash?: { item: string; index: number; dash: number[] };
+}
+
+/** How a series dash that is set reaches the series: on the series itself, or by a theme override for its type. */
+interface Route {
+    name: string;
+    /** The `lineDash` option of each series. */
+    seriesDashes: (Dash | undefined)[];
+    /** The `lineDash` that a theme override sets on every series of the type. */
+    override?: number[];
+    expected: number[][];
 }
 
 const SERIES_COUNT = 4;
@@ -46,9 +59,16 @@ const CASES: Case[] = [
     { type: 'area', keys: (i) => ({ xKey: 'x', yKey: `hi${i}`, fillOpacity: 0.2 }), nameKey: 'yName', items: [] },
     {
         type: 'range-area',
-        keys: (i) => ({ xKey: 'x', yLowKey: `lo${i}`, yHighKey: `hi${i}` }),
+        keys: (i) => ({
+            xKey: 'x',
+            yLowKey: `lo${i}`,
+            yHighKey: `hi${i}`,
+            item: i === 2 ? { low: { lineDash: [2] } } : undefined,
+        }),
         nameKey: 'yName',
         items: ['low', 'high'],
+        // An item dash replaces the series dash outright, as it did before the palette: `[2]` over `[12, 4]` is not `[2, 4]`.
+        itemDash: { item: 'low', index: 2, dash: [2] },
     },
     { type: 'radar-line', keys: (i) => ({ angleKey: 'x', radiusKey: `hi${i}` }), nameKey: 'radiusName', items: [] },
     {
@@ -62,6 +82,17 @@ const CASES: Case[] = [
 /** A dash array and a stock name, which scales by the `strokeWidth` of 2: `'dot'` is `[2, 3]`. */
 const PALETTE: Dash[] = [[12, 4], 'dot'];
 const DOT = [2, 3];
+
+const ROUTES: Route[] = [
+    // Series 0 sets a dash shorter than the palette's, so none of the palette's elements may show through.
+    {
+        name: 'an explicit lineDash',
+        seriesDashes: [[2], undefined, undefined, undefined],
+        expected: [[2], DOT, [12, 4], DOT],
+    },
+    // A theme override sets the dash of every series, so the palette shows on none.
+    { name: 'a theme override', seriesDashes: [], override: [2], expected: [[2], [2], [2], [2]] },
+];
 
 describe('palette.lineDashes', () => {
     setupMockConsole();
@@ -84,21 +115,22 @@ describe('palette.lineDashes', () => {
     const drawnDashes = (index: number) =>
         drawnLineDashes(collectShapes(getSeriesAt(chart!, index).contentGroup)).drawn;
 
-    it.each(CASES)(
-        '$type rotates the palette by series index, behind an explicit lineDash',
-        async ({ type, keys, nameKey, items }) => {
-            // Series 0 sets a dash shorter than the palette's, so none of the palette's elements may show through.
-            const explicit: (Dash | undefined)[] = [[2], undefined, undefined, undefined];
-            const expected = [[2], DOT, [12, 4], DOT];
+    it.each(ROUTES.flatMap((route) => CASES.map((testCase) => ({ ...testCase, route }))))(
+        '$type rotates the palette by series index, behind $route.name',
+        async ({ type, keys, nameKey, items, itemDash, route }) => {
+            const { expected, override } = route;
 
             await create({
                 data: DATA,
-                theme: { palette: { lineDashes: PALETTE } },
-                series: explicit.map((lineDash, i) => ({
+                theme: {
+                    palette: { lineDashes: PALETTE },
+                    overrides: override && { [type]: { series: { lineDash: override } } },
+                },
+                series: expected.map((_, i) => ({
                     type,
                     ...keys(i),
                     strokeWidth: 2,
-                    lineDash,
+                    lineDash: route.seriesDashes[i],
                     [nameKey]: `s${i}`,
                 })),
             });
@@ -106,7 +138,10 @@ describe('palette.lineDashes', () => {
             expect(expected.map((_, i) => seriesDash(i))).toEqual(expected);
             for (const item of items) {
                 const itemDashes = expected.map((_, i) => getSeriesOptions<ResolvedOptions>(chart!, i).item?.[item]);
-                expect(itemDashes.map((options) => options?.lineDash)).toEqual(expected);
+                const itemExpected = expected.map((dash, i) =>
+                    itemDash?.item === item && itemDash.index === i ? itemDash.dash : dash
+                );
+                expect(itemDashes.map((options) => options?.lineDash)).toEqual(itemExpected);
             }
             expect(getLegendItemNodes(chart!).map((node) => node.line?.lineDash)).toEqual(expected);
             await compareImageSnapshot(chart!, ctx);
@@ -130,7 +165,8 @@ describe('palette.lineDashes', () => {
             },
             series: [
                 { type: 'bar', xKey: 'x', yKey: 'lo0', strokeWidth: 2 },
-                { type: 'line', xKey: 'x', yKey: 'hi1', marker: { strokeWidth: 2 } },
+                // A styler that sets no `lineDash` leaves the palette's pattern.
+                { type: 'line', xKey: 'x', yKey: 'hi1', marker: { strokeWidth: 2 }, styler: () => ({ stroke: 'red' }) },
                 { type: 'line', xKey: 'x', yKey: 'hi2', styler: () => ({ lineDash: [2] }) },
                 {
                     type: 'area',
@@ -140,17 +176,37 @@ describe('palette.lineDashes', () => {
                     strokeWidth: 2,
                     styler: () => ({ lineDash: [] }),
                 },
+                // A segment's dash replaces the series' own, so `[2]` is not `[2, 4]` over the palette's `[8, 4]`.
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'hi0',
+                    segmentation: {
+                        enabled: true,
+                        key: 'x',
+                        segments: [
+                            { start: 'A', stop: 'B', lineDash: [2] },
+                            { start: 'B', stop: 'C', lineDash: [] },
+                            { start: 'C' },
+                        ],
+                    },
+                },
             ],
         });
 
         // The custom palette replaces the base theme's whole: every series takes `[8, 4]`, none `[2, 2]` or `[3, 3]`.
-        expect([1, 2, 3].map(seriesDash)).toEqual([
+        expect([1, 2, 3, 4].map(seriesDash)).toEqual([
+            [8, 4],
             [8, 4],
             [8, 4],
             [8, 4],
         ]);
         expect(seriesDash(0)).toEqual([0]);
         expect(getSeriesOptions<ResolvedOptions>(chart!, 1).marker?.lineDash).toEqual([0]);
+
+        expect(
+            getSeriesOptions<ResolvedOptions>(chart!, 4).segmentation?.segments.map((segment) => segment.lineDash)
+        ).toEqual([[2], [0], [8, 4]]);
 
         // A styler's array layers over solid, not over the palette's pattern.
         expect([0, 1, 2, 3].map(drawnDashes)).toEqual([new Set(), new Set(['8,4']), new Set(['2']), new Set()]);
