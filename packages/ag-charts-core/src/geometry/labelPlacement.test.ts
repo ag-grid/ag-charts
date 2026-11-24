@@ -4322,6 +4322,104 @@ describe('placeLabels slot trade', () => {
             });
         });
 
+        // Their labels ignore labels touching their own bar, so only the trade's ordering keeps them apart.
+        it.each<[string, Array<[string, BoxBounds, Array<[number, number]>]>]>([
+            [
+                'a holder that already traded once trades again',
+                [
+                    [
+                        'C',
+                        { x: 0, y: 100, width: 50, height: 200 },
+                        [
+                            [10, 100],
+                            [10, 140],
+                            [10, 180],
+                        ],
+                    ],
+                    [
+                        'X',
+                        { x: 300, y: 300, width: 50, height: 50 },
+                        [
+                            [30, 180],
+                            [300, 360],
+                        ],
+                    ],
+                    [
+                        'D',
+                        { x: 100, y: 300, width: 50, height: 50 },
+                        [
+                            [10, 100],
+                            [500, 10],
+                        ],
+                    ],
+                    [
+                        'G',
+                        { x: 200, y: 300, width: 50, height: 50 },
+                        [
+                            [10, 140],
+                            [500, 60],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'a label placed before the holder was moved by a trade',
+                [
+                    [
+                        'Z',
+                        { x: 300, y: 300, width: 50, height: 50 },
+                        [
+                            [100, 10],
+                            [30, 180],
+                        ],
+                    ],
+                    [
+                        'A',
+                        { x: 0, y: 100, width: 50, height: 200 },
+                        [
+                            [10, 100],
+                            [10, 180],
+                        ],
+                    ],
+                    [
+                        'W',
+                        { x: 400, y: 300, width: 50, height: 50 },
+                        [
+                            [100, 10],
+                            [500, 10],
+                        ],
+                    ],
+                    [
+                        'V',
+                        { x: 200, y: 300, width: 50, height: 50 },
+                        [
+                            [10, 100],
+                            [500, 60],
+                        ],
+                    ],
+                ],
+            ],
+        ])('never moves a holder onto a label it did not resolve against when %s', (_, bars) => {
+            const datums = bars.map(([text, ownBox, xys]) =>
+                barDatum(
+                    text,
+                    ownBox,
+                    xys.map(([x, y]) => ({ box: { x, y, width: 30, height: 16 } })),
+                    { ownBoxLabelsCollide: false }
+                )
+            );
+            const placed = solve({ s: datums }).get('s')!;
+
+            expect(placed).toHaveLength(bars.length);
+            const overlapping = placed.flatMap((a, i) =>
+                placed
+                    .slice(i + 1)
+                    .filter((b) => boxCollides(a, b.x, b.y, b.width, b.height))
+                    .map((b) => `${toPlainText(a.text)}/${toPlainText(b.text)}`)
+            );
+            expect(overlapping).toEqual([]);
+        });
+
         it.each([
             ['the pair would be displaced equally and is not crossed', [240, 256], [234, 218], 218],
             ['the pair would be displaced equally and stay crossed', [240, 218], [234, 256], 256],

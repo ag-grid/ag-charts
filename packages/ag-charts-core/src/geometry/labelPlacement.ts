@@ -706,6 +706,8 @@ interface PooledLabelObstacle {
     // Slot-trade fields, by value so the pool holds no label, datum or candidate between solves.
     poolIndex: number;
     insertOrder: number;
+    // The latest `insertOrder` when the label resolved: entries up to it are the ones its exclusions were tested on.
+    resolvedAt: number;
     seriesOrdinal: number;
     // Where the label sits in its series' result list.
     resultSlot: number;
@@ -1662,6 +1664,7 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
             outranks,
             poolIndex: count,
             insertOrder: 0,
+            resolvedAt: 0,
             seriesOrdinal: 0,
             resultSlot: 0,
             memoBase: -1,
@@ -1699,9 +1702,10 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
 const TRADE_TOLERANCE = 1e-6;
 // Bumped per series, so a memo slot or pool entry stamped by an earlier series or solve never matches.
 let solveSeriesOrdinal = 0;
-// Stamped on each label entry as it enters the index, so a re-resolved holder knows which labels never tested it.
+// Stamped on each label entry as it enters the index, so a re-resolved holder knows which labels it never tested.
 let labelInsertOrder = 0;
-// The holder's insert order while a trade re-resolves it; labels inserted later must be avoided outright.
+let labelResolvedAt = 0;
+// The holder's `resolvedAt` while a trade re-resolves it; labels inserted since must be avoided outright.
 let tradeHolderOrder = Infinity;
 let seriesTradableCount = 0;
 // The label being resolved records its first choice's footprint, and may look for a holder there.
@@ -1736,6 +1740,7 @@ function beginLabelTrade(candidateCount: number, resolves: boolean) {
     labelTracksBaseline = candidateCount > 1;
     labelMayTrade = labelTracksBaseline && seriesTradableCount > 0;
     labelBaselineSet = false;
+    labelResolvedAt = labelInsertOrder;
     tradeHolder = undefined;
     labelMemoBase = -1;
     if (!labelTracksBaseline || !resolves) return;
@@ -1843,6 +1848,7 @@ function stampTradeEntry(
     defaults: SeriesLabelDefaults | undefined
 ) {
     entry.seriesOrdinal = solveSeriesOrdinal;
+    entry.resolvedAt = labelResolvedAt;
     entry.resultSlot = resultSlot;
     entry.memoBase = labelMemoBase;
     entry.tradable = labelTracksBaseline && labelBaselineSet;
@@ -1889,7 +1895,7 @@ function tryTrade(
         insertLabelObstacle(traded, poolSlot);
         inserted = true;
         labelMemoBase = holder.memoBase;
-        tradeHolderOrder = holder.insertOrder;
+        tradeHolderOrder = holder.resolvedAt;
         const moved = tryPlaceLabel(
             held.datum,
             defaults,
