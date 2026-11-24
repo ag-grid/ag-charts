@@ -74,11 +74,14 @@ export function trapezoidFitRegion(trapezoid: TrapezoidBounds, anchorSpan: numbe
  * its hole and entered again beyond it, so a plain bisection over `[0, limit]` can settle on the far arm
  * and report room across the gap. The reach is therefore bracketed by a coarse outward scan of `probes`
  * samples first, and bisected only inside the interval where the shape was first left.
+ * `holdsColumn` and `rays` vouch for probes `contains` would answer anyway, so those probes skip it.
  */
 export function probedFitRegion(
     anchor: { x: number; y: number },
     contains: (x: number, y: number) => boolean,
     limit: number,
+    holdsColumn?: (x: number, top: number, bottom: number) => boolean,
+    rays?: RayBounds,
     steps = 20,
     rows = 5,
     probes = 16
@@ -86,17 +89,42 @@ export function probedFitRegion(
     const reach = (top: number, bottom: number, direction: number) => {
         const sampled = Math.max(2, rows);
         const step = (bottom - top) / (sampled - 1);
+        const firstY = anchor.y + top;
+        const lastY = anchor.y + top + step * (sampled - 1);
+        // OPTIMIZATION: a probe short of where a row's ray is vouched for skips that row's containment test.
+        const firstUntil = rays?.insideUntil(anchor.x, firstY, direction, 0, limit) ?? -1;
+        const lastUntil = rays?.insideUntil(anchor.x, lastY, direction, 0, limit) ?? -1;
+        let bandUntil = Math.min(firstUntil, lastUntil);
+        if (middleRowsUntil.length < sampled) middleRowsUntil = new Float64Array(sampled);
+        // A convex shape holds what lies between the edge rows wherever both are held, so their bounds bound the band.
+        const middleUntil = rays == null || rays.convex === true ? undefined : middleRowsUntil;
+        for (let i = 1; middleUntil != null && i < sampled - 1; i += 1) {
+            middleUntil[i] = rays!.insideUntil(anchor.x, anchor.y + top + step * i, direction, 0, limit);
+            bandUntil = Math.min(bandUntil, middleUntil[i]);
+        }
+        // Either edge row leaving for good leaves the band, as those are tested first.
+        const bandOutside = Math.min(
+            rays?.outsideFrom(anchor.x, firstY, direction, 0, limit) ?? Infinity,
+            rays?.outsideFrom(anchor.x, lastY, direction, 0, limit) ?? Infinity
+        );
         const insideBand = (t: number) => {
             const x = anchor.x + direction * t;
-            for (let i = 0; i < sampled; i += 1) {
+            // OPTIMIZATION: a band usually leaves the shape at its edge rows, so those are tested first.
+            if (!(t <= firstUntil || contains(x, firstY)) || !(t <= lastUntil || contains(x, lastY))) return false;
+            if (holdsColumn?.(x, firstY, lastY) === true) return true;
+            for (let i = 1; i < sampled - 1; i += 1) {
+                if (middleUntil != null && t <= middleUntil[i]) continue;
                 if (!contains(x, anchor.y + top + step * i)) return false;
             }
             return true;
         };
-        return firstOutside(insideBand, limit, probes, steps);
+        return firstOutside(insideBand, limit, probes, steps, bandUntil, bandOutside);
     };
-    const vertical = (direction: number) =>
-        firstOutside((t) => contains(anchor.x, anchor.y + direction * t), limit, probes, steps);
+    const vertical = (direction: number) => {
+        const until = rays?.insideUntil(anchor.x, anchor.y, 0, direction, limit) ?? -1;
+        const outside = rays?.outsideFrom(anchor.x, anchor.y, 0, direction, limit) ?? Infinity;
+        return firstOutside((t) => contains(anchor.x, anchor.y + direction * t), limit, probes, steps, until, outside);
+    };
     return {
         // Wrapping asks for the same band once per candidate word, and each ask is a pair of outward
         // scans over a containment test, so the answer is memoised for the label's own short-lived region.
@@ -106,18 +134,37 @@ export function probedFitRegion(
     };
 }
 
+/** Where along a ray from `(x, y)` a containment test is known: passed up to `insideUntil`, failed from `outsideFrom` on. */
+export interface RayBounds {
+    insideUntil(x: number, y: number, dx: number, dy: number, limit: number): number;
+    outsideFrom(x: number, y: number, dx: number, dy: number, limit: number): number;
+    /** Whether a point between two that `insideUntil` vouches for is vouched for too. */
+    readonly convex?: boolean;
+}
+
+// OPTIMIZATION: scratch for a reach's middle-row bounds, filled afresh by each reach before its probes read it.
+let middleRowsUntil = new Float64Array(8);
+
 // Scanned outward, then bisected within the step that crossed: a ray out of an annulus sector re-enters
 // it beyond the hole, so bisecting the whole limit could land past the hole and carry the reach across it.
 // The scan resolves a gap only as narrow as `limit / probes`, so a hole thinner than one step is still
 // crossed — bounded sampling, not a guarantee.
-function firstOutside(inside: (t: number) => boolean, limit: number, probes: number, steps: number): number {
+// `inside` is taken as read up to `knownInside` and from `knownOutside` on, where a caller has vouched for it.
+function firstOutside(
+    inside: (t: number) => boolean,
+    limit: number,
+    probes: number,
+    steps: number,
+    knownInside = -1,
+    knownOutside = Infinity
+): number {
     const count = Math.max(1, probes);
     const step = limit / count;
     let lo = 0;
     let hi = limit;
     for (let i = 1; i <= count; i += 1) {
         const t = Math.min(i * step, limit);
-        if (!inside(t)) {
+        if (t > knownInside && (t >= knownOutside || !inside(t))) {
             hi = t;
             break;
         }
@@ -126,7 +173,7 @@ function firstOutside(inside: (t: number) => boolean, limit: number, probes: num
     if (lo >= limit) return limit;
     for (let i = 0; i < steps; i += 1) {
         const t = (lo + hi) / 2;
-        if (inside(t)) {
+        if (t <= knownInside || (t < knownOutside && inside(t))) {
             lo = t;
         } else {
             hi = t;
@@ -135,18 +182,42 @@ function firstOutside(inside: (t: number) => boolean, limit: number, probes: num
     return lo;
 }
 
-/** Caches a region's `spanAt` by band, as wrapping asks for the same band once per candidate word. */
-export function memoiseByBand(spanAt: (top: number, bottom: number) => readonly [number, number]) {
-    const cache = new Map<string, readonly [number, number]>();
-    return (top: number, bottom: number) => {
-        const key = `${top},${bottom}`;
-        let span = cache.get(key);
+type Span = readonly [number, number];
+
+// OPTIMIZATION: keyed by the two numbers rather than a string built from them, so a hit allocates nothing.
+class BandMemo {
+    private readonly byTop = new Map<number, Map<number, Span>>();
+    private readonly spare: Map<number, Span>[] = [];
+
+    constructor(private readonly compute: (top: number, bottom: number) => Span) {}
+
+    readonly get = (top: number, bottom: number): Span => {
+        let byBottom = this.byTop.get(top);
+        if (byBottom == null) {
+            byBottom = this.spare.pop() ?? new Map();
+            this.byTop.set(top, byBottom);
+        }
+        let span = byBottom.get(bottom);
         if (span == null) {
-            span = spanAt(top, bottom);
-            cache.set(key, span);
+            span = this.compute(top, bottom);
+            byBottom.set(bottom, span);
         }
         return span;
     };
+
+    /** Forgets every band, keeping the emptied maps for the next fill. */
+    clear() {
+        for (const byBottom of this.byTop.values()) {
+            byBottom.clear();
+            this.spare.push(byBottom);
+        }
+        this.byTop.clear();
+    }
+}
+
+/** Caches a region's `spanAt` by band, as wrapping asks for the same band once per candidate word. */
+export function memoiseByBand(spanAt: (top: number, bottom: number) => Span) {
+    return new BandMemo(spanAt).get;
 }
 
 /**
@@ -156,14 +227,43 @@ export function memoiseByBand(spanAt: (top: number, bottom: number) => readonly 
  */
 export function insetFitRegion(region: FitRegion, dx: number, dy: number): FitRegion {
     return {
-        spanAt: (top, bottom) => {
-            const [left, right] = region.spanAt(top - dy, bottom + dy);
-            const mid = (left + right) / 2;
-            return [Math.min(left + dx, mid), Math.max(right - dx, mid)];
-        },
+        spanAt: (top, bottom) => insetSpan(region, dx, dy, top, bottom),
         extentAbove: Math.max(0, region.extentAbove - dy),
         extentBelow: Math.max(0, region.extentBelow - dy),
     };
+}
+
+function insetSpan(region: FitRegion, dx: number, dy: number, top: number, bottom: number): Span {
+    const [left, right] = region.spanAt(top - dy, bottom + dy);
+    const mid = (left + right) / 2;
+    return [Math.min(left + dx, mid), Math.max(right - dx, mid)];
+}
+
+/** {@link insetFitRegion} reset in place on every pass of a fit, so a pass allocates no band memo of its own. */
+export class ReusableInsetRegion implements FitRegion {
+    extentAbove = 0;
+    extentBelow = 0;
+    private region?: FitRegion;
+    private dx = 0;
+    private dy = 0;
+    private readonly bands = new BandMemo((top, bottom) => insetSpan(this.region!, this.dx, this.dy, top, bottom));
+    readonly spanAt = this.bands.get;
+
+    reset(region: FitRegion, dx: number, dy: number): this {
+        this.release();
+        this.region = region;
+        this.dx = dx;
+        this.dy = dy;
+        this.extentAbove = Math.max(0, region.extentAbove - dy);
+        this.extentBelow = Math.max(0, region.extentBelow - dy);
+        return this;
+    }
+
+    /** Drops the region and the bands worked out for it, keeping only the emptied maps. */
+    release() {
+        this.bands.clear();
+        this.region = undefined;
+    }
 }
 
 /** A shape sampled into rows of inside spans, in units scaled by the drawn shape. */

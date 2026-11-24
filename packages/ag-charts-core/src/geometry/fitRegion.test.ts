@@ -4,6 +4,7 @@ import {
     type FitRegion,
     type FitRegionMask,
     InsetMaskFitRegion,
+    ReusableInsetRegion,
     insetFitRegion,
     probedFitRegion,
     regionTextCapacity,
@@ -117,6 +118,18 @@ describe('probedFitRegion over a shape with a hole', () => {
         expect(left).toBeCloseTo(-50, 1);
     });
 
+    test('reports the same spans for fewer containment tests when the shape vouches for its columns', () => {
+        const probe = (holdsColumn?: () => boolean) => {
+            const contains = vi.fn(inCircle(100));
+            const region = probedFitRegion({ x: 20, y: 10 }, contains, 200, holdsColumn);
+            return { span: region.spanAt(-15, 25), calls: contains.mock.calls.length };
+        };
+        const sampled = probe();
+        const vouched = probe(() => true);
+        expect(vouched.span).toEqual(sampled.span);
+        expect(vouched.calls).toBeLessThan(sampled.calls);
+    });
+
     test('stops at the hole rather than reporting the room beyond it', () => {
         // Anchored on the left arm, the reach to the right leaves the annulus at the hole and enters it
         // again 100px further on: the room reported is the near arm's, not the far one's.
@@ -154,6 +167,20 @@ describe('insetFitRegion', () => {
         const region = insetFitRegion(trapezoidFitRegion(stage(), 50), 0, 10);
         // The band [0, 10] is measured as [-10, 20], so it pays the narrower width 10px further up.
         expect(regionWidthAt(region, 0, 10)).toBe(regionWidthAt(trapezoidFitRegion(stage(), 50), -10, 20));
+    });
+
+    test('a reusable inset answers like insetFitRegion and forgets its bands once released', () => {
+        const base = rect(120, 40);
+        const spanAt = vi.spyOn(base, 'spanAt');
+        const reusable = new ReusableInsetRegion().reset(base, 10, 5);
+        expect(reusable.spanAt(-3, 8)).toEqual(insetFitRegion(base, 10, 5).spanAt(-3, 8));
+        expect([reusable.extentAbove, reusable.extentBelow]).toEqual([15, 15]);
+        spanAt.mockClear();
+        reusable.spanAt(-3, 8);
+        expect(spanAt).not.toHaveBeenCalled();
+        reusable.release();
+        reusable.reset(base, 10, 5).spanAt(-3, 8);
+        expect(spanAt).toHaveBeenCalledTimes(1);
     });
 
     test('bottoms out at nothing rather than going negative', () => {

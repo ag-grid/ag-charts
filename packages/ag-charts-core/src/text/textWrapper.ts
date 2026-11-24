@@ -217,7 +217,8 @@ export function fitLabelText(
     // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
     if (region != null) {
-        return wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+        const prepared = prepareRegionWrap(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed);
+        return placePreparedText(prepared, 'centre').text;
     }
     return rotated == null ? fitTextToBox(text, fit, options) : fitTurnedText(text, fit, options, rotated);
 }
@@ -375,8 +376,22 @@ export function fitLabelTextToRegion(
     overflowPlacement: OverflowPlacement = 'centre'
 ): FittedRegionText {
     if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0, offsetY: 0 };
+    return placePreparedText(prepareTextToRegion(text, fit, fit.region, font, anchored), overflowPlacement);
+}
+
+/**
+ * {@link fitLabelTextToRegion} short of placing a block that loses text, for a caller placing one fit more than
+ * one way: {@link placePreparedText} finishes it, and `region` must answer then as it does now.
+ */
+export function prepareTextToRegion(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    region: FitRegion,
+    font: FontOptions,
+    anchored = false
+): PreparedRegionWrap {
     const overflow = fit.overflowStrategy ?? 'preserve';
-    return wrapTextToRegion(
+    return prepareRegionWrap(
         text,
         {
             font,
@@ -387,12 +402,35 @@ export function fitLabelTextToRegion(
             overflow,
             rejectTallFirstLine: true,
         },
-        fit.region,
+        region,
         fit.regionAlign ?? 'center',
         anchored,
-        fit.boxed,
-        overflowPlacement
+        fit.boxed
     );
+}
+
+/** Places a prepared wrap: a preserved block that lost text to the shape is laid out past it, per `overflowPlacement`. */
+export function placePreparedText(
+    prepared: PreparedRegionWrap,
+    overflowPlacement: OverflowPlacement
+): FittedRegionText {
+    if (prepared.kind === 'segments') return placeSegmentsInRegion(prepared, overflowPlacement);
+    const { options, region, align, boxed, fitted, source, lineHeight } = prepared;
+    if (overflowPlacement === 'none' || source == null) return fitted;
+    const { offsetX } = fitted;
+    const overflow = wrapOverflowingBlock(
+        region,
+        align,
+        overflowPlacement === 'hang',
+        boxed,
+        offsetX,
+        lineHeight,
+        lineHeight,
+        (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
+        (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
+        (wrapped) => countLines(wrapped) * lineHeight
+    );
+    return { text: overflow.text, offsetX, offsetY: overflow.offsetY };
 }
 
 // A pass over a narrowing shape discovers at most one more line than the last one, so a segmented block's
@@ -405,7 +443,32 @@ function measureText(text: NormalisedTextOrSegments, font: FontOptions) {
 
 /** Characters of the source that survived a fit, ignoring the layout and the ellipsis marking the loss. */
 function survivingCharacters(text: string) {
-    return text.replaceAll(EllipsisChar, '').replaceAll(/[\s\u200B]/g, '').length;
+    // OPTIMIZATION: counted in place rather than by stripping copies, as the region fit scores every candidate.
+    let kept = 0;
+    for (let i = 0; i < text.length; i += 1) {
+        if (!isDroppedCharCode(text.charCodeAt(i))) kept += 1;
+    }
+    return kept;
+}
+
+const ELLIPSIS_CODE = EllipsisChar.codePointAt(0)!;
+
+/** The ellipsis, a zero-width space, or a code unit the regular expression `\s` matches. */
+function isDroppedCharCode(code: number) {
+    if (code <= 0x20) return code === 0x20 || (code >= 0x09 && code <= 0x0d);
+    if (code < 0xa0) return false;
+    return (
+        code === ELLIPSIS_CODE ||
+        code === 0xa0 ||
+        code === 0x1680 ||
+        (code >= 0x2000 && code <= 0x200b) ||
+        code === 0x2028 ||
+        code === 0x2029 ||
+        code === 0x202f ||
+        code === 0x205f ||
+        code === 0x3000 ||
+        code === 0xfeff
+    );
 }
 
 /** Where the top of a block of `height` sits against the anchor, kept inside the room the shape has. */
@@ -425,26 +488,45 @@ function blockTopFor(align: RegionAlign, height: number, region: FitRegion) {
  * nearer edge allows, so the offset that suits the block is not the anchor unless the shape is symmetric
  * about it. Each band's own centre is a candidate, and the one giving the most width across the block wins.
  */
-function blockOffsetX(region: FitRegion, bands: (readonly [number, number])[]) {
-    const spans = bands.map(([top, bottom]) => region.spanAt(top, bottom));
-    const candidates = [0];
-    for (const [left, right] of spans) {
-        if (left < right) candidates.push((left + right) / 2);
+function blockOffsetX(
+    region: FitRegion,
+    blockTop: number,
+    height: number,
+    lineHeight: number,
+    lines: number,
+    boxed: boolean
+) {
+    const count = boxed ? 1 : lines;
+    if (bandSpans.length < 2 * count) bandSpans = new Float64Array(2 * count);
+    const spans = bandSpans;
+    for (let i = 0; i < count; i += 1) {
+        const [left, right] = boxed
+            ? region.spanAt(blockTop, blockTop + height)
+            : region.spanAt(blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight);
+        spans[2 * i] = left;
+        spans[2 * i + 1] = right;
     }
     let best = 0;
     let bestTotal = -1;
-    for (const offset of candidates) {
+    // The anchor first, then each band's own centre.
+    for (let c = -1; c < count; c += 1) {
+        // An empty band offers no centre.
+        const isCandidate = c < 0 || spans[2 * c] < spans[2 * c + 1];
+        const offset = c < 0 ? 0 : (spans[2 * c] + spans[2 * c + 1]) / 2;
         let total = 0;
-        for (const [left, right] of spans) {
-            total += Math.max(0, 2 * Math.min(offset - left, right - offset));
+        for (let i = 0; isCandidate && i < count; i += 1) {
+            total += Math.max(0, 2 * Math.min(offset - spans[2 * i], spans[2 * i + 1] - offset));
         }
-        if (total > bestTotal) {
+        if (isCandidate && total > bestTotal) {
             bestTotal = total;
             best = offset;
         }
     }
     return best;
 }
+
+// OPTIMIZATION: scratch for blockOffsetX's band spans, as left/right pairs, refilled by each call.
+let bandSpans = new Float64Array(16);
 
 /** One candidate layout: the text wrapped into a block of `lines`, and how much of the source it kept. */
 function wrapBlockToRegion(
@@ -460,15 +542,7 @@ function wrapBlockToRegion(
 ) {
     const height = Math.min(lines * lineHeight, limit);
     const blockTop = blockTopFor(align, height, region);
-    const bands: (readonly [number, number])[] = [];
-    if (boxed) {
-        bands.push([blockTop, blockTop + height] as const);
-    } else {
-        for (let i = 0; i < lines; i += 1) {
-            bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
-        }
-    }
-    const offsetX = anchored ? 0 : blockOffsetX(region, bands);
+    const offsetX = anchored ? 0 : blockOffsetX(region, blockTop, height, lineHeight, lines, boxed);
     const widthAt = boxed
         ? () => regionWidthAt(region, blockTop, blockTop + height, offsetX)
         : (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
@@ -532,24 +606,53 @@ function markLostText(
     lines[last] = truncateLine(lines[last], measurer, maxWidthAt(top, top + lineHeight), true);
 }
 
+/** A region wrap short of placing a block that lost text; see {@link prepareTextToRegion}. */
+export type PreparedRegionWrap = PreparedPlainWrap | PreparedSegmentWrap;
+
+interface PreparedPlainWrap {
+    readonly kind: 'plain';
+    readonly options: WrapOptions;
+    readonly region: FitRegion;
+    readonly align: RegionAlign;
+    readonly boxed: boolean;
+    /** The layout keeping the most text, which stands wherever nothing is laid out past the shape. */
+    readonly fitted: FittedRegionText;
+    /** The source, set only when a preserved best layout lost some of it and so overflows the shape. */
+    readonly source?: string;
+    readonly lineHeight: number;
+}
+
+interface PreparedSegmentWrap {
+    readonly kind: 'segments';
+    readonly text: NormalisedContentSegment[];
+    readonly options: WrapOptions;
+    readonly passOptions: WrapOptions;
+    readonly region: FitRegion;
+    readonly align: RegionAlign;
+    readonly boxed: boolean;
+    readonly sourceHeight: number;
+    readonly fitted: FittedRegionText;
+    /** Whether the fit dropped an image to the shape's height, worked out once for every placement that asks. */
+    lostImage?: boolean;
+}
+
 /**
  * Wraps `text` to the room `region` offers. The block's height decides which bands its lines land in, and
  * those bands decide how the text wraps, so the two are settled by trying each line count the shape has
  * room for and keeping the layout that loses the least text — fewest lines first, so a block that fits
  * whole never spreads itself out.
  */
-function wrapTextToRegion(
+function prepareRegionWrap(
     text: NormalisedTextOrSegments,
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
     anchored = false,
-    boxed = false,
-    overflowPlacement: OverflowPlacement = 'centre'
-): FittedRegionText {
+    boxed = false
+): PreparedRegionWrap {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return refineSegmentsToRegion(text, options, region, align, limit, boxed, overflowPlacement);
+        return refineSegmentsToRegion(text, options, region, align, limit, boxed);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -572,25 +675,13 @@ function wrapTextToRegion(
         }
         if (bestKept >= wanted && best?.consistent === true) break;
     }
-    if (best == null) return { text, offsetX: 0, offsetY: 0 };
-    // Preserved text that lost some to the shape is laid out past it; a best that lost text is consistent.
-    if (overflowPlacement !== 'none' && preservesText(options) && bestKept < wanted) {
-        const { offsetX } = best;
-        const overflow = wrapOverflowingBlock(
-            region,
-            align,
-            overflowPlacement === 'hang',
-            boxed,
-            offsetX,
-            lineHeight,
-            lineHeight,
-            (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
-            (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
-            (wrapped) => countLines(wrapped) * lineHeight
-        );
-        return { text: overflow.text, offsetX, offsetY: overflow.offsetY };
-    }
-    return { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+    const fitted =
+        best == null
+            ? { text, offsetX: 0, offsetY: 0 }
+            : { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+    // A best that lost text is consistent, and only a preserved one is laid out past the shape.
+    const overflows = best != null && preservesText(options) && bestKept < wanted;
+    return { kind: 'plain', options, region, align, boxed, fitted, source: overflows ? source : undefined, lineHeight };
 }
 
 /** Holds each row of a preserved block to its room in every held block height, until the wrap draws one of them. */
@@ -714,9 +805,8 @@ function refineSegmentsToRegion(
     region: FitRegion,
     align: RegionAlign,
     limit: number,
-    boxed: boolean,
-    overflowPlacement: OverflowPlacement
-) {
+    boxed: boolean
+): PreparedSegmentWrap {
     const sourceHeight = measureText(text, options.font).height;
     let height = sourceHeight;
     let lines = 1;
@@ -740,8 +830,17 @@ function refineSegmentsToRegion(
         if (next === height) break;
         height = next;
     }
+    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
+    const fitted = { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
+    return { kind: 'segments', text, options, passOptions, region, align, boxed, sourceHeight, fitted };
+}
+
+function placeSegmentsInRegion(prepared: PreparedSegmentWrap, overflowPlacement: OverflowPlacement) {
+    const { text, options, passOptions, region, align, boxed, sourceHeight, fitted } = prepared;
+    if (overflowPlacement === 'none' || !preservesText(options)) return fitted;
+    prepared.lostImage ??= lostImageToHeight(text, fitted.text, passOptions);
     // Preserved segments keep their text past the shape as before, so only one that lost an image is laid out past it.
-    if (overflowPlacement !== 'none' && preservesText(options) && lostImageToHeight(text, result, passOptions)) {
+    if (prepared.lostImage) {
         const overflow = wrapOverflowingBlock(
             region,
             align,
@@ -756,8 +855,7 @@ function refineSegmentsToRegion(
         );
         return { text: overflow.text, offsetX: 0, offsetY: overflow.offsetY };
     }
-    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
-    return { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
+    return fitted;
 }
 
 /** Whether `result` dropped an image the same wrap keeps without its height bound; a text-only source is one scan. */
@@ -802,6 +900,16 @@ export function keptCharacters(text: NormalisedTextOrSegments): number {
     return kept;
 }
 
+/** {@link keptCharacters} plus one per image, so an image-only label scores as content. */
+export function keptContent(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return keptCharacters(text);
+    let kept = 0;
+    for (const segment of text) {
+        kept += segment.type === 'image' ? 1 : survivingCharacters(toTextString(segment.text));
+    }
+    return kept;
+}
+
 /**
  * Whether a fitted label still shows a character, ignoring the ellipsis and whitespace it can be reduced
  * to. A budget too narrow for any real character leaves a bare `…`, which reads as an artefact rather than
@@ -811,6 +919,15 @@ export function hasRealChars(text: NormalisedTextOrSegments): boolean {
     if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
     for (const segment of text) {
         if (segment.type !== 'image' && survivingCharacters(toTextString(segment.text)) > 0) return true;
+    }
+    return false;
+}
+
+/** Whether a fitted label still shows a character or an image; see {@link hasRealChars}. */
+export function showsContent(text: NormalisedTextOrSegments): boolean {
+    if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
+    for (const segment of text) {
+        if (segment.type === 'image' || survivingCharacters(toTextString(segment.text)) > 0) return true;
     }
     return false;
 }
@@ -1170,9 +1287,16 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     // A shape-bounded label narrows per line, so every width test below asks for the line being built.
     // Lines are uniform height here: one font per call, with segments driving their own offset in.
     const lineHeight = options.maxWidthAt == null ? 0 : (options.lineHeight ?? measurer.lineHeight());
+    // OPTIMIZATION: a row's width is asked for several times while it is built, and a shape answers it the same.
+    let widthRow = -1;
+    let rowWidth = 0;
     const maxWidth = () => {
-        const top = blockTop + result.length * lineHeight;
-        return lineMaxWidth(options, top, top + lineHeight);
+        if (result.length !== widthRow) {
+            const top = blockTop + result.length * lineHeight;
+            rowWidth = lineMaxWidth(options, top, top + lineHeight);
+            widthRow = result.length;
+        }
+        return rowWidth;
     };
 
     if (options.textWrap === 'never') {
@@ -1337,16 +1461,16 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
         return lines;
     }
 
-    const { height, lineMetrics } = measurer.measureLines(lines);
-    // An explicit line height is the spacing the text is drawn with, so it is what has to fit.
-    const totalHeight = options.lineHeight == null ? height : lines.length * options.lineHeight;
+    // OPTIMIZATION: an explicit line height is the spacing the text is drawn with, so it fits unmeasured.
+    const measured = options.lineHeight == null ? measurer.measureLines(lines) : undefined;
+    const totalHeight = measured?.height ?? lines.length * options.lineHeight!;
     if (totalHeight <= options.maxHeight) {
         return lines;
     }
 
-    const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+    const lineHeightAt = (i: number) => options.lineHeight ?? measured!.lineMetrics[i].height;
 
-    for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
+    for (let i = 0, cumulativeHeight = 0; i < lines.length; i++) {
         const lineTop = cumulativeHeight;
         cumulativeHeight += lineHeightAt(i);
         if (cumulativeHeight > options.maxHeight) {

@@ -31,6 +31,7 @@ import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
     type LabelAvoidance,
+    type LabelFitOptions,
     type LabelObstacle,
     type LabelPlacement,
     type OrientationAnchor,
@@ -44,6 +45,7 @@ import {
     labelGlyphCentre,
     labelsAvoidAxisLabels,
     placeLabels,
+    resolveAlwaysLabelFit,
     resolveLabelFit,
     writeLabelBoxCentre,
 } from './labelPlacement';
@@ -2867,6 +2869,25 @@ describe('resolveLabelFit', () => {
             expect(fit?.overflowStrategy).toBe(expected);
         }
     );
+});
+
+describe('resolveAlwaysLabelFit', () => {
+    it.each<[string, LabelFitOptions, object]>([
+        ['no fit options', {}, {}],
+        ['a bound alone', { maxWidth: 120 }, { maxWidth: 120 }],
+        ['wrapping', { wrapping: 'on-space' }, { wrapping: 'on-space' }],
+        ['truncate', { maxWidth: 120, truncate: true }, { maxWidth: 120, overflowStrategy: 'ellipsis' }],
+        ['a minimum font size', { minimumFontSize: 8 }, { minimumFontSize: 8 }],
+    ])('returns a policy for %s', (_, fit, policy) => {
+        expect(resolveAlwaysLabelFit(fit)).toEqual(policy);
+    });
+
+    it.each<[string, LabelFitOptions, string]>([
+        ['hides an overflow', {}, 'hide'],
+        ['truncates when asked to', { truncate: true }, 'ellipsis'],
+    ])('with hideOnOverflow %s', (_, fit, overflowStrategy) => {
+        expect(resolveAlwaysLabelFit(fit, true)).toEqual({ overflowStrategy });
+    });
 });
 
 describe('sectorLabelContainer', () => {
