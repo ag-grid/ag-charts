@@ -72,6 +72,7 @@ export class BandHighlight extends AbstractModuleInstance {
     private readonly rangeNode: Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
     private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
+    private seriesHighlight?: _ModuleSupport.HighlightNodeDatum = undefined;
 
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
@@ -93,6 +94,7 @@ export class BandHighlight extends AbstractModuleInstance {
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
+            eventsHub.on('highlight:change', (event) => this.onSeriesHighlightChange(event)),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
             eventsHub.on('zoom:change-complete', () => this.clearAllHighlight()),
             eventsHub.on('dom:resize', () => this.clearAllHighlight()),
@@ -141,10 +143,19 @@ export class BandHighlight extends AbstractModuleInstance {
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
+    private onSeriesHighlightChange({ currentHighlight, highlightInViewport }: _ModuleSupport.HighlightChangeEvent) {
+        // Only recorded here: a pointer highlight must not move the band, which follows the pointer itself.
+        this.seriesHighlight = highlightInViewport ? currentHighlight : undefined;
+    }
+
+    // Focus changes fire after the highlight change, so `seriesHighlight` is the newly focused datum.
     private onKeyPress() {
-        if (this.ctx.interactionManager.isState(InteractionState.Default)) {
-            this.onHighlightChange();
-        }
+        if (!this.ctx.interactionManager.isState(InteractionState.Default)) return;
+
+        const { axisCtx, seriesHighlight } = this;
+        const midPoint = seriesHighlight?.midPoint;
+        const onThisAxis = seriesHighlight?.series.axes[axisCtx.direction]?.id === axisCtx.axisId;
+        this.onHighlightChange(onThisAxis && midPoint != null ? axisCtx.pickBand(midPoint) : undefined);
     }
 
     private onHoverLikeEvent(event: HoverLikeEvent): void {
