@@ -3,12 +3,16 @@
 import { AgCartesianChartOptions, AgCharts, AgItemShadowStyle, VERSION } from 'ag-charts-community';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
+import { ChartRef, isReleaseBelow, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
 
 // Without a cap on distinct casts, 1,000 distinct blurs can outlast the update timeout, so the `-distinct` case has fewer
 // items; `-distinct-1000` times the cap at the full size.
 const ITEMS = 1000;
 const DISTINCT_ITEMS = 100;
+
+// The first release whose item stylers return a shadow and a glow, and whose bar and scatter series take a glow.
+const MIN_VERSION = '15.0.0';
+const LIKE_FOR_LIKE_MODES: ReadonlySet<StylerMode> = new Set(['none', 'neither']);
 
 type SeriesType = 'bar' | 'scatter';
 type StylerMode = 'none' | 'neither' | 'neitherSet' | 'shared' | 'sparse' | 'distinct';
@@ -116,10 +120,10 @@ async function prepare(seriesType: SeriesType, mode: StylerMode, items: number) 
     await chartRef.current.waitForUpdate();
 }
 
-// A build that can't take a `shadow` or `glow` from an `itemStyler` ignores them: compare those variants only to one that can.
-
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
+    // An older release ignores these shadows and glows, so it would draw less than the head: skip all but 'none' and 'neither'.
+    const styled = !isReleaseBelow(VERSION, MIN_VERSION);
     const sizes: { suffix: string; items: number; modes: StylerMode[] }[] = [
         { suffix: '', items: ITEMS, modes: ['none', 'neither', 'neitherSet', 'shared', 'sparse'] },
         { suffix: '-distinct', items: DISTINCT_ITEMS, modes: ['none', 'shared', 'distinct'] },
@@ -131,8 +135,10 @@ function getBenchmarkConfig(): BenchmarkConfig {
             const variants: BenchmarkConfig['testCases'][number]['variants'] = [];
             for (const mode of modes) {
                 const params = { Styler: MODE_LABELS[mode] };
+                const available = styled || LIKE_FOR_LIKE_MODES.has(mode);
                 variants.push({
                     params: { ...params, Operation: 'Chart Create' },
+                    available,
                     run: () =>
                         performInitialLoad(buildOptions(seriesType, mode, items, container), chartRef, (opts) => {
                             current = undefined;
@@ -141,6 +147,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 });
                 variants.push({
                     params: { ...params, Operation: 'Hover x10' },
+                    available,
                     run: async () => {
                         await prepare(seriesType, mode, items);
                         return performDatumHighlight(chartRef.current!, container, 10);
@@ -156,6 +163,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
     }
 
     return {
+        warnings: styled ? undefined : [`Skipped styler shadow and glow variants (requires >= ${MIN_VERSION})`],
         testCases,
         config: {
             updatesPerTest: 10,
