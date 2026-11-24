@@ -1297,7 +1297,7 @@ describe('ChartTheme', () => {
             fillOpacity?: number;
             stroke?: string;
             strokeWidth?: number;
-            marker: { shape?: string; fill?: string };
+            marker: { enabled?: boolean; shape?: string; fill?: string };
         }
 
         const cartesianSeries = (type: 'bar' | 'line' | 'area', seriesOptions: object[] = []) =>
@@ -1326,12 +1326,13 @@ describe('ChartTheme', () => {
         );
 
         it.each(['ag-accessible', 'ag-accessible-dark'] as const)(
-            'gives each %s line series its own solid marker shape',
+            'shows each %s line series with its own solid marker shape',
             async (theme) => {
                 const series = await createThemedChart(theme, cartesianSeries('line'));
 
                 expect(series.map((s) => s.marker.shape)).toEqual(['circle', 'square', 'triangle']);
                 for (const { marker, stroke } of series) {
+                    expect(marker.enabled).toBe(true);
                     expect(marker.fill).toMatch(/^#[0-9a-f]{6}$/);
                     expect(stroke).toMatch(/^#[0-9a-f]{6}$/);
                 }

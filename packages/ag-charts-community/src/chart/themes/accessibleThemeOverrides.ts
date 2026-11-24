@@ -177,10 +177,9 @@ const ACCESSIBLE_THEME_OVERRIDES: WithThemeParams<AgThemeOverrides> = {
         chartToolbar: { buttonSize: CONTROL_TARGET_SIZE },
         // Shares the chart toolbar, so it needs its own size to keep the default 34px buttons.
         annotations: { toolbar: { buttonSize: 34 } },
-        loadGoogleFonts: true,
     },
     line: {
-        series: { marker: { enabled: false, ...SOLID_MARKER, size: MARKER_SIZE }, strokeWidth: 2 },
+        series: { marker: { ...SOLID_MARKER, size: MARKER_SIZE }, strokeWidth: 2 },
         legend: { item: { line: { length: 48 }, marker: { size: 12 } } },
     },
     area: {
