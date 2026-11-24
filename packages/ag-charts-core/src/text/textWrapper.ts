@@ -1488,7 +1488,7 @@ export function clipLines(
             const lastLine = clippedResults.pop()!;
             const maxWidth = lineMaxWidth(options, lineTop - lineHeightAt(i - 1), lineTop);
             if (isTextTruncated(lastLine)) return clippedResults.concat(lastLine);
-            // Unmeasured lines are measured only as the refill reaches them, bounded by maxWidth.
+            // OPTIMIZATION: unmeasured lines are measured only as the refill reaches them, bounded by maxWidth.
             let refilled = lastLine;
             let width = measured?.lineMetrics[i - 1].width ?? measurer.textWidth(lastLine);
             for (let j = i; j < lines.length && width <= maxWidth && rejoinsBreak(breaksBefore[j]); j++) {
