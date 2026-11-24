@@ -4297,6 +4297,29 @@ describe('placeLabels slot trade', () => {
                     { text: 'blocked', y: 280 },
                 ]);
             });
+
+            // The holder's fallback lands on a label resolved after it that touches the holder's bar.
+            it('keeps the pair when the holder would land on a label resolved after it', () => {
+                const heldBar = { x: 0, y: 257, width: 50, height: 100 };
+                const betweenBar = { x: 200, y: 300, width: 50, height: 50 };
+                const between = bar('between', betweenBar, [
+                    { box: { x: 30, y: 262, width: 30, height: 16 } },
+                    { box: { x: 300, y: 10, width: 30, height: 16 } },
+                ]);
+                const blockedBar = { x: 400, y: 300, width: 50, height: 50 };
+
+                expect(
+                    placedYs([
+                        bar('held', heldBar, [at(240), at(262)]),
+                        between,
+                        bar('blocked', blockedBar, [at(234), at(280)]),
+                    ])
+                ).toEqual([
+                    { text: 'held', y: 240 },
+                    { text: 'between', y: 262 },
+                    { text: 'blocked', y: 280 },
+                ]);
+            });
         });
 
         it.each([
@@ -4532,6 +4555,28 @@ describe('placeLabels slot trade', () => {
                     { text: 'blocked', y: 234 },
                 ]);
                 expect(calls).toEqual(['held@240', 'blocked@234', 'blocked@254', 'blocked@280', 'held@262']);
+            });
+
+            it('replays no resolution of an earlier series', () => {
+                const calls: string[] = [];
+                const otherBar = { x: 300, y: 0, width: 50, height: 400 };
+                const other = barDatum('other', otherBar, [
+                    { box: { x: 310, y: 100, width: 30, height: 16 } },
+                    { box: { x: 310, y: 150, width: 30, height: 16 } },
+                ]);
+                const wall: LabelObstacle = {
+                    kind: 'rect',
+                    category: 'label',
+                    box: { x: 310, y: 100, width: 30, height: 16 },
+                };
+                const series = { a: [other], s: [held([240, 262]), blocked([234, 254, 280])] };
+
+                expect(ysOf(solve(series, [wall], { resolveCandidate: logResolutions(calls) }))).toEqual([
+                    { text: 'other', y: 150 },
+                    { text: 'held', y: 262 },
+                    { text: 'blocked', y: 234 },
+                ]);
+                expect(calls.at(-1)).toBe('held@262');
             });
 
             it('trades on what the styler first resolved, however it answers when called again', () => {

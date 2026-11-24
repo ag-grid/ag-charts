@@ -705,6 +705,7 @@ interface PooledLabelObstacle {
     outranks: boolean | undefined;
     // Slot-trade fields, by value so the pool holds no label, datum or candidate between solves.
     poolIndex: number;
+    insertOrder: number;
     seriesOrdinal: number;
     // Where the label sits in its series' result list.
     resultSlot: number;
@@ -1013,6 +1014,7 @@ function foreignShapeHidden(o: LabelObstacle): boolean {
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
+    if (tradeHolderOrder !== Infinity && insertedAfterHolder(o)) return false;
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
         return true;
     }
@@ -1533,7 +1535,6 @@ export function placeLabels(
             buildObstacleIndex(placementData, obstacles, bounds);
         }
         let labelObstacleCount = 0;
-        solveSerial++;
         for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
             placementData
         )) {
@@ -1543,6 +1544,7 @@ export function placeLabels(
             candidatePaintRank = paintOrder?.get(seriesId);
             solveSeriesOrdinal++;
             seriesTradableCount = 0;
+            releaseMemo();
             const resolves = resolveCandidateStyle != null || resolveCandidate != null;
             for (let index = 0, ln = datums.length; index < ln; index++) {
                 const d = datums[index];
@@ -1622,11 +1624,11 @@ function releaseSolveReferences() {
     boundedFit.region = undefined;
     releaseChoice(bestChoice);
     releaseChoice(keptChoiceBackup);
-    for (let i = 0; i < memoTop; i++) memoValues[i] = undefined;
-    memoTop = 0;
+    releaseMemo();
     labelMemoBase = -1;
     tradeHolder = undefined;
     tradeReplaying = false;
+    tradeHolderOrder = Infinity;
 }
 
 function releaseChoice(choice: CandidateChoice) {
@@ -1659,6 +1661,7 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
             labelGroup,
             outranks,
             poolIndex: count,
+            insertOrder: 0,
             seriesOrdinal: 0,
             resultSlot: 0,
             memoBase: -1,
@@ -1687,15 +1690,19 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     } else {
         obstacle.kind = 'rect';
     }
+    obstacle.insertOrder = ++labelInsertOrder;
     obstacleIndex.insert(box, obstacle);
     return count + 1;
 }
 
 // Slot trade: a label held off its first choice by one earlier same-series label may swap with it.
 const TRADE_TOLERANCE = 1e-6;
-// Bumped per solve and per series, so a memo slot or pool entry stamped by an earlier one never matches.
-let solveSerial = 0;
+// Bumped per series, so a memo slot or pool entry stamped by an earlier series or solve never matches.
 let solveSeriesOrdinal = 0;
+// Stamped on each label entry as it enters the index, so a re-resolved holder knows which labels never tested it.
+let labelInsertOrder = 0;
+// The holder's insert order while a trade re-resolves it; labels inserted later must be avoided outright.
+let tradeHolderOrder = Infinity;
 let seriesTradableCount = 0;
 // The label being resolved records its first choice's footprint, and may look for a holder there.
 let labelTracksBaseline = false;
@@ -1706,16 +1713,18 @@ let tradeHolder: PooledLabelObstacle | undefined;
 let tradeBlockedOtherwise = false;
 // A trade re-resolution reads resolved candidates back rather than calling the styler again.
 let tradeReplaying = false;
-// Every resolved candidate of this solve, at `memoBase + candidate index`; valid while its stamp is `solveSerial`.
+// Every resolved candidate of this series, at `memoBase + candidate index`; valid while its stamp is `solveSeriesOrdinal`.
 const memoValues: unknown[] = [];
 const memoStamp: number[] = [];
 let memoTop = 0;
 let labelMemoBase = -1;
 // Whether the label the cascade just returned fits its region and clears every obstacle.
 let placedClear = false;
-const tradeCentre: Point = { x: 0, y: 0 };
-const tradeOtherCentre: Point = { x: 0, y: 0 };
-const tradeRect: OrientedRect = { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 };
+// Footprint centres of the pair before (placed, held) and after (traded, moved) a trade.
+const placedCentre: Point = { x: 0, y: 0 };
+const heldCentre: Point = { x: 0, y: 0 };
+const tradedCentre: Point = { x: 0, y: 0 };
+const movedCentre: Point = { x: 0, y: 0 };
 
 /** Candidates the label's cascade can reach: its positioned list, or every placement × orientation. */
 function tradeCandidateCount(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): number {
@@ -1742,16 +1751,22 @@ function beginLabelTrade(candidateCount: number, resolves: boolean) {
 function replayableSlot(k: number): number {
     if (labelMemoBase < 0) return -1;
     const slot = labelMemoBase + k;
-    return memoStamp[slot] === solveSerial ? slot : -1;
+    return memoStamp[slot] === solveSeriesOrdinal ? slot : -1;
 }
 
 /** Keeps the first resolution of each candidate, so a trade replays what the label's own cascade saw. */
 function storeResolution(k: number, value: unknown) {
     if (labelMemoBase < 0) return;
     const slot = labelMemoBase + k;
-    if (memoStamp[slot] === solveSerial) return;
+    if (memoStamp[slot] === solveSeriesOrdinal) return;
     memoValues[slot] = value;
-    memoStamp[slot] = solveSerial;
+    memoStamp[slot] = solveSeriesOrdinal;
+}
+
+/** Trades never cross series, so each series starts the memo afresh and keeps no earlier resolution alive. */
+function releaseMemo() {
+    for (let i = 0; i < memoTop; i++) memoValues[i] = undefined;
+    memoTop = 0;
 }
 
 /** The `ci`-th positioned candidate as the series' styler resolves it; outside a trade the styler runs as it always has. */
@@ -1856,25 +1871,25 @@ function tryTrade(
 ): PlacedLabel | undefined {
     const holder = tradeHolder!;
     tradeHolder = undefined;
-    const placedCost = tradeCost(placed, labelBaseline);
+    const placedCost = footprintCost(placedCentre, placed, labelBaseline);
     if (placedCost <= TRADE_TOLERANCE || holder.keepPolicy !== keepPolicyOf(d, defaults)) return placed;
     const held = labels[holder.resultSlot];
-    const before = placedCost + tradeCost(held, holder.baseline);
+    const before = placedCost + footprintCost(heldCentre, held, holder.baseline);
     const memoBase = labelMemoBase;
     obstacleIndex.remove(holder.box, holder);
     labelTracksBaseline = false;
     tradeReplaying = true;
-    let traded: PlacedLabel | undefined;
     let inserted = false;
     let committed = false;
     try {
-        traded = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
+        const traded = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
         if (traded == null || !placedClear || losesText(traded, placed)) return placed;
-        const tradedCost = tradeCost(traded, labelBaseline);
+        const tradedCost = footprintCost(tradedCentre, traded, labelBaseline);
         if (tradedCost > before + TRADE_TOLERANCE) return placed;
         insertLabelObstacle(traded, poolSlot);
         inserted = true;
         labelMemoBase = holder.memoBase;
+        tradeHolderOrder = holder.insertOrder;
         const moved = tryPlaceLabel(
             held.datum,
             defaults,
@@ -1885,16 +1900,15 @@ function tryTrade(
             resolveCandidate
         );
         if (moved == null || !placedClear || losesText(moved, held)) return placed;
-        // An exclusion such as the own-bar rule can let the holder ignore the traded label.
-        if (overlapsLabelEntry(moved, labelObstaclePool[poolSlot])) return placed;
-        const after = tradedCost + tradeCost(moved, holder.baseline);
-        if (!tradeImproves(before, after, held, placed, moved, traded, holder.baseline)) return placed;
+        const after = tradedCost + footprintCost(movedCentre, moved, holder.baseline);
+        if (!tradeImproves(before, after, placed != null, holder.baseline)) return placed;
         committed = true;
         insertLabelObstacle(moved, holder.poolIndex);
         labels[holder.resultSlot] = moved;
         return traded;
     } finally {
         tradeReplaying = false;
+        tradeHolderOrder = Infinity;
         labelTracksBaseline = true;
         labelMemoBase = memoBase;
         if (inserted) obstacleIndex.remove(labelObstaclePool[poolSlot].box, labelObstaclePool[poolSlot]);
@@ -1902,60 +1916,33 @@ function tryTrade(
     }
 }
 
-/** Whether `placed` overlaps the label `entry` holds, tested by the shapes the obstacle index would use. */
-function overlapsLabelEntry(placed: PlacedLabel, entry: PooledLabelObstacle): boolean {
-    const box = labelObstacleBox(placed);
-    if (!boxCollides(entry.box, box.x, box.y, box.width, box.height)) return false;
-    const { rotation } = placed;
-    if (rotation == null || !collidesByRotatedRect(placed.candidate, rotation)) {
-        return entry.kind !== 'orientedRect' || orientedRectOverlapsBox(entry.rect, box);
-    }
-    writeOrientedRect(tradeRect, box.x + box.width / 2, box.y + box.height / 2, placed.width, placed.height, rotation);
-    return entry.kind === 'orientedRect'
-        ? orientedRectsOverlap(tradeRect, entry.rect)
-        : orientedRectOverlapsBox(tradeRect, entry.box);
+function insertedAfterHolder(o: LabelObstacle): boolean {
+    return ((o as Partial<PooledLabelObstacle>).insertOrder ?? 0) > tradeHolderOrder;
 }
 
-/** How far a label's footprint centre lies from its first choice's; a dropped label is as far as can be. */
-function tradeCost(placed: PlacedLabel | undefined, baseline: BoxBounds): number {
+/** Writes a label's footprint centre to `out` and returns its distance from its first choice's; a dropped label is as far as can be. */
+function footprintCost(out: Point, placed: PlacedLabel | undefined, baseline: BoxBounds): number {
     if (placed == null) return Infinity;
-    writeFootprintCentre(tradeCentre, placed);
-    return Math.hypot(
-        tradeCentre.x - (baseline.x + baseline.width / 2),
-        tradeCentre.y - (baseline.y + baseline.height / 2)
-    );
-}
-
-function writeFootprintCentre(out: Point, placed: PlacedLabel) {
     const { x, y, width, height } = labelObstacleBox(placed);
     out.x = x + width / 2;
     out.y = y + height / 2;
+    return Math.hypot(out.x - (baseline.x + baseline.width / 2), out.y - (baseline.y + baseline.height / 2));
 }
 
 /** Equal displacement trades only to uncross a pair whose labels sit opposite to their first choices' order. */
-function tradeImproves(
-    before: number,
-    after: number,
-    held: PlacedLabel,
-    placed: PlacedLabel | undefined,
-    moved: PlacedLabel,
-    traded: PlacedLabel,
-    heldBaseline: BoxBounds
-): boolean {
+function tradeImproves(before: number, after: number, placedExists: boolean, heldBaseline: BoxBounds): boolean {
     if (after < before - TRADE_TOLERANCE) return true;
-    if (after > before + TRADE_TOLERANCE || placed == null) return false;
-    return pairCrossed(held, placed, heldBaseline) && !pairCrossed(moved, traded, heldBaseline);
+    if (after > before + TRADE_TOLERANCE || !placedExists) return false;
+    return (
+        pairCrossed(heldCentre, heldBaseline, placedCentre, labelBaseline) &&
+        !pairCrossed(movedCentre, heldBaseline, tradedCentre, labelBaseline)
+    );
 }
 
-function pairCrossed(held: PlacedLabel, placed: PlacedLabel, heldBaseline: BoxBounds): boolean {
-    writeFootprintCentre(tradeCentre, held);
-    writeFootprintCentre(tradeOtherCentre, placed);
-    const baseDX = heldBaseline.x + heldBaseline.width / 2 - (labelBaseline.x + labelBaseline.width / 2);
-    const baseDY = heldBaseline.y + heldBaseline.height / 2 - (labelBaseline.y + labelBaseline.height / 2);
-    return (
-        Math.sign(tradeCentre.x - tradeOtherCentre.x) * Math.sign(baseDX) < 0 ||
-        Math.sign(tradeCentre.y - tradeOtherCentre.y) * Math.sign(baseDY) < 0
-    );
+function pairCrossed(a: Point, aBaseline: BoxBounds, b: Point, bBaseline: BoxBounds): boolean {
+    const baseDX = aBaseline.x + aBaseline.width / 2 - (bBaseline.x + bBaseline.width / 2);
+    const baseDY = aBaseline.y + aBaseline.height / 2 - (bBaseline.y + bBaseline.height / 2);
+    return Math.sign(a.x - b.x) * Math.sign(baseDX) < 0 || Math.sign(a.y - b.y) * Math.sign(baseDY) < 0;
 }
 
 /** Whether `next` drops more characters than `previous` or renders at a smaller font size. */
