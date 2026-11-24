@@ -238,10 +238,12 @@ runs:
 
         - name: Check Nx cache DB machine ID
           # Nx only restores artifacts recorded in its cache DB, which it names after the machine ID
-          # (.nx/workspace-data/<id>-v6.db). The restored DB was written on another runner, so cache
-          # hits depend on hosted runners sharing one machine ID. If they stop sharing it, Nx ignores
-          # the whole restored cache and the only sign is a slower run, so warn here instead.
+          # (.nx/workspace-data/<id>-v6.db). Hosted runners share a machine ID only within one runner
+          # image, so a cache saved on another image (an image rollout, or ubuntu-latest vs a pinned
+          # ubuntu-NN.04) is ignored in full. Nx's own "Unrecognized Cache Artifacts" warning is easy
+          # to miss in the log, so raise an annotation. Diagnostic only: it must never fail setup.
           if: runner.os == 'Linux' && inputs.cache_mode != 'off' && inputs.nx_restore != 'false'
+          continue-on-error: true
           shell: bash
           run: |
               shopt -s nullglob
@@ -249,7 +251,11 @@ runs:
               raw_id=$( (cat /var/lib/dbus/machine-id /etc/machine-id 2>/dev/null || hostname) | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
               hashed_id=$(printf '%s' "$raw_id" | sha256sum | cut -d' ' -f1)
               dbs=(.nx/workspace-data/*.db)
-              entries=$(find .nx/cache -mindepth 1 -maxdepth 1 -type d ! -name terminalOutputs 2>/dev/null | wc -l | tr -d ' ')
+              entries=0
+              if [ -d .nx/cache ]; then
+                  entries=$(find .nx/cache -mindepth 1 -maxdepth 1 -type d ! -name terminalOutputs | wc -l | tr -d ' ')
+              fi
+              echo "Runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
               echo "Machine ID: ${raw_id} (sha256 ${hashed_id})"
               echo "Restored Nx cache entries: ${entries}"
               echo "Restored Nx cache DBs: ${dbs[*]:-none}"
@@ -265,7 +271,7 @@ runs:
                           ;;
                   esac
               done
-              echo "::warning title=Nx cache DB from another machine::Restored ${entries} Nx cache entries, but no cache DB in .nx/workspace-data matches machine ID ${raw_id}. Nx will ignore the restored cache. See https://nx.dev/troubleshooting/unknown-local-cache"
+              echo "::warning title=Nx cache DB from another machine::Restored ${entries} Nx cache entries, but no cache DB in .nx/workspace-data matches machine ID ${raw_id} (runner image ${ImageOS:-unknown} ${ImageVersion:-unknown}). Nx will ignore the restored cache, usually because it was saved on a different runner image. See https://nx.dev/troubleshooting/unknown-local-cache"
 
         - name: Setup Node.js
           id: setup_node
