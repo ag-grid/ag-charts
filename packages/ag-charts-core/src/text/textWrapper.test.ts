@@ -570,6 +570,12 @@ describe('wrapLines', () => {
         ])('runs after clipping: %s', (_, text, expected) => {
             expect(wrapLines(text, { font, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT })).toEqual(expected);
         });
+
+        it('does not rejoin across an explicit line break after a row the shape dropped', () => {
+            const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 100 : 50);
+            const options = { font, maxWidth: 100, lineHeight: LINE_HEIGHT, maxWidthAt };
+            expect(wrapLines(`AA BB CC ${WIDE_GRAPHEME}\nD`, options)).toEqual(['AA BB CC', 'D']);
+        });
     });
 
     describe('overflow: hide', () => {
