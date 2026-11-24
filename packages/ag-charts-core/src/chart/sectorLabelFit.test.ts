@@ -276,4 +276,31 @@ describe('sectorLabelPlacer', () => {
         expect(placeGolf()?.text).toBe('Golf');
         expect(placeGolf()).toEqual(placeGolf('hide'));
     });
+
+    // Synchronous, so no suspended async frame keeps the placed text alive across the await below.
+    function placeTracked(refs: WeakRef<object>[]) {
+        const text = [{ text: 'Alpha Bravo Charlie' }, image(16)];
+        refs.push(new WeakRef(text));
+        const placed = sectorLabelPlacer(
+            anchorAt(100, Math.PI / 2),
+            sector(Math.PI / 2, Math.PI / 8, 0, 200),
+            NO_PADDING,
+            {},
+            0,
+            0
+        )({ text, policy: {}, font: { fontSize: 12, fontFamily: 'sans-serif' } });
+        if (typeof placed?.text === 'object') refs.push(new WeakRef(placed.text));
+        return refs.length;
+    }
+
+    it('keeps no reference to the label it placed once it returns', async () => {
+        const { gc } = globalThis;
+        if (gc == null) throw new Error('Run with --expose-gc');
+        const refs: WeakRef<object>[] = [];
+        expect(placeTracked(refs)).toBe(2);
+        // A WeakRef keeps its target alive until the job that created it ends.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        gc();
+        expect(refs.filter((ref) => ref.deref() != null)).toHaveLength(0);
+    });
 });

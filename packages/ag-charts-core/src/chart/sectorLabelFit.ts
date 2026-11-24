@@ -535,6 +535,7 @@ export function sectorLabelPlacer(
             placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, layout);
         } finally {
             wedgeInset.release();
+            wedgeNode!.text = '';
         }
         if (!showsContent(placed.text)) return undefined;
         return { text: placed.text, x: centreX + placed.x, y: centreY + placed.y, fontSize: placed.fontSize };
