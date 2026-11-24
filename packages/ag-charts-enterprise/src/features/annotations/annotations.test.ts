@@ -68,7 +68,15 @@ describe('Annotations', () => {
     const compare = () => compareAnnotationsSnapshot(chart, ctx);
     const applyAnnotations = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
     const CANCEL = '.ag-charts-color-picker__cancel-button';
-    const CONFIRM = '.ag-charts-color-picker__confirm-button';
+    const APPLY = '.ag-charts-color-picker__apply-button';
+    const PALETTE = '.ag-charts-color-picker__palette';
+    const DIALOG_CANCEL = '.ag-charts-dialog__actions button:first-child';
+    const DIALOG_APPLY = '.ag-charts-dialog__actions button:last-child';
+    /** The example with Apply and Cancel buttons on the colour picker and the settings dialog. */
+    const TOOL_BUTTONS_OPTIONS: AgCartesianChartOptions = {
+        ...ANNOTATIONS_EXAMPLE_OPTIONS,
+        annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, optionsToolbar: { showToolButtons: true } },
+    };
     const RED = '#ff0000';
     const GREEN = '#00aa00';
     const BLUE = '#0000ff';
@@ -82,6 +90,12 @@ describe('Annotations', () => {
 
     const press = async (selector: string) => {
         chartBody().querySelector<HTMLElement>(selector)!.click();
+        await waitForChartStability(chart);
+    };
+
+    const pressKeyOn = async (selector: string, key: 'Enter' | 'Escape') => {
+        const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+        chartBody().querySelector(selector)!.dispatchEvent(event);
         await waitForChartStability(chart);
     };
 
@@ -1665,7 +1679,7 @@ describe('Annotations', () => {
             panelControls('.ag-charts-dialog__color-picker-button')[index].click();
             await waitForChartStability(chart);
             await pickColor(color);
-            await press(CONFIRM);
+            await pressKeyOn(PALETTE, 'Enter');
         }
 
         async function editTextTab(value: string) {
@@ -1863,20 +1877,16 @@ describe('Annotations', () => {
         });
     });
 
-    describe('colour picker confirm and cancel', () => {
+    describe('colour picker and settings dialog apply and cancel', () => {
         const annotation = () => chart.getState().annotations?.[0] as Record<string, any>;
+        const LINE = 'button[title="Line Color"]';
 
-        const pressEnterOn = async (selector: string) => {
-            const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
-            chartBody().querySelector(selector)!.dispatchEvent(event);
-            await waitForChartStability(chart);
-        };
-        const pressEscape = async () => {
-            const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
-            chartBody().querySelector('.ag-charts-color-picker__palette')!.dispatchEvent(event);
-            await waitForChartStability(chart);
-        };
+        const pressEnterOn = (selector: string) => pressKeyOn(selector, 'Enter');
+        const pressEscape = () => pressKeyOn(PALETTE, 'Escape');
         const hasPicker = () => chartBody().querySelector('.ag-charts-color-picker') != null;
+        const hasDialog = () => chartBody().querySelector('.ag-charts-dialog') != null;
+        const isDisabled = (selector: string) =>
+            chartBody().querySelector(selector)!.getAttribute('aria-disabled') === 'true';
         const toolbarSwatch = () =>
             chartBody().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
         const dialogSwatches = () =>
@@ -1884,56 +1894,72 @@ describe('Annotations', () => {
                 (button) => button.style.getPropertyValue('--color')
             );
 
-        async function select(annotations: NonNullable<AgCartesianChartOptions['initialState']>['annotations']) {
-            await prepareChart({ annotations });
+        async function select(
+            annotations: NonNullable<AgCartesianChartOptions['initialState']>['annotations'],
+            options = TOOL_BUTTONS_OPTIONS
+        ) {
+            await prepareChart({ annotations }, options);
             const { x, y, width, height } = getSeriesRect(chart);
             await hoverAction(x + width / 2, y + height / 2)(chart);
             await clickAction(x + width / 2, y + height / 2)(chart);
             await waitForChartStability(chart);
         }
 
-        it('confirms, cancels and closes from the options toolbar', async () => {
+        it('applies and cancels from the options toolbar', async () => {
             await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 4 }]);
-            const swatchBefore = (await press('button[title="Line Color"]'), toolbarSwatch());
+            const swatchBefore = (await press(LINE), toolbarSwatch());
+
+            // Apply has nothing to apply until the colour changes.
+            expect(isDisabled(APPLY)).toBe(true);
+            expect(isDisabled(CANCEL)).toBe(false);
+            await pickColor('#00ff00');
+            expect(isDisabled(APPLY)).toBe(false);
 
             // Cancel reverts the colour, closes only the picker and restores the toolbar swatch.
-            await pickColor('#00ff00');
             expect(toolbarSwatch()).not.toBe(swatchBefore);
             await press(CANCEL);
             expect(hasPicker()).toBe(false);
             expect(toolbarSwatch()).toBe(swatchBefore);
             await compare();
 
-            // Enter presses the focused Cancel button rather than closing the picker with the colour kept.
-            await press('button[title="Line Color"]');
+            // Enter presses the focused Cancel button rather than applying the colour.
+            await press(LINE);
             await pickColor('#00ff00');
             await pressEnterOn(CANCEL);
             expect(hasPicker()).toBe(false);
             expect(annotation().stroke).toBe('#ff0000');
 
-            // Escape closes the picker and keeps the colour.
-            await press('button[title="Line Color"]');
-            await pickColor('#0000ff');
+            // Escape cancels.
+            await press(LINE);
+            await pickColor('#00ff00');
             await pressEscape();
+            expect(hasPicker()).toBe(false);
+            expect(annotation().stroke).toBe('#ff0000');
+            expect(toolbarSwatch()).toBe(swatchBefore);
+
+            // Enter applies.
+            await press(LINE);
+            await pickColor('#0000ff');
+            await pressEnterOn(PALETTE);
             expect(hasPicker()).toBe(false);
             await compare();
 
             // Cancelling without a change leaves the earlier change alone.
-            await press('button[title="Line Color"]');
+            await press(LINE);
             await press(CANCEL);
             expect(annotation().stroke).toBe('#0000ff');
 
             // Picking a colour and then the original back leaves no trace, and does not undo the earlier change.
-            await press('button[title="Line Color"]');
+            await press(LINE);
             await pickColor('#00ff00');
             await pickColor('#0000ff');
             await press(CANCEL);
             expect(annotation().stroke).toBe('#0000ff');
 
-            // Confirm keeps the colour as a single undo step, and Enter presses the focused button.
-            await press('button[title="Line Color"]');
+            // Apply keeps the colour as a single undo step, and Enter presses the focused button.
+            await press(LINE);
             await pickColor('#00ff00');
-            await pressEnterOn(CONFIRM);
+            await pressEnterOn(APPLY);
             expect(hasPicker()).toBe(false);
             await compare();
 
@@ -1943,7 +1969,7 @@ describe('Annotations', () => {
             await compare();
 
             // Cancelling does not touch the redo history.
-            await press('button[title="Line Color"]');
+            await press(LINE);
             await pickColor('#ff00ff');
             await press(CANCEL);
             expect(annotation().stroke).toBe('#0000ff');
@@ -1952,14 +1978,120 @@ describe('Annotations', () => {
             expect(annotation().stroke).toBe('#00ff00');
         });
 
+        it('has no buttons without `showToolButtons`, and Enter and Escape still apply and cancel', async () => {
+            await select(
+                [{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 4 }],
+                ANNOTATIONS_EXAMPLE_OPTIONS
+            );
+
+            await press(LINE);
+            expect(hasPicker()).toBe(true);
+            expect(chartBody().querySelector('.ag-charts-color-picker__actions')).toBeNull();
+
+            await pickColor('#00ff00');
+            await pressEscape();
+            expect(hasPicker()).toBe(false);
+            expect(annotation().stroke).toBe('#ff0000');
+
+            await press(LINE);
+            await pickColor('#00ff00');
+            await pressEnterOn(PALETTE);
+            expect(hasPicker()).toBe(false);
+            expect(annotation().stroke).toBe('#00ff00');
+            await compare();
+
+            // The colour applies as it is picked, so closing the picker any other way keeps it.
+            await press(LINE);
+            await pickColor('#0000ff');
+            await press(LINE);
+            expect(hasPicker()).toBe(false);
+            expect(annotation().stroke).toBe('#0000ff');
+
+            // The settings dialog has no buttons either.
+            await press('button[title="Settings"]');
+            expect(hasDialog()).toBe(true);
+            expect(chartBody().querySelector('.ag-charts-dialog__actions')).toBeNull();
+        });
+
+        it('applies and cancels the settings dialog as a whole', async () => {
+            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+            const { historyManager } = deproxy(chart).ctx;
+            const edit = async () => {
+                const width = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+                width.value = '8';
+                width.dispatchEvent(new Event('change'));
+                await waitForChartStability(chart);
+                await press('.ag-charts-dialog__color-picker-button');
+                await pickColor('#00ff00');
+                await pressEnterOn(PALETTE);
+            };
+            const original = { stroke: '#ff0000', strokeWidth: 2 };
+
+            // Apply has nothing to apply until something changes.
+            await press('button[title="Settings"]');
+            expect(isDisabled(DIALOG_APPLY)).toBe(true);
+            expect(isDisabled(DIALOG_CANCEL)).toBe(false);
+            await edit();
+            expect(isDisabled(DIALOG_APPLY)).toBe(false);
+            expect(annotation()).toMatchObject({ stroke: '#00ff00', strokeWidth: 8 });
+
+            // Cancel discards every change made in the dialog, whatever closes it.
+            await press(DIALOG_CANCEL);
+            expect(hasDialog()).toBe(false);
+            expect(annotation()).toMatchObject(original);
+            await compare();
+
+            await press('button[title="Settings"]');
+            await edit();
+            await pressKeyOn('select.ag-charts-dialog__select', 'Escape');
+            expect(hasDialog()).toBe(false);
+            expect(annotation()).toMatchObject(original);
+
+            await press('button[title="Settings"]');
+            await edit();
+            await press('.ag-charts-dialog__close-button');
+            expect(annotation()).toMatchObject(original);
+
+            // Apply keeps them as a single undo step.
+            await press('button[title="Settings"]');
+            await edit();
+            await press(DIALOG_APPLY);
+            expect(hasDialog()).toBe(false);
+            expect(annotation()).toMatchObject({ stroke: '#00ff00', strokeWidth: 8 });
+            await compare();
+
+            historyManager.undo();
+            await waitForChartStability(chart);
+            expect(annotation()).toMatchObject(original);
+            historyManager.redo();
+            await waitForChartStability(chart);
+            expect(annotation()).toMatchObject({ stroke: '#00ff00', strokeWidth: 8 });
+
+            // Enter applies, committing the field being edited, but is left to a button or select.
+            await press('button[title="Settings"]');
+            const widthSelect = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+            widthSelect.value = '4';
+            widthSelect.dispatchEvent(new Event('change'));
+            await pressEnterOn('select.ag-charts-dialog__select');
+            expect(hasDialog()).toBe(true);
+            await pressEnterOn('.ag-charts-dialog__color-picker-button');
+            expect(hasDialog()).toBe(true);
+            await press('.ag-charts-dialog__color-picker-button');
+            await pressEscape();
+            expect(hasDialog()).toBe(true);
+            expect(hasPicker()).toBe(false);
+            await pressEnterOn('.ag-charts-dialog__tab-list');
+            expect(hasDialog()).toBe(false);
+            expect(annotation().strokeWidth).toBe(4);
+        });
+
         describe('aria-expanded of the options toolbar', () => {
             const expanded = (title: string) =>
                 chartBody().querySelector<HTMLElement>(`button[title="${title}"]`)!.getAttribute('aria-expanded');
-            const LINE = 'button[title="Line Color"]';
             const closers: Array<[string, () => Promise<void>]> = [
                 ['Escape', () => pressEscape()],
                 ['cancel', () => press(CANCEL)],
-                ['confirm', () => press(CONFIRM)],
+                ['apply', () => press(APPLY)],
                 ['pressing the button again', () => press(LINE)],
             ];
 
