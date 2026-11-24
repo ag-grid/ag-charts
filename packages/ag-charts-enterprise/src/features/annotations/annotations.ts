@@ -147,6 +147,8 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
+    /** Whether a settings dialog with Apply and Cancel is open, so its changes are not yet recorded in the history. */
+    private holdsHistory = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -495,10 +497,16 @@ export class Annotations extends AbstractModuleInstance {
                         cancelled
                     );
 
+                // With Apply and Cancel the dialog's changes are one history entry, made on Apply, or none, on Cancel.
+                const { showToolButtons } = this.optionsToolbar;
+                this.holdsHistory = showToolButtons;
+
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
+                    showToolButtons,
+                    onClose: (applied) => this.endSettingsSession(datum.type, applied),
                     onHide: () => this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, false),
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
@@ -957,14 +965,27 @@ export class Annotations extends AbstractModuleInstance {
         if (!annotationManager) return;
 
         // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
-        // would truncate the redo stack.
-        if (this.isRestoringMemento) return;
+        // would truncate the redo stack. Likewise, the changes of a settings dialog that has yet to be applied.
+        if (this.isRestoringMemento || this.holdsHistory) return;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
             historyManager.record(label, ...originators);
             annotationManager.fireChangedEvent('user-interaction');
         });
+    }
+
+    private endSettingsSession(type: AnnotationType, applied: boolean) {
+        const { defaults, ctx } = this;
+        if (!this.holdsHistory) return;
+
+        this.holdsHistory = false;
+        if (applied) {
+            this.recordActionAfterNextUpdate(`Change ${type} settings`, ['annotations', 'defaults']);
+            this.update();
+        } else if (ctx.annotationManager) {
+            ctx.historyManager.revert(defaults, ctx.annotationManager);
+        }
     }
 
     private endColorPickerSession(label: string, cancelled: boolean) {

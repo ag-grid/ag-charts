@@ -57,7 +57,23 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeTextFontSize: (fontSize: number) => void;
+    /** Called as the dialog closes, with whether it closed through Apply. */
+    onClose?: (applied: boolean) => void;
 }
+
+/** The options of `LinearSettingsDialogOptions` that are called when the user changes something. */
+const CHANGE_CALLBACKS = [
+    'onChangeCoordinates',
+    'onChangeLine',
+    'onChangeText',
+    'onChangeTextContent',
+    'onChangeFillColor',
+    'onChangeLineColor',
+    'onChangeLineStyleType',
+    'onChangeLineStyleWidth',
+    'onChangeTextColor',
+    'onChangeTextFontSize',
+] as const satisfies Array<keyof LinearSettingsDialogOptions>;
 
 export interface LinearSettingsDialogLineChangeProps {
     extendStart?: boolean;
@@ -162,6 +178,7 @@ export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
     private refreshCoordinateInputs?: () => void;
+    private onClose?: (applied: boolean) => void;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
@@ -169,8 +186,12 @@ export class AnnotationSettingsDialog extends Dialog {
 
     protected override onHide() {
         this.refreshCoordinateInputs = undefined;
-        this.events.emit('hidden', null);
+        // First, as closing a colour picker in the dialog reports its change.
         super.onHide();
+        const { onClose, applied } = this;
+        this.onClose = undefined;
+        onClose?.(applied);
+        this.events.emit('hidden', null);
     }
 
     /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
@@ -178,7 +199,9 @@ export class AnnotationSettingsDialog extends Dialog {
         this.refreshCoordinateInputs?.();
     }
 
-    public show(datum: SettingsDialogDatumType, options: LinearSettingsDialogOptions) {
+    public show(datum: SettingsDialogDatumType, passedOptions: LinearSettingsDialogOptions) {
+        const options = this.trackChanges(passedOptions);
+        this.onClose = options.onClose;
         const tabsOptions: SettingsTabs =
             isTextType(datum) || isShapeType(datum)
                 ? this.createTextualTabs(datum, options)
@@ -194,6 +217,19 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const popover = this.showWithChildren([tabs], options);
         popover.addClass('ag-charts-dialog--annotation-settings');
+    }
+
+    /** Wraps the options' change callbacks so that any change enables Apply. */
+    private trackChanges(options: LinearSettingsDialogOptions): LinearSettingsDialogOptions {
+        const tracked = { ...options };
+        for (const key of CHANGE_CALLBACKS) {
+            const callback = options[key] as (...args: unknown[]) => void;
+            (tracked[key] as (...args: unknown[]) => void) = (...args) => {
+                this.markChanged();
+                callback(...args);
+            };
+        }
+        return tracked;
     }
 
     private createLinearTabs(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
