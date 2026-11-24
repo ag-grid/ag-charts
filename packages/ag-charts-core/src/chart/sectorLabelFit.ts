@@ -461,6 +461,8 @@ function placeOnAnchor(
     const box = boxes[0];
     const padX = Math.max(padding.left, padding.right);
     const padY = Math.max(padding.top, padding.bottom);
+    // Unpadded, the held box is the laid-out one, which the gate's test has just accepted.
+    if (Object.is(padX, 0) && Object.is(padY, 0)) return placed;
     heldBox.x = box.x - padX;
     heldBox.y = box.y - padY;
     heldBox.width = box.width + 2 * padX;
@@ -480,8 +482,11 @@ const heldBox = { x: 0, y: 0, width: 0, height: 0 };
 const wedgeInsets = new Map<number, { region: ReusableInsetRegion; of?: FitRegion; label: number }>();
 // Counts the labels placed, so a region inset for an earlier label is never read as this one's.
 let wedgeLabel = 0;
+// Whether any pooled region has been reset since the last release; a label its anchor holds touches none.
+let wedgeInsetsHeld = false;
 
 function wedgeInset(inset: number, of: FitRegion, dx: number, dy: number) {
+    wedgeInsetsHeld = true;
     let entry = wedgeInsets.get(inset);
     if (entry == null) {
         entry = { region: new ReusableInsetRegion(), label: wedgeLabel };
@@ -496,6 +501,8 @@ function wedgeInset(inset: number, of: FitRegion, dx: number, dy: number) {
 }
 
 function releaseWedgeInsets() {
+    if (!wedgeInsetsHeld) return;
+    wedgeInsetsHeld = false;
     for (const entry of wedgeInsets.values()) {
         entry.region.release();
         entry.of = undefined;
@@ -687,7 +694,8 @@ export function sectorLabelPlacer(
             placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, boxing, layout);
         } finally {
             releaseWedgeInsets();
-            wedgeNode!.text = '';
+            // Segments hold the label's objects; a string holds none, and resetting it fires change detection.
+            if (isArray(wedgeNode!.text)) wedgeNode!.text = '';
         }
         if (!showsContent(placed.text)) return undefined;
         return { text: placed.text, x: centreX + placed.x, y: centreY + placed.y, fontSize: placed.fontSize };
