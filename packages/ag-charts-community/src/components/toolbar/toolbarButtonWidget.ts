@@ -10,6 +10,7 @@ import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
     AgAnnotationsToolbarButtonValue,
+    AgAnnotationsToolbarSwitchValue,
     AgIconName,
     AgIconPosition,
     AgRangesButtonValue,
@@ -22,6 +23,7 @@ import type { LocaleManager } from '../../locale/localeManager';
 type ButtonValue =
     | 'menu'
     | AgAnnotationsToolbarButtonValue
+    | AgAnnotationsToolbarSwitchValue
     | AgAnnotationOptionsToolbarButtonValue
     | AgAnnotationOptionsToolbarSwitchValue
     | AgZoomButtonValue

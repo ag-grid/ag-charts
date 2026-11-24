@@ -2,7 +2,6 @@ import {
     type OptionsDefs,
     array,
     arrayOf,
-    arrayOfDefs,
     boolean,
     buttonNameAdvisory,
     colorOrRef,
@@ -32,6 +31,7 @@ import type {
     AgAnnotationsOptions,
     AgAnnotationsThemeableOptions,
     AgAnnotationsToolbarButton,
+    AgAnnotationsToolbarSwitch,
     AgCalloutAnnotationStyles,
     AgChannelAnnotationMiddle,
     AgChannelAnnotationStyles,
@@ -259,30 +259,40 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         padding: positiveNumber,
         buttonSize: positiveNumber,
         buttons: buttonNameAdvisory(
-            arrayOfDefs<AgAnnotationsToolbarButton>(
-                {
-                    ...toolbarButtonOptionsDefs,
-                    value: union(
-                        'line-menu',
-                        'fibonacci-menu',
-                        'text-menu',
-                        'shape-menu',
-                        'measurer-menu',
-                        'line',
-                        'horizontal-line',
-                        'vertical-line',
-                        'parallel-channel',
-                        'disjoint-channel',
-                        'fibonacci-retracement',
-                        'fibonacci-retracement-trend-based',
-                        'text',
-                        'comment',
-                        'callout',
-                        'note',
-                        'magnet',
-                        'clear'
-                    ),
-                },
+            arrayOf(
+                or(
+                    optionsDefs<AgAnnotationsToolbarButton>({
+                        ...toolbarButtonOptionsDefs,
+                        type: union('button'),
+                        value: required(
+                            union(
+                                'line-menu',
+                                'fibonacci-menu',
+                                'text-menu',
+                                'shape-menu',
+                                'measurer-menu',
+                                'line',
+                                'horizontal-line',
+                                'vertical-line',
+                                'parallel-channel',
+                                'disjoint-channel',
+                                'fibonacci-retracement',
+                                'fibonacci-retracement-trend-based',
+                                'text',
+                                'comment',
+                                'callout',
+                                'note',
+                                'clear'
+                            )
+                        ),
+                    }),
+                    optionsDefs<AgAnnotationsToolbarSwitch>({
+                        ...toolbarButtonOptionsDefs,
+                        type: required(union('switch')),
+                        value: required(union('magnet')),
+                        checkedOverrides: toolbarButtonOptionsDefs,
+                    })
+                ),
                 'annotation toolbar buttons array'
             )
         ),

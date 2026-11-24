@@ -2,7 +2,7 @@ import { _Theme } from 'ag-charts-community';
 import { type Logger, datumKeyReader } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
-    AgAnnotationsToolbarButton,
+    AgAnnotationsToolbarItem,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
@@ -41,7 +41,7 @@ const PRICE_AXIS_KEY = 'y';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 
-const toolbarButtons: AgAnnotationsToolbarButton[] = [
+const toolbarButtons: AgAnnotationsToolbarItem[] = [
     {
         icon: 'trend-line-drawing',
         tooltip: 'toolbarAnnotationsLineAnnotations',
@@ -68,8 +68,10 @@ const toolbarButtons: AgAnnotationsToolbarButton[] = [
         value: 'measurer-menu',
     },
     {
-        icon: 'magnet',
+        type: 'switch',
+        icon: 'no-magnet',
         tooltip: 'toolbarAnnotationsMagnet',
+        checkedOverrides: { icon: 'magnet' },
         value: 'magnet',
     },
     {

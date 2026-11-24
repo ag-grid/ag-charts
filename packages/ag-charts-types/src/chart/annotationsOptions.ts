@@ -571,16 +571,31 @@ export type AgAnnotationValue = AgStateSerializableValueType | AgStateSerializab
 
 export interface AgAnnotationsToolbar extends Toggleable {
     /** The buttons to show in the toolbar. */
-    buttons?: AgAnnotationsToolbarButton[];
+    buttons?: AgAnnotationsToolbarItem[];
     /** Padding in pixels around the toolbar. */
     padding?: number;
     /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
     buttonSize?: PixelSize;
 }
 
+export type AgAnnotationsToolbarItem = AgAnnotationsToolbarButton | AgAnnotationsToolbarSwitch;
+
 export interface AgAnnotationsToolbarButton extends ToolbarButton {
+    /**
+     * The type of toolbar item.
+     *
+     * Default: `'button'`
+     */
+    type?: 'button';
     /** The action to perform when the button is clicked. */
     value: AgAnnotationsToolbarButtonValue;
+}
+
+export interface AgAnnotationsToolbarSwitch extends ToolbarSwitch {
+    /** The type of toolbar item. */
+    type: 'switch';
+    /** The action to perform when the switch is toggled. */
+    value: AgAnnotationsToolbarSwitchValue;
 }
 
 export type AgAnnotationsToolbarButtonValue =
@@ -600,8 +615,9 @@ export type AgAnnotationsToolbarButtonValue =
     | 'comment'
     | 'callout'
     | 'note'
-    | 'magnet'
     | 'clear';
+
+export type AgAnnotationsToolbarSwitchValue = 'magnet';
 
 // *******************
 // * Options Toolbar *

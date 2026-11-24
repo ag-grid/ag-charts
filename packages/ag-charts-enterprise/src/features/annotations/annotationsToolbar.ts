@@ -1,4 +1,4 @@
-import { type AgAnnotationsToolbar, _ModuleSupport } from 'ag-charts-community';
+import { type AgAnnotationsToolbar, type AgAnnotationsToolbarSwitch, _ModuleSupport } from 'ag-charts-community';
 import { type BoxBounds, ChartAxisDirection, CleanupRegistry, type DynamicContext, EventEmitter } from 'ag-charts-core';
 import type { ClickWidgetEvent, ExpansionControllerWidget, KeyboardWidgetEvent } from 'ag-charts-core';
 
@@ -25,6 +25,7 @@ interface EventMap {
 
 interface AnnotationsToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
     value: AnnotationsToolbarButtonValue;
+    checkedOverrides?: AgAnnotationsToolbarSwitch['checkedOverrides'];
 }
 
 type AnnotationsToolbarButtonValue =
@@ -50,6 +51,9 @@ type AnnotationsToolbarButtonValue =
 export class AnnotationsToolbar {
     private enabled: boolean = true;
     private padding: number = 20;
+    /** The buttons as set in the options, without the state of the magnet switch. */
+    private configuredButtons: AnnotationsToolbarButtonOptions[] = [];
+    /** The buttons as shown, including any change to their icons or the state of the magnet switch. */
     private buttons: AnnotationsToolbarButtonOptions[] = [];
 
     readonly events = new EventEmitter<EventMap>();
@@ -89,7 +93,8 @@ export class AnnotationsToolbar {
         }
         this.toolbar.setButtonSize(buttonSize);
         this.padding = padding;
-        this.buttons = buttons.map((button) => this.withChecked(button));
+        this.configuredButtons = buttons;
+        this.buttons = buttons.map((button) => this.withMagnetState(button));
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {
@@ -97,15 +102,22 @@ export class AnnotationsToolbar {
         this.toolbar.toggleButtonEnabledByIndex(index, enabled);
     }
 
-    /** Shows whether the magnet is on; it persists across drawing, unlike the active button. */
+    /** Shows whether the magnet is on, as the switch's `checkedOverrides` say; it persists across drawing, unlike the active button. */
     public setMagnetChecked(checked: boolean) {
         this.magnetChecked = checked;
-        const index = this.buttons.findIndex((button) => button.value === 'magnet');
-        if (index !== -1) this.updateButtonByIndex(index, { checked });
+        const index = this.configuredButtons.findIndex((button) => button.value === 'magnet');
+        if (index === -1) return;
+
+        const button = this.withMagnetState(this.configuredButtons[index]);
+        this.buttons[index] = button;
+        this.toolbar.updateButtonByIndex(index, button);
     }
 
-    private withChecked<T extends { value: string }>(button: T): T {
-        return button.value === 'magnet' ? { ...button, checked: this.magnetChecked } : button;
+    private withMagnetState(button: AnnotationsToolbarButtonOptions): AnnotationsToolbarButtonOptions {
+        if (button.value !== 'magnet') return button;
+
+        const checked = this.magnetChecked;
+        return { ...button, ...(checked ? button.checkedOverrides : undefined), checked };
     }
 
     public resetButtonIcons() {

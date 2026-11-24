@@ -55,7 +55,13 @@ const options: AgChartOptions = {
         },
         toolbar: {
             buttons: [
-                { icon: 'magnet', tooltip: 'toolbarAnnotationsMagnet', value: 'magnet' },
+                {
+                    type: 'switch',
+                    icon: 'no-magnet',
+                    tooltip: 'toolbarAnnotationsMagnet',
+                    checkedOverrides: { icon: 'magnet' },
+                    value: 'magnet',
+                },
                 { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },
                 { icon: 'delete', tooltip: 'toolbarAnnotationsClearAll', value: 'clear' },
             ],

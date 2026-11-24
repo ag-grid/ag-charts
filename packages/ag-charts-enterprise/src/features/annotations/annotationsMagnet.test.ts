@@ -339,29 +339,50 @@ describe('Annotations magnet', () => {
         expect(getAnnotationMagnetEnabled(chart)).toBe(false);
     });
 
-    it('shows the toolbar magnet button as a switch that follows the magnet', async () => {
+    it('shows the toolbar magnet button as a switch that swaps its icon with the magnet', async () => {
         chart = await createAnnotationsChart({
             ...ANNOTATIONS_EXAMPLE_OPTIONS,
             annotations: {
                 ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations,
                 magnet: { enabled: false, range: 'nearest' },
-                toolbar: { enabled: true, buttons: [{ icon: 'magnet', value: 'magnet', tooltip: 'Magnet' }] },
+                toolbar: {
+                    enabled: true,
+                    buttons: [
+                        {
+                            type: 'switch',
+                            icon: 'no-magnet',
+                            checkedOverrides: { icon: 'magnet' },
+                            value: 'magnet',
+                            tooltip: 'Magnet',
+                        },
+                    ],
+                },
             },
         } as AgCartesianChartOptions);
         const magnetButton = () =>
             deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('.ag-charts-shared-toolbar button')!;
+        const state = () => ({
+            role: magnetButton().getAttribute('role'),
+            checked: magnetButton().getAttribute('aria-checked'),
+            pressed: magnetButton().hasAttribute('aria-pressed'),
+            icon: magnetButton()
+                .querySelector('[class*="ag-charts-icon-"]')
+                ?.className.match(/icon-[\w-]+/)?.[0],
+        });
 
-        expect(magnetButton().getAttribute('role')).toBe('switch');
-        expect(magnetButton().getAttribute('aria-checked')).toBe('false');
-        expect(magnetButton().hasAttribute('aria-pressed')).toBe(false);
+        expect(state()).toEqual({ role: 'switch', checked: 'false', pressed: false, icon: 'icon-no-magnet' });
 
         magnetButton().click();
         await waitForChartStability(chart);
         expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-        expect(magnetButton().getAttribute('aria-checked')).toBe('true');
+        expect(state()).toEqual({ role: 'switch', checked: 'true', pressed: false, icon: 'icon-magnet' });
 
         magnetButton().click();
         await waitForChartStability(chart);
-        expect(magnetButton().getAttribute('aria-checked')).toBe('false');
+        expect(state()).toEqual({ role: 'switch', checked: 'false', pressed: false, icon: 'icon-no-magnet' });
+
+        // The options turn the magnet on, which the switch shows too.
+        await updateMagnet({ enabled: true });
+        expect(state()).toMatchObject({ checked: 'true', icon: 'icon-magnet' });
     });
 });

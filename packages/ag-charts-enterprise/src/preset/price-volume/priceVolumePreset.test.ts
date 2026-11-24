@@ -1062,9 +1062,14 @@ describe('priceVolumePreset', () => {
             expect(presetButtons({ common: {} })).toHaveLength(7);
         });
 
-        it('includes the magnet button by default, before the clear button', () => {
-            const values = presetButtons()?.map((button) => button.value);
-            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
+        it('includes the magnet switch by default, before the clear button', () => {
+            const buttons = presetButtons();
+            expect(buttons?.map((button) => button.value).slice(-2)).toEqual(['magnet', 'clear']);
+            expect(buttons?.at(-2)).toMatchObject({
+                type: 'switch',
+                icon: 'no-magnet',
+                checkedOverrides: { icon: 'magnet' },
+            });
         });
     });
 });
