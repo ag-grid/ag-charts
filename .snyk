@@ -3702,6 +3702,32 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-24T10:24:03.828Z
+  SNYK-JS-PARSE5-22742152:
+    - 'jsdom@22.1.0 > parse5@7.1.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - 'cheerio@1.2.0 > parse5@7.3.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - 'cheerio@1.2.0 > parse5-parser-stream@7.1.2 > parse5@7.1.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - 'cheerio@1.2.0 > parse5-htmlparser2-tree-adapter@7.1.0 > parse5@7.1.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@kazuph/mcp-fetch@1.6.3 > jsdom@24.1.3 > parse5@7.1.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
 patch: {}
 
 # Snyk Code (SAST) exclusion.

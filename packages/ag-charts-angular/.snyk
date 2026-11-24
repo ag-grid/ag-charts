@@ -1512,4 +1512,48 @@ ignore:
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
+  SNYK-JS-MSGPACKR-22744130:
+    - '@angular-devkit/build-angular@21.2.29 > @angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+  SNYK-JS-PARSE5-22742152:
+    - '@angular/cli@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular/cli@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5-sax-parser@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular-devkit/build-angular@21.2.29 > @angular/build@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular-devkit/build-angular@21.2.29 > @angular/build@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5-sax-parser@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+  SNYK-JS-WEBSOCKETDRIVER-22743215:
+    - '@angular-devkit/build-angular@21.2.29 > webpack-dev-server@5.2.6 > sockjs@0.3.24 > websocket-driver@0.7.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular-devkit/build-angular@21.2.29 > webpack-dev-server@5.2.6 > sockjs@0.3.24 > faye-websocket@0.11.4 > websocket-driver@0.7.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+  SNYK-JS-WEBSOCKETEXTENSIONS-22743216:
+    - '@angular-devkit/build-angular@21.2.29 > webpack-dev-server@5.2.6 > sockjs@0.3.24 > faye-websocket@0.11.4 > websocket-driver@0.7.4 > websocket-extensions@0.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
 patch: {}
