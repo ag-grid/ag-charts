@@ -19,6 +19,17 @@ const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRa
 });
 const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
 
+interface HangCase {
+    mid: number;
+    halfSpan: number;
+    inner: number;
+    outer: number;
+    radius: number;
+    x: number;
+    y: number;
+    min?: number;
+}
+
 describe('fitSectorLabelRect', () => {
     const cornersInSector = (rect: ReturnType<typeof fitSectorLabelRect>, s: Parameters<typeof isPointInSector>[2]) => {
         const hw = rect.width / 2;
@@ -122,6 +133,10 @@ describe('sectorLabelRoom', () => {
 });
 
 describe('sectorLabelPlacer', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
     const image = (size: number) => ({
         type: 'image' as const,
@@ -201,10 +216,6 @@ describe('sectorLabelPlacer', () => {
     });
 
     describe('layout passes', () => {
-        afterEach(() => {
-            vi.restoreAllMocks();
-        });
-
         it('lays out a label its anchor holds once, and keeps it there whole', () => {
             const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
             const anchor = anchorAt(150, Math.PI / 2);
@@ -310,8 +321,20 @@ describe('sectorLabelPlacer', () => {
         });
     });
 
-    // Expected placements are the full overflow passes' output; the narrow non-vertical wedges skip to the hang result.
-    it.each([
+    const hangText = 'Category 123 label';
+    const hangFont = { fontSize: 12, fontFamily: 'sans-serif' };
+    const placeHanging = ({ mid, halfSpan, inner, outer, radius, min }: HangCase) =>
+        sectorLabelPlacer(
+            anchorAt(radius, mid),
+            sector(mid, halfSpan, inner, outer),
+            NO_PADDING,
+            {},
+            0,
+            0
+        )({ text: hangText, policy: { minimumFontSize: min }, font: hangFont });
+
+    // `x` and `y` are where the overflow passes hung each label, a place the gate hides it at.
+    it.each<HangCase>([
         { mid: 0, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 125, y: 10 },
         { mid: 1, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 67.53778823351747, y: 115.18387310098706 },
         {
@@ -333,6 +356,23 @@ describe('sectorLabelPlacer', () => {
             y: 46.940025832667445,
             min: 8,
         },
+    ])('places nothing, without laying it out, for a label no line of which the wedge at mid $mid holds', (c) => {
+        const node = new Text();
+        node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
+        node.setBoxing({});
+        node.text = hangText;
+        node.x = c.x;
+        node.y = c.y;
+        node.setFont(hangFont);
+        expect(areLineBoxesInSector(node.getLineBoxes(), sector(c.mid, c.halfSpan, c.inner, c.outer))).toBe(false);
+
+        const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+        expect(placeHanging(c)).toBeUndefined();
+        expect(layouts).not.toHaveBeenCalled();
+    });
+
+    // A wedge near vertical can hold a line, so the label is still hung where every overflow pass puts it.
+    it.each<HangCase>([
         { mid: 1.55, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 2.5493898819035823, y: 125.58570627196065 },
         {
             mid: -1.5708,
@@ -343,24 +383,9 @@ describe('sectorLabelPlacer', () => {
             x: -0.00042934831553062644,
             y: -182.4939548960836,
         },
-    ])(
-        'hangs a label no wedge position holds at mid $mid where every overflow pass puts it',
-        ({ mid, halfSpan, inner, outer, radius, x, y, min }) => {
-            const placed = sectorLabelPlacer(
-                anchorAt(radius, mid),
-                sector(mid, halfSpan, inner, outer),
-                NO_PADDING,
-                {},
-                0,
-                0
-            )({
-                text: 'Category 123 label',
-                policy: { minimumFontSize: min },
-                font: { fontSize: 12, fontFamily: 'sans-serif' },
-            });
-            expect(placed).toEqual({ text: 'Category 123 label', x, y, fontSize: undefined });
-        }
-    );
+    ])('hangs a label no wedge position holds at mid $mid where every overflow pass puts it', (c) => {
+        expect(placeHanging(c)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
+    });
 
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
         // The first pass, against the estimated block, loses text that the re-placed pass fits whole.

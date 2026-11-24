@@ -509,6 +509,10 @@ function releaseWedgeInsets() {
     }
 }
 const LINE_BREAK = /\r?\n/;
+const NOT_IN_WEDGE: { placed: PlacedSectorLabel; inWedge: boolean } = {
+    placed: { text: '', x: 0, y: 0 },
+    inWedge: false,
+};
 
 /** The wedge's usable region depends on the line height and block, so it is probed again whenever either changes. */
 function fitSectorLabelToWedge(
@@ -521,6 +525,10 @@ function fitSectorLabelToWedge(
     boxing: TextBoxingProperties,
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
+    // The series hides any placement a wedge this thin gets, so none is made.
+    const holdsNone = (sized: FontOptions) => !isArray(text) && holdsNoLine(sector, sized, boxing);
+    const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
+    if (floor >= font.fontSize && holdsNone(font)) return NOT_IN_WEDGE.placed;
     const inSector = wedgeTester.reset(sector).contains;
     const onAnchor = placeOnAnchor(text, fit, font, anchor, sector, wedgeTester, padding, layout);
     if (onAnchor != null) return onAnchor;
@@ -631,27 +639,14 @@ function fitSectorLabelToWedge(
     };
     // Placed as before; a preserved label that lost text is then hung, else centred, past the wedge.
     const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
+        if (holdsNone(sized)) return NOT_IN_WEDGE;
         const placed = placeInWedgeAs(sized, atFloor, 'none');
         if (!atFloor || fit.overflowStrategy != null || !lostContent(text, placed.placed.text)) return placed;
-        if (!isArray(text) && holdsNoLine(sector, sized, boxing)) return hangOutOfWedge(sized);
         const hung = placeInWedgeAs(sized, atFloor, 'hang');
         if (hung.inWedge) return hung;
         const centred = placeInWedgeAs(sized, atFloor, 'centre');
         return centred.inWedge ? centred : hung;
     };
-    // The hung pass where no line can pass the gate: whole text at every clearance, none drawn inside the wedge, so
-    // it ends where its retries run out, and the centred pass, never inside either, leaves it standing.
-    const hangOutOfWedge = (sized: FontOptions) => {
-        let inset = 0;
-        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS; attempt += 1) {
-            const next = WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
-            if (next === inset) break;
-            inset = next;
-        }
-        const { placed } = place(sized, true, 'hang', inset, undefined)!;
-        return { placed: { ...placed, text: showsContent(placed.text) ? placed.text : '' }, inWedge: false };
-    };
-    const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
     if (floor >= font.fontSize) return placeInWedge(font, true).placed;
     // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
     const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
