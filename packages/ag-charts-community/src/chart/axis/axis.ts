@@ -718,7 +718,9 @@ export abstract class Axis<
             if (stylerOutput && isSolidFill(stylerOutput.fill)) {
                 const { fill, fillOpacity } = stylerOutput.fill;
                 stylerOutput = { ...stylerOutput, fill };
-                if (fillOpacity != null) stylerOutput.fillOpacity = (stylerOutput.fillOpacity ?? 1) * fillOpacity;
+                if (fillOpacity != null) {
+                    stylerOutput.fillOpacity = (stylerOutput.fillOpacity ?? label.fillOpacity ?? 1) * fillOpacity;
+                }
             }
         }
         // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.

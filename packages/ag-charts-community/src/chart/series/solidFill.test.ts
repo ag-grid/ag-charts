@@ -26,11 +26,21 @@ const pattern = (name: AgPatternColor['pattern'], stroke: string): AgPatternColo
     stroke,
 });
 
-/** A fill and the opacity beside it, given either as a solid colour object or as the plain options it stands for. */
-type Fill = (colour: string, fillOpacity?: number) => { fill: AgColorType; fillOpacity?: number };
+/**
+ * A fill and the opacity beside it, given either as a solid colour object or as the plain options it stands for.
+ * `outerOpacity` is a `fillOpacity` set on the option that the fill is returned over, which the solid colour multiplies.
+ */
+type Fill = (
+    colour: string,
+    fillOpacity?: number,
+    outerOpacity?: number
+) => { fill: AgColorType; fillOpacity?: number };
 
 const solidFill: Fill = (fill, fillOpacity) => ({ fill: { type: 'solid', fill, fillOpacity } });
-const plainFill: Fill = (fill, fillOpacity) => (fillOpacity == null ? { fill } : { fill, fillOpacity });
+const plainFill: Fill = (fill, fillOpacity, outerOpacity) =>
+    fillOpacity == null && outerOpacity == null
+        ? { fill }
+        : { fill, fillOpacity: (fillOpacity ?? 1) * (outerOpacity ?? 1) };
 
 /** Charts that must render the same whichever way `fill` writes their colours. */
 const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
@@ -54,6 +64,14 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
             { type: 'bar', xKey: 'month', yKey: 'a', itemStyler: ({ datum }) => fill('red', datum.a / 10) },
             { type: 'line', xKey: 'month', yKey: 'c', marker: { size: 16, itemStyler: () => fill('blue', 0.5) } },
         ],
+    }),
+    'axis label stylers': (fill) => ({
+        data: DATA,
+        series: [{ type: 'bar', xKey: 'month', yKey: 'a' }],
+        axes: {
+            x: { type: 'category', label: { fillOpacity: 0.5, itemStyler: () => fill('red', 0.5, 0.5) } },
+            y: { type: 'number', label: { itemStyler: () => fill('blue', 0.5) } },
+        },
     }),
     'highlight and legend styles': (fill) => ({
         data: DATA,
