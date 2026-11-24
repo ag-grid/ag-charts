@@ -1497,17 +1497,17 @@ describe('Shadow root', () => {
                 expect(at(scene, 40, 48)).toEqual([0, 0, 0, 0]);
             });
 
-            it('should cast the glow of a translucent item at the strength of its alpha', () => {
+            it('should cast the glow of a translucent item at its own strength, not that of its alpha', () => {
                 const scene = draw(true, () => [
                     group('shared', [
                         square(20, 60, { fill: 'rgba(255, 0, 0, 0.5)', width: 40, height: 40, fillShadow: GLOW }),
                     ]),
                 ]);
 
-                // A half of a half.
+                // The glow takes the colour of the item and leaves out its alpha, which is the item's fill alpha.
                 const [red, green, blue, alpha] = at(scene, 40, 56);
                 expect([red, green, blue]).toEqual([255, 0, 0]);
-                expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                expect(Math.abs(alpha - 255)).toBeLessThanOrEqual(1);
             });
         });
     });

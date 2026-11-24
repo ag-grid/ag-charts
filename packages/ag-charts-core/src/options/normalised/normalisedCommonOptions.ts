@@ -86,6 +86,11 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
+    /**
+     * Whether a user or a theme override set the shadow's `fillOpacity`, rather than the theme default, so that it casts at
+     * that strength whatever the alpha of the item's fill. Unset if it is not known, which casts as a shadow does without it.
+     */
+    fillOpacitySet?: boolean;
     /** A glow with no `gap` that is cast in an overlay, which cuts it only where its item, and every item that glows, is painted. */
     overlay?: true;
     /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */

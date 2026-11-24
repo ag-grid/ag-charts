@@ -1246,12 +1246,12 @@ export abstract class Series<
      */
     protected toStylerShadow(shadow: NormalisedDropShadowOptions | undefined): StylerShadow | undefined {
         if (!shadow?.enabled) return undefined;
-        if (!('color' in shadow)) return shadow;
+        if (!('color' in shadow) && !('fillOpacitySet' in shadow)) return shadow;
 
         const cache = (this.stylerShadows ??= new WeakMap());
         let stylerShadow = cache.get(shadow);
         if (stylerShadow == null) {
-            const { color, ...rest } = shadow;
+            const { color, fillOpacitySet: _fillOpacitySet, ...rest } = shadow;
             stylerShadow = { ...rest, fill: rest.fill ?? color };
             cache.set(shadow, stylerShadow);
         }
@@ -1539,10 +1539,18 @@ export abstract class Series<
             `s${JSON.stringify(itemShadow)}`,
             cascaded,
             () => {
+                // A `fillOpacity` that the styler returns is set; a `fill` alone is opaque and not, as in the theme.
+                let fillOpacitySet: boolean | undefined;
+                if (itemShadow.fillOpacity == null) {
+                    if (itemShadow.fill != null) fillOpacitySet = false;
+                } else {
+                    fillOpacitySet = true;
+                }
                 const overrides = {
                     fillOpacity: itemShadow.fill == null ? undefined : 1,
                     ...itemShadow,
                     enabled: itemShadow.enabled ?? true,
+                    fillOpacitySet,
                 };
                 const merged = mergeDefaults(
                     overrides,

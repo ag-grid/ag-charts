@@ -20,15 +20,16 @@ import {
 // and ends 10px further out.
 const glow = (gap?: number) => ({ blur: 0, spread: 10, fill: 'red', fillOpacity: 1, gap });
 
-// The item is half-opaque blue on a white chart, and a glow is cast at the strength of its item, so it is pink beside it. Where
-// the glow is beneath the item, the item is purple over it, with less green than the lavender of the item over white.
+// The item is half-opaque blue on a white chart, and a glow with a `fillOpacity` of 1 is cast as set, not at the strength of
+// its item, so it is solid red beside it. Where the glow is beneath the item, the item is purple over it, with less green
+// than the lavender of the item over white.
 const WHITE = [255, 255, 255, 255];
-/** The glow beside the item: red at the strength of the item. */
-const GLOW_PINK = [255, 127, 127, 255];
+/** The glow beside the item: red at the strength that it is set to, whatever the `fillOpacity` of the item. */
+const GLOW_RED = [255, 0, 0, 255];
 const TRANSLUCENT_ITEM = { fill: 'blue', fillOpacity: 0.5, strokeWidth: 0 };
 const LAVENDER_GREEN = 128;
 
-/** Whether the pixel is pink: a glow is cast on it. */
+/** Whether the pixel is reddened: a glow is cast on it. */
 const isGlowing = (pixel: number[]) => pixel[0] === 255 && pixel[1] < 255;
 /** Whether the item is over a glow, which makes it darker than over white, as a translucent item shows a glow through it. */
 const showsGlow = (pixel: number[]) => pixel[1] < LAVENDER_GREEN - 30;
@@ -119,8 +120,8 @@ describe('glow gap in a chart', () => {
             const at = await createAndHover();
 
             expect(isGlowing(at(3))).toBe(true);
-            expect(at(3)).toEqual(GLOW_PINK);
-            expect(at(8)).toEqual(GLOW_PINK);
+            expect(at(3)).toEqual(GLOW_RED);
+            expect(at(8)).toEqual(GLOW_RED);
             if (hovered) expect(showsGlow(at(-10))).toBe(true);
             else expect(isClear(at(-10))).toBe(true);
         });
@@ -129,8 +130,8 @@ describe('glow gap in a chart', () => {
             const at = await createAndHover(0);
 
             expect(isClear(at(-10))).toBe(true);
-            expect(at(3)).toEqual(GLOW_PINK);
-            expect(at(8)).toEqual(GLOW_PINK);
+            expect(at(3)).toEqual(GLOW_RED);
+            expect(at(8)).toEqual(GLOW_RED);
             expect(at(15)).toEqual(WHITE);
         });
 
@@ -147,7 +148,7 @@ describe('glow gap in a chart', () => {
 
     describe('around the hovered item, cast by its highlight copy', () => {
         it.each([
-            ['let a highlight gap of 0 clear a series gap', { gap: 0 }, GLOW_PINK],
+            ['let a highlight gap of 0 clear a series gap', { gap: 0 }, GLOW_RED],
             ['inherit the series gap where the bucket sets none', { blur: 0 }, WHITE],
         ])('should %s', async (_name, bucket, expected) => {
             await create(bars({ glow: glow(5), highlight: { highlightedItem: { glow: bucket } } }));
