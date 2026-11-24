@@ -334,9 +334,9 @@ describe('Annotations magnet', () => {
                         {
                             type: 'switch',
                             icon: 'no-magnet',
-                            checkedOverrides: { icon: 'magnet' },
+                            ariaLabel: 'Magnet',
+                            checkedOverrides: { icon: 'magnet', tooltip: 'Magnet on' },
                             value: 'magnet',
-                            tooltip: 'Magnet',
                         },
                     ],
                 },
@@ -348,21 +348,40 @@ describe('Annotations magnet', () => {
             role: magnetButton().getAttribute('role'),
             checked: magnetButton().getAttribute('aria-checked'),
             pressed: magnetButton().hasAttribute('aria-pressed'),
+            title: magnetButton().getAttribute('title'),
             icon: magnetButton()
                 .querySelector('[class*="ag-charts-icon-"]')
                 ?.className.match(/icon-[\w-]+/)?.[0],
         });
 
-        expect(state()).toEqual({ role: 'switch', checked: 'false', pressed: false, icon: 'icon-no-magnet' });
+        expect(state()).toEqual({
+            role: 'switch',
+            checked: 'false',
+            pressed: false,
+            title: null,
+            icon: 'icon-no-magnet',
+        });
 
         magnetButton().click();
         await waitForChartStability(chart);
         expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-        expect(state()).toEqual({ role: 'switch', checked: 'true', pressed: false, icon: 'icon-magnet' });
+        expect(state()).toEqual({
+            role: 'switch',
+            checked: 'true',
+            pressed: false,
+            title: 'Magnet on',
+            icon: 'icon-magnet',
+        });
 
         magnetButton().click();
         await waitForChartStability(chart);
-        expect(state()).toEqual({ role: 'switch', checked: 'false', pressed: false, icon: 'icon-no-magnet' });
+        expect(state()).toEqual({
+            role: 'switch',
+            checked: 'false',
+            pressed: false,
+            title: null,
+            icon: 'icon-no-magnet',
+        });
 
         // A toggle outlasts a change of another option, but not of `enabled`, which the switch shows too.
         magnetButton().click();
