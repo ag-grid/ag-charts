@@ -18,7 +18,6 @@ import {
     isObjectLike,
     isPatternFill,
     isPlainObject,
-    isSolidFill,
     isString,
     isThemeOriginOperator,
     scaleLineDashName,
@@ -367,15 +366,10 @@ function isTransparentOperation(graph: OptionsGraphInterface, vertex: VertexInte
     }
 }
 
-// The bare colour, as a plain `fill` gives: its opacity stays with the `fillOpacity` beside it, not in what is mixed.
-function solidAsColour(value: unknown) {
-    return isSolidFill(value) ? value.fill : value;
-}
-
 function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [colorAVertex, colorBVertex, ratioVertex] = values;
-    const colorA = solidAsColour(graph.resolveVertexValue(vertex, colorAVertex));
-    const colorB = solidAsColour(graph.resolveVertexValue(vertex, colorBVertex));
+    const colorA = graph.resolveVertexValue(vertex, colorAVertex);
+    const colorB = graph.resolveVertexValue(vertex, colorBVertex);
     const ratio = graph.resolveVertexValue(vertex, ratioVertex);
 
     const pathArray = graph.getPathArray(vertex);
@@ -1223,35 +1217,7 @@ function applySwitchOperation(graph: OptionsGraphInterface, vertex: VertexInterf
         }
     }
 
-    const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
-
-    // No theme lists a `solid` case: a solid fill only ever needs its colour, which derives from the default fill.
-    if (conditionValue === 'solid') {
-        graph.graftObject(vertex, { fill: solidColour(graph, vertex, defaultValue) }, [], DEFAULTS_EDGE);
-        return RESOLVED_TO_BRANCH;
-    }
-
-    return defaultValue;
-}
-
-/** The palette colour at `index`: a colour string, a pattern's stroke, or else the fallback colour. */
-export function paletteSolidColour(palette: PlainObject, index: number): string | undefined {
-    const colourAt = (fills: unknown) =>
-        isArray(fills) && !Number.isNaN(index) ? circularSliceArray(fills, 1, index)[0] : undefined;
-
-    const fill = colourAt(palette.fills);
-    if (isString(fill)) return fill;
-    if (isPatternFill(fill) && isString(fill.stroke)) return fill.stroke;
-
-    const fallback = colourAt(palette.fillsFallback);
-    return isString(fallback) ? fallback : undefined;
-}
-
-/** The solid colour standing in for a fill: itself, a pattern's stroke, or else the palette's colour. */
-function solidColour(graph: OptionsGraphInterface, vertex: VertexInterface, fill: unknown) {
-    if (isString(fill)) return fill;
-    if (isPatternFill(fill) && isString(fill.stroke)) return fill.stroke;
-    return paletteSolidColour(graph.palette, getPathLastIndex(graph.getPathArray(vertex)));
+    return graph.resolveVertexValue(vertex, defaultValueVertex);
 }
 
 function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

@@ -1,23 +1,14 @@
-import type {
-    AgColorRef,
-    AgColorRefMixOnto,
-    AgColorRefMixOntoColor,
-    AgLineDashName,
-    AgSolidColor,
-} from 'ag-charts-types';
+import type { AgColorRef, AgColorRefMixOnto, AgColorRefMixOntoColor, AgLineDashName } from 'ag-charts-types';
 
-/**
- * Members of the public colour unions that are always resolved away at render time: theme colour references, and a
- * solid colour object, which resolves to its colour string.
- */
-type ColorRef = AgColorRef | AgColorRefMixOnto | AgColorRefMixOntoColor | AgSolidColor;
+/** Theme colour-reference object members of the public colour unions. Always resolved away at render time. */
+type ColorRef = AgColorRef | AgColorRefMixOnto | AgColorRefMixOntoColor;
 
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 
 /**
  * Transforms a public options shape into its post-resolution colour shape: theme colour references
- * (`AgColorRef`/`AgColorRefMixOnto`) and solid colour objects are stripped from every colour union, leaving the
- * resolved `CssColor`/gradient/pattern/image members, recursing through nested objects and arrays.
+ * (`AgColorRef`/`AgColorRefMixOnto`) are stripped from every colour union, leaving the resolved
+ * `CssColor`/gradient/pattern/image members, recursing through nested objects and arrays.
  *
  * A `lineDash` name (`AgLineDashName`) is likewise replaced by the array of lengths it stands for.
  *
