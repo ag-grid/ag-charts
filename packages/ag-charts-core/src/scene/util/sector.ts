@@ -117,6 +117,14 @@ export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: Se
     return new BBox(x0, y0, x1 - x0, y1 - y0);
 }
 
+/** True when the sector holds each of a label's line boxes: the one test a drawn sector label must pass to show. */
+export function areLineBoxesInSector(boxes: readonly BoxBounds[], sector: SectorBoundaries) {
+    for (const box of boxes) {
+        if (!isBoxInSector(box, sector)) return false;
+    }
+    return true;
+}
+
 /**
  * True when the whole of `box` lies inside the sector. The outer radius is settled by the corners, and so
  * is the angular range while the sector holds no more than half a turn; the hole and a reflex sector's

@@ -11,6 +11,7 @@ import { Text, type TextBoxingProperties } from '../scene/shape/text';
 import {
     type SectorBoundaries,
     SectorPointTester,
+    areLineBoxesInSector,
     isBoxInSector,
     isPointInSector,
     sectorColumnTest,
@@ -358,7 +359,8 @@ function placeOnAnchor(
         return undefined;
     const placed = { text, x: anchor.x, y: anchor.y };
     const boxes = layout(placed, font);
-    if (boxes.length !== 1) return undefined;
+    // The gate re-lays the label out at these same coordinates, so its own test on these boxes is what accepts.
+    if (boxes.length !== 1 || !areLineBoxesInSector(boxes, sector)) return undefined;
     // The fit insets the wedge by the larger padding of each pair on both sides, so the box is held to that too.
     const box = boxes[0];
     const padX = Math.max(padding.left, padding.right);
@@ -452,7 +454,7 @@ function fitSectorLabelToWedge(
         let bestKept = 0;
         for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && showsContent(placed.text); attempt += 1) {
             const boxes = layout(placed, sized);
-            const inWedge = boxes.every((box) => isBoxInSector(box, sector));
+            const inWedge = areLineBoxesInSector(boxes, sector);
             const kept = inWedge ? keptContent(placed.text) : 0;
             // A later pass ties only by placing the same text better, so equal candidates prefer it.
             if (kept > 0 && kept >= bestKept) {

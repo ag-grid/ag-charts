@@ -40,6 +40,7 @@ import {
     TranslatableGroup,
     type WrapOptions,
     addSectorDatum,
+    areLineBoxesInSector,
     boxCrossesSegment,
     boxOverlapsSector,
     canRenderTextOffscreen,
@@ -54,7 +55,6 @@ import {
     formatValue,
     gridCellSize,
     insetChord,
-    isBoxInSector,
     isFullSweep,
     isGradientFill,
     isStringFillArray,
@@ -2427,7 +2427,7 @@ export class DonutSeries extends PolarSeries<
                     outerRadius,
                     radialEdgeInset: this.getSideInset(datum, 0),
                 };
-                text.visible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
+                text.visible = areLineBoxesInSector(text.getLineBoxes(), sectorBounds);
             });
 
         updateSelection(this.labelSelection);

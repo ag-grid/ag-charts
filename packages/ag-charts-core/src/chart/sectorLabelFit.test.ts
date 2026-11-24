@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { Text } from '../scene/shape/text';
-import { isBoxInSector, isPointInSector } from '../scene/util/sector';
+import { areLineBoxesInSector, isBoxInSector, isPointInSector } from '../scene/util/sector';
 import type { OverflowStrategy } from '../text/textWrapper';
 import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
 
@@ -255,6 +255,59 @@ describe('sectorLabelPlacer', () => {
                 expect(fitWith(Infinity)).toEqual(onAnchor);
             }
         );
+    });
+
+    describe('a label whose box meets the outer rim', () => {
+        const font = { fontSize: 12, fontFamily: 'sans-serif' };
+        // Lays the label out as the series' own node draws it, for the visibility gate.
+        const drawnBoxes = (text: NormalisedTextOrSegments, x: number, y: number) => {
+            const node = new Text();
+            node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
+            node.setBoxing({});
+            node.text = text;
+            node.x = x;
+            node.y = y;
+            node.setFont(font);
+            return node.getLineBoxes();
+        };
+        // The radius `steps` representable doubles away from a positive `radius`.
+        const ulpsFrom = (radius: number, steps: number) => {
+            const bits = new BigInt64Array(new Float64Array([radius]).buffer);
+            bits[0] += BigInt(steps);
+            return new Float64Array(bits.buffer)[0];
+        };
+
+        it.each([0, 4])('is shown wherever its anchor holds it, to the ulp (padding %s)', (pad) => {
+            const padding = { top: pad, right: pad, bottom: pad, left: pad };
+            let heldOnRim = 0;
+            for (let i = 0; i < 24; i += 1) {
+                const mid = (i * Math.PI) / 12;
+                const anchor = anchorAt(100, mid);
+                const [box] = drawnBoxes('Alpha', anchor.x, anchor.y);
+                const x0 = box.x - pad;
+                const y0 = box.y - pad;
+                const x1 = x0 + (box.width + 2 * pad);
+                const y1 = y0 + (box.height + 2 * pad);
+                const rim = Math.max(
+                    ...[x0, x1].flatMap((x) => [y0, y1].map((y) => Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))))
+                );
+                for (let step = -2; step <= 2; step += 1) {
+                    const wedge = sector(mid, 1.2, 0, ulpsFrom(rim, step));
+                    const placed = sectorLabelPlacer(
+                        anchor,
+                        wedge,
+                        padding,
+                        {},
+                        0,
+                        0
+                    )({ text: 'Alpha', policy: {}, font });
+                    if (placed?.x !== anchor.x || placed.y !== anchor.y) continue;
+                    if (step === 0) heldOnRim += 1;
+                    expect(areLineBoxesInSector(drawnBoxes(placed.text, placed.x, placed.y), wedge)).toBe(true);
+                }
+            }
+            expect(heldOnRim).toBeGreaterThan(0);
+        });
     });
 
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
