@@ -27,6 +27,11 @@ const { DraggablePopover } = _ModuleSupport;
 
 const MULTI_COLOR_CLASS = 'ag-charts-dialog__color-picker-button--multi-color';
 
+function toColorWithOpacity(color: string, opacity: number | undefined) {
+    const { r, g, b } = Color.fromString(color);
+    return new Color(r, g, b, opacity).toHexString();
+}
+
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {
     /**
      * Whether the dialog, and the colour pickers in it, show Apply and Cancel buttons. Closing the dialog any other way
@@ -107,7 +112,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private applyButton?: InputButtonWidget;
 
     /** Whether Apply and Cancel buttons are shown, as set by the options of the current show. */
-    protected showActionButtons = false;
+    private showActionButtons = false;
     /** Whether the dialog is closing through Apply. */
     protected applied = false;
 
@@ -426,12 +431,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     if (cancelled && this.showActionButtons && opening.color != null && opening.color !== '') {
                         // The dialog holds back its history until Apply, so there is no record to revert to. Put the
                         // colour back to what the picker opened with, leaving the dialog's other changes alone.
-                        const { r, g, b } = Color.fromString(opening.color);
-                        const opacityColor = new Color(r, g, b, opening.opacity ?? 1);
+                        const openingOpacity = opening.opacity ?? 1;
                         changeColor(
-                            opacityColor.toHexString(),
+                            toColorWithOpacity(opening.color, openingOpacity),
                             opening.color,
-                            opening.opacity ?? 1,
+                            openingOpacity,
                             !!opening.isMultiColor
                         );
                         return;
@@ -448,9 +452,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         if (isMultiColor) {
             colorEl.addClass(MULTI_COLOR_CLASS);
         } else if (color != null && color !== '') {
-            const hex = Color.fromString(color);
-            const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
-            colorEl.setCSSVariable('--color', hexWithOpacity.toHexString());
+            colorEl.setCSSVariable('--color', toColorWithOpacity(color, opacity));
         }
 
         group.addChild(colorEl);
@@ -500,7 +502,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             if (tagName === 'BUTTON' || tagName === 'SELECT' || tagName === 'TEXTAREA') return;
 
             // Commit the field being edited before it closes with the dialog.
-            // eslint-disable-next-line aglint/widget-boundary -- no Widget API blurs the focused element.
             (this.ctx.agDocument.document.activeElement as HTMLElement | null)?.blur();
             this.apply();
         }
