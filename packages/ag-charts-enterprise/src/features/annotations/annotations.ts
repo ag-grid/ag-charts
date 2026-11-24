@@ -25,6 +25,7 @@ import type {
     PixelSize,
 } from 'ag-charts-types';
 
+import type { DialogCloseOutcome } from '../../components/dialog/dialog';
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
 import type { FontFields } from './annotationDatum';
 import { annotationDatums, getDefaultColor, isHoverable } from './annotationDatums';
@@ -165,6 +166,8 @@ export class Annotations extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.annotationManager?.setEditingProbe(() => this.isEditing()),
+            // An undo or redo steps over the settings dialog's changes, so it applies them first, as one step.
+            this.ctx.historyManager.onBeforeStep(() => this.applySettingsDialog()),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
@@ -506,7 +509,7 @@ export class Annotations extends AbstractModuleInstance {
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
                     showActionButtons,
-                    onClose: (applied) => this.endSettingsSession(datum.type, applied),
+                    onClose: (outcome) => this.endSettingsSession(datum.type, outcome),
                     onHide: () => this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, false),
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
@@ -956,36 +959,49 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
-        const {
-            defaults,
-            ctx: { historyManager },
-            ctx,
-        } = this;
-        const annotationManager = ctx.annotationManager;
-        if (!annotationManager) return;
+        if (!this.ctx.annotationManager) return;
 
         // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
         // would truncate the redo stack. Likewise, the changes of a settings dialog that has yet to be applied.
         if (this.isRestoringMemento || this.holdsHistory) return;
 
-        const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
-        this.postUpdateFns.push(() => {
-            historyManager.record(label, ...originators);
-            annotationManager.fireChangedEvent('user-interaction');
-        });
+        this.postUpdateFns.push(() => this.recordNow(label, types));
     }
 
-    private endSettingsSession(type: AnnotationType, applied: boolean) {
+    private recordNow(label: string, types: Array<'annotations' | 'defaults'>) {
+        const { defaults, ctx } = this;
+        const { historyManager, annotationManager } = ctx;
+        if (!annotationManager) return;
+
+        const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
+        historyManager.record(label, ...originators);
+        annotationManager.fireChangedEvent('user-interaction');
+    }
+
+    private endSettingsSession(type: AnnotationType, outcome: DialogCloseOutcome) {
         const { defaults, ctx } = this;
         if (!this.holdsHistory) return;
 
         this.holdsHistory = false;
-        if (applied) {
-            this.recordActionAfterNextUpdate(`Change ${type} settings`, ['annotations', 'defaults']);
-            this.update();
-        } else if (ctx.annotationManager) {
-            ctx.historyManager.revert(defaults, ctx.annotationManager);
+        const { annotationManager } = ctx;
+        if (!annotationManager || outcome === 'unchanged') return;
+
+        if (outcome === 'applied') {
+            // At once, as an undo or redo that applied the dialog first goes on to step back over this record.
+            annotationManager.updateData(this.annotationData.map(serialiseAnnotation) as AgAnnotation[]);
+            this.recordNow(`Change ${type} settings`, ['annotations', 'defaults']);
+        } else {
+            ctx.historyManager.revert(defaults, annotationManager);
         }
+    }
+
+    private markSettingsChanged() {
+        if (this.holdsHistory) this.settingsDialog.markChanged();
+    }
+
+    /** Applies the settings dialog, if it holds changes back, before an action that is not one of its own. */
+    private applySettingsDialog() {
+        if (this.holdsHistory) this.settingsDialog.apply();
     }
 
     private endColorPickerSession(label: string, cancelled: boolean) {
@@ -1252,6 +1268,8 @@ export class Annotations extends AbstractModuleInstance {
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
+        // A move made with the settings dialog open is one of its changes.
+        this.markSettingsChanged();
         this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
@@ -1305,6 +1323,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private onDelete() {
         if (this.textInput.isVisible()) return;
+        this.applySettingsDialog();
         this.cancel();
         this.delete();
         this.reset();
@@ -1366,6 +1385,8 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         if (translation.x !== 0 || translation.y !== 0) {
+            // A move made with the settings dialog open is one of its changes.
+            this.markSettingsChanged();
             state.transition('translate', { translation });
             sourceEvent.preventDefault();
         }
@@ -1379,10 +1400,12 @@ export class Annotations extends AbstractModuleInstance {
                 state.transition('copy');
                 return;
             case 'x':
+                this.applySettingsDialog();
                 state.transition('cut');
                 this.recordActionAfterNextUpdate('Cut annotation');
                 return;
             case 'v':
+                this.applySettingsDialog();
                 state.transition('paste');
                 this.recordActionAfterNextUpdate('Paste annotation');
                 return;

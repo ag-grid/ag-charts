@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { DatalistWidget, type DynamicContext, EventEmitter, type Widget } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
-import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
+import { Dialog, type DialogCloseOutcome, type DialogOptions } from '../../../components/dialog/dialog';
 import { getDefaultColor, getDefaultOpacity } from '../annotationDatums';
 import {
     type AnnotationContext,
@@ -57,21 +57,18 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeTextFontSize: (fontSize: number) => void;
-    /** Called as the dialog closes, with whether it closed through Apply. */
-    onClose?: (applied: boolean) => void;
+    /** Called as the dialog closes, with how it closed. */
+    onClose?: (outcome: DialogCloseOutcome) => void;
 }
 
-/** The options of `LinearSettingsDialogOptions` that are called when the user changes something. */
+/** The options of `LinearSettingsDialogOptions` that are called when the user changes something; the colours mark it themselves. */
 const CHANGE_CALLBACKS = [
     'onChangeCoordinates',
     'onChangeLine',
     'onChangeText',
     'onChangeTextContent',
-    'onChangeFillColor',
-    'onChangeLineColor',
     'onChangeLineStyleType',
     'onChangeLineStyleWidth',
-    'onChangeTextColor',
     'onChangeTextFontSize',
 ] as const satisfies Array<keyof LinearSettingsDialogOptions>;
 
@@ -178,7 +175,7 @@ export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
     private refreshCoordinateInputs?: () => void;
-    private onClose?: (applied: boolean) => void;
+    private onClose?: (outcome: DialogCloseOutcome) => void;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
@@ -188,9 +185,9 @@ export class AnnotationSettingsDialog extends Dialog {
         this.refreshCoordinateInputs = undefined;
         // First, as closing a colour picker in the dialog reports its change.
         super.onHide();
-        const { onClose, applied } = this;
+        const { onClose, closeOutcome } = this;
         this.onClose = undefined;
-        onClose?.(applied);
+        onClose?.(closeOutcome);
         this.events.emit('hidden', null);
     }
 

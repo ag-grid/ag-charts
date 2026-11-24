@@ -1887,6 +1887,12 @@ describe('Annotations', () => {
         const hasDialog = () => chartBody().querySelector('.ag-charts-dialog') != null;
         const isDisabled = (selector: string) =>
             chartBody().querySelector(selector)!.getAttribute('aria-disabled') === 'true';
+        const changeStrokeWidth = async (value: string) => {
+            const width = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+            width.value = value;
+            width.dispatchEvent(new Event('change'));
+            await waitForChartStability(chart);
+        };
         const toolbarSwatch = () =>
             chartBody().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
         const dialogSwatches = () =>
@@ -2067,7 +2073,7 @@ describe('Annotations', () => {
             await waitForChartStability(chart);
             expect(annotation()).toMatchObject({ stroke: '#00ff00', strokeWidth: 8 });
 
-            // Enter applies, committing the field being edited, but is left to a button or select.
+            // Enter is left to a button or select, and to a colour picker, which closes only itself.
             await press('button[title="Settings"]');
             const widthSelect = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
             widthSelect.value = '4';
@@ -2080,9 +2086,121 @@ describe('Annotations', () => {
             await pressEscape();
             expect(hasDialog()).toBe(true);
             expect(hasPicker()).toBe(false);
+            await press(DIALOG_APPLY);
+            expect(annotation().strokeWidth).toBe(4);
+        });
+
+        it('applies Enter with nothing changed without a history record, keeping the redo history', async () => {
+            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+            const { historyManager } = deproxy(chart).ctx;
+
+            // Something to redo.
+            await press('button[title="Settings"]');
+            await changeStrokeWidth('8');
+            await press(DIALOG_APPLY);
+            historyManager.undo();
+            await waitForChartStability(chart);
+            expect(annotation().strokeWidth).toBe(2);
+
+            await press('button[title="Settings"]');
             await pressEnterOn('.ag-charts-dialog__tab-list');
             expect(hasDialog()).toBe(false);
-            expect(annotation().strokeWidth).toBe(4);
+
+            historyManager.redo();
+            await waitForChartStability(chart);
+            expect(annotation().strokeWidth).toBe(8);
+        });
+
+        it('applies the dialog before an action of its own, so the action is recorded rather than lost', async () => {
+            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+            await press('button[title="Settings"]');
+            await changeStrokeWidth('8');
+
+            // The delete is recorded, not lost to the dialog closing.
+            await pressKey(chart, 'Delete');
+            expect(hasDialog()).toBe(false);
+            expect(chart.getState().annotations).toEqual([]);
+
+            // The delete and the dialog's changes are separate undo steps.
+            await pressKey(chart, 'z', { ctrlKey: true });
+            expect(annotation()).toMatchObject({ strokeWidth: 8 });
+            await pressKey(chart, 'z', { ctrlKey: true });
+            expect(annotation()).toMatchObject({ strokeWidth: 2 });
+        });
+
+        it('applies the dialog before an undo, which then undoes only the dialog changes', async () => {
+            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+            await press('button[title="Settings"]');
+            await changeStrokeWidth('8');
+
+            await pressKey(chart, 'z', { ctrlKey: true });
+            expect(hasDialog()).toBe(false);
+            expect(annotation()).toMatchObject({ strokeWidth: 2 });
+
+            await pressKey(chart, 'y', { ctrlKey: true });
+            expect(annotation()).toMatchObject({ strokeWidth: 8 });
+        });
+
+        it.each([
+            ['Cancel', DIALOG_CANCEL, 50],
+            ['Apply', DIALOG_APPLY, 'moved'],
+        ] as const)(
+            'treats moving the annotation with the dialog open as one of its changes: %s',
+            async (_name, button, expected) => {
+                await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+                await press('button[title="Settings"]');
+                expect(isDisabled(DIALOG_APPLY)).toBe(true);
+
+                await pressKey(chart, 'ArrowUp');
+                const moved = annotation().value;
+                expect(moved).not.toBe(50);
+                expect(isDisabled(DIALOG_APPLY)).toBe(false);
+
+                await press(button);
+                expect(hasDialog()).toBe(false);
+                expect(annotation().value).toBe(expected === 'moved' ? moved : expected);
+            }
+        );
+
+        it('keeps a colour picked in the dialog when the picker is clicked away from', async () => {
+            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+            await press('button[title="Settings"]');
+            await press('.ag-charts-dialog__color-picker-button');
+            await pickColor('#00ff00');
+
+            // A press elsewhere in the dialog closes the picker; the colour stays picked, to be applied or cancelled.
+            chartBody()
+                .querySelector('.ag-charts-dialog__tab-list')!
+                .dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+            await waitForChartStability(chart);
+            expect(hasPicker()).toBe(false);
+            expect(hasDialog()).toBe(true);
+            expect(annotation().stroke).toBe('#00ff00');
+            expect(isDisabled(DIALOG_APPLY)).toBe(false);
+
+            await press(DIALOG_CANCEL);
+            expect(annotation().stroke).toBe('#ff0000');
+        });
+
+        it('cancels a colour that was unset when the picker opened, keeping the dialog changes', async () => {
+            await select([
+                {
+                    type: 'fibonacci-retracement',
+                    start: { x: { __type: 'date', value: '2024-03-01' }, y: 45 },
+                    end: { x: { __type: 'date', value: '2024-09-01' }, y: 65 },
+                },
+            ]);
+            await press('button[title="Settings"]');
+            await changeStrokeWidth('8');
+
+            await press('.ag-charts-dialog__color-picker-button');
+            const settled = annotation().stroke;
+            await pickColor('#00ff00');
+            await press(CANCEL);
+
+            expect(hasDialog()).toBe(true);
+            expect(annotation().strokeWidth).toBe(8);
+            expect(annotation().stroke).toBe(settled);
         });
 
         describe('aria-expanded of the options toolbar', () => {
@@ -2154,61 +2272,77 @@ describe('Annotations', () => {
             );
         });
 
-        it('cancels a colour from the settings dialog without undoing earlier dialog edits', async () => {
-            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
-            await press('button[title="Settings"]');
+        // With the buttons the dialog holds its history back, so a cancel restores the colour itself; without them it
+        // reverts through the history.
+        const DIALOG_COLOUR_CASES = [
+            ['', ACTION_BUTTONS_OPTIONS, () => press(CANCEL)],
+            [' without the buttons', ANNOTATIONS_EXAMPLE_OPTIONS, () => pressEscape()],
+        ] as const;
 
-            const strokeWidth = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
-            strokeWidth.value = '8';
-            strokeWidth.dispatchEvent(new Event('change'));
-            await waitForChartStability(chart);
+        it.each(DIALOG_COLOUR_CASES)(
+            'cancels a colour from the settings dialog without undoing earlier dialog edits%s',
+            async (_name, options, cancel) => {
+                await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }], options);
+                await press('button[title="Settings"]');
 
-            const swatchesBefore = dialogSwatches();
-            await press('.ag-charts-dialog__color-picker-button');
-            await pickColor('#00ff00');
-            expect(dialogSwatches()).not.toEqual(swatchesBefore);
-            await press(CANCEL);
-
-            expect(dialogSwatches()).toEqual(swatchesBefore);
-            expect(chartBody().querySelector('.ag-charts-dialog')).not.toBeNull();
-            await compare();
-        });
-
-        it('cancels the line, fill and text colours of a channel from the settings dialog', async () => {
-            await select([
-                {
-                    type: 'parallel-channel',
-                    start: { x: { __type: 'date', value: '2024-05-01' }, y: 40 },
-                    end: { x: { __type: 'date', value: '2024-08-30' }, y: 60 },
-                    height: 20,
-                    stroke: '#ff0000',
-                    background: { fill: '#ff0000', fillOpacity: 0.5 },
-                    text: { label: 'Text', color: '#ff0000', position: 'top', alignment: 'center' },
-                },
-            ]);
-            await press('button[title="Settings"]');
-            const swatchesBefore = dialogSwatches();
-
-            // The line and fill pickers share the Channel tab; the text picker is on the Text tab.
-            const tabs = Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button'));
-            for (const [index, tab] of [
-                [0, 'Channel'],
-                [1, 'Channel'],
-                [2, 'Text'],
-            ] as const) {
-                tabs.find((button) => button.textContent === tab)!.click();
+                const strokeWidth = chartBody().querySelector<HTMLSelectElement>('select.ag-charts-dialog__select')!;
+                strokeWidth.value = '8';
+                strokeWidth.dispatchEvent(new Event('change'));
                 await waitForChartStability(chart);
-                Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button'))[
-                    index
-                ].click();
-                await waitForChartStability(chart);
+
+                const swatchesBefore = dialogSwatches();
+                await press('.ag-charts-dialog__color-picker-button');
                 await pickColor('#00ff00');
-                await press(CANCEL);
-            }
+                expect(dialogSwatches()).not.toEqual(swatchesBefore);
+                await cancel();
 
-            expect(dialogSwatches()).toEqual(swatchesBefore);
-            await compare();
-        });
+                expect(dialogSwatches()).toEqual(swatchesBefore);
+                expect(chartBody().querySelector('.ag-charts-dialog')).not.toBeNull();
+                await compare();
+            }
+        );
+
+        it.each(DIALOG_COLOUR_CASES)(
+            'cancels the line, fill and text colours of a channel from the settings dialog%s',
+            async (_name, options, cancel) => {
+                await select(
+                    [
+                        {
+                            type: 'parallel-channel',
+                            start: { x: { __type: 'date', value: '2024-05-01' }, y: 40 },
+                            end: { x: { __type: 'date', value: '2024-08-30' }, y: 60 },
+                            height: 20,
+                            stroke: '#ff0000',
+                            background: { fill: '#ff0000', fillOpacity: 0.5 },
+                            text: { label: 'Text', color: '#ff0000', position: 'top', alignment: 'center' },
+                        },
+                    ],
+                    options
+                );
+                await press('button[title="Settings"]');
+                const swatchesBefore = dialogSwatches();
+
+                // The line and fill pickers share the Channel tab; the text picker is on the Text tab.
+                const tabs = Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__tab-button'));
+                for (const [index, tab] of [
+                    [0, 'Channel'],
+                    [1, 'Channel'],
+                    [2, 'Text'],
+                ] as const) {
+                    tabs.find((button) => button.textContent === tab)!.click();
+                    await waitForChartStability(chart);
+                    Array.from(chartBody().querySelectorAll<HTMLElement>('.ag-charts-dialog__color-picker-button'))[
+                        index
+                    ].click();
+                    await waitForChartStability(chart);
+                    await pickColor('#00ff00');
+                    await cancel();
+                }
+
+                expect(dialogSwatches()).toEqual(swatchesBefore);
+                await compare();
+            }
+        );
     });
 
     describe('selected annotation axes', () => {

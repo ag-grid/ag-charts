@@ -32,6 +32,8 @@ function toColorWithOpacity(color: string, opacity: number | undefined) {
     return new Color(r, g, b, opacity).toHexString();
 }
 
+export type DialogCloseOutcome = 'applied' | 'cancelled' | 'unchanged';
+
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {
     /**
      * Whether the dialog, and the colour pickers in it, show Apply and Cancel buttons. Closing the dialog any other way
@@ -114,7 +116,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /** Whether Apply and Cancel buttons are shown, as set by the options of the current show. */
     private showActionButtons = false;
     /** Whether the dialog is closing through Apply. */
-    protected applied = false;
+    private applied = false;
+    /** Whether anything has changed since the dialog opened. */
+    private changed = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id: string) {
         super(ctx, id);
@@ -124,6 +128,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     protected override showWithChildren(children: Widget[], options: Options): ContainerWidget {
         this.showActionButtons = options.showActionButtons ?? false;
         this.applied = false;
+        this.changed = false;
         this.applyButton = undefined;
         if (this.showActionButtons) {
             children = [...children, this.createActionButtons()];
@@ -161,14 +166,21 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     /** Closes the dialog, keeping the changes made since it opened. */
-    protected apply() {
+    public apply() {
         this.applied = true;
         this.hide();
     }
 
     /** Enables the Apply button, once there is a change to apply. */
-    protected markChanged() {
+    public markChanged() {
+        this.changed = true;
         this.applyButton?.setEnabled(true);
+    }
+
+    /** How the dialog closed, which is `unchanged` when there was nothing to apply or cancel. */
+    protected get closeOutcome(): DialogCloseOutcome {
+        if (!this.changed) return 'unchanged';
+        return this.applied ? 'applied' : 'cancelled';
     }
 
     /**************
@@ -358,8 +370,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private createActionButtons() {
         const { localeManager } = this.ctx;
         const actions = new ContainerWidget('ag-charts-dialog__actions');
-        const cancelButton = new InputButtonWidget({ label: localeManager.t('annotationsCancel') });
-        const applyButton = new InputButtonWidget({ label: localeManager.t('annotationsApply') });
+        const cancelButton = new InputButtonWidget(
+            { label: localeManager.t('annotationsCancel') },
+            'ag-charts-dialog__cancel-button'
+        );
+        const applyButton = new InputButtonWidget(
+            { label: localeManager.t('annotationsApply') },
+            'ag-charts-dialog__apply-button'
+        );
         // There is nothing to apply until something changes.
         applyButton.setEnabled(false);
         cancelButton.addListener('click', () => this.hide());
@@ -396,19 +414,19 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
-            // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
-            // eslint-disable-next-line aglint/widget-boundary -- reads back the swatch's CSS variable and class; Widget only sets them.
-            const swatchEl = colorEl.getElement();
-            const swatch = {
-                color: swatchEl.style.getPropertyValue('--color'),
-                isMultiColor: swatchEl.classList.contains(MULTI_COLOR_CLASS),
-            };
             const opening = { ...current };
+            let settled = { ...opening };
+            let opened = false;
+            const setSwatch = ({ color: c, opacity: o, isMultiColor: m }: typeof current) => {
+                colorEl.setCSSVariable('--color', !m && c != null && c !== '' ? toColorWithOpacity(c, o) : null);
+                colorEl.toggleClass(MULTI_COLOR_CLASS, !!m);
+            };
             const changeColor = (
                 newColorOpacity: string,
                 newColor: string,
                 newOpacity: number,
-                newIsMultiColor: boolean
+                newIsMultiColor: boolean,
+                restoring = false
             ) => {
                 current.color = newColor;
                 current.opacity = newOpacity;
@@ -416,6 +434,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 colorEl.setCSSVariable('--color', newColorOpacity);
                 colorEl.toggleClass(MULTI_COLOR_CLASS, newIsMultiColor);
                 onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
+                // The picker reports a default colour as it opens, and a cancel puts the colour back; neither is an edit.
+                if (opened && !restoring) this.markChanged();
             };
             this.colorPicker.show({
                 anchor,
@@ -426,27 +446,25 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 hasMultiColorOption,
                 showActionButtons: this.showActionButtons,
                 sourceEvent,
-                onChange: changeColor,
+                onChange: (...args) => changeColor(...args),
                 onChangeHide: (cancelled) => {
-                    if (cancelled && this.showActionButtons && opening.color != null && opening.color !== '') {
+                    if (cancelled && this.showActionButtons) {
                         // The dialog holds back its history until Apply, so there is no record to revert to. Put the
-                        // colour back to what the picker opened with, leaving the dialog's other changes alone.
-                        const openingOpacity = opening.opacity ?? 1;
-                        changeColor(
-                            toColorWithOpacity(opening.color, openingOpacity),
-                            opening.color,
-                            openingOpacity,
-                            !!opening.isMultiColor
-                        );
+                        // colour back to what the picker settled on as it opened, leaving the dialog's other changes alone.
+                        const { color: c = '', opacity: o = 1, isMultiColor: m = false } = settled;
+                        if (c !== '') changeColor(toColorWithOpacity(c, o), c, o, m, true);
                         return;
                     }
                     if (cancelled) {
-                        colorEl.setCSSVariable('--color', swatch.color === '' ? null : swatch.color);
-                        colorEl.toggleClass(MULTI_COLOR_CLASS, swatch.isMultiColor);
+                        // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
+                        setSwatch(opening);
                     }
                     onChangeHide(cancelled);
                 },
             });
+            // A colour that was unset has been given the picker's default by now.
+            settled = { ...current };
+            opened = true;
         });
 
         if (isMultiColor) {

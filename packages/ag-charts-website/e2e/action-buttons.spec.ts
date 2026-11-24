@@ -38,7 +38,7 @@ async function typeColor(page: Page, color: string) {
     const colorInput = page.getByRole('textbox', { name: 'Color' });
     await colorInput.fill('');
     await colorInput.pressSequentially(color);
-    // The field commits on Enter, which with the buttons shown also closes the picker, so commit with a blur instead.
+    // Enter closes the picker too, so commit with a blur instead.
     await colorInput.blur();
 }
 
@@ -152,6 +152,23 @@ test.describe('annotation action buttons (showActionButtons)', () => {
             await dialog(page).getByRole('button', { name: 'Close' }).click();
             await expect(dialog(page)).toBeHidden();
             expect(await getLine(page)).toEqual(before);
+        });
+
+        test('Enter in a field commits the value being typed and applies the dialog', async ({ page }) => {
+            await openSettings(page, url);
+            const before = await getLine(page);
+
+            await page.getByRole('tab', { name: 'Coordinates' }).click();
+            const input = dialog(page)
+                .getByRole('tabpanel', { name: 'Coordinates' })
+                .locator('input[aria-label*="Y"]')
+                .first();
+            await input.fill('42');
+            // Pressing Enter in the field, before it has lost focus, must not lose the typed value.
+            await input.press('Enter');
+
+            await expect(dialog(page)).toBeHidden();
+            expect(await getLine(page)).not.toEqual(before);
         });
 
         test('a colour picked in its picker is applied or cancelled with the dialog', async ({ page }) => {
