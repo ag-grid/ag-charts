@@ -46,7 +46,10 @@ type Scenario =
     | 'item-shadow-scatter'
     | 'item-shadow-heatmap'
     | 'glow-gap-bar'
-    | 'glow-gap-scatter';
+    | 'glow-gap-scatter'
+    | 'theme-bar'
+    | 'theme-scatter'
+    | 'theme-heatmap';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
@@ -57,10 +60,45 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 // the option itself. A hovered heatmap with the option set unbatches every cell, so it is measured at 100 x 100 cells.
 // `glow-gap-bar` and `glow-gap-scatter` set the series-level `glow`, which every highlight state inherits, and vary its `gap`
 // (unset, 0 or 5) instead of switching it on and off. Older builds ignore the option.
+// `theme-bar`, `theme-scatter` and `theme-heatmap` set none of `highlight`, `glow` or `shadow`, so they measure the theme defaults.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean, gap: Gap = 'unset'): AgCartesianChartOptions {
     const shadow = <T extends AgDropShadowOptions>(value: T) => (shadowOn ? value : undefined);
     const gapGlow: AgGlowOptions = { ...GAP_GLOW, ...(gap === 'unset' ? {} : { gap }) };
+
+    if (scenario === 'theme-bar') {
+        return {
+            data: getRows(20, 4, true),
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: Array.from({ length: 4 }, (_, i) => ({ type: 'bar' as const, xKey: 'x', yKey: `y${i}` })),
+        };
+    }
+
+    if (scenario === 'theme-scatter') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(5000, 10, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+            })),
+        };
+    }
+
+    if (scenario === 'theme-heatmap') {
+        return {
+            width: 1400,
+            height: 600,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            data: getHeatmapRows(100, 100),
+            series: [{ type: 'heatmap' as const, xKey: 'x', yKey: 'y', colorKey: 'level' }],
+        };
+    }
 
     if (scenario === 'glow-gap-bar') {
         return {
@@ -301,6 +339,27 @@ function gapVariantsOf(
     return variants;
 }
 
+/** The variants of the theme defaults case: one per chart, hovering with no highlight, glow or shadow option set. */
+/** inScope */
+function themeDefaultVariants() {
+    const charts: [string, Scenario][] = [
+        ['Bar', 'theme-bar'],
+        ['Scatter', 'theme-scatter'],
+        ['Heatmap', 'theme-heatmap'],
+    ];
+    const variants: Variants = [];
+    for (const [chart, scenario] of charts) {
+        variants.push({
+            params: { Operation: 'Hover x10', Chart: chart },
+            run: async () => {
+                await prepare(scenario, false);
+                return performDatumHighlight(chartRef.current!, container, 10);
+            },
+        });
+    }
+    return variants;
+}
+
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
     const create = (chartOptions: AgCartesianChartOptions) =>
@@ -395,6 +454,11 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     'Chart Create': create,
                     'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
                 }),
+            },
+            {
+                id: 'theme-defaults',
+                label: 'Theme defaults',
+                variants: themeDefaultVariants(),
             },
         ],
         config: {
