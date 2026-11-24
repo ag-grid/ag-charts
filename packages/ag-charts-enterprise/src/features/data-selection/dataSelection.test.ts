@@ -1421,8 +1421,7 @@ describe('DataSelection', () => {
         // Error bars express series-level dimming as group opacity, which a selection change must
         // maintain on its own rather than relying on the highlight-change handler.
         describe('CRT-1186 group opacity follows selection state', () => {
-            // The default theme sets selection.unselectedSeries.opacity = 0.2.
-            const DIMMED_OPACITY = 0.2;
+            // The default theme sets selection.unselectedSeries.opacity: 0.5 for bars and 0.3 for lines.
 
             const barSeries = (data: any[], yName: string): NonNullable<AgCartesianChartOptions['series']>[number] => ({
                 type: 'bar',
@@ -1445,9 +1444,9 @@ describe('DataSelection', () => {
                 await waitForChartStability(chart);
             }
 
-            for (const [seriesType, seriesFactory] of [
-                ['bar', (data: any[]) => barSeries(data, 'A')],
-                ['line', (data: any[]) => lineSeries(data, 'A', { stroke: 'steelblue', strokeWidth: 3 })],
+            for (const [seriesType, DIMMED_OPACITY, seriesFactory] of [
+                ['bar', 0.5, (data: any[]) => barSeries(data, 'A')],
+                ['line', 0.3, (data: any[]) => lineSeries(data, 'A', { stroke: 'steelblue', strokeWidth: 3 })],
             ] as const) {
                 it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
                     chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));

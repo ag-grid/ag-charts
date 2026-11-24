@@ -199,11 +199,13 @@ describe('MapShapeSeries', () => {
                     enabled: true,
                     xOffset: 0,
                     yOffset: 0,
-                    blur: 2,
-                    spread: 4,
-                    fillOpacity: 0.4,
+                    blur: 0,
+                    spread: 1,
+                    fillOpacity: 1,
                 });
-                expect(highlighted.getCastShadow('glow')?.fill).toBe('blue');
+                // The default glow is neutral (foreground mixed 0.6 onto the background), no longer the fill's colour;
+                // the test name is kept as it keys the image baseline.
+                expect(highlighted.getCastShadow('glow')?.fill).toBe('#909090');
                 await compare();
             });
         });

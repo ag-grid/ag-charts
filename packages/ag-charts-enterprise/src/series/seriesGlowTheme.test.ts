@@ -103,6 +103,9 @@ const PER_PART = new Set([
     'range-area marker',
 ]);
 
+// The series whose theme glows the hovered item by default (`highlightedItem.glow.enabled`), whichever part it is in.
+const HOVER_GLOW_BY_THEME = new Set(['hlc marker', 'range-area marker']);
+
 describe('series glow theme', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -127,12 +130,16 @@ describe('series glow theme', () => {
         chart.destroy();
     });
 
-    // A bucket that has no `glow` of its own has no one value to follow, so it leaves each part to its own `glow`.
-    it.each(MULTI_PART)('%s leaves a bucket with no glow to each part', async (_name, series, data, buckets) => {
+    // A bucket that has no `glow` of its own has no one value to follow, so it leaves each part to its own `glow`, except
+    // `highlightedItem` where the theme glows the hovered item by default.
+    it.each(MULTI_PART)('%s leaves a bucket with no glow to each part', async (name, series, data, buckets) => {
         const chart: any = await create(series, data);
         const highlight = getSeriesOptions<any>(chart).highlight;
         expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
-            buckets.map((bucket) => [bucket, undefined])
+            buckets.map((bucket) => [
+                bucket,
+                HOVER_GLOW_BY_THEME.has(name) && bucket === 'highlightedItem' ? true : undefined,
+            ])
         );
         chart.destroy();
     });
