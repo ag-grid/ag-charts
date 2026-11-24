@@ -14,10 +14,10 @@ async function drawTrendLine(page: Page, url: string) {
 
     await page.getByTitle('Trend Lines').click();
     await page.getByText('Trend Line').click();
-    // Hover before each click, as a person would; the annotation reads its pointer position from the hover.
+    // Both points lie in the series area: the left axis occupies the first ~130px, and a click there adds a line.
     for (const position of [
-        { x: 100, y: 100 },
-        { x: 200, y: 200 },
+        { x: 300, y: 150 },
+        { x: 500, y: 300 },
     ]) {
         await page.hover(SELECTORS.canvasProxy, { position });
         await page.click(SELECTORS.canvasProxy, { position });
