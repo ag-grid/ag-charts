@@ -53,7 +53,7 @@ class AnnotationsDOM {
         const moveDescriptionId = createElementId();
         this.moveDescription.id = moveDescriptionId;
 
-        this.mover.addClass('ag-charts-annotations__mover');
+        this.mover.addClass('ag-charts-proxy-elem', 'ag-charts-annotations__mover');
         this.mover.setTabIndex(-1);
         this.mover.setAriaDescribedBy(moveDescriptionId);
         this.mover.setHidden(true);
@@ -231,7 +231,7 @@ export class AnnotationsDOMProxy {
 
     private createButton(list: ListWidget, id: string, label: string) {
         const button = new ButtonWidget();
-        button.addClass('ag-charts-annotations__item');
+        button.addClass('ag-charts-proxy-elem', 'ag-charts-annotations__item');
         button.setTextContent(label);
         button.addListener('focus', () => this.listener.onFocus(id));
         button.addListener('click', (event) => this.listener.onActivate(id, event.sourceEvent));

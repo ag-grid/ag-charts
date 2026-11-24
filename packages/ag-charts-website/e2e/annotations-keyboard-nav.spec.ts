@@ -100,6 +100,19 @@ test.describe('annotations keyboard navigation', () => {
         await expect(moveButton).toBeFocused();
     });
 
+    test('annotations stay invisible under host button styles', async ({ page }) => {
+        await page.addStyleTag({ content: 'button { color: rgb(0, 0, 0); text-shadow: 1px 1px rgb(0, 0, 0); }' });
+
+        const style = await annotationItems(page)
+            .first()
+            .evaluate((el) => {
+                const { color, textShadow } = getComputedStyle(el);
+                return { color, textShadow };
+            });
+
+        expect(style).toEqual({ color: 'rgba(0, 0, 0, 0)', textShadow: 'none' });
+    });
+
     test('Clicking an annotation still selects it without the Move Annotation button', async ({ page }) => {
         const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
         // The first line is at 30 on a 0 to 100 y axis.
