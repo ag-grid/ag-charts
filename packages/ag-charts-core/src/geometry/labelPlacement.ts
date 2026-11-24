@@ -1627,6 +1627,14 @@ function releaseSolveReferences() {
     releaseChoice(bestChoice);
     releaseChoice(keptChoiceBackup);
     releaseMemo();
+    deferredStyles.length = 0;
+    deferredTexts.length = 0;
+    releaseRefits();
+    tradedChoiceSet = false;
+    tradedChoice.text = '';
+    tradedChoice.placement = undefined;
+    deferredPlacements.length = 0;
+    deferredShrinkCount = 0;
     labelMemoBase = -1;
     tradeHolder = undefined;
     tradeReplaying = false;
@@ -1737,6 +1745,7 @@ function tradeCandidateCount(d: PointLabelDatum, defaults: SeriesLabelDefaults |
 }
 
 function beginLabelTrade(candidateCount: number, resolves: boolean) {
+    tradedChoiceSet = false;
     labelTracksBaseline = candidateCount > 1;
     labelMayTrade = labelTracksBaseline && seriesTradableCount > 0;
     labelBaselineSet = false;
@@ -1802,6 +1811,80 @@ function resolveStyleAt(
     const style = cascadeStyle(d, placement, orientation);
     storeResolution(k, style);
     return style;
+}
+
+// The compass first choice a trade re-resolution would settle on, recorded instead of re-resolving it.
+let tradedChoiceSet = false;
+const tradedChoice: {
+    text: NormalisedTextOrSegments;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    placement: LabelPlacement | undefined;
+    rotation: number;
+    offsetX: number;
+    offsetY: number;
+    fontSize: number | undefined;
+} = {
+    text: '',
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    placement: undefined,
+    rotation: 0,
+    offsetX: 0,
+    offsetY: 0,
+    fontSize: 0,
+};
+
+function recordTradedChoice(
+    text: NormalisedTextOrSegments,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    placement: LabelPlacement | undefined,
+    rotation: number,
+    offsetX: number,
+    offsetY: number
+) {
+    tradedChoiceSet = true;
+    tradedChoice.text = text;
+    tradedChoice.x = x;
+    tradedChoice.y = y;
+    tradedChoice.width = width;
+    tradedChoice.height = height;
+    tradedChoice.placement = placement;
+    tradedChoice.rotation = rotation;
+    tradedChoice.offsetX = offsetX;
+    tradedChoice.offsetY = offsetY;
+    tradedChoice.fontSize = candidateFontSize;
+}
+
+/** The label at {@link tradedChoice}, as `cascadeCandidates` returns an outright winner. */
+function placeTradedChoice(d: PointLabelDatum, index: number): PlacedLabel {
+    const c = tradedChoice;
+    tradedChoiceSet = false;
+    placedClear = true;
+    const placed: PlacedLabel = {
+        index,
+        text: c.text,
+        x: c.x,
+        y: c.y,
+        width: c.width,
+        height: c.height,
+        datum: d,
+        placement: c.placement,
+        rotation: c.rotation === 0 ? undefined : c.rotation,
+        offsetX: c.offsetX,
+        offsetY: c.offsetY,
+        fontSize: c.fontSize,
+    };
+    c.text = '';
+    c.placement = undefined;
+    return placed;
 }
 
 /** Records the first candidate's tested footprint and, when only obstacles turned it away, which label holds it. */
@@ -1883,15 +1966,21 @@ function tryTrade(
     const before = placedCost + footprintCost(heldCentre, held, holder.baseline);
     const memoBase = labelMemoBase;
     obstacleIndex.remove(holder.box, holder);
+    releaseRefits();
     labelTracksBaseline = false;
     tradeReplaying = true;
     let inserted = false;
     let committed = false;
     try {
-        const traded = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
+        const traded = tradedChoiceSet
+            ? placeTradedChoice(d, index)
+            : tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
         if (traded == null || !placedClear || losesText(traded, placed)) return placed;
         const tradedCost = footprintCost(tradedCentre, traded, labelBaseline);
         if (tradedCost > before + TRADE_TOLERANCE) return placed;
+        if (holderCannotRecoup(tradedCost, before, placed != null, holder, resolveCandidateStyle ?? resolveCandidate)) {
+            return placed;
+        }
         insertLabelObstacle(traded, poolSlot);
         inserted = true;
         labelMemoBase = holder.memoBase;
@@ -1913,6 +2002,7 @@ function tryTrade(
         labels[holder.resultSlot] = moved;
         return traded;
     } finally {
+        releaseRefits();
         tradeReplaying = false;
         tradeHolderOrder = Infinity;
         labelTracksBaseline = true;
@@ -1920,6 +2010,18 @@ function tryTrade(
         if (inserted) obstacleIndex.remove(labelObstaclePool[poolSlot].box, labelObstaclePool[poolSlot]);
         if (!committed) obstacleIndex.insert(holder.box, holder);
     }
+}
+
+/** Alone costing `before`, the traded label can only win {@link tradeImproves}'s tie. Unstyled series only. */
+function holderCannotRecoup(
+    tradedCost: number,
+    before: number,
+    placedExists: boolean,
+    holder: PooledLabelObstacle,
+    resolver: unknown
+): boolean {
+    if (resolver != null || tradedCost < before - TRADE_TOLERANCE) return false;
+    return !placedExists || !pairCrossed(heldCentre, holder.baseline, placedCentre, labelBaseline);
 }
 
 function insertedAfterHolder(o: LabelObstacle): boolean {
@@ -2281,10 +2383,92 @@ function refitCandidateShrunk(
     shrunkContainer.height = reduceAxis(candidateLabel.maxHeight, candidateLabel.glyphHeight, reduceHeight);
     // The obstacle re-fit answers a collision with text, never with a smaller font: reducing the size is
     // the ladder's job, which runs once per label over every candidate rather than per candidate.
-    if (!fitLabelToCandidate(fit, font, source, shrunkContainer, false)) return false;
-    if (!hasRealChars(fittedLabel.text)) return false;
+    if (!(tradeReplaying ? refitRemembered(fit, font, source) : refitText(fit, font, source))) return false;
     writeCandidateLabel(boxPadding, font);
     return true;
+}
+
+function refitText(
+    fit: LabelFitDescriptor,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined
+): boolean {
+    return fitLabelToCandidate(fit, font, source, shrunkContainer, false) && hasRealChars(fittedLabel.text);
+}
+
+// Shrink re-fits of the label a trade is re-resolving: a pure function of these inputs, so a repeat is read back.
+const REFIT_STRIDE = 13;
+const REFIT_CAPACITY = 16;
+const refitNumbers: number[] = [];
+const refitRefs: unknown[] = [];
+let refitCount = 0;
+
+function refitRemembered(
+    fit: LabelFitDescriptor,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined
+): boolean {
+    const sw = source?.width ?? Number.NaN;
+    const sh = source?.height ?? Number.NaN;
+    const { width: cw, height: ch } = shrunkContainer;
+    for (let i = 0; i < refitCount; i++) {
+        const o = i * REFIT_STRIDE;
+        const r = i * 6;
+        if (
+            refitRefs[r] !== fit ||
+            refitRefs[r + 1] !== font.fontFamily ||
+            refitRefs[r + 2] !== font.fontStyle ||
+            refitRefs[r + 3] !== font.fontWeight ||
+            !Object.is(refitNumbers[o], font.fontSize) ||
+            !Object.is(refitNumbers[o + 1], font.lineHeight ?? Number.NaN) ||
+            !Object.is(refitNumbers[o + 2], sw) ||
+            !Object.is(refitNumbers[o + 3], sh) ||
+            refitNumbers[o + 4] !== cw ||
+            refitNumbers[o + 5] !== ch
+        ) {
+            continue;
+        }
+        if (refitNumbers[o + 6] === 0) return false;
+        fittedLabel.text = refitRefs[r + 4] as NormalisedTextOrSegments;
+        fittedLabel.fontSize = refitRefs[r + 5] as number | undefined;
+        fittedLabel.width = refitNumbers[o + 7];
+        fittedLabel.height = refitNumbers[o + 8];
+        fittedLabel.dropped = refitNumbers[o + 9];
+        fittedLabel.shrink = refitNumbers[o + 10];
+        fittedLabel.maxWidth = refitNumbers[o + 11];
+        fittedLabel.maxHeight = refitNumbers[o + 12];
+        return true;
+    }
+    const ok = refitText(fit, font, source);
+    if (refitCount === REFIT_CAPACITY) return ok;
+    const i = refitCount++;
+    const o = i * REFIT_STRIDE;
+    const r = i * 6;
+    refitRefs[r] = fit;
+    refitRefs[r + 1] = font.fontFamily;
+    refitRefs[r + 2] = font.fontStyle;
+    refitRefs[r + 3] = font.fontWeight;
+    refitRefs[r + 4] = fittedLabel.text;
+    refitRefs[r + 5] = fittedLabel.fontSize;
+    refitNumbers[o] = font.fontSize;
+    refitNumbers[o + 1] = font.lineHeight ?? Number.NaN;
+    refitNumbers[o + 2] = sw;
+    refitNumbers[o + 3] = sh;
+    refitNumbers[o + 4] = cw;
+    refitNumbers[o + 5] = ch;
+    refitNumbers[o + 6] = ok ? 1 : 0;
+    refitNumbers[o + 7] = fittedLabel.width;
+    refitNumbers[o + 8] = fittedLabel.height;
+    refitNumbers[o + 9] = fittedLabel.dropped;
+    refitNumbers[o + 10] = fittedLabel.shrink;
+    refitNumbers[o + 11] = fittedLabel.maxWidth;
+    refitNumbers[o + 12] = fittedLabel.maxHeight;
+    return ok;
+}
+
+function releaseRefits() {
+    refitRefs.length = 0;
+    refitCount = 0;
 }
 
 /**
@@ -2654,6 +2838,7 @@ interface CandidateChoice {
     candidate: PositionedLabelCandidate | undefined;
     fontSize: number | undefined;
     stack: FittedLabelStack | undefined;
+    ordinal: number;
 }
 
 /**
@@ -2687,6 +2872,7 @@ const bestChoice: CandidateChoice = {
     candidate: undefined,
     fontSize: undefined,
     stack: undefined,
+    ordinal: 0,
 };
 
 // Stack fitted to the candidate being tested, read back by `recordBestChoice`.
@@ -2705,8 +2891,11 @@ function recordBestChoice(
     placement: LabelPlacement | undefined,
     candidate: PositionedLabelCandidate | undefined
 ) {
-    if (tier > bestChoice.tier || (tier === bestChoice.tier && score >= bestChoice.score)) return;
+    if (tier > bestChoice.tier || (tier === bestChoice.tier && score >= bestChoice.score && !deferredOutranks(score))) {
+        return;
+    }
     bestChoice.tier = tier;
+    bestChoice.ordinal = recordOrdinal;
     bestChoice.score = score;
     bestChoice.text = text;
     bestChoice.x = candidateBox.x;
@@ -2720,6 +2909,11 @@ function recordBestChoice(
     bestChoice.candidate = candidate;
     bestChoice.fontSize = candidateFontSize;
     bestChoice.stack = candidateStack;
+}
+
+/** A deferred shrink tying the incumbent still wins when the cascade would have reached it first. */
+function deferredOutranks(score: number): boolean {
+    return recordingDeferred && score === bestChoice.score && recordOrdinal < bestChoice.ordinal;
 }
 
 /** Materialises {@link bestChoice} as the cascade's result, or `undefined` when no candidate was recorded. */
@@ -2776,6 +2970,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
     const orientationCount = cascadeOrientations?.length ?? 1;
     // A trial can only win outright, so it records nothing, except the floor trial of a kept label.
     const recordBest = candidateTrialFontSize == null || floorRecordsKept;
+    // An outright winner leaves its pass's deferred candidates behind.
+    if (deferredShrinkCount > 0) releaseDeferredShrinks();
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidateAt(cascadePlacements, d.placement, pi);
         for (let oi = 0; oi < orientationCount; oi++) {
@@ -2783,7 +2979,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
             const rotation = orientation == null ? 0 : orientationAngles[orientation];
             // A label disabled at every candidate is dropped entirely: unplaced, it never enters the
             // obstacle index, so it reserves no space from its neighbours.
-            const style = resolveStyleAt(d, placement, orientation, pi * orientationCount + oi);
+            recordOrdinal = pi * orientationCount + oi;
+            const style = resolveStyleAt(d, placement, orientation, recordOrdinal);
             if (style?.hidden === true) continue;
             if (
                 !sizeCandidateLabel(d, style, placement, rotation, cascadeThreshold, cascadeFitRegion, cascadeFitSource)
@@ -2806,6 +3003,10 @@ function cascadeCandidates(): PlacedLabel | undefined {
             const clear = contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
             if (pi === 0 && oi === 0 && labelTracksBaseline && candidateTrialFontSize == null) {
                 recordTradeBaseline(contained && !clear);
+                // Its holder lifted, this candidate clears and wins the label's re-resolution outright.
+                if (tradeHolder != null && dropped === 0) {
+                    recordTradedChoice(text, x, y, width, height, placement, rotation, offsetX, offsetY);
+                }
             }
             if (clear) {
                 if (dropped === 0) {
@@ -2855,12 +3056,100 @@ function cascadeCandidates(): PlacedLabel | undefined {
             // Obstacle-only failure: the candidate has the room, an obstacle is taking part of it. Shrinking
             // is tried last so a failed attempt can clobber the shared candidate scratch freely, and only
             // outside a trial, whose candidates can win outright but record nothing.
-            if (contained && candidateTrialFontSize == null && shrinkCompassCandidate(d, style, placement, rotation)) {
+            if (!contained || candidateTrialFontSize != null) continue;
+            if (tradeReplaying) {
+                // An outright winner later in the cascade discards every shrunk choice, so a trade defers them.
+                deferShrink(style);
+            } else if (shrinkCompassCandidate(d, style, placement, rotation)) {
                 recordShrunkChoice(rotation, placement, undefined);
             }
         }
     }
+    if (deferredShrinkCount > 0) shrinkDeferredCandidates();
     return undefined;
+}
+
+// Candidates a trade re-resolution left to shrink, in cascade order, with the scratch each shrink reads.
+const DEFERRED_STRIDE = 13;
+const deferredScratch: number[] = [];
+const deferredStyles: (CandidateLabelStyle | undefined)[] = [];
+const deferredTexts: NormalisedTextOrSegments[] = [];
+const deferredPlacements: (LabelPlacement | undefined)[] = [];
+let deferredShrinkCount = 0;
+// The cascade position of the candidate being recorded; deferred shrinks rank against earlier records by it.
+let recordOrdinal = 0;
+let recordingDeferred = false;
+
+function deferShrink(style: CandidateLabelStyle | undefined) {
+    const i = deferredShrinkCount++;
+    const o = i * DEFERRED_STRIDE;
+    const l = candidateLabel;
+    deferredScratch[o] = recordOrdinal;
+    deferredScratch[o + 1] = l.width;
+    deferredScratch[o + 2] = l.height;
+    deferredScratch[o + 3] = l.dropped;
+    deferredScratch[o + 4] = l.shrink;
+    deferredScratch[o + 5] = l.glyphWidth;
+    deferredScratch[o + 6] = l.glyphHeight;
+    deferredScratch[o + 7] = l.maxWidth;
+    deferredScratch[o + 8] = l.maxHeight;
+    deferredScratch[o + 9] = candidateBox.x;
+    deferredScratch[o + 10] = candidateBox.y;
+    deferredScratch[o + 11] = candidateBox.width;
+    deferredScratch[o + 12] = candidateBox.height;
+    deferredStyles[i] = style;
+    deferredTexts[i] = l.text;
+    deferredPlacements[i] = candidatePlacement;
+}
+
+function releaseDeferredShrinks() {
+    for (let i = 0; i < deferredShrinkCount; i++) {
+        deferredStyles[i] = undefined;
+        deferredTexts[i] = '';
+    }
+    deferredShrinkCount = 0;
+}
+
+/** Shrinks the deferred candidates in cascade order, each from the scratch the cascade left it with. */
+function shrinkDeferredCandidates() {
+    const d = cascadeDatum!;
+    const count = deferredShrinkCount;
+    recordingDeferred = true;
+    try {
+        for (let i = 0; i < count; i++) {
+            const o = i * DEFERRED_STRIDE;
+            const l = candidateLabel;
+            recordOrdinal = deferredScratch[o];
+            l.text = deferredTexts[i];
+            l.width = deferredScratch[o + 1];
+            l.height = deferredScratch[o + 2];
+            l.dropped = deferredScratch[o + 3];
+            l.shrink = deferredScratch[o + 4];
+            l.glyphWidth = deferredScratch[o + 5];
+            l.glyphHeight = deferredScratch[o + 6];
+            l.maxWidth = deferredScratch[o + 7];
+            l.maxHeight = deferredScratch[o + 8];
+            candidateBox.x = deferredScratch[o + 9];
+            candidateBox.y = deferredScratch[o + 10];
+            candidateBox.width = deferredScratch[o + 11];
+            candidateBox.height = deferredScratch[o + 12];
+            const placement = deferredPlacements[i];
+            candidatePlacement = placement;
+            const rotation = cascadeRotationAt(recordOrdinal);
+            if (shrinkCompassCandidate(d, deferredStyles[i], placement, rotation)) {
+                recordShrunkChoice(rotation, placement, undefined);
+            }
+        }
+    } finally {
+        recordingDeferred = false;
+        releaseDeferredShrinks();
+    }
+}
+
+function cascadeRotationAt(k: number): number {
+    const orientationCount = cascadeOrientations?.length ?? 1;
+    const orientation = candidateAt(cascadeOrientations, cascadeSingleOrientation, k % orientationCount);
+    return orientation == null ? 0 : orientationAngles[orientation];
 }
 
 /** Records the candidate a shrink pass left on the scratch, scored by the text and glyph area it gave up. */

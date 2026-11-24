@@ -4672,6 +4672,49 @@ describe('placeLabels slot trade', () => {
             });
         });
 
+        it.each([
+            ['costs as much as before and uncrosses the pair', 75, { x: 120, y: 115 }],
+            ['costs a pixel less than before', 76, { x: 125, y: 100 }],
+        ])('trades with a holder that stays put when the traded label %s', (_, tradedY, fallback) => {
+            const at = (cx: number, cy: number, container?: { width: number; height: number }) => ({
+                box: { x: cx - 15, y: cy - 10, width: 30, height: 20 },
+                fitTo: {
+                    container,
+                    anchor: { x: cx, y: cy, textAlign: 'center', textBaseline: 'middle' } as OrientationAnchor,
+                    padding: NO_PADDING,
+                },
+            });
+            const pointAvoid = { label: true };
+            const holder: PointLabelDatum = {
+                point: { x: 77, y: 104, size: 0 },
+                label: { text: 'abc', width: 30, height: 20 },
+                anchor: undefined,
+                placement: undefined,
+                positionedCandidates: [at(77, 104), at(300, 300)],
+                avoid: pointAvoid,
+            };
+            // The first choice truncates, and the threshold turns the second away from the holder it clears.
+            const traded: PointLabelDatum = {
+                point: { x: 100, y: 100, size: 0 },
+                label: { text: 'abc', width: 30, height: 20 },
+                fit: { text: 'abc', policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+                anchor: undefined,
+                placement: undefined,
+                positionedCandidates: [
+                    at(100, 100, { width: 20, height: 20 }),
+                    at(100, tradedY),
+                    at(fallback.x, fallback.y),
+                ],
+                avoid: pointAvoid,
+                threshold: 10,
+            };
+
+            expect([...solve({ s: [holder, traded] }).values()].flat().map(({ x, y }) => ({ x, y }))).toEqual([
+                { x: 62, y: 94 },
+                { x: 85, y: tradedY - 10 },
+            ]);
+        });
+
         describe('the obstacle index after a trade', () => {
             const later = (ys: number[], height = 16): PointLabelDatum => ({
                 ...barDatum(
@@ -4782,6 +4825,101 @@ describe('placeLabels slot trade', () => {
                 { text: 'lower', y: 100 },
             ]);
             expect(calls).toEqual(['upper@bottom', 'lower@top', 'lower@bottom', 'upper@top']);
+        });
+
+        it.each([
+            [
+                'truncates',
+                undefined,
+                [
+                    { text: 'held', y: 90 },
+                    { text: 'abcdef', y: 110 },
+                ],
+            ],
+            [
+                'shrinks',
+                6,
+                [
+                    { text: 'held', y: 103 },
+                    { text: 'abcdef', y: 150 },
+                ],
+            ],
+        ])('keeps the traded label whole when its freed first choice %s', (_, minimumFontSize, expected) => {
+            const held: PointLabelDatum = {
+                point: { x: 100, y: 100, size: 4 },
+                label: { text: 'held', width: 40, height: 20 },
+                anchor: undefined,
+                placement: undefined,
+                placements: ['bottom', 'inside'],
+                gap: 3,
+                avoid: { label: true },
+            };
+            // Inside fits a 40×20 box only by losing text or size, so the trade takes top or nothing.
+            const traded: PointLabelDatum = {
+                point: { x: 100, y: 140, size: 4 },
+                label: { text: 'abcdef', width: 60, height: 20 },
+                fit: {
+                    text: 'abcdef',
+                    policy: { overflowStrategy: 'ellipsis', minimumFontSize },
+                    font: FONT,
+                    boxPadding: NO_PADDING,
+                    boundByRegion: false,
+                },
+                anchor: undefined,
+                placement: undefined,
+                placements: ['inside', 'top', 'bottom'],
+                insideSize: { width: 10, height: 5 },
+                insideOffset: { x: 0, y: -3.5 },
+                gap: 10,
+                avoid: { label: true },
+            };
+
+            expect(ysOf(solve({ s: [held, traded] })).toSorted((a, b) => a.y - b.y)).toEqual(expected);
+        });
+
+        it('shrinks a re-resolved label when no candidate wins outright', () => {
+            const fitOf = (text: string) => ({
+                text,
+                policy: { overflowStrategy: 'hide' as const, wrapping: 'on-space' as const },
+                font: FONT,
+                boxPadding: NO_PADDING,
+                boundByRegion: false,
+            });
+            const region = { x: 0, y: 0, width: 200, height: 200 };
+            const wrapped: PointLabelDatum = {
+                point: { x: 92, y: 76, size: 20 },
+                label: { text: 'hello there', width: 110, height: 20 },
+                fit: fitOf('hello there'),
+                anchor: undefined,
+                placement: undefined,
+                placements: ['right', 'bottom-left', 'top-left', 'inside'],
+                gap: 4,
+                avoid: { marker: true, label: true, shape: true },
+                region,
+                insideOffset: { x: 0, y: 0 },
+            };
+            const other: PointLabelDatum = {
+                point: { x: 80, y: 64, size: 0 },
+                label: { text: 'abc', width: 30, height: 20 },
+                fit: fitOf('abc'),
+                anchor: undefined,
+                placement: undefined,
+                placements: ['top-right', 'top-left', 'bottom-left'],
+                gap: 0,
+                avoid: { marker: false, label: true, shape: true },
+                region,
+                insideSize: { width: 0.5, height: 0.8 },
+            };
+            const result = placeLabels(
+                new Map([['s', { datums: [wrapped, other], defaults: { alwaysShow: false } }]]),
+                bounds,
+                0
+            );
+            // The trade fits the wrapped label inside by wrapping it, freeing room for the other label.
+            expect([...result.values()].flat().map(({ text, placement }) => ({ text, placement }))).toEqual([
+                { text: 'hello\nthere', placement: 'inside' },
+                { text: 'abc', placement: 'top-right' },
+            ]);
         });
     });
 });

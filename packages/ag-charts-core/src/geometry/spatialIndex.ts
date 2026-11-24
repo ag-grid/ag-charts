@@ -70,7 +70,7 @@ export class SpatialIndex<R> {
         }
     }
 
-    /** Removes one occurrence of `ref` from each cell `box` spans, keeping the other refs in order; `box` must be the one it was inserted with. */
+    /** Removes the last occurrence of `ref` from each cell `box` spans, keeping the other refs in order; `box` must be the one it was inserted with. */
     remove(box: BoxBounds, ref: R) {
         const { cols, cells } = this;
         const minCx = this.clampCol(box.x);
@@ -81,7 +81,8 @@ export class SpatialIndex<R> {
             const rowOffset = cy * cols;
             for (let cx = minCx; cx <= maxCx; cx++) {
                 const cell = cells[rowOffset + cx];
-                const at = cell.indexOf(ref);
+                // Searched from the end: a ref removed soon after it was inserted sits near it.
+                const at = cell.lastIndexOf(ref);
                 if (at < 0) continue;
                 // Shifted by hand: `splice` allocates the array of removed refs.
                 for (let i = at + 1, ln = cell.length; i < ln; i++) {
