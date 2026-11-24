@@ -55,6 +55,8 @@ import {
     formatValue,
     gridCellSize,
     insetChord,
+    insetItemSector,
+    insetItemSpan,
     isFullSweep,
     isGradientFill,
     isStringFillArray,
@@ -2274,6 +2276,7 @@ export class DonutSeries extends PolarSeries<
         sectorLabels.clear();
         if (!sectorLabel.enabled) return;
 
+        const { itemPadding } = this.options;
         const { positionOffset, positionRatio } = sectorLabel;
         const policy = resolveAlwaysLabelFit(sectorLabel);
         const boxedPolicy = { ...policy, boxed: true };
@@ -2298,16 +2301,13 @@ export class DonutSeries extends PolarSeries<
             let fitTarget: PolarFitTarget;
             if (centred) {
                 // A centred single-sector label fits the square inscribed in the pie, like the inner label.
-                const holeExtent = outerRadius * Math.SQRT2;
+                const holeExtent = insetItemSpan(2 * outerRadius, itemPadding) * Math.SQRT1_2;
                 fitTarget = { container: { width: holeExtent, height: holeExtent } };
             } else {
-                const sector = {
-                    startAngle,
-                    endAngle,
-                    innerRadius,
-                    outerRadius,
-                    radialEdgeInset: this.getSideInset(datum, 0),
-                };
+                const sector = insetItemSector(
+                    { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset: this.getSideInset(datum, 0) },
+                    itemPadding
+                );
                 const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, centerX, centerY, drawnAsFitted);
                 fitPolicy = labelHasBox(font) ? boxedPolicy : unboxedPolicy;
                 fitTarget = { place };

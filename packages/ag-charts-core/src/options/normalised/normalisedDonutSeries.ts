@@ -80,6 +80,7 @@ type DonutRequiredKeys =
     | 'title'
     | 'calloutLabel'
     | 'sectorLabel'
+    | 'itemPadding'
     | 'calloutLine'
     | 'shadow';
 

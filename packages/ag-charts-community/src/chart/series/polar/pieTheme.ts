@@ -3,6 +3,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
     GLOW_THEME_DEFAULTS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     PLACED_LABEL_BOXING_DEFAULTS,
@@ -20,6 +21,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         title: {
             enabled: true,
             showInLegend: false,
