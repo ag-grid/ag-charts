@@ -2,16 +2,14 @@ import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgColorType, AgPatternColor } from 'ag-charts-types';
 
-import { expectSamePixels } from '../test/expectSamePixels';
+import { type Fill, expectSolidMatchesPlain, plainFill, solidFill } from '../test/solidFills';
 import {
     PATTERN_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
-    expectNonBlank,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from '../test/utils';
 
 const DATA = [
@@ -25,22 +23,6 @@ const pattern = (name: AgPatternColor['pattern'], stroke: string): AgPatternColo
     pattern: name,
     stroke,
 });
-
-/**
- * A fill and the opacity beside it, given either as a solid colour object or as the plain options it stands for.
- * `outerOpacity` is a `fillOpacity` set on the option that the fill is returned over, which the solid colour multiplies.
- */
-type Fill = (
-    colour: string,
-    fillOpacity?: number,
-    outerOpacity?: number
-) => { fill: AgColorType; fillOpacity?: number };
-
-const solidFill: Fill = (fill, fillOpacity) => ({ fill: { type: 'solid', fill, fillOpacity } });
-const plainFill: Fill = (fill, fillOpacity, outerOpacity) =>
-    fillOpacity == null && outerOpacity == null
-        ? { fill }
-        : { fill, fillOpacity: (fillOpacity ?? 1) * (outerOpacity ?? 1) };
 
 /** Charts that must render the same whichever way `fill` writes their colours. */
 const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
@@ -61,8 +43,20 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
     'styler results': (fill) => ({
         data: DATA,
         series: [
-            { type: 'bar', xKey: 'month', yKey: 'a', itemStyler: ({ datum }) => fill('red', datum.a / 10) },
-            { type: 'line', xKey: 'month', yKey: 'c', marker: { size: 16, itemStyler: () => fill('blue', 0.5) } },
+            // A styler's opacity replaces one set outside its result, as a plain `fillOpacity` does.
+            {
+                type: 'bar',
+                xKey: 'month',
+                yKey: 'a',
+                fillOpacity: 0.8,
+                itemStyler: ({ datum }) => fill('red', datum.a / 10),
+            },
+            {
+                type: 'line',
+                xKey: 'month',
+                yKey: 'c',
+                marker: { size: 16, fillOpacity: 0.8, itemStyler: () => fill('blue', 0.5) },
+            },
         ],
     }),
     'axis label stylers': (fill) => ({
@@ -93,6 +87,46 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
     }),
 };
 
+const PALETTE = ['#aa0000', '#00aa00'];
+
+const paletteChart = (first: AgColorType): AgChartOptions => ({
+    data: DATA,
+    theme: { palette: { fills: [first, 'green'] } },
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'a' },
+        { type: 'line', xKey: 'month', yKey: 'c' },
+    ],
+});
+
+const donutChart = (fill: AgColorType): AgChartOptions => ({
+    data: DATA,
+    theme: { palette: { fills: PALETTE } },
+    series: [{ type: 'donut', angleKey: 'a', innerRadiusRatio: 0.6, innerCircle: { fill } }],
+});
+
+const axisChart = (itemStyler: () => { fill?: AgColorType }): AgChartOptions => ({
+    data: DATA,
+    series: [{ type: 'bar', xKey: 'month', yKey: 'a' }],
+    axes: { x: { type: 'category', label: { fill: 'orange', itemStyler } }, y: { type: 'number' } },
+});
+
+/** Charts that no `Fill` can express, as the options with a solid colour and the plain ones it stands for. */
+const EXPLICIT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptions]> = {
+    'a palette solid with an opacity': [
+        paletteChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }),
+        paletteChart('rgba(255, 0, 0, 0.5)'),
+    ],
+    'a donut inner circle with no colour': [donutChart({ type: 'solid' }), donutChart(PALETTE[0])],
+    'an axis label styler with no colour': [axisChart(() => ({ fill: { type: 'solid' } })), axisChart(() => ({}))],
+};
+
+const EQUIVALENT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptions]> = {
+    ...Object.fromEntries(
+        Object.entries(EQUIVALENT_CHARTS).map(([name, chart]) => [name, [chart(solidFill), chart(plainFill)]])
+    ),
+    ...EXPLICIT_PAIRS,
+};
+
 describe('solid fill', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
@@ -104,19 +138,9 @@ describe('solid fill', () => {
         chart = undefined;
     });
 
-    it.each(Object.keys(EQUIVALENT_CHARTS))('renders %s as the colours they stand for', async (name) => {
-        const options = (fill: Fill) => ({ ...EQUIVALENT_CHARTS[name](fill), animation: { enabled: false } });
-
-        chart = await createChart(options(solidFill));
-        const solid = ctx.snapshot();
-        expectNonBlank(solid);
-
-        await chart.update(prepareTestOptions(options(plainFill)));
-        await waitForChartStability(chart);
-
-        // `expectPixelIdenticalAcrossUpdate` lets through a difference the size of a legend marker.
-        expectSamePixels(ctx.snapshot(), solid);
-    });
+    it.each(Object.keys(EQUIVALENT_PAIRS))('renders %s as the colours they stand for', (name) =>
+        expectSolidMatchesPlain(ctx, { create: createChart, prepare: prepareTestOptions }, ...EQUIVALENT_PAIRS[name])
+    );
 
     it('takes a solid colour from each pattern of the palette', async () => {
         const fill: AgColorType = { type: 'solid' };
