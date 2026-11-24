@@ -102,7 +102,7 @@ export class AnnotationsToolbar {
         this.toolbar.toggleButtonEnabledByIndex(index, enabled);
     }
 
-    /** Shows whether the magnet is on, as the switch's `checkedOverrides` say; it persists across drawing, unlike the active button. */
+    /** Shows whether the magnet is on, as the switch's `checkedOverrides` say, which persists across drawing. */
     public setMagnetChecked(checked: boolean) {
         this.magnetChecked = checked;
         const index = this.configuredButtons.findIndex((button) => button.value === 'magnet');

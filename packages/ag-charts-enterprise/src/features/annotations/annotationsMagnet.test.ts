@@ -12,11 +12,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import {
-    getAnnotationMagnetEnabled,
-    pressAnnotationMagnetButton,
-    pressAnnotationToolbarCreate,
-} from '../../test/featureAccessors';
+import { getAnnotationMagnetEnabled, pressAnnotationToolbarCreate } from '../../test/featureAccessors';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -107,12 +103,12 @@ describe('Annotations magnet', () => {
         // Off, so the line stays where it is clicked: 30.
         await drawHorizontalLine(at(30), 'click');
 
-        // With a range of 10 pixels, it snaps to the close, 55, from 6 pixels away but not to anything from 85, which is far above.
+        // Within 10 pixels, it snaps to the close, 55, from 6 pixels away but not to anything from 85, far above.
         await updateMagnet({ enabled: true, range: 10 });
         await drawHorizontalLine(at(55, 6), 'click');
         await drawHorizontalLine(at(85), 'click');
 
-        // With the nearest range, it snaps to the high, 70, from the top of the chart, and to the low, 20, when drawn by dragging.
+        // Nearest, it snaps to the high, 70, from the top of the chart, and to the low, 20, when drawn by dragging.
         await updateMagnet({ enabled: true, range: 'nearest' });
         await drawHorizontalLine(at(98), 'click');
         await drawHorizontalLine(at(2), 'drag');
@@ -326,20 +322,7 @@ describe('Annotations magnet', () => {
         await compareAnnotationsSnapshot(chart, ctx);
     });
 
-    it('keeps a toggle of the toolbar button until the enabled option changes', async () => {
-        await prepareChart({ enabled: false, range: 'nearest' }, {});
-        expect(getAnnotationMagnetEnabled(chart)).toBe(false);
-
-        pressAnnotationMagnetButton(chart);
-        await updateMagnet({ range: 20 });
-        expect(getAnnotationMagnetEnabled(chart)).toBe(true);
-
-        await updateMagnet({ enabled: true });
-        await updateMagnet({ enabled: false });
-        expect(getAnnotationMagnetEnabled(chart)).toBe(false);
-    });
-
-    it('shows the toolbar magnet button as a switch that swaps its icon with the magnet', async () => {
+    it('toggles the magnet with a switch button that swaps its icon, until the enabled option changes', async () => {
         chart = await createAnnotationsChart({
             ...ANNOTATIONS_EXAMPLE_OPTIONS,
             annotations: {
@@ -381,8 +364,15 @@ describe('Annotations magnet', () => {
         await waitForChartStability(chart);
         expect(state()).toEqual({ role: 'switch', checked: 'false', pressed: false, icon: 'icon-no-magnet' });
 
-        // The options turn the magnet on, which the switch shows too.
-        await updateMagnet({ enabled: true });
+        // A toggle outlasts a change of another option, but not of `enabled`, which the switch shows too.
+        magnetButton().click();
+        await updateMagnet({ range: 20 });
+        expect(getAnnotationMagnetEnabled(chart)).toBe(true);
         expect(state()).toMatchObject({ checked: 'true', icon: 'icon-magnet' });
+
+        await updateMagnet({ enabled: true });
+        await updateMagnet({ enabled: false });
+        expect(getAnnotationMagnetEnabled(chart)).toBe(false);
+        expect(state()).toMatchObject({ checked: 'false', icon: 'icon-no-magnet' });
     });
 });

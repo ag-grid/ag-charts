@@ -102,7 +102,6 @@ interface AnnotationsHost {
         enabled?: boolean;
         events: {
             emit(event: 'pressed-create-annotation', data: { annotation: string }): void;
-            emit(event: 'pressed-magnet', data: null): void;
         };
     };
     magnetEnabled: boolean;
@@ -135,11 +134,6 @@ export function getAnnotationsModuleContext(chartOrProxy: ChartOrProxy<any>) {
 /** Starts drawing an annotation of `type`, as pressing its button in the annotation toolbar does. */
 export function pressAnnotationToolbarCreate(chartOrProxy: ChartOrProxy<any>, type: string): void {
     getAnnotations(chartOrProxy).toolbar.events.emit('pressed-create-annotation', { annotation: type });
-}
-
-/** Switches the magnet on or off, as pressing its button in the annotation toolbar does. */
-export function pressAnnotationMagnetButton(chartOrProxy: ChartOrProxy<any>): void {
-    getAnnotations(chartOrProxy).toolbar.events.emit('pressed-magnet', null);
 }
 
 /** Whether the magnet is on, before Ctrl or Cmd inverts it. */
