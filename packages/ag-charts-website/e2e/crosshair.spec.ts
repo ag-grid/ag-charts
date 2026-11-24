@@ -64,4 +64,25 @@ test.describe('band highlight', () => {
         await page.mouse.click(141, 247);
         await expectChartScreenshot(page, page, 'band-axisButton-clicked.png');
     });
+
+    for (const { framework, url } of toExamplePageUrls('axes-crosshairs', 'band-highlight')) {
+        test.describe(`for ${framework}`, () => {
+            // The default band fill is within the global 0.05 threshold of a white background.
+            const options = { threshold: 0.02 };
+
+            test('keynav highlights the band of the focused datum', async ({ page }) => {
+                await gotoExample(page, url);
+
+                await page.mouse.click(666, 400, { button: 'left' });
+                await expectChartScreenshot(page, page, 'band-keynav-mouse.png', options);
+
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+                await expectChartScreenshot(page, page, 'band-keynav-right.png', options);
+
+                await page.keyboard.press('ArrowLeft');
+                await expectChartScreenshot(page, page, 'band-keynav-left.png', options);
+            });
+        });
+    }
 });
