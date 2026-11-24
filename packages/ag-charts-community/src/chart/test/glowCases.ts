@@ -71,6 +71,13 @@ export interface GlowSeriesCase {
     chartOptions?: object;
 }
 
+/** The case of `name`, so that a renamed case fails the test that asks for it. */
+export function glowCaseNamed(cases: GlowSeriesCase[], name: string): GlowSeriesCase {
+    const found = cases.find((testCase) => testCase.name === name);
+    if (found === undefined) throw new Error(`No glow series case named ${name}`);
+    return found;
+}
+
 /** The options that place a `shadow`, `glow` and `itemStyler`, and a `highlight` if there is one. */
 function placed({ place, placeHighlight }: GlowSeriesCase, placement: GlowPlacement, highlight?: object): object {
     const options = place(placement);

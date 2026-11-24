@@ -1479,4 +1479,36 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
+  SNYK-JS-MSGPACKR-22744130:
+    - '@angular/build@21.2.29 > lmdb@3.5.1 > msgpackr@1.11.13':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+  SNYK-JS-PARSE5-22742152:
+    - '@angular/cli@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular/cli@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5-sax-parser@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular/cdk@21.2.14 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular/build@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
+    - '@angular/build@21.2.29 > parse5-html-rewriting-stream@8.0.0 > parse5-sax-parser@8.0.0 > parse5@8.0.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-11-24T10:29:27.838Z
 patch: {}

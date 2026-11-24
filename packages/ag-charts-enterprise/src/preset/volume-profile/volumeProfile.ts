@@ -37,6 +37,16 @@ import {
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
+/** The tick size that sizes the levels of a profile: the one given, or else the smallest gap between its prices. */
+export function resolveVolumeProfileTickSize(
+    data: DatumDefault[],
+    priceKey: string | undefined,
+    tickSize: number | undefined,
+    suppressFieldDotNotation: boolean
+) {
+    return tickSize ?? inferVolumeProfileTickSize(data, priceKey ?? 'price', suppressFieldDotNotation);
+}
+
 export function groupVolumeProfile(
     data: DatumDefault[],
     { priceKey = 'price', upKey, downKey }: Pick<AgVolumeProfileOptions, 'priceKey' | 'upKey' | 'downKey'>,
@@ -48,7 +58,7 @@ export function groupVolumeProfile(
     warnMissingVolumeProfileKeys(data, keys, suppressFieldDotNotation, logger);
     if (lacksVolumeProfileVolumes(data, keys, suppressFieldDotNotation)) return [];
 
-    const levelSize = tickSize ?? inferVolumeProfileTickSize(data, priceKey, suppressFieldDotNotation) ?? 1;
+    const levelSize = resolveVolumeProfileTickSize(data, priceKey, tickSize, suppressFieldDotNotation) ?? 1;
     return normaliseVolumeProfile(data, keys, levelSize, suppressFieldDotNotation);
 }
 

@@ -1,4 +1,4 @@
-import { type Logger, datumKeyReader, isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
+import { type Logger, datumKeyReader, isFiniteNumber, smallestPositiveGap, stripFloatNoise } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
 export interface VolumeProfileKeys {
@@ -41,17 +41,9 @@ export function inferVolumeProfileTickSize(
 ): number | undefined {
     const prices = data
         .map(datumKeyReader(priceKey, suppressFieldDotNotation))
-        .filter((price) => isFiniteNumber(price))
-        .sort((a, b) => a - b);
-
-    let smallest = Infinity;
-    for (let i = 1; i < prices.length; i++) {
-        const gap = prices[i] - prices[i - 1];
-        if (gap > 0 && gap < smallest) smallest = gap;
-    }
-    if (!Number.isFinite(smallest)) return undefined;
-
-    return stripFloatNoise(smallest);
+        .filter((price) => isFiniteNumber(price));
+    const smallest = smallestPositiveGap(prices);
+    return smallest == null ? undefined : stripFloatNoise(smallest);
 }
 
 export function normaliseVolumeProfile(

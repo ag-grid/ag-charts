@@ -17,8 +17,13 @@ import type {
     AgAxisListeners,
     AgAxisValue,
     AgCartesianAxisPosition,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
     FormatterParams,
 } from 'ag-charts-types';
+
+/** A number on a numeric axis; a unit, an interval or a number of milliseconds on a time axis. */
+export type AxisValueTickSize = number | AgTimeInterval | AgTimeIntervalUnit;
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => NormalisedTextOrSegments | undefined,
@@ -104,6 +109,16 @@ export interface AxisContext {
         source: 'annotation-label' | 'crosshair',
         label?: AxisFormattableLabel<FormatParams, FormatterParams<any>>
     ): string;
+    /**
+     * The text that the `format` or `formatter` of the axis's crosshair label gives a value, or `undefined` when the
+     * label has neither, or its formatter leaves the value to the defaults.
+     */
+    formatWithCrosshairLabel(value: unknown): string | undefined;
+    /**
+     * The smallest step between values on the axis, not the length of its tick marks: its `tickSize` option, or else the
+     * step of its data. A numeric axis reads all of its data for that step when asked, unless `infer` is false.
+     */
+    valueTickSize(infer?: boolean): AxisValueTickSize | undefined;
     attachLabel(node: Node): void;
     /**
      * Attaches a plugin-owned scene group into one of three z-index-ordered overlay slots that
