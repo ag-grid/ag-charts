@@ -523,6 +523,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // Commit the field being edited before it closes with the dialog.
             (this.ctx.agDocument.document.activeElement as HTMLElement | null)?.blur();
             this.apply();
+            // Closing returns focus to the toolbar button, which the Enter keypress would otherwise press.
+            event.preventDefault();
         }
     }
 
