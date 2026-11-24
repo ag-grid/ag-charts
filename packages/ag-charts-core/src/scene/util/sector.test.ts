@@ -2,13 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import type { BoxBounds } from '../../geometry/boxBounds';
 import {
+    SectorPointTester,
     boxOverlapsSector,
     clampSectorCornerRadii,
     clockwiseAngles,
     isBoxInSector,
     isPointInSector,
     radiiScalingFactor,
+    sectorColumnTest,
 } from './sector';
+
+const sectorPointTest = (sector: Parameters<SectorPointTester['reset']>[0]) =>
+    new SectorPointTester().reset(sector).contains;
 
 const TAU = 2 * Math.PI;
 
@@ -208,7 +213,37 @@ describe('isBoxInSector', () => {
     });
 });
 
-describe('isPointInSector with a radialEdgeInset', () => {
+const at = (radius: number, angle: number): [number, number] => [radius * Math.cos(angle), radius * Math.sin(angle)];
+
+describe.each([
+    ['isPointInSector', (x: number, y: number, sector: Sector) => isPointInSector(x, y, sector)],
+    ['SectorPointTester', (x: number, y: number, sector: Sector) => sectorPointTest(sector)(x, y)],
+])('%s', (_name, contains) => {
+    const ring = (startAngle: number, endAngle: number, innerRadius = 50, outerRadius = 100): Sector => ({
+        startAngle,
+        endAngle,
+        innerRadius,
+        outerRadius,
+    });
+
+    it.each<[string, Sector, [number, number], boolean]>([
+        ['inside a plain sector', ring(0, Math.PI / 2), at(75, Math.PI / 4), true],
+        ['beyond the outer radius', ring(0, Math.PI / 2), at(120, Math.PI / 4), false],
+        ['inside the hole', ring(0, Math.PI / 2), at(20, Math.PI / 4), false],
+        ['outside the angles', ring(0, Math.PI / 2), at(75, Math.PI), false],
+        ['on a sector with equal angles', ring(1, 1), at(75, 1), false],
+        ['between swapped radii', ring(0, Math.PI / 2, 100, 50), at(75, Math.PI / 4), true],
+        ['outside swapped radii', ring(0, Math.PI / 2, 100, 50), at(120, Math.PI / 4), false],
+        ['anywhere on a full circle', ring(0, TAU), at(75, 2.5), true],
+        ['across the wrap of a sector crossing zero', ring((5 * Math.PI) / 3, TAU + Math.PI / 3), at(75, 0), true],
+        ['opposite a sector crossing zero', ring((5 * Math.PI) / 3, TAU + Math.PI / 3), at(75, Math.PI), false],
+        ['inside a sector with negative angles', ring(-Math.PI / 2, -Math.PI / 4), at(75, -Math.PI / 3), true],
+    ])('answers for a point %s', (_, sector, [x, y], inside) => {
+        expect(contains(x, y, sector)).toBe(inside);
+    });
+});
+
+describe('sector point tests with a radialEdgeInset', () => {
     const quarter: Sector = {
         startAngle: 0,
         endAngle: Math.PI / 2,
@@ -217,15 +252,176 @@ describe('isPointInSector with a radialEdgeInset', () => {
         radialEdgeInset: 5,
     };
 
-    it.each([
-        { point: [50, 3], inside: false, at: 'within the inset of the start edge' },
-        { point: [50, 6], inside: true, at: 'clear of the start edge' },
-        { point: [3, 50], inside: false, at: 'within the inset of the end edge' },
-        { point: [6, 50], inside: true, at: 'clear of the end edge' },
-        { point: [6, 6], inside: true, at: 'clear of both edges near the centre' },
-        { point: [4, 4], inside: false, at: 'within the inset of both edges near the centre' },
-    ])('treats a point $at as inside: $inside', ({ point: [x, y], inside }) => {
-        expect(isPointInSector(x, y, quarter)).toBe(inside);
+    describe.each([
+        ['isPointInSector', (x: number, y: number) => isPointInSector(x, y, quarter)],
+        ['SectorPointTester', sectorPointTest(quarter)],
+    ])('%s', (_name, contains) => {
+        it.each([
+            { point: [50, 3], inside: false, at: 'within the inset of the start edge' },
+            { point: [50, 6], inside: true, at: 'clear of the start edge' },
+            { point: [3, 50], inside: false, at: 'within the inset of the end edge' },
+            { point: [6, 50], inside: true, at: 'clear of the end edge' },
+            { point: [6, 6], inside: true, at: 'clear of both edges near the centre' },
+            { point: [4, 4], inside: false, at: 'within the inset of both edges near the centre' },
+        ])('treats a point $at as inside: $inside', ({ point: [x, y], inside }) => {
+            expect(contains(x, y)).toBe(inside);
+        });
+    });
+
+    it('agrees with isPointInSector on every sector shape, on and beside each boundary', () => {
+        const rng = makeRng(0x51ed270b);
+        const nudges = [0, 1e-15, -1e-15, 1e-12, -1e-12, 1e-9, -1e-9, 1e-6, -1e-6, 0.01, -0.01];
+        let checked = 0;
+        for (let i = 0; i < 300; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sweep = [rng() * 0.3, rng() * Math.PI, Math.PI + rng() * Math.PI, TAU, TAU + rng(), -rng() * 2][
+                i % 6
+            ];
+            const radii = [rng() * 60, 60 + rng() * 140];
+            const sector = {
+                startAngle,
+                endAngle: startAngle + sweep,
+                innerRadius: i % 7 === 0 ? 0 : radii[i % 2],
+                outerRadius: radii[(i + 1) % 2],
+                radialEdgeInset: i % 3 === 0 ? rng() * 6 : 0,
+            };
+            const contains = sectorPointTest(sector);
+            const probe = (x: number, y: number) => {
+                expect(contains(x, y)).toBe(isPointInSector(x, y, sector));
+                checked++;
+            };
+            for (let j = 0; j < 40; j++) probe((rng() - 0.5) * 440, (rng() - 0.5) * 440);
+            const anyAngle = startAngle + rng() * sweep;
+            for (const nudge of nudges) {
+                for (const radius of [sector.innerRadius, sector.outerRadius]) {
+                    probe(...at(radius * (1 + nudge), anyAngle));
+                }
+                for (const angle of [sector.startAngle, sector.endAngle]) {
+                    probe(...at(radii[1] / 2, angle + nudge));
+                    probe(...at(radii[1] / 2, angle + nudge + Math.PI));
+                }
+            }
+        }
+        expect(checked).toBeGreaterThan(30000);
+    });
+
+    it('vouches along a ray only for points the point test passes, up to and at the bound', () => {
+        const rng = makeRng(0x2545f491);
+        const tester = new SectorPointTester();
+        let vouched = 0;
+        for (let i = 0; i < 2000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + [rng() * 0.3, rng() * Math.PI, Math.PI + rng()][i % 3],
+                innerRadius: i % 4 === 0 ? 0 : rng() * 60,
+                outerRadius: 60 + rng() * 140,
+                radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
+            };
+            tester.reset(sector);
+            const [px, py] = at(
+                sector.innerRadius + rng() * (sector.outerRadius - sector.innerRadius),
+                startAngle + rng() * 2
+            );
+            const angle = i % 5 === 0 ? (Math.floor(rng() * 4) * Math.PI) / 2 : rng() * TAU;
+            const [dx, dy] = [Math.cos(angle), Math.sin(angle)];
+            const limit = sector.outerRadius * 2;
+            const until = tester.insideUntil(px, py, dx, dy, limit);
+            if (until < 0) continue;
+            vouched++;
+            for (const t of [0, until, Math.min(until, limit), ...Array.from({ length: 30 }, () => rng() * until)]) {
+                if (t > limit) continue;
+                const [x, y] = [px + dx * t, py + dy * t];
+                expect(tester.contains(x, y)).toBe(true);
+                expect(isPointInSector(x, y, sector)).toBe(true);
+            }
+        }
+        expect(vouched).toBeGreaterThan(300);
+    });
+
+    it('vouches, in a convex wedge, for every point between two rows it vouches for', () => {
+        const rng = makeRng(0x1b873593);
+        const tester = new SectorPointTester();
+        let checked = 0;
+        for (let i = 0; i < 3000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + rng() * Math.PI,
+                innerRadius: 0,
+                outerRadius: 60 + rng() * 140,
+            };
+            if (!tester.reset(sector).convex) continue;
+            const [px, py] = at(rng() * sector.outerRadius, startAngle + rng() * (sector.endAngle - startAngle));
+            const dir = rng() < 0.5 ? -1 : 1;
+            const [top, bottom] = [py - rng() * 30, py + rng() * 30];
+            const limit = sector.outerRadius * 2;
+            const until = Math.min(
+                tester.insideUntil(px, top, dir, 0, limit),
+                tester.insideUntil(px, bottom, dir, 0, limit)
+            );
+            if (until < 0) continue;
+            checked++;
+            for (let k = 0; k < 20; k++) {
+                const t = Math.min(until, limit) * rng();
+                const y = top + (bottom - top) * rng();
+                expect(tester.contains(px + dir * t, y)).toBe(true);
+            }
+        }
+        expect(checked).toBeGreaterThan(500);
+    });
+
+    it('rules a ray out only where the point test fails, from the bound on', () => {
+        const rng = makeRng(0x6c8e9cf5);
+        const tester = new SectorPointTester();
+        let ruled = 0;
+        for (let i = 0; i < 2000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + [rng() * 0.3, rng() * Math.PI, Math.PI + rng()][i % 3],
+                innerRadius: i % 4 === 0 ? 0 : rng() * 60,
+                outerRadius: 60 + rng() * 140,
+                radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
+            };
+            tester.reset(sector);
+            const [px, py] = at(rng() * 220, startAngle + rng() * 2);
+            const angle = i % 5 === 0 ? (Math.floor(rng() * 4) * Math.PI) / 2 : rng() * TAU;
+            const [dx, dy] = [Math.cos(angle), Math.sin(angle)];
+            const limit = sector.outerRadius * 2;
+            const from = tester.outsideFrom(px, py, dx, dy, limit);
+            if (from > limit) continue;
+            ruled++;
+            for (const t of [from, limit, ...Array.from({ length: 30 }, () => from + rng() * (limit - from))]) {
+                const [x, y] = [px + dx * t, py + dy * t];
+                expect(tester.contains(x, y)).toBe(false);
+                expect(isPointInSector(x, y, sector)).toBe(false);
+            }
+        }
+        expect(ruled).toBeGreaterThan(1000);
+    });
+
+    it('clears a point only when every box holding it fails isBoxInSector', () => {
+        const rng = makeRng(0x9e3779b9);
+        const tester = new SectorPointTester();
+        let cleared = 0;
+        for (let i = 0; i < 4000; i++) {
+            const startAngle = (rng() - 0.5) * 4 * TAU;
+            const sector = {
+                startAngle,
+                endAngle: startAngle + [rng() * 0.3, rng() * Math.PI, Math.PI + rng()][i % 3],
+                innerRadius: i % 4 === 0 ? 0 : rng() * 60,
+                outerRadius: 60 + rng() * 140,
+                radialEdgeInset: i % 2 === 0 ? rng() * 6 : 0,
+            };
+            const [x, y] = at(rng() * 220, startAngle + (rng() - 0.25) * 2);
+            if (!tester.reset(sector).isClear(x, y, Math.abs(x) + Math.abs(y))) continue;
+            cleared++;
+            const [w, h] = [rng() * 80, rng() * 30];
+            const box = { x: x - rng() * w, y: y - rng() * h, width: w, height: h };
+            expect(isBoxInSector(box, sector)).toBe(false);
+        }
+        expect(cleared).toBeGreaterThan(1000);
     });
 
     it('insets only along each edge, not across the line it lies on', () => {
@@ -233,6 +429,48 @@ describe('isPointInSector with a radialEdgeInset', () => {
         // side of the centre from the edge itself.
         const reflex: Sector = { ...quarter, endAngle: Math.PI * 1.5 };
         expect(isPointInSector(-50, 3, reflex)).toBe(true);
+    });
+});
+
+describe('sectorColumnTest', () => {
+    const wedge = (sweep: number, innerRadius: number): Sector => ({
+        startAngle: 0.3,
+        endAngle: 0.3 + sweep,
+        innerRadius,
+        outerRadius: 100,
+        radialEdgeInset: 0.5,
+    });
+
+    it('vouches for no column of a sector wider than a quarter turn', () => {
+        expect(sectorColumnTest(wedge(Math.PI / 2 + 0.01, 0))).toBeUndefined();
+    });
+
+    it('refuses a column passing through the hole between its ends', () => {
+        const holds = sectorColumnTest(wedge(Math.PI / 2, 40))!;
+        expect(holds(20, -60, 60)).toBe(false);
+        expect(holds(50, -60, 60)).toBe(true);
+    });
+
+    it.each([
+        ['a pie wedge', 0],
+        ['a donut wedge', 40],
+    ])('holds every row of a vouched column whose ends %s holds', (_, innerRadius) => {
+        const rng = makeRng(0x2545f491);
+        let checked = 0;
+        for (let i = 0; i < 4000; i++) {
+            const sector = wedge(0.05 + rng() * (Math.PI / 2 - 0.05), innerRadius);
+            const contains = sectorPointTest(sector);
+            const holds = sectorColumnTest(sector)!;
+            const x = rng() * 200 - 100;
+            const top = rng() * 200 - 100;
+            const bottom = top + rng() * 60;
+            if (!contains(x, top) || !contains(x, bottom) || !holds(x, top, bottom)) continue;
+            checked++;
+            for (let row = 1; row < 16; row++) {
+                expect(contains(x, top + ((bottom - top) * row) / 16)).toBe(true);
+            }
+        }
+        expect(checked).toBeGreaterThan(50);
     });
 });
 
