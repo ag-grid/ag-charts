@@ -4323,99 +4323,42 @@ describe('placeLabels slot trade', () => {
         });
 
         // Their labels ignore labels touching their own bar, so only the trade's ordering keeps them apart.
-        it.each<[string, Array<[string, BoxBounds, Array<[number, number]>]>]>([
+        const looseBar = (text: string, ownBox: BoxBounds, ...xys: number[]) =>
+            barDatum(
+                text,
+                ownBox,
+                xys.flatMap((x, i) => (i % 2 === 0 ? [{ box: { x, y: xys[i + 1], width: 30, height: 16 } }] : [])),
+                { ownBoxLabelsCollide: false }
+            );
+        const smallBar = (x: number): BoxBounds => ({ x, y: 300, width: 50, height: 50 });
+        const tallBar: BoxBounds = { x: 0, y: 100, width: 50, height: 200 };
+        it.each([
             [
                 'a holder that already traded once trades again',
-                [
-                    [
-                        'C',
-                        { x: 0, y: 100, width: 50, height: 200 },
-                        [
-                            [10, 100],
-                            [10, 140],
-                            [10, 180],
-                        ],
-                    ],
-                    [
-                        'X',
-                        { x: 300, y: 300, width: 50, height: 50 },
-                        [
-                            [30, 180],
-                            [300, 360],
-                        ],
-                    ],
-                    [
-                        'D',
-                        { x: 100, y: 300, width: 50, height: 50 },
-                        [
-                            [10, 100],
-                            [500, 10],
-                        ],
-                    ],
-                    [
-                        'G',
-                        { x: 200, y: 300, width: 50, height: 50 },
-                        [
-                            [10, 140],
-                            [500, 60],
-                        ],
-                    ],
+                () => [
+                    looseBar('C', tallBar, 10, 100, 10, 140, 10, 180),
+                    looseBar('X', smallBar(300), 30, 180, 300, 360),
+                    looseBar('D', smallBar(100), 10, 100, 500, 10),
+                    looseBar('G', smallBar(200), 10, 140, 500, 60),
                 ],
+                'C@10,140 X@30,180 D@10,100 G@500,60',
             ],
             [
                 'a label placed before the holder was moved by a trade',
-                [
-                    [
-                        'Z',
-                        { x: 300, y: 300, width: 50, height: 50 },
-                        [
-                            [100, 10],
-                            [30, 180],
-                        ],
-                    ],
-                    [
-                        'A',
-                        { x: 0, y: 100, width: 50, height: 200 },
-                        [
-                            [10, 100],
-                            [10, 180],
-                        ],
-                    ],
-                    [
-                        'W',
-                        { x: 400, y: 300, width: 50, height: 50 },
-                        [
-                            [100, 10],
-                            [500, 10],
-                        ],
-                    ],
-                    [
-                        'V',
-                        { x: 200, y: 300, width: 50, height: 50 },
-                        [
-                            [10, 100],
-                            [500, 60],
-                        ],
-                    ],
+                () => [
+                    looseBar('Z', smallBar(300), 100, 10, 30, 180),
+                    looseBar('A', tallBar, 10, 100, 10, 180),
+                    looseBar('W', smallBar(400), 100, 10, 500, 10),
+                    looseBar('V', smallBar(200), 10, 100, 500, 60),
                 ],
+                'Z@30,180 A@10,100 W@100,10 V@500,60',
             ],
-        ])('never moves a holder onto a label it did not resolve against when %s', (_, bars) => {
-            const datums = bars.map(([text, ownBox, xys]) =>
-                barDatum(
-                    text,
-                    ownBox,
-                    xys.map(([x, y]) => ({ box: { x, y, width: 30, height: 16 } })),
-                    { ownBoxLabelsCollide: false }
-                )
-            );
-            const placed = solve({ s: datums }).get('s')!;
+        ])('never moves a holder onto a label it did not resolve against when %s', (_, datums, expected) => {
+            const placed = solve({ s: datums() }).get('s')!;
 
-            expect(placed).toHaveLength(bars.length);
+            expect(placed.map(({ text, x, y }) => `${toPlainText(text)}@${x},${y}`).join(' ')).toBe(expected);
             const overlapping = placed.flatMap((a, i) =>
-                placed
-                    .slice(i + 1)
-                    .filter((b) => boxCollides(a, b.x, b.y, b.width, b.height))
-                    .map((b) => `${toPlainText(a.text)}/${toPlainText(b.text)}`)
+                placed.slice(i + 1).filter((b) => boxCollides(a, b.x, b.y, b.width, b.height))
             );
             expect(overlapping).toEqual([]);
         });
