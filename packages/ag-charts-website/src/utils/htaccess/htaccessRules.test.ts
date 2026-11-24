@@ -99,8 +99,6 @@ const NON_CANONICAL_HOSTS = [
     'angular-grid.ag-grid.com',
     'javascript-grid.ag-grid.com',
     'react-grid.ag-grid.com',
-    'angulargrid.com',
-    'www.angulargrid.com',
 ];
 
 // The deployed docroot, as far as the page tree can enumerate it: every static page and endpoint and
