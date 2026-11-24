@@ -24,6 +24,7 @@ import {
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
     lineDashThemeDefault,
+    solidLayeredLineDashThemeDefault,
     themeLineHeight,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
@@ -31,7 +32,7 @@ import {
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
-    lineDash: lineDashThemeDefault({ $path: '/series/$index/lineDash' }, undefined, 'solid'),
+    lineDash: solidLayeredLineDashThemeDefault({ $path: '/series/$index/lineDash' }),
     lineDashOffset: {
         $path: '/series/$index/lineDashOffset',
     },

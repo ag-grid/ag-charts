@@ -59,12 +59,7 @@ const CASES: Case[] = [
     { type: 'area', keys: (i) => ({ xKey: 'x', yKey: `hi${i}`, fillOpacity: 0.2 }), nameKey: 'yName', items: [] },
     {
         type: 'range-area',
-        keys: (i) => ({
-            xKey: 'x',
-            yLowKey: `lo${i}`,
-            yHighKey: `hi${i}`,
-            item: i === 2 ? { low: { lineDash: [2] } } : undefined,
-        }),
+        keys: (i) => ({ xKey: 'x', yLowKey: `lo${i}`, yHighKey: `hi${i}` }),
         nameKey: 'yName',
         items: ['low', 'high'],
         // An item dash replaces the series dash outright, as it did before the palette: `[2]` over `[12, 4]` is not `[2, 4]`.
@@ -131,6 +126,7 @@ describe('palette.lineDashes', () => {
                     ...keys(i),
                     strokeWidth: 2,
                     lineDash: route.seriesDashes[i],
+                    item: itemDash?.index === i ? { [itemDash.item]: { lineDash: itemDash.dash } } : undefined,
                     [nameKey]: `s${i}`,
                 })),
             });
