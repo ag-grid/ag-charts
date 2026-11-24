@@ -37,7 +37,6 @@ import {
     indexOfBreakSpace,
     isBreakSpace,
     isTextTruncated,
-    lastIndexOfBreakSpace,
     lineHeightAtSize,
     preserveArabicJoining,
     toTextString,
@@ -142,6 +141,10 @@ export interface WrapOptions {
     rejectTallFirstLine?: boolean;
     /** See {@link LabelFit.clipLineBreaks}. */
     clipLineBreaks?: boolean;
+    /** Ellipsise the last line when a {@link maxWidthAt} band too narrow for any text dropped some unmarked. */
+    markLostText?: boolean;
+    /** The caller avoids the orphan once its whole block is laid out; ellipses are judged as if moved here. */
+    orphansByBlock?: boolean;
 }
 
 /** Width the line spanning `[top, bottom]` of the block may use, capped by the label's own `maxWidth`. */
@@ -154,9 +157,9 @@ function lineMaxWidth(options: WrapOptions, top: number, bottom: number) {
  * Whether a `'hide'` label lost any of `source`. A shape can narrow a band to nothing and the wrap then
  * drops the word that landed there without an ellipsis, so loss is counted rather than read off the marker.
  */
-function shouldHideOverflow(clippedResult: string[], options: WrapOptions, source: string) {
+function shouldHideOverflow(clippedResult: string[], options: WrapOptions, source: string, ellipsisSplit = -1) {
     if (options.overflow !== 'hide') return false;
-    if (clippedResult.some(isTextTruncated)) return true;
+    if (firstTruncatedLine(clippedResult, ellipsisSplit) !== -1) return true;
     return keptCharacterCount(clippedResult.join('')) < keptCharacterCount(source);
 }
 
@@ -214,7 +217,8 @@ export function fitLabelText(
     // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
     if (region != null) {
-        return wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+        const prepared = prepareRegionWrap(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed);
+        return placePreparedText(prepared, 'centre').text;
     }
     return rotated == null ? fitTextToBox(text, fit, options) : fitTurnedText(text, fit, options, rotated);
 }
@@ -372,8 +376,22 @@ export function fitLabelTextToRegion(
     overflowPlacement: OverflowPlacement = 'centre'
 ): FittedRegionText {
     if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0, offsetY: 0 };
+    return placePreparedText(prepareTextToRegion(text, fit, fit.region, font, anchored), overflowPlacement);
+}
+
+/**
+ * {@link fitLabelTextToRegion} short of placing a block that loses text, for a caller placing one fit more than
+ * one way: {@link placePreparedText} finishes it, and `region` must answer then as it does now.
+ */
+export function prepareTextToRegion(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    region: FitRegion,
+    font: FontOptions,
+    anchored = false
+): PreparedRegionWrap {
     const overflow = fit.overflowStrategy ?? 'preserve';
-    return wrapTextToRegion(
+    return prepareRegionWrap(
         text,
         {
             font,
@@ -384,12 +402,35 @@ export function fitLabelTextToRegion(
             overflow,
             rejectTallFirstLine: true,
         },
-        fit.region,
+        region,
         fit.regionAlign ?? 'center',
         anchored,
-        fit.boxed,
-        overflowPlacement
+        fit.boxed
     );
+}
+
+/** Places a prepared wrap: a preserved block that lost text to the shape is laid out past it, per `overflowPlacement`. */
+export function placePreparedText(
+    prepared: PreparedRegionWrap,
+    overflowPlacement: OverflowPlacement
+): FittedRegionText {
+    if (prepared.kind === 'segments') return placeSegmentsInRegion(prepared, overflowPlacement);
+    const { options, region, align, boxed, fitted, source, lineHeight } = prepared;
+    if (overflowPlacement === 'none' || source == null) return fitted;
+    const { offsetX } = fitted;
+    const overflow = wrapOverflowingBlock(
+        region,
+        align,
+        overflowPlacement === 'hang',
+        boxed,
+        offsetX,
+        lineHeight,
+        lineHeight,
+        (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
+        (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
+        (wrapped) => countLines(wrapped) * lineHeight
+    );
+    return { text: overflow.text, offsetX, offsetY: overflow.offsetY };
 }
 
 // A pass over a narrowing shape discovers at most one more line than the last one, so a segmented block's
@@ -402,7 +443,32 @@ function measureText(text: NormalisedTextOrSegments, font: FontOptions) {
 
 /** Characters of the source that survived a fit, ignoring the layout and the ellipsis marking the loss. */
 function survivingCharacters(text: string) {
-    return text.replaceAll(EllipsisChar, '').replaceAll(/[\s\u200B]/g, '').length;
+    // OPTIMIZATION: counted in place rather than by stripping copies, as the region fit scores every candidate.
+    let kept = 0;
+    for (let i = 0; i < text.length; i += 1) {
+        if (!isDroppedCharCode(text.charCodeAt(i))) kept += 1;
+    }
+    return kept;
+}
+
+const ELLIPSIS_CODE = EllipsisChar.codePointAt(0)!;
+
+/** The ellipsis, a zero-width space, or a code unit the regular expression `\s` matches. */
+function isDroppedCharCode(code: number) {
+    if (code <= 0x20) return code === 0x20 || (code >= 0x09 && code <= 0x0d);
+    if (code < 0xa0) return false;
+    return (
+        code === ELLIPSIS_CODE ||
+        code === 0xa0 ||
+        code === 0x1680 ||
+        (code >= 0x2000 && code <= 0x200b) ||
+        code === 0x2028 ||
+        code === 0x2029 ||
+        code === 0x202f ||
+        code === 0x205f ||
+        code === 0x3000 ||
+        code === 0xfeff
+    );
 }
 
 /** Where the top of a block of `height` sits against the anchor, kept inside the room the shape has. */
@@ -422,26 +488,45 @@ function blockTopFor(align: RegionAlign, height: number, region: FitRegion) {
  * nearer edge allows, so the offset that suits the block is not the anchor unless the shape is symmetric
  * about it. Each band's own centre is a candidate, and the one giving the most width across the block wins.
  */
-function blockOffsetX(region: FitRegion, bands: (readonly [number, number])[]) {
-    const spans = bands.map(([top, bottom]) => region.spanAt(top, bottom));
-    const candidates = [0];
-    for (const [left, right] of spans) {
-        if (left < right) candidates.push((left + right) / 2);
+function blockOffsetX(
+    region: FitRegion,
+    blockTop: number,
+    height: number,
+    lineHeight: number,
+    lines: number,
+    boxed: boolean
+) {
+    const count = boxed ? 1 : lines;
+    if (bandSpans.length < 2 * count) bandSpans = new Float64Array(2 * count);
+    const spans = bandSpans;
+    for (let i = 0; i < count; i += 1) {
+        const [left, right] = boxed
+            ? region.spanAt(blockTop, blockTop + height)
+            : region.spanAt(blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight);
+        spans[2 * i] = left;
+        spans[2 * i + 1] = right;
     }
     let best = 0;
     let bestTotal = -1;
-    for (const offset of candidates) {
+    // The anchor first, then each band's own centre.
+    for (let c = -1; c < count; c += 1) {
+        // An empty band offers no centre.
+        const isCandidate = c < 0 || spans[2 * c] < spans[2 * c + 1];
+        const offset = c < 0 ? 0 : (spans[2 * c] + spans[2 * c + 1]) / 2;
         let total = 0;
-        for (const [left, right] of spans) {
-            total += Math.max(0, 2 * Math.min(offset - left, right - offset));
+        for (let i = 0; isCandidate && i < count; i += 1) {
+            total += Math.max(0, 2 * Math.min(offset - spans[2 * i], spans[2 * i + 1] - offset));
         }
-        if (total > bestTotal) {
+        if (isCandidate && total > bestTotal) {
             bestTotal = total;
             best = offset;
         }
     }
     return best;
 }
+
+// OPTIMIZATION: scratch for blockOffsetX's band spans, as left/right pairs, refilled by each call.
+let bandSpans = new Float64Array(16);
 
 /** One candidate layout: the text wrapped into a block of `lines`, and how much of the source it kept. */
 function wrapBlockToRegion(
@@ -457,19 +542,11 @@ function wrapBlockToRegion(
 ) {
     const height = Math.min(lines * lineHeight, limit);
     const blockTop = blockTopFor(align, height, region);
-    const bands: (readonly [number, number])[] = [];
-    if (boxed) {
-        bands.push([blockTop, blockTop + height] as const);
-    } else {
-        for (let i = 0; i < lines; i += 1) {
-            bands.push([blockTop + i * lineHeight, blockTop + (i + 1) * lineHeight] as const);
-        }
-    }
-    const offsetX = anchored ? 0 : blockOffsetX(region, bands);
+    const offsetX = anchored ? 0 : blockOffsetX(region, blockTop, height, lineHeight, lines, boxed);
     const widthAt = boxed
         ? () => regionWidthAt(region, blockTop, blockTop + height, offsetX)
         : (top: number, bottom: number) => regionWidthAt(region, blockTop + top, blockTop + bottom, offsetX);
-    const wrapped = wrapTextOrSegments(text, {
+    const wrapped = wrapText(text, {
         ...options,
         // The band a line occupies must be the one it will be drawn in, so the width the shape offers is
         // asked for the same rows the renderer will fill; the font's own line height is shorter.
@@ -477,18 +554,18 @@ function wrapBlockToRegion(
         // The shape's own room bounds the block, so a caller need not restate it as maxHeight.
         maxHeight: height,
         maxWidthAt: widthAt,
+        markLostText: true,
     });
-    const marked = markLostText(String(wrapped), text, options, widthAt, lineHeight);
-    const drawnLines = marked.split('\n').length;
+    const drawnLines = wrapped.split('\n').length;
     // A block shorter than it was measured for fills the top bands of the taller one: a movable label is drawn
     // there, while an anchored one would land in bands it was never fitted to, so it only stands provisionally.
-    const shorter = !anchored && marked !== '' && drawnLines < lines;
+    const shorter = !anchored && wrapped !== '' && drawnLines < lines;
     const drawnHeight = shorter ? drawnLines * lineHeight : height;
     return {
-        text: marked,
+        text: wrapped,
         offsetX,
         offsetY: blockTop + drawnHeight / 2,
-        consistent: (shorter || drawnLines === lines) && linesFitBands(marked, options, widthAt, lineHeight),
+        consistent: (shorter || drawnLines === lines) && linesFitBands(wrapped, options, widthAt, lineHeight),
     };
 }
 
@@ -511,21 +588,52 @@ function linesFitBands(
  * marked like any other overflow, or the label reads as the whole value when it is only the start of it.
  */
 function markLostText(
-    wrapped: string,
+    lines: string[],
     source: string,
+    measurer: ITextMeasurer,
     options: WrapOptions,
-    widthAt: (top: number, bottom: number) => number,
+    blockTop: number,
     lineHeight: number
 ) {
+    const { maxWidthAt } = options;
+    if (!options.markLostText || maxWidthAt == null || options.overflow !== 'ellipsis') return;
+    const last = lines.length - 1;
     // Nothing placed at all is not overflow but erasure: the caller decides whether to drop the label or
     // let it overflow, and an ellipsis conjured here would rob it of that choice.
-    if (wrapped === '' || options.overflow !== 'ellipsis' || isTextTruncated(wrapped)) return wrapped;
-    if (survivingCharacters(wrapped) >= survivingCharacters(source)) return wrapped;
-    const lines = wrapped.split('\n');
-    const last = lines.length - 1;
-    const width = widthAt(last * lineHeight, (last + 1) * lineHeight);
-    lines[last] = truncateLine(lines[last], cachedTextMeasurer(options.font), width, true);
-    return lines.join('\n');
+    if (last < 0 || (last === 0 && lines[0] === '') || isTextTruncated(lines[last])) return;
+    if (survivingCharacters(lines.join('')) >= survivingCharacters(source)) return;
+    const top = blockTop + last * lineHeight;
+    lines[last] = truncateLine(lines[last], measurer, maxWidthAt(top, top + lineHeight), true);
+}
+
+/** A region wrap short of placing a block that lost text; see {@link prepareTextToRegion}. */
+export type PreparedRegionWrap = PreparedPlainWrap | PreparedSegmentWrap;
+
+interface PreparedPlainWrap {
+    readonly kind: 'plain';
+    readonly options: WrapOptions;
+    readonly region: FitRegion;
+    readonly align: RegionAlign;
+    readonly boxed: boolean;
+    /** The layout keeping the most text, which stands wherever nothing is laid out past the shape. */
+    readonly fitted: FittedRegionText;
+    /** The source, set only when a preserved best layout lost some of it and so overflows the shape. */
+    readonly source?: string;
+    readonly lineHeight: number;
+}
+
+interface PreparedSegmentWrap {
+    readonly kind: 'segments';
+    readonly text: NormalisedContentSegment[];
+    readonly options: WrapOptions;
+    readonly passOptions: WrapOptions;
+    readonly region: FitRegion;
+    readonly align: RegionAlign;
+    readonly boxed: boolean;
+    readonly sourceHeight: number;
+    readonly fitted: FittedRegionText;
+    /** Whether the fit dropped an image to the shape's height, worked out once for every placement that asks. */
+    lostImage?: boolean;
 }
 
 /**
@@ -534,18 +642,17 @@ function markLostText(
  * room for and keeping the layout that loses the least text — fewest lines first, so a block that fits
  * whole never spreads itself out.
  */
-function wrapTextToRegion(
+function prepareRegionWrap(
     text: NormalisedTextOrSegments,
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
     anchored = false,
-    boxed = false,
-    overflowPlacement: OverflowPlacement = 'centre'
-): FittedRegionText {
+    boxed = false
+): PreparedRegionWrap {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return refineSegmentsToRegion(text, options, region, align, limit, boxed, overflowPlacement);
+        return refineSegmentsToRegion(text, options, region, align, limit, boxed);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -568,25 +675,13 @@ function wrapTextToRegion(
         }
         if (bestKept >= wanted && best?.consistent === true) break;
     }
-    if (best == null) return { text, offsetX: 0, offsetY: 0 };
-    // Preserved text that lost some to the shape is laid out past it; a best that lost text is consistent.
-    if (overflowPlacement !== 'none' && preservesText(options) && bestKept < wanted) {
-        const { offsetX } = best;
-        const overflow = wrapOverflowingBlock(
-            region,
-            align,
-            overflowPlacement === 'hang',
-            boxed,
-            offsetX,
-            lineHeight,
-            lineHeight,
-            (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
-            (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
-            (wrapped) => countLines(wrapped) * lineHeight
-        );
-        return { text: overflow.text, offsetX, offsetY: overflow.offsetY };
-    }
-    return { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+    const fitted =
+        best == null
+            ? { text, offsetX: 0, offsetY: 0 }
+            : { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+    // A best that lost text is consistent, and only a preserved one is laid out past the shape.
+    const overflows = best != null && preservesText(options) && bestKept < wanted;
+    return { kind: 'plain', options, region, align, boxed, fitted, source: overflows ? source : undefined, lineHeight };
 }
 
 /** Holds each row of a preserved block to its room in every held block height, until the wrap draws one of them. */
@@ -710,9 +805,8 @@ function refineSegmentsToRegion(
     region: FitRegion,
     align: RegionAlign,
     limit: number,
-    boxed: boolean,
-    overflowPlacement: OverflowPlacement
-) {
+    boxed: boolean
+): PreparedSegmentWrap {
     const sourceHeight = measureText(text, options.font).height;
     let height = sourceHeight;
     let lines = 1;
@@ -736,8 +830,17 @@ function refineSegmentsToRegion(
         if (next === height) break;
         height = next;
     }
+    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
+    const fitted = { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
+    return { kind: 'segments', text, options, passOptions, region, align, boxed, sourceHeight, fitted };
+}
+
+function placeSegmentsInRegion(prepared: PreparedSegmentWrap, overflowPlacement: OverflowPlacement) {
+    const { text, options, passOptions, region, align, boxed, sourceHeight, fitted } = prepared;
+    if (overflowPlacement === 'none' || !preservesText(options)) return fitted;
+    prepared.lostImage ??= lostImageToHeight(text, fitted.text, passOptions);
     // Preserved segments keep their text past the shape as before, so only one that lost an image is laid out past it.
-    if (overflowPlacement !== 'none' && preservesText(options) && lostImageToHeight(text, result, passOptions)) {
+    if (prepared.lostImage) {
         const overflow = wrapOverflowingBlock(
             region,
             align,
@@ -752,8 +855,7 @@ function refineSegmentsToRegion(
         );
         return { text: overflow.text, offsetX: 0, offsetY: overflow.offsetY };
     }
-    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
-    return { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
+    return fitted;
 }
 
 /** Whether `result` dropped an image the same wrap keeps without its height bound; a text-only source is one scan. */
@@ -798,6 +900,16 @@ export function keptCharacters(text: NormalisedTextOrSegments): number {
     return kept;
 }
 
+/** {@link keptCharacters} plus one per image, so an image-only label scores as content. */
+export function keptContent(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return keptCharacters(text);
+    let kept = 0;
+    for (const segment of text) {
+        kept += segment.type === 'image' ? 1 : survivingCharacters(toTextString(segment.text));
+    }
+    return kept;
+}
+
 /**
  * Whether a fitted label still shows a character, ignoring the ellipsis and whitespace it can be reduced
  * to. A budget too narrow for any real character leaves a bare `…`, which reads as an artefact rather than
@@ -807,6 +919,15 @@ export function hasRealChars(text: NormalisedTextOrSegments): boolean {
     if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
     for (const segment of text) {
         if (segment.type !== 'image' && survivingCharacters(toTextString(segment.text)) > 0) return true;
+    }
+    return false;
+}
+
+/** Whether a fitted label still shows a character or an image; see {@link hasRealChars}. */
+export function showsContent(text: NormalisedTextOrSegments): boolean {
+    if (!isArray(text)) return survivingCharacters(toTextString(text)) > 0;
+    for (const segment of text) {
+        if (segment.type === 'image' || survivingCharacters(toTextString(segment.text)) > 0) return true;
     }
     return false;
 }
@@ -1157,7 +1278,8 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
     return drawTruncated(graphemes.slice(0, count).join(''));
 }
 
-function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop = 0) {
+/** `breaksOut`, when given, receives the break spaces consumed ahead of each line; see `breaksBefore`. */
+function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop = 0, breaksOut?: string[]) {
     const lines: string[] = text.split(LineSplitter);
     const measurer = cachedTextMeasurer(options.font);
     const result: string[] = [];
@@ -1165,9 +1287,16 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     // A shape-bounded label narrows per line, so every width test below asks for the line being built.
     // Lines are uniform height here: one font per call, with segments driving their own offset in.
     const lineHeight = options.maxWidthAt == null ? 0 : (options.lineHeight ?? measurer.lineHeight());
+    // OPTIMIZATION: a row's width is asked for several times while it is built, and a shape answers it the same.
+    let widthRow = -1;
+    let rowWidth = 0;
     const maxWidth = () => {
-        const top = blockTop + result.length * lineHeight;
-        return lineMaxWidth(options, top, top + lineHeight);
+        if (result.length !== widthRow) {
+            const top = blockTop + result.length * lineHeight;
+            rowWidth = lineMaxWidth(options, top, top + lineHeight);
+            widthRow = result.length;
+        }
+        return rowWidth;
     };
 
     if (options.textWrap === 'never') {
@@ -1186,13 +1315,15 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
         if (firstLineOverflows(result, measurer, options)) return [];
         const clipped = options.clipLineBreaks ? clipLines(result, measurer, options) : result;
+        markLostText(clipped, text, measurer, options, blockTop, lineHeight);
         return shouldHideOverflow(clipped, options, text) ? [] : clipped;
     }
 
     const wrapHyphenate = options.textWrap === 'hyphenate';
     const wrapOnSpace = options.textWrap == null || options.textWrap === 'on-space';
     // The break spaces consumed ahead of each line, which moving an orphan back onto it restores.
-    const breaksBefore: string[] = [];
+    const breaksBefore = breaksOut ?? [];
+    breaksBefore.length = 0;
 
     for (const untrimmedLine of lines) {
         let line = trimBreakSpacesEnd(untrimmedLine);
@@ -1297,9 +1428,27 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
     }
 
-    avoidOrphans(result, breaksBefore, measurer, options);
     const clippedResult = clipLines(result, measurer, options);
-    return shouldHideOverflow(clippedResult, options, text) ? [] : clippedResult;
+    markLostText(clippedResult, text, measurer, options, blockTop, lineHeight);
+    return settleOrphan(clippedResult, breaksBefore, measurer, options, text, clippedResult !== result);
+}
+
+/** The drawn `lines` once their orphan is settled, or none when `'hide'` drops the label. */
+function settleOrphan(
+    lines: string[],
+    breaksBefore: string[],
+    measurer: ITextMeasurer,
+    options: WrapOptions,
+    text: string,
+    clipped: boolean
+) {
+    if (options.orphansByBlock) {
+        const split = ellipsisOrphanSplit(lines, breaksBefore, measurer, options);
+        return shouldHideOverflow(lines, options, text, split) ? [] : lines;
+    }
+    // After every cut, so the lines it balances are the ones drawn, ellipsis included.
+    avoidOrphans(lines, breaksBefore, measurer, options, clipped);
+    return shouldHideOverflow(lines, options, text) ? [] : lines;
 }
 
 function getWordAt(text: string, position: number) {
@@ -1312,16 +1461,16 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
         return lines;
     }
 
-    const { height, lineMetrics } = measurer.measureLines(lines);
-    // An explicit line height is the spacing the text is drawn with, so it is what has to fit.
-    const totalHeight = options.lineHeight == null ? height : lines.length * options.lineHeight;
+    // OPTIMIZATION: an explicit line height is the spacing the text is drawn with, so it fits unmeasured.
+    const measured = options.lineHeight == null ? measurer.measureLines(lines) : undefined;
+    const totalHeight = measured?.height ?? lines.length * options.lineHeight!;
     if (totalHeight <= options.maxHeight) {
         return lines;
     }
 
-    const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+    const lineHeightAt = (i: number) => options.lineHeight ?? measured!.lineMetrics[i].height;
 
-    for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
+    for (let i = 0, cumulativeHeight = 0; i < lines.length; i++) {
         const lineTop = cumulativeHeight;
         cumulativeHeight += lineHeightAt(i);
         if (cumulativeHeight > options.maxHeight) {
@@ -1338,44 +1487,575 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
     return lines;
 }
 
-function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    const { lineMetrics } = measurer.measureLines(lines);
-    const heightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+/** Width the last of `lines` may use, its top found by stacking the heights of those above it. */
+function lastLineBandWidth(options: WrapOptions, lines: { height: number }[], lineHeight?: number) {
     let top = 0;
-    for (let i = 0; i < lineMetrics.length - 1; i += 1) {
-        top += heightAt(i);
+    for (let i = 0; i < lines.length - 1; i += 1) {
+        top += lineHeight ?? lines[i].height;
     }
-    return lineMaxWidth(options, top, top + heightAt(lineMetrics.length - 1));
+    return lineMaxWidth(options, top, top + (lineHeight ?? lines.at(-1)!.height));
 }
 
-function avoidOrphans(lines: string[], breaksBefore: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    if (options.avoidOrphans === false || lines.length < 2) return;
+function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    return lastLineBandWidth(options, measurer.measureLines(lines).lineMetrics, options.lineHeight);
+}
 
-    const { length } = lines;
-    const lastLine = lines[length - 1];
-    const beforeLast = lines[length - 2];
+const PREV_LINE = 0;
+const LAST_LINE = 1;
+type OrphanLine = typeof PREV_LINE | typeof LAST_LINE;
 
-    if (graphemeSegments(beforeLast).length < graphemeSegments(lastLine).length) return;
+/** The second-last and last lines the orphan rule reads, whether held as strings or as segments. */
+interface OrphanLines {
+    /** Offset of the first, or `fromEnd` the last, break space in `[lo, hi)` of `line`, or -1. */
+    findBreak(line: OrphanLine, lo: number, hi: number, fromEnd: boolean): number;
+    graphemes(line: OrphanLine, lo: number, hi: number): number;
+}
 
-    const lastSpaceIndex = lastIndexOfBreakSpace(beforeLast);
-    // If the last line has an orphan, and the previous line has more than one space
-    if (
-        lastSpaceIndex === -1 ||
-        lastSpaceIndex === indexOfBreakSpace(beforeLast) ||
-        indexOfBreakSpace(lastLine) !== -1
-    ) {
-        return;
-    }
+/**
+ * Where `[0, prevTo)` of the second-last line breaks before the word that a one-word `[lastFrom, lastTo)` last
+ * line takes from it, or -1 when it takes none. Each side's `edges` count as graphemes of that line.
+ */
+function orphanWordSplit(
+    lines: OrphanLines,
+    prevTo: number,
+    lastFrom: number,
+    lastTo: number,
+    prevEdges: number,
+    lastEdges: number
+) {
+    if (lines.findBreak(LAST_LINE, lastFrom, lastTo, false) !== -1) return -1;
+    const split = lines.findBreak(PREV_LINE, 0, prevTo, true);
+    // With a single break space, moving the second word would leave the first alone above.
+    if (split === -1 || split === lines.findBreak(PREV_LINE, 0, prevTo, false)) return -1;
+    const prevGraphemes = lines.graphemes(PREV_LINE, 0, prevTo) + prevEdges;
+    return prevGraphemes < lines.graphemes(LAST_LINE, lastFrom, lastTo) + lastEdges ? -1 : split;
+}
 
-    const lastWord = beforeLast.slice(lastSpaceIndex + 1);
+const stringOrphanLines = {
+    prev: '',
+    last: '',
+    findBreak(line: OrphanLine, lo: number, hi: number, fromEnd: boolean) {
+        const text = line === PREV_LINE ? this.prev : this.last;
+        if (fromEnd) {
+            for (let i = hi - 1; i >= lo; i--) {
+                if (isBreakSpace(text[i])) return i;
+            }
+            return -1;
+        }
+        for (let i = lo; i < hi; i++) {
+            if (isBreakSpace(text[i])) return i;
+        }
+        return -1;
+    },
+    graphemes(line: OrphanLine, lo: number, hi: number) {
+        const text = line === PREV_LINE ? this.prev : this.last;
+        return graphemeSegments(lo === 0 && hi === text.length ? text : text.slice(lo, hi)).length;
+    },
+};
+
+/** {@link orphanWordSplit} for whole string lines. */
+function orphanSplit(prev: string, last: string) {
+    stringOrphanLines.prev = prev;
+    stringOrphanLines.last = last;
+    const split = orphanWordSplit(stringOrphanLines, prev.length, 0, last.length, 0, 0);
+    stringOrphanLines.prev = '';
+    stringOrphanLines.last = '';
+    return split;
+}
+
+/** {@link orphanSplit} for the last two `lines`, when the last line still fits with the word on it. */
+function orphanMoveSplit(lines: string[], breaksBefore: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    if (options.avoidOrphans === false || lines.length < 2) return -1;
+    const split = orphanSplit(lines.at(-2)!, lines.at(-1)!);
+    if (split === -1) return -1;
     const maxWidth = options.maxWidthAt == null ? options.maxWidth : lastLineMaxWidth(lines, measurer, options);
     // Measured as it will be drawn, joining space included: a line that reads as fitting without it
     // overruns its width by a space, which a shape-bounded label pays for by being hidden whole.
-    const joined = lastWord + (breaksBefore[length - 1] ?? ' ') + lastLine;
-    if (measurer.textWidth(joined) <= maxWidth) {
-        lines[length - 2] = trimBreakSpacesEnd(beforeLast.slice(0, lastSpaceIndex));
-        lines[length - 1] = joined;
+    return measurer.textWidth(joinOrphan(lines, breaksBefore, split)) <= maxWidth ? split : -1;
+}
+
+function joinOrphan(lines: string[], breaksBefore: string[], split: number) {
+    const { length } = lines;
+    return lines[length - 2].slice(split + 1) + (breaksBefore[length - 1] ?? ' ') + lines[length - 1];
+}
+
+/** `clipped` when the block was cut: a last line the cut left as a bare ellipsis carries no word to keep company. */
+function avoidOrphans(
+    lines: string[],
+    breaksBefore: string[],
+    measurer: ITextMeasurer,
+    options: WrapOptions,
+    clipped = false
+) {
+    if (clipped && lines.at(-1) === EllipsisChar) return;
+    const split = orphanMoveSplit(lines, breaksBefore, measurer, options);
+    if (split === -1) return;
+    const { length } = lines;
+    lines[length - 1] = joinOrphan(lines, breaksBefore, split);
+    lines[length - 2] = trimBreakSpacesEnd(lines[length - 2].slice(0, split));
+}
+
+/** Index of the first of `lines` ending in an ellipsis, the second-last judged as a move at `split` leaves it. */
+function firstTruncatedLine(lines: string[], split: number) {
+    const moved = split === -1 ? -1 : lines.length - 2;
+    for (let i = 0; i < lines.length; i++) {
+        if (isTextTruncated(i === moved ? trimBreakSpacesEnd(lines[i].slice(0, split)) : lines[i])) return i;
     }
+    return -1;
+}
+
+/** {@link orphanMoveSplit} where moving the orphan can change which line ends in an ellipsis, else -1. */
+function ellipsisOrphanSplit(lines: string[], breaksBefore: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    if (options.textWrap === 'never' || lines.length < 2 || !lines.at(-2)!.includes(EllipsisChar)) return -1;
+    return orphanMoveSplit(lines, breaksBefore, measurer, options);
+}
+
+/** The lines a segment's fit drew, recorded as it fits them for the block's orphan pass to read. */
+interface FitLines {
+    /** By line index, the break a line follows: consumed spaces, EXPLICIT_BREAK, EDGE_BREAK, or unset mid-word. */
+    breaks: (string | undefined)[];
+    /** The fit's measured lines, when its measuring left them. */
+    metrics: SegmentsLineMetrics[] | undefined;
+    /** Whether the fit cut the text short. */
+    clipped: boolean;
+}
+
+const EXPLICIT_BREAK = '\n';
+const EDGE_BREAK = '';
+// Reused by every wrapTextSegments call, which passes them down explicitly: one per group, one for the last run.
+const groupFitLines: FitLines = { breaks: [], metrics: undefined, clipped: false };
+const runFitLines: FitLines = { breaks: [], metrics: undefined, clipped: false };
+const segmentWrapBreaks: string[] = [];
+const TRUNCATED_LINE_END = `${EllipsisChar}\n`;
+
+/** Drops a segment's `lines`, wrapped at `breaks`, after the first ending in an ellipsis; returns whether one does. */
+function cutAtDrawnEllipsis(lines: string[], breaks: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    const split = ellipsisOrphanSplit(lines, breaks, measurer, options);
+    const index = firstTruncatedLine(lines, split);
+    if (index === -1) return false;
+    // Cut where the ellipsis is drawn: on the second-last line, that is with its orphan moved off it.
+    if (index === lines.length - 2 && split !== -1) lines[index] = trimBreakSpacesEnd(lines[index].slice(0, split));
+    lines.length = index + 1;
+    return true;
+}
+
+function resetFitLines(lines: FitLines) {
+    // Index 0 stands for the first line, which follows no break.
+    lines.breaks.length = 1;
+    lines.breaks[0] = undefined;
+    lines.metrics = undefined;
+    lines.clipped = false;
+}
+
+function breakFitLineAfterLast(lines: FitLines, result: MeasuredSegment[], font: FontOptions, kind: string) {
+    if (appendLineBreak(result, font)) lines.breaks.push(kind);
+}
+
+/** Whether a `'hide'` run from `start` has a wrapped line, or an `orphanEllipsis` one, ending in an ellipsis. */
+function hidesWrappedEllipsis(
+    segments: MeasuredSegment[],
+    start: number,
+    options: WrapOptions,
+    lines: FitLines,
+    orphanEllipsis: boolean
+) {
+    if (options.overflow !== 'hide') return false;
+    // A move that ends a line in an ellipsis hides the label, as plain text does.
+    if (orphanEllipsis) return true;
+    for (let i = start, line = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        if (!endsLine(segment)) continue;
+        const kind = lines.breaks[++line];
+        if (kind !== EXPLICIT_BREAK && kind !== EDGE_BREAK && segment.text.endsWith(TRUNCATED_LINE_END)) return true;
+    }
+    return false;
+}
+
+/** The orphan move under consideration, as offsets into the second-last line's text from `wordStart`. */
+const orphanMove = {
+    wordStart: 0,
+    lastStart: 0,
+    keptEnd: 0,
+    movedFrom: 0,
+    movedEnd: 0,
+    joiner: '',
+    /** Whether the moved word's last piece joins the last line's first segment, as one segment wraps. */
+    merges: false,
+    built: false,
+};
+const keptPieces: MeasuredSegment[] = [];
+const movedPieces: MeasuredSegment[] = [];
+
+/** {@link avoidOrphans} for the run of segments from `start`; returns whether the line left ends in an ellipsis. */
+function avoidSegmentOrphans(segments: MeasuredSegment[], start: number, options: WrapOptions, lines: FitLines) {
+    if (options.avoidOrphans === false || options.textWrap === 'never') return false;
+    const end = segments.length;
+    if (end <= start || endsLine(segments[end - 1])) return false;
+    const lastStart = lineStartBefore(segments, start, end);
+    if (lastStart === start) return false;
+    const lastLine = lineBreakCount(segments, start, lastStart);
+    const kind = lines.breaks[lastLine];
+    if (kind == null || afterLastImage(segments, lastStart, end) !== lastStart) return false;
+    const prevStart = lineStartBefore(segments, start, lastStart);
+    // Text that starts a segment carried an edge into the rule as one more grapheme.
+    const prevKind = lastLine > 1 ? lines.breaks[lastLine - 1] : EDGE_BREAK;
+    const prevOpens = prevKind === EDGE_BREAK || prevKind === EXPLICIT_BREAK;
+    if (!planOrphanMove(segments, prevStart, lastStart, end, kind, prevOpens, lines.clipped)) return false;
+
+    orphanMove.built = false;
+    const fits = orphanMoveFits(segments, start, prevStart, options, lines.metrics);
+    if (fits && !orphanMove.built) buildOrphanPieces(segments);
+    let endsTruncated = false;
+    if (fits) {
+        const keptLast = keptPieces.at(-1) as MeasuredTextSegment;
+        endsTruncated = keptLast.text.endsWith(TRUNCATED_LINE_END);
+        const { wordStart, merges } = orphanMove;
+        segments.splice(wordStart, lastStart - wordStart + (merges ? 1 : 0), ...keptPieces, ...movedPieces);
+    }
+    keptPieces.length = 0;
+    movedPieces.length = 0;
+    return endsTruncated;
+}
+
+/** Sets `orphanMove` to the word that the one-word last line, after a `kind` break, takes; false when it takes none. */
+function planOrphanMove(
+    segments: MeasuredSegment[],
+    prevStart: number,
+    lastStart: number,
+    end: number,
+    kind: string,
+    prevOpens: boolean,
+    clipped: boolean
+) {
+    const lastLength = lineRangeLength(segments, lastStart, end);
+    // Space opening the last line is a segment's edge, so the gap it wrapped at, unless the source broke the line.
+    const lastFrom = kind === EXPLICIT_BREAK ? 0 : findInLine(segments, lastStart, end, 0, lastLength, false);
+    if (lastFrom === -1) return false;
+    if (clipped && lastLength - lastFrom === 1 && lineCharAt(segments, lastStart, lastFrom) === EllipsisChar) {
+        return false;
+    }
+
+    // Words after an inline image are a line of their own for the rule.
+    const wordStart = afterLastImage(segments, prevStart, lastStart);
+    const prevLength = lineRangeLength(segments, wordStart, lastStart);
+    const prevTo = findLastInLine(segments, wordStart, lastStart, 0, prevLength, false) + 1;
+    if (kind === EDGE_BREAK && lastFrom === 0 && prevTo === prevLength) return false;
+    segmentOrphanLines.segments = segments;
+    segmentOrphanLines.prevStart = wordStart;
+    segmentOrphanLines.lastStart = lastStart;
+    segmentOrphanLines.end = end;
+    const opens = prevOpens || wordStart > prevStart ? 1 : 0;
+    const split = orphanWordSplit(segmentOrphanLines, prevTo, lastFrom, lastLength, opens, 1);
+    segmentOrphanLines.segments = NO_SEGMENTS;
+    if (split === -1) return false;
+
+    orphanMove.wordStart = wordStart;
+    orphanMove.lastStart = lastStart;
+    orphanMove.keptEnd = findLastInLine(segments, wordStart, lastStart, 0, split, false) + 1;
+    orphanMove.movedFrom = split + 1;
+    // A gap at the end of the line above goes with the word unless the last line opens with its own.
+    orphanMove.movedEnd = kind === EDGE_BREAK && lastFrom === 0 ? prevLength : prevTo;
+    orphanMove.joiner = kind === EXPLICIT_BREAK ? ' ' : kind;
+    const lastMoved = segments[lineSegmentAt(segments, wordStart, lastStart, orphanMove.movedEnd - 1)];
+    const lastFirst = segments[lastStart];
+    orphanMove.merges = lastFirst.type !== 'image' && lastMoved.type !== 'image' && sameStyle(lastMoved, lastFirst);
+    return true;
+}
+
+const NO_SEGMENTS: MeasuredSegment[] = [];
+
+/** The second-last line as segments `[prevStart, lastStart)` and the last as `[lastStart, end)`. */
+const segmentOrphanLines = {
+    segments: NO_SEGMENTS,
+    prevStart: 0,
+    lastStart: 0,
+    end: 0,
+    findBreak(line: OrphanLine, lo: number, hi: number, fromEnd: boolean) {
+        const from = line === PREV_LINE ? this.prevStart : this.lastStart;
+        const to = line === PREV_LINE ? this.lastStart : this.end;
+        return (fromEnd ? findLastInLine : findInLine)(this.segments, from, to, lo, hi, true);
+    },
+    graphemes(line: OrphanLine, lo: number, hi: number) {
+        const from = line === PREV_LINE ? this.prevStart : this.lastStart;
+        const to = line === PREV_LINE ? this.lastStart : this.end;
+        return lineGraphemeCount(this.segments, from, to, lo, hi);
+    },
+};
+
+/** Whether two text segments differ only in their text. */
+function sameStyle(a: MeasuredTextSegment, b: MeasuredTextSegment) {
+    for (const key in a) {
+        if (key !== 'text' && key !== 'textMetrics' && a[key as keyof typeof a] !== b[key as keyof typeof b]) {
+            return false;
+        }
+    }
+    for (const key in b) {
+        if (!(key in a)) return false;
+    }
+    return true;
+}
+
+/** Whether the run still fits with the word moved, judged from the fitted metrics when no line height changes. */
+function orphanMoveFits(
+    segments: MeasuredSegment[],
+    start: number,
+    prevStart: number,
+    options: WrapOptions,
+    metrics: SegmentsLineMetrics[] | undefined
+) {
+    if (keepsLineHeights(segments, prevStart)) {
+        const width = linesWidth(segments, orphanMove.lastStart, segments.length) + movedWidth(segments);
+        if (width > options.maxWidth) return false;
+        if (options.maxWidthAt == null) return true;
+        metrics ??= measureTextSegments(start === 0 ? segments : segments.slice(start), options.font).lineMetrics;
+        return width <= lastLineBandWidth(options, metrics);
+    }
+    buildOrphanPieces(segments);
+    const candidate = segments
+        .slice(start, orphanMove.wordStart)
+        .concat(keptPieces, movedPieces, segments.slice(orphanMove.lastStart + (orphanMove.merges ? 1 : 0)));
+    const { height, lineMetrics } = measureTextSegments(candidate, options.font);
+    if (height > (options.maxHeight ?? Infinity)) return false;
+    return lineMetrics.at(-1)!.width <= lastLineBandWidth(options, lineMetrics);
+}
+
+/** Whether every segment the word comes from matches a segment left on its line and one on the last line. */
+function keepsLineHeights(segments: MeasuredSegment[], prevStart: number) {
+    const { wordStart, lastStart, movedFrom, movedEnd } = orphanMove;
+    for (let i = wordStart, offset = 0; i < lastStart; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const from = offset;
+        offset += lineLength(segment);
+        if (offset <= movedFrom || from >= movedEnd) continue;
+        if (!keepsOnLineAbove(segments, prevStart, segment)) return false;
+        if (!hasSameHeights(segments, lastStart, segments.length, segment)) return false;
+    }
+    return true;
+}
+
+function keepsOnLineAbove(segments: MeasuredSegment[], prevStart: number, like: MeasuredTextSegment) {
+    const { wordStart, lastStart, keptEnd } = orphanMove;
+    if (hasSameHeights(segments, prevStart, wordStart, like)) return true;
+    for (let i = wordStart, offset = 0; i < lastStart && offset < keptEnd; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        if (length > 0 && sameHeights(segment, like)) return true;
+        offset += length;
+    }
+    return false;
+}
+
+function hasSameHeights(segments: MeasuredSegment[], from: number, to: number, like: MeasuredTextSegment) {
+    for (let i = from; i < to; i++) {
+        const segment = segments[i];
+        if (segment.type !== 'image' && lineLength(segment) > 0 && sameHeights(segment, like)) return true;
+    }
+    return false;
+}
+
+function sameHeights(a: MeasuredTextSegment, b: MeasuredTextSegment) {
+    const { textMetrics: am } = a;
+    const { textMetrics: bm } = b;
+    return (
+        a.lineHeight === b.lineHeight && am.ascent === bm.ascent && am.descent === bm.descent && am.height === bm.height
+    );
+}
+
+function linesWidth(segments: MeasuredSegment[], from: number, to: number) {
+    let width = 0;
+    for (let i = from; i < to; i++) width += segments[i].textMetrics.width;
+    return width;
+}
+
+/** Width the moved word adds to the last line, measured piece by piece as it will be drawn. */
+function movedWidth(segments: MeasuredSegment[]) {
+    const { wordStart, lastStart, movedFrom, movedEnd } = orphanMove;
+    let width = 0;
+    for (let i = wordStart, offset = 0; i < lastStart; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        const from = Math.max(movedFrom - offset, 0);
+        const to = Math.min(movedEnd - offset, length);
+        if (from < to) {
+            const isLast = to === movedEnd - offset;
+            width += cachedTextMeasurer(segment).textWidth(movedText(segments, segment, from, to, isLast));
+            if (isLast && orphanMove.merges) width -= segments[lastStart].textMetrics.width;
+        }
+        offset += length;
+    }
+    return width;
+}
+
+/** The text of a moved piece: its last carries the joining space and, when merging, the last line's first segment. */
+function movedText(
+    segments: MeasuredSegment[],
+    segment: MeasuredTextSegment,
+    from: number,
+    to: number,
+    isLast: boolean
+) {
+    const text = segment.text.slice(from, to);
+    if (!isLast) return text;
+    const { joiner, merges, lastStart } = orphanMove;
+    return text + joiner + (merges ? (segments[lastStart] as MeasuredTextSegment).text : '');
+}
+
+/** Fills `keptPieces`, ending the line, and `movedPieces`, reusing segments that stay whole. */
+function buildOrphanPieces(segments: MeasuredSegment[]) {
+    const { wordStart, lastStart, keptEnd, movedFrom, movedEnd } = orphanMove;
+    orphanMove.built = true;
+    keptPieces.length = 0;
+    movedPieces.length = 0;
+    for (let i = wordStart, offset = 0; i < lastStart; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        if (offset + length < keptEnd) {
+            keptPieces.push(segment);
+        } else if (offset < keptEnd) {
+            keptPieces.push(textPiece(segment, segment.text.slice(0, keptEnd - offset)));
+        }
+        const from = Math.max(movedFrom - offset, 0);
+        const to = Math.min(movedEnd - offset, length);
+        if (from < to) {
+            movedPieces.push(textPiece(segment, movedText(segments, segment, from, to, to === movedEnd - offset)));
+        }
+        offset += length;
+    }
+    // A line with nothing left of it still ends, in the style of its first segment.
+    if (keptPieces.length === 0) keptPieces.push(textPiece(segments[wordStart] as MeasuredTextSegment, ''));
+    (keptPieces.at(-1) as MeasuredTextSegment).text += '\n';
+}
+
+function textPiece(segment: MeasuredTextSegment, text: string): MeasuredTextSegment {
+    return { ...segment, text, textMetrics: cachedTextMeasurer(segment).measureText(text) };
+}
+
+function endsLine(segment: MeasuredSegment): segment is MeasuredTextSegment {
+    return segment.type !== 'image' && segment.text.endsWith('\n');
+}
+
+/** Length of a text segment's text on its line, its line break left out. */
+function lineLength(segment: MeasuredTextSegment) {
+    return segment.text.length - (segment.text.endsWith('\n') ? 1 : 0);
+}
+
+function lineRangeLength(segments: MeasuredSegment[], from: number, to: number) {
+    let length = 0;
+    for (let i = from; i < to; i++) length += lineLength(segments[i] as MeasuredTextSegment);
+    return length;
+}
+
+/** Index of the segment in `[from, to)` holding line offset `at`. */
+function lineSegmentAt(segments: MeasuredSegment[], from: number, to: number, at: number) {
+    for (let i = from, offset = 0; i < to; i++) {
+        offset += lineLength(segments[i] as MeasuredTextSegment);
+        if (at < offset) return i;
+    }
+    return to - 1;
+}
+
+function lineCharAt(segments: MeasuredSegment[], from: number, at: number) {
+    for (let i = from, offset = 0; ; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        if (at < offset + length) return segment.text[at - offset];
+        offset += length;
+    }
+}
+
+/** Line offset of the first character in `[lo, hi)` of segments `[from, to)` that is or is not a break space, or -1. */
+function findInLine(
+    segments: MeasuredSegment[],
+    from: number,
+    to: number,
+    lo: number,
+    hi: number,
+    breakSpace: boolean
+) {
+    for (let i = from, offset = 0; i < to; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        const stop = Math.min(hi - offset, length);
+        for (let j = Math.max(lo - offset, 0); j < stop; j++) {
+            if (isBreakSpace(segment.text[j]) === breakSpace) return offset + j;
+        }
+        offset += length;
+    }
+    return -1;
+}
+
+/** {@link findInLine} for the last such character. */
+function findLastInLine(
+    segments: MeasuredSegment[],
+    from: number,
+    to: number,
+    lo: number,
+    hi: number,
+    breakSpace: boolean
+) {
+    let offset = lineRangeLength(segments, from, to);
+    for (let i = to - 1; i >= from; i--) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        offset -= length;
+        const stop = Math.max(lo - offset, 0);
+        for (let j = Math.min(hi - offset, length) - 1; j >= stop; j--) {
+            if (isBreakSpace(segment.text[j]) === breakSpace) return offset + j;
+        }
+    }
+    return -1;
+}
+
+/** Graphemes in `[lo, hi)` of the line held by segments `[from, to)`, sliced out only when not one per code unit. */
+function lineGraphemeCount(segments: MeasuredSegment[], from: number, to: number, lo: number, hi: number) {
+    let count = 0;
+    for (let i = from, offset = 0; i < to; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        const stop = Math.min(hi - offset, length);
+        for (let j = Math.max(lo - offset, 0); j < stop; j++) {
+            const code = segment.text.charCodeAt(j);
+            // Below the combining marks every code unit but a CR, which joins a following LF, is its own grapheme.
+            if (code >= 0x0300 || code === 0x0d) return graphemeSegments(lineSlice(segments, from, to, lo, hi)).length;
+            count++;
+        }
+        offset += length;
+    }
+    return count;
+}
+
+function lineSlice(segments: MeasuredSegment[], from: number, to: number, lo: number, hi: number) {
+    let text = '';
+    for (let i = from, offset = 0; i < to; i++) {
+        const segment = segments[i] as MeasuredTextSegment;
+        const length = lineLength(segment);
+        text += segment.text.slice(Math.max(lo - offset, 0), Math.max(Math.min(hi - offset, length), 0));
+        offset += length;
+    }
+    return text;
+}
+
+/** Index of the first segment of the line whose segments end at `end`, no earlier than `start`. */
+function lineStartBefore(segments: MeasuredSegment[], start: number, end: number) {
+    for (let i = end - 2; i >= start; i--) {
+        if (endsLine(segments[i])) return i + 1;
+    }
+    return start;
+}
+
+function lineBreakCount(segments: MeasuredSegment[], from: number, to: number) {
+    let count = 0;
+    for (let i = from; i < to; i++) {
+        if (endsLine(segments[i])) count++;
+    }
+    return count;
+}
+
+function afterLastImage(segments: MeasuredSegment[], from: number, to: number) {
+    for (let i = to - 1; i >= from; i--) {
+        if (segments[i].type === 'image') return i + 1;
+    }
+    return from;
 }
 
 interface SegmentGroup {
@@ -1409,6 +2089,23 @@ function splitIntoBlockGroups(textSegments: NormalisedContentSegment[]): Segment
 }
 
 export function wrapTextSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
+    try {
+        return wrapSegmentGroups(textSegments, options);
+    } finally {
+        releaseWrapReferences();
+    }
+}
+
+/** Drops the module scratch's hold on the last wrap's segments, so none outlives the call. */
+function releaseWrapReferences() {
+    groupFitLines.metrics = undefined;
+    runFitLines.metrics = undefined;
+    keptPieces.length = 0;
+    movedPieces.length = 0;
+    segmentOrphanLines.segments = NO_SEGMENTS;
+}
+
+function wrapSegmentGroups(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const groups = splitIntoBlockGroups(textSegments);
     if (groups.length === 0) return [];
 
@@ -1418,21 +2115,44 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
         groups[0].blockImages.length === 0 &&
         !groups[0].segments.some((s) => s.type === 'image')
     ) {
-        const fitted = fitMeasuredSegments(groups[0].segments, options);
-        return hidesOverflow(groups[0].segments, fitted, options) ? [] : fitted;
+        const fitted = fitMeasuredSegments(groups[0].segments, options, groupFitLines);
+        const orphanEllipsis = avoidSegmentOrphans(fitted, 0, options, groupFitLines);
+        const hides =
+            hidesWrappedEllipsis(fitted, 0, options, groupFitLines, orphanEllipsis) ||
+            hidesOverflow(groups[0].segments, fitted, options);
+        return hides ? [] : fitted;
     }
 
     let remainingMaxHeight = options.maxHeight ?? Infinity;
     const result: MeasuredSegment[] = [];
+    // The text run the block ends with holds its last line.
+    let lastStart = 0;
+    let lastOptions = options;
+    const run: TextRun = { start: 0, options };
+    // Runs before the last are judged as fitted; the last only once its orphan has moved.
+    let earlierEllipsis = false;
+    let runEllipsis = false;
+    let groupLines = groupFitLines;
+    let runLines = runFitLines;
 
     for (const group of groups) {
         if (remainingMaxHeight <= 0) break;
         const groupOptions = Number.isFinite(remainingMaxHeight)
             ? { ...options, maxHeight: remainingMaxHeight }
             : options;
-        const groupResult = wrapGroup(group, groupOptions);
+        run.start = 0;
+        run.options = groupOptions;
+        const groupResult = wrapGroup(group, groupOptions, run, groupLines);
         if (groupResult.length === 0) continue;
 
+        lastStart = result.length + run.start;
+        lastOptions = run.options;
+        earlierEllipsis ||= runEllipsis;
+        runEllipsis = hidesWrappedEllipsis(groupResult, run.start, options, groupLines, false);
+        // This group's lines become the run's, and the run's buffer is free for the next group.
+        const kept = runLines;
+        runLines = groupLines;
+        groupLines = kept;
         result.push(...groupResult);
 
         if (Number.isFinite(remainingMaxHeight)) {
@@ -1440,7 +2160,18 @@ export function wrapTextSegments(textSegments: NormalisedContentSegment[], optio
         }
     }
 
-    return hidesOverflow(textSegments, result, options) ? [] : result;
+    const orphanEllipsis = avoidSegmentOrphans(result, lastStart, lastOptions, runLines);
+    const hides =
+        earlierEllipsis ||
+        hidesWrappedEllipsis(result, lastStart, options, runLines, orphanEllipsis) ||
+        hidesOverflow(textSegments, result, options);
+    return hides ? [] : result;
+}
+
+/** Where a group's text starts in its fitted segments, and the options that text was wrapped to. */
+interface TextRun {
+    start: number;
+    options: WrapOptions;
 }
 
 /**
@@ -1464,22 +2195,30 @@ function contentLength(segments: NormalisedContentSegment[]): number {
     return segments.reduce((n, s) => (s.type === 'image' ? n : n + survivingCharacters(toTextString(s.text))), 0);
 }
 
-function wrapGroup(group: SegmentGroup, options: WrapOptions): MeasuredSegment[] {
+function wrapGroup(group: SegmentGroup, options: WrapOptions, run: TextRun, lines: FitLines): MeasuredSegment[] {
     if (group.blockImages.length === 0) {
-        return wrapInlineSegments(group.segments, options);
+        return wrapInlineSegments(group.segments, options, lines);
     }
-    return wrapBlockGroup(group.blockImages, group.segments, options);
+    return wrapBlockGroup(group.blockImages, group.segments, options, run, lines);
 }
 
-function wrapInlineSegments(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegments(
+    segments: NormalisedContentSegment[],
+    options: WrapOptions,
+    lines: FitLines
+): MeasuredSegment[] {
     if (segments.length === 0) return [];
     if (!segments.some((s) => s.type === 'image')) {
-        return fitMeasuredSegments(segments, options);
+        return fitMeasuredSegments(segments, options, lines);
     }
-    return wrapInlineSegmentsWithOverflow(segments, options);
+    return wrapInlineSegmentsWithOverflow(segments, options, lines);
 }
 
-function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegmentsWithOverflow(
+    segments: NormalisedContentSegment[],
+    options: WrapOptions,
+    lines: FitLines
+): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
     // Drop any image that exceeds the width or height budget on its own; no strategy can keep it.
     // Build a single working array we mutate in place to avoid allocating a fresh array per drop.
@@ -1492,15 +2231,19 @@ function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], op
         working.push(s);
     }
 
-    let result = fitMeasuredSegments(working, options);
+    let result = fitMeasuredSegments(working, options, lines);
     // 'hide' images yield to text first.
-    result = dropUntilFits(working, options, result, () => dropLastMatching(working, isImageWithStrategy('hide')));
+    result = dropUntilFits(working, options, lines, result, () =>
+        dropLastMatching(working, isImageWithStrategy('hide'))
+    );
     // 'keep' images take priority over text: drop trailing text rightmost-first.
-    result = dropUntilFits(working, options, result, () => {
+    result = dropUntilFits(working, options, lines, result, () => {
         return hasImageWithStrategy(working, 'keep') && dropLastMatching(working, isText);
     });
     // Last resort: drop 'keep' images that still can't fit alongside anything.
-    result = dropUntilFits(working, options, result, () => dropLastMatching(working, isImageWithStrategy('keep')));
+    result = dropUntilFits(working, options, lines, result, () =>
+        dropLastMatching(working, isImageWithStrategy('keep'))
+    );
     return result;
 }
 
@@ -1509,11 +2252,12 @@ function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], op
 function dropUntilFits(
     working: NormalisedContentSegment[],
     options: WrapOptions,
+    lines: FitLines,
     result: MeasuredSegment[],
     drop: () => boolean
 ): MeasuredSegment[] {
     while (!resultFitsAllSegments(working, result) && drop()) {
-        result = fitMeasuredSegments(working, options);
+        result = fitMeasuredSegments(working, options, lines);
     }
     return result;
 }
@@ -1521,14 +2265,16 @@ function dropUntilFits(
 function wrapBlockGroup(
     blockImages: ImageSegment[],
     segments: NormalisedContentSegment[],
-    options: WrapOptions
+    options: WrapOptions,
+    run: TextRun,
+    lines: FitLines
 ): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
 
     const strip = buildBlockStrip(blockImages, options);
     if (strip.length === 0) {
         // No images survived — re-wrap text full-width as if no block strip was requested.
-        return wrapInlineSegments(segments, options);
+        return wrapInlineSegments(segments, options, lines);
     }
 
     // The text column is `keep` only when every surviving image is `keep` — otherwise text
@@ -1537,6 +2283,7 @@ function wrapBlockGroup(
     const stripWidth = blockStripWidth(strip);
 
     if (segments.length === 0) {
+        run.start = strip.length;
         return strip;
     }
 
@@ -1544,12 +2291,14 @@ function wrapBlockGroup(
     if (innerMaxWidth <= 0) {
         // No room for a text column to the right. Under 'hide' prefer dropping the strip so text
         // gets the full width; under 'keep' preserve the strip alone.
-        return allKeep ? strip : wrapInlineSegments(segments, options);
+        if (!allKeep) return wrapInlineSegments(segments, options, lines);
+        run.start = strip.length;
+        return strip;
     }
 
     // Row height is max(stripHeight, textColumnHeight); strip images are already filtered to maxHeight.
     const innerOptions = { ...options, maxWidth: innerMaxWidth, maxHeight: Math.max(0, maxHeight) };
-    const innerResult = wrapBlockTextColumn(segments, innerOptions, allKeep);
+    const innerResult = wrapBlockTextColumn(segments, innerOptions, allKeep, lines);
 
     // A sub-character `innerMaxWidth` can emit an orphan wider than the column, pushing the strip past the tile edge.
     if (
@@ -1557,8 +2306,11 @@ function wrapBlockGroup(
         innerResult.length > 0 &&
         measureTextSegments(innerResult, options.font).width > innerMaxWidth
     ) {
+        run.start = strip.length;
         return strip;
     }
+    run.start = strip.length;
+    run.options = innerOptions;
     return [...strip, ...innerResult];
 }
 
@@ -1586,15 +2338,16 @@ function buildBlockStrip(blockImages: ImageSegment[], options: WrapOptions): Mea
 function wrapBlockTextColumn(
     segments: NormalisedContentSegment[],
     innerOptions: WrapOptions,
-    allKeep: boolean
+    allKeep: boolean,
+    lines: FitLines
 ): MeasuredSegment[] {
     if (!allKeep) {
-        return wrapInlineSegments(segments, innerOptions);
+        return wrapInlineSegments(segments, innerOptions, lines);
     }
     const working = segments.slice();
-    let result = wrapInlineSegments(working, innerOptions);
+    let result = wrapInlineSegments(working, innerOptions, lines);
     while ((hasTruncatedText(result) || lostTextSegments(working, result)) && dropLastMatching(working, isText)) {
-        result = wrapInlineSegments(working, innerOptions);
+        result = wrapInlineSegments(working, innerOptions, lines);
     }
     return result;
 }
@@ -1643,20 +2396,28 @@ function hasImageWithStrategy(segments: NormalisedContentSegment[], strategy: 'h
 /**
  * Fits the segments in two steps: wrapping estimates each row's band to break the text to its width, then
  * the renderer's own measurement of the result decides what fits, trimming it to the bands and `maxHeight`.
+ * The fit's lines are recorded into `lines`.
  */
-function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
-    const { result, reshaped, height } = wrapMeasuredSegments(textSegments, options);
+function fitMeasuredSegments(
+    textSegments: NormalisedContentSegment[],
+    options: WrapOptions,
+    lines: FitLines
+): MeasuredSegment[] {
+    const { result, reshaped, height, lineMetrics } = wrapMeasuredSegments(textSegments, options, lines);
+    // Lines passed through whole are the ones measured.
+    if (!reshaped) lines.metrics = lineMetrics;
     if (preservesText(options)) return result;
     // OPTIMIZATION: lines passed through unchanged were measured in their bands already.
     if (!reshaped && height <= (options.maxHeight ?? Infinity)) return result;
-    return trimToMeasuredFit(result, options);
+    return trimToMeasuredFit(result, options, lines);
 }
 
-function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions) {
+function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions, lines: FitLines) {
     const preserveText = preservesText(options);
     const result: MeasuredSegment[] = [];
 
     let reshaped = false;
+    resetFitLines(lines);
     let lineWidth = 0;
     let totalHeight = 0;
     // The empty line a segment's trailing whitespace broke onto, kept only if a later segment fills it.
@@ -1670,6 +2431,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         if (lastSegment.type === 'image') return;
         const measurer = cachedTextMeasurer(lastSegment);
         const truncatedText = truncateLine(lastSegment.text, measurer, maxWidth(), true);
+        lines.clipped = true;
         const textMetrics = measurer.measureText(truncatedText);
         result.push({ ...lastSegment, text: truncatedText, textMetrics });
     }
@@ -1680,17 +2442,25 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         const measurer = cachedTextMeasurer(segment);
         const guardedText = guardTextEdges(segment.text);
         const lineHeight = segment.lineHeight ?? options.lineHeight;
-        const wrapOptions = { ...options, font: segment, lineHeight, maxHeight: undefined };
+        // The block's own orphan pass runs once it is whole; a segment's last line need not be the block's.
+        const wrapOptions = { ...options, font: segment, lineHeight, maxHeight: undefined, orphansByBlock: true };
 
-        let wrappedLines = textWrap(guardedText, { ...wrapOptions, overflow: 'hide' }, lineWidth, totalHeight);
+        let wrappedLines = textWrap(
+            guardedText,
+            { ...wrapOptions, overflow: 'hide' },
+            lineWidth,
+            totalHeight,
+            segmentWrapBreaks
+        );
         if (wrappedLines.length === 0) {
             if (options.textWrap === 'never') {
-                wrappedLines = textWrap(guardedText, wrapOptions, lineWidth, totalHeight);
+                wrappedLines = textWrap(guardedText, wrapOptions, lineWidth, totalHeight, segmentWrapBreaks);
             } else {
-                wrappedLines = textWrap(guardedText, wrapOptions, 0, totalHeight);
+                wrappedLines = textWrap(guardedText, wrapOptions, 0, totalHeight, segmentWrapBreaks);
                 const lastSegment = result.at(-1);
                 if (wrappedLines.length > 0 && lineWidth > 0 && lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
+                    lines.breaks.push(EDGE_BREAK);
                     lineWidth = 0;
                 }
             }
@@ -1703,10 +2473,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
 
         // Under 'preserve' a trailing ellipsis can only be the author's own text ("Loading…"), so acting
         // on it here would drop the lines and segments that follow it.
-        const truncationIndex = preserveText ? -1 : wrappedLines.findIndex(isTextTruncated);
-        if (truncationIndex !== -1) {
-            wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
-        }
+        const truncated = !preserveText && cutAtDrawnEllipsis(wrappedLines, segmentWrapBreaks, measurer, wrapOptions);
 
         // A text segment's edge whitespace is the gap to an adjacent image (e.g. flag then " Germany ").
         // A wrap break can trim it, so restore it onto the first/last content line of the output.
@@ -1734,13 +2501,15 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
                 if (brokeInTrailingWs) trailingWsLine = subSegment;
             } else {
                 subSegment.text += '\n';
+                // Before its first word the break is the segment's edge, whose gap the next line takes back.
+                lines.breaks.push(i < firstContentIndex ? EDGE_BREAK : segmentWrapBreaks[i + 1]);
                 lineWidth = 0;
             }
             totalHeight += lineHeight ?? textMetrics.height;
             result.push(subSegment);
         }
 
-        return truncationIndex !== -1;
+        return truncated;
     }
 
     // Returns false once nothing more can be placed.
@@ -1774,7 +2543,7 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
                 const imageHeight = segment.textMetrics.height;
                 // Wrap the overflowing image to its own line rather than drop it (keeps width-shrinking monotonic).
                 if (options.textWrap !== 'never' && lineWidth > 0 && imageWidth <= maxWidth(imageHeight)) {
-                    appendLineBreak(result, options.font);
+                    breakFitLineAfterLast(lines, result, options.font, EDGE_BREAK);
                     lineWidth = imageWidth;
                     totalHeight += lineHeight + imageHeight;
                     lineHeight = 0;
@@ -1813,7 +2582,12 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
     const { lineMetrics } = measureTextSegments(textSegments, options.font);
     for (let i = 0; i < lineMetrics.length; i++) {
         if (i > 0) {
-            if (!dropEmptyTrailingWsLine()) appendLineBreak(result, options.font);
+            if (dropEmptyTrailingWsLine()) {
+                // The break left in place now stands for the source's own.
+                lines.breaks[lines.breaks.length - 1] = EXPLICIT_BREAK;
+            } else {
+                breakFitLineAfterLast(lines, result, options.font, EXPLICIT_BREAK);
+            }
             lineWidth = 0;
         }
         if (!wrapLine(lineMetrics[i])) break;
@@ -1823,19 +2597,20 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         if (last != null && last.type !== 'image') last.text = last.text.replace(/\n$/, '');
     }
 
-    return { result, reshaped, height: totalHeight };
+    return { result, reshaped, height: totalHeight, lineMetrics };
 }
 
 /**
  * Measures `segments` as the renderer lays them out and, while a line falls outside its band or the block
  * outgrows `maxHeight`, cuts the block after the last line that fits and ellipsises it.
  */
-function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions): MeasuredSegment[] {
+function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions, lines: FitLines): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
     const lineMaxWidths: number[] = [];
     let top = 0;
     let fits = true;
-    for (const { width, height } of measureTextSegments(segments, options.font).lineMetrics) {
+    const { lineMetrics } = measureTextSegments(segments, options.font);
+    for (const { width, height } of lineMetrics) {
         const bottom = top + height;
         if (bottom > maxHeight) {
             fits = false;
@@ -1849,12 +2624,16 @@ function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions): M
         }
         top = bottom;
     }
-    if (fits) return segments;
+    if (fits) {
+        lines.metrics = lineMetrics;
+        return segments;
+    }
 
+    lines.clipped = true;
     for (let line = lineMaxWidths.length - 1; line >= 0; line--) {
         const { before, row } = splitAtLine(segments, line);
         const ellipsised = ellipsiseRow(row, lineMaxWidths[line]);
-        if (ellipsised != null) return trimToMeasuredFit([...before, ...ellipsised], options);
+        if (ellipsised != null) return trimToMeasuredFit([...before, ...ellipsised], options, lines);
     }
     return [];
 }
@@ -1907,7 +2686,7 @@ function ellipsiseRow(row: MeasuredSegment[], maxWidth: number): MeasuredSegment
 }
 
 // The renderer only reads a trailing \n on a text segment, so a break after an image needs a synthetic one.
-function appendLineBreak(result: MeasuredSegment[], font: FontOptions): void {
+function appendLineBreak(result: MeasuredSegment[], font: FontOptions): boolean {
     const last = result.at(-1);
     if (last && last.type !== 'image') {
         last.text += '\n';
@@ -1915,4 +2694,5 @@ function appendLineBreak(result: MeasuredSegment[], font: FontOptions): void {
         const measurer = cachedTextMeasurer(font);
         result.push({ ...font, text: '\n', textMetrics: measurer.measureText('') });
     }
+    return last != null;
 }

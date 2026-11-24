@@ -29,6 +29,7 @@ import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
     type LabelAvoidance,
+    type LabelFitOptions,
     type LabelObstacle,
     type LabelPlacement,
     type OrientationAnchor,
@@ -41,6 +42,7 @@ import {
     labelGlyphCentre,
     labelsAvoidAxisLabels,
     placeLabels,
+    resolveAlwaysLabelFit,
     resolveLabelFit,
     writeLabelBoxCentre,
 } from './labelPlacement';
@@ -368,6 +370,88 @@ describe('placeLabels', () => {
         };
         const withNeighbour = placeLabels(new Map([['s', seriesLabels([own, neighbour])]]), bounds, 5).get('s')!;
         expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
+    });
+
+    describe('an inside label over a marker of another series', () => {
+        // The label box spans x 92..108, y 95..105, so a 20px marker centred at x 100 or 108 overlaps it.
+        const labelled = (placement: LabelPlacement = 'inside'): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'I', width: 16, height: 10 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement,
+            placements: [placement],
+            gap: 0,
+            alwaysShow: false,
+        });
+        const markerAt = (x: number): PointLabelDatum => ({
+            point: { x, y: 100, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement: undefined,
+        });
+        const ownRank = new Map([
+            ['under', 0],
+            ['own', 1],
+            ['over', 2],
+        ]);
+        const placedOwn = (entries: [string, PointLabelDatum[]][], paintOrder?: ReadonlyMap<string, number>) =>
+            placeLabels(
+                new Map(entries.map(([id, datums]) => [id, seriesLabels(datums)])),
+                bounds,
+                5,
+                [],
+                paintOrder
+            ).get('own')!;
+
+        it.each([
+            { marker: 'offset', x: 108, other: 'under', ranked: true, placed: true },
+            { marker: 'offset', x: 108, other: 'over', ranked: true, placed: false },
+            { marker: 'offset', x: 108, other: 'under', ranked: false, placed: false },
+            { marker: 'coincident', x: 100, other: 'under', ranked: true, placed: true },
+            { marker: 'coincident', x: 100, other: 'over', ranked: true, placed: false },
+            { marker: 'coincident', x: 100, other: 'under', ranked: false, placed: false },
+        ])(
+            'over an $marker marker of series $other, paint order known: $ranked, placed: $placed',
+            ({ x, other, ranked, placed }) => {
+                const own: [string, PointLabelDatum[]] = ['own', [labelled()]];
+                const marker: [string, PointLabelDatum[]] = [other, [markerAt(x)]];
+                // Placement order is not paint order, so both must give the same answer.
+                for (const entries of [
+                    [own, marker],
+                    [marker, own],
+                ]) {
+                    expect(placedOwn(entries, ranked ? ownRank : undefined).map((l) => l.placement)).toEqual(
+                        placed ? ['inside'] : []
+                    );
+                }
+            }
+        );
+
+        it.each([
+            { neighbour: 'offset', x: 108, placed: false },
+            { neighbour: 'coincident', x: 100, placed: true },
+        ])('treats a $neighbour marker of its own series as its neighbour or own, placed: $placed', ({ x, placed }) => {
+            const labels = placedOwn(
+                [
+                    ['under', [markerAt(300)]],
+                    ['own', [labelled(), markerAt(x)]],
+                ],
+                ownRank
+            );
+            expect(labels.map((l) => l.placement)).toEqual(placed ? ['inside'] : []);
+        });
+
+        it('keeps a marker painted under it as an obstacle to a directional label', () => {
+            // The `right` box spans x 115..131, which a 20px marker centred at x 125 overlaps.
+            const labels = placedOwn(
+                [
+                    ['under', [markerAt(125)]],
+                    ['own', [labelled('right')]],
+                ],
+                ownRank
+            );
+            expect(labels).toEqual([]);
+        });
     });
 
     it('drops an avoiding label when no candidate placement fits', () => {
@@ -2756,6 +2840,25 @@ describe('resolveLabelFit', () => {
             expect(fit?.overflowStrategy).toBe(expected);
         }
     );
+});
+
+describe('resolveAlwaysLabelFit', () => {
+    it.each<[string, LabelFitOptions, object]>([
+        ['no fit options', {}, {}],
+        ['a bound alone', { maxWidth: 120 }, { maxWidth: 120 }],
+        ['wrapping', { wrapping: 'on-space' }, { wrapping: 'on-space' }],
+        ['truncate', { maxWidth: 120, truncate: true }, { maxWidth: 120, overflowStrategy: 'ellipsis' }],
+        ['a minimum font size', { minimumFontSize: 8 }, { minimumFontSize: 8 }],
+    ])('returns a policy for %s', (_, fit, policy) => {
+        expect(resolveAlwaysLabelFit(fit)).toEqual(policy);
+    });
+
+    it.each<[string, LabelFitOptions, string]>([
+        ['hides an overflow', {}, 'hide'],
+        ['truncates when asked to', { truncate: true }, 'ellipsis'],
+    ])('with hideOnOverflow %s', (_, fit, overflowStrategy) => {
+        expect(resolveAlwaysLabelFit(fit, true)).toEqual({ overflowStrategy });
+    });
 });
 
 describe('sectorLabelContainer', () => {

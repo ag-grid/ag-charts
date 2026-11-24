@@ -135,22 +135,23 @@ describe('Caption', () => {
         });
     });
 
+    const titleChartOptions: AgCartesianChartOptions = {
+        data: [
+            { x: 'A', y: 3 },
+            { x: 'B', y: 5 },
+        ],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        legend: { enabled: false },
+    };
+
+    async function createTitle(title: AgCartesianChartOptions['title']) {
+        const proxy = (await createChart({ ...titleChartOptions, title })) as AgChartProxy;
+        const chartInstance = deproxy(proxy);
+        return { proxy, caption: chartInstance.title };
+    }
+
     describe('minimumFontSize', () => {
         const titleText = 'Quarterly revenue by region';
-        const baseOptions: AgCartesianChartOptions = {
-            data: [
-                { x: 'A', y: 3 },
-                { x: 'B', y: 5 },
-            ],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            legend: { enabled: false },
-        };
-
-        async function createTitle(title: AgCartesianChartOptions['title']) {
-            const proxy = (await createChart({ ...baseOptions, title })) as AgChartProxy;
-            const chartInstance = deproxy(proxy);
-            return { proxy, caption: chartInstance.title };
-        }
 
         it('a title that cannot fit its maxWidth truncates at its configured font size', async () => {
             const { proxy, caption } = await createTitle({
@@ -235,6 +236,38 @@ describe('Caption', () => {
                 ],
               ]
             `);
+            proxy.destroy();
+        });
+    });
+
+    describe('wrapping', () => {
+        it('a clipped title keeps every word its last line holds', async () => {
+            const { proxy, caption } = await createTitle({
+                text: 'Quarterly revenue by region and product line',
+                fontSize: 20,
+                maxWidth: 200,
+                maxHeight: 50,
+            });
+            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product…');
+            await compare(proxy);
+            proxy.destroy();
+        });
+
+        it('a rich-text title moves a word in its own font onto a one-word last line', async () => {
+            const { proxy, caption } = await createTitle({
+                maxWidth: 200,
+                maxHeight: 200,
+                text: [
+                    { text: 'Quarterly revenue by region and ', fontSize: 20 },
+                    { text: 'product', fontSize: 20, fontWeight: 'bold' },
+                    { text: ' line', fontSize: 20 },
+                ],
+            });
+            const segments = caption.node.text as { text: string }[];
+            expect(segments.map((segment) => segment.text).join('')).toBe(
+                'Quarterly revenue by\nregion and\nproduct line'
+            );
+            await compare(proxy);
             proxy.destroy();
         });
     });

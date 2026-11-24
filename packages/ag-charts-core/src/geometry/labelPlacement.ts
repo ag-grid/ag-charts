@@ -85,14 +85,27 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
-    const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
-    let overflowStrategy: OverflowStrategy | undefined;
-    if (truncate ?? defaultToTruncate) {
-        overflowStrategy = 'ellipsis';
-    } else if (hideOnOverflow) {
-        overflowStrategy = 'hide';
-    }
-    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
+    const overflowStrategy = resolveOverflowStrategy(fit.truncate, hideOnOverflow, defaultToTruncate);
+    if (overflowStrategy == null && fit.wrapping == null && fit.minimumFontSize == null) return undefined;
+    return toLabelFit(fit, overflowStrategy);
+}
+
+/** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
+export function resolveAlwaysLabelFit(fit: LabelFitOptions, hideOnOverflow = false): LabelFit {
+    return toLabelFit(fit, resolveOverflowStrategy(fit.truncate, hideOnOverflow, false));
+}
+
+function resolveOverflowStrategy(
+    truncate: boolean | undefined,
+    hideOnOverflow: boolean,
+    defaultToTruncate: boolean
+): OverflowStrategy | undefined {
+    if (truncate ?? defaultToTruncate) return 'ellipsis';
+    return hideOnOverflow ? 'hide' : undefined;
+}
+
+function toLabelFit(fit: LabelFitOptions, overflowStrategy: OverflowStrategy | undefined): LabelFit {
+    const { maxWidth, maxHeight, wrapping, minimumFontSize } = fit;
     return { maxWidth, maxHeight, wrapping, overflowStrategy, minimumFontSize };
 }
 
@@ -925,9 +938,10 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     }
 }
 
-function coincidesWithOwnMarker(o: LabelObstacle): boolean {
+function isOwnMarker(o: LabelObstacle): boolean {
     return (
         o.kind === 'circle' &&
+        o.sourceId === candidateSourceId &&
         (o.category ?? 'shape') === 'marker' &&
         o.cx === candidateOwnMarkerCx &&
         o.cy === candidateOwnMarkerCy &&
@@ -937,7 +951,7 @@ function coincidesWithOwnMarker(o: LabelObstacle): boolean {
 
 /** The box `o` is tested against: the label's own marker never sees a positive threshold. */
 function obstacleTestBox(o: LabelObstacle): BoxBounds | undefined {
-    if (candidateThreshold > 0 && o.sourceId === candidateSourceId && coincidesWithOwnMarker(o)) return candidateBox;
+    if (candidateThreshold > 0 && isOwnMarker(o)) return candidateBox;
     return candidateTestBox();
 }
 
@@ -993,12 +1007,17 @@ function overlapLiesOnOwnShape(under: BoxBounds): boolean {
     return x0 >= x1 || y0 >= y1 || boxContains(own, x0, y0, x1 - x0, y1 - y0);
 }
 
+/** True when series `sourceId` is painted under the candidate's series. */
+function paintedUnderCandidate(sourceId: string | undefined): boolean {
+    // The candidate's own series shares its paint level, so is never under it.
+    if (candidatePaintRank == null || sourceId == null || sourceId === candidateSourceId) return false;
+    const rank = solvePaintOrder?.get(sourceId);
+    return rank != null && rank < candidatePaintRank;
+}
+
 /** True when foreign shape `o` is painted under the candidate's own bar, which covers all of it the label overlaps. */
 function foreignShapeHidden(o: LabelObstacle): boolean {
-    // A bar of the candidate's own series shares its paint level, so is never under it.
-    if (candidatePaintRank == null || o.sourceId == null || o.sourceId === candidateSourceId) return false;
-    const rank = solvePaintOrder?.get(o.sourceId);
-    return rank != null && rank < candidatePaintRank && overlapLiesOnOwnShape(o.box);
+    return paintedUnderCandidate(o.sourceId) && overlapLiesOnOwnShape(o.box);
 }
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
@@ -1011,8 +1030,13 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     }
 
     const category = o.category ?? 'shape';
-    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it.
-    if (candidatePlacement === 'inside' && coincidesWithOwnMarker(o)) return true;
+    // An `inside` label is centred on its own marker and drawn over the markers of series painted under it.
+    if (
+        candidatePlacement === 'inside' &&
+        (isOwnMarker(o) || (category === 'marker' && paintedUnderCandidate(o.sourceId)))
+    ) {
+        return true;
+    }
 
     // Another datum's bar blocks wherever it shows; the own bar hides it only where painted over it.
     if (isForeignShape(o, category)) {

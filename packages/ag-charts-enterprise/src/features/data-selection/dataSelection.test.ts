@@ -29,6 +29,7 @@ import {
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    getVisibleLabelNodes,
     hoverLegendItem,
     isTooltipVisible,
     keyDownAction,
@@ -1051,6 +1052,67 @@ describe('DataSelection', () => {
             await waitForChartStability(chart);
 
             expect(new Set(backPlacements())).toEqual(new Set(['outside-end']));
+        });
+    });
+
+    describe('inside line labels over the markers of another series', () => {
+        // Each line label overlaps the marker of the scatter point just right of it.
+        const options: AgCartesianChartOptions = {
+            dataIdKey: 'id',
+            data: [
+                { id: 'a', x: 1, nearX: 1.05, y: 5, name: 'A' },
+                { id: 'b', x: 2, nearX: 2.05, y: 5, name: 'B' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                y: { type: 'number', position: 'left', min: 0, max: 10 },
+            },
+            series: [
+                {
+                    id: 'under',
+                    type: 'scatter',
+                    xKey: 'nearX',
+                    yKey: 'y',
+                    labelKey: 'nearX',
+                    size: 28,
+                    label: { enabled: true, placement: 'bottom' },
+                },
+                {
+                    id: 'line',
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { size: 36 },
+                    label: {
+                        enabled: true,
+                        formatter: ({ datum }) => datum.name,
+                        placement: 'inside',
+                        collision: { alwaysShow: false },
+                    },
+                },
+            ],
+            selection: { enabled: true },
+        };
+
+        const lineLabels = () => getVisibleLabelNodes(chart, 1).map((node) => node.text);
+
+        it('drops them once a selection raises the scatter over the line, but not for a hover raise', async () => {
+            const activeChange = vi.fn();
+            chart = await createEnterpriseChart({ ...options, listeners: { activeChange } });
+            expect(lineLabels()).toEqual(['A', 'B']);
+
+            await hoverLegendItem(chart, 0);
+            await waitForChartStability(chart);
+            expect(activeChange).toHaveBeenLastCalledWith(
+                expect.objectContaining({ activeItem: expect.objectContaining({ type: 'legend', seriesId: 'under' }) })
+            );
+            expect(lineLabels()).toEqual(['A', 'B']);
+
+            await setChartSelectionArray([{ seriesId: 'under', itemId: 'a' }]);
+            expect(lineLabels()).toEqual([]);
+
+            await clearChartSelection();
+            expect(lineLabels()).toEqual(['A', 'B']);
         });
     });
 
