@@ -6,6 +6,7 @@ import type {
     AgGradientType,
     AgImageFill,
     AgPatternColor,
+    AgSolidColor,
     BorderOptions,
     CssColor,
     FillOptions,
@@ -62,14 +63,17 @@ export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColo
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
+export type InternalAgColorType =
+    CssColor | AgSolidColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
 export type RequiredInternalAgColorType =
     | CssColor
+    | AgSolidColor
     | RequiredInternalAgGradientColor
     | RequiredInternalAgPatternColor
     | (RequiredInternalAgImageFill & Pick<InternalAgImageFill, 'url'>);
 
-export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
+export type NormalisedColorType =
+    CssColor | AgSolidColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
 
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;

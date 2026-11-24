@@ -4,10 +4,11 @@ import {
     type InternalAgGradientColor,
     type Normalised,
     type NormalisedCandlestickSeriesOwnOptions,
+    type NormalisedColorType,
     type Selection,
     isGradientFill,
-    isImageFill,
-    isPatternFill,
+    isSolidFill,
+    solidFillColour,
 } from 'ag-charts-core';
 import type { NormalisedLineDash } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
@@ -127,6 +128,10 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const legendColour = ({ fill, stroke }: { fill?: NormalisedColorType; stroke?: string }) => {
+            if (isSolidFill(fill)) return solidFillColour(fill);
+            return typeof fill === 'string' ? fill : stroke;
+        };
         const { up, down } = this.options.item;
 
         const upColorStops = isGradientFill(up.fill)
@@ -134,15 +139,15 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop == null ? undefined : c.stop * 0.5 }
               )
             : [
-                  { color: isPatternFill(up.fill) || isImageFill(up.fill) ? up.stroke : up.fill, stop: 0 },
-                  { color: isPatternFill(up.fill) || isImageFill(up.fill) ? up.stroke : up.fill, stop: 0.5 },
+                  { color: legendColour(up), stop: 0 },
+                  { color: legendColour(up), stop: 0.5 },
               ];
 
         const downColorStops = isGradientFill(down.fill)
             ? down.fill.colorStops!.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop == null ? undefined : c.stop * 0.5 }
               )
-            : [{ color: isPatternFill(down.fill) || isImageFill(down.fill) ? down.stroke : down.fill, stop: 0.5 }];
+            : [{ color: legendColour(down), stop: 0.5 }];
 
         const fill: InternalAgGradientColor = {
             type: 'gradient',
