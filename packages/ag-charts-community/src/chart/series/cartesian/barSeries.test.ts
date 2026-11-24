@@ -2373,31 +2373,6 @@ describe('BarSeries', () => {
             expect(new Set(placements)).toEqual(new Set(['inside-center']));
         });
 
-        // A wide label over a neighbour's slot: the narrow one gives up its outer slot rather than the wide one wrapping.
-        it('trades a first-choice slot within the series', async () => {
-            const wide = 'A much, much wider label';
-            chart = await createChart({
-                data: [
-                    { x: 'a', y: 40, name: 'A' },
-                    { x: 'b', y: 41, name: wide },
-                    ...Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 1, name: '' })),
-                ],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        label: { placement: ['outside-end', 'inside-end'], formatter: ({ datum }) => datum.name },
-                    },
-                ],
-            });
-            const nodes = getVisibleLabelTextNodes(chart);
-            const labelY = (text: string) => nodes.find((node) => node.text === text)!.y;
-
-            expect(nodes.map((node) => node.text)).toEqual(['A', wide]);
-            expect(labelY('A')).toBeGreaterThan(labelY(wide));
-        });
-
         // The shorter bar's first choice crosses the taller bar's top, where the taller bar's label would ignore it.
         it('never trades two labels onto each other', async () => {
             chart = await createChart({

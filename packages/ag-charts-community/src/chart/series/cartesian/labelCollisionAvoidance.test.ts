@@ -1793,7 +1793,9 @@ describe('label collision avoidance', () => {
                     },
                 ],
             });
-            expect(renderedLabelTexts()).toEqual(['A', wide]);
+            const [narrow, wideLabel] = getVisibleLabelNodes(chart);
+            expect([narrow.text, wideLabel.text]).toEqual(['A', wide]);
+            expect(narrow.y).toBeGreaterThan(wideLabel.y);
         });
 
         it('moves the label that is cheaper to move off a crowded point', async () => {
