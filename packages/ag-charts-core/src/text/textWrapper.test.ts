@@ -391,6 +391,15 @@ describe('wrapLines', () => {
             expect(wrapLines(text, explicit)).toEqual([expected]);
         });
 
+        it.each([undefined, LINE_HEIGHT])(
+            'refills with a line the wrap ellipsised for a narrower band, keeping one ellipsis (line height %s)',
+            (lineHeight) => {
+                const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 90 : 40);
+                const options = { font, maxWidth: 90, maxWidthAt, maxHeight: LINE_HEIGHT, lineHeight };
+                expect(wrapLines('A WWWWWWWWWWWW', options)).toEqual([`A WWW${E}`]);
+            }
+        );
+
         it('should wrap at word boundary when line exceeds maxWidth', () => {
             // 'Hello World' = 110px, maxWidth = 60px → wraps between words
             const result = wrapLines('Hello World', { font, maxWidth: 60 });
@@ -951,6 +960,18 @@ describe('wrapTextSegments — clipping', () => {
     ])('refills the last line kept under maxHeight %s', (_, segments, expected) => {
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 160, maxHeight: LINE_HEIGHT });
         expect(textOf(result)).toBe(expected);
+    });
+
+    it('refills with a line the wrap ellipsised for a narrower band, keeping one ellipsis', () => {
+        const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 90 : 40);
+        const options = { font: baseFont, maxWidth: 90, maxWidthAt, maxHeight: LINE_HEIGHT };
+        expect(textOf(wrapTextSegments([text('A WWWWWWWWWWWW')], options))).toBe(`A WWW${E}`);
+    });
+
+    it('does not refill from a line taller than the one it fills', () => {
+        const segments = [text('AA BB CC DD '), text('GGGGGGGG', { lineHeight: 2 * LINE_HEIGHT })];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT });
+        expect(textOf(result)).toBe(`AA BB\nCC DD${E}`);
     });
 });
 

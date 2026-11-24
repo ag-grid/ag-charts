@@ -1492,6 +1492,11 @@ export function clipLines(
             let refilled = lastLine;
             let width = measured?.lineMetrics[i - 1].width ?? measurer.textWidth(lastLine);
             for (let j = i; j < lines.length && width <= maxWidth && rejoinsBreak(breaksBefore[j]); j++) {
+                // A line the wrap ellipsised for a narrower band ends the refill, its ellipsis redrawn once.
+                if (isTextTruncated(lines[j])) {
+                    refilled += breaksBefore[j] + lines[j].slice(0, -EllipsisChar.length);
+                    break;
+                }
                 refilled += breaksBefore[j] + lines[j];
                 width += measured?.lineMetrics[j].width ?? measurer.textWidth(lines[j]);
             }
@@ -2659,18 +2664,23 @@ function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions, li
 }
 
 /**
- * The last line the wrapped `line` is refilled through before its ellipsis: lines after breaks wrapping made
- * are rejoined only until their measured widths pass `maxWidth`, since the ellipsis cuts the rest.
+ * The last line the wrapped `line` is refilled through before its ellipsis: lines after breaks wrapping made,
+ * no taller than `line`, are rejoined only until their measured widths pass `maxWidth`.
  */
 function refillThrough(
-    lineMetrics: readonly { width: number }[],
+    lineMetrics: readonly { width: number; height: number }[],
     line: number,
     maxWidth: number,
     breaks: readonly (string | undefined)[]
 ) {
     let through = line;
     let width = lineMetrics[line].width;
-    while (through + 1 < lineMetrics.length && width <= maxWidth && rejoinsBreak(breaks[through + 1])) {
+    while (
+        through + 1 < lineMetrics.length &&
+        width <= maxWidth &&
+        rejoinsBreak(breaks[through + 1]) &&
+        lineMetrics[through + 1].height <= lineMetrics[line].height
+    ) {
         through += 1;
         width += lineMetrics[through].width;
     }
@@ -2734,6 +2744,12 @@ function splitSegmentAtLine(
         } else if (part !== '') {
             // The spaces a rejoined break consumed open its line, so an ellipsis that drops the line drops them too.
             if (current > line && (i > 0 || startsLine)) text += breaks[current] ?? '';
+            // A line the wrap ellipsised for a narrower band ends the refill, its ellipsis redrawn once.
+            if (current > line && isTextTruncated(part)) {
+                text += part.slice(0, -EllipsisChar.length);
+                current = through + 1;
+                break;
+            }
             text += part;
         }
         if (breaksLine) current++;
