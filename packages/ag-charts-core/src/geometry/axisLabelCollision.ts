@@ -44,13 +44,9 @@ export interface TickLabelFit<T> {
 }
 
 /**
- * Picks the rotation for each candidate in turn. The first rotation whose labels fit whole without colliding wins,
- * else the clear rotation that truncates the fewest characters, ties going to the earlier rotation. When every
- * rotation collides and `truncates` is set, the labels truncated to clear their neighbours at the last rotation are
- * tried, as fit index `rotationCount`. Only then is the next, sparser, evenly spaced candidate tried.
- *
- * When labels are always shown, or no candidate clears, the fit with the fewest collisions is kept. Pinned ticks
- * keep the first pinned candidate, as later ones only move the domain around them.
+ * Per candidate, the first clear rotation that fits whole wins, else the clear one truncating least; with `truncates`,
+ * fit index `rotationCount` (truncated at the last rotation) is tried before a sparser candidate.
+ * If none clears, or labels are always shown, the fewest collisions win; pinned ticks keep the first pinned candidate.
  */
 export function thinTickLabels<T>(
     next: () => TickLabelCandidate<T> | undefined,
