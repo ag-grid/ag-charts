@@ -1771,6 +1771,62 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // An earlier label of the same series holding a label's first choice gives it up when that moves the pair less.
+    describe('trading a first-choice slot within a series', () => {
+        it('gives a wide column label its outer slot over a narrow neighbour', async () => {
+            const wide = 'A much, much wider label';
+            await renderAndSnapshot({
+                data: [
+                    { x: 'a', y: 40, name: 'A' },
+                    { x: 'b', y: 41, name: wide },
+                    ...Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 1, name: '' })),
+                ],
+                legend: { enabled: false },
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        fillOpacity: 0.5,
+                        label: { placement: ['outside-end', 'inside-end'], formatter: ({ datum }: any) => datum.name },
+                    },
+                ],
+            });
+            expect(renderedLabelTexts()).toEqual(['A', wide]);
+        });
+
+        it('moves the label that is cheaper to move off a crowded point', async () => {
+            const data = [0, 1, 2].flatMap((i) => [
+                { x: i * 10, y: 50, label: 'A' },
+                { x: i * 10 + 0.6, y: 51, label: 'Second\nlabel' },
+            ]);
+            await renderAndSnapshot({
+                data,
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: -5, max: 30 },
+                    y: { type: 'number', position: 'left', min: 0, max: 100 },
+                },
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        label: { enabled: true, placement: ['top', 'bottom'], truncate: false },
+                    },
+                ],
+            });
+            expect(placedLabelPlacements().map(({ text, placement }) => [text, placement])).toEqual(
+                [0, 1, 2].flatMap(() => [
+                    ['A', 'bottom'],
+                    ['Second\nlabel', 'top'],
+                ])
+            );
+        });
+    });
+
     // `label.orientation` rotates bar-family labels: `horizontal` upright, the two `vertical` variants a
     // quarter-turn either way. Both a column and a horizontal bar are exercised per orientation.
     describe('bar label orientation', () => {

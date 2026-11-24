@@ -703,6 +703,16 @@ interface PooledLabelObstacle {
     category: ObstacleCategory;
     labelGroup: string | undefined;
     outranks: boolean | undefined;
+    // Slot-trade fields, by value so the pool holds no label, datum or candidate between solves.
+    poolIndex: number;
+    seriesOrdinal: number;
+    // Where the label sits in its series' result list.
+    resultSlot: number;
+    memoBase: number;
+    // The label has a first-choice baseline and a fallback, so it can give way in a trade.
+    tradable: boolean;
+    keepPolicy: number;
+    baseline: BoxBounds;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
@@ -1523,6 +1533,7 @@ export function placeLabels(
             buildObstacleIndex(placementData, obstacles, bounds);
         }
         let labelObstacleCount = 0;
+        solveSerial++;
         for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
             placementData
         )) {
@@ -1530,12 +1541,17 @@ export function placeLabels(
             if (datums[0]?.label == null) continue;
             candidateSourceId = seriesId;
             candidatePaintRank = paintOrder?.get(seriesId);
+            solveSeriesOrdinal++;
+            seriesTradableCount = 0;
+            const resolves = resolveCandidateStyle != null || resolveCandidate != null;
             for (let index = 0, ln = datums.length; index < ln; index++) {
                 const d = datums[index];
                 // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
                 // they neither occupy a placement nor act as obstacles against labels that do have text.
                 if (d.label.text === '') continue;
-                const placed = tryPlaceLabel(
+                const obstacle = useIndex && d.obstacle !== false;
+                beginLabelTrade(obstacle ? tradeCandidateCount(d, defaults) : 0, resolves);
+                let placed = tryPlaceLabel(
                     d,
                     defaults,
                     index,
@@ -1544,11 +1560,26 @@ export function placeLabels(
                     resolveCandidateStyle,
                     resolveCandidate
                 );
+                if (tradeHolder != null) {
+                    placed = tryTrade(
+                        d,
+                        placed,
+                        labels,
+                        labelObstacleCount,
+                        defaults,
+                        index,
+                        padding,
+                        bounds,
+                        resolveCandidateStyle,
+                        resolveCandidate
+                    );
+                }
                 if (placed != null) {
                     labels.push(placed);
-                    if (useIndex && d.obstacle !== false) {
+                    if (obstacle) {
                         // Every placed label is a fixed obstacle for the labels resolved after it.
                         labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+                        stampTradeEntry(labelObstaclePool[labelObstacleCount - 1], labels.length - 1, d, defaults);
                     }
                 }
             }
@@ -1591,6 +1622,11 @@ function releaseSolveReferences() {
     boundedFit.region = undefined;
     releaseChoice(bestChoice);
     releaseChoice(keptChoiceBackup);
+    for (let i = 0; i < memoTop; i++) memoValues[i] = undefined;
+    memoTop = 0;
+    labelMemoBase = -1;
+    tradeHolder = undefined;
+    tradeReplaying = false;
 }
 
 function releaseChoice(choice: CandidateChoice) {
@@ -1622,6 +1658,13 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
             category: 'label',
             labelGroup,
             outranks,
+            poolIndex: count,
+            seriesOrdinal: 0,
+            resultSlot: 0,
+            memoBase: -1,
+            tradable: false,
+            keepPolicy: 0,
+            baseline: { x: 0, y: 0, width: 0, height: 0 },
         };
         labelObstaclePool.push(obstacle);
     } else {
@@ -1646,6 +1689,288 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     }
     obstacleIndex.insert(box, obstacle);
     return count + 1;
+}
+
+// Slot trade: a label held off its first choice by one earlier same-series label may swap with it.
+const TRADE_TOLERANCE = 1e-6;
+// Bumped per solve and per series, so a memo slot or pool entry stamped by an earlier one never matches.
+let solveSerial = 0;
+let solveSeriesOrdinal = 0;
+let seriesTradableCount = 0;
+// The label being resolved records its first choice's footprint, and may look for a holder there.
+let labelTracksBaseline = false;
+let labelMayTrade = false;
+let labelBaselineSet = false;
+const labelBaseline: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+let tradeHolder: PooledLabelObstacle | undefined;
+let tradeBlockedOtherwise = false;
+// A trade re-resolution reads resolved candidates back rather than calling the styler again.
+let tradeReplaying = false;
+// Every resolved candidate of this solve, at `memoBase + candidate index`; valid while its stamp is `solveSerial`.
+const memoValues: unknown[] = [];
+const memoStamp: number[] = [];
+let memoTop = 0;
+let labelMemoBase = -1;
+// Whether the label the cascade just returned fits its region and clears every obstacle.
+let placedClear = false;
+const tradeCentre: Point = { x: 0, y: 0 };
+const tradeOtherCentre: Point = { x: 0, y: 0 };
+const tradeRect: OrientedRect = { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 };
+
+/** Candidates the label's cascade can reach: its positioned list, or every placement × orientation. */
+function tradeCandidateCount(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): number {
+    if (d.positionedCandidates != null) return d.positionedCandidates.length;
+    return ((d.placements ?? defaults?.placements)?.length ?? 1) * (orientationsOf(d)?.length ?? 1);
+}
+
+function beginLabelTrade(candidateCount: number, resolves: boolean) {
+    labelTracksBaseline = candidateCount > 1;
+    labelMayTrade = labelTracksBaseline && seriesTradableCount > 0;
+    labelBaselineSet = false;
+    tradeHolder = undefined;
+    labelMemoBase = -1;
+    if (!labelTracksBaseline || !resolves) return;
+    labelMemoBase = memoTop;
+    memoTop += candidateCount;
+    while (memoStamp.length < memoTop) {
+        memoStamp.push(0);
+        memoValues.push(undefined);
+    }
+}
+
+/** Memo slot of the current label's `k`-th candidate when a trade can replay it: resolved already, or `-1`. */
+function replayableSlot(k: number): number {
+    if (labelMemoBase < 0) return -1;
+    const slot = labelMemoBase + k;
+    return memoStamp[slot] === solveSerial ? slot : -1;
+}
+
+/** Keeps the first resolution of each candidate, so a trade replays what the label's own cascade saw. */
+function storeResolution(k: number, value: unknown) {
+    if (labelMemoBase < 0) return;
+    const slot = labelMemoBase + k;
+    if (memoStamp[slot] === solveSerial) return;
+    memoValues[slot] = value;
+    memoStamp[slot] = solveSerial;
+}
+
+/** The `ci`-th positioned candidate as the series' styler resolves it; outside a trade the styler runs as it always has. */
+function resolvePositionedAt(d: PointLabelDatum, ci: number): PositionedLabelCandidate {
+    const candidate = d.positionedCandidates![ci];
+    if (positionedResolve == null) return candidate;
+    if (tradeReplaying) {
+        const slot = replayableSlot(ci);
+        if (slot >= 0) return memoValues[slot] as PositionedLabelCandidate;
+    }
+    const resolved = positionedResolve(d, candidate);
+    storeResolution(ci, resolved);
+    return resolved;
+}
+
+/** {@link resolvePositionedAt} for the compass cascade's `k`-th `(placement × orientation)`. */
+function resolveStyleAt(
+    d: PointLabelDatum,
+    placement: LabelPlacement | undefined,
+    orientation: AgChartLabelOrientation | undefined,
+    k: number
+): CandidateLabelStyle | undefined {
+    if (cascadeStyle == null) return undefined;
+    if (tradeReplaying) {
+        const slot = replayableSlot(k);
+        if (slot >= 0) return memoValues[slot] as CandidateLabelStyle | undefined;
+    }
+    const style = cascadeStyle(d, placement, orientation);
+    storeResolution(k, style);
+    return style;
+}
+
+/** Records the first candidate's tested footprint and, when only obstacles turned it away, which label holds it. */
+function recordTradeBaseline(blocked: boolean) {
+    labelBaseline.x = candidateBox.x;
+    labelBaseline.y = candidateBox.y;
+    labelBaseline.width = candidateBox.width;
+    labelBaseline.height = candidateBox.height;
+    labelBaselineSet = true;
+    if (!blocked || !labelMayTrade) return;
+    tradeBlockedOtherwise = false;
+    obstacleIndex.query(queryBox, collectTradeHolder);
+    if (tradeBlockedOtherwise) tradeHolder = undefined;
+}
+
+// Uses the cascade's own collision test, so a holder only inside the threshold gap is found too.
+function collectTradeHolder(o: LabelObstacle): boolean | void {
+    if (!obstacleOverlapsCandidate(o)) return;
+    // An obstacle spanning several cells is visited once per cell.
+    if (o === tradeHolder) return;
+    if (tradeHolder == null && isTradableEntry(o)) {
+        tradeHolder = o;
+        return;
+    }
+    tradeBlockedOtherwise = true;
+    return true;
+}
+
+function isTradableEntry(o: LabelObstacle): o is PooledLabelObstacle {
+    const entry = o as Partial<PooledLabelObstacle>;
+    return entry.seriesOrdinal === solveSeriesOrdinal && entry.tradable === true;
+}
+
+/** `alwaysShow` and `neverDrop` as one value, so only labels kept or dropped alike trade. */
+function keepPolicyOf(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): number {
+    return ((d.alwaysShow ?? defaults?.alwaysShow ?? true) ? 1 : 0) | (d.neverDrop === true ? 2 : 0);
+}
+
+/** Writes the slot-trade fields of the entry just inserted for the current label. */
+function stampTradeEntry(
+    entry: PooledLabelObstacle,
+    resultSlot: number,
+    d: PointLabelDatum,
+    defaults: SeriesLabelDefaults | undefined
+) {
+    entry.seriesOrdinal = solveSeriesOrdinal;
+    entry.resultSlot = resultSlot;
+    entry.memoBase = labelMemoBase;
+    entry.tradable = labelTracksBaseline && labelBaselineSet;
+    if (!entry.tradable) return;
+    entry.keepPolicy = keepPolicyOf(d, defaults);
+    const { baseline } = entry;
+    baseline.x = labelBaseline.x;
+    baseline.y = labelBaseline.y;
+    baseline.width = labelBaseline.width;
+    baseline.height = labelBaseline.height;
+    seriesTradableCount++;
+}
+
+/** Re-resolves the label with its holder lifted, then the holder around it; the index is left without the label. */
+function tryTrade(
+    d: PointLabelDatum,
+    placed: PlacedLabel | undefined,
+    labels: PlacedLabel[],
+    poolSlot: number,
+    defaults: SeriesLabelDefaults | undefined,
+    index: number,
+    padding: number,
+    bounds: BoxBounds,
+    resolveCandidateStyle: CandidateStyleResolver | undefined,
+    resolveCandidate: PositionedCandidateResolver | undefined
+): PlacedLabel | undefined {
+    const holder = tradeHolder!;
+    tradeHolder = undefined;
+    const placedCost = tradeCost(placed, labelBaseline);
+    if (placedCost <= TRADE_TOLERANCE || holder.keepPolicy !== keepPolicyOf(d, defaults)) return placed;
+    const held = labels[holder.resultSlot];
+    const before = placedCost + tradeCost(held, holder.baseline);
+    const memoBase = labelMemoBase;
+    obstacleIndex.remove(holder.box, holder);
+    labelTracksBaseline = false;
+    tradeReplaying = true;
+    let traded: PlacedLabel | undefined;
+    let inserted = false;
+    let committed = false;
+    try {
+        traded = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
+        if (traded == null || !placedClear || losesText(traded, placed)) return placed;
+        const tradedCost = tradeCost(traded, labelBaseline);
+        if (tradedCost > before + TRADE_TOLERANCE) return placed;
+        insertLabelObstacle(traded, poolSlot);
+        inserted = true;
+        labelMemoBase = holder.memoBase;
+        const moved = tryPlaceLabel(
+            held.datum,
+            defaults,
+            held.index,
+            padding,
+            bounds,
+            resolveCandidateStyle,
+            resolveCandidate
+        );
+        if (moved == null || !placedClear || losesText(moved, held)) return placed;
+        // An exclusion such as the own-bar rule can let the holder ignore the traded label.
+        if (overlapsLabelEntry(moved, labelObstaclePool[poolSlot])) return placed;
+        const after = tradedCost + tradeCost(moved, holder.baseline);
+        if (!tradeImproves(before, after, held, placed, moved, traded, holder.baseline)) return placed;
+        committed = true;
+        insertLabelObstacle(moved, holder.poolIndex);
+        labels[holder.resultSlot] = moved;
+        return traded;
+    } finally {
+        tradeReplaying = false;
+        labelTracksBaseline = true;
+        labelMemoBase = memoBase;
+        if (inserted) obstacleIndex.remove(labelObstaclePool[poolSlot].box, labelObstaclePool[poolSlot]);
+        if (!committed) obstacleIndex.insert(holder.box, holder);
+    }
+}
+
+/** Whether `placed` overlaps the label `entry` holds, tested by the shapes the obstacle index would use. */
+function overlapsLabelEntry(placed: PlacedLabel, entry: PooledLabelObstacle): boolean {
+    const box = labelObstacleBox(placed);
+    if (!boxCollides(entry.box, box.x, box.y, box.width, box.height)) return false;
+    const { rotation } = placed;
+    if (rotation == null || !collidesByRotatedRect(placed.candidate, rotation)) {
+        return entry.kind !== 'orientedRect' || orientedRectOverlapsBox(entry.rect, box);
+    }
+    writeOrientedRect(tradeRect, box.x + box.width / 2, box.y + box.height / 2, placed.width, placed.height, rotation);
+    return entry.kind === 'orientedRect'
+        ? orientedRectsOverlap(tradeRect, entry.rect)
+        : orientedRectOverlapsBox(tradeRect, entry.box);
+}
+
+/** How far a label's footprint centre lies from its first choice's; a dropped label is as far as can be. */
+function tradeCost(placed: PlacedLabel | undefined, baseline: BoxBounds): number {
+    if (placed == null) return Infinity;
+    writeFootprintCentre(tradeCentre, placed);
+    return Math.hypot(
+        tradeCentre.x - (baseline.x + baseline.width / 2),
+        tradeCentre.y - (baseline.y + baseline.height / 2)
+    );
+}
+
+function writeFootprintCentre(out: Point, placed: PlacedLabel) {
+    const { x, y, width, height } = labelObstacleBox(placed);
+    out.x = x + width / 2;
+    out.y = y + height / 2;
+}
+
+/** Equal displacement trades only to uncross a pair whose labels sit opposite to their first choices' order. */
+function tradeImproves(
+    before: number,
+    after: number,
+    held: PlacedLabel,
+    placed: PlacedLabel | undefined,
+    moved: PlacedLabel,
+    traded: PlacedLabel,
+    heldBaseline: BoxBounds
+): boolean {
+    if (after < before - TRADE_TOLERANCE) return true;
+    if (after > before + TRADE_TOLERANCE || placed == null) return false;
+    return pairCrossed(held, placed, heldBaseline) && !pairCrossed(moved, traded, heldBaseline);
+}
+
+function pairCrossed(held: PlacedLabel, placed: PlacedLabel, heldBaseline: BoxBounds): boolean {
+    writeFootprintCentre(tradeCentre, held);
+    writeFootprintCentre(tradeOtherCentre, placed);
+    const baseDX = heldBaseline.x + heldBaseline.width / 2 - (labelBaseline.x + labelBaseline.width / 2);
+    const baseDY = heldBaseline.y + heldBaseline.height / 2 - (labelBaseline.y + labelBaseline.height / 2);
+    return (
+        Math.sign(tradeCentre.x - tradeOtherCentre.x) * Math.sign(baseDX) < 0 ||
+        Math.sign(tradeCentre.y - tradeOtherCentre.y) * Math.sign(baseDY) < 0
+    );
+}
+
+/** Whether `next` drops more characters than `previous` or renders at a smaller font size. */
+function losesText(next: PlacedLabel, previous: PlacedLabel | undefined): boolean {
+    if (previous == null) return false;
+    return (
+        droppedCharacters(next) > droppedCharacters(previous) ||
+        (next.fontSize ?? Infinity) < (previous.fontSize ?? Infinity)
+    );
+}
+
+function droppedCharacters(placed: PlacedLabel): number {
+    if (placed.stack != null) return placed.stack.dropped;
+    const { fit, label } = placed.datum;
+    return Math.max(0, textLength(fit?.text ?? label.text) - textLength(placed.text));
 }
 
 /** The gap from `centre` on one axis, widened to clear the overlay on the side `direction` faces. */
@@ -2406,6 +2731,7 @@ function recordBestChoice(
 
 /** Materialises {@link bestChoice} as the cascade's result, or `undefined` when no candidate was recorded. */
 function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undefined {
+    placedClear = bestChoice.tier === TIER_FIT;
     if (bestChoice.tier === Infinity) return undefined;
     return {
         index,
@@ -2464,7 +2790,7 @@ function cascadeCandidates(): PlacedLabel | undefined {
             const rotation = orientation == null ? 0 : orientationAngles[orientation];
             // A label disabled at every candidate is dropped entirely: unplaced, it never enters the
             // obstacle index, so it reserves no space from its neighbours.
-            const style = cascadeStyle?.(d, placement, orientation);
+            const style = resolveStyleAt(d, placement, orientation, pi * orientationCount + oi);
             if (style?.hidden === true) continue;
             if (
                 !sizeCandidateLabel(d, style, placement, rotation, cascadeThreshold, cascadeFitRegion, cascadeFitSource)
@@ -2484,7 +2810,11 @@ function cascadeCandidates(): PlacedLabel | undefined {
                     : deflateRegion(deflatedInsideRegionBox, insideRegion, cascadeContainThreshold);
             inflateBoxInto(queryBox, candidateBox, cascadeInflate);
             const contained = boxContains(containRegion, x, y, cw, ch);
-            if (contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            const clear = contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+            if (pi === 0 && oi === 0 && labelTracksBaseline && candidateTrialFontSize == null) {
+                recordTradeBaseline(contained && !clear);
+            }
+            if (clear) {
                 if (dropped === 0) {
                     return {
                         index: cascadeIndex,
@@ -2618,6 +2948,7 @@ function placeAvoidingLabel(
     bestChoice.tier = Infinity;
     bestChoice.score = Infinity;
     candidateStack = undefined;
+    placedClear = true;
     if (d.positionedCandidates != null) {
         return placeFromPositionedCandidates(d, avoid, threshold, index, bounds, resolveCandidate);
     }
@@ -2764,7 +3095,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         if (trial && positionedFitFailed[ci] === true) continue;
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
-        const c = positionedResolve == null ? candidates[ci] : positionedResolve(d, candidates[ci]);
+        const c = resolvePositionedAt(d, ci);
         // A candidate the styler disabled is skipped, so a label disabled at every candidate is dropped.
         if (c.hidden === true) continue;
         if (trial && (fit == null || c.fitTo == null)) continue;
@@ -2833,6 +3164,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+        if (ci === 0 && labelTracksBaseline && !trial) recordTradeBaseline(placeable && !clear);
         if (placeable && !clear && nudgeCandidate(c.slideAxis, region, inflate)) {
             clear = true;
             offsetX += candidateBox.x - x;

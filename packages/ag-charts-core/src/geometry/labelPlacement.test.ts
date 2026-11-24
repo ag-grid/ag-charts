@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
+import { toPlainText } from '../data/strings';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import type { Point, SizedPoint } from '../types/scene';
@@ -4170,6 +4171,535 @@ describe('placeLabels (positioned candidates)', () => {
     });
 });
 
+describe('placeLabels slot trade', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 600, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    type Placed = { text: NormalisedTextOrSegments; x?: number; y: number; fontSize?: number };
+    const solve = (
+        series: Record<string, PointLabelDatum[]>,
+        obstacles: LabelObstacle[] = [],
+        resolve: { resolveCandidate?: PositionedCandidateResolver; resolveCandidateStyle?: CandidateStyleResolver } = {}
+    ) =>
+        placeLabels(
+            new Map(Object.entries(series).map(([id, datums]) => [id, { datums, ...resolve }])),
+            bounds,
+            0,
+            obstacles
+        );
+    const ysOf = (result: Map<string, PlacedLabel[]>): Placed[] =>
+        [...result.values()].flat().map(({ text, y }) => ({ text, y }));
+
+    describe('positioned candidates', () => {
+        const avoid = { marker: true, label: true, shape: true };
+        const barDatum = (
+            text: string,
+            ownBox: BoxBounds,
+            candidates: PositionedLabelCandidate[],
+            {
+                neverDrop = false,
+                threshold = 0,
+                obstacle,
+                ownBoxLabelsCollide = true,
+            }: { neverDrop?: boolean; threshold?: number; obstacle?: boolean; ownBoxLabelsCollide?: boolean } = {}
+        ): PointLabelDatum => ({
+            ...buildBarPositionedLabelDatum(
+                text,
+                30,
+                16,
+                candidates,
+                {} as BarLabelTarget,
+                ownBox,
+                neverDrop,
+                avoid,
+                threshold,
+                ownBoxLabelsCollide
+            ),
+            obstacle,
+        });
+        // The first candidate is bound to the bar, the fallbacks to the shared bounds.
+        const stacked = (ownBox: BoxBounds, ys: number[], offset = 0): PositionedLabelCandidate[] =>
+            ys.map((y, i) => ({
+                box: { x: 10, y: y + offset, width: 30, height: 16 },
+                region: i === 0 ? ownBox : undefined,
+            }));
+        const heldBox = { x: 0, y: 100, width: 50, height: 160 };
+        const blockedBox = { x: 0, y: 150, width: 50, height: 102 };
+        const held = (ys: number[], options?: { neverDrop?: boolean }) =>
+            barDatum('held', heldBox, stacked(heldBox, ys), options);
+        const blocked = (ys: number[], options?: { neverDrop?: boolean; obstacle?: boolean }) =>
+            barDatum('blocked', blockedBox, stacked(blockedBox, ys), options);
+        const placedYs = (datums: PointLabelDatum[], obstacles?: LabelObstacle[], later: PointLabelDatum[] = []) =>
+            ysOf(solve({ s: datums, later }, obstacles));
+        const logResolutions =
+            (calls: string[]): PositionedCandidateResolver =>
+            (d, c) => {
+                calls.push(`${toPlainText(d.label.text)}@${c.box.y}`);
+                return c;
+            };
+
+        it.each([
+            ['displaces the pair less', [234, 254, 280], 0],
+            ['displaces the pair less at fractional pixel positions', [234, 254, 280], 8.083],
+            ['displaces the pair equally and uncrosses it', [234, 256], 0],
+            ['displaces the pair equally and uncrosses it at fractional pixel positions', [234, 256], 8.083],
+        ])('trades with the one earlier label holding its first choice when that %s', (_, blockedYs, offset) => {
+            const shift = (b: BoxBounds) => ({ ...b, y: b.y + offset });
+            const heldDatum = barDatum('held', shift(heldBox), stacked(shift(heldBox), [240, 262], offset));
+            const blockedDatum = barDatum('blocked', shift(blockedBox), stacked(shift(blockedBox), blockedYs, offset));
+
+            expect(placedYs([heldDatum, blockedDatum])).toEqual([
+                { text: 'held', y: 262 + offset },
+                { text: 'blocked', y: 234 + offset },
+            ]);
+        });
+
+        it('settles on the same placements whichever label resolves first', () => {
+            expect(placedYs([blocked([234, 254, 280]), held([240, 262])])).toEqual([
+                { text: 'blocked', y: 234 },
+                { text: 'held', y: 262 },
+            ]);
+        });
+
+        describe.each([true, false])('with ownBoxLabelsCollide %s', (ownBoxLabelsCollide) => {
+            const bar = (text: string, ownBox: BoxBounds, candidates: PositionedLabelCandidate[]) =>
+                barDatum(text, ownBox, candidates, { ownBoxLabelsCollide });
+            const at = (y: number, region?: BoxBounds): PositionedLabelCandidate => ({
+                box: { x: 10, y, width: 30, height: 16 },
+                region,
+            });
+
+            it('trades when neither label lands on the bar of the other', () => {
+                const heldBar = { x: 0, y: 258, width: 50, height: 100 };
+                const blockedBar = { x: 0, y: 257, width: 50, height: 100 };
+
+                expect(
+                    placedYs([
+                        bar('held', heldBar, [at(240), at(262, heldBar)]),
+                        bar('blocked', blockedBar, [at(234), at(280, blockedBar)]),
+                    ])
+                ).toEqual([
+                    { text: 'held', y: 262 },
+                    { text: 'blocked', y: 234 },
+                ]);
+            });
+
+            // The traded label lands on the holder's bar, which would excuse it while the holder re-resolves.
+            it('keeps the pair when the trade would leave the two labels overlapping', () => {
+                const heldBar = { x: 0, y: 100, width: 50, height: 160 };
+                const blockedBar = { x: 60, y: 150, width: 50, height: 102 };
+
+                expect(
+                    placedYs([bar('held', heldBar, [at(240), at(236)]), bar('blocked', blockedBar, [at(234), at(280)])])
+                ).toEqual([
+                    { text: 'held', y: 240 },
+                    { text: 'blocked', y: 280 },
+                ]);
+            });
+        });
+
+        it.each([
+            ['the pair would be displaced equally and is not crossed', [240, 256], [234, 218], 218],
+            ['the pair would be displaced equally and stay crossed', [240, 218], [234, 256], 256],
+        ])('keeps the earlier label in place when %s', (_, heldYs, blockedYs, blockedY) => {
+            expect(placedYs([held(heldYs), blocked(blockedYs)])).toEqual([
+                { text: 'held', y: 240 },
+                { text: 'blocked', y: blockedY },
+            ]);
+        });
+
+        const secondHolderBox = { x: 0, y: 200, width: 50, height: 40 };
+        it.each<[string, () => Record<string, PointLabelDatum[]>, LabelObstacle[]?]>([
+            [
+                'two earlier labels of its series hold its first choice',
+                () => ({
+                    s: [
+                        held([240, 262]),
+                        barDatum('other', secondHolderBox, [
+                            { box: { x: 10, y: 222, width: 30, height: 14 }, unbounded: true },
+                            { box: { x: 10, y: 350, width: 30, height: 14 } },
+                        ]),
+                        blocked([234, 254, 280]),
+                    ],
+                }),
+            ],
+            [
+                'a marker holds its first choice too',
+                // Without its own bar, which would excuse a marker on it.
+                () => ({ s: [held([240, 262]), { ...blocked([234, 254, 280]), ownBox: undefined }] }),
+                [
+                    {
+                        kind: 'circle',
+                        category: 'marker',
+                        cx: 25,
+                        cy: 236,
+                        r: 1.5,
+                        box: { x: 23.5, y: 234.5, width: 3, height: 3 },
+                    },
+                ],
+            ],
+            [
+                'an external label holds its first choice too',
+                () => ({ s: [held([240, 262]), blocked([234, 254, 280])] }),
+                [{ kind: 'rect', category: 'label', box: { x: 10, y: 234, width: 30, height: 2 } }],
+            ],
+            ['the holder belongs to another series', () => ({ a: [held([240, 262])], s: [blocked([234, 254, 280])] })],
+            [
+                'the first choice of the holder is hidden',
+                () => ({
+                    s: [
+                        barDatum('held', heldBox, [
+                            { box: { x: 10, y: 200, width: 30, height: 16 }, region: heldBox, hidden: true },
+                            { box: { x: 10, y: 240, width: 30, height: 16 } },
+                        ]),
+                        blocked([234, 254, 280]),
+                    ],
+                }),
+            ],
+            ['the holder has no fallback', () => ({ s: [held([240]), blocked([234, 254, 280])] })],
+            [
+                'the holder would end colliding',
+                () => ({ s: [held([240, 236], { neverDrop: true }), blocked([234, 280], { neverDrop: true })] }),
+            ],
+            ['the holder would be dropped', () => ({ s: [held([240, 236]), blocked([234, 280])] })],
+            [
+                'the blocked label is no obstacle itself',
+                () => ({ s: [held([240, 262]), blocked([234, 254, 280], { obstacle: false })] }),
+            ],
+            [
+                'the pair is kept and dropped under different policies',
+                () => ({ s: [held([240, 262]), blocked([234, 254, 280], { neverDrop: true })] }),
+            ],
+        ])('keeps the earlier label in place when %s', (_, series, obstacles) => {
+            const placed = ysOf(solve(series(), obstacles));
+            expect(placed[0]).toEqual({ text: 'held', y: 240 });
+            expect(placed.at(-1)).toEqual({ text: 'blocked', y: 280 });
+        });
+
+        it('keeps a kept label left colliding on its first choice where it is, resolving nothing more', () => {
+            const calls: string[] = [];
+            const datums = [held([240, 262], { neverDrop: true }), blocked([230, 232], { neverDrop: true })];
+
+            // Both blocked candidates collide; the first is the less buried, so it is kept there, undisplaced.
+            expect(ysOf(solve({ s: datums }, [], { resolveCandidate: logResolutions(calls) }))).toEqual([
+                { text: 'held', y: 240 },
+                { text: 'blocked', y: 230 },
+            ]);
+            expect(calls).toEqual(['held@240', 'blocked@230', 'blocked@232']);
+        });
+
+        it('finds an earlier label holding the first choice within the collision threshold', () => {
+            // 2px apart, inside the 4px threshold, so the boxes themselves never overlap.
+            const tallBlockedBox = { x: 0, y: 150, width: 50, height: 130 };
+            const heldDatum = barDatum('held', heldBox, stacked(heldBox, [240, 220]), { threshold: 4 });
+            const blockedDatum = barDatum('blocked', tallBlockedBox, stacked(tallBlockedBox, [258, 280]), {
+                threshold: 4,
+            });
+
+            expect(placedYs([heldDatum, blockedDatum])).toEqual([
+                { text: 'held', y: 220 },
+                { text: 'blocked', y: 258 },
+            ]);
+        });
+
+        it('counts the nudge that cleared an earlier label from its first choice', () => {
+            const tallHeldBox = { x: 0, y: 100, width: 50, height: 200 };
+            const shortBlockedBox = { x: 0, y: 150, width: 50, height: 100 };
+            // Nudged 3px up by the fixed label, then displaced 22px by the trade: 22 < 3 + 20 only counting the nudge.
+            const heldDatum = barDatum('held', tallHeldBox, [
+                { box: { x: 10, y: 240, width: 30, height: 16 }, region: tallHeldBox, slideAxis: 'y' },
+                { box: { x: 10, y: 262, width: 30, height: 16 } },
+            ]);
+            const blockedDatum = barDatum('blocked', shortBlockedBox, stacked(shortBlockedBox, [222, 202]));
+            const fixedLabel: LabelObstacle = {
+                kind: 'rect',
+                category: 'label',
+                box: { x: 0, y: 253, width: 50, height: 9 },
+            };
+
+            expect(placedYs([heldDatum, blockedDatum], [fixedLabel])).toEqual([
+                { text: 'held', y: 262 },
+                { text: 'blocked', y: 222 },
+            ]);
+        });
+
+        describe('a label giving up text or size', () => {
+            const shrinkable = (
+                text: string,
+                candidates: PositionedLabelCandidate[],
+                minimumFontSize: number | undefined = 6
+            ): PointLabelDatum => ({
+                point: { x: 0, y: 0, size: 0 },
+                label: { text, width: text.length * 10, height: 20 },
+                fit: {
+                    text,
+                    policy: { minimumFontSize, overflowStrategy: 'ellipsis' },
+                    font: FONT,
+                    boxPadding: NO_PADDING,
+                    boundByRegion: false,
+                },
+                anchor: undefined,
+                placement: undefined,
+                avoid,
+                positionedCandidates: candidates,
+            });
+            const plain = (text: string, boxes: BoxBounds[]): PointLabelDatum => ({
+                point: { x: 0, y: 0, size: 0 },
+                label: { text, width: boxes[0].width, height: boxes[0].height },
+                anchor: undefined,
+                placement: undefined,
+                avoid,
+                positionedCandidates: boxes.map((box) => ({ box })),
+            });
+            // Pinned at its top-left corner, so a smaller font moves its centre up and left.
+            const topLeft = (
+                x: number,
+                y: number,
+                width: number,
+                container?: { width: number; height: number }
+            ): PositionedLabelCandidate => ({
+                box: { x, y, width, height: 20 },
+                fitTo: { container, anchor: { x, y, textAlign: 'left', textBaseline: 'top' }, padding: NO_PADDING },
+            });
+            const shape = (x: number, y: number, width: number, height: number): LabelObstacle => ({
+                kind: 'rect',
+                category: 'shape',
+                box: { x, y, width, height },
+            });
+            const placedAt = (result: Map<string, PlacedLabel[]>) =>
+                [...result.values()].flat().map(({ text, x, y, fontSize }) => ({ text, x, y, fontSize }));
+
+            it.each([
+                ['drop characters', undefined],
+                ['shrink its font', 6],
+            ])('keeps the pair in place when trading would make the holder %s', (_, minimumFontSize) => {
+                // The holder's fallback only holds 20px of text; trading would otherwise move the pair 30px, not 195px.
+                const holder = shrinkable(
+                    'WWW',
+                    [topLeft(100, 100, 30), topLeft(100, 130, 30, { width: 20, height: 20 })],
+                    minimumFontSize
+                );
+                const blockedDatum = plain('B', [
+                    { x: 90, y: 105, width: 20, height: 20 },
+                    { x: 90, y: 300, width: 20, height: 20 },
+                ]);
+
+                expect(placedAt(solve({ s: [holder, blockedDatum] }))).toEqual([
+                    { text: 'WWW', x: 100, y: 100, fontSize: undefined },
+                    { text: 'B', x: 90, y: 300, fontSize: undefined },
+                ]);
+            });
+
+            it('counts the shrink of the holder', () => {
+                // Shrunk to 8px in place the holder moves hypot(5, 10/3); trading moves it hypot(5, 110/3) against 34px.
+                const holder = shrinkable('WWW', [topLeft(100, 100, 30), topLeft(300, 100, 30), topLeft(100, 140, 30)]);
+                const blockedDatum = plain('B', [
+                    { x: 90, y: 105, width: 20, height: 20 },
+                    { x: 90, y: 139, width: 20, height: 20 },
+                ]);
+                const obstacles = [shape(120, 100, 20, 20), shape(300, 100, 30, 20), shape(120, 140, 20, 20)];
+
+                expect(placedAt(solve({ s: [holder, blockedDatum] }, obstacles))).toEqual([
+                    { text: 'WWW', x: 100, y: 140, fontSize: 8 },
+                    { text: 'B', x: 90, y: 105, fontSize: undefined },
+                ]);
+            });
+
+            it('counts the shrink of the blocked label', () => {
+                // The blocked label clears only at 10px, moved hypot(25/3, 5/3); trading moves the holder 5px.
+                const holder = plain('A', [
+                    { x: 200, y: 115, width: 30, height: 20 },
+                    { x: 200, y: 120, width: 30, height: 20 },
+                ]);
+                const text = 'WWWWWWWWWW';
+                const blockedDatum = shrinkable(text, [topLeft(110, 100, 100), topLeft(110, 300, 100)]);
+
+                expect(placedAt(solve({ s: [holder, blockedDatum] }, [shape(100, 290, 300, 60)]))).toEqual([
+                    { text: 'A', x: 200, y: 120, fontSize: undefined },
+                    { text, x: 110, y: 100, fontSize: undefined },
+                ]);
+            });
+        });
+
+        describe('resolving candidates', () => {
+            it('resolves each candidate it reaches once, and trades on the resolved boxes', () => {
+                const calls: string[] = [];
+                const datums = [held([240, 262]), blocked([234, 254, 280])];
+
+                expect(ysOf(solve({ s: datums }, [], { resolveCandidate: logResolutions(calls) }))).toEqual([
+                    { text: 'held', y: 262 },
+                    { text: 'blocked', y: 234 },
+                ]);
+                expect(calls).toEqual(['held@240', 'blocked@234', 'blocked@254', 'blocked@280', 'held@262']);
+            });
+
+            it('trades on what the styler first resolved, however it answers when called again', () => {
+                const seen = new Set<PositionedLabelCandidate>();
+                // A second call for any candidate answers with a box far from the first.
+                const stateful: PositionedCandidateResolver = (_d, c) => {
+                    if (!seen.has(c)) {
+                        seen.add(c);
+                        return c;
+                    }
+                    return { ...c, box: { ...c.box, y: c.box.y + 1000 } };
+                };
+                const datums = [held([240, 262]), blocked([234, 254, 280])];
+
+                expect(ysOf(solve({ s: datums }, [], { resolveCandidate: stateful }))).toEqual([
+                    { text: 'held', y: 262 },
+                    { text: 'blocked', y: 234 },
+                ]);
+            });
+
+            it('calls the styler as often as before when no trade fires, once per candidate per font size', () => {
+                const calls: string[] = [];
+                // Centred, so at every size its first candidate stays under two labels and its second under the wall.
+                const centred = (y: number): PositionedLabelCandidate => ({
+                    box: { x: 10, y: y - 8, width: 30, height: 16 },
+                    fitTo: { anchor: { x: 25, y, textAlign: 'center', textBaseline: 'middle' }, padding: NO_PADDING },
+                });
+                const fitted: PointLabelDatum = {
+                    ...blocked([]),
+                    positionedCandidates: [centred(242), centred(310)],
+                    fit: {
+                        text: 'WWW',
+                        policy: { minimumFontSize: 6, overflowStrategy: 'ellipsis' },
+                        font: FONT,
+                        boxPadding: NO_PADDING,
+                        boundByRegion: false,
+                    },
+                };
+                const obstacles: LabelObstacle[] = [
+                    { kind: 'rect', category: 'label', box: { x: 20, y: 236, width: 10, height: 4 } },
+                    { kind: 'rect', category: 'label', box: { x: 0, y: 290, width: 50, height: 40 } },
+                ];
+
+                expect(
+                    ysOf(
+                        solve({ s: [held([240, 262]), fitted] }, obstacles, { resolveCandidate: logResolutions(calls) })
+                    )
+                ).toEqual([{ text: 'held', y: 240 }]);
+                // The configured size, then the ladder from 12px down to its 6px floor.
+                const ladder = [12, 12, 11, 10, 9, 8, 7, 6].flatMap(() => ['blocked@234', 'blocked@302']);
+                expect(calls).toEqual(['held@240', ...ladder]);
+            });
+        });
+
+        describe('the obstacle index after a trade', () => {
+            const later = (ys: number[], height = 16): PointLabelDatum => ({
+                ...barDatum(
+                    'later',
+                    { x: 0, y: 0, width: 50, height: 400 },
+                    ys.map((y) => ({ box: { x: 10, y, width: 30, height } }))
+                ),
+                label: { text: 'later', width: 30, height },
+            });
+
+            /** Solves, counting per obstacle how often it went into the index less how often it came out. */
+            const placedWithIndexEntries = (datums: PointLabelDatum[], laterDatums: PointLabelDatum[]) => {
+                const insert = vi.spyOn(SpatialIndex.prototype, 'insert');
+                const remove = vi.spyOn(SpatialIndex.prototype, 'remove');
+                try {
+                    const placed = placedYs(datums, [], laterDatums);
+                    const entries = new Map<unknown, number>();
+                    for (const [, ref] of insert.mock.calls) entries.set(ref, (entries.get(ref) ?? 0) + 1);
+                    for (const [, ref] of remove.mock.calls) entries.set(ref, (entries.get(ref) ?? 0) - 1);
+                    return { placed, entries: [...entries.values()] };
+                } finally {
+                    insert.mockRestore();
+                    remove.mockRestore();
+                }
+            };
+
+            it('holds no trial placement once a trade is turned down', () => {
+                // The trial put the blocked label at 234..250; a later label there is clear, one at the holder's is not.
+                expect(
+                    placedWithIndexEntries([held([240, 236]), blocked([234, 280])], [later([224]), later([240, 330])])
+                ).toEqual({
+                    placed: [
+                        { text: 'held', y: 240 },
+                        { text: 'blocked', y: 280 },
+                        { text: 'later', y: 224 },
+                        { text: 'later', y: 330 },
+                    ],
+                    entries: [1, 1, 1, 1],
+                });
+            });
+
+            it('holds the traded placements alone once a trade is made', () => {
+                // Between the two traded labels, and inside the holder's old slot.
+                expect(
+                    placedWithIndexEntries([held([240, 262]), blocked([234, 254, 280])], [later([250], 12)])
+                ).toEqual({
+                    placed: [
+                        { text: 'held', y: 262 },
+                        { text: 'blocked', y: 234 },
+                        { text: 'later', y: 250 },
+                    ],
+                    entries: [1, 1, 1],
+                });
+            });
+        });
+
+        it('trades identically on consecutive solves', () => {
+            const datums = [held([240, 262]), blocked([234, 254, 280])];
+            const first = placedYs(datums);
+            expect(placedYs(datums)).toEqual(first);
+            expect(first).toEqual([
+                { text: 'held', y: 262 },
+                { text: 'blocked', y: 234 },
+            ]);
+        });
+    });
+
+    describe('compass placements', () => {
+        // Markerless points 22px apart, with 2px of gap: each label's first choice faces the other point.
+        const pointLabel = (
+            text: string,
+            y: number,
+            height: number,
+            placements: LabelPlacement[]
+        ): PointLabelDatum => ({
+            point: { x: 100, y, size: 0 },
+            label: { text, width: 30, height },
+            anchor: undefined,
+            placement: undefined,
+            placements,
+            gap: 2,
+            avoid: { label: true },
+        });
+        const upper = () => pointLabel('upper', 100, 10, ['bottom', 'top']);
+        const lower = () => pointLabel('lower', 122, 20, ['top', 'bottom']);
+
+        it.each([
+            ['the upper label resolves first', () => [upper(), lower()]],
+            ['the lower label resolves first', () => [lower(), upper()]],
+        ])('gives the pair the arrangement that displaces it less when %s', (_, datums) => {
+            // Lower held at its fallback moves 24px; trading moves upper 14px.
+            const placed = ysOf(solve({ s: datums() }));
+            expect(placed.toSorted((a, b) => a.y - b.y)).toEqual([
+                { text: 'upper', y: 88 },
+                { text: 'lower', y: 100 },
+            ]);
+        });
+
+        it('styles each placement it reaches once', () => {
+            const calls: string[] = [];
+            const resolveCandidateStyle: CandidateStyleResolver = (d, placement) => {
+                calls.push(`${toPlainText(d.label.text)}@${placement}`);
+                return undefined;
+            };
+
+            expect(ysOf(solve({ s: [upper(), lower()] }, [], { resolveCandidateStyle }))).toEqual([
+                { text: 'upper', y: 88 },
+                { text: 'lower', y: 100 },
+            ]);
+            expect(calls).toEqual(['upper@bottom', 'lower@top', 'lower@bottom', 'upper@top']);
+        });
+    });
+});
+
 describe('placeLabels solve references', () => {
     const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
     const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -4299,6 +4829,33 @@ describe('placeLabels solve references', () => {
             return placeLabels(data, boundsOf(track), 0, blocked ? [wall(track)] : []);
         };
 
+    // A same-series pair whose later label is held off its first choice; rejected when the holder would drop.
+    const slotTrade =
+        (rejected: boolean): Solve =>
+        (track) => {
+            const bar = (name: string, ys: number[]): PointLabelDatum =>
+                track(`${name} datum`, {
+                    point: { x: 0, y: 0, size: 0 },
+                    label: track(`${name} label`, { text: name, width: 30, height: 16 }),
+                    anchor: undefined,
+                    placement: undefined,
+                    avoid: track(`${name} avoid`, { label: true }),
+                    positionedCandidates: track(
+                        `${name} candidates`,
+                        ys.map((y, i) =>
+                            track(`${name} candidate ${i}`, {
+                                box: track(`${name} box ${i}`, { x: 10, y, width: 30, height: 16 }),
+                            })
+                        )
+                    ),
+                });
+            const datums = rejected
+                ? [bar('held', [240, 236]), bar('blocked', [234, 280])]
+                : [bar('held', [240, 262]), bar('blocked', [234, 254, 280])];
+            const resolveCandidate: PositionedCandidateResolver = track('candidate resolver', (_d, c) => c);
+            return placeLabels(new Map([['s', { datums, resolveCandidate }]]), boundsOf(track), 0);
+        };
+
     // Synchronous, so no suspended async frame can keep the solve's objects alive across the await below.
     function solveTracked(solve: Solve, track: Track): number {
         let placedCount = 0;
@@ -4336,6 +4893,14 @@ describe('placeLabels solve references', () => {
         { path: 'a shape-fitted stack', solve: shapeFittedStack(false) },
         { path: 'a blocked shape-fitted stack', solve: shapeFittedStack(true) },
     ])('keeps no reference to the labels, datums or callbacks of $path once it returns', async ({ solve }) => {
+        expect(await retainedAfter(solve)).toEqual({ placedCount: 2, retained: [] });
+    });
+
+    it.each([
+        { path: 'a slot trade', solve: slotTrade(false), ys: [262, 234] },
+        { path: 'a rejected slot trade', solve: slotTrade(true), ys: [240, 280] },
+    ])('keeps no reference to the labels, datums or callbacks of $path once it returns', async ({ solve, ys }) => {
+        expect([...solve((_name, value) => value).values()].flat().map(({ y }) => y)).toEqual(ys);
         expect(await retainedAfter(solve)).toEqual({ placedCount: 2, retained: [] });
     });
 });
