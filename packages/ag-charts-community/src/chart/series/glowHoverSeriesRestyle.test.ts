@@ -6,7 +6,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 
 import { Marker } from '../marker/marker';
 import { differingBytes } from '../test/expectSamePixels';
-import { endHover, hoverDatum } from '../test/glowRender';
+import { canvasImage, endHover, hoverDatum } from '../test/glowRender';
 import { getItemsStyledDuring, getSeriesAt, getSeriesHasChangesOnHighlight } from '../test/seriesAccessors';
 import { SERIES_GLOW, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
@@ -18,11 +18,7 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-/**
- * AG-19295 AC 3: entering or leaving a series doesn't re-style the series whose glow doesn't change, in the default theme
- * and in a configuration that ships, `highlight.unhighlightedSeries.opacity: 1`. The default theme dims the other series
- * for opacity, so those series are restyled there, but what they are restyled to is the glow they already cast.
- */
+/** Entering or leaving a series restyles only series whose glow changes, whatever `unhighlightedSeries.opacity` is. */
 const DATA = Array.from({ length: 8 }, (_, i) => ({
     x: i + 1,
     a: ((i * 7) % 5) + 2,
@@ -71,11 +67,6 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
         await waitForChartStability(chart);
     };
 
-    const pixelsOf = () => {
-        const { canvas } = chart.ctx.scene;
-        return { data: canvas.context.getImageData(0, 0, canvas.width, canvas.height).data as ArrayLike<number> };
-    };
-
     describe('with highlight.unhighlightedSeries.opacity: 1', () => {
         // Items of the other series may still dim for `unhighlightedItem`, which a series that is not entered doesn't have.
         const highlight = { unhighlightedSeries: { opacity: 1 }, unhighlightedItem: { opacity: 1 } };
@@ -112,13 +103,13 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
             await create(highlight);
             await hoverDatum(chart, 0, 0);
             await hoverDatum(chart, 1, 3);
-            const moved = pixelsOf();
+            const moved = canvasImage(chart);
             expect(Array.from(moved.data).some((value) => value !== 0)).toBe(true);
 
             await create(highlight);
             await hoverDatum(chart, 1, 3);
 
-            expect(differingBytes(moved, pixelsOf())).toBe(0);
+            expect(differingBytes(moved, canvasImage(chart))).toBe(0);
         });
     });
 
@@ -133,10 +124,10 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
             const entered = await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
             expect(entered).toHaveLength(DATA.length);
 
-            const hovered = pixelsOf();
+            const hovered = canvasImage(chart);
             await create(noDimming, SERIES_GLOW, undefined, { styler });
             await hoverDatum(chart, 0, 0);
-            expect(differingBytes(hovered, pixelsOf())).toBe(0);
+            expect(differingBytes(hovered, canvasImage(chart))).toBe(0);
         });
 
         it('with a glow that the state of an unlit series changes', async () => {
@@ -173,7 +164,7 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
         it('should draw the chart at rest again, and the series that was not entered as it was, after the hover', async () => {
             const seriesExtra = { fillOpacity: 0.4, strokeOpacity: 0.7, strokeWidth: 2 };
             await create({ unhighlightedSeries: { opacity: 1 } }, SERIES_GLOW, undefined, seriesExtra);
-            const rest = pixelsOf();
+            const rest = canvasImage(chart);
             const shapes = () => shapesOf(getSeriesAt(chart, 1).contentGroup, kinds[type]);
             const styleOf = () =>
                 shapes().map(({ opacity, fillOpacity, strokeOpacity }) => [opacity, fillOpacity, strokeOpacity]);
@@ -185,7 +176,7 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
             await endHover(chart);
 
             expect(styleOf()).toEqual(restStyle);
-            expect(differingBytes(pixelsOf(), rest)).toBe(0);
+            expect(differingBytes(canvasImage(chart), rest)).toBe(0);
         });
     });
 
@@ -206,13 +197,13 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
 
         it('should return to the pixels of the chart at rest after the hover ends', async () => {
             await create();
-            const rest = pixelsOf();
+            const rest = canvasImage(chart);
 
             await hoverDatum(chart, 0, 0);
             await hoverDatum(chart, 1, 2);
             await endHover(chart);
 
-            expect(differingBytes(pixelsOf(), rest)).toBe(0);
+            expect(differingBytes(canvasImage(chart), rest)).toBe(0);
         });
     });
 
@@ -227,22 +218,22 @@ describe.each(['scatter', 'bar'] as const)('the series that a hover enters and l
             const entered = await getItemsStyledDuring(chart, 1, () => hoverDatum(chart, 0, 0));
             expect(entered.length).toBe(DATA.length);
 
-            const hovered = pixelsOf();
+            const hovered = canvasImage(chart);
             await create({ unhighlightedSeries: { opacity: 1 } }, SERIES_GLOW, itemStyler);
             await hoverDatum(chart, 0, 0);
-            expect(differingBytes(hovered, pixelsOf())).toBe(0);
+            expect(differingBytes(hovered, canvasImage(chart))).toBe(0);
         });
 
         it('with a glow that has a gap', async () => {
             await create({ unhighlightedSeries: { opacity: 1 } }, { ...SERIES_GLOW, gap: 5 });
             await hoverDatum(chart, 0, 0);
             await hoverDatum(chart, 1, 4);
-            const moved = pixelsOf();
+            const moved = canvasImage(chart);
             expect(Array.from(moved.data).some((value) => value !== 0)).toBe(true);
 
             await create({ unhighlightedSeries: { opacity: 1 } }, { ...SERIES_GLOW, gap: 5 });
             await hoverDatum(chart, 1, 4);
-            expect(differingBytes(moved, pixelsOf())).toBe(0);
+            expect(differingBytes(moved, canvasImage(chart))).toBe(0);
         });
     });
 });
