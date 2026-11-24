@@ -231,7 +231,7 @@ describe('priceVolumePreset', () => {
         await waitForChartStability(chart);
 
         expect(getSeriesOptions(chart, 1).lineDash).toEqual([6, 4]);
-        expect(getMiniChartSeriesOptions(chart).lineDash).toEqual([0]);
+        expect(getMiniChartSeriesOptions(chart).lineDash).toEqual([]);
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
