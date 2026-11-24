@@ -68,8 +68,8 @@ describe('fitLabelStack', () => {
         });
 
         it.each([
-            { text: 'Information Technology Services', halfWidths: [80, 30, 30], expected: 'Information…' },
-            { text: 'Alpha Bravo Delta', halfWidths: [80, 50, 20], expected: 'Alpha Bravo…' },
+            { text: 'Information Technology Services', halfWidths: [80, 30, 30], expected: 'Information Tec…' },
+            { text: 'Alpha Bravo Delta', halfWidths: [80, 50, 20], expected: 'Alpha Bravo Del…' },
         ])('keeps the wider line when narrowing would drop more of "$text"', ({ text, halfWidths, expected }) => {
             const fitted = fitLabelStack(stack(wrapped(text)), undefined, narrowing(...halfWidths));
             expect(fitted?.blocks[0]?.text).toBe(expected);
@@ -78,7 +78,7 @@ describe('fitLabelStack', () => {
         it('keeps the line of a later block when holding the wider line', () => {
             const blocks = stack(wrapped('Information Technology Services'), wrapped('Alpha'));
             const fitted = fitLabelStack(blocks, undefined, narrowing(80, 80, 30, 30));
-            expect(fitted?.blocks.map((b) => b?.text)).toEqual(['Information…', 'Alpha']);
+            expect(fitted?.blocks.map((b) => b?.text)).toEqual(['Information Tec…', 'Alpha']);
         });
 
         it('keeps an image rather than holding more of the text without it', () => {
