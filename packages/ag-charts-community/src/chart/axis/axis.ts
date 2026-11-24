@@ -78,6 +78,7 @@ import type {
     AxisFormattableLabel,
     AxisValuePick,
     AxisValueTickSize,
+    CrossLineLabelRoom,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -355,6 +356,8 @@ export abstract class Axis<
      * The distance between the grid ticks and the axis ticks.
      */
     gridPadding = 0;
+
+    labelRoom: CrossLineLabelRoom | undefined = undefined;
 
     /**
      * Is used to avoid collisions between axis labels and series.
@@ -1440,6 +1443,9 @@ export abstract class Axis<
             },
             get range() {
                 return axis.range;
+            },
+            get labelRoom() {
+                return axis.labelRoom;
             },
             get seriesAreaVisible() {
                 return axis.seriesAreaVisible;

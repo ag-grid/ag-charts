@@ -83,6 +83,13 @@ function locations(): Location[] {
     ];
 }
 
+/** `style` at the location that the dotted `lineDash` path sits in. */
+const styleAt = (path: string, style: object): object =>
+    path
+        .split('.')
+        .slice(0, -1)
+        .reduceRight<object>((inner, key) => ({ [key]: inner }), style);
+
 /** A chart whose navigator mini chart draws `mini`, which sets its own series options rather than the main series'. */
 const withMiniChart = (mini: object, main: object = { type: 'bar', xKey: 'x', yKey: 'y' }): object => ({
     data: DATA,
@@ -92,8 +99,6 @@ const withMiniChart = (mini: object, main: object = { type: 'bar', xKey: 'x', yK
 
 /** The same dash name at each location that a mini-chart series of each type takes it. */
 function miniChartLocations(): Location[] {
-    const set = (path: string): object => path.split('.').reduceRight<any>((inner, key) => ({ [key]: inner }), 'dash');
-
     const xy = { xKey: 'x', yKey: 'y' };
     const range = { xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
     const ohlc = { xKey: 'x', openKey: 'y', highKey: 'y', lowKey: 'y', closeKey: 'y' };
@@ -143,7 +148,7 @@ function miniChartLocations(): Location[] {
 
     return types.flatMap(([type, keys, paths]) =>
         paths.map((path): Location => {
-            const mini = { type, ...keys, ...set(path) };
+            const mini = { type, ...keys, ...styleAt(path, { lineDash: 'dash' }) };
             // The same type, so that the mini chart series copies nothing that its type does not take.
             return [
                 `mini chart ${type} ${path}`,
@@ -195,9 +200,94 @@ describe('named line dash patterns in enterprise options', () => {
         }
     );
 
+    it.each(miniChartLocations())(
+        'rescales the dash of the main series on %s to the width set on the mini chart series',
+        (_, options, path) => {
+            const keys = (options as any).series[0];
+            const location = path.replace('navigator.miniChart.series[0].', '');
+            const mini = { ...keys, ...styleAt(location, { strokeWidth: 1 }) };
+            const dashOver = (mainStyle: object) => {
+                const main = { ...keys, ...styleAt(location, mainStyle) };
+                return optionAt(prepareProcessedOptions(withMiniChart(mini, main)).processedOptions, path);
+            };
+
+            expect(dashOver({ strokeWidth: 5, lineDash: 'dash' })).toEqual([3, 2]);
+            // Whichever width the main series scaled the name by, where the location sets none.
+            expect(dashOver({ lineDash: 'dash' })).toEqual([3, 2]);
+        }
+    );
+
     describe('mini chart series', () => {
-        const dashAt = (options: object) =>
-            optionAt(prepareProcessedOptions(options).processedOptions, 'navigator.miniChart.series[0].lineDash');
+        const miniOption = (options: object, key: string) =>
+            optionAt(prepareProcessedOptions(options).processedOptions, `navigator.miniChart.series[0].${key}`);
+        const dashAt = (options: object) => miniOption(options, 'lineDash');
+
+        it('rescales the dash of the main series to the default width of a mini chart line', () => {
+            const line = { type: 'line', xKey: 'x', yKey: 'y' };
+            const main = { ...line, strokeWidth: 5, lineDash: 'dash', lineDashOffset: 4 };
+            const mirrored = { data: DATA, series: [main], navigator: { enabled: true, miniChart: { enabled: true } } };
+
+            expect(dashAt(mirrored)).toEqual([6, 4]);
+            expect(miniOption(mirrored, 'strokeWidth')).toBe(2);
+            expect(miniOption(mirrored, 'lineDashOffset')).toBe(4);
+            expect(dashAt({ ...mirrored, series: [{ ...main, lineDash: [10, 5] }] })).toEqual([4, 2]);
+            expect(dashAt(withMiniChart(line, main))).toEqual([6, 4]);
+            expect(dashAt(withMiniChart({ ...line, lineDash: [1, 1] }, main))).toEqual([1, 1]);
+        });
+
+        it.each(miniChartLocations())(
+            'copies the width and dash of the main series on %s, where it sets none',
+            (_, options, path) => {
+                const keys = (options as any).series[0];
+                const location = path.replace('navigator.miniChart.series[0].', '');
+                const main = { ...keys, ...styleAt(location, { strokeWidth: 5, lineDash: 'dash' }) };
+                const processed = prepareProcessedOptions(withMiniChart(keys, main)).processedOptions;
+                const width = keys.type === 'line' && location === 'lineDash' ? 2 : 5;
+
+                expect(optionAt(processed, path.replace(/lineDash$/, 'strokeWidth'))).toBe(width);
+                expect(optionAt(processed, path)).toEqual([3 * width, 2 * width]);
+            }
+        );
+
+        it('rescales a whisker or wick dash by the width around it, where it sets none', () => {
+            const boxPlot = {
+                type: 'box-plot',
+                xKey: 'x',
+                minKey: 'y',
+                q1Key: 'y',
+                medianKey: 'y',
+                q3Key: 'y',
+                maxKey: 'y',
+            };
+            const candlestick = {
+                type: 'candlestick',
+                xKey: 'x',
+                openKey: 'y',
+                highKey: 'y',
+                lowKey: 'y',
+                closeKey: 'y',
+            };
+            const item = (style: object) => ({ item: { up: style } });
+
+            expect(
+                miniOption(
+                    withMiniChart(
+                        { ...boxPlot, strokeWidth: 1 },
+                        { ...boxPlot, strokeWidth: 5, whisker: { lineDash: 'dash' } }
+                    ),
+                    'whisker.lineDash'
+                )
+            ).toEqual([3, 2]);
+            expect(
+                miniOption(
+                    withMiniChart(
+                        { ...candlestick, ...item({ strokeWidth: 1 }) },
+                        { ...candlestick, ...item({ strokeWidth: 5, wick: { lineDash: 'dash' } }) }
+                    ),
+                    'item.up.wick.lineDash'
+                )
+            ).toEqual([3, 2]);
+        });
 
         it('scales a stock dash name by the width of the mini chart series', () => {
             const main = { type: 'line', xKey: 'x', yKey: 'y' };
