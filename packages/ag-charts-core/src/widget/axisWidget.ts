@@ -55,6 +55,8 @@ export class AxisWidget extends NativeWidget {
                 tickButtons: new ListWidget(),
                 dragInterpreter: new DragInterpreter(this),
             };
+            // Ticks are ordered along the axis, which does not mirror in RTL.
+            this.interactions.tickButtons.mirrorHorizontalKeysInRtl = false;
             this.addChild(this.interactions.tickButtons);
         }
         return this.interactions;
