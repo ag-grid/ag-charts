@@ -198,7 +198,7 @@ describe('series-level glow (enterprise series)', () => {
 
             const shapes = glowing();
             expect(shapes.length).toBeGreaterThan(0);
-            const expected = gap ?? (themeGlowOf(testCase.name) as { gap?: number }).gap;
+            const expected = gap ?? themeGlowOf(testCase.name).gap;
             for (const shape of shapes) expect(shape.fillGlow?.gap).toBe(expected);
         });
 
