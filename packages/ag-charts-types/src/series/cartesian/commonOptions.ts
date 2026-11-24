@@ -113,7 +113,10 @@ export interface AgColorScale {
 
 export interface AgSolidColor {
     type: 'solid';
-    /** The colour for filling shapes. If unset, a solid colour is taken from the palette, using the stroke colour of a pattern. */
+    /**
+     * The colour for filling shapes. If unset on a series or its markers, a solid colour is taken from the palette,
+     * using the stroke colour of a pattern.
+     */
     fill?: CssColor;
     /** The opacity of the fill colour. */
     fillOpacity?: Opacity;
