@@ -1371,7 +1371,7 @@ describe('highlight glow', () => {
                 });
 
                 it.each([undefined, false])(
-                    'fades the glow with the gradient, and does not cast a uniform block, with tinting %s',
+                    'casts the glow at its own strength through the transparent end of the gradient, with tinting %s',
                     async (canTint) => {
                         const [, testCase, options] = PAINTS[0];
                         const sample = async (bucketGlow: object) => {
@@ -1385,10 +1385,12 @@ describe('highlight glow', () => {
                         const none = await sample(NO_GLOW);
 
                         // The gradient is opaque at one end, which hides a glow of its own colour, and transparent at the other,
-                        // where a glow that fades with it adds nothing, but a uniform block would add its full colour.
-                        for (let end = 0; end < 2; end++)
-                            for (let i = 0; i < 4; i++)
-                                expect(Math.abs(cast[end][i] - none[end][i])).toBeLessThanOrEqual(8);
+                        // where the glow shows at its own strength, as it does through any see-through item.
+                        const differences = cast.map((pixel, end) =>
+                            Math.max(...pixel.map((v, i) => Math.abs(v - none[end][i])))
+                        );
+                        expect(Math.min(...differences)).toBeLessThanOrEqual(8);
+                        expect(Math.max(...differences)).toBeGreaterThan(8);
                     }
                 );
             });

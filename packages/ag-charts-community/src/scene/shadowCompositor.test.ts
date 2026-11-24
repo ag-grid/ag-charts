@@ -2949,9 +2949,21 @@ describe('Group shadow compositor', () => {
                     );
                 };
 
-                it.each(PAINTS)('should make a mask for each colour of items with %s', (name, paint) => {
-                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, 1))).toBe(1);
-                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(COLOURS.length);
+                it.each(PAINTS.filter(([name]) => name !== 'a gradient fill'))(
+                    'should make a mask for each colour of items with %s',
+                    (name, paint) => {
+                        expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, 1))).toBe(1);
+                        expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(COLOURS.length);
+                    }
+                );
+
+                // A glow casts at its own strength, so over a gradient that fades out it casts a solid silhouette.
+                it('should share a mask between the colours of items with a gradient fill that fades out', () => {
+                    const [name, paint] = PAINTS[1];
+                    const alone = blitsOf(paintedNodes(name, paint, NO_SPREAD, 1));
+
+                    expect(alone).toBeGreaterThan(0);
+                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(alone);
                 });
 
                 // A gap dilates the silhouette as a spread does, so the mask is a solid silhouette that any colour can tint.

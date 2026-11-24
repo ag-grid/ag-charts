@@ -101,6 +101,15 @@ function patternAlpha(pattern: Pattern): number {
     return 1 - parts.reduce((clear, alpha) => clear * (1 - alpha), 1);
 }
 
+/** Whether a gradient has only opaque stops, a pattern or an image an opaque background, or a pattern too small to draw an opaque fill. */
+function paintIsOpaque(paint: Gradient | Pattern | Image): boolean {
+    if (paint instanceof Pattern && paint.drawable === false) return paintAlpha(paint.fill, paint.fillOpacity) >= 1;
+    if (paint instanceof Pattern || paint instanceof Image) {
+        return paint.backgroundFill !== 'none' && paintAlpha(paint.backgroundFill, paint.backgroundFillOpacity) >= 1;
+    }
+    return paint.stops.every((stop) => colourAlpha(stop.color) >= 1);
+}
+
 interface SpreadBounds {
     minX: number;
     minY: number;
@@ -263,11 +272,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillOpacity: number = 1;
     declare __fillOpacity: number; // optimised field accessor
 
-    /**
-     * The `opacity` of the item that {@link setStyleProperties} has folded into `fillOpacity` and `strokeOpacity`, which is
-     * all of the item's opacity that a glow or shadow cast at its own strength still follows.
-     */
-    private styleOpacity = 1;
+    /** The item's `opacity` that is folded into `fillOpacity` and `strokeOpacity`, which a glow or shadow at its own strength follows. */
+    @DeclaredSceneChangeDetection()
+    styleOpacity: number = 1;
+    declare __styleOpacity: number; // optimised field accessor
 
     @DeclaredSceneChangeDetection()
     strokeOpacity: number = 1;
@@ -348,6 +356,22 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this._paintAlpha = paint instanceof Pattern ? patternAlpha(paint) : gradientAlpha(paint);
         }
         return this._paintAlpha;
+    }
+
+    private _opaquePaintSource?: Gradient | Pattern | Image;
+    private _opaquePaint = true;
+
+    /** Whether the fill paints every pixel of the shape at alpha 1 before `fillOpacity`: a gradient or pattern, or an image, can't. */
+    private hasOpaquePaint(fill: ShapeColor): boolean {
+        if (typeof fill === 'string') return this.getFillAlpha(fill) >= 1;
+
+        const paint = this.fillGradient ?? this.fillPattern ?? this.fillImage;
+        if (paint == null) return true;
+        if (paint !== this._opaquePaintSource) {
+            this._opaquePaintSource = paint;
+            this._opaquePaint = paintIsOpaque(paint);
+        }
+        return this._opaquePaint;
     }
 
     /** The alpha of {@link _alphaStroke}, cached like {@link _fillAlpha}. */
@@ -588,28 +612,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return slot === 'glow' ? this.__fillGlow : this.__fillShadow;
     }
 
-    /**
-     * Whether the slot casts at the strength that its `fillOpacity` is set to, rather than scaled by the alpha of the item's
-     * fill: a glow always does, and a shadow whose `fillOpacity` a user or theme override set. Only the item's `opacity`
-     * also fades it. A shadow with its `fillOpacity` from the theme default casts at that times the item's fill alpha.
-     */
+    /** Whether the slot casts at its own `fillOpacity`, not scaled by the fill's alpha: a glow, or a shadow whose `fillOpacity` is set. */
     private castsAtOwnAlpha(slot: ShadowSlot): boolean {
         const shadow = this.getSlot(slot);
         return shadow?.glow === true || shadow?.fillOpacitySet === true;
     }
 
-    /** The alpha of the fill, from its `fillOpacity` and the alpha of its colour or gradient, but not the item's `opacity`. */
-    private getFillPaintAlpha(): number {
-        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
-        return this.styleOpacity > 0 ? (this.getMaxFillAlpha(fill!) * fillOpacity) / this.styleOpacity : 0;
-    }
-
-    /**
-     * Whether the slot casts at its own strength over a fill that is weaker than that, where what the shape draws
-     * or casts with its canvas shadow has the fill's alpha and so can't be cast from. Its silhouette is cast solid instead.
-     */
+    /** Whether the slot casts at its own alpha over a fill that is not uniformly opaque, so its silhouette is cast solid instead. */
     private castsOverFillAlpha(slot: ShadowSlot): boolean {
-        return this.castsAtOwnAlpha(slot) && this.castsShadowFromFill(slot) && this.getFillPaintAlpha() < 1;
+        if (!this.castsAtOwnAlpha(slot) || !this.castsShadowFromFill(slot)) return false;
+
+        const { __styleOpacity: styleOpacity, __fillOpacity: fillOpacity = 1 } = this;
+        return !(styleOpacity > 0 && fillOpacity >= styleOpacity) || !this.hasOpaquePaint(this.__fill!);
     }
 
     /** A glow with no `fill` takes the shape's fill, else its stroke; kept per shadow and paint, as it is asked often. */
@@ -628,7 +642,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             cast.strokeOpacity !== strokeOpacity
         ) {
             const fillColour = getSolidColour(fill, fillOpacity);
-            // The alpha of the colour is the item's fill alpha, which a cast at its own strength leaves out.
             const ownAlpha = fillColour != null && this.castsAtOwnAlpha(slot) && getColourAlpha(fillColour) < 1;
             const colour = ownAlpha
                 ? getOpaqueColour(fillColour)
@@ -858,7 +871,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let strength: number;
         if (drawsFill) {
             strength = this.castsAtOwnAlpha(slot)
-                ? opacity * this.styleOpacity
+                ? opacity * this.__styleOpacity
                 : this.getMaxFillAlpha(this.__fill!) * fillOpacity * opacity;
         } else if (drawsStroke) {
             strength = this.getStrokeAlpha(this.__stroke) * strokeOpacity * opacity;
@@ -1135,7 +1148,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
             // A set gap casts the extras at any dilation, as the real paint of an ungapped glow does. A footprint has them always.
             const shadow = this.getSlot(slot);
-            // So does a glow cast solid over a weaker fill, which draws no real paint to show them.
             if (
                 footprint ||
                 (this.getShadowMode(slot) !== 'fill' &&
@@ -1399,8 +1411,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const globalAlpha = ctx.globalAlpha;
         let strength = 1;
         if (drawsFill && this.castsAtOwnAlpha(slot)) {
-            // Cast at the strength it is set to, so the fill's own alpha has no part in it.
-            ctx.globalAlpha *= (this.__opacity ?? 1) * this.styleOpacity * this.getPaintOpacityScale();
+            ctx.globalAlpha *= (this.__opacity ?? 1) * this.__styleOpacity * this.getPaintOpacityScale();
         } else if (drawsFill) {
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
             // The plain fill that replaces an undrawable pattern has its opacity in the context's alpha already.
@@ -1807,8 +1818,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const computedLineDashOffset = style?.lineDashOffset ?? 0;
 
         let hasDirectChanges = false;
-        if (this.styleOpacity !== opacity) {
-            this.styleOpacity = opacity;
+        if (this.__styleOpacity !== opacity) {
+            this.__styleOpacity = opacity;
             hasDirectChanges = true;
         }
         if (this.__fillOpacity !== computedFillOpacity) {

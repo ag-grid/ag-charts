@@ -43,7 +43,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
     // The mock canvas snapshots only the first chart of a test, so a test casts every variant through one chart. The pixel
     // read is 5px past the last of two bars, which is in the glow of 10 and in the shadow that is offset by 30. With
     // `dimmed`, the first bar is hovered, so that the last is dimmed to the opacity that its `unhighlightedItem` sets.
-    const castBeside = async (series: object, chartOptions: object = {}, dimmed?: number) => {
+    const castBeside = async (series: object, chartOptions: object = {}, dimmed?: number, hoverLast = false) => {
         const options: AgChartOptions = {
             animation: { enabled: false },
             legend: { enabled: false },
@@ -71,9 +71,9 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
             await waitForChartStability(chart);
         }
 
-        if (dimmed != null) {
-            const [first] = visibleItems();
-            await hoverAction(first.x + first.width / 2, first.y + first.height / 2)(deproxy(chart));
+        if (dimmed != null || hoverLast) {
+            const hovered = hoverLast ? visibleItems().at(-1)! : visibleItems()[0];
+            await hoverAction(hovered.x + hovered.width / 2, hovered.y + hovered.height / 2)(deproxy(chart));
             await waitForChartStability(chart);
         }
 
@@ -146,6 +146,29 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         it('should cast it at the fillOpacity of the bars, as it did', async () => {
             expect(strengthOf(await castBeside({ shadow: SHADOW, fillOpacity: 0.5 }))).toBeCloseTo(0.5, 1);
             expect(await castBeside({ shadow: SHADOW, fillOpacity: 1 })).toEqual(FULL_RED);
+        });
+    });
+
+    describe('from the shadow of the highlightedItem, on the hovered bar at a fillOpacity of 0.5', () => {
+        const hoveredCast = (series: object, highlightedItem: object) =>
+            castBeside(
+                { fillOpacity: 0.5, ...series, highlight: { unhighlightedItem: { opacity: 1 }, highlightedItem } },
+                {},
+                undefined,
+                true
+            );
+        const THEME_SHADOW = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
+
+        it('should cast a fillOpacity of the bucket as set, over a shadow with the fillOpacity of the theme', async () => {
+            const [red] = await hoveredCast({ shadow: THEME_SHADOW }, { shadow: { fillOpacity: 1 } });
+
+            expect(red).toBeLessThanOrEqual(1);
+        });
+
+        it('should cast a fill of the bucket alone as unset, over a shadow with a fillOpacity set', async () => {
+            const series = { shadow: { ...SHADOW, fillOpacity: 1 } };
+
+            expect(strengthOf(await hoveredCast(series, { shadow: { fill: 'red' } }))).toBeCloseTo(0.5, 1);
         });
     });
 

@@ -694,9 +694,7 @@ export const FONT_THEME_DEFAULTS = {
 
 /**
  * A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone.
- *
- * `fillOpacitySet` marks a `fillOpacity` that a user or theme override set, which the shadow casts at, as it is. A `fill`
- * or `color` alone gives an opaque `fillOpacity` that is not set, so `fallbackFillOpacitySet`, whether the fallback was.
+ * `fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
  */
 function shadowFillTheme(
     fallbackFill: Operation | string,

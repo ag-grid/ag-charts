@@ -174,29 +174,34 @@ describe('glow gap', () => {
                 expectNear(pixelAt(...LEFT_EDGE_PROBE), unset);
             });
 
+            const alphasLeftOfItem = (paint: Partial<Shape>, glow: ReturnType<typeof blurredGlow>) => {
+                const { pixelAt } = draw(
+                    route,
+                    box(CENTRE_X - 30, CENTRE_Y - 30, 60, 60, { ...paint, fillGlow: glow })
+                );
+                return Array.from({ length: 16 }, (_, i) => pixelAt(LEFT_EDGE_PROBE[0], CENTRE_Y - 30 + i * 4)[3]);
+            };
+            const maxDifference = (a: number[], b: number[]) =>
+                Math.max(...a.map((alpha, i) => Math.abs(alpha - b[i])));
+
             // A gap casts the silhouette of the item, as a spread does, not its real paint, which an ungapped glow with no
             // spread casts. The silhouette of a spread of a hair stands for it.
-            it.each([
-                ['a gradient fill that fades out at the probe', { fill: FADING }],
-                [
-                    'a dashed stroke',
-                    { fill: undefined, stroke: 'rgba(0, 0, 255, 0.5)', strokeWidth: 6, lineDash: [10, 10] },
-                ],
-            ])('should cast the glow of %s as a spread does with a gap of 0', (_name, paint) => {
-                const alphasLeftOfItem = (glow: ReturnType<typeof blurredGlow>) => {
-                    const { pixelAt } = draw(
-                        route,
-                        box(CENTRE_X - 30, CENTRE_Y - 30, 60, 60, { ...paint, fillGlow: glow })
-                    );
-                    return Array.from({ length: 16 }, (_, i) => pixelAt(LEFT_EDGE_PROBE[0], CENTRE_Y - 30 + i * 4)[3]);
-                };
-                const real = alphasLeftOfItem(blurredGlow(undefined));
-                const dilated = alphasLeftOfItem(blurredGlow(undefined, 0.01));
+            it('should cast the glow of a dashed stroke as a spread does with a gap of 0', () => {
+                const paint = { fill: undefined, stroke: 'rgba(0, 0, 255, 0.5)', strokeWidth: 6, lineDash: [10, 10] };
+                const real = alphasLeftOfItem(paint, blurredGlow(undefined));
+                const dilated = alphasLeftOfItem(paint, blurredGlow(undefined, 0.01));
 
-                const gapped = alphasLeftOfItem(blurredGlow(0));
-
-                expect(Math.max(...gapped.map((alpha, i) => Math.abs(alpha - dilated[i])))).toBeLessThanOrEqual(3);
+                expect(maxDifference(alphasLeftOfItem(paint, blurredGlow(0)), dilated)).toBeLessThanOrEqual(3);
                 expect(Math.max(...dilated.map((alpha, i) => alpha - real[i]))).toBeGreaterThan(10);
+            });
+
+            it('should cast the glow of a gradient fill that fades out as a spread does, at its own strength', () => {
+                const real = alphasLeftOfItem({ fill: FADING }, blurredGlow(undefined));
+
+                expect(
+                    maxDifference(real, alphasLeftOfItem({ fill: FADING }, blurredGlow(undefined, 0.01)))
+                ).toBeLessThanOrEqual(3);
+                expect(maxDifference(real, alphasLeftOfItem({ fill: FADING }, blurredGlow(0)))).toBeLessThanOrEqual(3);
             });
         });
 
