@@ -1,23 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
-import { isPointInSector } from '../scene/util/sector';
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { Text } from '../scene/shape/text';
+import { areLineBoxesInSector, isBoxInSector, isPointInSector } from '../scene/util/sector';
+import type { OverflowStrategy } from '../text/textWrapper';
 import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
 
-// jsdom has no canvas, so text measures at 10px a character and 20px a line.
-vi.mock('../rendering/canvasUtil', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('../rendering/canvasUtil')>()),
-    createCanvasContext: () => ({
-        font: '',
-        measureText: (text: string) => ({
-            width: [...text].length * 10,
-            fontBoundingBoxAscent: 16,
-            fontBoundingBoxDescent: 4,
-            emHeightAscent: 16,
-            emHeightDescent: 4,
-        }),
-    }),
-}));
+vi.mock('../rendering/canvasUtil', async (importOriginal) =>
+    (await import('../test/fixedWidthCanvas')).fixedWidthCanvasUtil(importOriginal)
+);
 
 const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
     startAngle: midAngle - halfSpan,
@@ -26,6 +18,17 @@ const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRa
     outerRadius,
 });
 const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+
+interface HangCase {
+    mid: number;
+    halfSpan: number;
+    inner: number;
+    outer: number;
+    radius: number;
+    x: number;
+    y: number;
+    min?: number;
+}
 
 describe('fitSectorLabelRect', () => {
     const cornersInSector = (rect: ReturnType<typeof fitSectorLabelRect>, s: Parameters<typeof isPointInSector>[2]) => {
@@ -67,6 +70,17 @@ describe('fitSectorLabelRect', () => {
         const s = sector(-Math.PI / 3, Math.PI / 8, 40, 120);
         const anchor = anchorAt(85, -Math.PI / 3);
         const rect = fitSectorLabelRect(anchor, s, 14, { width: 20, height: 14 });
+        expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
+    });
+
+    it('leaves a measured block on the anchor when it passes the wedge test there but not the arc clearance', () => {
+        const s = sector(Math.PI / 2, Math.PI / 4, 40, 100);
+        const anchor = anchorAt(90, Math.PI / 2);
+        const block = { width: 20, height: 18.2 };
+        const box = { x: anchor.x - block.width / 2, y: anchor.y - block.height / 2, ...block };
+        const clearOfArcs = { ...s, innerRadius: 40.75, outerRadius: 99.25 };
+        expect([isBoxInSector(box, s), isBoxInSector(box, clearOfArcs)]).toEqual([true, false]);
+        const rect = fitSectorLabelRect(anchor, s, 14, block);
         expect(rect).toMatchObject({ centerX: anchor.x, centerY: anchor.y, anchored: true });
     });
 
@@ -119,10 +133,288 @@ describe('sectorLabelRoom', () => {
 });
 
 describe('sectorLabelPlacer', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+    const image = (size: number) => ({
+        type: 'image' as const,
+        url: 'https://example.com/logo.png',
+        width: size,
+        height: size,
+    });
+    const place = (
+        text: NormalisedTextOrSegments,
+        s: ReturnType<typeof sector>,
+        anchor: { x: number; y: number },
+        overflowStrategy: OverflowStrategy | undefined,
+        minimumFontSize?: number
+    ) =>
+        sectorLabelPlacer(
+            anchor,
+            s,
+            NO_PADDING,
+            {},
+            0,
+            0
+        )({
+            text,
+            policy: { overflowStrategy, minimumFontSize },
+            font: { fontSize: 12, fontFamily: 'sans-serif' },
+            boundByRegion: true,
+        });
+
+    describe.each<[string, OverflowStrategy | undefined]>([
+        ['without an overflow strategy', undefined],
+        ['with an ellipsis', 'ellipsis'],
+    ])('%s', (_name, overflowStrategy) => {
+        it.each<[string, NormalisedTextOrSegments]>([
+            ['plain text', 'Alpha'],
+            ['text segments', [{ text: 'Alpha' }, { text: 'Bravo' }]],
+            ['an image only', [image(16)]],
+            ['an image and text', [image(16), { text: 'Alpha' }]],
+        ])('places %s whole and at full size in a roomy wedge', (_, text) => {
+            const content = Array.isArray(text) ? text.map((segment) => expect.objectContaining(segment)) : text;
+            const wedge = sector(Math.PI / 2, Math.PI / 3, 0, 300);
+            const placed = place(text, wedge, anchorAt(150, Math.PI / 2), overflowStrategy, 6);
+            expect(placed).toEqual({
+                text: content,
+                x: expect.any(Number),
+                y: expect.any(Number),
+                fontSize: undefined,
+            });
+        });
+
+        it.each([undefined, 6])(
+            'keeps an image-only label on its anchor in a wedge only just deep enough (minimumFontSize %s)',
+            (minimumFontSize) => {
+                const anchor = anchorAt(122, Math.PI / 3);
+                const wedge = sector(Math.PI / 3, Math.PI / 8, 100, 144);
+                const placed = place([image(16)], wedge, anchor, overflowStrategy, minimumFontSize);
+                expect(placed?.text).toEqual([expect.objectContaining(image(16))]);
+                expect(placed?.x).toBeCloseTo(anchor.x);
+                expect(placed?.y).toBeCloseTo(anchor.y);
+            }
+        );
+    });
+
+    describe('an image-only label the wedge cannot hold', () => {
+        const wedge = sector(Math.PI / 2, Math.PI / 16, 100, 120);
+        const anchor = anchorAt(110, Math.PI / 2);
+
+        it('is placed nowhere when it truncates', () => {
+            expect(place([image(40)], wedge, anchor, 'ellipsis')).toBeUndefined();
+        });
+
+        it('overflows the wedge whole when it does not truncate, like text', () => {
+            const placed = place([image(40)], wedge, anchor, undefined);
+            expect(placed?.text).toEqual([expect.objectContaining(image(40))]);
+            const box = { x: placed!.x - 20, y: placed!.y - 20, width: 40, height: 40 };
+            expect(isBoxInSector(box, wedge)).toBe(false);
+        });
+    });
+
+    describe('layout passes', () => {
+        it('lays out a label its anchor holds once, and keeps it there whole', () => {
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const anchor = anchorAt(150, Math.PI / 2);
+            const placed = place('Alpha', sector(Math.PI / 2, Math.PI / 3, 0, 300), anchor, undefined);
+            expect(placed).toEqual({ text: 'Alpha', x: anchor.x, y: anchor.y, fontSize: undefined });
+            expect(layouts).toHaveBeenCalledTimes(1);
+        });
+
+        it('fits a label in a wedge wider than a half turn in full, even where its anchor holds it', () => {
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            place('Alpha', sector(Math.PI / 2, (3 * Math.PI) / 4, 0, 300), anchorAt(150, Math.PI / 2), undefined);
+            expect(layouts.mock.calls.length).toBeGreaterThan(1);
+        });
+
+        it.each([
+            ['its anchor cannot hold', undefined],
+            ['may shrink', 6],
+        ])('fits a label %s to the wedge in full', (_, minimumFontSize) => {
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const wedge = sector(Math.PI / 2, Math.PI / 10, 0, 200);
+            place('Alpha Bravo', wedge, anchorAt(100, Math.PI / 2), 'ellipsis', minimumFontSize);
+            expect(layouts.mock.calls.length).toBeGreaterThan(1);
+        });
+
+        it.each([
+            { text: 'Alpha', mid: Math.PI / 2, halfSpan: Math.PI / 3, inner: 0, outer: 300, radius: 150, pad: 0 },
+            { text: 'Alpha', mid: Math.PI / 2, halfSpan: Math.PI / 3, inner: 0, outer: 300, radius: 150, pad: 6 },
+            { text: 'Alpha Bravo', mid: 0.4, halfSpan: 0.5, inner: 60, outer: 200, radius: 130, pad: 2 },
+            { text: 'Revenue', mid: -2.1, halfSpan: 0.35, inner: 80, outer: 260, radius: 200, pad: 4 },
+            { text: 'Delta', mid: 2.8, halfSpan: 0.25, inner: 100, outer: 300, radius: 200, pad: 0 },
+        ])(
+            'keeps $text on its anchor exactly where the full fit places it (padding $pad)',
+            ({ text, mid, halfSpan, inner, outer, radius, pad }) => {
+                const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+                const padding = { top: pad, right: pad, bottom: pad, left: pad };
+                const fitWith = (maxWidth?: number) =>
+                    sectorLabelPlacer(
+                        anchorAt(radius, mid),
+                        sector(mid, halfSpan, inner, outer),
+                        padding,
+                        {},
+                        0,
+                        0
+                    )({ text, policy: { maxWidth }, font: { fontSize: 12, fontFamily: 'sans-serif' } });
+                const onAnchor = fitWith();
+                expect(layouts).toHaveBeenCalledTimes(1);
+                // A width bound turns the anchor shortcut off without bounding a line the wedge holds.
+                expect(fitWith(Infinity)).toEqual(onAnchor);
+            }
+        );
+    });
+
+    describe('a label whose box meets the outer rim', () => {
+        const font = { fontSize: 12, fontFamily: 'sans-serif' };
+        // Lays the label out as the series' own node draws it, for the visibility gate.
+        const drawnBoxes = (text: NormalisedTextOrSegments, x: number, y: number) => {
+            const node = new Text();
+            node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
+            node.setBoxing({});
+            node.text = text;
+            node.x = x;
+            node.y = y;
+            node.setFont(font);
+            return node.getLineBoxes();
+        };
+        // The radius `steps` representable doubles away from a positive `radius`.
+        const ulpsFrom = (radius: number, steps: number) => {
+            const bits = new BigInt64Array(new Float64Array([radius]).buffer);
+            bits[0] += BigInt(steps);
+            return new Float64Array(bits.buffer)[0];
+        };
+
+        it.each([0, 4])('is shown wherever its anchor holds it, to the ulp (padding %s)', (pad) => {
+            const padding = { top: pad, right: pad, bottom: pad, left: pad };
+            let heldOnRim = 0;
+            for (let i = 0; i < 24; i += 1) {
+                const mid = (i * Math.PI) / 12;
+                const anchor = anchorAt(100, mid);
+                const [box] = drawnBoxes('Alpha', anchor.x, anchor.y);
+                const x0 = box.x - pad;
+                const y0 = box.y - pad;
+                const x1 = x0 + (box.width + 2 * pad);
+                const y1 = y0 + (box.height + 2 * pad);
+                const rim = Math.max(
+                    ...[x0, x1].flatMap((x) => [y0, y1].map((y) => Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))))
+                );
+                for (let step = -2; step <= 2; step += 1) {
+                    const wedge = sector(mid, 1.2, 0, ulpsFrom(rim, step));
+                    const placed = sectorLabelPlacer(
+                        anchor,
+                        wedge,
+                        padding,
+                        {},
+                        0,
+                        0
+                    )({ text: 'Alpha', policy: {}, font });
+                    if (placed?.x !== anchor.x || placed.y !== anchor.y) continue;
+                    if (step === 0) heldOnRim += 1;
+                    expect(areLineBoxesInSector(drawnBoxes(placed.text, placed.x, placed.y), wedge)).toBe(true);
+                }
+            }
+            expect(heldOnRim).toBeGreaterThan(0);
+        });
+    });
+
+    const hangText = 'Category 123 label';
+    const hangFont = { fontSize: 12, fontFamily: 'sans-serif' };
+    const placeHanging = ({ mid, halfSpan, inner, outer, radius, min }: HangCase, drawnAsFitted: boolean) =>
+        sectorLabelPlacer(
+            anchorAt(radius, mid),
+            sector(mid, halfSpan, inner, outer),
+            NO_PADDING,
+            {},
+            0,
+            0,
+            drawnAsFitted
+        )({ text: hangText, policy: { minimumFontSize: min }, font: hangFont });
+
+    // `x` and `y` are where the overflow passes hang each label, a place the gate hides it at in its own style.
+    const linelessWedges: HangCase[] = [
+        { mid: 0, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 125, y: 10 },
+        { mid: 1, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 67.53778823351747, y: 115.18387310098706 },
+        {
+            mid: 2.6,
+            halfSpan: 0.01,
+            inner: 125,
+            outer: 250,
+            radius: 187.5,
+            x: -160.66664125667762,
+            y: 106.65650721652453,
+        },
+        {
+            mid: 0.3,
+            halfSpan: 0.01,
+            inner: 0,
+            outer: 250,
+            radius: 125,
+            x: 119.41706114070075,
+            y: 46.940025832667445,
+            min: 8,
+        },
+    ];
+
+    it.each(linelessWedges)(
+        'places nothing, without laying it out, for a label drawn as fitted that the wedge at mid $mid holds no line of',
+        (c) => {
+            const node = new Text();
+            node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
+            node.setBoxing({});
+            node.text = hangText;
+            node.x = c.x;
+            node.y = c.y;
+            node.setFont(hangFont);
+            expect(areLineBoxesInSector(node.getLineBoxes(), sector(c.mid, c.halfSpan, c.inner, c.outer))).toBe(false);
+
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            expect(placeHanging(c, true)).toBeUndefined();
+            expect(layouts).not.toHaveBeenCalled();
+        }
+    );
+
+    // A state-dependent style can draw the label smaller than it is fitted, so it is hung for the gate to judge.
+    it.each(linelessWedges)('hangs a label a state may restyle at mid $mid where every overflow pass puts it', (c) => {
+        expect(placeHanging(c, false)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
+    });
+
+    // A wedge near vertical can hold a line, so the label is hung where every overflow pass puts it.
+    it.each(
+        [
+            {
+                mid: 1.55,
+                halfSpan: 0.005,
+                inner: 0,
+                outer: 250,
+                radius: 125,
+                x: 2.5493898819035823,
+                y: 125.58570627196065,
+            },
+            {
+                mid: -1.5708,
+                halfSpan: 0.02,
+                inner: 0,
+                outer: 250,
+                radius: 125,
+                x: -0.00042934831553062644,
+                y: -182.4939548960836,
+            },
+        ].flatMap((c) => [true, false].map((drawnAsFitted) => ({ ...c, drawnAsFitted })))
+    )(
+        'hangs a label no wedge position holds at mid $mid where every overflow pass puts it (drawn as fitted $drawnAsFitted)',
+        (c) => {
+            expect(placeHanging(c, c.drawnAsFitted)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
+        }
+    );
+
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
         // The first pass, against the estimated block, loses text that the re-placed pass fits whole.
         const s = sector(0.3, 0.6, 0, 80);
-        const place = (overflowStrategy?: 'hide') =>
+        const placeGolf = (overflowStrategy?: 'hide') =>
             sectorLabelPlacer(
                 anchorAt(40, 0.3),
                 s,
@@ -135,7 +427,34 @@ describe('sectorLabelPlacer', () => {
                 policy: { wrapping: 'always', overflowStrategy },
                 font: { fontSize: 14, fontFamily: 'sans-serif' },
             });
-        expect(place()?.text).toBe('Golf');
-        expect(place()).toEqual(place('hide'));
+        expect(placeGolf()?.text).toBe('Golf');
+        expect(placeGolf()).toEqual(placeGolf('hide'));
+    });
+
+    // Synchronous, so no suspended async frame keeps the placed text alive across the await below.
+    function placeTracked(refs: WeakRef<object>[]) {
+        const text = [{ text: 'Alpha Bravo Charlie' }, image(16)];
+        refs.push(new WeakRef(text));
+        const placed = sectorLabelPlacer(
+            anchorAt(100, Math.PI / 2),
+            sector(Math.PI / 2, Math.PI / 8, 0, 200),
+            NO_PADDING,
+            {},
+            0,
+            0
+        )({ text, policy: {}, font: { fontSize: 12, fontFamily: 'sans-serif' } });
+        if (typeof placed?.text === 'object') refs.push(new WeakRef(placed.text));
+        return refs.length;
+    }
+
+    it('keeps no reference to the label it placed once it returns', async () => {
+        const { gc } = globalThis;
+        if (gc == null) throw new Error('Run with --expose-gc');
+        const refs: WeakRef<object>[] = [];
+        expect(placeTracked(refs)).toBe(2);
+        // A WeakRef keeps its target alive until the job that created it ends.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        gc();
+        expect(refs.filter((ref) => ref.deref() != null)).toHaveLength(0);
     });
 });

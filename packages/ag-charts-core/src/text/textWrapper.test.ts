@@ -14,10 +14,17 @@ import {
     clipLines,
     fitLabelText,
     fitLabelTextToRegion,
+    keptCharacters,
     truncateLine,
     wrapLines,
     wrapTextSegments,
 } from './textWrapper';
+
+describe('keptCharacters', () => {
+    it('counts neither the ellipsis, a zero-width space nor any whitespace', () => {
+        expect(keptCharacters(`A\t\u00a0B\u3000\ufeff${EllipsisChar}\u200b\u2028C\u200a `)).toBe(3);
+    });
+});
 
 // Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and wrapTextSegments run
 // against deterministic metrics: every grapheme cluster is CHAR_WIDTH px wide, every line LINE_HEIGHT px tall.
@@ -545,6 +552,14 @@ describe('wrapLines', () => {
             const options = { font, maxWidth: 90, maxWidthAt };
             expect(wrapLines('AA BB CC DD EE FF G', options).at(-1)).toBe('FF G');
             expect(wrapLines('AA BB CC DD EE FF G', { ...options, lineHeight: 60 }).at(-1)).toBe('G');
+        });
+        it('asks a shape for each row it builds once, however many times the row tests its width', () => {
+            const maxWidthAt = vi.fn((_top: number, _bottom: number) => 90);
+            const lines = wrapLines('AA BB CC DD EE FF GG HH', { font, maxWidth: 90, maxWidthAt, lineHeight: 20 });
+            expect(lines).toEqual(['AA BB CC', 'DD EE FF', 'GG HH']);
+            const rowTops = maxWidthAt.mock.calls.map(([top]) => top);
+            expect(rowTops.filter((top) => top === 0)).toHaveLength(1);
+            expect(rowTops.filter((top) => top === 20)).toHaveLength(1);
         });
 
         it.each([
