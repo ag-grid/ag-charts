@@ -43,7 +43,7 @@
     }
 
     &:hover,
-    &.activeTabButton {
+    &[aria-selected='true'] {
         background: transparent;
         color: var(--color-brand-600);
 
@@ -71,12 +71,6 @@
     --icon-color: var(--color-text-primary);
 
     margin-right: $spacing-size-2;
-}
-
-.activeTabButton {
-    #{$selector-darkmode} & {
-        color: var(--color-brand-200);
-    }
 }
 
 .activeTabButtonIcon {

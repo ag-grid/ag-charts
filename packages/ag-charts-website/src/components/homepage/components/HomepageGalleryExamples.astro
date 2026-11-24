@@ -8,8 +8,16 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import styles from './HomepageGalleryExamples.module.scss';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { getGalleryExamplesData } from '@components/homepage/components/gallery-examples/galleryExamplesData';
-import { GLOBAL_UPDATE_EXAMPLES_VARIABLE, GLOBAL_UPDATE_FUNCTION_NAME } from '@components/homepage/constants';
-import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
+import {
+    GLOBAL_UPDATE_EXAMPLES_VARIABLE,
+    GLOBAL_UPDATE_FUNCTION_NAME,
+    HOMEPAGE_GALLERY_PANEL_ID,
+    HOMEPAGE_GALLERY_SELECT_EVENT,
+    HOMEPAGE_GALLERY_TABLIST_ID,
+    getHomepageGalleryTabId,
+} from '@components/homepage/constants';
+import type { IconName } from '@ag-website-shared/components/icon/Icon';
+import { HomepageGalleryTabs } from './HomepageGalleryTabs';
 import AgLoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
@@ -25,6 +33,11 @@ const galleryExamplesData = await getGalleryExamplesData({
 
 const initialExampleId = 'bar';
 const loadingId = 'homepageGalleryLoading';
+const tabExamples = Object.entries(galleryExamplesData).map(([id, { buttonText, icon }]) => ({
+    id,
+    buttonText,
+    icon: icon as IconName,
+}));
 const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWithBaseUrl('/homepage/examples.min.js');
 ---
 
@@ -33,18 +46,13 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
 <script src={examplesUrl} type="module"></script>
 
 <div class={styles.container}>
-    <div class={styles.tabContainer}>
-        {Object.keys(galleryExamplesData).map((id) => {
-            const example = galleryExamplesData[id];
-            return (
-                <button class={styles.tabButton} data-example-id={id}>
-                    <Icon svgClasses={styles.tabButtonIcon} name={example.icon as IconName} />
-                    {example.buttonText}
-                </button>
-            );
-        })}
-    </div>
-    <div class={styles.exampleContainer}>
+    <HomepageGalleryTabs client:load examples={tabExamples} initialExampleId={initialExampleId} />
+    <div
+        class={styles.exampleContainer}
+        id={HOMEPAGE_GALLERY_PANEL_ID}
+        role="tabpanel"
+        aria-labelledby={getHomepageGalleryTabId(initialExampleId)}
+    >
         <div id="myChart"></div>
         <div id={loadingId}>
             <AgLoadingLogo />
@@ -52,14 +60,13 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
     </div>
 </div>
 
-{/* External rather than inline: the build-hashed class names it needs would make a CSP
-    hash unstable. Must stay non-deferred so it runs after the AgCharts UMD above. */}
+{/* External so the site CSP covers it without a hash. Must stay non-deferred so it runs after
+    the AgCharts UMD above. */}
 <script
     is:inline
     src={urlWithBaseUrl('/scripts/homepage-gallery.js')}
-    data-initial-example-id={initialExampleId}
-    data-buttons-class={styles.tabButton}
-    data-active-button-class={styles.activeTabButton}
+    data-tablist-id={HOMEPAGE_GALLERY_TABLIST_ID}
+    data-select-event={HOMEPAGE_GALLERY_SELECT_EVENT}
     data-update-examples-var={GLOBAL_UPDATE_EXAMPLES_VARIABLE}
     data-update-fn-name={GLOBAL_UPDATE_FUNCTION_NAME}
     data-loading-id={loadingId}

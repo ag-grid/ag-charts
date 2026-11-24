@@ -17,6 +17,7 @@ import {
 } from '@utils/beyondThePromptSessions';
 import CommunityMenu from '@ag-website-shared/components/community/components/CommunityMenu';
 import communityMenu from '@ag-website-shared/content/community/community-menu.json';
+import { ProgrammeTabs, getProgrammePanelId, getProgrammeTabId } from '@components/beyond-the-prompt/ProgrammeTabs';
 
 const SOCIAL_IMAGE_URL = 'images/campaigns/beyond-the-prompt/social-card.png';
 
@@ -208,33 +209,15 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/communi
         <section id="programme" class={styles.programmeSection}>
             <div class={styles.sectionRule}>
                 <p class={styles.programmeLocation}>{PAGE_CONTENT.programme.location}</p>
-                <div class={styles.programmeTabs} role="tablist" aria-label="Programme">
-                    <button
-                        type="button"
-                        role="tab"
-                        id="tab-talks"
-                        class={styles.programmeTab}
-                        aria-controls="panel-talks"
-                        aria-selected="true"
-                        data-tab="talks"
-                    >
-                        Talks
-                    </button>
-                    <button
-                        type="button"
-                        role="tab"
-                        id="tab-speakers"
-                        class={styles.programmeTab}
-                        aria-controls="panel-speakers"
-                        aria-selected="false"
-                        data-tab="speakers"
-                    >
-                        Speakers
-                    </button>
-                </div>
+                <ProgrammeTabs client:load />
             </div>
 
-            <div id="panel-speakers" role="tabpanel" aria-labelledby="tab-speakers" data-panel="speakers" hidden>
+            <div
+                id={getProgrammePanelId('speakers')}
+                role="tabpanel"
+                aria-labelledby={getProgrammeTabId('speakers')}
+                hidden
+            >
                 <div class={styles.container}>
                     <p class={styles.sectionLead}>{PAGE_CONTENT.programme.speakersLead}</p>
 
@@ -278,7 +261,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/communi
                 </div>
             </div>
 
-            <div id="panel-talks" role="tabpanel" aria-labelledby="tab-talks" data-panel="talks">
+            <div id={getProgrammePanelId('talks')} role="tabpanel" aria-labelledby={getProgrammeTabId('talks')}>
                 <div class={styles.container}>
                     <div class={styles.agenda}>
                         <div class={styles.agendaHead}>

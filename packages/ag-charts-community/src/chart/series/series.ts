@@ -36,6 +36,7 @@ import {
     EventEmitter,
     GLOW_THEME_DEFAULTS,
     Group,
+    HIDDEN_MARKER_STYLE,
     LRUCache,
     PointerEvents,
     SERIES_GLOW_OVERLAY_Z_INDEX,
@@ -119,6 +120,7 @@ import {
     getHighlightStyle,
     getSelectionStyle,
     hasStateStyle,
+    highlightStates,
     isUnselected,
     stagedSelectionState,
     toHighlightString,
@@ -1857,6 +1859,22 @@ export abstract class Series<
         return size != null;
     }
 
+    /**
+     * Whether state can resize or reshape the markers drawn in place after node data was built: a styler, selection
+     * or a highlight `size`. The hovered item's `size` sizes only its highlight-layer copy, bar a `'shared'` match.
+     */
+    protected restylesMarkers(): boolean {
+        if (this.hasItemStylers()) return true;
+        if (!this.isHighlightEnabled()) return false;
+        const shared = this.getChartHighlightOptions()?.mode === 'shared';
+        for (const state of highlightStates) {
+            if (state === HighlightState.Item && !shared) continue;
+            const { size } = this.getHighlightStyle(false, undefined, state) as { size?: number };
+            if (size != null) return true;
+        }
+        return false;
+    }
+
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
         // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
@@ -2318,7 +2336,7 @@ export abstract class Series<
         const candidateState: SelectionState | undefined = this.getDataCandidacyState(datumIndex);
 
         if (hideWithSize0 && isUnselected(stagedSelectionState(selectionState, candidateState))) {
-            return { size: 0 } satisfies NormalisedSeriesMarkerStyle;
+            return HIDDEN_MARKER_STYLE;
         }
 
         // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.

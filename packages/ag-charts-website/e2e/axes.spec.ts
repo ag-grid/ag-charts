@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
+import { evalPageFunction } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -10,6 +11,7 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     waitForAllChartUpdates,
+    waitForChartUpdate,
 } from './util';
 
 // Each consolidated axes example renders a deterministic layout (grouped-category axes, bigint / ISO
@@ -205,6 +207,46 @@ test.describe('axes', () => {
             expect(await leftBounds(page)).toEqual(expectedLeftBounds);
             expect(await rightBounds(page)).toEqual(expectedRightBounds);
             expect(await bottomBounds(page)).toEqual(expectedBottomBounds);
+        });
+    });
+
+    test.describe('axis-tick-focus-removal', () => {
+        const focused = (page: Page) => page.locator(':focus');
+
+        const activeText = (page: Page) => page.evaluate(() => document.activeElement?.textContent);
+
+        async function focusXTick(page: Page, label: string) {
+            await gotoAxesExample(page, 'axis-tick-focus-removal');
+            for (let i = 0; i < 20 && (await activeText(page)) !== 'Jan'; i++) {
+                await page.keyboard.press('Tab');
+            }
+            for (let i = 0; i < 6 && (await activeText(page)) !== label; i++) {
+                await page.keyboard.press('ArrowRight');
+            }
+            await expect(focused(page)).toHaveText(label);
+        }
+
+        async function update(page: Page, fnName: string) {
+            await evalPageFunction(page, fnName);
+            await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+        }
+
+        test('removing the focused last tick moves focus to the previous tick', async ({ page }) => {
+            await focusXTick(page, 'Jun');
+            await update(page, 'removeLastMonth');
+            await expect(page.locator(':focus-visible')).toHaveText('May');
+        });
+
+        test('removing every tick moves focus to the series area', async ({ page }) => {
+            await focusXTick(page, 'Jun');
+            await update(page, 'removeData');
+            await expect(focused(page)).toHaveClass(/ag-charts-swapchain/);
+        });
+
+        test('removing the click listener moves focus to the series area', async ({ page }) => {
+            await focusXTick(page, 'Mar');
+            await update(page, 'removeXListener');
+            await expect(focused(page)).toHaveClass(/ag-charts-swapchain/);
         });
     });
 });

@@ -118,7 +118,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', (c) => new StateManager(c.logger))
-        .service('labelManager', () => new LabelManager())
+        .service('labelManager', (c) => new LabelManager(c))
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', (c) => new OptionsGraphService(c.logger))
         .service('chartTypeOriginator', (c) => new ChartTypeOriginator(chart, c.logger))
