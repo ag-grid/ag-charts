@@ -1,4 +1,10 @@
-import { type AgChartInstance, type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
+import {
+    type AgChartInstance,
+    type AgChartOptions,
+    type AgChartThemeName,
+    AgCharts,
+    type AgGaugeOptions,
+} from 'ag-charts-community';
 import {
     type ChartOrProxy,
     type PhasedPropertyExpectation,
@@ -86,6 +92,16 @@ export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(
 ): Promise<AgChartInstance> {
     options = prepareEnterpriseTestOptions({ ...options }, container);
     const chart = AgCharts.create(options as any);
+    await waitForChartStability(chart);
+    return chart;
+}
+
+/** Like `createEnterpriseChart`, but without the test theme, so the stock `theme` reaches the series unchanged. */
+export async function createStockThemedChart(
+    options: AgChartOptions,
+    theme: AgChartThemeName
+): Promise<AgChartInstance> {
+    const chart = AgCharts.create({ width: 600, height: 400, animation: { enabled: false }, ...options, theme });
     await waitForChartStability(chart);
     return chart;
 }
