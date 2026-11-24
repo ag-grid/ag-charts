@@ -54,6 +54,13 @@ export function findAxis(chartOrProxy: ChartOrProxy<any>, positionOrId: string):
     return axis!;
 }
 
+/** The label options the axis of type `type` resolved to, theme defaults included. */
+export function getResolvedAxisLabelOptions(chartOrProxy: ChartOrProxy<any>, type: string) {
+    const axis = deproxy(chartOrProxy).axes.find((a) => a.type === type);
+    expect(axis).toBeDefined();
+    return axis!.options.label;
+}
+
 /** The tick-label nodes of the axis at `position`, in scene-graph order. */
 export function getAxisLabelNodes(
     chartOrProxy: ChartOrProxy<any>,
@@ -207,7 +214,7 @@ export function getAxisGridGroupById(chartOrProxy: ChartOrProxy<any>, id: string
  * Pass the overrides a test is about (`lineHeight`, `format`, …).
  */
 export function tickLabel(overrides: Partial<ChartAxisLabel> = {}): ChartAxisLabel {
-    return { enabled: true, fontSize: 12, spacing: 0, avoidCollisions: true, autoRotate: false, ...overrides };
+    return { enabled: true, fontSize: 12, spacing: 0, collision: { alwaysShow: false }, rotation: 0, ...overrides };
 }
 
 /**

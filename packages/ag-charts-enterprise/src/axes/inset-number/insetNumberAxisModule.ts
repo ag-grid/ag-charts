@@ -4,6 +4,7 @@ import {
     type DynamicContext,
     type NormalisedInsetNumberAxisOptions,
     type WithoutCrossLineOptions,
+    cartesianAxisLabelFitThemeTemplate,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -42,6 +43,7 @@ export const InsetNumberAxisModule: AxisModuleDefinition<
             gridLine: { enabled: false },
         },
         titleAxisThemeTemplate,
+        cartesianAxisLabelFitThemeTemplate,
         commonAxisThemeTemplate
     ),
 

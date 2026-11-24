@@ -21,6 +21,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgA
     endAngle: number,
     label: {
         ...commonAxisLabelOptionsDefs,
+        rotation: number,
         orientation: union('fixed', 'parallel', 'perpendicular'),
         format: numberFormatValidator,
     },

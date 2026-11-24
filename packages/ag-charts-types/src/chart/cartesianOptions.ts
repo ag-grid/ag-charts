@@ -139,10 +139,12 @@ export interface AgCartesianTimeAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisLabelOptions<TContext>, AgTimeAxisFormattableLabelOptions<TContext> {}
 
 export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {
-    /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
-    autoRotate?: boolean;
-    /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
-    autoRotateAngle?: Degree;
+    /**
+     * The rotation of the axis labels in degrees. Given a list, each rotation is tried in order and the first at which every label on the axis fits is used.
+     *
+     * Default: `[0, 335]` on `category` axes, `0` on all other axes.
+     */
+    rotation?: Degree | Degree[];
     /**
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
@@ -150,11 +152,13 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
-     * Default: `'on-space'` for category axes, `'never'` for all other axes
+     * Default: `'on-space'` on `category` axes, `'never'` on all other axes.
      */
     wrapping?: TextWrap;
     /**
-     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     * Whether to truncate labels that still do not fit at the last rotation with an ellipsis (`...`). When `false`, those labels are hidden.
+     *
+     * Default: `true` on `category` axes, `false` on all other axes.
      */
     truncate?: boolean;
     /**
@@ -184,6 +188,12 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
     'itemStyler'
 > {
     /**
+     * The rotation of the leaf labels in degrees. Given a list, each rotation is tried in order and the first at which every leaf label fits is used.
+     *
+     * Default: `270`
+     */
+    rotation?: Degree | Degree[];
+    /**
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
@@ -194,7 +204,9 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
      */
     wrapping?: TextWrap;
     /**
-     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     * Whether to truncate labels that still do not fit at the last rotation with an ellipsis (`...`). When `false`, those labels are hidden.
+     *
+     * Default: `true`
      */
     truncate?: boolean;
     /**
@@ -251,8 +263,7 @@ export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = C
 export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> extends Pick<
     AgBaseAxisLabelOptions<TContext>,
     | 'enabled'
-    | 'avoidCollisions'
-    | 'rotation'
+    | 'collision'
     | 'spacing'
     | 'border'
     | 'color'
@@ -266,6 +277,12 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
     | 'padding'
 > {
     /**
+     * The rotation of the labels at this depth in degrees. Given a list, each rotation is tried in order and the first at which every label at this depth fits is used.
+     *
+     * Default: `270` on the leaf labels. Above the leaf labels, `0` on a horizontal axis and `270` on a vertical axis.
+     */
+    rotation?: Degree | Degree[];
+    /**
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
@@ -276,7 +293,9 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
      */
     wrapping?: TextWrap;
     /**
-     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     * Whether to truncate labels that still do not fit at the last rotation with an ellipsis (`...`). When `false`, those labels are hidden.
+     *
+     * Default: `true`
      */
     truncate?: boolean;
     /**

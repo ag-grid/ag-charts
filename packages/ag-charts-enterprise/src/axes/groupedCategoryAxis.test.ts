@@ -105,6 +105,8 @@ describe('Grouped Category', () => {
             }),
         ];
         const rawValue = (value: unknown[]) => [{ value }];
+        const byIndex = (calls: unknown[][]) =>
+            calls.toSorted(([a], [b]) => (a as { index: number }).index - (b as { index: number }).index);
 
         function measureBandCentres(count: number): number[] {
             const elem = document.querySelector('.ag-charts-series-area-bounds');
@@ -222,41 +224,31 @@ describe('Grouped Category', () => {
                 // absent key rather than an `undefined` one, because `objectContaining` treats a key it was
                 // given as one that has to be present.
                 expect(formatter.mock.calls.every(([p]) => !('formattedValue' in p))).toBe(true);
-                expect(formatter.mock.calls).toMatchObject([
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
-                ]);
+                // Fitted depths lay out leaf-first, so calls are matched by index rather than call order.
+                expect(byIndex(formatter.mock.calls)).toMatchObject(
+                    [
+                        params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
+                        params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
+                        params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                        params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                        params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
+                        params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                        params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                        params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
+                        params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
+                        params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                        params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                        params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
+                        params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
+                    ].flatMap((call) => [call, call])
+                );
             });
 
             test('itemStyler (init)', () => {
                 // itemStyler consumes the formatted text, so unlike the formatter it receives
                 // formattedValue. Its `value` must be the same raw ancestor array the formatter gets, not
                 // the child-index number.
-                expect(itemStyler.mock.calls).toMatchObject([
+                expect(byIndex(itemStyler.mock.calls)).toMatchObject([
                     params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Food' }),
                     params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Meat' }),
                     params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),

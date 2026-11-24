@@ -64,6 +64,10 @@ export function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChart
     const horizontalLabelOverride: Record<string, unknown> = {};
     for (const key of Object.keys(miniChartLabel ?? {})) {
         if (MINI_CHART_LABEL_EXCLUDED.has(key)) continue;
+        if (key === 'avoidCollisions') {
+            horizontalLabelOverride.collision = { alwaysShow: miniChartLabel![key] === false };
+            continue;
+        }
         horizontalLabelOverride[key] = miniChartLabel![key];
     }
     const horizontalIntervalOverride = miniChartLabel?.interval as object | undefined;

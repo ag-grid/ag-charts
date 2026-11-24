@@ -523,6 +523,9 @@ export class CartesianChartType implements ChartTypeInstance {
                 sizeLimit: axisWidth - axis.options.label.spacing,
                 padding: this.ctx.chartState.getValue('options', 'padding'),
                 scrollbars,
+                alongBounds: isVertical
+                    ? ([-seriesRect.y, scene.height - seriesRect.y] as [number, number])
+                    : ([-seriesRect.x, scene.width - seriesRect.x] as [number, number]),
             };
 
             const { primaryTickCount, bbox } = axis.calculateLayout(

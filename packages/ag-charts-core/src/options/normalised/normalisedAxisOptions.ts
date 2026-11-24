@@ -10,6 +10,7 @@ import type {
     AgAxisCrossLineListeners,
     AgAxisGridLineOptions,
     AgAxisGridStyle,
+    AgAxisLabelCollisionOptions,
     AgAxisLineOptions,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
@@ -52,10 +53,12 @@ import type { NormalisedBorderOptions, NormalisedColorType, NormalisedLineDash }
 import type { NormalisedChartLabelCollisionOptions, NormalisedLabelFitOptions } from './normalisedLabelOptions';
 
 // --- Label normalised shapes ---
+export type NormalisedAxisLabelCollisionOptions = Normalised<AgAxisLabelCollisionOptions, 'alwaysShow'>;
+
 // `mirrored`/`parallel` are axis-instance state managed by `Axis.updateDirection()`, not user-facing options.
 type AxisLabelRequiredKeys =
     | 'enabled'
-    | 'avoidCollisions'
+    | 'collision'
     | 'spacing'
     | 'fontSize'
     | 'fontFamily'
@@ -74,6 +77,7 @@ type AxisLabelRequiredKeys =
  * formattable subtypes carry it).
  */
 type AxisMorphs = {
+    collision: NormalisedAxisLabelCollisionOptions;
     color?: CssColor;
     fill?: NormalisedColorType;
     border: NormalisedBorderOptions;

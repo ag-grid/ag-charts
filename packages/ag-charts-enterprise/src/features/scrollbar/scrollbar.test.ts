@@ -760,7 +760,8 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
     async function createLongLabelChart({ position, axis, scrollbar, stacked }: LongLabelCase) {
         const vertical = isVerticalPosition(position);
         const categoryKey = vertical ? 'y' : 'x';
-        const label = vertical ? {} : { rotation: 90 };
+        // Untruncated, so the long label needs more room than the axis is granted.
+        const label = vertical ? { truncate: false } : { rotation: 90, truncate: false };
         const axes: Record<string, any> = {
             [categoryKey]: { type: 'category', position, label, ...axis },
         };
@@ -954,7 +955,9 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         const chart = await createSizedChart({
             data: LONG_LABEL_DATA.map(({ x, y }, index) => ({ x: [`group${Math.floor(index / 10)}`, x], y })),
             series: [{ type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', width: 20 }],
-            axes: { y: { type: 'grouped-category', position: 'left', thickness: axisThickness } },
+            axes: {
+                y: { type: 'grouped-category', position: 'left', thickness: axisThickness, label: { truncate: false } },
+            },
             scrollbar: { enabled: true },
             legend: { enabled: false },
         });

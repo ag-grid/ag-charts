@@ -431,9 +431,8 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
             },
             label: {
                 enabled: false,
-                avoidCollisions: false,
-                autoRotate: true,
-                minSpacing: 15,
+                collision: { alwaysShow: true, threshold: 15 },
+                rotation: [0, 335],
             },
             crossLines: [
                 {
@@ -454,7 +453,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 text: 'Custom Left Axis Title',
             },
             label: {
-                autoRotate: true,
+                rotation: [0, 335],
             },
         },
     },
@@ -4220,9 +4219,8 @@ describe('ChartOptions', () => {
             expect(numberAxis?.title?.text).toBe(theme.config.line.axes.time.title.text);
 
             expect(numberAxis?.label?.enabled).toBe(false);
-            expect(numberAxis?.label?.avoidCollisions).toBe(theme.config.line.axes.time.label.avoidCollisions);
-            expect(numberAxis?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
-            expect(numberAxis?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
+            expect(numberAxis?.label?.collision).toEqual(theme.config.line.axes.time.label.collision);
+            expect(numberAxis?.label?.rotation).toEqual(theme.config.line.axes.time.label.rotation);
 
             expect(preparedOptions.axes!.y?.title?.enabled).toBe(true);
             expect(preparedOptions.axes!.y?.title?.text).toBe('Custom Left Axis Title');

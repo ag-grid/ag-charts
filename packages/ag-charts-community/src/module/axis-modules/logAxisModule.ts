@@ -3,6 +3,7 @@ import {
     type DynamicContext,
     type NormalisedNumberAxisOptions,
     type WithoutCrossLineOptions,
+    cartesianAxisLabelFitThemeTemplate,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     logAxisOptionsDefs,
@@ -38,6 +39,7 @@ export const LogAxisModule: AxisModuleDefinition<
             line: { enabled: false },
         },
         titleAxisThemeTemplate,
+        cartesianAxisLabelFitThemeTemplate,
         commonAxisThemeTemplate
     ),
 

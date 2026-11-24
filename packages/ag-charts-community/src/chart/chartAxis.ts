@@ -59,6 +59,8 @@ export interface ChartLayout {
     padding: NormalisedPaddingOptions;
     sizeLimit: number;
     scrollbars?: ScrollbarLayoutMap;
+    /** The chart's extent along the axis, in the axis range's coordinates, which labels must stay within. */
+    alongBounds?: [number, number];
 }
 
 export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions> {
@@ -154,18 +156,15 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
 
 export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
-    autoRotate?: boolean;
-    autoRotateAngle?: number;
-    avoidCollisions: boolean;
+    collision: { threshold?: number; alwaysShow: boolean };
     border?: { enabled?: boolean; stroke?: string };
     enabled: boolean;
     format?: string | Record<string, string> | AgTimeAxisFormattableLabelUnitFormat;
     formatter?: RichFormatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
-    minSpacing?: number;
     spacing: number;
     padding?: Padding;
-    rotation?: number;
+    rotation?: number | number[];
     truncate?: boolean;
     wrapping?: TextWrap;
     maxWidth?: number;

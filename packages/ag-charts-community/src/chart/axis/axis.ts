@@ -987,12 +987,12 @@ export abstract class Axis<
 
     private getChartLayoutCacheKey(chartLayout?: ChartLayout): string {
         if (chartLayout == null) return 'none';
-        const { padding, sizeLimit } = chartLayout;
+        const { padding, sizeLimit, alongBounds } = chartLayout;
         const scrollbar = chartLayout.scrollbars?.[this.id];
         const scrollbarKey = scrollbar?.enabled
             ? `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`
             : 'none';
-        return `${sizeLimit}:${padding.top}:${padding.right}:${padding.bottom}:${padding.left}:${scrollbarKey}`;
+        return `${sizeLimit}:${padding.top}:${padding.right}:${padding.bottom}:${padding.left}:${scrollbarKey}:${alongBounds}`;
     }
 
     abstract calculateTickLayout(

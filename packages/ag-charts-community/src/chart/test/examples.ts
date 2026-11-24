@@ -1760,7 +1760,7 @@ export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCart
         x: {
             type: 'grouped-category',
             position: 'bottom',
-            label: { avoidCollisions: false },
+            label: { collision: { alwaysShow: true } },
         },
         y: {
             type: 'number',

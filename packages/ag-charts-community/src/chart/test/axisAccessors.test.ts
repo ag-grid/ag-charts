@@ -402,7 +402,7 @@ describe('tick generation helpers', () => {
 
     describe('tickLabel', () => {
         it('enables the label and applies the overrides over the defaults', () => {
-            expect(tickLabel()).toMatchObject({ enabled: true, avoidCollisions: true, fontSize: 12 });
+            expect(tickLabel()).toMatchObject({ enabled: true, collision: { alwaysShow: false }, fontSize: 12 });
             expect(tickLabel({ fontSize: 20, lineHeight: 40 })).toMatchObject({ fontSize: 20, lineHeight: 40 });
         });
     });

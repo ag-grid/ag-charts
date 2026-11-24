@@ -25,6 +25,8 @@ export interface TickDatum {
     tick: any;
     tickId: string;
     translation: number;
+    /** How far the label sits from its tick along the axis, to stay within the chart. */
+    labelShift?: number;
     textUntruncated: string | undefined;
     /** Formatter output of a label changed by maxWidth / maxHeight fitting, kept to fit it again at another rotation. */
     fitSource?: NormalisedTextOrSegments;

@@ -81,7 +81,7 @@ import {
     resetAxisLineSelectionFn,
 } from './axisUtil';
 import { generateTicks } from './generateTicks';
-import { isLabelFitEnabled } from './generateTicksUtils';
+import { isLabelFitEnabled, labelFitsRoom } from './generateTicksUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -435,7 +435,8 @@ export abstract class CartesianAxis<
             axisRotation: this.horizontal ? Math.PI / -2 : 0,
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
-            labelRoom: isLabelFitEnabled(label) ? this.getLabelRoom(scrollbar, scrollbarThickness) : undefined,
+            alongBounds: this.chartLayout?.alongBounds,
+            labelRoom: labelFitsRoom(label) ? this.getLabelRoom(scrollbar, scrollbarThickness) : undefined,
             labelStyle:
                 isLabelFitEnabled(label) && label.itemStyler != null
                     ? (value, formattedValue) => ({
@@ -452,7 +453,7 @@ export abstract class CartesianAxis<
 
         const { tickData } = tickGenerationResult;
         const removeOverflowLabels =
-            (label?.avoidCollisions ?? true) &&
+            label?.collision.alwaysShow !== true &&
             this.horizontal &&
             tickData.ticks.length > 2 &&
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
@@ -1129,7 +1130,8 @@ export abstract class CartesianAxis<
         scrollbarThickness: number
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
-        const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated, fitSource } = datum;
+        const { tickId, tickLabel: text = '', isPrimary, textUntruncated, fitSource } = datum;
+        const translation = datum.translation + (datum.labelShift ?? 0);
         const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options.label;
         const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.options.tick;
         const { rotation } = tickGenerationResult;

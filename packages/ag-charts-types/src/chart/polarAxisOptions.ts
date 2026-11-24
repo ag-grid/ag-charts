@@ -65,6 +65,8 @@ export interface AgAngleNumberAxisOptions<TContext = ContextDefault>
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
 
 interface OrientableLabel {
+    /** The rotation of the labels in degrees. */
+    rotation?: Degree;
     /**
      * Label orientation.
      * `fixed` - all labels remain in a fixed orientation of horizontal text.

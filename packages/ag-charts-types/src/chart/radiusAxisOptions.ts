@@ -18,9 +18,15 @@ import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
 interface AgRadiusAxisFormattableLabelOptions<
     TContext = ContextDefault,
-> extends AgNumericAxisFormattableLabelOptions<TContext> {}
+> extends AgNumericAxisFormattableLabelOptions<TContext> {
+    /** The rotation of the labels in degrees. */
+    rotation?: Degree;
+}
 
-interface AgRadiusAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {}
+interface AgRadiusAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {
+    /** The rotation of the labels in degrees. */
+    rotation?: Degree;
+}
 
 export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     extends

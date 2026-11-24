@@ -60,7 +60,7 @@ describe('Scene', () => {
                         type: 'time',
                         position: 'bottom',
                         title: { text: 'Date' },
-                        label: { format: '%B %Y', autoRotate: true },
+                        label: { format: '%B %Y', rotation: [0, 335] },
                         interval: { maxSpacing: 100 },
                         parentLevel: { enabled: false },
                     },

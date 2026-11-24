@@ -419,7 +419,7 @@ export abstract class AngleAxis<
             };
         });
 
-        if (label.avoidCollisions) {
+        if (!label.collision.alwaysShow) {
             this.avoidLabelCollisions(labelData);
         }
 

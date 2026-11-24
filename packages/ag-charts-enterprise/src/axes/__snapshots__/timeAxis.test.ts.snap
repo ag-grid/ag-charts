@@ -3,7 +3,7 @@
 exports[`Time Axis Examples > should prioritise parentLevel.tick over tick 1`] = `
 {
   "height": 30.798828125,
-  "width": 722,
+  "width": 723.6533334096274,
   "x": 58,
   "y": 487,
 }
@@ -21,7 +21,7 @@ exports[`Time Axis Examples > when zooming > for should render as expected as zo
 exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.2, 0.5] 1`] = `
 {
   "height": 24.798828125,
-  "width": 722,
+  "width": 723.6533334096274,
   "x": 58,
   "y": 493,
 }

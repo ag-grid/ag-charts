@@ -239,6 +239,13 @@ describe('removed deprecated options', () => {
                 axisChart({}, { overrides: { common: { axes: { category: { line: { width: 3 } } } } } }),
                 unknown('theme.overrides.common.axes.category.line.width'),
             ],
+            ...['avoidCollisions', 'minSpacing', 'autoRotate', 'autoRotateAngle'].map(
+                (key): [string, object, string] => [
+                    `axis label ${key}`,
+                    axisChart({ label: { [key]: key === 'minSpacing' || key === 'autoRotateAngle' ? 10 : true } }),
+                    unknown(`axes.x.label.${key}`),
+                ]
+            ),
             [
                 'linear gauge label avoidCollisions',
                 linearGauge({ label: { enabled: true, avoidCollisions: false } }),

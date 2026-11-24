@@ -299,7 +299,7 @@ describe('Grouped Category Axis Examples', () => {
     it('provides full text for truncated labels', async () => {
         const longLabel = 'Extremely long grouped-category axis label that forces truncation';
         const data = Array.from({ length: 6 }, (_, index) => ({
-            grouping: [`${longLabel} ${index}`, `Inner ${index}`],
+            grouping: [`Group ${index}`, `${longLabel} ${index}`],
             totalWinnings: 500 + index * 10,
         }));
 
@@ -310,7 +310,7 @@ describe('Grouped Category Axis Examples', () => {
                     type: 'grouped-category',
                     position: 'bottom',
                     label: {
-                        avoidCollisions: true,
+                        collision: { alwaysShow: false },
                     },
                     depthOptions: [
                         { label: { truncate: true, wrapping: 'never' } },

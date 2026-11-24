@@ -73,7 +73,7 @@ const options: AgChartOptions = {
             },
             label: {
                 format: '%b',
-                autoRotate: true,
+                rotation: [0, 335],
             },
         },
         y: {

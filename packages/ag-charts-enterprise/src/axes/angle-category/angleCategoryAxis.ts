@@ -79,7 +79,7 @@ export class AngleCategoryAxis extends AngleAxis<string, BandScale<string>, Norm
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        hideCollidingRadialCategoryLabels(labelData, this.options.label.minSpacing);
+        hideCollidingRadialCategoryLabels(labelData, this.options.label.collision.threshold);
     }
 
     override tickFormatParams(): _ModuleSupport.AxisTickFormatParams {

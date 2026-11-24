@@ -374,7 +374,7 @@ describe('AG-18833 rotated label fitting', () => {
         expect(ticks[0].textUntruncated).toBeDefined();
 
         const truncatedWidth = ticks[0].textMetrics.width;
-        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, (335 * Math.PI) / 180);
+        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, 335);
 
         expect(isArray(tickLabel)).toBe(true);
         expect(textMetrics.width).toBeLessThan(truncatedWidth);
@@ -405,7 +405,7 @@ describe('AG-18833 rotated label fitting', () => {
         const ticks = formatTicks(options, formatOptions(domain));
         expect(ticks.every((t) => toPlainText(t.tickLabel).includes('\n'))).toBe(true);
 
-        for (const { tickLabel, textMetrics } of fitTicksAtRotation(options, ticks, autoRotation)) {
+        for (const { tickLabel, textMetrics } of fitTicksAtRotation(options, ticks, 335)) {
             expect(toPlainText(tickLabel)).not.toBe('');
             expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(labelRoom + 0.5);
         }
@@ -421,7 +421,7 @@ describe('AG-18833 rotated label fitting', () => {
         });
 
         const ticks = formatTicks(options, formatOptions(domain));
-        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, autoRotation);
+        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, 335);
 
         expect(textMetrics.height).toBeLessThanOrEqual(20);
         expect(toPlainText(tickLabel)).toContain('First');
@@ -581,11 +581,7 @@ describe('AG-18833 rotated label fitting', () => {
         const cos = Math.abs(Math.cos(autoRotation));
 
         // Room for the label's height plus 2px of rotated width, less than an ellipsis needs.
-        const [{ tickLabel }] = fitTicksAtRotation(
-            { ...options, labelRoom: height * cos + 2 * sin },
-            ticks,
-            autoRotation
-        );
+        const [{ tickLabel }] = fitTicksAtRotation({ ...options, labelRoom: height * cos + 2 * sin }, ticks, 335);
 
         expect(tickLabel).toBe('');
     });
@@ -660,7 +656,7 @@ describe('AG-18833 rotated label fitting', () => {
         });
 
         const ticks = formatTicks(options, formatOptions(domain));
-        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, autoRotation);
+        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, 335);
 
         expect(toPlainText(tickLabel)).not.toBe('');
         const padding = { left: 8, right: 8, top: 8, bottom: 8 };
@@ -670,11 +666,10 @@ describe('AG-18833 rotated label fitting', () => {
     it('keeps wrapped labels considered for a shallow auto-rotation clear of their neighbours', () => {
         const domain = Array.from({ length: 6 }, (_, i) => `Alpha beta gamma delta epsilon zeta ${i}`);
         const scale = categoryScale(domain, 480);
-        const autoRotateAngle = 355;
 
         const result = generateTicks(
             fitOptions(scale, domain, {
-                label: { ...font, autoRotate: true, autoRotateAngle, wrapping: 'always', maxWidth: 300 },
+                label: { ...font, rotation: [0, 355], wrapping: 'always', maxWidth: 300 },
                 defaultTickMinSpacing: 0,
                 sideFlag: 1,
                 isVertical: false,
@@ -729,7 +724,7 @@ describe('AG-18833 rotated label fitting', () => {
 
     it('thins an automatically rotated time axis as it would one configured to that rotation', () => {
         const domain = [new Date(2025, 0, 1), new Date(2025, 2, 1)];
-        const ticksFor = (rotation: { rotation: number } | { autoRotate: true; autoRotateAngle: number }) => {
+        const ticksFor = (rotation: { rotation: number | number[] }) => {
             const scale = new TimeScale();
             scale.domain = domain;
             scale.range = [0, 400];
@@ -746,7 +741,7 @@ describe('AG-18833 rotated label fitting', () => {
             );
         };
 
-        const automatic = ticksFor({ autoRotate: true, autoRotateAngle: 355 });
+        const automatic = ticksFor({ rotation: [0, 355] });
         expect(automatic.rotation).not.toBe(0);
         const configured = ticksFor({ rotation: 355 });
         expect(automatic.tickData.ticks.map((t) => t.tick)).toEqual(configured.tickData.ticks.map((t) => t.tick));

@@ -23,6 +23,7 @@ import {
     labelCollisionFitOptionsDefs,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
+    number,
     numberFormatValidator,
     positiveNumber,
     ratio,
@@ -73,6 +74,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         placement: union('before', 'after'),
         format: numberFormatValidator,
         ...commonAxisLabelOptionsDefs,
+        rotation: number,
     },
     label: {
         ...seriesLabelOptionsDefs,

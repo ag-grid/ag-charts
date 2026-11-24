@@ -85,7 +85,7 @@ describe('Context Menu', () => {
         axes: {
             x: {
                 type: 'number',
-                label: { avoidCollisions: false, rotation: 0, format: '#{0.9f}' },
+                label: { collision: { alwaysShow: true }, rotation: 0, format: '#{0.9f}' },
                 listeners: { click: listeners?.xAxisClick ?? (() => {}) },
             },
             y: { type: 'number', listeners: { click: listeners?.yAxisClick ?? (() => {}) } },
@@ -654,7 +654,7 @@ describe('Context Menu', () => {
                             x: {
                                 type: 'number',
                                 crossAt: { value: 0 },
-                                label: { format: '#{0.9f}', avoidCollisions: false, rotation: 0 },
+                                label: { format: '#{0.9f}', collision: { alwaysShow: true }, rotation: 0 },
                             },
                             y: { type: 'number' },
                         },

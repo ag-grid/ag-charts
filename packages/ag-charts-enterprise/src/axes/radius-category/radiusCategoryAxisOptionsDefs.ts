@@ -20,7 +20,7 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,
-    label: commonAxisLabelOptionsDefs,
+    label: { ...commonAxisLabelOptionsDefs, rotation: number },
     title: commonAxisCaptionOptionsDefs,
     // The theme template emits `axis.options.shape = 'circle'`, which is absent from `AgRadiusCategoryAxisOptions`.
     ...undocumentedDefs({ shape: union('polygon', 'circle') }),

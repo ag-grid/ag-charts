@@ -30,7 +30,7 @@ export const AngleNumberAxisModule: AxisModuleDefinition<
         {
             startAngle: 0,
             shape: 'circle',
-            label: { spacing: 5 },
+            label: { spacing: 5, collision: { threshold: 0 } },
             gridLine: { enabled: false },
         },
         commonAxisThemeTemplate

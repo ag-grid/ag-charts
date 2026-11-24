@@ -528,7 +528,7 @@ describe('AgChart', () => {
                     bar: {
                         axes: {
                             category: {
-                                label: { autoRotate: false },
+                                label: { rotation: 0 },
                             },
                         },
                     },
@@ -550,7 +550,7 @@ describe('AgChart', () => {
                     bar: {
                         axes: {
                             category: {
-                                label: { autoRotate: undefined },
+                                label: { rotation: undefined },
                             },
                         },
                     },

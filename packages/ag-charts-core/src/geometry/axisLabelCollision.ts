@@ -3,24 +3,31 @@ import { type BoxBounds, boxCollides } from './boxBounds';
 
 const DEFAULT_TICK_LABEL_SPACING = 10;
 
-/** Gap kept between cartesian tick labels: rotated labels pack edge to edge unless `minSpacing` says otherwise. */
-export function tickLabelSpacing(minSpacing: number | undefined, rotated: boolean): number {
-    return minSpacing ?? (rotated ? 0 : DEFAULT_TICK_LABEL_SPACING);
+/** Gap kept between cartesian tick labels at any rotation. */
+export function tickLabelSpacing(threshold: number | undefined): number {
+    return threshold ?? DEFAULT_TICK_LABEL_SPACING;
 }
 
-/** True when any box collides with an earlier one after growing its width and height by `spacing`. */
-export function axisLabelsOverlap(boxes: readonly BoxBounds[], spacing: number = 0): boolean {
+/** Boxes, in their text's frame, closer than `spacing` along the text to an overlapping earlier one, counted up to `limit`. */
+export function countAxisLabelOverlaps(boxes: readonly BoxBounds[], spacing: number = 0, limit = Infinity): number {
     const result: BoxBounds[] = [];
+    let count = 0;
 
     for (const box of boxes) {
         const { x, y, width, height } = box;
-        if (result.some((l) => boxCollides(l, x, y, width + spacing, height + spacing))) {
-            return true;
+        if (result.some((l) => boxCollides(l, x - spacing, y, width + 2 * spacing, height))) {
+            count++;
+            if (count >= limit) break;
         }
         result.push(box);
     }
 
-    return false;
+    return count;
+}
+
+/** True when any box, in its text's frame, is closer than `spacing` along the text to an overlapping earlier one. */
+export function axisLabelsOverlap(boxes: readonly BoxBounds[], spacing: number = 0): boolean {
+    return countAxisLabelOverlaps(boxes, spacing, 1) > 0;
 }
 
 export interface TickLabelCandidate<T> {
@@ -29,36 +36,74 @@ export interface TickLabelCandidate<T> {
     readonly pinned: boolean;
 }
 
+export interface TickLabelFit<T> {
+    overlaps(candidate: T, rotationIndex: number): boolean;
+    /** Characters truncation drops from the labels at this rotation. */
+    droppedChars(candidate: T, rotationIndex: number): number;
+    overlapCount(candidate: T, rotationIndex: number): number;
+}
+
 /**
- * Thins tick labels by walking ever sparser, evenly spaced candidates until one has no overlapping labels,
- * auto-rotating any candidate whose labels overlap unrotated. `next` returns `undefined` once exhausted.
+ * Picks the rotation for each candidate in turn. The first rotation whose labels fit whole without colliding wins,
+ * else the clear rotation that truncates the fewest characters, ties going to the earlier rotation. When every
+ * rotation collides and `truncates` is set, the labels truncated to clear their neighbours at the last rotation are
+ * tried, as fit index `rotationCount`. Only then is the next, sparser, evenly spaced candidate tried.
  *
- * If no candidate clears the overlap, the first pinned one is kept: later ones only move the domain of fixed ticks.
+ * When labels are always shown, or no candidate clears, the fit with the fewest collisions is kept. Pinned ticks
+ * keep the first pinned candidate, as later ones only move the domain around them.
  */
 export function thinTickLabels<T>(
     next: () => TickLabelCandidate<T> | undefined,
-    overlaps: (candidate: T, autoRotation: number) => boolean,
-    avoidCollisions: boolean,
-    autoRotateAngle: number | undefined
-): { candidate: T | undefined; autoRotation: number } {
+    fit: TickLabelFit<T>,
+    alwaysShow: boolean,
+    rotationCount: number,
+    truncates = false
+): { candidate: T | undefined; rotationIndex: number } {
+    const fitCount = truncates ? rotationCount + 1 : rotationCount;
     let candidate: T | undefined;
-    let autoRotation = 0;
-    let overlap = true;
-    let firstPinned: { candidate: T; autoRotation: number } | undefined;
+    let firstPinned: T | undefined;
 
-    while (overlap) {
-        const step = next();
-        if (step == null) return firstPinned ?? { candidate, autoRotation };
+    for (let step = next(); step != null; step = next()) {
         candidate = step.candidate;
-
-        autoRotation = autoRotateAngle != null && overlaps(candidate, 0) ? autoRotateAngle : 0;
-
-        if (step.pinned) firstPinned ??= { candidate, autoRotation };
-
-        overlap = avoidCollisions && overlaps(candidate, autoRotation);
+        const rotationIndex = clearRotation(candidate, fit, rotationCount);
+        if (rotationIndex != null) return { candidate, rotationIndex };
+        if (truncates && !fit.overlaps(candidate, rotationCount)) return { candidate, rotationIndex: rotationCount };
+        if (alwaysShow) break;
+        if (step.pinned) firstPinned ??= candidate;
     }
 
-    return { candidate, autoRotation };
+    candidate = firstPinned ?? candidate;
+    if (candidate == null) return { candidate, rotationIndex: 0 };
+    return { candidate, rotationIndex: leastOverlappingRotation(candidate, fit, fitCount) };
+}
+
+function clearRotation<T>(candidate: T, fit: TickLabelFit<T>, rotationCount: number): number | undefined {
+    let best: number | undefined;
+    let bestDropped = Infinity;
+    for (let rotationIndex = 0; rotationIndex < rotationCount; rotationIndex++) {
+        if (fit.overlaps(candidate, rotationIndex)) continue;
+        const dropped = fit.droppedChars(candidate, rotationIndex);
+        if (dropped === 0) return rotationIndex;
+        if (dropped < bestDropped) {
+            best = rotationIndex;
+            bestDropped = dropped;
+        }
+    }
+    return best;
+}
+
+function leastOverlappingRotation<T>(candidate: T, fit: TickLabelFit<T>, rotationCount: number): number {
+    if (rotationCount === 1) return 0;
+    let best = 0;
+    let bestCount = Infinity;
+    for (let rotationIndex = 0; rotationIndex < rotationCount; rotationIndex++) {
+        const count = fit.overlapCount(candidate, rotationIndex);
+        if (count < bestCount) {
+            best = rotationIndex;
+            bestCount = count;
+        }
+    }
+    return best;
 }
 
 export interface EdgeLabelOverflow {
@@ -99,12 +144,12 @@ export interface RadialAxisLabel {
     box: BoxBounds | undefined;
 }
 
-function radialLabelsCollide(prev: RadialAxisLabel, next: RadialAxisLabel, minSpacing: number | undefined): boolean {
+function radialLabelsCollide(prev: RadialAxisLabel, next: RadialAxisLabel, threshold: number | undefined): boolean {
     if (prev.hidden || next.hidden) return false;
 
     const a = prev.box!;
     const b = next.box!;
-    const grow = minSpacing == null ? 0 : minSpacing / 2;
+    const grow = threshold == null ? 0 : threshold / 2;
     return boxCollides(
         { x: a.x - grow, y: a.y - grow, width: a.width + grow * 2, height: a.height + grow * 2 },
         b.x - grow,
@@ -124,10 +169,10 @@ function coincident(a: RadialAxisLabel, b: RadialAxisLabel) {
 }
 
 /** Keeps the smallest step whose pairs, walked outward from the first label in both directions, are all clear. */
-export function hideCollidingRadialCategoryLabels(labels: RadialAxisLabel[], minSpacing: number | undefined) {
+export function hideCollidingRadialCategoryLabels(labels: RadialAxisLabel[], threshold: number | undefined) {
     if (labels.length < 3) return;
 
-    const collide = (prev: RadialAxisLabel, next: RadialAxisLabel) => radialLabelsCollide(prev, next, minSpacing);
+    const collide = (prev: RadialAxisLabel, next: RadialAxisLabel) => radialLabelsCollide(prev, next, threshold);
     const firstLabel = labels[0];
     const visibleLabels = new Set<RadialAxisLabel>([firstLabel]);
     const walked = coincident(firstLabel, labels.at(-1)!) ? labels.slice(0, -1) : labels;
@@ -148,7 +193,7 @@ export function hideCollidingRadialCategoryLabels(labels: RadialAxisLabel[], min
 }
 
 /** Doubles the step from the first label until consecutive labels clear, else keeps only the first label. */
-export function hideCollidingRadialNumberLabels(labels: RadialAxisLabel[], minSpacing: number | undefined) {
+export function hideCollidingRadialNumberLabels(labels: RadialAxisLabel[], threshold: number | undefined) {
     const firstLabel = labels[0];
     const lastLabel = labels.at(-1)!;
     if (firstLabel !== lastLabel && coincident(firstLabel, lastLabel)) {
@@ -158,7 +203,7 @@ export function hideCollidingRadialNumberLabels(labels: RadialAxisLabel[], minSp
     for (let step = 1; step < labels.length; step *= 2) {
         let collisionDetected = false;
         for (let i = step; i < labels.length; i += step) {
-            if (radialLabelsCollide(labels[i - step], labels[i], minSpacing)) {
+            if (radialLabelsCollide(labels[i - step], labels[i], threshold)) {
                 collisionDetected = true;
                 break;
             }
