@@ -291,6 +291,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     optionsToolbar: {
         enabled: boolean,
         buttonSize: positiveNumber,
+        showToolButtons: boolean,
         buttons: buttonNameAdvisory(
             arrayOf(
                 or(

@@ -616,6 +616,13 @@ export interface AgAnnotationOptionsToolbar extends Toggleable {
     buttons?: AgAnnotationOptionsToolbarItem[];
     /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
     buttonSize?: PixelSize;
+    /**
+     * Whether to show Apply and Cancel buttons on the colour picker and settings dialog opened from this toolbar.
+     * In the colour picker Enter always applies and Escape always cancels; in the dialog they do so only with the buttons.
+     *
+     * Default: `false`
+     */
+    showToolButtons?: boolean;
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
