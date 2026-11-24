@@ -239,7 +239,7 @@ function containsSolidFill(node: unknown): boolean {
  * Rewrite solid colour objects as colour strings. A `fill` hands its opacity to the `fillOpacity` beside it, and a
  * solid with no colour in a list takes the palette colour at its index.
  */
-export function collapseSolidFills(
+function collapseSolidFills(
     node: unknown,
     path: Array<string>,
     isSet: (path: Array<string>) => boolean,
