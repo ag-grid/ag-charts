@@ -2392,9 +2392,10 @@ describe('OptionsGraph', () => {
             expect(marker(solid).stroke).toBeDefined();
         });
 
-        it('should fold the opacity into the colour of a fill in a list', () => {
-            const { series } = createGraph({ fills: ['green', solid, { type: 'solid', fill: 'red' }] });
-            expect(series.fills).toStrictEqual(['green', 'rgba(0, 0, 255, 0.5)', 'red']);
+        it('should fold the opacity into the colour of a fill in a list, and take a missing colour from the palette', () => {
+            const fills = ['green', solid, { type: 'solid', fill: 'red' }, { type: 'solid' }];
+            const { series } = createGraph({ fills }, ['teal', 'navy']);
+            expect(series.fills).toStrictEqual(['green', 'rgba(0, 0, 255, 0.5)', 'red', 'navy']);
         });
 
         it('should resolve a solid fill in a partial with the opacity beside it', () => {

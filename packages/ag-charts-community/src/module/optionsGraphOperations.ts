@@ -1231,17 +1231,24 @@ function applySwitchOperation(graph: OptionsGraphInterface, vertex: VertexInterf
     return defaultValue;
 }
 
-/** The solid colour standing in for a fill: itself, a pattern's stroke, or else the palette's fallback colour. */
-function solidColour(graph: OptionsGraphInterface, vertex: VertexInterface, fill: unknown) {
-    const index = getPathLastIndex(graph.getPathArray(vertex));
-    const paletteColour = (fills: unknown) =>
+/** The palette colour at `index`: a colour string, a pattern's stroke, or else the fallback colour. */
+export function paletteSolidColour(palette: PlainObject, index: number): string | undefined {
+    const colourAt = (fills: unknown) =>
         isArray(fills) && !Number.isNaN(index) ? circularSliceArray(fills, 1, index)[0] : undefined;
 
-    for (const candidate of [fill, paletteColour(graph.palette.fills)]) {
-        if (isString(candidate)) return candidate;
-        if (isPatternFill(candidate) && isString(candidate.stroke)) return candidate.stroke;
-    }
-    return paletteColour(graph.palette.fillsFallback);
+    const fill = colourAt(palette.fills);
+    if (isString(fill)) return fill;
+    if (isPatternFill(fill) && isString(fill.stroke)) return fill.stroke;
+
+    const fallback = colourAt(palette.fillsFallback);
+    return isString(fallback) ? fallback : undefined;
+}
+
+/** The solid colour standing in for a fill: itself, a pattern's stroke, or else the palette's colour. */
+function solidColour(graph: OptionsGraphInterface, vertex: VertexInterface, fill: unknown) {
+    if (isString(fill)) return fill;
+    if (isPatternFill(fill) && isString(fill.stroke)) return fill.stroke;
+    return paletteSolidColour(graph.palette, getPathLastIndex(graph.getPathArray(vertex)));
 }
 
 function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

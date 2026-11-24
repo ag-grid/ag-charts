@@ -23,7 +23,14 @@ import {
 import { detectChartType } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
-import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
+import {
+    LocationOperation,
+    type Operation,
+    getOperation,
+    isOperation,
+    operations,
+    paletteSolidColour,
+} from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
     AUTO_ENABLE_VALUE_EDGE,
@@ -218,20 +225,24 @@ const ATOMIC_LIST_OPTION_KEYS = new Set<string>([
 ]);
 
 /**
- * Replace each solid colour object under `node` with its colour, so that it then behaves as a colour string. A `fill`
- * hands its `fillOpacity` to the one beside it, multiplying when `isSet` reports that one as set; anywhere else there
- * is no opacity beside it, so it is folded into the colour.
+ * Rewrite solid colour objects as colour strings. A `fill` hands its opacity to the `fillOpacity` beside it, and a
+ * solid with no colour in a list takes the palette colour at its index.
  */
-export function collapseSolidFills(node: unknown, path: Array<string>, isSet: (path: Array<string>) => boolean) {
+export function collapseSolidFills(
+    node: unknown,
+    path: Array<string>,
+    isSet: (path: Array<string>) => boolean,
+    paletteColour: (index: number) => string | undefined
+) {
     if (Array.isArray(node)) {
         for (let index = 0; index < node.length; index++) {
             const item = node[index];
             if (isSolidFill(item)) {
-                node[index] = solidFillColour(item);
+                node[index] = solidFillColour(item) ?? paletteColour(index);
                 continue;
             }
             path.push(`${index}`);
-            collapseSolidFills(item, path, isSet);
+            collapseSolidFills(item, path, isSet, paletteColour);
             path.pop();
         }
         return;
@@ -245,7 +256,7 @@ export function collapseSolidFills(node: unknown, path: Array<string>, isSet: (p
         const value = node[key];
         if (!isSolidFill(value)) {
             path.push(key);
-            collapseSolidFills(value, path, isSet);
+            collapseSolidFills(value, path, isSet, paletteColour);
             path.pop();
             continue;
         }
@@ -540,7 +551,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
                 debug('resolve root');
                 this.resolveVertex(this.root!);
-                collapseSolidFills(this.resolved, [], this.isOptionSet);
+                collapseSolidFills(this.resolved, [], this.isOptionSet, this.paletteColour);
                 debug('resolved root', this.resolved);
 
                 debug('vertex count', this.getVertexCount());
@@ -723,6 +734,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     /** Whether the option is set in the user options, a styler's result or the theme overrides, not only defaulted. */
     private readonly isOptionSet = (path: Array<string>) => this.hasUserOption(path) || this.hasThemeOverride(path);
+    private readonly paletteColour = (index: number) => paletteSolidColour(this.palette, index);
 
     /**
      * Axis themes hold list options such as cross lines as one template object, optionally keyed by each item's
@@ -1757,7 +1769,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             collapseSolidFills(
                 partial,
                 [...path],
-                (optionPath) => hasPathSafe(userPartialOptions, optionPath) || this.isOptionSet(optionPath)
+                (optionPath) => hasPathSafe(userPartialOptions, optionPath) || this.isOptionSet(optionPath),
+                this.paletteColour
             );
 
             debug('vertex count', this.getVertexCount());
