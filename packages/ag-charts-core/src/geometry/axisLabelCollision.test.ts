@@ -14,8 +14,8 @@ import {
 } from './axisLabelCollision';
 
 describe('tickLabelSpacing', () => {
-    it('defaults to 2px', () => {
-        expect(tickLabelSpacing(undefined)).toBe(2);
+    it('defaults to 10px', () => {
+        expect(tickLabelSpacing(undefined)).toBe(10);
     });
 
     it('uses the threshold when set', () => {

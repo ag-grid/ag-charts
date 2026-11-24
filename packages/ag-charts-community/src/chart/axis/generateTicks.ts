@@ -720,20 +720,10 @@ function labelAlongExtent(
     const top = getVerticalAlignShift(textMetrics.height, 'top', textBaseline) - labelPadding.top;
     const right = left + textMetrics.width + labelPadding.left + labelPadding.right;
     const bottom = top + textMetrics.height + labelPadding.top + labelPadding.bottom;
-    const cos = Math.cos(rotation);
-    const sin = Math.sin(rotation);
-    let min = Infinity;
-    let max = -Infinity;
-    for (const [x, y] of [
-        [left, top],
-        [right, top],
-        [left, bottom],
-        [right, bottom],
-    ]) {
-        const along = isVertical ? x * sin + y * cos : x * cos - y * sin;
-        if (along < min) min = along;
-        if (along > max) max = along;
-    }
+    const alongX = isVertical ? Math.sin(rotation) : Math.cos(rotation);
+    const alongY = isVertical ? Math.cos(rotation) : -Math.sin(rotation);
+    const min = Math.min(alongX * left, alongX * right) + Math.min(alongY * top, alongY * bottom);
+    const max = Math.max(alongX * left, alongX * right) + Math.max(alongY * top, alongY * bottom);
     return [translation + min, translation + max];
 }
 

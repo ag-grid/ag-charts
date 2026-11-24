@@ -348,7 +348,6 @@ export function isLabelFitEnabled(label: { maxWidth?: number; maxHeight?: number
     return label.maxWidth != null || label.maxHeight != null || label.minimumFontSize != null;
 }
 
-/** Whether wrapping gave up on a label: plain text comes back empty, rich text with no segments. */
 /** Truncating a label to fewer characters than this leaves it unreadable. */
 export const MIN_TRUNCATED_CHARS = 3;
 
@@ -357,6 +356,7 @@ export function keptChars(text: NormalisedTextOrSegments | undefined) {
     return toPlainText(text).replaceAll(EllipsisChar, '').replaceAll(/\s/g, '').length;
 }
 
+/** Whether wrapping gave up on a label: plain text comes back empty, rich text with no segments. */
 export function isEmptyWrap(wrapped: NormalisedTextOrSegments) {
     return isArray(wrapped) ? wrapped.length === 0 : wrapped === '';
 }

@@ -270,7 +270,7 @@ export interface AgAxisLabelCollisionOptions {
     /**
      * The gap in pixels below which neighbouring labels are treated as colliding. A negative value lets labels overlap by up to that amount before they collide. A set value applies at every rotation.
      *
-     * Default: `40` on `ordinal-time` axes, `5` on radius axes and `0` on angle axes. On other cartesian axes, `2`.
+     * Default: `40` on `ordinal-time` axes, `5` on radius axes and `0` on angle axes. On other cartesian axes, `10`.
      */
     threshold?: PixelSize;
     /**
