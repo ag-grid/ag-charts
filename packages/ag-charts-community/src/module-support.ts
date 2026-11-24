@@ -51,7 +51,13 @@ export type {
     ZoomSaveMementoEvent,
 } from './core/eventsHub';
 export { ChartOptions } from './module/optionsModule';
-export type { AxisBandDatum, AxisContext, AxisFormattableLabel, AxisValuePick } from './module/axisContext';
+export type {
+    AxisBandDatum,
+    AxisContext,
+    AxisFormattableLabel,
+    AxisValuePick,
+    AxisValueTickSize,
+} from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';

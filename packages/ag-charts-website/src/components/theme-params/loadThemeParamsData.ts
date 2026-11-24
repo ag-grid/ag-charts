@@ -19,6 +19,8 @@ export const STOCK_THEMES: AgChartThemeName[] = [
     'ag-material-dark',
     'ag-financial',
     'ag-financial-dark',
+    'ag-accessible',
+    'ag-accessible-dark',
 ];
 
 export function loadThemeParamsGraph(): ThemeParamsGraph {

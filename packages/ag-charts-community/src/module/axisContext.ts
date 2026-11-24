@@ -17,8 +17,13 @@ import type {
     AgAxisListeners,
     AgAxisValue,
     AgCartesianAxisPosition,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
     FormatterParams,
 } from 'ag-charts-types';
+
+/** A number on a numeric axis; a unit, an interval or a number of milliseconds on a time axis. */
+export type AxisValueTickSize = number | AgTimeInterval | AgTimeIntervalUnit;
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => NormalisedTextOrSegments | undefined,
@@ -65,6 +70,13 @@ export interface AxisA11YTickData {
     readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
 }
 
+export interface CrossLineLabelRoom {
+    /** The axis area plus the padding cross-line labels hold on each side, which labels running across it may use. */
+    readonly across: Readonly<Record<AgCartesianAxisPosition, number>>;
+    /** The axis area plus the padding budget a label padding the chart can claim on that side. */
+    readonly outer: Readonly<Record<AgCartesianAxisPosition, number>>;
+}
+
 export interface AxisContext {
     /**
      * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
@@ -87,6 +99,8 @@ export interface AxisContext {
     readonly gridLength: number;
     readonly gridPadding: number;
     readonly range: readonly [number, number];
+    /** How far past each side of the series area a cross-line label may reach. */
+    readonly labelRoom: CrossLineLabelRoom | undefined;
     /** False while the chart hides its series area because the axes overflow it. */
     readonly seriesAreaVisible: boolean;
     /** False on axes the user cannot interact with, such as those of the navigator mini chart. */
@@ -104,6 +118,16 @@ export interface AxisContext {
         source: 'annotation-label' | 'crosshair',
         label?: AxisFormattableLabel<FormatParams, FormatterParams<any>>
     ): string;
+    /**
+     * The text that the `format` or `formatter` of the axis's crosshair label gives a value, or `undefined` when the
+     * label has neither, or its formatter leaves the value to the defaults.
+     */
+    formatWithCrosshairLabel(value: unknown): string | undefined;
+    /**
+     * The smallest step between values on the axis, not the length of its tick marks: its `tickSize` option, or else the
+     * step of its data. A numeric axis reads all of its data for that step when asked, unless `infer` is false.
+     */
+    valueTickSize(infer?: boolean): AxisValueTickSize | undefined;
     attachLabel(node: Node): void;
     /**
      * Attaches a plugin-owned scene group into one of three z-index-ordered overlay slots that

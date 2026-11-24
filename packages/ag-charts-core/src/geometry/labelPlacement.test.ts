@@ -1,9 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
+import type { AgChartLabelOrientation, AgMarkerShape, AgMarkerShapeFn, PaddingOptions } from 'ag-charts-types';
 
+import { markerShapeAnchor } from '../chart/markerShapes';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
+import { stubPath2D } from '../test/stubPath2D';
 import type { Point, SizedPoint } from '../types/scene';
 import {
     type BarLabelTarget,
@@ -29,6 +31,7 @@ import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
     type LabelAvoidance,
+    type LabelFitOptions,
     type LabelObstacle,
     type LabelPlacement,
     type OrientationAnchor,
@@ -38,13 +41,18 @@ import {
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
+    applyStyledMarker,
     labelGlyphCentre,
     labelsAvoidAxisLabels,
     placeLabels,
+    resolveAlwaysLabelFit,
     resolveLabelFit,
     writeLabelBoxCentre,
 } from './labelPlacement';
+import { markerOutline, placeMarkerOutline } from './markerOutline';
 import { SpatialIndex } from './spatialIndex';
+
+beforeAll(stubPath2D);
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
 // measureLabelText deterministic metrics, scaled by the measurer's font size.
@@ -368,6 +376,88 @@ describe('placeLabels', () => {
         };
         const withNeighbour = placeLabels(new Map([['s', seriesLabels([own, neighbour])]]), bounds, 5).get('s')!;
         expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
+    });
+
+    describe('an inside label over a marker of another series', () => {
+        // The label box spans x 92..108, y 95..105, so a 20px marker centred at x 100 or 108 overlaps it.
+        const labelled = (placement: LabelPlacement = 'inside'): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'I', width: 16, height: 10 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement,
+            placements: [placement],
+            gap: 0,
+            alwaysShow: false,
+        });
+        const markerAt = (x: number): PointLabelDatum => ({
+            point: { x, y: 100, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement: undefined,
+        });
+        const ownRank = new Map([
+            ['under', 0],
+            ['own', 1],
+            ['over', 2],
+        ]);
+        const placedOwn = (entries: [string, PointLabelDatum[]][], paintOrder?: ReadonlyMap<string, number>) =>
+            placeLabels(
+                new Map(entries.map(([id, datums]) => [id, seriesLabels(datums)])),
+                bounds,
+                5,
+                [],
+                paintOrder
+            ).get('own')!;
+
+        it.each([
+            { marker: 'offset', x: 108, other: 'under', ranked: true, placed: true },
+            { marker: 'offset', x: 108, other: 'over', ranked: true, placed: false },
+            { marker: 'offset', x: 108, other: 'under', ranked: false, placed: false },
+            { marker: 'coincident', x: 100, other: 'under', ranked: true, placed: true },
+            { marker: 'coincident', x: 100, other: 'over', ranked: true, placed: false },
+            { marker: 'coincident', x: 100, other: 'under', ranked: false, placed: false },
+        ])(
+            'over an $marker marker of series $other, paint order known: $ranked, placed: $placed',
+            ({ x, other, ranked, placed }) => {
+                const own: [string, PointLabelDatum[]] = ['own', [labelled()]];
+                const marker: [string, PointLabelDatum[]] = [other, [markerAt(x)]];
+                // Placement order is not paint order, so both must give the same answer.
+                for (const entries of [
+                    [own, marker],
+                    [marker, own],
+                ]) {
+                    expect(placedOwn(entries, ranked ? ownRank : undefined).map((l) => l.placement)).toEqual(
+                        placed ? ['inside'] : []
+                    );
+                }
+            }
+        );
+
+        it.each([
+            { neighbour: 'offset', x: 108, placed: false },
+            { neighbour: 'coincident', x: 100, placed: true },
+        ])('treats a $neighbour marker of its own series as its neighbour or own, placed: $placed', ({ x, placed }) => {
+            const labels = placedOwn(
+                [
+                    ['under', [markerAt(300)]],
+                    ['own', [labelled(), markerAt(x)]],
+                ],
+                ownRank
+            );
+            expect(labels.map((l) => l.placement)).toEqual(placed ? ['inside'] : []);
+        });
+
+        it('keeps a marker painted under it as an obstacle to a directional label', () => {
+            // The `right` box spans x 115..131, which a 20px marker centred at x 125 overlaps.
+            const labels = placedOwn(
+                [
+                    ['under', [markerAt(125)]],
+                    ['own', [labelled('right')]],
+                ],
+                ownRank
+            );
+            expect(labels).toEqual([]);
+        });
     });
 
     it('drops an avoiding label when no candidate placement fits', () => {
@@ -828,45 +918,47 @@ describe('placeLabels', () => {
         expect(result.some((l) => l.datum === label)).toBe(false);
     });
 
-    it('keeps a label clear of its own anchor marker until the threshold exceeds its spacing', () => {
-        // A labelled point that also renders a marker: the label sits `spacing` from that marker's edge,
-        // so it is exempt from threshold inflation until the threshold demands more clearance than spacing.
-        const labelled = (): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement: 'top',
-            placements: ['top'],
-            spacing: 10,
-        });
-        const place = (threshold: number, d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]), bounds, 5).get('s')!;
-
-        const kept = labelled();
-        const dropped = labelled();
-        // threshold == spacing: still clear of its own marker.
-        expect(place(10, kept).some((l) => l.datum === kept)).toBe(true);
-        // threshold > spacing: the box reaches back onto its own marker, so the label is dropped.
-        expect(place(20, dropped).some((l) => l.datum === dropped)).toBe(false);
+    // Spacing 10 under a threshold of 30: clearing its own marker by the threshold would drop the label.
+    const besideOwnMarker = (placement: LabelPlacement): PointLabelDatum => ({
+        point: { x: 100, y: 100, size: 20 },
+        label: { text: 'X', width: 30, height: 12 },
+        anchor: undefined,
+        placement,
+        placements: [placement],
+        spacing: 10,
     });
 
-    it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
-        // A diagonal label's corner gap is √2·(r + spacing) − r ≈ 18.3, not `spacing` = 10.
-        const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 20 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement,
-            placements: [placement],
-            spacing: 10,
-        });
-        const place = (d: PointLabelDatum) =>
-            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 12 })]]), bounds, 5).get('s')!;
+    it.each<LabelPlacement>(['top', 'top-right', 'right', 'bottom-left'])(
+        'never clears its own marker by the threshold, placed %s',
+        (placement) => {
+            const d = besideOwnMarker(placement);
+            const placed = placeLabels(
+                new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 30 })]]),
+                bounds,
+                5
+            ).get('s')!;
+            expect(placed.some((l) => l.datum === d)).toBe(true);
+        }
+    );
 
-        const above = labelled('top');
-        const diagonal = labelled('top-right');
-        expect(place(above).some((l) => l.datum === above)).toBe(false);
-        expect(place(diagonal).some((l) => l.datum === diagonal)).toBe(true);
+    it.each([
+        { threshold: 0, kept: false },
+        { threshold: 30, kept: false },
+        { threshold: -30, kept: true },
+    ])('drawn over its own marker, threshold $threshold, kept $kept', ({ threshold, kept }) => {
+        const d: PointLabelDatum = { ...besideOwnMarker('top'), placement: undefined, placements: undefined };
+        const placed = placeLabels(
+            new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]),
+            bounds,
+            5
+        ).get('s')!;
+        expect(placed.some((l) => l.datum === d)).toBe(kept);
+    });
+
+    it("clears another series' coincident marker by the threshold", () => {
+        const label = besideOwnMarker('top');
+        const marker: PointLabelDatum = { ...besideOwnMarker('top'), label: { text: '', width: 0, height: 0 } };
+        expect(placeAgainstOtherMarker(marker, label, 30).some((l) => l.datum === label)).toBe(false);
     });
 
     it('keeps a label flush against the shared bounds at a positive threshold', () => {
@@ -1056,6 +1148,29 @@ describe('placeLabels', () => {
             const placed = result.get('s')![0];
             expect(placed).toBeDefined();
             expect(placed.placement).toBe('inside');
+        });
+
+        // Capped at 40px, the square fills its box at unit size but only half of it at the 100px it is drawn at.
+        it('fits a restyled custom marker inside the room it has at the size it is drawn', () => {
+            const capped: AgMarkerShapeFn = ({ path, x, y, size }) => {
+                const side = Math.min(size, 40);
+                path.rect(x - side / 2, y - side / 2, side, side);
+            };
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 10 },
+                label: { text: 'L', width: 60, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                insideSize: { width: 0.7, height: 0.7 },
+                insideOffset: { x: 0, y: 0 },
+                markerSize: 100,
+                markerShape: capped,
+                markerRestyled: true,
+                alwaysShow: false,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
+            expect(result.get('s')![0].placement).toBe('top');
         });
 
         // A large marker pushes the directional candidates clear of the centred inside box, so an
@@ -2756,6 +2871,25 @@ describe('resolveLabelFit', () => {
     );
 });
 
+describe('resolveAlwaysLabelFit', () => {
+    it.each<[string, LabelFitOptions, object]>([
+        ['no fit options', {}, {}],
+        ['a bound alone', { maxWidth: 120 }, { maxWidth: 120 }],
+        ['wrapping', { wrapping: 'on-space' }, { wrapping: 'on-space' }],
+        ['truncate', { maxWidth: 120, truncate: true }, { maxWidth: 120, overflowStrategy: 'ellipsis' }],
+        ['a minimum font size', { minimumFontSize: 8 }, { minimumFontSize: 8 }],
+    ])('returns a policy for %s', (_, fit, policy) => {
+        expect(resolveAlwaysLabelFit(fit)).toEqual(policy);
+    });
+
+    it.each<[string, LabelFitOptions, string]>([
+        ['hides an overflow', {}, 'hide'],
+        ['truncates when asked to', { truncate: true }, 'ellipsis'],
+    ])('with hideOnOverflow %s', (_, fit, overflowStrategy) => {
+        expect(resolveAlwaysLabelFit(fit, true)).toEqual({ overflowStrategy });
+    });
+});
+
 describe('sectorLabelContainer', () => {
     const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
     const cornersOf = (anchor: Point, box: { width: number; height: number }) => {
@@ -2906,6 +3040,13 @@ describe('placeLabels per-candidate fit', () => {
         const blocked = placeOne(fittedLabel(region), [blocker]);
         expect(blocked.text).toBe('WW…');
         expect(blocked.x).toBeGreaterThanOrEqual(20);
+    });
+
+    it.each([0, 6])('fits the whole of its own region at threshold %i', (threshold) => {
+        const region = { x: 0, y: 0, width: 50, height: 20 };
+        const placed = placeOne(fittedLabel(region, { ownBox: region, threshold }));
+        expect(placed.text).toBe(TEXT);
+        expect(placed.rotation).toBeUndefined();
     });
 
     it('leaves the text unfitted when the datum carries no fit descriptor', () => {
@@ -3120,6 +3261,47 @@ describe('placeLabels per-candidate fit', () => {
             }
         );
 
+        // The 50px container holds the whole text exactly, so any clearance taken off it truncates.
+        const ownShapeFit = { text: TEXT, policy: { overflowStrategy: 'ellipsis' as const }, font: FONT };
+        it.each([
+            { stacked: false, threshold: 0 },
+            { stacked: false, threshold: 6 },
+            { stacked: true, threshold: 0 },
+            { stacked: true, threshold: 6 },
+        ])('fits the whole of its own shape, stacked $stacked, threshold $threshold', ({ stacked, threshold }) => {
+            const datum = buildBarPositionedLabelDatum(
+                TEXT,
+                50,
+                20,
+                [
+                    {
+                        box: { x: 25, y: 30, width: 50, height: 40 },
+                        fitTo: { container: { width: 50, height: 40 }, anchor, padding },
+                    },
+                ],
+                target(),
+                { x: 25, y: 30, width: 50, height: 40 },
+                true,
+                {},
+                threshold,
+                false,
+                ownShapeFit
+            );
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            stacked ? { ...datum, stack: { blocks: [{ fit: ownShapeFit }], spacing: 0 } } : datum,
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+            expect(placed.text).toBe(TEXT);
+        });
+
         describe('nudging along the bar', () => {
             const region = { x: 20, y: 20, width: 60, height: 60 };
             const placeNudged = (obstacle: LabelObstacle) =>
@@ -3307,6 +3489,23 @@ describe('placeLabels obstacle-driven shrink', () => {
         // Its box intrudes 20px into the label and would leave 'WW…'; the outline reaches only 9px in,
         // because the label sits near the top of the circle where it is far narrower than its box.
         expect(placeOne(shrinkableLabel(), [circle]).text).toBe('WWW…');
+    });
+
+    it('measures a marker outline at its true width across the label, not by its box', () => {
+        const cx = TOP_BOX.x + TOP_BOX.width;
+        const cy = TOP_BOX.y + TOP_BOX.height + 10;
+        const diamond: LabelObstacle = {
+            kind: 'markerOutline',
+            cx,
+            cy,
+            r: 20,
+            outline: placeMarkerOutline(markerOutline('diamond', 40)!, cx, cy, 40),
+            box: { x: cx - 20, y: cy - 20, width: 40, height: 40 },
+            category: 'marker',
+        };
+        // Its box intrudes 20px into the label and would leave 'WW…'; the diamond is 10px wide at the label's
+        // bottom edge, so it reaches only 10px in.
+        expect(placeOne(shrinkableLabel(), [diamond]).text).toBe('WWW…');
     });
 
     // A label clipping the edge of a shape far larger than itself must give up the overlap, not the whole
@@ -4117,5 +4316,328 @@ describe('placeLabels (positioned candidates)', () => {
             shapeBlocked ||= JSON.stringify(placed) !== JSON.stringify(withoutShape);
         }
         expect(shapeBlocked).toBe(true);
+    });
+});
+
+describe('placeLabels solve references', () => {
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+    const CENTRE: OrientationAnchor = { x: 200, y: 200, textAlign: 'center', textBaseline: 'middle' };
+
+    type Track = <T extends object>(name: string, value: T) => T;
+    type Solve = (track: Track) => Map<string, PlacedLabel[]>;
+
+    const boundsOf = (track: Track) => track('bounds', { x: 0, y: 0, width: 400, height: 400 });
+    const wideShape = (): FitRegion => ({ spanAt: () => [-500, 500], extentAbove: Infinity, extentBelow: Infinity });
+    // Covers every candidate around the centre, so a label it blocks walks its shrink ladder before it settles.
+    const wall = (track: Track): LabelObstacle =>
+        track('obstacle', {
+            kind: 'rect',
+            box: track('obstacle box', { x: 150, y: 150, width: 100, height: 100 }),
+            category: 'label',
+        });
+    const fitOf = (track: Track, region?: FitRegion) =>
+        track('fit', {
+            text: track('fit text', [
+                { type: 'text' as const, text: 'WWWWW' },
+                { type: 'image' as const, url: 'icon.png', width: 10, height: 10, padding: track('image padding', {}) },
+            ]),
+            policy: track('fit policy', { overflowStrategy: 'ellipsis' as const, minimumFontSize: 6, region }),
+            font: FONT,
+            boxPadding: NO_PADDING,
+            boundByRegion: true,
+        });
+    const ownDatum = (track: Track) => ({
+        point: track('point', { x: 200, y: 200, size: 10 }),
+        label: track('label', { text: 'WWWWW', width: 50, height: 20 }),
+        anchor: undefined,
+        placement: undefined,
+        // Clear of the wall, which an own box it touched would exclude.
+        ownBox: track('own box', { x: 0, y: 0, width: 10, height: 10 }),
+    });
+    const markerSeries = (track: Track): SeriesLabels =>
+        seriesLabels([
+            track('marker datum', {
+                point: { x: 50, y: 50, size: 10 },
+                label: { text: 'M', width: 10, height: 20 },
+                anchor: undefined,
+                placement: 'bottom',
+            }),
+        ]);
+
+    const diamondShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
+        path.moveTo(x, y - size / 2);
+        path.lineTo(x + size / 2, y);
+        path.lineTo(x, y + size / 2);
+        path.lineTo(x - size / 2, y);
+        path.closePath();
+    };
+
+    const compassCascade =
+        (styled: boolean, shaped = false): Solve =>
+        (track) => {
+            const markerShape = shaped ? track('marker shape', diamondShape.bind(null)) : undefined;
+            // Its outline is cached against the shape, so outlives the solve only if the engine still holds it.
+            if (markerShape != null) track('marker outline', markerOutline(markerShape, 10)!);
+            const datum: PointLabelDatum = track('datum', {
+                ...ownDatum(track),
+                markerShape,
+                fit: fitOf(track, track('fit shape', wideShape())),
+                placements: track('placements', ['top', 'bottom'] as LabelPlacement[]),
+                orientation: track('orientations', ['horizontal', 'vertical'] as AgChartLabelOrientation[]),
+                gap: 5,
+                region: track('region', { x: 0, y: 0, width: 400, height: 400 }),
+                alwaysShow: true,
+            });
+            const compass: SeriesLabels = {
+                datums: [datum],
+                defaults: track('defaults', { avoid: track('avoid', { label: true, marker: true }) }),
+                resolveCandidateStyle: styled
+                    ? track('style resolver', () => ({ font: FONT, boxPadding: NO_PADDING }))
+                    : undefined,
+            };
+            const data = new Map([
+                ['markers', markerSeries(track)],
+                ['compass', compass],
+            ]);
+            return placeLabels(data, boundsOf(track), 0, [wall(track)]);
+        };
+
+    // A restyled marker refits its `inside` label from the series' base policy, so the solve copies that base.
+    const restyledInside: Solve = (track) => {
+        const base = track('inside base', {
+            overflowStrategy: 'ellipsis' as const,
+            minimumFontSize: 6,
+            rotated: track('inside base turn', { rotation: 0, width: Infinity, height: Infinity }),
+        });
+        const datum: PointLabelDatum = track('datum', {
+            ...ownDatum(track),
+            fit: { ...fitOf(track), insideMarker: track('inside marker fit', { base, threshold: 0, masked: false }) },
+            markerSize: 60,
+            markerShape: 'square',
+            markerRestyled: true,
+            placements: track('placements', ['inside'] as LabelPlacement[]),
+            alwaysShow: true,
+        });
+        const data = new Map([
+            ['markers', markerSeries(track)],
+            ['restyled', seriesLabels([datum])],
+        ]);
+        return placeLabels(data, boundsOf(track), 0);
+    };
+
+    const positionedCandidates: Solve = (track) => {
+        const candidate = track('candidate', {
+            box: track('candidate box', { x: 175, y: 190, width: 50, height: 20 }),
+            region: track('candidate region', { x: 0, y: 0, width: 400, height: 400 }),
+            fitTo: track('fit target', {
+                container: { width: 60, height: 30 },
+                shape: track('candidate shape', wideShape()),
+                anchor: CENTRE,
+                padding: NO_PADDING,
+            }),
+        });
+        const datum: PointLabelDatum = track('datum', {
+            ...ownDatum(track),
+            fit: fitOf(track),
+            positionedCandidates: track('candidates', [candidate]),
+            neverDrop: true,
+        });
+        const resolveCandidate: PositionedCandidateResolver = track('candidate resolver', (_d, c) => c);
+        const data = new Map<string, SeriesLabels>([
+            ['markers', markerSeries(track)],
+            ['positioned', { datums: [datum], resolveCandidate }],
+        ]);
+        const paintOrder = track(
+            'paint order',
+            new Map([
+                ['markers', 0],
+                ['positioned', 1],
+            ])
+        );
+        return placeLabels(data, boundsOf(track), 0, [wall(track)], paintOrder);
+    };
+
+    const shapeFittedStack =
+        (blocked: boolean): Solve =>
+        (track) => {
+            const fit = fitOf(track);
+            const datum: PointLabelDatum = track('datum', {
+                ...ownDatum(track),
+                // Markerless, so only the wall can block it.
+                point: track('point', { x: 200, y: 200, size: 0 }),
+                fit,
+                stack: track('stack', { blocks: track('stack blocks', [track('stack block', { fit })]), spacing: 0 }),
+                positionedCandidates: [
+                    {
+                        box: { x: 175, y: 190, width: 50, height: 20 },
+                        fitTo: { shape: track('stack shape', wideShape()), anchor: CENTRE, padding: NO_PADDING },
+                    },
+                ],
+                neverDrop: true,
+            });
+            const data = new Map([
+                ['markers', markerSeries(track)],
+                ['stacked', seriesLabels([datum])],
+            ]);
+            return placeLabels(data, boundsOf(track), 0, blocked ? [wall(track)] : []);
+        };
+
+    // Synchronous, so no suspended async frame can keep the solve's objects alive across the await below.
+    function solveTracked(solve: Solve, track: Track): number {
+        let placedCount = 0;
+        for (const [seriesId, labels] of solve(track)) {
+            for (const label of labels) {
+                placedCount++;
+                track(`placed ${seriesId}`, label);
+                if (typeof label.text === 'object') track(`placed ${seriesId} text`, label.text);
+                if (label.stack != null) track(`placed ${seriesId} stack`, label.stack);
+            }
+        }
+        return placedCount;
+    }
+
+    /** Runs `solve` and names every object it tracked or placed that is still reachable once it returns. */
+    async function retainedAfter(solve: Solve) {
+        const { gc } = globalThis;
+        if (gc == null) throw new Error('Run with --expose-gc');
+        const refs = new Map<string, WeakRef<object>>();
+        const placedCount = solveTracked(solve, (name, value) => {
+            refs.set(name, new WeakRef(value));
+            return value;
+        });
+        // A WeakRef keeps its target alive until the job that created it ends.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        gc();
+        const retained = [...refs].filter(([, ref]) => ref.deref() != null).map(([name]) => name);
+        return { placedCount, retained };
+    }
+
+    it.each([
+        { path: 'a compass cascade', solve: compassCascade(false) },
+        { path: 'a styled compass cascade', solve: compassCascade(true) },
+        { path: 'a compass cascade from a custom-shaped marker', solve: compassCascade(false, true) },
+        { path: 'an inside label on a restyled marker', solve: restyledInside },
+        { path: 'positioned candidates', solve: positionedCandidates },
+        { path: 'a shape-fitted stack', solve: shapeFittedStack(false) },
+        { path: 'a blocked shape-fitted stack', solve: shapeFittedStack(true) },
+    ])('keeps no reference to the labels, datums or callbacks of $path once it returns', async ({ solve }) => {
+        expect(await retainedAfter(solve)).toEqual({ placedCount: 2, retained: [] });
+    });
+});
+
+describe('placeLabels marker outlines', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const wide: AgMarkerShapeFn = ({ path, x, y, size }) => {
+        path.moveTo(x - size, y - size / 4);
+        path.lineTo(x + size, y - size / 4);
+        path.lineTo(x + size, y + size / 4);
+        path.lineTo(x - size, y + size / 4);
+        path.closePath();
+    };
+
+    const marker = (markerShape: AgMarkerShape | undefined, x = 100, y = 100): PointLabelDatum => ({
+        point: { x, y, size: 20 },
+        markerShape,
+        label: { text: '', width: 0, height: 0 },
+        anchor: markerShapeAnchor(markerShape),
+        placement: undefined,
+    });
+
+    /** A markerless label centred on `(cx, cy)`, dropped when it collides with the other series' marker. */
+    const label = (cx: number, cy: number, size: number): PointLabelDatum => ({
+        point: { x: cx, y: cy, size: 0 },
+        label: { text: 'X', width: size, height: size },
+        anchor: undefined,
+        placement: undefined,
+    });
+
+    const placesLabel = (markerDatum: PointLabelDatum, labelDatum: PointLabelDatum) =>
+        placeLabels(
+            new Map([
+                ['markers', seriesLabels([markerDatum])],
+                ['s', seriesLabels([labelDatum], { alwaysShow: false })],
+            ]),
+            bounds,
+            5
+        )
+            .get('s')!
+            .some((l) => l.datum === labelDatum);
+
+    it.each([
+        // Over a square's corner, which its nominal circle leaves empty.
+        ['square', [113, 113, 10], false],
+        // In the corner of a diamond's box, which its nominal circle covers.
+        ['diamond', [106.75, 106.75, 2.5], true],
+        // Under the arm of a custom shape twice as wide as its size, by its path's bounding box.
+        ['wide custom', [116, 100, 4], false],
+        // Over the body of a pin, drawn above the point its tip marks.
+        ['pin', [100, 85, 6], false],
+        // Below the pin's tip, where a circle centred on the point would reach.
+        ['pin', [100, 107, 4], true],
+    ] as const)('tests a label against the outline of a %s marker', (shape, [cx, cy, size], placed) => {
+        const markerShape = shape === 'wide custom' ? wide : shape;
+        expect(placesLabel(marker(markerShape), label(cx, cy, size))).toBe(placed);
+        // The nominal circle decides the other way, so each case is one only the outline gets right.
+        expect(placesLabel(marker(undefined), label(cx, cy, size))).toBe(!placed);
+    });
+
+    // Drawn 40px wide at size 40, though its bounds at other sizes, taken as linear in size, would make it 20px.
+    it('collides with a custom shape at the bounds it is drawn with at its size', () => {
+        const capped: AgMarkerShapeFn = ({ path, x, y, size }) => {
+            const side = Math.min(size, 40);
+            path.rect(x - side / 2, y - side / 2, side, side);
+        };
+        const cappedMarker: PointLabelDatum = { ...marker(capped), point: { x: 100, y: 100, size: 40 } };
+        expect(placesLabel(cappedMarker, label(115, 100, 4))).toBe(false);
+    });
+
+    it('tests a rotated label against the outline in its own frame', () => {
+        // A 45° label parallel to a diamond's edge 18.5px away: clear of the edge, inside its nominal circle.
+        const offset = 18.5 * Math.SQRT1_2;
+        const rotated = (): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'WWWWW', width: 50, height: 20 },
+            anchor: undefined,
+            placement: undefined,
+            positionedCandidates: [
+                { box: { x: 75, y: 75, width: 50, height: 50 }, rotation: 45, orientedCollision: true },
+            ],
+        });
+        expect(placesLabel(marker('diamond', 100 - offset, 100 + offset), rotated())).toBe(true);
+        expect(placesLabel(marker(undefined, 100 - offset, 100 + offset), rotated())).toBe(false);
+    });
+
+    // The label must hang off the marker the obstacle models, or it lands on its own marker.
+    it.each([
+        ['pin', 'circle', 'bottom'],
+        ['circle', 'pin', 'top'],
+    ] as const)('places the own label of a %s marker styled to a %s at %s', (seriesShape, shape, placement) => {
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'X', width: 10, height: 10 },
+            anchor: markerShapeAnchor(seriesShape),
+            markerShape: seriesShape,
+            placement,
+        };
+        applyStyledMarker(datum, { size: 20, shape }, seriesShape, true);
+        const placed = placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5);
+        expect(placed.get('s')!.map((l) => l.datum)).toEqual([datum]);
+    });
+
+    // Neither is drawn, so the label keeps the series' shape rather than tracing the styled one.
+    it.each([
+        ['an unknown name', 'no-such-shape', 20],
+        ['a shape on an undrawn marker', 'square', 0],
+    ])('keeps the series shape for %s', (_name, shape, size) => {
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'X', width: 10, height: 10 },
+            markerShape: 'pin',
+            placement: 'bottom',
+        };
+        applyStyledMarker(datum, { size, shape }, 'pin', true);
+        expect(datum.markerShape).toBe('pin');
+        expect(datum.anchor).toBe(markerShapeAnchor('pin'));
     });
 });

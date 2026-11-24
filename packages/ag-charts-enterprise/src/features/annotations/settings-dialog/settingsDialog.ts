@@ -142,6 +142,10 @@ const COORDINATE_INPUT_TYPES = {
     offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
+function getCoordinateInputType({ kind, timePrecision }: CoordinateField) {
+    return timePrecision === 'day' ? 'date' : COORDINATE_INPUT_TYPES[kind];
+}
+
 const COLOR_PICKER_ALT_TEXT = {
     'line-color': 'toolbarAnnotationsLineColor',
     'fill-color': 'dialogInputFillColorPickerAltText',
@@ -518,7 +522,7 @@ export class AnnotationSettingsDialog extends Dialog {
         let committed = field.value;
         const input = this.createInput({
             ariaLabel,
-            type: COORDINATE_INPUT_TYPES[field.kind],
+            type: getCoordinateInputType(field),
             value: displayCoordinate(field.value, field.fractionDigits),
             step: field.step,
             range: field.range,
@@ -534,7 +538,7 @@ export class AnnotationSettingsDialog extends Dialog {
                 }
 
                 // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
-                const formatted = formatCoordinate(resolved, field.kind);
+                const formatted = formatCoordinate(resolved, field.kind, field.timePrecision);
                 input.value = displayCoordinate(formatted, field.fractionDigits);
                 if (formatted !== committed) {
                     committed = formatted;
@@ -547,9 +551,11 @@ export class AnnotationSettingsDialog extends Dialog {
         const refresh = (next: CoordinateField) => {
             field = next;
             committed = next.value;
-            if (next.step != null) {
-                input.setStep(next.step);
+            const type = getCoordinateInputType(next);
+            if (type === 'date' || type === 'datetime-local') {
+                input.setType(type);
             }
+            input.setStep(next.step);
             if (!input.isFocused()) {
                 input.value = displayCoordinate(committed, field.fractionDigits);
             }

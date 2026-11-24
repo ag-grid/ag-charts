@@ -58,12 +58,15 @@ describe('SpatialIndex', () => {
         expect(found).toBe(bruteForceCollides([stored], straddling));
     });
 
-    it('reuses backing storage across resets without leaking stale refs', () => {
+    it.each([
+        ['a reset', (index: SpatialIndex<string>) => index.reset(bounds, 30)],
+        ['a clear', (index: SpatialIndex<string>) => index.clear()],
+    ])('keeps no stale refs after %s', (_name, empty) => {
         const index = new SpatialIndex<string>();
         index.reset(bounds, 30);
         index.insert({ x: 0, y: 0, width: 10, height: 10 }, 'first');
 
-        index.reset(bounds, 30);
+        empty(index);
         const visited: string[] = [];
         index.query({ x: 0, y: 0, width: 10, height: 10 }, (ref) => {
             visited.push(ref);
@@ -123,6 +126,33 @@ describe('SpatialIndex', () => {
         });
         expect(found).toBe(true);
         expect(visits).toBe(1);
+    });
+
+    it('queryDistinct visits what query visits, in the same order, without repeats', () => {
+        const wide = { x: bounds.x - 100, y: bounds.y - 100, width: bounds.width + 200, height: bounds.height + 200 };
+        const refs = makeBoxes(400, wide).map((box) => ({ box }));
+        const index = new SpatialIndex<{ box: BoxBounds }>();
+        index.reset(bounds, 30);
+        for (const ref of refs) {
+            index.insert(ref.box, ref);
+        }
+
+        let repeats = 0;
+        for (const q of makeBoxes(300, wide)) {
+            const all: object[] = [];
+            index.query(q, (ref) => {
+                all.push(ref);
+            });
+            const distinct: object[] = [];
+            index.queryDistinct(q, (ref) => {
+                distinct.push(ref);
+            });
+            const firsts = all.filter((ref, i) => all.indexOf(ref) === i);
+            repeats += all.length - firsts.length;
+            expect(distinct).toEqual(firsts);
+            expect(distinct.every((ref, i) => ref === firsts[i])).toBe(true);
+        }
+        expect(repeats).toBeGreaterThan(0);
     });
 });
 
