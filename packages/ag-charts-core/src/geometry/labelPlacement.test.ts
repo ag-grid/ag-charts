@@ -4921,6 +4921,101 @@ describe('placeLabels slot trade', () => {
                 { text: 'abc', placement: 'top-right' },
             ]);
         });
+
+        it('re-fits a re-resolved label into containers that differ only in height', () => {
+            const region = { x: 0, y: 0, width: 286, height: 286 };
+            const truncating = (x: number, y: number, placements: LabelPlacement[], boundByRegion: boolean) => ({
+                point: { x, y, size: 0 },
+                label: { text: 'abcdef', width: 60, height: 20 },
+                fit: {
+                    text: 'abcdef',
+                    policy: { overflowStrategy: 'ellipsis' as const, maxWidth: 57 },
+                    font: FONT,
+                    boxPadding: NO_PADDING,
+                    boundByRegion,
+                },
+                anchor: undefined,
+                placement: undefined,
+                placements,
+                gap: 6,
+                avoid: { marker: false, label: true, shape: true },
+                region,
+            });
+            const obstacle: LabelObstacle = {
+                kind: 'rect',
+                category: 'label',
+                box: { x: 114, y: 91, width: 23, height: 29 },
+            };
+            const result = placeLabels(
+                new Map([
+                    [
+                        's',
+                        {
+                            datums: [
+                                { ...truncating(154, 114, ['bottom', 'top'], false), threshold: 3 },
+                                truncating(160, 149, ['top', 'bottom-right'], true),
+                            ],
+                            defaults: { alwaysShow: false },
+                        },
+                    ],
+                ]),
+                bounds,
+                0,
+                [obstacle]
+            );
+
+            expect([...result.values()].flat().map(({ text, y, placement }) => ({ text, y, placement }))).toEqual([
+                { text: 'ab…', y: 88, placement: 'top' },
+                { text: 'abcd…', y: 123, placement: 'top' },
+            ]);
+        });
+
+        it('keeps the earlier of two equally shrunk candidates when a trade re-resolves the label', () => {
+            const region = { x: 0, y: 0, width: 286, height: 286 };
+            const fit = {
+                text: 'abc',
+                policy: { overflowStrategy: 'ellipsis' as const },
+                font: FONT,
+                boxPadding: NO_PADDING,
+                boundByRegion: true,
+            };
+            // Re-resolved as the holder, vertical inside shrinks to the 'a…' horizontal inside truncates to; vertical is first.
+            const turned: PointLabelDatum = {
+                point: { x: 109, y: 103, size: 40 },
+                label: { text: 'abc', width: 30, height: 20 },
+                fit,
+                anchor: undefined,
+                placement: undefined,
+                placements: ['inside'],
+                orientation: ['vertical', 'horizontal'],
+                insideSize: { width: 0.5, height: 0.8 },
+                gap: 0,
+                avoid: { marker: true, label: false, shape: true },
+                threshold: -3,
+                region,
+            };
+            const traded: PointLabelDatum = {
+                point: { x: 131, y: 86, size: 34 },
+                label: { text: 'abc', width: 30, height: 20 },
+                fit,
+                anchor: undefined,
+                placement: undefined,
+                placements: ['bottom', 'inside'],
+                gap: 0,
+                avoid: { marker: false, label: true, shape: true },
+                region,
+            };
+            const result = placeLabels(
+                new Map([['s', { datums: [turned, traded], defaults: { alwaysShow: false } }]]),
+                bounds,
+                0
+            );
+
+            expect([...result.values()].flat().map(({ text, y, rotation }) => ({ text, y, rotation }))).toEqual([
+                { text: 'a…', y: 94.5, rotation: -90 },
+                { text: 'abc', y: 76, rotation: undefined },
+            ]);
+        });
     });
 });
 
