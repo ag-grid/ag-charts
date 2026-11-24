@@ -310,6 +310,58 @@ describe('sectorLabelPlacer', () => {
         });
     });
 
+    // Expected placements are the full overflow passes' output; the narrow non-vertical wedges skip to the hang result.
+    it.each([
+        { mid: 0, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 125, y: 10 },
+        { mid: 1, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 67.53778823351747, y: 115.18387310098706 },
+        {
+            mid: 2.6,
+            halfSpan: 0.01,
+            inner: 125,
+            outer: 250,
+            radius: 187.5,
+            x: -160.66664125667762,
+            y: 106.65650721652453,
+        },
+        {
+            mid: 0.3,
+            halfSpan: 0.01,
+            inner: 0,
+            outer: 250,
+            radius: 125,
+            x: 119.41706114070075,
+            y: 46.940025832667445,
+            min: 8,
+        },
+        { mid: 1.55, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 2.5493898819035823, y: 125.58570627196065 },
+        {
+            mid: -1.5708,
+            halfSpan: 0.02,
+            inner: 0,
+            outer: 250,
+            radius: 125,
+            x: -0.00042934831553062644,
+            y: -182.4939548960836,
+        },
+    ])(
+        'hangs a label no wedge position holds at mid $mid where every overflow pass puts it',
+        ({ mid, halfSpan, inner, outer, radius, x, y, min }) => {
+            const placed = sectorLabelPlacer(
+                anchorAt(radius, mid),
+                sector(mid, halfSpan, inner, outer),
+                NO_PADDING,
+                {},
+                0,
+                0
+            )({
+                text: 'Category 123 label',
+                policy: { minimumFontSize: min },
+                font: { fontSize: 12, fontFamily: 'sans-serif' },
+            });
+            expect(placed).toEqual({ text: 'Category 123 label', x, y, fontSize: undefined });
+        }
+    );
+
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
         // The first pass, against the estimated block, loses text that the re-placed pass fits whole.
         const s = sector(0.3, 0.6, 0, 80);

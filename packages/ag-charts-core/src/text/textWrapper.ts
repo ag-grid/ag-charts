@@ -214,7 +214,8 @@ export function fitLabelText(
     // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
     if (region != null) {
-        return wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+        const prepared = prepareRegionWrap(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed);
+        return placePreparedText(prepared, 'centre').text;
     }
     return rotated == null ? fitTextToBox(text, fit, options) : fitTurnedText(text, fit, options, rotated);
 }
@@ -372,8 +373,22 @@ export function fitLabelTextToRegion(
     overflowPlacement: OverflowPlacement = 'centre'
 ): FittedRegionText {
     if (fit?.region == null) return { text: fitLabelText(text, fit, font), offsetX: 0, offsetY: 0 };
+    return placePreparedText(prepareTextToRegion(text, fit, fit.region, font, anchored), overflowPlacement);
+}
+
+/**
+ * {@link fitLabelTextToRegion} short of placing a block that loses text, for a caller placing one fit more than
+ * one way: {@link placePreparedText} finishes it, and `region` must answer then as it does now.
+ */
+export function prepareTextToRegion(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    region: FitRegion,
+    font: FontOptions,
+    anchored = false
+): PreparedRegionWrap {
     const overflow = fit.overflowStrategy ?? 'preserve';
-    return wrapTextToRegion(
+    return prepareRegionWrap(
         text,
         {
             font,
@@ -384,12 +399,35 @@ export function fitLabelTextToRegion(
             overflow,
             rejectTallFirstLine: true,
         },
-        fit.region,
+        region,
         fit.regionAlign ?? 'center',
         anchored,
-        fit.boxed,
-        overflowPlacement
+        fit.boxed
     );
+}
+
+/** Places a prepared wrap: a preserved block that lost text to the shape is laid out past it, per `overflowPlacement`. */
+export function placePreparedText(
+    prepared: PreparedRegionWrap,
+    overflowPlacement: OverflowPlacement
+): FittedRegionText {
+    if (prepared.kind === 'segments') return placeSegmentsInRegion(prepared, overflowPlacement);
+    const { options, region, align, boxed, fitted, source, lineHeight } = prepared;
+    if (overflowPlacement === 'none' || source == null) return fitted;
+    const { offsetX } = fitted;
+    const overflow = wrapOverflowingBlock(
+        region,
+        align,
+        overflowPlacement === 'hang',
+        boxed,
+        offsetX,
+        lineHeight,
+        lineHeight,
+        (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
+        (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
+        (wrapped) => countLines(wrapped) * lineHeight
+    );
+    return { text: overflow.text, offsetX, offsetY: overflow.offsetY };
 }
 
 // A pass over a narrowing shape discovers at most one more line than the last one, so a segmented block's
@@ -564,24 +602,53 @@ function markLostText(
     return lines.join('\n');
 }
 
+/** A region wrap short of placing a block that lost text; see {@link prepareTextToRegion}. */
+export type PreparedRegionWrap = PreparedPlainWrap | PreparedSegmentWrap;
+
+interface PreparedPlainWrap {
+    readonly kind: 'plain';
+    readonly options: WrapOptions;
+    readonly region: FitRegion;
+    readonly align: RegionAlign;
+    readonly boxed: boolean;
+    /** The layout keeping the most text, which stands wherever nothing is laid out past the shape. */
+    readonly fitted: FittedRegionText;
+    /** The source, set only when a preserved best layout lost some of it and so overflows the shape. */
+    readonly source?: string;
+    readonly lineHeight: number;
+}
+
+interface PreparedSegmentWrap {
+    readonly kind: 'segments';
+    readonly text: NormalisedContentSegment[];
+    readonly options: WrapOptions;
+    readonly passOptions: WrapOptions;
+    readonly region: FitRegion;
+    readonly align: RegionAlign;
+    readonly boxed: boolean;
+    readonly sourceHeight: number;
+    readonly fitted: FittedRegionText;
+    /** Whether the fit dropped an image to the shape's height, worked out once for every placement that asks. */
+    lostImage?: boolean;
+}
+
 /**
  * Wraps `text` to the room `region` offers. The block's height decides which bands its lines land in, and
  * those bands decide how the text wraps, so the two are settled by trying each line count the shape has
  * room for and keeping the layout that loses the least text — fewest lines first, so a block that fits
  * whole never spreads itself out.
  */
-function wrapTextToRegion(
+function prepareRegionWrap(
     text: NormalisedTextOrSegments,
     options: WrapOptions,
     region: FitRegion,
     align: RegionAlign,
     anchored = false,
-    boxed = false,
-    overflowPlacement: OverflowPlacement = 'centre'
-): FittedRegionText {
+    boxed = false
+): PreparedRegionWrap {
     const limit = Math.min(options.maxHeight ?? Infinity, region.extentAbove + region.extentBelow);
     if (isArray(text)) {
-        return refineSegmentsToRegion(text, options, region, align, limit, boxed, overflowPlacement);
+        return refineSegmentsToRegion(text, options, region, align, limit, boxed);
     }
 
     // One line's height, not the measured block's: a source carrying its own line breaks would otherwise
@@ -604,25 +671,13 @@ function wrapTextToRegion(
         }
         if (bestKept >= wanted && best?.consistent === true) break;
     }
-    if (best == null) return { text, offsetX: 0, offsetY: 0 };
-    // Preserved text that lost some to the shape is laid out past it; a best that lost text is consistent.
-    if (overflowPlacement !== 'none' && preservesText(options) && bestKept < wanted) {
-        const { offsetX } = best;
-        const overflow = wrapOverflowingBlock(
-            region,
-            align,
-            overflowPlacement === 'hang',
-            boxed,
-            offsetX,
-            lineHeight,
-            lineHeight,
-            (drawn, held) => rowHeightsBetween(held.length, drawn, lineHeight),
-            (maxWidthAt) => wrapTextOrSegments(source, { ...options, lineHeight, maxHeight: undefined, maxWidthAt }),
-            (wrapped) => countLines(wrapped) * lineHeight
-        );
-        return { text: overflow.text, offsetX, offsetY: overflow.offsetY };
-    }
-    return { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+    const fitted =
+        best == null
+            ? { text, offsetX: 0, offsetY: 0 }
+            : { text: best.text, offsetX: best.offsetX, offsetY: best.offsetY };
+    // A best that lost text is consistent, and only a preserved one is laid out past the shape.
+    const overflows = best != null && preservesText(options) && bestKept < wanted;
+    return { kind: 'plain', options, region, align, boxed, fitted, source: overflows ? source : undefined, lineHeight };
 }
 
 /** Holds each row of a preserved block to its room in every held block height, until the wrap draws one of them. */
@@ -746,9 +801,8 @@ function refineSegmentsToRegion(
     region: FitRegion,
     align: RegionAlign,
     limit: number,
-    boxed: boolean,
-    overflowPlacement: OverflowPlacement
-) {
+    boxed: boolean
+): PreparedSegmentWrap {
     const sourceHeight = measureText(text, options.font).height;
     let height = sourceHeight;
     let lines = 1;
@@ -772,8 +826,17 @@ function refineSegmentsToRegion(
         if (next === height) break;
         height = next;
     }
+    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
+    const fitted = { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
+    return { kind: 'segments', text, options, passOptions, region, align, boxed, sourceHeight, fitted };
+}
+
+function placeSegmentsInRegion(prepared: PreparedSegmentWrap, overflowPlacement: OverflowPlacement) {
+    const { text, options, passOptions, region, align, boxed, sourceHeight, fitted } = prepared;
+    if (overflowPlacement === 'none' || !preservesText(options)) return fitted;
+    prepared.lostImage ??= lostImageToHeight(text, fitted.text, passOptions);
     // Preserved segments keep their text past the shape as before, so only one that lost an image is laid out past it.
-    if (overflowPlacement !== 'none' && preservesText(options) && lostImageToHeight(text, result, passOptions)) {
+    if (prepared.lostImage) {
         const overflow = wrapOverflowingBlock(
             region,
             align,
@@ -788,8 +851,7 @@ function refineSegmentsToRegion(
         );
         return { text: overflow.text, offsetX: 0, offsetY: overflow.offsetY };
     }
-    // Segments are centred on the anchor's column, so the block only moves along the bands it was fitted to.
-    return { text: result, offsetX: 0, offsetY: blockTop + Math.min(height, limit) / 2 };
+    return fitted;
 }
 
 /** Whether `result` dropped an image the same wrap keeps without its height bound; a text-only source is one scan. */

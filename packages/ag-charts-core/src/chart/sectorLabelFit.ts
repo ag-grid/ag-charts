@@ -5,7 +5,7 @@ import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import { type FitRegion, ReusableInsetRegion, probedFitRegion, regionTextCapacity } from '../geometry/fitRegion';
 import type { LabelFitDescriptor, PlacedFit } from '../geometry/labelPlacement';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
+import { cachedTextMeasurer, measureLabelText, resolvePadding } from '../rendering/textMeasurer';
 import { BBox } from '../scene/bbox';
 import { Text, type TextBoxingProperties } from '../scene/shape/text';
 import {
@@ -20,16 +20,17 @@ import { toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type OverflowPlacement,
+    type PreparedRegionWrap,
     drawnLineHeight,
     findLargestFontSizeDescending,
-    fitLabelTextToRegion,
     fontWithSize,
     isErased,
     keptContent,
     lostContent,
+    placePreparedText,
+    prepareTextToRegion,
     resolveMinimumFontSize,
     showsContent,
-    withFitRegion,
 } from '../text/textWrapper';
 import type { Point } from '../types/scene';
 import type { FontOptions } from '../types/text';
@@ -328,6 +329,101 @@ function wedgeLabelLayout(boxing: TextBoxingProperties): WedgeLabelLayout {
     };
 }
 
+/**
+ * Longest vertical segment the sector could hold, ignoring its hole, as the longest one in the kite of its centre,
+ * its arc's ends and the meeting point of their tangents, which holds the sector; `Infinity` past a quarter turn.
+ */
+function maxVerticalChord({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries) {
+    const sweep = Math.abs(endAngle - startAngle);
+    if (Number.isNaN(sweep) || sweep > Math.PI / 2) return Infinity;
+    const radius = Math.max(0, innerRadius, outerRadius);
+    const mid = (startAngle + endAngle) / 2;
+    const tip = radius / Math.cos(sweep / 2);
+    kiteX[1] = radius * Math.cos(startAngle);
+    kiteY[1] = radius * Math.sin(startAngle);
+    kiteX[2] = tip * Math.cos(mid);
+    kiteY[2] = tip * Math.sin(mid);
+    kiteX[3] = radius * Math.cos(endAngle);
+    kiteY[3] = radius * Math.sin(endAngle);
+    // The chord's length is concave across a convex polygon, so it peaks above a vertex.
+    let longest = 0;
+    for (let v = 0; v < 4; v += 1) {
+        const x = kiteX[v];
+        let low = Infinity;
+        let high = -Infinity;
+        for (let i = 0; i < 4; i += 1) {
+            const x0 = kiteX[i];
+            const y0 = kiteY[i];
+            const x1 = kiteX[(i + 1) % 4];
+            const y1 = kiteY[(i + 1) % 4];
+            if (x < Math.min(x0, x1) || x > Math.max(x0, x1)) continue;
+            const y = x0 === x1 ? y0 : y0 + ((x - x0) * (y1 - y0)) / (x1 - x0);
+            low = Math.min(low, y, x0 === x1 ? y1 : y);
+            high = Math.max(high, y, x0 === x1 ? y1 : y);
+        }
+        longest = Math.max(longest, high - low);
+    }
+    return longest;
+}
+
+// OPTIMIZATION: the kite's corners, the centre first, refilled by each maxVerticalChord call.
+const kiteX = new Float64Array(4);
+const kiteY = new Float64Array(4);
+
+/**
+ * True when no line of plain text in `font` can pass the gate in `sector`, however it is wrapped or placed: every
+ * line box is a line tall (canvas font metrics belong to the font, not the string), less any negative box padding,
+ * and a box whose corners pass the wedge test spans a vertical chord that long, which the sector does not have.
+ */
+function holdsNoLine(sector: SectorBoundaries, font: FontOptions, boxing: TextBoxingProperties) {
+    const { lineHeight } = font;
+    // A zero or non-finite line height leaves rows a node draws with no height of their own.
+    if (lineHeight != null && !(lineHeight > 0 && Number.isFinite(lineHeight))) return false;
+    const boxed = boxing.fill != null || (boxing.border?.enabled === true && boxing.border.stroke != null);
+    const boxPadding = resolvePadding(boxed ? boxing.padding : undefined);
+    const shortest = drawnLineHeight(font) + Math.min(0, boxPadding.top) + Math.min(0, boxPadding.bottom);
+    // The margin outweighs any rounding in the corners the gate tests.
+    const margin = 1e-6 * (Math.max(0, sector.innerRadius, sector.outerRadius) + shortest);
+    return maxVerticalChord(sector) < shortest - margin;
+}
+
+/** A probed wedge: the rect and region for a line height and block, and the wraps worked out in it at the floor. */
+interface WedgeProbe {
+    lineHeight: number;
+    block?: BlockSize;
+    rect: SectorLabelRect;
+    region: FitRegion;
+    /** The font the kept wraps were worked out for, the latest wrap's clearance, and the wrap itself. */
+    preparedFor?: FontOptions;
+    preparedInset?: number;
+    prepared?: PreparedRegionWrap;
+    /** Every clearance's wrap, once a second one is kept; most labels never retry, so most never need it. */
+    preparedByInset?: Map<number, PreparedRegionWrap>;
+}
+
+function preparedAt(probe: WedgeProbe, sized: FontOptions, inset: number) {
+    if (probe.preparedFor !== sized) return undefined;
+    return probe.preparedInset === inset ? probe.prepared : probe.preparedByInset?.get(inset);
+}
+
+function keepPrepared(probe: WedgeProbe, sized: FontOptions, inset: number, prepared: PreparedRegionWrap) {
+    if (probe.preparedFor !== sized) {
+        probe.preparedFor = sized;
+        probe.preparedByInset = undefined;
+    } else if (probe.prepared != null) {
+        probe.preparedByInset ??= new Map();
+        probe.preparedByInset.set(probe.preparedInset!, probe.prepared);
+        probe.preparedByInset.set(inset, prepared);
+    }
+    probe.preparedInset = inset;
+    probe.prepared = prepared;
+}
+
+/** Whether two placements of plain text lay out alike; segment arrays are not compared. */
+function samePlacement(a: PlacedSectorLabel, b: PlacedSectorLabel) {
+    return typeof a.text === 'string' && a.text === b.text && a.x === b.x && a.y === b.y;
+}
+
 function sameBlock(a: BlockSize | undefined, b: BlockSize | undefined) {
     if (a == null || b == null) return a === b;
     return a.width === b.width && a.height === b.height;
@@ -379,8 +475,32 @@ const bandTester = new SectorPointTester();
 
 // OPTIMIZATION: scratch for placeOnAnchor's padded box, which it tests once per label.
 const heldBox = { x: 0, y: 0, width: 0, height: 0 };
-// OPTIMIZATION: every pass insets the wedge afresh, into this one region, released once the label is placed.
-const wedgeInset = new ReusableInsetRegion();
+// OPTIMIZATION: one inset region per clearance, kept across a label's passes while the region it insets stands,
+// so a pass asking for bands another pass worked out reads them; all are released once the label is placed.
+const wedgeInsets = new Map<number, { region: ReusableInsetRegion; of?: FitRegion; label: number }>();
+// Counts the labels placed, so a region inset for an earlier label is never read as this one's.
+let wedgeLabel = 0;
+
+function wedgeInset(inset: number, of: FitRegion, dx: number, dy: number) {
+    let entry = wedgeInsets.get(inset);
+    if (entry == null) {
+        entry = { region: new ReusableInsetRegion(), label: wedgeLabel };
+        wedgeInsets.set(inset, entry);
+    }
+    if (entry.of !== of || entry.label !== wedgeLabel) {
+        entry.region.reset(of, dx, dy);
+        entry.of = of;
+        entry.label = wedgeLabel;
+    }
+    return entry.region;
+}
+
+function releaseWedgeInsets() {
+    for (const entry of wedgeInsets.values()) {
+        entry.region.release();
+        entry.of = undefined;
+    }
+}
 const LINE_BREAK = /\r?\n/;
 
 /** The wedge's usable region depends on the line height and block, so it is probed again whenever either changes. */
@@ -391,14 +511,33 @@ function fitSectorLabelToWedge(
     anchor: Point,
     sector: SectorBoundaries,
     padding: Required<PaddingOptions>,
+    boxing: TextBoxingProperties,
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
     const inSector = wedgeTester.reset(sector).contains;
     const onAnchor = placeOnAnchor(text, fit, font, anchor, sector, wedgeTester, padding, layout);
     if (onAnchor != null) return onAnchor;
     const holdsColumn = sectorColumnTest(sector);
-    // A retry that only adds clearance keeps the line height and block, so it reuses their rect and region.
-    let probed: { lineHeight: number; block?: BlockSize; rect: SectorLabelRect; region: FitRegion } | undefined;
+    const probe = (lineHeight: number, block: BlockSize | undefined): WedgeProbe => {
+        const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
+        const at = { x: rect.centerX, y: rect.centerY };
+        const region = probedFitRegion(at, inSector, Math.abs(sector.outerRadius) * 2, holdsColumn, wedgeTester);
+        return { lineHeight, block, rect, region };
+    };
+    // Every pass starts from the estimated block, so its probe is kept apart from the one for a measured block.
+    let unblocked: WedgeProbe | undefined;
+    let blocked: WedgeProbe | undefined;
+    const probeFor = (lineHeight: number, block: BlockSize | undefined) => {
+        if (block == null) {
+            if (unblocked?.lineHeight !== lineHeight) unblocked = probe(lineHeight, undefined);
+            return unblocked;
+        }
+        if (blocked?.lineHeight !== lineHeight || !sameBlock(blocked.block, block)) blocked = probe(lineHeight, block);
+        return blocked;
+    };
+    wedgeLabel += 1;
+    const padX = Math.max(padding.left, padding.right);
+    const padY = Math.max(padding.top, padding.bottom);
     const place = (
         sized: FontOptions,
         atFloor: boolean,
@@ -407,22 +546,9 @@ function fitSectorLabelToWedge(
         block: BlockSize | undefined
     ) => {
         const lineHeight = drawnLineHeight(sized);
-        if (probed?.lineHeight !== lineHeight || !sameBlock(probed.block, block)) {
-            const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
-            const at = { x: rect.centerX, y: rect.centerY };
-            probed = {
-                lineHeight,
-                block,
-                rect,
-                region: probedFitRegion(at, inSector, Math.abs(sector.outerRadius) * 2, holdsColumn, wedgeTester),
-            };
-        }
+        const probed = probeFor(lineHeight, block);
         const { rect } = probed;
-        const region = wedgeInset.reset(
-            probed.region,
-            Math.max(padding.left, padding.right) + inset,
-            Math.max(padding.top, padding.bottom) + inset
-        );
+        const region = wedgeInset(inset, probed.region, padX + inset, padY + inset);
         // The region bounds the text the same way the wedge does but for the block's own place in it,
         // padding included, so it refuses what the wedge-wide bounds let through — still before any layout.
         if (!atFloor && measureLabelText(text, sized).width > regionTextCapacity(region, lineHeight)) {
@@ -432,7 +558,13 @@ function fitSectorLabelToWedge(
         const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
         // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
         // room on one side: the text would be wrapped for bands it is then not drawn in.
-        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored, overflow);
+        // At the floor every pass wraps alike and differs only past the wedge, so they share one wrap per clearance.
+        let prepared = atFloor ? preparedAt(probed, sized, inset) : undefined;
+        if (prepared == null) {
+            prepared = prepareTextToRegion(text, policy, region, sized, rect.anchored);
+            if (atFloor) keepPrepared(probed, sized, inset, prepared);
+        }
+        const fitted = placePreparedText(prepared, overflow);
         return {
             placed: { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY + fitted.offsetY },
             rectHeight: rect.height,
@@ -452,8 +584,13 @@ function fitSectorLabelToWedge(
         // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
         let best: PlacedSectorLabel | undefined;
         let bestKept = 0;
+        let laid: PlacedSectorLabel | undefined;
+        let laidBoxes: BBox[] = [];
         for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && showsContent(placed.text); attempt += 1) {
-            const boxes = layout(placed, sized);
+            // More clearance often places the same text in the same spot, which lays out as it did before.
+            const boxes = laid != null && samePlacement(laid, placed) ? laidBoxes : layout(placed, sized);
+            laid = placed;
+            laidBoxes = boxes;
             const inWedge = areLineBoxesInSector(boxes, sector);
             const kept = inWedge ? keptContent(placed.text) : 0;
             // A later pass ties only by placing the same text better, so equal candidates prefer it.
@@ -489,10 +626,23 @@ function fitSectorLabelToWedge(
     const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
         const placed = placeInWedgeAs(sized, atFloor, 'none');
         if (!atFloor || fit.overflowStrategy != null || !lostContent(text, placed.placed.text)) return placed;
+        if (!isArray(text) && holdsNoLine(sector, sized, boxing)) return hangOutOfWedge(sized);
         const hung = placeInWedgeAs(sized, atFloor, 'hang');
         if (hung.inWedge) return hung;
         const centred = placeInWedgeAs(sized, atFloor, 'centre');
         return centred.inWedge ? centred : hung;
+    };
+    // The hung pass where no line can pass the gate: whole text at every clearance, none drawn inside the wedge, so
+    // it ends where its retries run out, and the centred pass, never inside either, leaves it standing.
+    const hangOutOfWedge = (sized: FontOptions) => {
+        let inset = 0;
+        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS; attempt += 1) {
+            const next = WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
+            if (next === inset) break;
+            inset = next;
+        }
+        const { placed } = place(sized, true, 'hang', inset, undefined)!;
+        return { placed: { ...placed, text: showsContent(placed.text) ? placed.text : '' }, inWedge: false };
     };
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
     if (floor >= font.fontSize) return placeInWedge(font, true).placed;
@@ -534,9 +684,9 @@ export function sectorLabelPlacer(
         const layout = wedgeLabelLayout(boxing);
         let placed: PlacedSectorLabel;
         try {
-            placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, layout);
+            placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, boxing, layout);
         } finally {
-            wedgeInset.release();
+            releaseWedgeInsets();
             wedgeNode!.text = '';
         }
         if (!showsContent(placed.text)) return undefined;
