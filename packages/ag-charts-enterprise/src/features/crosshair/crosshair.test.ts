@@ -1428,13 +1428,6 @@ describe('Crosshair', () => {
                 hover: [CANDLES[1].date, 120],
                 expected: { highKey: 140, lowKey: 95, closeKey: 105 },
             },
-            'draws a line per value for axis snap true and nearest mode without a list': {
-                options: candleOptions([candlestick({ crosshairSnapMode: 'nearest' })], {
-                    y: { type: 'number', crosshair: { snap: true } },
-                }),
-                hover: [CANDLES[1].date, 120],
-                expected: { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 },
-            },
             'follows the pointer for axis snap false whatever the list': {
                 options: candleOptions([candlestick({ crosshairSnapTo: ['close'] })], {
                     y: { type: 'number', crosshair: { snap: false } },
@@ -1573,11 +1566,21 @@ describe('Crosshair', () => {
             });
         });
 
-        describe('crosshairSnapMode nearest', () => {
+        describe.each([
+            [
+                'with every value listed',
+                candleOptions([
+                    candlestick({ crosshairSnapTo: ['open', 'high', 'low', 'close'], crosshairSnapMode: 'nearest' }),
+                ]),
+            ],
+            [
+                'with axis snap true and no list',
+                candleOptions([candlestick({ crosshairSnapMode: 'nearest' })], {
+                    y: { type: 'number', crosshair: { snap: true } },
+                }),
+            ],
+        ])('crosshairSnapMode nearest %s', (_name, nearestOptions) => {
             const ALL_VALUES = { openKey: 110, highKey: 140, lowKey: 95, closeKey: 105 };
-            const nearestOptions = candleOptions([
-                candlestick({ crosshairSnapTo: ['open', 'high', 'low', 'close'], crosshairSnapMode: 'nearest' }),
-            ]);
 
             it('draws one line at the value nearest the pointer', async () => {
                 chart = await createEnterpriseChart(nearestOptions);
@@ -1589,7 +1592,7 @@ describe('Crosshair', () => {
                 expectLines('left', { lowKey: ALL_VALUES.lowKey });
             });
 
-            it('draws every listed value for a datum highlighted by keyboard', async () => {
+            it('draws every value for a datum highlighted by keyboard', async () => {
                 chart = await createEnterpriseChart(nearestOptions);
 
                 await tabIntoChart(chart);
@@ -1598,7 +1601,7 @@ describe('Crosshair', () => {
                 expect(lineKeys('left').toSorted(byName)).toEqual(Object.keys(ALL_VALUES).toSorted(byName));
             });
 
-            it('draws every listed value when the keyboard moves on from a hover', async () => {
+            it('draws every value when the keyboard moves on from a hover', async () => {
                 chart = await createEnterpriseChart(nearestOptions);
 
                 await hoverDatum(CANDLES[1].date, 138);

@@ -6,6 +6,7 @@ import { isArray } from '../data/typeGuards';
 import type { FitRegion } from '../geometry/fitRegion';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { cachedTextMeasurer, measureTextSegments } from '../rendering/textMeasurer';
+import { seedMulberryRandom } from '../test/random';
 import type { ITextMeasurer, MeasuredSegment } from '../types/text';
 import { EllipsisChar, appendEllipsis } from './textUtil';
 import type { FontOptions } from './textUtil';
@@ -132,16 +133,6 @@ function hasOrphanedCombiningMark(str: string): boolean {
         }
     }
     return false;
-}
-
-// mulberry32: a reproducible sequence in [0, 1) per seed, so a failing generated case can be replayed.
-function seededRandom(seed: number) {
-    return () => {
-        seed = Math.trunc(seed + 0x6d2b79f5) % 2 ** 32;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
 }
 
 const E = EllipsisChar; // shorthand for assertions
@@ -333,7 +324,7 @@ describe('truncateLine', () => {
         });
 
         it('returns the longest prefix whose drawn width fits, for generated text and widths', () => {
-            const random = seededRandom(18631);
+            const random = seedMulberryRandom(18631);
             for (const join of [-3, -1, 1, 3]) {
                 const joined = createMockMeasurer(10, join);
                 for (let n = 0; n < 200; n++) {
@@ -565,10 +556,16 @@ describe('wrapLines', () => {
         it.each([
             ['keeps the words of a line that clipping keeps', 'AA BB CC DD EE FF G', ['AA BB CC', `DD EE FF${E}`]],
             ['joins a word onto a clipped last line', 'AA BB CC DDDDD EEEEEEEE', ['AA BB', `CC DDDDD${E}`]],
-            ['rejoins across an explicit line break', 'AA BB C\nDDDD EEEEEEEEE', ['AA BB', `C DDDD${E}`]],
+            ['stops at an explicit line break', 'AA BB C\nDDDD EEEEEEEEE', ['AA BB C', `DDDD${E}`]],
             ['leaves a line clipped to a lone ellipsis', `AA BB CC ${WIDE_GRAPHEME} D`, ['AA BB CC', E]],
         ])('runs after clipping: %s', (_, text, expected) => {
             expect(wrapLines(text, { font, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT })).toEqual(expected);
+        });
+
+        it('does not rejoin across an explicit line break after a row the shape dropped', () => {
+            const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 100 : 50);
+            const options = { font, maxWidth: 100, lineHeight: LINE_HEIGHT, maxWidthAt };
+            expect(wrapLines(`AA BB CC ${WIDE_GRAPHEME}\nD`, options)).toEqual(['AA BB CC', 'D']);
         });
     });
 
@@ -1438,7 +1435,7 @@ describe('measureTextSegments — lineHeight', () => {
         it('for generated segments, line heights, bounds and wrapping modes', () => {
             const wrappings: TextWrap[] = ['on-space', 'always', 'hyphenate', 'never'];
             for (let seed = 1; seed <= 200; seed++) {
-                const random = seededRandom(seed);
+                const random = seedMulberryRandom(seed);
                 const pick = <T>(values: readonly T[]) => values[Math.floor(random() * values.length)];
                 const word = () => 'A'.repeat(1 + Math.floor(random() * 5));
                 const segments = Array.from({ length: 1 + Math.floor(random() * 4) }, () =>
@@ -1683,6 +1680,34 @@ describe('fitLabelText bounded by a shape', () => {
         const region: FitRegion = { spanAt: () => [-85, 85], extentAbove: 0, extentBelow: 2 * LINE_HEIGHT };
         const fit: LabelFit = { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' };
         expect(fitText(fit)).toBe(`ABAAD AC\nA DDBCABD${E}`);
+    });
+
+    it.each([
+        ['fitLabelText', (source: string, fit: LabelFit) => String(fitLabelText(source, fit, font))],
+        [
+            'fitLabelTextToRegion',
+            (source: string, fit: LabelFit) => String(fitLabelTextToRegion(source, fit, font).text),
+        ],
+        [
+            'rich text',
+            (source: string, fit: LabelFit) => textOf(fitLabelText([text(source)], fit, font) as MeasuredSegment[]),
+        ],
+        [
+            'rich text broken between segments',
+            (source: string, fit: LabelFit) => {
+                const [first, rest] = source.split('\n');
+                return textOf(fitLabelText([text(`${first}\n`), text(rest)], fit, font) as MeasuredSegment[]);
+            },
+        ],
+    ])('%s never moves a word across an explicit line break', (_, fitText) => {
+        const fit = (lines: number): LabelFit => ({
+            region: { spanAt: () => [-45, 45], extentAbove: 0, extentBelow: lines * LINE_HEIGHT },
+            regionAlign: 'start',
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
+        });
+        expect(fitText('AA BB C\nD', fit(5))).toBe('AA BB C\nD');
+        expect(fitText('AA BB C\nDDDD EEEEEEEEE', fit(2))).toBe(`AA BB C\nDDDD${E}`);
     });
 
     it('sizes a band from one line, not from the whole of a multi-line source', () => {
@@ -2067,7 +2092,7 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
     });
 
     it('never draws a line wider than the width, for generated text and widths', () => {
-        const random = seededRandom(18632);
+        const random = seedMulberryRandom(18632);
         for (const join of [-3, -1, 1, 3]) {
             const measurer = withJoin(join);
             for (const textWrap of ['never', 'on-space', 'always', 'hyphenate'] as const) {
@@ -2099,7 +2124,7 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
     });
 
     it('keeps every character, once, when breaking words, for generated text and widths', () => {
-        const random = seededRandom(18633);
+        const random = seedMulberryRandom(18633);
         const letters = (wrapped: string) => wrapped.replaceAll(' ', '');
         for (const join of [-3, -1, 1, 3]) {
             withJoin(join);

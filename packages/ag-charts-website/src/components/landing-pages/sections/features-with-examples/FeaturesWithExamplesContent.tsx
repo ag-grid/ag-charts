@@ -1,4 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { useTabList } from '@ag-website-shared/components/tabs/useTabList';
 import { TrialButton } from '@ag-website-shared/components/trial-licence-modal/TrialButton';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
 import { useSyncFrameworkStoreState } from '@utils/hooks/useSyncFrameworkStoreState';
@@ -7,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import styles from './FeaturesWithExamples.module.scss';
+import { FEATURES_PANEL_ID, getFeatureTabId } from './constants';
 
 export interface FeatureItem {
     heading: string;
@@ -56,20 +58,13 @@ export const FeaturesWithExamplesContent: React.FC<FeaturesWithExamplesContentPr
     }, []);
 
     const handleTabClick = (index: number) => {
-        let newIndex = index;
-        if (index >= features.length) {
-            newIndex = 0;
-        } else if (index < 0) {
-            newIndex = features.length - 1;
-        }
-
-        setActiveTab(newIndex);
+        setActiveTab(index);
 
         // Dispatch custom event to notify Astro about tab change
         const event = new CustomEvent('landing-page-feature-tab-change', {
             detail: {
-                index: newIndex,
-                featureId: features[newIndex].id,
+                index,
+                featureId: features[index].id,
             },
         });
         document.dispatchEvent(event);
@@ -85,6 +80,15 @@ export const FeaturesWithExamplesContent: React.FC<FeaturesWithExamplesContentPr
         });
         document.dispatchEvent(event);
     }, [features]);
+
+    const { tablistProps, getTabProps } = useTabList({
+        count: features.length,
+        selectedIndex: activeTab,
+        onSelect: handleTabClick,
+        getTabId: (index) => getFeatureTabId(features[index].id),
+        getPanelId: () => FEATURES_PANEL_ID,
+        externalPanels: true,
+    });
 
     const activeFeature = features.at(activeTab);
 
@@ -130,13 +134,12 @@ export const FeaturesWithExamplesContent: React.FC<FeaturesWithExamplesContentPr
     return (
         <>
             {syncFramework && <FrameworkStoreSync framework={framework} />}
-            <div className={styles.tabContainer}>
+            <div className={styles.tabContainer} {...tablistProps}>
                 {features.map((feature, index) => (
                     <button
-                        id={`feature-tab-${feature.id}`}
                         key={feature.id}
                         className={`${activeTab === index ? styles.activeTab : styles.tab} plausible-event-name=landing-page-${feature.id}-tab`}
-                        onClick={() => handleTabClick(index)}
+                        {...getTabProps(index)}
                     >
                         {feature.title}
                     </button>
