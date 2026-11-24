@@ -359,6 +359,7 @@ const SHEET: SheetRow[] = [
         highlightedItemGlow: true,
         dimItem: 1,
         dimSeries: 0.3,
+        bringToFront: true,
         glow: ['glow'],
         glowNumbers: COMMON,
         selected: SELECTED,

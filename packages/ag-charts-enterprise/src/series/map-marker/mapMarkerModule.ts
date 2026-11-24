@@ -66,7 +66,9 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             },
             tooltip: SERIES_TOOLTIP_THEME,
-            highlight: applyMapPalette(withGlowThemeDefaults(MARKER_SERIES_HIGHLIGHT_STYLE, SERIES_GLOW_BUCKETS)),
+            highlight: applyMapPalette(
+                withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS)
+            ),
             selection: MARKER_SERIES_SELECTION_THEME,
         },
         tooltip: {
