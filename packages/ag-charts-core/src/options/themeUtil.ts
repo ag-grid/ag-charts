@@ -867,15 +867,24 @@ export function withGlowThemeDefaults<T extends object>(
     for (const bucket of buckets) {
         if (!ITEM_GLOW_BUCKETS.includes(bucket as (typeof ITEM_GLOW_BUCKETS)[number])) follow(bucket, seriesEnabled);
     }
-    const itemEnabled = buckets.includes('highlightedSeries')
-        ? { $path: '/series/$index/highlight/highlightedSeries/glow/enabled' }
-        : seriesEnabled;
+    const seriesBucketPath = buckets.includes('highlightedSeries')
+        ? '/series/$index/highlight/highlightedSeries/glow/enabled'
+        : undefined;
+    const itemEnabled = seriesBucketPath == null ? seriesEnabled : { $path: seriesBucketPath };
     for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
     if (glowOnHover) {
-        const userEnabledPaths = enabledPaths.map(({ $path }) => $path);
+        // The default hover glow is lost once the user sets the glow that the item falls back to: the `highlightedSeries`
+        // one, or the series-level one. With a `glow` on each of several parts there is no one series-level value, so it is
+        // lost only where the user has set them all, and each part then keeps its own `enabled`.
+        const userPartsEnabled = enabledPaths.map(({ $path }) => ({ $isUserOption: $path }));
+        const userParts: Operation = perPart ? { $and: userPartsEnabled } : userPartsEnabled[0];
+        const userSet: Operation =
+            seriesBucketPath == null ? userParts : { $or: [{ $isUserOption: seriesBucketPath }, userParts] };
         result.highlightedItem = {
             ...(result.highlightedItem as object),
-            glow: { enabled: { $isUserOption: [userEnabledPaths, perPart ? undefined : itemEnabled, true] } },
+            glow: {
+                enabled: { $if: [userSet, perPart && seriesBucketPath == null ? undefined : itemEnabled, true] },
+            },
         };
     }
     return result as T;

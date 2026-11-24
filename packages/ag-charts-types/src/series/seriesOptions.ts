@@ -75,12 +75,17 @@ export interface AgMultiSeriesGlowHighlightOptions<
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
     /** Set to `false` to disable highlighting. */
     enabled?: boolean;
-    /** Options for the highlighted item.  */
+    /**
+     * Options for the highlighted item.
+     *
+     * Default: unset. `{ stroke: <the theme's accent colour>, strokeWidth: 2 }` for organization
+     */
     highlightedItem?: ItemHighlightStyleOptions;
     /**
      * Options for the un-highlighted items when there is an active highlight.
      *
-     * Default: `{ opacity: 1 }`, or the opacity of `unhighlightedSeries` when `highlight.mode` is `'shared'`. `0.5` for pie and donut; `0.3` for sankey and chord; `0.6` for map line; unset for map shape, sunburst, treemap and organization
+     * Default: `{ opacity: 1 }`. `0.5` for pie and donut; `0.3` for sankey and chord; `0.6` for map line; unset for map shape, sunburst, treemap and organization.
+     * When `highlight.mode` is `'shared'`, the opacity of `unhighlightedSeries` for every series that has that option except map shape
      */
     unhighlightedItem?: ItemHighlightStyleOptions;
 }

@@ -103,8 +103,9 @@ const PER_PART = new Set([
     'range-area marker',
 ]);
 
-// The series whose theme glows the hovered item by default (`highlightedItem.glow.enabled`), whichever part it is in.
-const HOVER_GLOW_BY_THEME = new Set(['hlc marker', 'range-area marker']);
+// The series whose theme glows the hovered item by default (`highlightedItem.glow.enabled`), whichever part it is in,
+// unless the user sets the glow of every part.
+const HOVER_GLOW_BY_THEME = new Set(['hlc marker', 'range-area marker', 'waterfall positive', 'waterfall total']);
 
 describe('series glow theme', () => {
     setupMockConsole();
@@ -170,6 +171,36 @@ describe('series glow theme', () => {
         expect(getSeriesOptions<any>(chart).highlight.highlightedItem.glow.enabled).toBe(false);
         chart.destroy();
     });
+
+    // With one part set, the others keep the default hover glow, which no one `enabled` can drop for the set part alone.
+    it('keeps the default hover glow of the parts that the user did not set', async () => {
+        const item = { positive: { glow: ON }, negative: { glow: ON }, total: { glow: ON } };
+        const WATERFALL = { type: 'waterfall', xKey: 'x', yKey: 'y' };
+        const some: any = await create({ ...WATERFALL, item: { total: { glow: ON } } }, WATERFALL_DATA);
+        expect(getSeriesOptions<any>(some).highlight.highlightedItem.glow.enabled).toBe(true);
+        some.destroy();
+
+        const every: any = await create({ ...WATERFALL, item }, WATERFALL_DATA);
+        expect(getSeriesOptions<any>(every).highlight.highlightedItem.glow?.enabled).toBeUndefined();
+        every.destroy();
+    });
+
+    it.each([
+        ['bar', { type: 'bar', xKey: 'x', yKey: 'high' }, OHLC_DATA],
+        ['hlc', { type: 'hlc', xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close' }, OHLC_DATA],
+    ])(
+        '%s does not glow the hovered item by default once highlightedSeries.glow.enabled is false',
+        async (_name, series, data) => {
+            const chart: any = await create(
+                { ...series, highlight: { highlightedSeries: { glow: { enabled: false } } } },
+                data
+            );
+            const { highlight } = getSeriesOptions<any>(chart);
+            expect(highlight.highlightedSeries.glow.enabled).toBe(false);
+            expect(highlight.highlightedItem.glow.enabled).toBe(false);
+            chart.destroy();
+        }
+    );
 
     it('turns the buckets off when nothing glows', async () => {
         const base = { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' };
