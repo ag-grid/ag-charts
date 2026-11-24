@@ -14,8 +14,14 @@ async function drawTrendLine(page: Page, url: string) {
 
     await page.getByTitle('Trend Lines').click();
     await page.getByText('Trend Line').click();
-    await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
-    await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+    // Hover before each click, as a person would; the annotation reads its pointer position from the hover.
+    for (const position of [
+        { x: 100, y: 100 },
+        { x: 200, y: 200 },
+    ]) {
+        await page.hover(SELECTORS.canvasProxy, { position });
+        await page.click(SELECTORS.canvasProxy, { position });
+    }
 }
 
 async function getLine(page: Page): Promise<Record<string, unknown>> {
