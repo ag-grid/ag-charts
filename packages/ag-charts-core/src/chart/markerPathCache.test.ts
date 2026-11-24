@@ -58,6 +58,17 @@ describe('markerPathCache', () => {
         expect(a1).not.toBe(b1);
     });
 
+    it('serves a held custom path again after more sizes than the cache holds', () => {
+        let traces = 0;
+        const shape: AgMarkerShapeFn = ({ path, size }: AgMarkerShapeFnParams) => {
+            traces++;
+            path.rect(-size / 2, -size / 2, size, size);
+        };
+        const held = Array.from({ length: 3000 }, (_, size) => getSharedMarkerPath(shape, size + 1));
+        expect(held.map((path, size) => getSharedMarkerPath(shape, size + 1) === path)).not.toContain(false);
+        expect(traces).toBe(held.length);
+    });
+
     it('authors square geometry at origin (no pixelRatio dependence)', () => {
         clearMarkerPathCache();
         const path = getSharedMarkerPath('square', 10);

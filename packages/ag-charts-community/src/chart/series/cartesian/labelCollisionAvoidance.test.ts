@@ -1494,8 +1494,32 @@ describe('label collision avoidance', () => {
         });
 
         // Placement must collide and fit against the path rendering traces, not trace its own copies.
-        it('traces no fresh shape a styler returns per datum beyond what rendering traces', async () => {
-            const data = Array.from({ length: 20 }, (_, i) => ({ x: i, y: i % 3, l: `L${i}` }));
+        const countedSquare = (count: () => void) => (params: any) => {
+            // A labelled series analyses its shape once at unit size, which is per series, not per datum.
+            if (params.size !== 1) count();
+            params.path.rect(params.x - params.size / 2, params.y - params.size / 2, params.size, params.size);
+        };
+        it.each([
+            // A styler returning a fresh shape per datum, so no two markers share a path.
+            [
+                'a styler returns per datum',
+                20,
+                (count: () => void) => ({ size: 20, itemStyler: () => ({ shape: countedSquare(count) }) }),
+            ],
+            // One shape drawn at more distinct sizes than the shared path cache holds.
+            [
+                'drawn at more sizes than the path cache holds',
+                1500,
+                (count: () => void) => ({
+                    type: 'bubble',
+                    sizeKey: 's',
+                    minSize: 4,
+                    maxSize: 30,
+                    shape: countedSquare(count),
+                }),
+            ],
+        ] as const)('traces no fresh shape %s beyond what rendering traces', async (_name, length, marker) => {
+            const data = Array.from({ length }, (_, i) => ({ x: i, y: i % 3, s: i, l: `L${i}` }));
             const traces = async (labelled: boolean) => {
                 let count = 0;
                 chart?.destroy();
@@ -1508,13 +1532,7 @@ describe('label collision avoidance', () => {
                             xKey: 'x',
                             yKey: 'y',
                             labelKey: 'l',
-                            size: 20,
-                            itemStyler: () => ({
-                                shape: ({ path, x, y, size }: any) => {
-                                    count++;
-                                    path.rect(x - size / 2, y - size / 2, size, size);
-                                },
-                            }),
+                            ...marker(() => count++),
                             label: { enabled: labelled, placement: ['inside', 'top'], truncate: true },
                         },
                     ],

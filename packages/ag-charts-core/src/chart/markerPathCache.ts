@@ -25,7 +25,8 @@ import { traceMarkerShape } from './markerShapes';
  * Each shape cache is soft-capped at {@link MAX_CACHE_ENTRIES} entries; on overflow the cache
  * is cleared wholesale. This handles pathological workloads (e.g. bubble series with thousands
  * of continuous distinct sizes) without unbounded memory growth, while keeping the steady-state
- * hit rate near 100% for any reasonable rendering session.
+ * hit rate near 100% for any reasonable rendering session. A custom shape's path that a marker
+ * still holds is found after its entry is cleared, so no path in use is traced twice.
  */
 
 // Soft cap per shape entry. Sized to cover realistic axis/legend/series usage across multiple
@@ -33,8 +34,16 @@ import { traceMarkerShape } from './markerShapes';
 const MAX_CACHE_ENTRIES = 1024;
 
 const stringShapeCache = new Map<string, ExtendedPath2D>();
+
+/** One custom shape's paths at one pixel ratio, by size. */
+interface CustomPaths {
+    readonly recent: Map<number, ExtendedPath2D>;
+    // Every path a marker may still hold, so clearing `recent` never retraces a path in use.
+    readonly held: Map<number, WeakRef<ExtendedPath2D>>;
+    sweepAt: number;
+}
 // Keyed by pixel ratio, then size, so a lookup builds no key string.
-const functionShapeCache = new WeakMap<AgMarkerShapeFn, Map<number, Map<number, ExtendedPath2D>>>();
+const functionShapeCache = new WeakMap<AgMarkerShapeFn, Map<number, CustomPaths>>();
 
 export function getSharedMarkerPath(shape: AgMarkerShape, size: number, pixelRatio: number = 1): ExtendedPath2D {
     if (typeof shape === 'string') {
@@ -61,18 +70,31 @@ function sharedCustomPath(shape: AgMarkerShapeFn, size: number, pixelRatio: numb
         byPixelRatio = new Map();
         functionShapeCache.set(shape, byPixelRatio);
     }
-    let bySize = byPixelRatio.get(pixelRatio);
-    if (bySize === undefined) {
-        bySize = new Map();
-        byPixelRatio.set(pixelRatio, bySize);
+    let paths = byPixelRatio.get(pixelRatio);
+    if (paths === undefined) {
+        paths = { recent: new Map(), held: new Map(), sweepAt: 2 * MAX_CACHE_ENTRIES };
+        byPixelRatio.set(pixelRatio, paths);
     }
-    let path = bySize.get(size);
+    const { recent, held } = paths;
+    let path = recent.get(size);
+    if (path !== undefined) return path;
+    path = held.get(size)?.deref();
     if (path === undefined) {
-        if (bySize.size >= MAX_CACHE_ENTRIES) bySize.clear();
         path = traceMarkerShape(shape, size, pixelRatio);
-        bySize.set(size, path);
+        held.set(size, new WeakRef(path));
+        if (held.size >= paths.sweepAt) sweepReleasedPaths(paths);
     }
+    if (recent.size >= MAX_CACHE_ENTRIES) recent.clear();
+    recent.set(size, path);
     return path;
+}
+
+function sweepReleasedPaths(paths: CustomPaths) {
+    for (const [size, ref] of paths.held) {
+        if (ref.deref() === undefined) paths.held.delete(size);
+    }
+    // Relative to what survives, so a large set of paths in use is not swept on every trace.
+    paths.sweepAt = 2 * Math.max(MAX_CACHE_ENTRIES, paths.held.size);
 }
 
 /** @internal — test-only escape hatch. The runtime never needs to clear the cache. */
