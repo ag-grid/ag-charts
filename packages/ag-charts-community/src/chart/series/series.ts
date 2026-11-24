@@ -120,6 +120,7 @@ import {
     getHighlightStyle,
     getSelectionStyle,
     hasStateStyle,
+    highlightStates,
     isUnselected,
     stagedSelectionState,
     toHighlightString,
@@ -1817,6 +1818,22 @@ export abstract class Series<
     private hasHighlightedItemSize(): boolean {
         const { size } = this.getHighlightStyle(true, undefined, HighlightState.Item) as { size?: number };
         return size != null;
+    }
+
+    /**
+     * Whether state can resize or reshape the markers drawn in place after node data was built: a styler, selection
+     * or a highlight `size`. The hovered item's `size` sizes only its highlight-layer copy, bar a `'shared'` match.
+     */
+    protected restylesMarkers(): boolean {
+        if (this.hasItemStylers()) return true;
+        if (!this.isHighlightEnabled()) return false;
+        const shared = this.getChartHighlightOptions()?.mode === 'shared';
+        for (const state of highlightStates) {
+            if (state === HighlightState.Item && !shared) continue;
+            const { size } = this.getHighlightStyle(false, undefined, state) as { size?: number };
+            if (size != null) return true;
+        }
+        return false;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {

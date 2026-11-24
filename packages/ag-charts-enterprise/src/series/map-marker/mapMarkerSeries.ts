@@ -958,7 +958,7 @@ export class MapMarkerSeries
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         // State restyles markers without rebuilding node data, so labels are stamped from the marker as drawn.
-        const stampLabels = !isHighlight && this.hasItemStylers();
+        const stampLabels = !isHighlight && this.restylesMarkers();
         const { shape: seriesShape, itemStyler } = this.options;
         const itemStyled = itemStyler != null;
         let labelMarkersChanged = false;

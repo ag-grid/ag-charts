@@ -767,7 +767,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             return;
         }
 
-        if (this.hasItemStylers()) {
+        if (this.restylesMarkers()) {
             this.updateDatumStyles({ datumSelection, isHighlight: false });
             // State restyles markers without rebuilding node data, so only a changed marker re-solves the labels.
             if (this.stampLabelMarkers()) this.invalidateLabelPlacement();

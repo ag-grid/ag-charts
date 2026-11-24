@@ -632,7 +632,7 @@ function markerSizeOf(d: PointLabelDatum): number {
     return d.markerSize ?? d.point.size;
 }
 
-/** Styler series only, as the no-styler style can carry a `hideWithSize0` zero; true when size or shape changed. */
+/** Series whose state restyles markers only, as others' cached style can carry a `hideWithSize0` zero; true on a change. */
 export function applyStyledMarker(
     datum: {
         readonly point: Readonly<SizedPoint>;

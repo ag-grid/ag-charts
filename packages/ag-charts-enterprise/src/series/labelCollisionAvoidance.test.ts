@@ -1322,38 +1322,34 @@ describe('label collision avoidance', () => {
 
         // State restyles the marker after the first render, while node data and layout stay as they were.
         describe('marker restyled by state', () => {
-            const bySelection = ({ selectionState }: { selectionState?: string }) =>
-                selectionState === 'selected-item' ? SQUARE : DIAMOND;
-            const STYLED_MARKER = { enabled: true, ...DIAMOND, itemStyler: bySelection };
-            const select = async (selected: boolean) => {
-                if (selected) {
-                    const { id: seriesId, data } = deproxy(chart).series[1];
-                    chart.setSelection([{ seriesId, itemId: data!.getItemIdFromIndex(0) }]);
-                } else {
-                    chart.clearSelection();
+            const SERIES_TYPES = ['line', 'area', 'scatter', 'bubble', 'range-area'] as const;
+            /** Options of a `type` series drawing `marker`, with any `itemStyler` set where that series takes it. */
+            const markerSeries = (
+                type: (typeof SERIES_TYPES)[number],
+                marker: { shape: string; size: number; itemStyler?: unknown }
+            ) => {
+                const { shape, size, ...styler } = marker;
+                switch (type) {
+                    case 'scatter':
+                        return { type, yKey: 'y', labelKey: 'l', shape, size, ...styler };
+                    case 'bubble':
+                        return {
+                            type,
+                            yKey: 'y',
+                            sizeKey: 's',
+                            labelKey: 'l',
+                            shape,
+                            minSize: size,
+                            maxSize: size,
+                            ...styler,
+                        };
+                    case 'range-area':
+                        return { type, yLowKey: 'y', yHighKey: 'high', marker: { enabled: true, ...marker } };
+                    default:
+                        return { type, yKey: 'y', marker: { enabled: true, ...marker } };
                 }
-                await waitForChartStability(chart);
             };
-
-            it.each<[string, object]>([
-                ['line', { type: 'line', yKey: 'y', marker: STYLED_MARKER }],
-                ['area', { type: 'area', yKey: 'y', marker: STYLED_MARKER }],
-                ['scatter', { type: 'scatter', yKey: 'y', labelKey: 'l', ...DIAMOND, itemStyler: bySelection }],
-                [
-                    'bubble',
-                    {
-                        type: 'bubble',
-                        yKey: 'y',
-                        sizeKey: 's',
-                        labelKey: 'l',
-                        shape: 'diamond',
-                        minSize: 40,
-                        maxSize: 40,
-                        itemStyler: bySelection,
-                    },
-                ],
-                ['range-area', { type: 'range-area', yLowKey: 'y', yHighKey: 'high', marker: STYLED_MARKER }],
-            ])('%s: moves a label off the square a selection draws, and back', async (_type, series) => {
+            const createRestyledChart = async (series: object) => {
                 chart = await createEnterpriseChart({
                     legend: { enabled: false },
                     axes: {
@@ -1380,18 +1376,48 @@ describe('label collision avoidance', () => {
                         {
                             data: [{ x: 5, y: 5, high: 9, s: 1, l: 'A' }],
                             xKey: 'x',
-                            selection: { enabled: true },
                             label: {
                                 enabled: true,
                                 formatter: () => 'A',
                                 collision: { collideWith: { axisLabels: true } },
                             },
-                            ...(series as NonNullable<AgCartesianChartOptions['series']>[number]),
+                            ...series,
                         },
                     ],
                 } as AgCartesianChartOptions);
-                const neighbourPlacements = () =>
-                    getPlacedLabelData<{ placement?: string }>(chart, 0).map((l) => l.placement);
+            };
+            const neighbourPlacements = () =>
+                getPlacedLabelData<{ placement?: string }>(chart, 0).map((l) => l.placement);
+            const hoverNode = async (seriesIndex: number, nodeIndex: number) => {
+                const { contentGroup } = getSeriesAt(chart, seriesIndex);
+                const { nodeData } = getSeriesContextNodeData<{ point: { x: number; y: number } }>(chart, seriesIndex);
+                const { point } = nodeData[nodeIndex];
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(contentGroup, point.x, point.y);
+                await hoverAction(canvasX, canvasY)(chart);
+                await waitForChartStability(chart);
+            };
+            const unhover = async () => {
+                await hoverAction(1, 1)(chart);
+                await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+            };
+
+            const bySelection = ({ selectionState }: { selectionState?: string }) =>
+                selectionState === 'selected-item' ? SQUARE : DIAMOND;
+            const select = async (selected: boolean) => {
+                if (selected) {
+                    const { id: seriesId, data } = deproxy(chart).series[1];
+                    chart.setSelection([{ seriesId, itemId: data!.getItemIdFromIndex(0) }]);
+                } else {
+                    chart.clearSelection();
+                }
+                await waitForChartStability(chart);
+            };
+
+            it.each(SERIES_TYPES)('%s: moves a label off the square a selection draws, and back', async (type) => {
+                await createRestyledChart({
+                    ...markerSeries(type, { ...DIAMOND, itemStyler: bySelection }),
+                    selection: { enabled: true },
+                });
                 expect(neighbourPlacements()).toEqual(['bottom-left']);
                 await select(true);
                 expect(neighbourPlacements()).toEqual(['top-right']);
@@ -1399,52 +1425,69 @@ describe('label collision avoidance', () => {
                 expect(neighbourPlacements()).toEqual(['bottom-left']);
             });
 
+            // No styler or selection: the highlight `size` alone resizes the marker.
+            it.each(SERIES_TYPES)(
+                '%s: moves a label onto the square a highlight shrinks, and off again',
+                async (type) => {
+                    await createRestyledChart({
+                        ...markerSeries(type, SQUARE),
+                        highlight: { unhighlightedSeries: { size: 4 } },
+                    });
+                    expect(neighbourPlacements()).toEqual(['top-right']);
+                    await hoverNode(0, 0);
+                    expect(neighbourPlacements()).toEqual(['bottom-left']);
+                    await unhover();
+                    expect(neighbourPlacements()).toEqual(['top-right']);
+                }
+            );
+
             // A map marker's itemStyler result is cached per datum, so it is the highlight that restyles it here.
-            it('map-marker: shows a label once a highlight shrinks the square it reached over, and hides it again', async () => {
-                const site = { name: 'Site', lat: 52, lon: -1.5 };
-                const far = { name: 'Far', lat: 54, lon: -3 };
-                chart = await createEnterpriseChart({
-                    topology: ukTopology,
-                    series: [
-                        { type: 'map-shape-background' },
-                        {
-                            type: 'map-marker',
-                            data: [site, far],
-                            latitudeKey: 'lat',
-                            longitudeKey: 'lon',
-                            labelKey: 'name',
-                            label: { enabled: true, placement: 'bottom' },
-                            ...SQUARE,
-                            itemStyler: () => ({ fill: 'red' }),
-                            highlight: { unhighlightedItem: { size: 4 } },
-                        },
-                        {
-                            type: 'map-marker',
-                            data: [site],
-                            latitudeKey: 'lat',
-                            longitudeKey: 'lon',
-                            labelKey: 'name',
-                            size: 10,
-                            label: {
-                                enabled: true,
-                                placement: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
-                                spacing: 10,
-                                collision: { alwaysShow: false },
+            it.each([
+                ['with', { itemStyler: () => ({ fill: 'red' }) }],
+                ['without', {}],
+            ])(
+                'map-marker: shows a label once a highlight shrinks the square it reached over, and hides it again (%s an itemStyler)',
+                async (_styled, styler) => {
+                    const site = { name: 'Site', lat: 52, lon: -1.5 };
+                    const far = { name: 'Far', lat: 54, lon: -3 };
+                    chart = await createEnterpriseChart({
+                        topology: ukTopology,
+                        series: [
+                            { type: 'map-shape-background' },
+                            {
+                                type: 'map-marker',
+                                data: [site, far],
+                                latitudeKey: 'lat',
+                                longitudeKey: 'lon',
+                                labelKey: 'name',
+                                label: { enabled: true, placement: 'bottom' },
+                                ...SQUARE,
+                                ...styler,
+                                highlight: { unhighlightedItem: { size: 4 } },
                             },
-                        },
-                    ],
-                } as AgChartOptions);
-                const { contentGroup } = getSeriesAt(chart, 1);
-                const { point } = getSeriesContextNodeData<{ point: { x: number; y: number } }>(chart, 1).nodeData[1];
-                const { canvasX, canvasY } = Transformable.toCanvasPoint(contentGroup, point.x, point.y);
-                expect(visibleLabelCount(2)).toBe(0);
-                await hoverAction(canvasX, canvasY)(chart);
-                await waitForChartStability(chart);
-                expect(visibleLabelCount(2)).toBe(1);
-                await hoverAction(1, 1)(chart);
-                await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
-                expect(visibleLabelCount(2)).toBe(0);
-            });
+                            {
+                                type: 'map-marker',
+                                data: [site],
+                                latitudeKey: 'lat',
+                                longitudeKey: 'lon',
+                                labelKey: 'name',
+                                size: 10,
+                                label: {
+                                    enabled: true,
+                                    placement: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
+                                    spacing: 10,
+                                    collision: { alwaysShow: false },
+                                },
+                            },
+                        ],
+                    } as AgChartOptions);
+                    expect(visibleLabelCount(2)).toBe(0);
+                    await hoverNode(1, 1);
+                    expect(visibleLabelCount(2)).toBe(1);
+                    await unhover();
+                    expect(visibleLabelCount(2)).toBe(0);
+                }
+            );
         });
 
         // A styler that only recolours draws the same markers, so it must leave every label where it was.
