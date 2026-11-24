@@ -66,19 +66,19 @@ export interface AgSelectionOptions<
     /**
      * Styling options for selected items.
      *
-     * Default: `{ strokeWidth: 2, opacity: 1 }`
+     * Default: `{ strokeWidth: 2, opacity: 1 }`. `{ strokeWidth: 2 }` for gauges
      */
     selectedItem?: ItemSelectionStyleOptions;
     /**
      * Styling options for unselected items.
      *
-     * Default: `{ opacity: 0.5 }`. `0.3` for line, area, scatter, bubble, candlestick, OHLC, HLC, range area, radar line, radar area and map marker; `0.6` for map line
+     * Default: `{ opacity: 0.5 }`. `0.3` for line, area, scatter, bubble, candlestick, OHLC, HLC, range area, radar line, radar area and map marker; `0.6` for map line and gauges
      */
     unselectedItem?: ItemSelectionStyleOptions;
     /**
      * Styling options for series with no selections when there is at least one other selected series.
      *
-     * Default: `{ opacity: 0.5 }`. `0.3` for line, area, scatter, bubble, candlestick, OHLC, HLC, range area, radar line, radar area and map marker; `0.2` for map line
+     * Default: `{ opacity: 0.5 }`. `0.3` for line, area, scatter, bubble, candlestick, OHLC, HLC, range area, radar line, radar area and map marker; `0.2` for map line and gauges
      */
     unselectedSeries?: SeriesSelectionStyleOptions;
 }
