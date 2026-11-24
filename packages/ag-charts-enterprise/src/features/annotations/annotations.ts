@@ -199,7 +199,7 @@ export class Annotations extends AbstractModuleInstance {
         if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
     }
 
-    /** Snaps an offset in the series area to a value of the nearest datum, at the datum's position, as the magnet range says. */
+    /** Snaps an offset in the series area to the nearest datum's position, as the magnet range allows. */
     private readonly magnetOffset = (offset: Point): Point => {
         const range = resolveMagnetRange(this.magnetEnabled, this.magnetRange, this.magnetInverted);
         const { xAxis, yAxis } = this;
