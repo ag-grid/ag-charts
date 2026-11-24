@@ -9,6 +9,7 @@ import {
     errorBarPlacedSeriesLabelOptionsDefs,
     errorBarThemeableOptionsDefs,
     interpolationOptionsDefs,
+    itemPaddingOptionsDef,
     lineDashOptionsDef,
     lineMarkerHighlightOptionsDef,
     lineSegmentation,
@@ -34,6 +35,7 @@ const lineStyler = callbackDefs<AgLineSeriesStylerResult>({
 });
 
 export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     title: string,
     showInMiniChart: boolean,
     connectMissingData: boolean,

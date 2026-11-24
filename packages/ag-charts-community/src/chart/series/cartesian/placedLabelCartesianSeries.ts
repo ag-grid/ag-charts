@@ -18,6 +18,7 @@ import {
     applyStyledMarker,
     cachedTextMeasurer,
     insideMarkerPolicy,
+    itemLabelClearance,
     lineHeightAtSize,
     markerShapeAnalysis,
     measurePlacedLabel,
@@ -132,7 +133,11 @@ export abstract class PlacedLabelCartesianSeries<
      * Series-constant geometry for a marker-anchored placed label.
      * OPTIMIZATION: a disabled label reaches no consumer, so none of its geometry is resolved.
      */
-    protected resolveLabelContext(shape: AgMarkerShape | undefined, markerSize: number): MarkerLabelContext {
+    protected resolveLabelContext(
+        shape: AgMarkerShape | undefined,
+        markerSize: number,
+        itemPadding: number
+    ): MarkerLabelContext {
         const label = this.labelProperty;
         if (!label.enabled) return DISABLED_LABEL_CONTEXT;
 
@@ -143,12 +148,18 @@ export abstract class PlacedLabelCartesianSeries<
             size: labelInsideSize,
         } = resolveInsidePlacement(toArray(label.placement), shape);
         const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        const labelPadding = expandPlacementLabelBoxExtent(label);
         const insideMarkerFit: InsideMarkerFit | undefined = insideFit
-            ? { base: insideFit, threshold: collision.threshold ?? 0, masked: false }
+            ? {
+                  base: insideFit,
+                  threshold: collision.threshold ?? 0,
+                  masked: false,
+                  clearance: itemLabelClearance(itemPadding, labelPadding),
+              }
             : undefined;
         return {
             labelsEnabled: true,
-            labelPadding: expandPlacementLabelBoxExtent(label),
+            labelPadding,
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit: insideMarkerFit
                 ? insideMarkerPolicy(insideMarkerFit, markerShapeAnalysis(shape), markerSize)

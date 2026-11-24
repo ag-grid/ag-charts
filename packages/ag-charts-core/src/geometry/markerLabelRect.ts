@@ -7,6 +7,7 @@ import type { LabelFit } from '../text/textWrapper';
 import type { Writeable } from '../types/global';
 import type { Point } from '../types/scene';
 import { type FitRegionMask, InsetMaskFitRegion } from './fitRegion';
+import type { ItemLabelClearance } from './itemPadding';
 
 /** Largest axis-aligned rectangle that fits inside a marker shape, as fractions of the marker diameter. */
 export interface MarkerLabelRect {
@@ -98,6 +99,8 @@ export interface InsideMarkerFit {
     readonly threshold: number;
     /** Each line takes the width its row of the shape offers, rather than the inscribed rect's. */
     readonly masked: boolean;
+    /** How far the label's glyphs are held off the marker's edge: `itemPadding` and the drawn box. */
+    readonly clearance: ItemLabelClearance;
 }
 
 /** Reusable output of {@link insideMarkerPolicy}, refilled per datum instead of allocated. */
@@ -113,21 +116,23 @@ export function insideMarkerPolicy(
     size: number,
     scratch?: InsideMarkerPolicyScratch
 ): LabelFit {
-    const { base } = fit;
+    const { base, clearance } = fit;
     // Only a negative threshold reaches the marker, as spill: a positive one never shrinks the label's own room.
     const spill = Math.min(fit.threshold, 0);
+    const insetX = clearance.x + spill;
+    const insetY = clearance.y + spill;
     const { rect } = analysis;
     const mask = fit.masked ? analysis.rows : undefined;
     const policy: Writeable<LabelFit> = scratch?.policy ?? { ...base };
     if (mask == null) {
-        policy.maxWidth = Math.min(base.maxWidth ?? Infinity, size * rect.width - 2 * spill);
+        policy.maxWidth = Math.min(base.maxWidth ?? Infinity, size * rect.width - 2 * insetX);
         if (policy.region != null) policy.region = undefined;
     } else {
         policy.maxWidth = base.maxWidth ?? Infinity;
         const region = scratch?.region ?? new InsetMaskFitRegion();
-        policy.region = region.set(mask, size, rect.cx * size, rect.cy * size, spill);
+        policy.region = region.set(mask, size, rect.cx * size, rect.cy * size, insetX, insetY);
     }
-    policy.maxHeight = Math.min(base.maxHeight ?? Infinity, size * rect.height - 2 * spill);
+    policy.maxHeight = Math.min(base.maxHeight ?? Infinity, size * rect.height - 2 * insetY);
     return policy;
 }
 

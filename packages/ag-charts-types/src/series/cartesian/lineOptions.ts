@@ -32,6 +32,7 @@ import type {
 } from './cartesianSeriesTooltipOptions';
 import type {
     AgBaseCartesianSeriesAxisOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -66,7 +67,11 @@ export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDef
 }
 
 export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends StrokeOptions, LineDashOptions, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
+    extends
+        StrokeOptions,
+        LineDashOptions,
+        ItemPaddingOptions,
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgLineSeriesStylerParams<TDatum, TContext>, AgLineSeriesStylerResult>;
     /** Configuration for the markers used in the series. */

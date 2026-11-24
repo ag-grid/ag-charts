@@ -33,6 +33,7 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     AgColorScale,
     FillOptions,
+    ItemPaddingOptions,
     ResolvedLineDash,
     StrokeOptions,
 } from './commonOptions';
@@ -103,7 +104,7 @@ export type BubbleSeriesItemStylerParams<TDatum = DatumDefault, TContext = Conte
 export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemStylerParams<TDatum, TContext>;
 
 export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBubbleSeriesStyle, 'size'>, AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    extends Omit<AgBubbleSeriesStyle, 'size'>, AgBaseCartesianThemeableOptions<TDatum, TContext>, ItemPaddingOptions {
     /**
      * Explicitly specifies the extent of the domain of `sizeKey` values to map onto the `[minSize, maxSize]` range.
      *

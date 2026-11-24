@@ -106,6 +106,7 @@ export const bubbleIgnoredMiniChartProperties: BubbleIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
     'title',
     'label',
+    'itemPadding',
     'labelKey',
     'labelName',
     'sizeName',
@@ -135,6 +136,7 @@ export const lineIgnoredMiniChartProperties: LineIgnoredProperties[] = [
     'errorBar',
     'title',
     'label',
+    'itemPadding',
 ];
 export const rangeAreaIgnoredMiniChartProperties: RangeAreaIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
@@ -155,6 +157,7 @@ export const scatterIgnoredMiniChartProperties: ScatterIgnoredProperties[] = [
     'errorBar',
     'title',
     'label',
+    'itemPadding',
     'labelKey',
     'labelName',
 ];

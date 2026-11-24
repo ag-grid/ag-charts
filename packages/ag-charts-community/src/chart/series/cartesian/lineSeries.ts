@@ -517,7 +517,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         const { marker } = this.options;
         const markerSize = marker.enabled ? marker.size : 0;
-        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
+        const labelContext = this.resolveLabelContext(marker.shape, markerSize, this.options.itemPadding);
 
         this.nodeDatumContext = {
             xAxis,

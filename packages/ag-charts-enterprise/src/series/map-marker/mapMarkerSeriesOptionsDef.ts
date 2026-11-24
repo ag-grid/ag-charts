@@ -9,6 +9,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     geoJson,
+    itemPaddingOptionsDef,
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
     markerHighlightOptionsDef,
@@ -26,6 +27,7 @@ import {
 } from 'ag-charts-core';
 
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     colorScale: colorScaleOptionsDef,
     minSize: positiveNumber,
     maxSize: positiveNumber,

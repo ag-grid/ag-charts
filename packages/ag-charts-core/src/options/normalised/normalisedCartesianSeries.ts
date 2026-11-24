@@ -96,6 +96,7 @@ type LineRequiredKeys =
     | 'interpolation'
     | 'marker'
     | 'label'
+    | 'itemPadding'
     | 'connectMissingData'
     | 'segmentation';
 
@@ -133,6 +134,7 @@ type AreaRequiredKeys =
     | 'shadow'
     | 'marker'
     | 'label'
+    | 'itemPadding'
     | 'connectMissingData'
     | 'segmentation';
 

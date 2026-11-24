@@ -42,6 +42,7 @@ import {
     findDiscreteColorBinLabel,
     formatValue,
     insideMarkerPolicy,
+    itemLabelClearance,
     lineHeightAtSize,
     markerLabelRect,
     markerShapeAnalysis,
@@ -703,6 +704,7 @@ export abstract class BubbleScatterSeries<
             colorName,
             label,
             legendItemName,
+            itemPadding,
         } = this.options;
 
         const placements = toArray(label.placement);
@@ -711,6 +713,7 @@ export abstract class BubbleScatterSeries<
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
         const avoid = resolveLabelAvoidance(label.collision);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow, insideOnly);
+        const labelPadding = expandPlacementLabelBoxExtent(label);
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -775,12 +778,17 @@ export abstract class BubbleScatterSeries<
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
             labelTextDomain: [],
-            labelPadding: expandPlacementLabelBoxExtent(label),
+            labelPadding,
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
             labelInsideMarkerFit:
                 insideOnly && labelFit != null
-                    ? { base: labelFit, threshold: label.collision.threshold ?? 0, masked: true }
+                    ? {
+                          base: labelFit,
+                          threshold: label.collision.threshold ?? 0,
+                          masked: true,
+                          clearance: itemLabelClearance(itemPadding, labelPadding),
+                      }
                     : undefined,
             // Keeps the label on a marker too small to hold even an ellipsis.
             labelFitOverflow: insideOnly && label.collision.alwaysShow ? labelFit : undefined,

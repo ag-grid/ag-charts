@@ -1079,7 +1079,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const markerSize = marker.enabled ? marker.size : 0;
-        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
+        const labelContext = this.resolveLabelContext(marker.shape, markerSize, this.options.itemPadding);
 
         this.nodeDatumContext = {
             // Axes (from template method parameters)

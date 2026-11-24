@@ -79,8 +79,13 @@ describe('insideMarkerPolicy', () => {
     beforeAll(stubPath2D);
 
     const SIZE = 100;
+    const NO_CLEARANCE = { x: 0, y: 0 };
     const policyAt = (threshold: number, masked: boolean) =>
-        insideMarkerPolicy({ base: {}, threshold, masked }, markerShapeAnalysis('diamond'), SIZE);
+        insideMarkerPolicy(
+            { base: {}, threshold, masked, clearance: NO_CLEARANCE },
+            markerShapeAnalysis('diamond'),
+            SIZE
+        );
 
     it.each([
         { threshold: 6, grow: 0 },
@@ -97,7 +102,7 @@ describe('insideMarkerPolicy', () => {
 
     it('bounds a circle marker by its inscribed square', () => {
         const policy = insideMarkerPolicy(
-            { base: {}, threshold: 0, masked: false },
+            { base: {}, threshold: 0, masked: false, clearance: NO_CLEARANCE },
             markerShapeAnalysis(undefined),
             20
         );
@@ -107,7 +112,8 @@ describe('insideMarkerPolicy', () => {
 
     it('scales the room with the marker size, and gives a markerless point none', () => {
         const square = markerShapeAnalysis('square');
-        const at = (size: number) => insideMarkerPolicy({ base: {}, threshold: 0, masked: false }, square, size);
+        const at = (size: number) =>
+            insideMarkerPolicy({ base: {}, threshold: 0, masked: false, clearance: NO_CLEARANCE }, square, size);
         expect(at(100).maxWidth).toBeCloseTo(at(50).maxWidth! * 2);
         expect(at(100).maxHeight).toBeCloseTo(at(50).maxHeight! * 2);
         expect(at(0)).toMatchObject({ maxWidth: 0, maxHeight: 0 });
@@ -115,11 +121,48 @@ describe('insideMarkerPolicy', () => {
 
     it('never widens past the base policy', () => {
         const policy = insideMarkerPolicy(
-            { base: { maxWidth: 10, maxHeight: 5 }, threshold: -6, masked: false },
+            { base: { maxWidth: 10, maxHeight: 5 }, threshold: -6, masked: false, clearance: NO_CLEARANCE },
             markerShapeAnalysis('square'),
             100
         );
         expect(policy).toMatchObject({ maxWidth: 10, maxHeight: 5 });
+    });
+
+    it.each([
+        { threshold: 0, shrink: { x: 8, y: 6 } },
+        { threshold: -6, shrink: { x: -4, y: -6 } },
+    ])('holds the label its clearance off the marker edge, net of spill ($threshold)', ({ threshold, shrink }) => {
+        const rect = markerLabelRect('diamond');
+        const policy = insideMarkerPolicy(
+            { base: {}, threshold, masked: false, clearance: { x: 4, y: 3 } },
+            markerShapeAnalysis('diamond'),
+            SIZE
+        );
+        expect(policy.maxWidth).toBe(SIZE * rect.width - shrink.x);
+        expect(policy.maxHeight).toBe(SIZE * rect.height - shrink.y);
+    });
+
+    it('insets a masked label by its clearance on each axis', () => {
+        const rect = markerLabelRect('diamond');
+        const mask = markerShapeAnalysis('diamond').rows!;
+        const reference = insetFitRegion(
+            new InsetMaskFitRegion().set(mask, SIZE, rect.cx * SIZE, rect.cy * SIZE, 0, 0),
+            4,
+            3
+        );
+        const policy = insideMarkerPolicy(
+            { base: {}, threshold: 0, masked: true, clearance: { x: 4, y: 3 } },
+            markerShapeAnalysis('diamond'),
+            SIZE
+        );
+        for (const [top, bottom] of [
+            [-20, 20],
+            [-5, 5],
+        ]) {
+            expect(policy.region!.spanAt(top, bottom)).toEqual(reference.spanAt(top, bottom));
+        }
+        expect(policy.region!.extentAbove).toBe(reference.extentAbove);
+        expect(policy.maxHeight).toBe(SIZE * rect.height - 6);
     });
 
     // The shape's rows inset only by spill: a positive threshold never shrinks the label's own room.
@@ -128,7 +171,7 @@ describe('insideMarkerPolicy', () => {
         const spill = Math.min(threshold, 0);
         const mask = markerShapeAnalysis('diamond').rows!;
         return insetFitRegion(
-            new InsetMaskFitRegion().set(mask, SIZE, rect.cx * SIZE, rect.cy * SIZE, 0),
+            new InsetMaskFitRegion().set(mask, SIZE, rect.cx * SIZE, rect.cy * SIZE, 0, 0),
             spill,
             spill
         );

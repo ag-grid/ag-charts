@@ -9,6 +9,7 @@ import {
     type FeatureCollection,
     type Geometry,
     Group,
+    InsetMaskFitRegion,
     type LabelFit,
     LinearScale,
     type NormalisedChartLabelStyleOptions,
@@ -30,7 +31,10 @@ import {
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
+    insideMarkerPolicy,
     isSupportedMarkerShape,
+    itemLabelClearance,
+    markerShapeAnalysis,
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
@@ -38,7 +42,7 @@ import {
     toArray,
     withoutCasts,
 } from 'ag-charts-core';
-import type { BBox } from 'ag-charts-core';
+import type { BBox, InsideMarkerFit, InsideMarkerPolicyScratch } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgMapMarkerSeriesItemStylerParams,
@@ -149,6 +153,12 @@ export class MapMarkerSeries
 
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
+    /** How an `inside`-only label is fitted to its marker this pass, as scatter fits its own. */
+    private labelInsideMarkerFit: InsideMarkerFit | undefined;
+    private readonly labelInsideMarkerPolicy: InsideMarkerPolicyScratch = {
+        policy: {},
+        region: new InsetMaskFitRegion(),
+    };
 
     private readonly markerGroup = this.contentGroup.appendChild(
         new Group({ name: 'markerGroup', batchShadows: 'shared' })
@@ -394,7 +404,17 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, labelFit, labelStyle);
+        const insideMarkerFit = this.labelInsideMarkerFit;
+        const fit =
+            insideMarkerFit == null
+                ? labelFit
+                : insideMarkerPolicy(
+                      insideMarkerFit,
+                      markerShapeAnalysis(shape),
+                      point.size,
+                      this.labelInsideMarkerPolicy
+                  );
+        const fittedText = fitLabelText(labelText, fit, labelStyle);
         const text = measureLabelText(fittedText, labelStyle);
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
         const box = expandLabelBoxExtent(labelStyle);
@@ -413,6 +433,24 @@ export class MapMarkerSeries
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
         };
+    }
+
+    // Only an `inside`-only label is bound to its marker, so directional fallbacks stay full-size.
+    private resolveLabelInsideMarkerFit(labelStyle: NormalisedChartLabelStyleOptions) {
+        const { label, itemPadding } = this.options;
+        const placements = toArray(label.placement);
+        const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+        const base = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        this.labelInsideMarkerFit =
+            base == null
+                ? undefined
+                : {
+                      base,
+                      threshold: label.collision.threshold ?? 0,
+                      masked: false,
+                      clearance: itemLabelClearance(itemPadding, expandLabelBoxExtent(labelStyle)),
+                  };
+        if (base != null) this.labelInsideMarkerPolicy.policy = { ...base };
     }
 
     private resolveColumn<T>(
@@ -610,6 +648,7 @@ export class MapMarkerSeries
         );
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
         const labelRegion = this.resolveLabelPlotRegion(label.collision);
+        this.resolveLabelInsideMarkerFit(labelStyle);
 
         const projectedGeometries = this.prepareProjectedGeometries(
             columns.idValues,
