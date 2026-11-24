@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions = {
     },
     annotations: {
         enabled: true,
-        optionsToolbar: { showToolButtons: true },
+        optionsToolbar: { showActionButtons: true },
         toolbar: {
             buttons: [{ icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' }],
         },

@@ -498,14 +498,14 @@ export class Annotations extends AbstractModuleInstance {
                     );
 
                 // With Apply and Cancel the dialog's changes are one history entry, made on Apply, or none, on Cancel.
-                const { showToolButtons } = this.optionsToolbar;
-                this.holdsHistory = showToolButtons;
+                const { showActionButtons } = this.optionsToolbar;
+                this.holdsHistory = showActionButtons;
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
-                    showToolButtons,
+                    showActionButtons,
                     onClose: (applied) => this.endSettingsSession(datum.type, applied),
                     onHide: () => this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, false),
                     getContext: () => this.getAnnotationContext(),

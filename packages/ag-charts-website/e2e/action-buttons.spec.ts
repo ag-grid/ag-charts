@@ -42,10 +42,10 @@ async function typeColor(page: Page, color: string) {
     await colorInput.blur();
 }
 
-test.describe('annotation tool buttons (showToolButtons)', () => {
+test.describe('annotation action buttons (showActionButtons)', () => {
     setupIntrinsicAssertions(test);
 
-    const { url } = toExamplePageUrl('annotations-e2e', 'tool-buttons', 'vanilla');
+    const { url } = toExamplePageUrl('annotations-e2e', 'action-buttons', 'vanilla');
 
     test.describe('colour picker', () => {
         test('shows Cancel and Apply, with Apply disabled until the colour changes', async ({ page }) => {
@@ -55,11 +55,11 @@ test.describe('annotation tool buttons (showToolButtons)', () => {
 
             await expect(cancel).toBeEnabled();
             await expect(apply).toHaveAttribute('aria-disabled', 'true');
-            await expectChartScreenshot(page, page, 'tool-buttons-picker-unchanged.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'action-buttons-picker-unchanged.png', { animations: 'disabled' });
 
             await typeColor(page, '#00ff00');
             await expect(apply).not.toHaveAttribute('aria-disabled', 'true');
-            await expectChartScreenshot(page, page, 'tool-buttons-picker-changed.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'action-buttons-picker-changed.png', { animations: 'disabled' });
         });
 
         test('Apply keeps the colour and closes the picker', async ({ page }) => {
@@ -82,7 +82,7 @@ test.describe('annotation tool buttons (showToolButtons)', () => {
 
             await expect(page.locator(PICKER)).toBeHidden();
             expect((await getLine(page)).stroke).toEqual(before);
-            await expectChartScreenshot(page, page, 'tool-buttons-picker-cancelled.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'action-buttons-picker-cancelled.png', { animations: 'disabled' });
         });
 
         test('Escape cancels and Enter applies', async ({ page }) => {
@@ -114,11 +114,11 @@ test.describe('annotation tool buttons (showToolButtons)', () => {
             await expect(dialog(page).getByRole('button', { name: 'Cancel' })).toBeEnabled();
             await expect(apply).toHaveAttribute('aria-disabled', 'true');
             await expect(page.locator(`${DIALOG_ACTIONS} button`)).toHaveCount(2);
-            await expectChartScreenshot(page, page, 'tool-buttons-dialog-unchanged.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'action-buttons-dialog-unchanged.png', { animations: 'disabled' });
 
             await page.getByRole('radio', { name: 'Long-dashed' }).click();
             await expect(apply).not.toHaveAttribute('aria-disabled', 'true');
-            await expectChartScreenshot(page, page, 'tool-buttons-dialog-changed.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'action-buttons-dialog-changed.png', { animations: 'disabled' });
         });
 
         test('Apply keeps every change and closes the dialog', async ({ page }) => {
@@ -166,7 +166,7 @@ test.describe('annotation tool buttons (showToolButtons)', () => {
             await page.locator(PICKER).getByRole('button', { name: 'Apply' }).click();
             await expect(page.locator(PICKER)).toBeHidden();
             await expect(dialog(page)).toBeVisible();
-            await expectChartScreenshot(page, page, 'tool-buttons-dialog-colour-picked.png', {
+            await expectChartScreenshot(page, page, 'action-buttons-dialog-colour-picked.png', {
                 animations: 'disabled',
             });
 

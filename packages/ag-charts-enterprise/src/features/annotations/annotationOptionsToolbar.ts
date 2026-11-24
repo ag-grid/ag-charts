@@ -146,7 +146,7 @@ export class AnnotationOptionsToolbar {
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
 
     /** Whether the colour picker and settings dialog show Apply and Cancel buttons. */
-    public showToolButtons = false;
+    public showActionButtons = false;
 
     private openOverlay?: AnnotationOptions;
     private openOverlayAtPointerDown?: AnnotationOptions;
@@ -181,7 +181,7 @@ export class AnnotationOptionsToolbar {
     public applyOptions(options: AgAnnotationOptionsToolbar & { enabled: boolean }) {
         this.enabled = options.enabled;
         this.toolbar.setButtonSize(options.buttonSize);
-        this.showToolButtons = options.showToolButtons ?? false;
+        this.showActionButtons = options.showActionButtons ?? false;
         this.buttons = (options.buttons ?? []).map((button) => ({
             ...button,
             type: button.type ?? 'button',
@@ -378,7 +378,7 @@ export class AnnotationOptionsToolbar {
                     color: getDefaultColor(datum, button.value),
                     opacity: getDefaultOpacity(datum, button.value),
                     sourceEvent: event.sourceEvent,
-                    showToolButtons: this.showToolButtons,
+                    showActionButtons: this.showActionButtons,
                     hasMultiColorOption: isFibonacciType(datum),
                     isMultiColor: isFibonacciType(datum) && datum.isMultiColor,
                     onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),

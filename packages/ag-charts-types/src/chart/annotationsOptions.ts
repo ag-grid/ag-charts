@@ -622,7 +622,7 @@ export interface AgAnnotationOptionsToolbar extends Toggleable {
      *
      * Default: `false`
      */
-    showToolButtons?: boolean;
+    showActionButtons?: boolean;
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {

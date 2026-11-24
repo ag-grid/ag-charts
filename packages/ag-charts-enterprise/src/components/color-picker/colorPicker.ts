@@ -22,7 +22,7 @@ export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOption
     hasMultiColorOption: boolean;
     sourceEvent: Event;
     /** Whether to show Apply and Cancel buttons. Enter applies and Escape cancels either way. */
-    showToolButtons?: boolean;
+    showActionButtons?: boolean;
     onChange?: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
     /** Called when the picker closes after the colour changed. `cancelled` is set when it closed via Cancel. */
     onChangeHide?: (cancelled: boolean) => void;
@@ -116,7 +116,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
         let cancelButton: InputButtonWidget | undefined;
         let applyButton: InputButtonWidget | undefined;
-        if (opts.showToolButtons) {
+        if (opts.showActionButtons) {
             const actionsRow = new ContainerWidget(doc, 'ag-charts-color-picker__actions');
             actionsRow.setAriaRole('presentation');
             cancelButton = new InputButtonWidget(

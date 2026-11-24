@@ -32,7 +32,7 @@ export interface DialogOptions extends _ModuleSupport.PopoverOptions {
      * Whether the dialog, and the colour pickers in it, show Apply and Cancel buttons. Closing the dialog any other way
      * than Apply counts as Cancel.
      */
-    showToolButtons?: boolean;
+    showActionButtons?: boolean;
 }
 
 interface RadioGroupOptions<T extends string> {
@@ -107,7 +107,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private applyButton?: InputButtonWidget;
 
     /** Whether Apply and Cancel buttons are shown, as set by the options of the current show. */
-    protected showToolButtons = false;
+    protected showActionButtons = false;
     /** Whether the dialog is closing through Apply. */
     protected applied = false;
 
@@ -117,11 +117,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected override showWithChildren(children: Widget[], options: Options): ContainerWidget {
-        this.showToolButtons = options.showToolButtons ?? false;
+        this.showActionButtons = options.showActionButtons ?? false;
         this.applied = false;
         this.applyButton = undefined;
-        if (this.showToolButtons) {
-            children = [...children, this.createToolButtons()];
+        if (this.showActionButtons) {
+            children = [...children, this.createActionButtons()];
         }
         const popover = super.showWithChildren(children, options);
         popover.addClass('ag-charts-dialog');
@@ -350,7 +350,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    private createToolButtons() {
+    private createActionButtons() {
         const { localeManager } = this.ctx;
         const actions = new ContainerWidget('ag-charts-dialog__actions');
         const cancelButton = new InputButtonWidget({ label: localeManager.t('annotationsCancel') });
@@ -419,11 +419,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 opacity: opening.opacity,
                 isMultiColor: opening.isMultiColor,
                 hasMultiColorOption,
-                showToolButtons: this.showToolButtons,
+                showActionButtons: this.showActionButtons,
                 sourceEvent,
                 onChange: changeColor,
                 onChangeHide: (cancelled) => {
-                    if (cancelled && this.showToolButtons && opening.color != null && opening.color !== '') {
+                    if (cancelled && this.showActionButtons && opening.color != null && opening.color !== '') {
                         // The dialog holds back its history until Apply, so there is no record to revert to. Put the
                         // colour back to what the picker opened with, leaving the dialog's other changes alone.
                         const { r, g, b } = Color.fromString(opening.color);
@@ -494,7 +494,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         if (event.key === 'Escape') {
             this.hide();
-        } else if (event.key === 'Enter' && this.showToolButtons) {
+        } else if (event.key === 'Enter' && this.showActionButtons) {
             // A button, select or text area already does something with Enter.
             const tagName = (event.target as Element | null)?.tagName;
             if (tagName === 'BUTTON' || tagName === 'SELECT' || tagName === 'TEXTAREA') return;

@@ -73,9 +73,9 @@ describe('Annotations', () => {
     const DIALOG_CANCEL = '.ag-charts-dialog__actions button:first-child';
     const DIALOG_APPLY = '.ag-charts-dialog__actions button:last-child';
     /** The example with Apply and Cancel buttons on the colour picker and the settings dialog. */
-    const TOOL_BUTTONS_OPTIONS: AgCartesianChartOptions = {
+    const ACTION_BUTTONS_OPTIONS: AgCartesianChartOptions = {
         ...ANNOTATIONS_EXAMPLE_OPTIONS,
-        annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, optionsToolbar: { showToolButtons: true } },
+        annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, optionsToolbar: { showActionButtons: true } },
     };
     const RED = '#ff0000';
     const GREEN = '#00aa00';
@@ -1896,7 +1896,7 @@ describe('Annotations', () => {
 
         async function select(
             annotations: NonNullable<AgCartesianChartOptions['initialState']>['annotations'],
-            options = TOOL_BUTTONS_OPTIONS
+            options = ACTION_BUTTONS_OPTIONS
         ) {
             await prepareChart({ annotations }, options);
             const { x, y, width, height } = getSeriesRect(chart);
@@ -1978,7 +1978,7 @@ describe('Annotations', () => {
             expect(annotation().stroke).toBe('#00ff00');
         });
 
-        it('has no buttons without `showToolButtons`, and Enter and Escape still apply and cancel', async () => {
+        it('has no buttons without `showActionButtons`, and Enter and Escape still apply and cancel', async () => {
             await select(
                 [{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 4 }],
                 ANNOTATIONS_EXAMPLE_OPTIONS
