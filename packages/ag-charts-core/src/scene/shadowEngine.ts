@@ -212,6 +212,8 @@ interface ScratchPool {
     cachedArea: number;
     /** The pixels of the canvases that the scene's kept glow parts hold, see {@link GlowPart}. */
     partArea: number;
+    /** The signatures that the plans of a glow cast sign into, by index, reused by the next cast. Freed with the scene's scratch. */
+    partTargets: SignatureTarget[];
     /** The frames of the scene that have started, which the pool counts shrinking in. A pool outside a scene has none. */
     frame: number;
     uses: Record<PoolCanvas, CanvasUse>;
@@ -248,6 +250,7 @@ function getPool(scene: object | undefined): ScratchPool {
             partCanvas: undefined,
             cachedArea: 0,
             partArea: 0,
+            partTargets: [],
             frame: 0,
             uses: { scratch: newUse(), gapCanvas: newUse(), cutCanvas: newUse(), partCanvas: newUse() },
         };
@@ -259,6 +262,7 @@ function getPool(scene: object | undefined): ScratchPool {
 function freeScratch(pool: ScratchPool) {
     const { scratch, gapCanvas, cutCanvas, partCanvas } = pool;
     pool.uses = { scratch: newUse(), gapCanvas: newUse(), cutCanvas: newUse(), partCanvas: newUse() };
+    pool.partTargets = [];
     if (gapCanvas != null) {
         disposeCanvas(gapCanvas.canvas);
         pool.gapCanvas = undefined;
@@ -1228,9 +1232,6 @@ interface GlowPartContext {
     clipped: boolean;
 }
 
-/** The signatures that the plans of a cast sign into, by index, reused by the next cast. */
-const partTargets: SignatureTarget[] = [];
-
 function freePartCanvas(part: GlowPart) {
     part.valid = false;
     const { kept, pool } = part;
@@ -1307,8 +1308,14 @@ function signGlowPart(target: SignatureTarget, plan: KeyPlan, context: GlowPartC
 }
 
 /** Gives the plan the part that holds its glow, if one that no other plan has been given does. */
-function matchGlowPart(parts: GlowPart[], plan: KeyPlan, index: number, context: GlowPartContext) {
-    const target = (partTargets[index] ??= { signature: [], cursor: 0, changed: false });
+function matchGlowPart(
+    parts: GlowPart[],
+    targets: SignatureTarget[],
+    plan: KeyPlan,
+    index: number,
+    context: GlowPartContext
+) {
+    const target = (targets[index] ??= { signature: [], cursor: 0, changed: false });
     signGlowPart(target, plan, context);
     for (const part of parts) {
         if (!part.used && arraysEqual(part.signature, target.signature)) {
@@ -1320,7 +1327,7 @@ function matchGlowPart(parts: GlowPart[], plan: KeyPlan, index: number, context:
 }
 
 /** Gives a plan that matched no part one that no plan matched, to hold its signature. */
-function claimGlowPart(parts: GlowPart[], plan: KeyPlan, index: number) {
+function claimGlowPart(parts: GlowPart[], targets: SignatureTarget[], plan: KeyPlan, index: number) {
     let part: GlowPart | undefined;
     for (const held of parts) {
         if (!held.used) {
@@ -1335,7 +1342,7 @@ function claimGlowPart(parts: GlowPart[], plan: KeyPlan, index: number) {
     freePartCanvas(part);
     part.used = true;
     // The part takes the array that was just written, and the cast writes the next into the one that it held.
-    const target = partTargets[index];
+    const target = targets[index];
     [part.signature, target.signature] = [target.signature, part.signature];
     plan.part = part;
 }
@@ -1455,6 +1462,7 @@ function castOverlay(
         scaleY,
         clipped: false,
     };
+    const targets = parts == null ? [] : getPool(scene).partTargets;
     for (let first = 0; parts != null && first < plans.length;) {
         const source = sourceOf(plans[first].key);
         let end = first + 1;
@@ -1465,7 +1473,7 @@ function castOverlay(
             partContext.left = region.x + reach.x / scaleX;
             partContext.top = region.y + reach.y / scaleY;
             partContext.clipped = ownOf(source) == null;
-            for (let i = first; i < end; i++) matchGlowPart(parts, plans[i], i, partContext);
+            for (let i = first; i < end; i++) matchGlowPart(parts, targets, plans[i], i, partContext);
         }
         first = end;
     }
@@ -1511,7 +1519,7 @@ function castOverlay(
             if (isGlowPart(plan)) {
                 if (parts != null) {
                     const matched = plan.part != null;
-                    if (!matched) claimGlowPart(parts, plan, partIndex);
+                    if (!matched) claimGlowPart(parts, targets, plan, partIndex);
                     part = plan.part;
                     if (part?.kept != null && part.valid) {
                         drawGlowPart(dest, part.kept.canvas, reach);

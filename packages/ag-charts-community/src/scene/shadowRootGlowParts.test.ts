@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Group, Rect, Scene, TranslatableGroup, shadowPass } from 'ag-charts-core';
 import type { RenderContext } from 'ag-charts-core';
 
-import { expectSamePixels } from '../chart/test/expectSamePixels';
+import { differingBytes, expectSamePixels } from '../chart/test/expectSamePixels';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 
 const WIDTH = 400;
@@ -57,7 +57,7 @@ describe('the parts of the glow overlay', () => {
     });
 
     /** Items at one opacity, in rows from `top`, which overlap those of the other keys, whose glows share one key as they cast the same. */
-    const items = (count: number, top: number, opacity: number, size: Layout['size'], shift: number, glow = GLOW) =>
+    const items = (count: number, top: number, opacity: number, size: Layout['size'], shift: number, glow: Partial<typeof GLOW> = GLOW) =>
         Array.from({ length: count }, (_, i) => {
             const item = new TestRect();
             const scale = size == null ? 1 : size.width / WIDTH;
@@ -204,6 +204,50 @@ describe('the parts of the glow overlay', () => {
 
         expect(small.every((item) => cast.includes(item))).toBe(true);
         expect(bulk[1].some((item) => cast.includes(item))).toBe(false);
+    });
+
+    /** Two groups of casters, each below the count of a part, drawn as one key if `joined` and as a key of its own otherwise. */
+    const twoGroups = (opacities: [number, number], tops: [number, number], joined: boolean, glow: Partial<typeof GLOW> = GLOW) => {
+        const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+        for (const [i, opacity] of opacities.entries()) {
+            const group = new Group({ name: 'series', batchShadows: 'shared' });
+            // A glow that `selfCut` says is not cut by itself casts as one that does not, but it is a key of its own.
+            const own = joined || i === 0 ? glow : { ...glow, selfCut: false };
+            for (const item of items(BULK / 2, tops[i], opacity, undefined, i * 2, own)) group.appendChild(item);
+            root.appendChild(group);
+        }
+        const scene = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
+        scene.resize(WIDTH, HEIGHT, 1);
+        scene.setRoot(root);
+        scenes.push(scene);
+        scene.render();
+        return pixelsOf(scene);
+    };
+
+    const { fill: _fill, ...TINTED } = GLOW;
+
+    it('should draw the overlapping filled glows of a key of many casters within 2 levels of blurring each onto the canvas', () => {
+        const parts = twoGroups([0.3, 0.7], [10, 10], true);
+        const direct = twoGroups([0.3, 0.7], [10, 10], false);
+
+        expect(parts.some((value) => value !== 0)).toBe(true);
+        expect(differingBytes({ data: parts }, { data: direct }, 2)).toBe(0);
+    });
+
+    it('should draw the tinted glows of a key of many casters as blurring each onto the canvas draws them', () => {
+        const parts = twoGroups([0.3, 0.7], [10, 10], true, TINTED);
+        const direct = twoGroups([0.3, 0.7], [10, 10], false, TINTED);
+
+        expect(parts.some((value) => value !== 0)).toBe(true);
+        expectSamePixels({ data: parts }, { data: direct });
+    });
+
+    it('should draw the glow of a part that lands on an empty canvas as blurring it onto the canvas draws it', () => {
+        const parts = twoGroups([0.3, 0.7], [10, 150], true);
+        const direct = twoGroups([0.3, 0.7], [10, 150], false);
+
+        expect(parts.some((value) => value !== 0)).toBe(true);
+        expectSamePixels({ data: parts }, { data: direct });
     });
 
     it('should keep no canvas for the parts of casts that change every frame', () => {
