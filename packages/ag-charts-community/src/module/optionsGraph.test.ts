@@ -2424,9 +2424,15 @@ describe('OptionsGraph', () => {
             });
         });
 
-        it('should resolve solid colours in a theme palette to colour strings', () => {
-            const { palette } = getChartTheme({ palette: { fills: [solid, { type: 'solid', fill: 'red' }, pattern] } });
-            expect(palette.fills).toStrictEqual(['rgba(0, 0, 255, 0.5)', 'red', pattern]);
+        it('should resolve solid colours in a theme palette to colour strings, with the built-in colour for none', () => {
+            const fills = [solid, { type: 'solid', fill: 'red' }, pattern, { type: 'solid' }];
+            const { palette } = getChartTheme({ palette: { fills } });
+            expect(palette.fills).toStrictEqual([
+                'rgba(0, 0, 255, 0.5)',
+                'red',
+                pattern,
+                getChartTheme({}).palette.fills[3],
+            ]);
         });
     });
 });
