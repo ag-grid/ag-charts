@@ -672,6 +672,53 @@ describe('hovered item glow of a series whose parts inherit marker.glow', () => 
     });
 });
 
+describe('hovered item glow of a hierarchy series with a branch glow', () => {
+    const OFF = { enabled: false };
+    const ON = { enabled: true };
+
+    type Settings = { glow?: object; highlight?: object };
+    const SERIES = [
+        {
+            name: 'sunburst',
+            build: ({ glow, highlight }: Settings) => ({
+                type: 'sunburst',
+                labelKey: 'category',
+                sizeKey: 'size',
+                glow,
+                highlight,
+            }),
+            highlightOf: (series: any) => series.highlight,
+        },
+        {
+            name: 'treemap tile',
+            build: ({ glow, highlight }: Settings) => ({
+                type: 'treemap',
+                labelKey: 'category',
+                sizeKey: 'size',
+                tile: { glow, highlight },
+            }),
+            highlightOf: (series: any) => series.tile.highlight,
+        },
+    ];
+
+    // The hovered node falls back to its branch before the series, so the nearest glow the user sets decides.
+    it.each(SERIES)(
+        '$name: the highlighted branch glow beats the series glow and the default',
+        ({ build, highlightOf }) => {
+            const hoverGlowEnabled = (settings: Settings) => {
+                const { processedOptions } = prepareProcessedOptions({ data: DATA, series: [build(settings)] });
+                return highlightOf((processedOptions as any).series[0]).highlightedItem.glow.enabled;
+            };
+            const branch = (glow: object) => ({ highlightedBranch: { glow } });
+
+            expect(hoverGlowEnabled({})).toBe(true);
+            expect(hoverGlowEnabled({ glow: OFF })).toBe(false);
+            expect(hoverGlowEnabled({ highlight: branch(OFF) })).toBe(false);
+            expect(hoverGlowEnabled({ glow: OFF, highlight: branch(ON) })).toBe(true);
+        }
+    );
+});
+
 describe('unhighlightedItem opacity by highlight mode', () => {
     const BARS = [
         { type: 'bar', xKey: 'category', yKey: 'value' },

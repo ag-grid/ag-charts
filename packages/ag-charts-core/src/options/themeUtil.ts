@@ -799,8 +799,9 @@ export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] 
 /**
  * Gives each of the `buckets` of a highlight theme, keeping what they hold, a `glow` whose `enabled` follows the series-level
  * `glow` at `seriesGlowPath`, so that its other options come from there. The `highlightedItem` glows unless the user sets
- * that `glow`, which `glowOnHover: false` leaves to follow it too. For a series whose highlight styles have no
- * `lineDash` for {@link withGlowThemeDefaults} to default, such as treemap and sunburst.
+ * the `glow` of the `highlightedBranch`, if it is among `buckets`, or the series, which `glowOnHover: false` leaves to
+ * follow it too. For a series whose highlight styles have no `lineDash` for {@link withGlowThemeDefaults} to default,
+ * such as treemap and sunburst, whose `highlight` is beside the `glow`.
  */
 export function withFollowedGlowThemeDefaults<T extends object>(
     highlight: T,
@@ -815,7 +816,16 @@ export function withFollowedGlowThemeDefaults<T extends object>(
     };
     for (const bucket of buckets) follow(bucket, seriesEnabled);
     if (glowOnHover) {
-        follow('highlightedItem', { $isUserOption: [seriesEnabled.$path, seriesEnabled, true] });
+        const seriesOrDefault: Operation = { $isUserOption: [seriesEnabled.$path, seriesEnabled, true] };
+        const branchPath = buckets.includes('highlightedBranch')
+            ? `${seriesGlowPath.replace(/glow$/, 'highlight')}/highlightedBranch/glow/enabled`
+            : undefined;
+        follow(
+            'highlightedItem',
+            branchPath == null
+                ? seriesOrDefault
+                : { $isUserOption: [branchPath, { $path: branchPath }, seriesOrDefault] }
+        );
     }
     return result as T;
 }
