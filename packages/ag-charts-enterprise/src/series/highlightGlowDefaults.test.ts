@@ -714,13 +714,15 @@ describe('unhighlightedItem opacity by highlight mode', () => {
 describe('selected item opacity', () => {
     useChart();
 
-    // The bar fill is opaque blue on white, so a selected bar reads pure blue only at opacity 1.
-    it('draws a selected bar at full opacity and dims the unselected ones', async () => {
+    const BLUE = [0, 0, 255, 255];
+
+    const selectFirstBar = async (highlightMode: 'shared' | 'single') => {
         await create({
             data: [
-                { x: 'A', y: 5 },
-                { x: 'B', y: 8 },
+                { x: 'A', y: 5, z: 4 },
+                { x: 'B', y: 8, z: 6 },
             ],
+            highlight: { mode: highlightMode },
             selection: { enabled: true },
             series: [
                 {
@@ -731,20 +733,43 @@ describe('selected item opacity', () => {
                     fillOpacity: 1,
                     selection: { enabled: true, selectedItem: { strokeWidth: 0 } },
                 },
+                { type: 'bar', xKey: 'x', yKey: 'z', fill: '#ff0000', fillOpacity: 1 },
             ],
         });
         const { series } = deproxy(chart!);
         chart!.setSelection([{ seriesId: series[0].id, itemId: series[0].data!.getItemIdFromIndex(0) }]);
         await waitForChartStability(chart!);
+    };
 
-        const [selected, unselected] = itemNodes(chart!).map((node) => {
+    const barPixels = () =>
+        itemNodes(chart!).map((node) => {
             const { x, y, width, height } = node.getBBox();
             const { canvasX, canvasY } = Transformable.toCanvasPoint(node, x + width / 2, y + height / 2);
             return chartPixelAt(chart!, canvasX, canvasY);
         });
-        expect(selected).toEqual([0, 0, 255, 255]);
-        expect(unselected).not.toEqual([0, 0, 255, 255]);
+
+    // The bar fill is opaque blue on white, so a bar reads pure blue only at opacity 1.
+    it('draws a selected bar at full opacity and dims the unselected ones', async () => {
+        await selectFirstBar('single');
+
+        const [selected, unselected] = barPixels();
+        expect(selected).toEqual(BLUE);
+        expect(unselected).not.toEqual(BLUE);
     });
+
+    // The selected bar is in the hovered series, or in another series that the hover dims.
+    it.each([
+        ['an item of another series', 'single', 1, 0],
+        ['another item of the same series, when highlight is shared', 'shared', 0, 1],
+    ] as const)(
+        'keeps a selected bar at full opacity when %s is hovered',
+        async (_name, mode, seriesIndex, datumIndex) => {
+            await selectFirstBar(mode);
+            await hoverDatum(chart!, seriesIndex, datumIndex);
+
+            expect(barPixels()[0]).toEqual(BLUE);
+        }
+    );
 });
 
 describe('hover breaking changes', () => {
