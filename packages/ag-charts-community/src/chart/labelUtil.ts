@@ -46,6 +46,7 @@ import {
     isRotatable,
     labelBoxCentreOffset,
     lineHeightAtSize,
+    markerLabelRect,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
@@ -79,7 +80,6 @@ import {
     resolvePlacementLabelBoxExtent,
     resolvePlacementLabelStyle,
 } from './label';
-import { type MarkerLabelRect, markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -186,7 +186,7 @@ export function fitLabelToContainerAutoSize(
  * and the container. Returns `fit` unchanged when there is no fit or no container. Series with an
  * invariant container should call this once at context-build time rather than per datum.
  */
-export function boundLabelFit(
+function boundLabelFit(
     fit: LabelFit | undefined,
     container: { width: number; height: number } | undefined
 ): LabelFit | undefined {
@@ -197,33 +197,6 @@ export function boundLabelFit(
         ...fit,
         maxWidth: Math.min(fit.maxWidth ?? Infinity, container.width),
         maxHeight: Math.min(fit.maxHeight ?? Infinity, container.height),
-    };
-}
-
-/**
- * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
- * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
- * {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not be
- * marker-centred.
- */
-export function insideMarkerContainer(
-    markerSize: number,
-    shape?: AgMarkerShape,
-    threshold = 0
-): { width: number; height: number } {
-    return markerRectContainer(markerSize, markerLabelRect(shape), threshold);
-}
-
-/** Room `rect` gives an `inside` label; a negative `threshold` grows it on every side by the spill it allows. */
-export function markerRectContainer(
-    markerSize: number,
-    rect: MarkerLabelRect,
-    threshold: number
-): { width: number; height: number } {
-    const spill = Math.min(threshold, 0);
-    return {
-        width: markerSize * rect.width - 2 * spill,
-        height: markerSize * rect.height - 2 * spill,
     };
 }
 

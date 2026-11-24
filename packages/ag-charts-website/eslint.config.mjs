@@ -27,6 +27,8 @@ export default [
             '**/.angular',
             '**/benchmarkHarness.ts',
             '**/benchmarkUtils.ts',
+            '**/shadowRootCases.ts',
+            '**/shadowRootData.ts',
         ],
     },
     {

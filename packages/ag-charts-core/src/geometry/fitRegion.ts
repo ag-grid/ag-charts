@@ -266,7 +266,7 @@ export class ReusableInsetRegion implements FitRegion {
     }
 }
 
-/** A shape sampled into rows of inside spans, in units scaled by {@link maskFitRegion}'s `scale`. */
+/** A shape sampled into rows of inside spans, in units scaled by the drawn shape. */
 export interface FitRegionMask {
     /** Each sampled row's inside span as `[lo, hi]`, top row first; `undefined` where the row is empty. */
     readonly rows: readonly (readonly [number, number] | undefined)[];
@@ -277,35 +277,59 @@ export interface FitRegionMask {
 
 const EMPTY_SPAN = [0, 0] as const;
 
-/**
- * A region sampled from a shape mask, for a shape with neither a closed form nor a cheap containment test
- * (a marker outline). A band's span is the intersection of the rows it covers, which is what an
- * axis-aligned box spanning them can occupy. `scale` sizes the unit mask onto the drawn shape.
- */
-export function maskFitRegion(mask: FitRegionMask, scale: number, anchor: { x: number; y: number }): FitRegion {
+function maskSpanAt(
+    mask: FitRegionMask,
+    scale: number,
+    anchorX: number,
+    anchorY: number,
+    top: number,
+    bottom: number
+): readonly [number, number] {
     const rows = mask.rows;
     const rowTop = mask.top * scale;
     const rowHeight = mask.rowHeight * scale;
-    const { x: anchorX, y: anchorY } = anchor;
-    const rowIndex = (offset: number) => (anchorY + offset - rowTop) / rowHeight;
-    return {
-        spanAt: (top, bottom) => {
-            // A row's span is sampled at its centre line, so a band is only safe if the rows either side of
-            // the ones it lands in agree: half a row of taper sits between a sample and the row's edge.
-            const first = Math.max(0, Math.floor(rowIndex(top) - 0.5));
-            const last = Math.min(rows.length - 1, Math.ceil(rowIndex(bottom) + 0.5) - 1);
-            if (first > last) return EMPTY_SPAN;
-            let lo = -Infinity;
-            let hi = Infinity;
-            for (let i = first; i <= last; i += 1) {
-                const span = rows[i];
-                if (span == null) return EMPTY_SPAN;
-                lo = Math.max(lo, span[0] * scale);
-                hi = Math.min(hi, span[1] * scale);
-            }
-            return lo <= hi ? [lo - anchorX, hi - anchorX] : EMPTY_SPAN;
-        },
-        extentAbove: anchorY - rowTop,
-        extentBelow: rowTop + rows.length * rowHeight - anchorY,
-    };
+    // A row's span is sampled at its centre line, so a band is only safe if the rows either side of
+    // the ones it lands in agree: half a row of taper sits between a sample and the row's edge.
+    const first = Math.max(0, Math.floor((anchorY + top - rowTop) / rowHeight - 0.5));
+    const last = Math.min(rows.length - 1, Math.ceil((anchorY + bottom - rowTop) / rowHeight + 0.5) - 1);
+    if (first > last) return EMPTY_SPAN;
+    let lo = -Infinity;
+    let hi = Infinity;
+    for (let i = first; i <= last; i += 1) {
+        const span = rows[i];
+        if (span == null) return EMPTY_SPAN;
+        lo = Math.max(lo, span[0] * scale);
+        hi = Math.min(hi, span[1] * scale);
+    }
+    return lo <= hi ? [lo - anchorX, hi - anchorX] : EMPTY_SPAN;
+}
+
+/** A region sampled from a shape mask and inset, re-aimed in place so a per-datum caller need not allocate. */
+export class InsetMaskFitRegion implements FitRegion {
+    extentAbove = 0;
+    extentBelow = 0;
+    private mask: FitRegionMask = { rows: [], top: 0, rowHeight: 1 };
+    private scale = 0;
+    private anchorX = 0;
+    private anchorY = 0;
+    private inset = 0;
+
+    set(mask: FitRegionMask, scale: number, anchorX: number, anchorY: number, inset: number): this {
+        this.mask = mask;
+        this.scale = scale;
+        this.anchorX = anchorX;
+        this.anchorY = anchorY;
+        this.inset = inset;
+        const rowTop = mask.top * scale;
+        this.extentAbove = Math.max(0, anchorY - rowTop - inset);
+        this.extentBelow = Math.max(0, rowTop + mask.rows.length * (mask.rowHeight * scale) - anchorY - inset);
+        return this;
+    }
+
+    spanAt(top: number, bottom: number): readonly [number, number] {
+        const { mask, scale, anchorX, anchorY, inset } = this;
+        const [left, right] = maskSpanAt(mask, scale, anchorX, anchorY, top - inset, bottom + inset);
+        const mid = (left + right) / 2;
+        return [Math.min(left + inset, mid), Math.max(right - inset, mid)];
+    }
 }

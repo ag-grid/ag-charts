@@ -113,18 +113,25 @@ describe('AG Charts param translation', () => {
     });
 
     describe('stock themes', () => {
-        it('reads params and a palette for every stock theme', () => {
-            for (const [themeName, createTheme] of STOCK_THEMES) {
+        it('reads params for every stock theme', () => {
+            for (const [themeName] of STOCK_THEMES) {
                 const params = getStackParams(themeName);
                 expect(Object.keys(params)).toHaveLength(PUBLIC_PARAM_NAMES.length);
+            }
+        });
 
+        it('reads every fill of each plain-colour stock palette', () => {
+            // The editor only seeds from plain-colour palettes; `getPalette` drops pattern fills.
+            const plainColourThemes = STOCK_THEMES.filter(([, createTheme]) =>
+                createTheme().palette.fills.every((fill) => typeof fill === 'string')
+            );
+            expect(plainColourThemes.map(([themeName]) => themeName)).toContain('ag-default');
+
+            for (const [themeName, createTheme] of plainColourThemes) {
                 const palette = getPalette(themeName);
-                expect(palette.fills.length).toBeGreaterThan(0);
                 // Fills and strokes are index-paired, which the palette editor
                 // relies on to keep a series' two colours together.
                 expect(palette.strokes).toHaveLength(palette.fills.length);
-                // No stock theme uses a gradient or pattern fill, so nothing is
-                // dropped by the narrowing in `getPalette`.
                 expect(palette.fills).toHaveLength(createTheme().palette.fills.length);
             }
         });

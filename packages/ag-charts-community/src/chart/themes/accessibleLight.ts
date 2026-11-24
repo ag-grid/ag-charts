@@ -1,0 +1,52 @@
+import type { ModuleScope } from 'ag-charts-core';
+import type { AgChartAllThemeParams, AgChartTheme, WithThemeParams } from 'ag-charts-types';
+
+import { accessibleDefaultColors, accessibleThemeParameters, withAccessibleTheme } from './accessibleThemeOverrides';
+import { ChartTheme, type ThemeParamDefaults } from './chartTheme';
+import type { DefaultColors } from './defaultColors';
+
+const ACCESSIBLE_LIGHT_COLORS = {
+    BLUE: '#4884cb',
+    ORANGE: '#be6503',
+    GREEN: '#257a38',
+    CYAN: '#0f99b6',
+    YELLOW: '#a59302',
+    VIOLET: '#5a2e86',
+    GRAY: '#606060',
+    MAGENTA: '#8a2e78',
+    BROWN: '#442c01',
+    RED: '#d53a3c',
+};
+
+const ACCESSIBLE_LIGHT_STROKES: typeof ACCESSIBLE_LIGHT_COLORS = {
+    BLUE: '#346cae',
+    ORANGE: '#9c5204',
+    GREEN: '#016222',
+    CYAN: '#0a7f97',
+    YELLOW: '#8a7b07',
+    VIOLET: '#44156d',
+    GRAY: '#4a4a4a',
+    MAGENTA: '#711261',
+    BROWN: '#2b1a00',
+    RED: '#b81724',
+};
+
+export class AccessibleLight extends ChartTheme {
+    constructor(options: AgChartTheme = {}, presetName?: string, moduleRegistry?: ModuleScope) {
+        super(withAccessibleTheme(options, ACCESSIBLE_LIGHT_COLORS), presetName, moduleRegistry);
+    }
+
+    override getDefaultColors(): DefaultColors {
+        return {
+            ...super.getDefaultColors(),
+            ...accessibleDefaultColors(ACCESSIBLE_LIGHT_COLORS, ACCESSIBLE_LIGHT_STROKES, 'MAGENTA'),
+        };
+    }
+
+    override getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
+        return {
+            ...super.getThemeParameters(),
+            ...accessibleThemeParameters({ accentColor: '#3730a3', foregroundColor: '#000', subtleTextMix: 0.8 }),
+        };
+    }
+}

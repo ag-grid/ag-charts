@@ -6,6 +6,7 @@ import { isArray } from '../data/typeGuards';
 import type { FitRegion } from '../geometry/fitRegion';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { cachedTextMeasurer, measureTextSegments } from '../rendering/textMeasurer';
+import { seedMulberryRandom } from '../test/random';
 import type { ITextMeasurer, MeasuredSegment } from '../types/text';
 import { EllipsisChar, appendEllipsis } from './textUtil';
 import type { FontOptions } from './textUtil';
@@ -132,16 +133,6 @@ function hasOrphanedCombiningMark(str: string): boolean {
         }
     }
     return false;
-}
-
-// mulberry32: a reproducible sequence in [0, 1) per seed, so a failing generated case can be replayed.
-function seededRandom(seed: number) {
-    return () => {
-        seed = Math.trunc(seed + 0x6d2b79f5) % 2 ** 32;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
 }
 
 const E = EllipsisChar; // shorthand for assertions
@@ -333,7 +324,7 @@ describe('truncateLine', () => {
         });
 
         it('returns the longest prefix whose drawn width fits, for generated text and widths', () => {
-            const random = seededRandom(18631);
+            const random = seedMulberryRandom(18631);
             for (const join of [-3, -1, 1, 3]) {
                 const joined = createMockMeasurer(10, join);
                 for (let n = 0; n < 200; n++) {
@@ -1438,7 +1429,7 @@ describe('measureTextSegments — lineHeight', () => {
         it('for generated segments, line heights, bounds and wrapping modes', () => {
             const wrappings: TextWrap[] = ['on-space', 'always', 'hyphenate', 'never'];
             for (let seed = 1; seed <= 200; seed++) {
-                const random = seededRandom(seed);
+                const random = seedMulberryRandom(seed);
                 const pick = <T>(values: readonly T[]) => values[Math.floor(random() * values.length)];
                 const word = () => 'A'.repeat(1 + Math.floor(random() * 5));
                 const segments = Array.from({ length: 1 + Math.floor(random() * 4) }, () =>
@@ -2067,7 +2058,7 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
     });
 
     it('never draws a line wider than the width, for generated text and widths', () => {
-        const random = seededRandom(18632);
+        const random = seedMulberryRandom(18632);
         for (const join of [-3, -1, 1, 3]) {
             const measurer = withJoin(join);
             for (const textWrap of ['never', 'on-space', 'always', 'hyphenate'] as const) {
@@ -2099,7 +2090,7 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
     });
 
     it('keeps every character, once, when breaking words, for generated text and widths', () => {
-        const random = seededRandom(18633);
+        const random = seedMulberryRandom(18633);
         const letters = (wrapped: string) => wrapped.replaceAll(' ', '');
         for (const join of [-3, -1, 1, 3]) {
             withJoin(join);

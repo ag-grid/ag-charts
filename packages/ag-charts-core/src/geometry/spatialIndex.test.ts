@@ -128,6 +128,33 @@ describe('SpatialIndex', () => {
         expect(visits).toBe(1);
     });
 
+    it('queryDistinct visits what query visits, in the same order, without repeats', () => {
+        const wide = { x: bounds.x - 100, y: bounds.y - 100, width: bounds.width + 200, height: bounds.height + 200 };
+        const refs = makeBoxes(400, wide).map((box) => ({ box }));
+        const index = new SpatialIndex<{ box: BoxBounds }>();
+        index.reset(bounds, 30);
+        for (const ref of refs) {
+            index.insert(ref.box, ref);
+        }
+
+        let repeats = 0;
+        for (const q of makeBoxes(300, wide)) {
+            const all: object[] = [];
+            index.query(q, (ref) => {
+                all.push(ref);
+            });
+            const distinct: object[] = [];
+            index.queryDistinct(q, (ref) => {
+                distinct.push(ref);
+            });
+            const firsts = all.filter((ref, i) => all.indexOf(ref) === i);
+            repeats += all.length - firsts.length;
+            expect(distinct).toEqual(firsts);
+            expect(distinct.every((ref, i) => ref === firsts[i])).toBe(true);
+        }
+        expect(repeats).toBeGreaterThan(0);
+    });
+
     describe('remove', () => {
         // A 2x2 grid of 50px cells; `spanning` covers all four, the others one cell each.
         const spanning = { x: 25, y: 25, width: 50, height: 50 };

@@ -111,6 +111,33 @@ export class SpatialIndex<R> {
         return false;
     }
 
+    /** Each ref once, so a visitor that accumulates does not count an obstacle spanning cells twice. */
+    queryDistinct<T extends R & { readonly box: BoxBounds }>(
+        this: SpatialIndex<T>,
+        box: BoxBounds,
+        visitor: SpatialIndexVisitor<T>
+    ): boolean {
+        const { cols, cells } = this;
+        const minCx = this.clampCol(box.x);
+        const maxCx = this.clampCol(box.x + box.width);
+        const minCy = this.clampRow(box.y);
+        const maxCy = this.clampRow(box.y + box.height);
+        for (let cy = minCy; cy <= maxCy; cy++) {
+            const rowOffset = cy * cols;
+            for (let cx = minCx; cx <= maxCx; cx++) {
+                const cell = cells[rowOffset + cx];
+                for (let i = 0, ln = cell.length; i < ln; i++) {
+                    const ref = cell[i];
+                    // Already visited in an earlier cell when the ref starts before this column or row.
+                    if (cx > minCx && this.clampCol(ref.box.x) < cx) continue;
+                    if (cy > minCy && this.clampRow(ref.box.y) < cy) continue;
+                    if (visitor(ref) === true) return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private clampCol(x: number): number {
         return Math.min(this.cols - 1, Math.max(0, Math.floor((x - this.originX) * this.invCellSize)));
     }
