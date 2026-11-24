@@ -1326,6 +1326,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     breaksBefore.length = 0;
 
     for (const untrimmedLine of lines) {
+        // A separator left by a continuation the wrap dropped must not attach to this source line's first row.
+        breaksBefore.length = result.length;
         let line = trimBreakSpacesEnd(untrimmedLine);
 
         if (line === '') {
@@ -1563,9 +1565,12 @@ function orphanSplit(prev: string, last: string) {
     return split;
 }
 
-/** {@link orphanSplit} for the last two `lines`, when the last line still fits with the word on it. */
+/**
+ * {@link orphanSplit} for the last two `lines`, when wrapping broke them at a space and the last line still fits
+ * with the word on it. An explicit or mid-word break is not one the wrap chose, so it is never rejoined.
+ */
 function orphanMoveSplit(lines: string[], breaksBefore: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    if (options.avoidOrphans === false || lines.length < 2) return -1;
+    if (options.avoidOrphans === false || lines.length < 2 || breaksBefore[lines.length - 1] == null) return -1;
     const split = orphanSplit(lines.at(-2)!, lines.at(-1)!);
     if (split === -1) return -1;
     const maxWidth = options.maxWidthAt == null ? options.maxWidth : lastLineMaxWidth(lines, measurer, options);
@@ -1576,7 +1581,7 @@ function orphanMoveSplit(lines: string[], breaksBefore: string[], measurer: ITex
 
 function joinOrphan(lines: string[], breaksBefore: string[], split: number) {
     const { length } = lines;
-    return lines[length - 2].slice(split + 1) + (breaksBefore[length - 1] ?? ' ') + lines[length - 1];
+    return lines[length - 2].slice(split + 1) + breaksBefore[length - 1] + lines[length - 1];
 }
 
 /** `clipped` when the block was cut: a last line the cut left as a bare ellipsis carries no word to keep company. */
@@ -1695,7 +1700,8 @@ function avoidSegmentOrphans(segments: MeasuredSegment[], start: number, options
     if (lastStart === start) return false;
     const lastLine = lineBreakCount(segments, start, lastStart);
     const kind = lines.breaks[lastLine];
-    if (kind == null || afterLastImage(segments, lastStart, end) !== lastStart) return false;
+    // Only a break the wrap made is undone: the source's own line breaks stand.
+    if (kind == null || kind === EXPLICIT_BREAK || afterLastImage(segments, lastStart, end) !== lastStart) return false;
     const prevStart = lineStartBefore(segments, start, lastStart);
     // Text that starts a segment carried an edge into the rule as one more grapheme.
     const prevKind = lastLine > 1 ? lines.breaks[lastLine - 1] : EDGE_BREAK;
@@ -1728,8 +1734,8 @@ function planOrphanMove(
     clipped: boolean
 ) {
     const lastLength = lineRangeLength(segments, lastStart, end);
-    // Space opening the last line is a segment's edge, so the gap it wrapped at, unless the source broke the line.
-    const lastFrom = kind === EXPLICIT_BREAK ? 0 : findInLine(segments, lastStart, end, 0, lastLength, false);
+    // Space opening the last line is a segment's edge, so the gap it wrapped at.
+    const lastFrom = findInLine(segments, lastStart, end, 0, lastLength, false);
     if (lastFrom === -1) return false;
     if (clipped && lastLength - lastFrom === 1 && lineCharAt(segments, lastStart, lastFrom) === EllipsisChar) {
         return false;
@@ -1755,7 +1761,7 @@ function planOrphanMove(
     orphanMove.movedFrom = split + 1;
     // A gap at the end of the line above goes with the word unless the last line opens with its own.
     orphanMove.movedEnd = kind === EDGE_BREAK && lastFrom === 0 ? prevLength : prevTo;
-    orphanMove.joiner = kind === EXPLICIT_BREAK ? ' ' : kind;
+    orphanMove.joiner = kind;
     const lastMoved = segments[lineSegmentAt(segments, wordStart, lastStart, orphanMove.movedEnd - 1)];
     const lastFirst = segments[lastStart];
     orphanMove.merges = lastFirst.type !== 'image' && lastMoved.type !== 'image' && sameStyle(lastMoved, lastFirst);

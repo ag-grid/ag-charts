@@ -565,7 +565,7 @@ describe('wrapLines', () => {
         it.each([
             ['keeps the words of a line that clipping keeps', 'AA BB CC DD EE FF G', ['AA BB CC', `DD EE FF${E}`]],
             ['joins a word onto a clipped last line', 'AA BB CC DDDDD EEEEEEEE', ['AA BB', `CC DDDDD${E}`]],
-            ['rejoins across an explicit line break', 'AA BB C\nDDDD EEEEEEEEE', ['AA BB', `C DDDD${E}`]],
+            ['stops at an explicit line break', 'AA BB C\nDDDD EEEEEEEEE', ['AA BB C', `DDDD${E}`]],
             ['leaves a line clipped to a lone ellipsis', `AA BB CC ${WIDE_GRAPHEME} D`, ['AA BB CC', E]],
         ])('runs after clipping: %s', (_, text, expected) => {
             expect(wrapLines(text, { font, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT })).toEqual(expected);
@@ -1683,6 +1683,34 @@ describe('fitLabelText bounded by a shape', () => {
         const region: FitRegion = { spanAt: () => [-85, 85], extentAbove: 0, extentBelow: 2 * LINE_HEIGHT };
         const fit: LabelFit = { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' };
         expect(fitText(fit)).toBe(`ABAAD AC\nA DDBCABD${E}`);
+    });
+
+    it.each([
+        ['fitLabelText', (source: string, fit: LabelFit) => String(fitLabelText(source, fit, font))],
+        [
+            'fitLabelTextToRegion',
+            (source: string, fit: LabelFit) => String(fitLabelTextToRegion(source, fit, font).text),
+        ],
+        [
+            'rich text',
+            (source: string, fit: LabelFit) => textOf(fitLabelText([text(source)], fit, font) as MeasuredSegment[]),
+        ],
+        [
+            'rich text broken between segments',
+            (source: string, fit: LabelFit) => {
+                const [first, rest] = source.split('\n');
+                return textOf(fitLabelText([text(`${first}\n`), text(rest)], fit, font) as MeasuredSegment[]);
+            },
+        ],
+    ])('%s never moves a word across an explicit line break', (_, fitText) => {
+        const fit = (lines: number): LabelFit => ({
+            region: { spanAt: () => [-45, 45], extentAbove: 0, extentBelow: lines * LINE_HEIGHT },
+            regionAlign: 'start',
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
+        });
+        expect(fitText('AA BB C\nD', fit(5))).toBe('AA BB C\nD');
+        expect(fitText('AA BB C\nDDDD EEEEEEEEE', fit(2))).toBe(`AA BB C\nDDDD${E}`);
     });
 
     it('sizes a band from one line, not from the whole of a multi-line source', () => {
