@@ -545,6 +545,76 @@ describe('hovered item glow (defaults)', () => {
     });
 });
 
+describe('hovered item glow that the user turns off', () => {
+    useChart();
+
+    const BAR = { type: 'bar', xKey: 'x', yKey: 'y' };
+    const HIERARCHY = { labelKey: 'name', sizeKey: 'size' };
+    const OFF = { enabled: false };
+    const hoveredItemGlowOff = { highlightedItem: { glow: OFF } };
+
+    /** What the chart draws with the item at `datumIndex` hovered, or with the node of that name when `node` is. */
+    const hovered = async (options: object, target: { datumIndex: number } | { node: string }) => {
+        await create(options);
+        if ('node' in target) await hoverNode(chart!, nodeNamed(target.node)(chart!));
+        else await hoverDatum(chart!, 0, target.datumIndex);
+        return canvasImage(chart!);
+    };
+
+    // A glow the user sets for the series is the one the hovered item falls back to, so it glows only if that does: the
+    // default hover glow is what an unset glow gets, and a set one no longer follows it.
+    it.each([
+        {
+            name: 'bar',
+            series: BAR,
+            data: [
+                { x: 'A', y: 5 },
+                { x: 'B', y: 8 },
+                { x: 'C', y: 3 },
+            ],
+            glow: { glow: OFF },
+            itemOff: { highlight: hoveredItemGlowOff },
+            target: { datumIndex: 1 },
+        },
+        {
+            name: 'sunburst',
+            series: { type: 'sunburst', ...HIERARCHY },
+            data: HIERARCHY_SHADOW_DATA,
+            glow: { glow: OFF },
+            itemOff: { highlight: hoveredItemGlowOff },
+            target: { node: 'A1' },
+        },
+        {
+            name: 'treemap tile',
+            series: { type: 'treemap', ...HIERARCHY },
+            data: HIERARCHY_SHADOW_DATA,
+            glow: { tile: { glow: OFF } },
+            itemOff: { tile: { highlight: hoveredItemGlowOff } },
+            target: { node: 'A1' },
+        },
+        {
+            name: 'treemap group',
+            series: { type: 'treemap', ...HIERARCHY },
+            data: HIERARCHY_SHADOW_DATA,
+            glow: { group: { glow: OFF } },
+            itemOff: { group: { highlight: hoveredItemGlowOff } },
+            target: { node: 'A' },
+        },
+    ])(
+        '$name: a series glow.enabled of false leaves the hovered item without a glow',
+        async ({ series, data, glow, itemOff, target }) => {
+            const options = (extra: object) => ({ data, series: [{ ...series, ...extra }] });
+
+            const byDefault = await hovered(options({}), target);
+            const bySeriesGlow = await hovered(options(glow), target);
+            const byItemGlow = await hovered(options(itemOff), target);
+
+            expect(differingBytes(byDefault, bySeriesGlow), 'the default hover glows').toBeGreaterThan(0);
+            expectSamePixels(bySeriesGlow, byItemGlow);
+        }
+    );
+});
+
 describe('unhighlightedItem opacity by highlight mode', () => {
     const BARS = [
         { type: 'bar', xKey: 'category', yKey: 'value' },

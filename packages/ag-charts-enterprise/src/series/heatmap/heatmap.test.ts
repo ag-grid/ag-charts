@@ -3554,6 +3554,20 @@ describe('HeatmapSeries', () => {
                 expect(cellShapes(chart)).toHaveLength(GRID.length);
             });
 
+            // Nothing in the pixels tells this apart, as the series glow repaints the cells on a hover anyway. What it decides is
+            // whether the cells are restyled on each hover, which is when they may leave the batch, or return to it.
+            it.each([
+                ['no glow is set', {}, false],
+                [
+                    'the series glow stays on and the other items do not glow',
+                    { glow: { enabled: true }, highlight: { unhighlightedItem: { glow: { enabled: false } } } },
+                    true,
+                ],
+            ])('restyles the cells on a hover only when %s', async (_name, series, restyles) => {
+                await create(series);
+                expect((heatmap(chart) as unknown as { hasItemStylers(): boolean }).hasItemStylers()).toBe(restyles);
+            });
+
             it.each(Object.keys(ineligible))('paints every cell as a Rect for %s', async (name) => {
                 await create(ineligible[name]);
                 expect(isBatched(chart)).toBe(false);
