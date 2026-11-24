@@ -176,6 +176,15 @@ Exercise:
 
 {% chartExampleRunner title="Item Styler Shadow and Glow" name="item-styler-shadow-glow" type="generated" initialLoadDeferred=true /%}
 
+## Theme Defaults Test
+
+Exercise:
+
+- Hover redraw time of bar, scatter and heatmap charts that set none of `highlight`, `glow` or `shadow`, so that the theme defaults decide how the hovered item and the rest of the chart are drawn.
+- The charts are 4 bar series of 20 categories, 10 scatter series of 5,000 points, and a heatmap of 100 x 100 cells.
+
+{% chartExampleRunner title="Theme Defaults" name="theme-defaults" type="generated" initialLoadDeferred=true /%}
+
 ## Data Selection at Scale
 
 Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path). Each series family runs as a separate example to keep a benchmark run within a single page session's memory budget.
