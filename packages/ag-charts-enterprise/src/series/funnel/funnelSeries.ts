@@ -99,6 +99,10 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         };
     }
 
+    protected override labelItemPadding() {
+        return this.options.itemPadding;
+    }
+
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
         const { label } = this.options;
         return placement == null ? undefined : pickPlacementStyle(label, toResolvedFunnelPlacement(placement));

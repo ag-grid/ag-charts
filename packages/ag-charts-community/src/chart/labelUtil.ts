@@ -39,11 +39,12 @@ import {
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
     getMinOuterRectSize,
-    insetFitRegion,
+    insetItemRect,
+    insetItemRegion,
     insideBarContainer,
-    insideBarRegion,
     insideBarValueInsets,
     isRotatable,
+    itemLabelClearance,
     labelBoxCentreOffset,
     lineHeightAtSize,
     markerLabelRect,
@@ -717,10 +718,11 @@ export function insideBarLabelBounds(
     isUpward: boolean,
     isVertical: boolean,
     spacing: number,
-    box: Required<PaddingOptions>
+    box: Required<PaddingOptions>,
+    itemPadding: number
 ): { region: BoxBounds; container: { width: number; height: number } } {
     const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-    const region = insideBarRegion(rect, insets.min, insets.max, isVertical);
+    const region = insetItemRect(rect, itemPadding, insets.min, insets.max, isVertical);
     return { region, container: insideBarContainer(region, box) };
 }
 
@@ -890,6 +892,7 @@ interface BarCandidateSpec {
     readonly text?: NormalisedTextOrSegments;
     readonly fitted?: boolean;
     readonly shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
+    readonly itemPadding: number;
 }
 
 /**
@@ -905,17 +908,6 @@ export interface BarCandidateDeferred<TPlacement extends string = BarLabelPlacem
     readonly region: BoxBounds | undefined;
     /** Drawn-box extent of the configured style at this placement, used when nothing restyles it. */
     readonly placementBox: Required<PaddingOptions>;
-}
-
-/**
- * The room a shape offers, held clear of its edge by the box drawn around the glyph. A region is anchored
- * on its own centre line, so each axis pays the larger of its two paddings.
- */
-function insetShapeRegion(shape: FitRegion | undefined, boxPadding: Required<PaddingOptions>) {
-    if (shape == null) return undefined;
-    const dx = Math.max(boxPadding.left, boxPadding.right);
-    const dy = Math.max(boxPadding.top, boxPadding.bottom);
-    return dx === 0 && dy === 0 ? shape : insetFitRegion(shape, dx, dy);
 }
 
 /** Where a block of text hangs off its anchor, read from the baseline the anchor draws it on. */
@@ -982,6 +974,8 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
     /** Source text, re-measured under a candidate's styled font; unset leaves every candidate unstyled. */
     text?: NormalisedTextOrSegments;
+    /** Least distance an inside label's drawn box keeps from every edge of its bar; see `itemPadding`. */
+    itemPadding: number;
 }): BarPositionedCandidate<TPlacement>[] {
     const {
         isUpward,
@@ -999,6 +993,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         hideable = false,
         plotRegion,
         text,
+        itemPadding,
     } = args;
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
@@ -1040,7 +1035,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
             isVertical,
             barPlacementSpacing(spacing, placement, endOverhang)
         );
-        let insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
+        let insideRegion = isInside ? insetItemRect(rect, itemPadding, insets.min, insets.max, isVertical) : undefined;
         if (insideRegion != null && insideCrossRegion != null) {
             insideRegion = isVertical
                 ? { ...insideRegion, x: insideCrossRegion.x, width: insideCrossRegion.width }
@@ -1091,7 +1086,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
     style: CandidateLabelStyle | undefined,
     deferred: BarCandidateDeferred<TPlacement> | undefined
 ): BarPositionedCandidate<TPlacement> {
-    const { text, shapeAt } = spec;
+    const { text, shapeAt, itemPadding } = spec;
     const isInside = placement.startsWith('inside');
     const boxPadding = style?.boxPadding ?? placementBox;
     const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
@@ -1113,6 +1108,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         crossReversed: spec.crossReversed ?? false,
     });
     const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
+    const shape = spec.fitted && isInside ? shapeAt?.(anchor) : undefined;
     const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
     return {
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
@@ -1130,9 +1126,9 @@ function positionBarLabelCandidate<TPlacement extends string>(
             ? {
                   container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
                   // The container is deflated by the box drawn around the glyph, and the shape has
-                  // to be held clear of its edge by the same amount, or a line wrapped to the full
-                  // width of a taper draws its padding and border outside the mark.
-                  shape: isInside ? insetShapeRegion(shapeAt?.(anchor), boxPadding) : undefined,
+                  // to be held clear of its edge by the same amount and `itemPadding`, or a line
+                  // wrapped to the full width of a taper draws its box outside the mark.
+                  shape: shape && insetItemRegion(shape, itemLabelClearance(itemPadding, boxPadding)),
                   shapeAlign: regionAlignOf(anchor.textBaseline),
                   anchor,
                   padding: boxPadding,

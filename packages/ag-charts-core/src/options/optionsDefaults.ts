@@ -23,6 +23,7 @@ import type {
     FillCssOptions,
     FillOptions,
     GoogleFontFamily,
+    ItemPaddingOptions,
     LabelBoxOptions,
     LineDashOptions,
     PaddingOptions,
@@ -422,6 +423,11 @@ export const lineDash = or(arrayOf(positiveNumber), union(...Object.keys(LINE_DA
 export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash,
     lineDashOffset: number,
+};
+
+/** `itemPadding` for every series that draws labels inside its items, and only those. */
+export const itemPaddingOptionsDef: OptionsDefs<ItemPaddingOptions> = {
+    itemPadding: positiveNumber,
 };
 
 export const barHighlightOptionsDef: OptionsDefs<AgBarHighlightStyleOptions> = {

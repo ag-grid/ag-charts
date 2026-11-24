@@ -49,6 +49,7 @@ type PyramidRequiredKeys =
     | 'direction'
     | 'spacing'
     | 'label'
+    | 'itemPadding'
     | 'stageLabel'
     | 'shadow';
 

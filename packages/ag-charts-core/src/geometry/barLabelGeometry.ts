@@ -60,34 +60,6 @@ export function insideBarValueInsets(
     return anchoredAtMin ? { min: spacing, max: 0 } : { min: 0, max: spacing };
 }
 
-/**
- * Inside-label containment region: the bar rect inset by the {@link insideBarValueInsets} `spacing`
- * reservation on the value axis — the gap the label keeps from the end(s) it is anchored against. The
- * engine flushes and contains labels against this region, so the gap survives orientation/placement
- * resolution, not just the anchor. Collision clearance is not part of it; only a negative
- * `collision.threshold` reaches it, as spill.
- */
-export function insideBarRegion(
-    rect: BoxBounds,
-    valueMinInset: number,
-    valueMaxInset: number,
-    isVertical: boolean
-): BoxBounds {
-    return isVertical
-        ? {
-              x: rect.x,
-              y: rect.y + valueMinInset,
-              width: rect.width,
-              height: rect.height - valueMinInset - valueMaxInset,
-          }
-        : {
-              x: rect.x + valueMinInset,
-              y: rect.y,
-              width: rect.width - valueMinInset - valueMaxInset,
-              height: rect.height,
-          };
-}
-
 /** Text container for a label inside its bar region: the region shrunk by the box drawn around the text. */
 export function insideBarContainer(
     region: BoxBounds,

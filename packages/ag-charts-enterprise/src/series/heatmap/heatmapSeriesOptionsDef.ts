@@ -18,6 +18,7 @@ import {
     fontOptionsDef,
     glowHighlightOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelBoxOptionsDef,
     positiveNumber,
@@ -34,7 +35,7 @@ import {
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    itemPadding: positiveNumber,
+    ...itemPaddingOptionsDef,
     cornerRadius: positiveNumber,
     shadow: shadowOptionsDefs,
     glow: glowOptionsDefs,

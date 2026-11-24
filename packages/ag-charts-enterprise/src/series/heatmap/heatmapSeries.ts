@@ -39,6 +39,7 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    insetItemSpan,
     isPlainObject,
     isPlainResult,
     joinFormatted,
@@ -815,8 +816,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = label;
         const anchorX = nodeDatum.point.x;
         const anchorY = nodeDatum.point.y;
-        const xSpan = width - 2 * itemPadding;
-        const ySpan = height - 2 * itemPadding;
+        const xSpan = insetItemSpan(width, itemPadding);
+        const ySpan = insetItemSpan(height, itemPadding);
 
         return {
             anchorX,
@@ -1201,8 +1202,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const region = {
                 x: anchorX - xSpan / 2,
                 y: anchorY - ySpan / 2,
-                width: Math.max(0, xSpan),
-                height: Math.max(0, ySpan),
+                width: xSpan,
+                height: ySpan,
             };
             const glyph = measureLabelText(text, label);
             const candidate = this.labelCandidate(

@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_SINGLE_DEFAULTS,
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -76,6 +77,7 @@ export const FUNNEL_SERIES_AXES: any = {
 export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
     series: {
         ...SERIES_INTERACTION_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         fillOpacity: 1,

@@ -259,6 +259,15 @@ export interface TextOptions extends FontOptions {
     color?: AgCssColorOrRef;
 }
 
+export interface ItemPaddingOptions {
+    /**
+     * Minimum distance between the label text and the edges of the item.
+     *
+     * Default: `2`
+     */
+    itemPadding?: PixelSize;
+}
+
 export type Padding = PixelSize | PaddingOptions;
 
 export interface PaddingOptions {

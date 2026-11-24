@@ -230,6 +230,7 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
     // Histogram-specific property lookups
     readonly label: NormalisedHistogramSeriesOptions['label'];
     readonly labelFit: LabelFit | undefined;
+    readonly itemPadding: number;
 }
 
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
@@ -560,6 +561,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             yName,
             label,
             labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            itemPadding: this.options.itemPadding,
 
             // Animation flag
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -589,7 +591,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         h: number,
         isUpward: boolean
     ): HistogramNodeDatum['label'] {
-        const { label, labelFit, yKey, xKey, xName, yName } = ctx;
+        const { label, labelFit, yKey, xKey, xName, yName, itemPadding } = ctx;
         const { total, datum } = bin;
 
         // Number() coercion: a bigint `0n` total is an empty bin too, but `0n === 0` is false.
@@ -611,7 +613,15 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // Region reserves the anchored-side spacing gap (nothing when centred); container is region minus
         // the drawn box. Outside labels float free of the bar (no container/region).
         const bounds = insideOnly
-            ? insideBarLabelBounds(rect, placement, isUpward, true, label.spacing, expandPlacementLabelBoxExtent(label))
+            ? insideBarLabelBounds(
+                  rect,
+                  placement,
+                  isUpward,
+                  true,
+                  label.spacing,
+                  expandPlacementLabelBoxExtent(label),
+                  itemPadding
+              )
             : undefined;
         const labelParams = { ...this.binParams(bin), value: total, xKey, yKey, xName, yName };
         const sourceText = this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
@@ -647,6 +657,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 plotRegion,
                 fitted: labelFit != null,
                 text: sourceText,
+                itemPadding,
             });
             // The engine picks the first candidate that fits; the first is baked as a backward-safe default
             // until the engine writes the chosen one back.

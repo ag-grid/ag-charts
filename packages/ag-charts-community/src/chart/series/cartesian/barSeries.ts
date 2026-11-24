@@ -223,6 +223,7 @@ interface BarSeriesNodeDatumContext {
     readonly boxPadding: Required<PaddingOptions>;
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
+    readonly itemPadding: number;
     readonly crisp: boolean;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -794,6 +795,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             bboxBottom: yScale.convert(0n),
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
+            itemPadding: this.options.itemPadding,
             crisp:
                 dataAggregationFilter == null &&
                 (this.options.crisp ??
@@ -1164,6 +1166,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 plotRegion: ctx.plotRegion,
                 fitted: ctx.labelFit != null,
                 text: nodeLabelText,
+                itemPadding: ctx.itemPadding,
             });
             if (candidates.length === 0) {
                 // Every placement points into a stacked neighbour, so there is nowhere left to put a
@@ -1219,7 +1222,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                           isUpward,
                           !ctx.barAlongX,
                           spacing,
-                          ctx.labelBoxExtent
+                          ctx.labelBoxExtent,
+                          ctx.itemPadding
                       )
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar region

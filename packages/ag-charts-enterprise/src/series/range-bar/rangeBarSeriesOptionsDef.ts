@@ -15,6 +15,7 @@ import {
     crosshairSnapToValidator,
     fillOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -52,6 +53,7 @@ const rangeBarItemStyleCallback = callbackDefs<AgRangeBarSeriesStyle & AgItemSha
 });
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     crosshairSnapTo: crosshairSnapToValidator(['yLow', 'yHigh']),
     crosshairSnapMode: union('all', 'nearest'),
     direction: union('horizontal', 'vertical'),

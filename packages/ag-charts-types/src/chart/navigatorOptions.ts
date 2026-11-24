@@ -89,7 +89,8 @@ export type CommonIgnoredProperties =
     | 'xName'
     | 'yName';
 
-export type BarIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction';
+export type BarIgnoredProperties =
+    CommonIgnoredProperties | 'errorBar' | 'label' | 'itemPadding' | 'legendItemName' | 'direction';
 export type BoxPlotIgnoredProperties =
     | CommonIgnoredProperties
     | 'direction'
@@ -103,11 +104,12 @@ export type BubbleIgnoredProperties =
     CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName';
 export type HeatmapIgnoredProperties =
     CommonIgnoredProperties | 'title' | 'label' | 'colorName' | 'textAlign' | 'verticalAlign' | 'itemPadding';
-export type HistogramIgnoredProperties = CommonIgnoredProperties | 'label';
+export type HistogramIgnoredProperties = CommonIgnoredProperties | 'label' | 'itemPadding';
 export type LineIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'title' | 'label';
 export type HlcIgnoredProperties = CommonIgnoredProperties | 'highName' | 'lowName' | 'closeName';
 export type RangeAreaIgnoredProperties = CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName';
-export type RangeBarIgnoredProperties = CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName';
+export type RangeBarIgnoredProperties =
+    CommonIgnoredProperties | 'label' | 'itemPadding' | 'direction' | 'yLowName' | 'yHighName';
 export type ScatterIgnoredProperties =
     CommonIgnoredProperties | 'errorBar' | 'title' | 'label' | 'labelKey' | 'labelName';
 export type WaterfallIgnoredProperties = CommonIgnoredProperties | 'direction';

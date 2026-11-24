@@ -764,7 +764,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                           isUpward,
                           !barAlongX,
                           label.spacing,
-                          expandPlacementLabelBoxExtent(label)
+                          expandPlacementLabelBoxExtent(label),
+                          this.options.itemPadding
                       )
                     : undefined;
             // The engine refits per orientation since a rotated label measures against the bar's other axis (see barSeries).
@@ -792,6 +793,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     plotRegion,
                     fitted: labelFit != null,
                     text: fittedLabelText,
+                    itemPadding: this.options.itemPadding,
                 });
                 // The first candidate is baked as a backward-safe default until the engine writes the chosen one back.
                 const { anchor, region, placement: granular } = candidates[0];

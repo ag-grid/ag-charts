@@ -625,6 +625,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
+                itemPadding: this.options.itemPadding,
                 shapeAt: (anchor) => trapezoidFitRegion(trapezoid, trapezoid.vertical ? anchor.y : anchor.x),
                 text,
             });

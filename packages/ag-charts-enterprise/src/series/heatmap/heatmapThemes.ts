@@ -1,6 +1,7 @@
 import {
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -46,7 +47,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             textAlign: 'center',
             verticalAlign: 'middle',
         },
-        itemPadding: 3,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         tooltip: SERIES_TOOLTIP_THEME,
         colorScale: {
             fills: {

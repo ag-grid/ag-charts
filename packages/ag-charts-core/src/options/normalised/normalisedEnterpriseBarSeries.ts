@@ -66,7 +66,7 @@ type BarStyleRequiredKeys =
 /** Range bar options the series owns, before the common series keys are layered on. */
 export type NormalisedRangeBarSeriesOwnOptions = Normalised<
     AgRangeBarSeriesOptions,
-    'xKey' | 'yLowKey' | 'yHighKey' | 'direction' | BarStyleRequiredKeys | 'label' | 'segmentation',
+    'xKey' | 'yLowKey' | 'yHighKey' | 'direction' | BarStyleRequiredKeys | 'label' | 'itemPadding' | 'segmentation',
     {
         fill: NormalisedColorType;
         stroke: CssColor;
@@ -103,7 +103,7 @@ export type NormalisedWaterfallSeriesLineOptions = Normalised<
 /** Waterfall options the series owns, before the common series keys are layered on. */
 export type NormalisedWaterfallSeriesOwnOptions = Normalised<
     AgWaterfallSeriesOptions,
-    'xKey' | 'yKey' | 'direction' | 'item' | 'line',
+    'xKey' | 'yKey' | 'direction' | 'item' | 'line' | 'itemPadding',
     {
         item: {
             positive: NormalisedWaterfallSeriesItemOptions;
@@ -235,7 +235,16 @@ export type NormalisedBaseFunnelSeriesLabelOptions =
  */
 export type NormalisedBaseFunnelSeriesOwnOptions = Omit<
     NormalisedFunnelSeriesOwnOptions,
-    'type' | 'label' | 'itemStyler' | 'tooltip' | 'highlight' | 'spacingRatio' | 'cornerRadius' | 'dropOff' | 'shadow'
+    | 'type'
+    | 'label'
+    | 'itemStyler'
+    | 'tooltip'
+    | 'highlight'
+    | 'spacingRatio'
+    | 'cornerRadius'
+    | 'dropOff'
+    | 'shadow'
+    | 'itemPadding'
 > & {
     type: 'funnel' | 'cone-funnel';
     label: NormalisedBaseFunnelSeriesLabelOptions;
@@ -255,7 +264,14 @@ export type NormalisedFunnelSeriesDropOffOptions = Normalised<
 /** Funnel options the series owns, before the common series keys are layered on. */
 export type NormalisedFunnelSeriesOwnOptions = Normalised<
     AgFunnelSeriesOptions,
-    FunnelStyleRequiredKeys | 'direction' | 'spacingRatio' | 'cornerRadius' | 'dropOff' | 'shadow' | 'label',
+    | FunnelStyleRequiredKeys
+    | 'direction'
+    | 'spacingRatio'
+    | 'cornerRadius'
+    | 'dropOff'
+    | 'shadow'
+    | 'label'
+    | 'itemPadding',
     {
         fills: NormalisedColorType[];
         strokes: CssColor[];

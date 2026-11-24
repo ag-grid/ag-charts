@@ -17,6 +17,7 @@ import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSi
 import type {
     AgColorType,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -77,7 +78,7 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TCo
         AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'>, LineDashOptions {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'>, LineDashOptions, ItemPaddingOptions {
     /** The colours to cycle through for the fills of the stages. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */

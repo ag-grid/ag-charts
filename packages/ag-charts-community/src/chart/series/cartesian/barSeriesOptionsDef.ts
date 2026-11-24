@@ -12,6 +12,7 @@ import {
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelOrientationDef,
@@ -52,6 +53,7 @@ const barStyler = callbackDefs<AgBarSeriesStyle>(barStylerDefs);
 const barItemStyler = callbackDefs<AgBarSeriesStyle & AgItemShadowStyle>({ ...barStylerDefs, ...itemStylerCastDefs });
 
 export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,

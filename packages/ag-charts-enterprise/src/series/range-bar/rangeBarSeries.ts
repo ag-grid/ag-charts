@@ -44,8 +44,8 @@ import {
     buildBarPositionedLabelDatum,
     findMinMax,
     fontWithSize,
+    insetItemRect,
     insideBarContainer,
-    insideBarRegion,
     isContinuous,
     labelBoxCentreOffset,
     measureLabelText,
@@ -954,7 +954,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // `spacing` gap on both value ends.
         const barRegion =
             isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insideBarRegion(rect, label.spacing, label.spacing, !barAlongX)
+                ? insetItemRect(rect, this.options.itemPadding, label.spacing, label.spacing, !barAlongX)
                 : undefined;
         // Bind to the bar only when `inside` is the sole placement; a cascade's non-inside fallback
         // can still place a label that fails the inside fit.
@@ -1179,6 +1179,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     plotRegion,
                     fitted: ctx.labelFit != null,
                     text,
+                    itemPadding: this.options.itemPadding,
                 });
             };
             bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));

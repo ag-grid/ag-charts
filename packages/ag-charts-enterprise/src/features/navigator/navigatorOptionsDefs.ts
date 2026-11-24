@@ -89,6 +89,7 @@ export const barIgnoredMiniChartProperties: BarIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
     'errorBar',
     'label',
+    'itemPadding',
     'legendItemName',
 ];
 export const boxPlotIngnoredMiniChartProperties: BoxPlotIgnoredProperties[] = [
@@ -121,6 +122,7 @@ export const heatmapIgnoredMiniChartProperties: HeatmapIgnoredProperties[] = [
 export const histogramIgnoredMiniChartProperties: HistogramIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
     'label',
+    'itemPadding',
 ];
 export const hlcIgnoredMiniChartProperties: HlcIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
@@ -144,6 +146,7 @@ export const rangeBarIgnoredMiniChartProperties: RangeBarIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
     'direction',
     'label',
+    'itemPadding',
     'yLowName',
     'yHighName',
 ];

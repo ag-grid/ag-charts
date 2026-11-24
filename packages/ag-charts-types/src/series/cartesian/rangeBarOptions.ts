@@ -32,6 +32,7 @@ import type {
 import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -97,7 +98,7 @@ export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 export type AgRangeBarCrosshairSnapValue = 'yLow' | 'yHigh';
 
 export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgRangeBarSeriesStyle {
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgRangeBarSeriesStyle, ItemPaddingOptions {
     /**
      * The values of the highlighted datum that the value-axis crosshair snaps to.
      *

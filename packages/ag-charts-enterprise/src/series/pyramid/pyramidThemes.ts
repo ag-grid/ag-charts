@@ -3,6 +3,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
@@ -23,6 +24,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         direction: 'vertical',
         fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },

@@ -33,6 +33,7 @@ import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesT
 import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -113,7 +114,7 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = DatumDefault, TContex
 }
 
 export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBarSeriesStyle, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
+    extends AgBarSeriesStyle, ItemPaddingOptions, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /**
      * Bar rendering direction.
      *

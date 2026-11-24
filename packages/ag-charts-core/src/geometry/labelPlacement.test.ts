@@ -17,7 +17,6 @@ import {
     buildBarLabelDatum,
     buildBarPositionedLabelDatum,
     insideBarContainer,
-    insideBarRegion,
     insideBarValueInsets,
     labelBoxCentreOffset,
     labelFootprintBox,
@@ -1685,28 +1684,6 @@ describe('bar label placement helpers', () => {
         it('reserves the gap on the far end for inside-end (opposite of inside-start)', () => {
             expect(insideBarValueInsets('end', true, true, 5)).toEqual({ min: 5, max: 0 });
             expect(insideBarValueInsets('end', true, false, 5)).toEqual({ min: 0, max: 5 });
-        });
-    });
-
-    describe('insideBarRegion', () => {
-        const rect: BoxBounds = { x: 10, y: 20, width: 40, height: 200 };
-
-        it('insets a vertical bar by the value insets on Y (length) and spans its full width', () => {
-            expect(insideBarRegion(rect, 5, 3, true)).toEqual({ x: 10, y: 25, width: 40, height: 192 });
-        });
-
-        it('insets a horizontal bar by the value insets on X (length) and spans its full height', () => {
-            expect(insideBarRegion(rect, 5, 3, false)).toEqual({ x: 15, y: 20, width: 32, height: 200 });
-        });
-
-        it('reserves the gap on a single value end when only one inset is set', () => {
-            expect(insideBarRegion(rect, 5, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 195 });
-            expect(insideBarRegion(rect, 0, 5, true)).toEqual({ x: 10, y: 20, width: 40, height: 195 });
-        });
-
-        it('leaves the whole rect flush when every inset is zero', () => {
-            expect(insideBarRegion(rect, 0, 0, true)).toEqual(rect);
-            expect(insideBarRegion(rect, 0, 0, false)).toEqual(rect);
         });
     });
 

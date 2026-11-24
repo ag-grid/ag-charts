@@ -40,6 +40,7 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -118,10 +119,8 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = Conte
 export type AgWaterfallSeriesLabelPlacement =
     'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
-export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
-    AgBaseCartesianThemeableOptions<TDatum, TContext>,
-    'selection'
-> {
+export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>, ItemPaddingOptions {
     /**
      * Bar rendering direction.
      *

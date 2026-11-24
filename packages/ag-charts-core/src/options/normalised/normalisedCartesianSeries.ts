@@ -183,6 +183,7 @@ type BarRequiredKeys =
     | 'cornerRadius'
     | 'shadow'
     | 'label'
+    | 'itemPadding'
     | 'segmentation';
 
 /** Bar options the series owns, before the common series keys are layered on. */
@@ -225,7 +226,8 @@ type HistogramRequiredKeys =
     | 'areaPlot'
     | 'aggregation'
     | 'shadow'
-    | 'label';
+    | 'label'
+    | 'itemPadding';
 
 /** Histogram options the series owns, before the common series keys are layered on. */
 export type NormalisedHistogramSeriesOwnOptions = Normalised<
