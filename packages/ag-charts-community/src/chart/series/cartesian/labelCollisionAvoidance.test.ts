@@ -1335,6 +1335,7 @@ describe('label collision avoidance', () => {
                             labelKey: 'l',
                             minSize: 64,
                             maxSize: 64,
+                            itemPadding: 0,
                             itemStyler,
                             label: { enabled: true, placement: 'inside', truncate: true },
                         },
@@ -1386,14 +1387,16 @@ describe('label collision avoidance', () => {
             ];
             const series = (marker: { shape: string; size: number; itemStyler?: () => object }) => {
                 const label = { enabled: true, placement: 'inside' };
+                const itemPadding = 0;
                 if (type === 'line') {
                     const formatter = ({ datum }: any) => datum.l;
                     const lineMarker = { enabled: true, ...marker };
-                    return { type, data, xKey: 'x', yKey: 'y', marker: lineMarker, label: { ...label, formatter } };
+                    const lineLabel = { ...label, formatter };
+                    return { type, data, xKey: 'x', yKey: 'y', itemPadding, marker: lineMarker, label: lineLabel };
                 }
                 const { size, ...rest } = marker;
                 const sizing = type === 'bubble' ? { sizeKey: 's', minSize: size, maxSize: size } : { size };
-                return { type, data, xKey: 'x', yKey: 'y', labelKey: 'l', ...sizing, ...rest, label };
+                return { type, data, xKey: 'x', yKey: 'y', labelKey: 'l', itemPadding, ...sizing, ...rest, label };
             };
             const placed = async (marker: Parameters<typeof series>[0]) => {
                 chart?.destroy();

@@ -439,7 +439,7 @@ describe('label minimumFontSize', () => {
             expect(fontSizes()).toEqual(labels().map(() => FONT_SIZE));
         });
 
-        const bubbleChart = (label: object) => ({
+        const bubbleChart = (label: object, itemPadding?: number) => ({
             data: Array.from({ length: 6 }, (_, i) => ({ x: i, y: i % 3, size: 20 + i * 30, label: `Bubble ${i}` })),
             legend: { enabled: false },
             axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -450,6 +450,7 @@ describe('label minimumFontSize', () => {
                     yKey: 'y',
                     sizeKey: 'size',
                     labelKey: 'size',
+                    itemPadding,
                     label: {
                         enabled: true,
                         fontSize: FONT_SIZE,
@@ -473,7 +474,7 @@ describe('label minimumFontSize', () => {
         });
 
         it('keeps the fitted size on the highlighted bubble label', async () => {
-            await render(bubbleChart({ minimumFontSize: 4 }));
+            await render(bubbleChart({ minimumFontSize: 4 }, 0));
             const placed = fontSizes();
             const [datum] = getSeriesContextNodeData(chart).labelData;
             deproxy(chart).ctx.highlightManager.updateHighlight(getSeriesAt(chart).id, datum);

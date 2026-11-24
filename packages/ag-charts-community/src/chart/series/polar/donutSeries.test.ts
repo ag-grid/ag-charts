@@ -1496,11 +1496,19 @@ describe('DonutSeries', () => {
     });
 
     describe('sectorLabel fitted without fit options', () => {
+        // The wedge counts are tuned to the bare wedge, so these hold the label no clearance from its edges.
         const sectorOptions = (name: string, count: number, innerRadiusRatio: number, sectorLabel: object) => ({
             ...options,
             data: [{ name, size: 8 }, ...Array.from({ length: count - 1 }, () => ({ name, size: 1 }))],
             series: [
-                { type: 'donut' as const, angleKey: 'size', sectorLabelKey: 'name', innerRadiusRatio, sectorLabel },
+                {
+                    type: 'donut' as const,
+                    angleKey: 'size',
+                    sectorLabelKey: 'name',
+                    innerRadiusRatio,
+                    itemPadding: 0,
+                    sectorLabel,
+                },
             ],
         });
 
@@ -1638,6 +1646,7 @@ describe('DonutSeries', () => {
                             angleKey: 'size',
                             sectorLabelKey: 'name',
                             innerRadiusRatio: 0.88,
+                            itemPadding: 0,
                             sectorLabel: {
                                 fontSize: 12,
                                 wrapping: 'on-space',

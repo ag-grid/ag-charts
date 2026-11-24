@@ -2361,8 +2361,8 @@ describe('BarSeries', () => {
                 data: Array.from({ length: rows }, (_, i) => ({ x: i, low: 50 + (i % 7) * 10, high: 2 + (i % 5) })),
                 axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
                 series: [
-                    { type: 'bar', xKey: 'x', yKey: 'low', stacked: true, label },
-                    { type: 'bar', xKey: 'x', yKey: 'high', stacked: true, label },
+                    { type: 'bar', xKey: 'x', yKey: 'low', stacked: true, itemPadding: 0, label },
+                    { type: 'bar', xKey: 'x', yKey: 'high', stacked: true, itemPadding: 0, label },
                 ],
             });
 
