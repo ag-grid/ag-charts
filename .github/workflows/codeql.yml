@@ -27,7 +27,8 @@ permissions:
 jobs:
     analyze:
         name: Analyze (${{ matrix.language }})
-        runs-on: 'ubuntu-latest'
+        # Pinned to ubuntu-24.04: the Nx cache is saved there, and Nx ignores a restored cache from another runner image (machine ID).
+        runs-on: ubuntu-24.04
         if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         permissions:
             # required for all workflows
