@@ -72,17 +72,15 @@ export function insetItemRegion(region: FitRegion, clearance: ItemLabelClearance
 }
 
 /**
- * The room a sector item offers a label inside it: both arcs and both straight edges moved in by `itemPadding`.
- * A sector with no hole still reaches its centre, where the straight edges moved in already meet.
+ * Moves a sector item's arcs and straight edges in by `itemPadding`, in place, so the sector a caller builds per
+ * datum is the only allocation. A sector with no hole still reaches its centre, where the moved edges meet.
  */
 export function insetItemSector<T extends SectorBoundaries>(sector: T, itemPadding: number): T {
     if (itemPadding === 0) return sector;
     const { innerRadius, outerRadius, radialEdgeInset = 0 } = sector;
-    return {
-        ...sector,
-        innerRadius: innerRadius > 0 ? innerRadius + itemPadding : innerRadius,
-        // A sector drawn with a negative radius keeps its sign, and moves in by the same distance.
-        outerRadius: Math.sign(outerRadius) * Math.max(0, Math.abs(outerRadius) - itemPadding),
-        radialEdgeInset: radialEdgeInset + itemPadding,
-    };
+    if (innerRadius > 0) sector.innerRadius = innerRadius + itemPadding;
+    // A sector drawn with a negative radius keeps its sign, and moves in by the same distance.
+    sector.outerRadius = Math.sign(outerRadius) * Math.max(0, Math.abs(outerRadius) - itemPadding);
+    sector.radialEdgeInset = radialEdgeInset + itemPadding;
+    return sector;
 }

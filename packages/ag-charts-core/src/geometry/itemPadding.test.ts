@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { trapezoidFitRegion } from './fitRegion';
-import { insetItemRect, insetItemRegion, insetItemSector, itemEdgeInset, itemLabelClearance } from './itemPadding';
+import {
+    insetItemRect,
+    insetItemRegion,
+    insetItemSector,
+    insetItemSpan,
+    itemEdgeInset,
+    itemLabelClearance,
+} from './itemPadding';
 
 describe('itemPadding', () => {
     const rect = { x: 10, y: 20, width: 40, height: 200 };
@@ -13,6 +20,16 @@ describe('itemPadding', () => {
             { itemPadding: 6, reserved: 4, expected: 6 },
         ])('holds an edge reserving $reserved off by $expected at itemPadding $itemPadding', (c) => {
             expect(itemEdgeInset(c.itemPadding, c.reserved)).toBe(c.expected);
+        });
+    });
+
+    describe('insetItemSpan', () => {
+        it.each([
+            { size: 40, reservedLow: 0, reservedHigh: 0, expected: 36 },
+            { size: 40, reservedLow: 5, reservedHigh: 0, expected: 33 },
+            { size: 3, reservedLow: 0, reservedHigh: 0, expected: 0 },
+        ])('leaves $expected of $size at itemPadding 2', (c) => {
+            expect(insetItemSpan(c.size, 2, c.reservedLow, c.reservedHigh)).toBe(c.expected);
         });
     });
 
@@ -69,7 +86,8 @@ describe('itemPadding', () => {
         it('moves both arcs and both straight edges in', () => {
             const sector = { startAngle: 0, endAngle: 1, innerRadius: 20, outerRadius: 100, radialEdgeInset: 1 };
             expect(insetItemSector(sector, 2)).toEqual({
-                ...sector,
+                startAngle: 0,
+                endAngle: 1,
                 innerRadius: 22,
                 outerRadius: 98,
                 radialEdgeInset: 3,
@@ -78,7 +96,19 @@ describe('itemPadding', () => {
 
         it('keeps a sector with no hole reaching its centre', () => {
             const sector = { startAngle: 0, endAngle: 1, innerRadius: 0, outerRadius: 100 };
-            expect(insetItemSector(sector, 2)).toEqual({ ...sector, outerRadius: 98, radialEdgeInset: 2 });
+            expect(insetItemSector(sector, 2)).toEqual({
+                startAngle: 0,
+                endAngle: 1,
+                innerRadius: 0,
+                outerRadius: 98,
+                radialEdgeInset: 2,
+            });
+        });
+
+        it('moves the sector it is given rather than allocating another', () => {
+            const sector = { startAngle: 0, endAngle: 1, innerRadius: 0, outerRadius: -100 };
+            expect(insetItemSector(sector, 2)).toBe(sector);
+            expect(sector.outerRadius).toBe(-98);
         });
 
         it('returns the sector itself at zero', () => {

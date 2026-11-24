@@ -4389,7 +4389,15 @@ describe('placeLabels solve references', () => {
         });
         const datum: PointLabelDatum = track('datum', {
             ...ownDatum(track),
-            fit: { ...fitOf(track), insideMarker: track('inside marker fit', { base, threshold: 0, masked: false }) },
+            fit: {
+                ...fitOf(track),
+                insideMarker: track('inside marker fit', {
+                    base,
+                    threshold: 0,
+                    masked: false,
+                    clearance: track('inside marker clearance', { x: 2, y: 2 }),
+                }),
+            },
             markerSize: 60,
             markerShape: 'square',
             markerRestyled: true,
