@@ -130,7 +130,7 @@ module.exports = {
             severity: 'error',
             from: {},
             to: {
-                path: '.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$',
+                path: '\\.(spec|test)\\.(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$',
             },
         },
         {
