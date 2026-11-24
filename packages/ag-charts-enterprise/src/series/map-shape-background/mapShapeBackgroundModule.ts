@@ -44,7 +44,7 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
             stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
-            ...undocumentedThemeOptions({ selection: seriesSelectionTheme(0.6, 0.2) }),
+            ...undocumentedThemeOptions({ selection: seriesSelectionTheme(0.6, 0.2, null) }),
         },
     },
 

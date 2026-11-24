@@ -268,13 +268,9 @@ export class MapShapeSeries
         return [MapZIndexMap.ShapeLine, zIndex];
     }
 
-    /** The `highlight.bringToFront` that `highlightGroup.zIndex` was last set for. */
     private highlightFront: boolean | undefined;
 
-    /**
-     * The series index is unchanged by an update of `highlight.bringToFront` while nothing is hovered, as the series is
-     * then brought to the front neither before nor after it, so the highlight group's z-index is forced to follow it.
-     */
+    // A `bringToFront` update leaves the series index alone while nothing is hovered, so force the z-index to follow it.
     override setSeriesIndex(index: number, forceUpdate = false): boolean {
         return super.setSeriesIndex(index, forceUpdate || this.highlightFront !== this.highlightBringsToFront());
     }

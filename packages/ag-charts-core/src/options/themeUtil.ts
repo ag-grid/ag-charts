@@ -873,9 +873,7 @@ export function withGlowThemeDefaults<T extends object>(
     const itemEnabled = seriesBucketPath == null ? seriesEnabled : { $path: seriesBucketPath };
     for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
     if (glowOnHover) {
-        // The default hover glow is lost once the user sets the glow that the item falls back to: the `highlightedSeries`
-        // one, or the series-level one. With a `glow` on each of several parts there is no one series-level value, so it is
-        // lost only where the user has set them all, and each part then keeps its own `enabled`.
+        // With several parts there is no one series-level glow, so the default is lost only where every part's is set.
         const userPartsEnabled = enabledPaths.map(({ $path }) => ({ $isUserOption: $path }));
         const userParts: Operation = perPart ? { $and: userPartsEnabled } : userPartsEnabled[0];
         const userSet: Operation =
@@ -1006,17 +1004,18 @@ export function interpolationThemeTemplate(defaultType: unknown = 'linear') {
     };
 }
 
-/** The selection style of a series, whose unselected items dim to `unselectedItem` opacity, and series to `unselectedSeries`. */
+/** The selection style of a series: unselected items dim to `unselectedItem` opacity, series to `unselectedSeries`; a `null` `selectedItemOpacity` leaves it unset. */
 export function seriesSelectionTheme(
     unselectedItem: number,
-    unselectedSeries = unselectedItem
+    unselectedSeries = unselectedItem,
+    selectedItemOpacity: number | null = 1
 ): WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> {
     return {
         enabled: { $path: ['/selection/enabled', false] },
         containment: { $path: ['/selection/containment', 'any'] },
         selectedItem: {
             strokeWidth: 2,
-            opacity: 1,
+            ...(selectedItemOpacity == null ? undefined : { opacity: selectedItemOpacity }),
             lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
         },
         unselectedItem: {

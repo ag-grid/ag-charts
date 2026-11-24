@@ -14,16 +14,24 @@ import {
     hoverDatum,
     hoverNode,
     prepareProcessedOptions,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     shapesOf,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
 import { setupEnterpriseModules } from '../setup';
 import { nodeNamed } from '../test/glowSeriesCases';
-import { HIERARCHY_SHADOW_DATA, OHLC_DATA, createEnterpriseChart, itemNodes } from '../test/utils';
+import {
+    HIERARCHY_SHADOW_DATA,
+    OHLC_DATA,
+    createEnterpriseChart,
+    itemNodes,
+    prepareEnterpriseTestOptions,
+} from '../test/utils';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 
@@ -432,6 +440,16 @@ describe('highlight and glow defaults (Defaults sheet)', () => {
     });
 });
 
+describe('series that are not on the Defaults sheet', () => {
+    it.each(['linear-gauge', 'radial-gauge'])('%s keeps its selection defaults', (type) => {
+        const { selection } = resolve('ag-default', { series: type, options: { value: 5 } });
+
+        expect(selection.unselectedItem.opacity).toBe(0.6);
+        expect(selection.unselectedSeries.opacity).toBe(0.2);
+        expect(selection.selectedItem.opacity).toBeUndefined();
+    });
+});
+
 // The test theme's `foregroundColor` `#464646` mixed 60% onto its white `backgroundColor`.
 const TEST_THEME_NEUTRAL = '#909090';
 
@@ -543,6 +561,29 @@ describe('hovered item glow (defaults)', () => {
         expectSamePixels(byDefault, await hoverGroup(withGlow(sheet)));
         expect(differingBytes(byDefault, await hoverGroup(withGlow({ ...sheet, fillOpacity: 1 })))).toBeGreaterThan(0);
     });
+
+    it('treemap group: a keyboard-focused group glows as a hovered one does', async () => {
+        const options = {
+            data: [
+                { name: 'Americas', children: ['US', 'Brazil'].map((name, size) => ({ name, size: 9 - size * 5 })) },
+                { name: 'Asia', children: ['China', 'Japan'].map((name, size) => ({ name, size: 8 - size * 4 })) },
+            ],
+            series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+        };
+        await create(options);
+        const unfocused = canvasImage(chart!);
+        await hoverNode(chart!, nodeNamed('Americas')(chart!));
+        const onHover = canvasImage(chart!);
+
+        await create(options);
+        await tabIntoChart(chart!);
+        await pressKey(chart!, 'ArrowRight');
+        await pressKey(chart!, 'ArrowLeft');
+
+        const darkened = onHover.data.filter((v, i) => i % 4 === 0 && v < 200 && unfocused.data[i] === 255);
+        expect(darkened.length, 'the hovered group casts a glow onto the white background').toBeGreaterThan(0);
+        expectSamePixels(canvasImage(chart!), onHover);
+    });
 });
 
 describe('hovered item glow that the user turns off', () => {
@@ -561,8 +602,7 @@ describe('hovered item glow that the user turns off', () => {
         return canvasImage(chart!);
     };
 
-    // A glow the user sets for the series is the one the hovered item falls back to, so it glows only if that does: the
-    // default hover glow is what an unset glow gets, and a set one no longer follows it.
+    // The hovered item falls back to the series glow the user sets, and glows only if that glow is enabled.
     it.each([
         {
             name: 'bar',
@@ -784,6 +824,19 @@ describe('hover breaking changes', () => {
 
         it('brings the hovered shape over the marker with bringToFront', async () => {
             expect(await hoveredMarkerPixel({ bringToFront: true })).not.toEqual([255, 0, 0, 255]);
+        });
+
+        it.each([
+            { from: true, to: false, overMarker: false },
+            { from: false, to: true, overMarker: true },
+        ])('follows an update of bringToFront from $from to $to', async ({ from, to, overMarker }) => {
+            await create(options({ bringToFront: from }));
+            const next = { ...RENDER_OPTIONS, ...options({ bringToFront: to }) } as AgChartOptions;
+            await chart!.update(prepareEnterpriseTestOptions(next));
+            await waitForChartStability(chart!);
+            await hoverDatum(chart!, 0, 0);
+
+            expect(markerPixel()[0] === 255 && markerPixel()[1] === 0).toBe(!overMarker);
         });
     });
 });

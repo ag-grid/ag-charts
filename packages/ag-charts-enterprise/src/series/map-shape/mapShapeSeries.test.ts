@@ -25,7 +25,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable, ambientLogger, compareZIndex } from 'ag-charts-core';
+import { Transformable, ambientLogger } from 'ag-charts-core';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -243,34 +243,6 @@ describe('MapShapeSeries', () => {
 
             expect(Array.from(seriesImpl.highlightNodeGroup.children())).toHaveLength(raisedShapes);
         });
-
-        it.each([
-            { from: true, to: false },
-            { from: false, to: true },
-        ])(
-            'moves the highlight group when highlight.bringToFront is updated from $from to $to',
-            async ({ from, to }) => {
-                const withBringToFront = (bringToFront: boolean): AgChartOptions => ({
-                    ...SIMPLIFIED_EXAMPLE,
-                    series: [{ type: 'map-shape', idKey: 'name', highlight: { bringToFront } }],
-                });
-                const highlightZIndex = (c: Chart) => (c.series[0] as unknown as MapShapeSeries).highlightGroup.zIndex;
-
-                const created = deproxy(await createEnterpriseChart(withBringToFront(to)));
-                const expected = highlightZIndex(created);
-                created.destroy();
-
-                const chartProxy = await createEnterpriseChart(withBringToFront(from));
-                chart = deproxy(chartProxy);
-                const initial = highlightZIndex(chart);
-                expect(compareZIndex(initial, expected)).not.toBe(0);
-
-                await chartProxy.update(prepareEnterpriseTestOptions(withBringToFront(to)));
-                await waitForChartStability(chart);
-
-                expect(compareZIndex(highlightZIndex(chart), expected)).toBe(0);
-            }
-        );
     });
 
     describe('Heatmap', () => {
