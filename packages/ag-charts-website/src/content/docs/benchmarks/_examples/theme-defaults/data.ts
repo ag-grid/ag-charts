@@ -1,1 +1,1 @@
-../shadow-root/data.ts
+../../shadowRootData.ts
