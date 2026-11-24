@@ -1709,7 +1709,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (proxyPaths) {
                 for (const proxyFrom of Object.keys(proxyPaths)) {
                     const proxyTo = proxyPaths[proxyFrom];
-                    const proxyValue = getPathSafe(partialOptions, [proxyFrom]);
+                    const proxyValue = this.withListItemColour(getPathSafe(partialOptions, [proxyFrom]), proxyTo);
                     if (proxyValue != null) {
                         setPathSafe(partialOptions, proxyTo, proxyValue);
                         setPathSafe(this.userPartialOptions, [...path, ...proxyTo], proxyValue);
@@ -1790,6 +1790,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
             return partial;
         });
+    }
+
+    /** A fill with no colour that is merged over a list item takes that item's colour, as no switch gives it one. */
+    private withListItemColour(value: unknown, listPath: Array<string>) {
+        const index = Number(listPath.at(-1));
+        return isSolidFill(value) && value.fill == null && !Number.isNaN(index)
+            ? { ...value, fill: this.paletteColour(index) }
+            : value;
     }
 
     private diagramKeys?: Map<string, string>;

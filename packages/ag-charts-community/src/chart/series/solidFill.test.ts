@@ -59,6 +59,18 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
             },
         ],
     }),
+    'a donut styler': (fill) => ({
+        data: DATA,
+        series: [
+            {
+                type: 'donut',
+                angleKey: 'a',
+                innerRadiusRatio: 0.6,
+                fillOpacity: 0.8,
+                itemStyler: ({ datum }) => fill('red', datum.a / 10),
+            },
+        ],
+    }),
     'axis label stylers': (fill) => ({
         data: DATA,
         series: [{ type: 'bar', xKey: 'month', yKey: 'a' }],
@@ -111,6 +123,15 @@ const axisChart = (itemStyler: () => { fill?: AgColorType }): AgChartOptions => 
     axes: { x: { type: 'category', label: { fill: 'orange', itemStyler } }, y: { type: 'number' } },
 });
 
+const STRIPES = ['#aa0000', '#00aa00', '#0000aa'];
+
+const stripedDonutChart = (fills: AgColorType[], itemStyler?: () => { fill: AgColorType }): AgChartOptions => ({
+    data: DATA,
+    legend: { enabled: false },
+    theme: { palette: { fills } },
+    series: [{ type: 'donut', angleKey: 'a', innerRadiusRatio: 0.6, itemStyler }],
+});
+
 /** Charts that no `Fill` can express, as the options with a solid colour and the plain ones it stands for. */
 const EXPLICIT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptions]> = {
     'a palette solid with an opacity': [
@@ -118,6 +139,14 @@ const EXPLICIT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptio
         paletteChart('rgba(255, 0, 0, 0.5)'),
     ],
     'a donut inner circle with no colour': [donutChart({ type: 'solid' }), donutChart(PALETTE[0])],
+    // A plain colour from a styler is not applied over a pattern palette, so the stroke colours stand in for it.
+    'a donut styler with no colour on a pattern palette': [
+        stripedDonutChart(
+            STRIPES.map((stroke) => pattern('crosshatch', stroke)),
+            () => ({ fill: { type: 'solid' } })
+        ),
+        stripedDonutChart(STRIPES),
+    ],
     'an axis label styler with no colour': [axisChart(() => ({ fill: { type: 'solid' } })), axisChart(() => ({}))],
 };
 
