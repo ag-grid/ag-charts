@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { MARKER_SHAPES } from 'ag-charts-core';
+import { MARKER_SHAPES, getSharedMarkerPath } from 'ag-charts-core';
 import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
 
 import { Marker } from './marker';
-import { getSharedMarkerPath } from './markerPathCache';
 
 describe('Marker', () => {
     describe('distanceSquared', () => {

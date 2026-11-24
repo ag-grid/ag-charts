@@ -17,6 +17,7 @@ import {
     deproxy,
     expectWarningMessages,
     expectWarningsCalls,
+    getSeriesOptions,
     getVisibleLabelNodes,
     hoverAction,
     resetMockConsole,
@@ -32,6 +33,7 @@ import {
     SMALL_SHADOW,
     collectShapes,
     createEnterpriseChart,
+    createStockThemedChart,
     prepareEnterpriseTestOptions,
     shadowedShapes,
 } from '../../test/utils';
@@ -928,5 +930,14 @@ describe('MapShapeSeries', () => {
             scopedWarnOnce.mockRestore();
             fallbackWarnOnce.mockRestore();
         });
+    });
+
+    it.each([
+        ['tints the palette fill', SIMPLIFIED_EXAMPLE, 0.2],
+        ['keeps a colour scale fill solid', HEATMAP_EXAMPLE, 1],
+    ])('ag-accessible %s', async (_name, options, fillOpacity) => {
+        chart = deproxy(await createStockThemedChart(options, 'ag-accessible'));
+
+        expect(getSeriesOptions<{ fillOpacity: number }>(chart).fillOpacity).toBe(fillOpacity);
     });
 });

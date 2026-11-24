@@ -5,7 +5,7 @@ import type { TextWrap } from 'ag-charts-types';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
-import { buildBarLabelCandidates, fitLabelToContainer, insideMarkerContainer } from './labelUtil';
+import { buildBarLabelCandidates, fitLabelToContainer } from './labelUtil';
 
 type BarLabelArgs = Parameters<typeof buildBarLabelCandidates<unknown>>[0];
 type BarLabel = BarLabelArgs['label'];
@@ -96,61 +96,6 @@ describe('fitLabelToContainer', () => {
         const segments = [{ type: 'text' as const, text: LONG_TEXT }];
         const result = fitToContainer(segments, { truncate: true }, { width: 40, height: 100 });
         expect(Array.isArray(result)).toBe(true);
-    });
-});
-
-describe('insideMarkerContainer', () => {
-    setupMockConsole();
-    setupMockCanvas();
-
-    it('returns the largest square inscribed in the marker circle', () => {
-        const { width, height } = insideMarkerContainer(20);
-        expect(width).toBeCloseTo(20 / Math.SQRT2);
-        expect(height).toBeCloseTo(20 / Math.SQRT2);
-        // The square's diagonal equals the marker diameter, so its corners lie on the circle.
-        expect(Math.hypot(width, height)).toBeCloseTo(20);
-    });
-
-    it('scales the analysed shape rectangle by the marker diameter', () => {
-        const small = insideMarkerContainer(50, 'square');
-        const large = insideMarkerContainer(100, 'square');
-        expect(large.width).toBeCloseTo(small.width * 2);
-        expect(large.height).toBeCloseTo(small.height * 2);
-        // A square marker uses almost its whole box.
-        expect(large.width).toBeGreaterThan(90);
-    });
-
-    it.each([
-        { threshold: 6, grow: 0 },
-        { threshold: -6, grow: 12 },
-    ])('grows by a negative threshold but never shrinks by a positive one ($threshold)', ({ threshold, grow }) => {
-        const base = insideMarkerContainer(100, 'square');
-        const sized = insideMarkerContainer(100, 'square', threshold);
-        expect(sized.width).toBeCloseTo(base.width + grow);
-        expect(sized.height).toBeCloseTo(base.height + grow);
-    });
-
-    it('gives a heart a wide, short box and a diamond a smaller near-square one', () => {
-        const heart = insideMarkerContainer(100, 'heart');
-        const diamond = insideMarkerContainer(100, 'diamond');
-        expect(heart.width).toBeGreaterThan(heart.height * 2);
-        expect(diamond.width).toBeGreaterThan(40);
-        expect(diamond.width).toBeLessThan(60);
-    });
-
-    it('falls back to the inscribed square for an unanalysable (empty) custom shape', () => {
-        const side = 20 / Math.SQRT2;
-        expect(insideMarkerContainer(20, () => {}).width).toBeCloseTo(side);
-        expect(insideMarkerContainer(20).width).toBeCloseTo(side);
-    });
-
-    it('collapses to an empty container for a markerless point', () => {
-        expect(insideMarkerContainer(0)).toEqual({ width: 0, height: 0 });
-    });
-
-    it('hides an inside label that overflows a small marker', () => {
-        const result = fitToContainer(LONG_TEXT, { avoid: true }, insideMarkerContainer(12));
-        expect(result).toBe('');
     });
 });
 

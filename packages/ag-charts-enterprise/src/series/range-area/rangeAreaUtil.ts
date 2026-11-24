@@ -59,6 +59,8 @@ export interface RangeAreaLabelDatum extends Readonly<Point>, PointLabelDatum {
     readonly itemType: AgRangeAreaSeriesItemType;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     style?: AgSeriesMarkerStyle;
+    /** The marker drawn at this label's point, whose styled size and shape the label avoids. */
+    readonly markerDatum: RangeAreaMarkerDatum;
 }
 
 interface RangeAreaFillPathDatum {
