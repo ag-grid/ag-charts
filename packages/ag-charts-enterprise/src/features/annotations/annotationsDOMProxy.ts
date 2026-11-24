@@ -26,6 +26,7 @@ export interface AnnotationsDOMProxyItem {
 
 export interface AnnotationsDOMProxyListener {
     onFocus(id: string): void;
+    onBlur(): void;
     onActivate(id: string, sourceEvent: Event): void;
     onMoveKeyDown(sourceEvent: KeyboardEvent): void;
     onMoveKeyUp(sourceEvent: KeyboardEvent): void;
@@ -119,6 +120,11 @@ export class AnnotationsDOMProxy {
     /** Whether the annotations open a popup, which is the Annotation Options Toolbar unless it is disabled. */
     setHasPopup(hasPopup: boolean) {
         this.hasPopup = hasPopup;
+    }
+
+    /** Whether the focus is on an annotation or its mover. */
+    containsFocus() {
+        return this.dom?.root.containsFocus() ?? false;
     }
 
     isListed(id: string) {
@@ -232,6 +238,7 @@ export class AnnotationsDOMProxy {
         button.addClass('ag-charts-proxy-elem', 'ag-charts-annotations__item');
         button.setTextContent(label);
         button.addListener('focus', () => this.listener.onFocus(id));
+        button.addListener('blur', () => this.listener.onBlur());
         button.addListener('click', (event) => this.listener.onActivate(id, event.sourceEvent));
         list.addChild(button);
         return button;

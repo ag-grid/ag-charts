@@ -2,7 +2,7 @@ import type { TextAlign } from 'ag-charts-types';
 
 import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
 import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
-import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
+import { containsFocus, getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
 import { isNode } from '../dom/globalsProxy';
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ElementID } from '../identity/idBranding';
@@ -411,6 +411,11 @@ export abstract class Widget<
     /** Whether this widget's element is the active element of its document or shadow root. */
     isFocused(): boolean {
         return isFocused(this.elem);
+    }
+
+    /** Whether the focus is on this widget's element or one of its descendants. */
+    containsFocus(): boolean {
+        return containsFocus(this.elem);
     }
 
     /** Whether the pointer is over this widget's element (the CSS `:hover` state). */

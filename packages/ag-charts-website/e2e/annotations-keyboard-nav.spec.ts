@@ -100,6 +100,27 @@ test.describe('annotations keyboard navigation', () => {
         await expect(moveButton).toBeFocused();
     });
 
+    test('An update that removes the focused annotation moves the focus to the next one', async ({ page }) => {
+        await tabToAnnotations(page);
+
+        const state = await getChartState(page);
+        await setChartState(page, { ...state, annotations: [LINE_ANNOTATIONS[1]] as typeof state.annotations });
+
+        await expect(annotationItems(page)).toHaveCount(1);
+        await expect(annotationItems(page).first()).toBeFocused();
+    });
+
+    test('An update that removes an annotation after the focus left it leaves the focus alone', async ({ page }) => {
+        await tabToAnnotations(page);
+        await annotationItems(page).first().blur();
+
+        const state = await getChartState(page);
+        await setChartState(page, { ...state, annotations: [] });
+
+        await expect(annotationItems(page)).toHaveCount(0);
+        expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+    });
+
     test('annotations stay invisible under host button styles', async ({ page }) => {
         await page.addStyleTag({ content: 'button { color: rgb(0, 0, 0); text-shadow: 1px 1px rgb(0, 0, 0); }' });
 

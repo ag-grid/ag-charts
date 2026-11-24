@@ -199,6 +199,17 @@ describe('Annotations keyboard navigation', () => {
 
             expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
         });
+
+        it('leaves the focus alone when an update removes the annotation after the keyboard left it', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await focusItem(0);
+            items()[0].blur();
+
+            await chart.setState({ ...chart.getState(), annotations: [] });
+            await waitForChartStability(chart);
+
+            expect(activeElement()).toBe(document.body);
+        });
     });
 
     describe('panning', () => {

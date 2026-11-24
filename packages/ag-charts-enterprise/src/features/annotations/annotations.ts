@@ -143,6 +143,7 @@ export class Annotations extends AbstractModuleInstance {
     private readonly textInput = new TextInput(this.ctx);
     private readonly domProxy = new AnnotationsDOMProxy(this.ctx, {
         onFocus: (id) => this.onKeyboardFocus(id),
+        onBlur: () => this.onKeyboardBlur(),
         onActivate: (id) => this.openOptionsWithKeyboard(id),
         onMoveKeyDown: (sourceEvent) => this.onMoveKeyDown(sourceEvent),
         onMoveKeyUp: (sourceEvent) => this.onKeyUp({ sourceEvent }),
@@ -1444,7 +1445,7 @@ export class Annotations extends AbstractModuleInstance {
         if (!focusLost) return;
 
         if (datum == null) {
-            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus();
+            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
         } else {
             domProxy.focus(id);
         }
@@ -1469,6 +1470,15 @@ export class Annotations extends AbstractModuleInstance {
         if (!seriesRect.containsPoint(x, y)) {
             this.ctx.zoomManager?.panToBBox(seriesRect, target);
         }
+    }
+
+    /** Forgets the annotation once the focus leaves its controls, so that a later update leaves the focus alone. */
+    private onKeyboardBlur() {
+        // Chrome also blurs a removed or hidden item, so let `reconcileKeyboardFocus()` move the focus on first.
+        queueMicrotask(() => {
+            if (this.domProxy.containsFocus() || this.optionsToolbar.containsFocus()) return;
+            this.keyboardFocusId = undefined;
+        });
     }
 
     private openOptionsWithKeyboard(id: string) {

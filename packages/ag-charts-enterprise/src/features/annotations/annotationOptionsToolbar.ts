@@ -209,6 +209,10 @@ export class AnnotationOptionsToolbar {
         this.toolbar.hide();
     }
 
+    public containsFocus() {
+        return this.toolbar.containsFocus();
+    }
+
     public focusFirstButton() {
         this.toolbar.getButtonWidget(0)?.focus();
     }
