@@ -523,10 +523,12 @@ function fitSectorLabelToWedge(
     sector: SectorBoundaries,
     padding: Required<PaddingOptions>,
     boxing: TextBoxingProperties,
-    layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
+    layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[],
+    drawnAsFitted: boolean
 ): PlacedSectorLabel {
-    // The series hides any placement a wedge this thin gets, so none is made.
-    const holdsNone = (sized: FontOptions) => !isArray(text) && holdsNoLine(sector, sized, boxing);
+    // The series hides any placement a wedge this thin gets, so none is made, unless the node may be drawn in
+    // another style than the one this proves against.
+    const holdsNone = (sized: FontOptions) => drawnAsFitted && !isArray(text) && holdsNoLine(sector, sized, boxing);
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
     if (floor >= font.fontSize && holdsNone(font)) return NOT_IN_WEDGE.placed;
     const inSector = wedgeTester.reset(sector).contains;
@@ -673,6 +675,8 @@ function fitSectorLabelToWedge(
 /**
  * Places a fitted sector label in its wedge, as a candidate fit target's `place`: `anchor` and `sector` are
  * relative to the series centre at `(centreX, centreY)`, and the label is drawn centred on the point it reports.
+ * `drawnAsFitted` is true when the label's node is always drawn in the font and boxing it is fitted in, as it is
+ * without a state-dependent style.
  */
 export function sectorLabelPlacer(
     anchor: Point,
@@ -680,13 +684,24 @@ export function sectorLabelPlacer(
     padding: Required<PaddingOptions>,
     boxing: TextBoxingProperties,
     centreX: number,
-    centreY: number
+    centreY: number,
+    drawnAsFitted = false
 ): (fit: LabelFitDescriptor) => PlacedFit | undefined {
     return (fit) => {
         const layout = wedgeLabelLayout(boxing);
         let placed: PlacedSectorLabel;
         try {
-            placed = fitSectorLabelToWedge(fit.text, fit.policy, fit.font, anchor, sector, padding, boxing, layout);
+            placed = fitSectorLabelToWedge(
+                fit.text,
+                fit.policy,
+                fit.font,
+                anchor,
+                sector,
+                padding,
+                boxing,
+                layout,
+                drawnAsFitted
+            );
         } finally {
             releaseWedgeInsets();
             // Segments hold the label's objects; a string holds none, and resetting it fires change detection.

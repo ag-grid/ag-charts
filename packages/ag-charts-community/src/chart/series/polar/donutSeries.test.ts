@@ -1461,6 +1461,40 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('sectorLabel in a wedge too thin for a line at its own style', () => {
+        // A 1° sliver pointing right is far shorter than a 12px line, so the label is hidden as fitted.
+        const sliverLabelNode = async (sectorLabel: object) => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Sliver label', size: 1 },
+                        { name: 'Big', size: 359 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'size', sectorLabelKey: 'name', rotation: 90, sectorLabel }],
+                })
+            );
+            const nodes = getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection');
+            return nodes.find((node) => node.datum?.datumIndex === 0)!;
+        };
+
+        it('places nothing for a label always drawn in the style it is fitted in', async () => {
+            const node = await sliverLabelNode({ fontSize: 12 });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBeUndefined();
+        });
+
+        // The highlight redraws the label in its restyled font without a re-fit, so it needs the placement to judge.
+        it('places a label a state-dependent style may redraw smaller, for the visibility gate to judge', async () => {
+            const node = await sliverLabelNode({
+                fontSize: 12,
+                itemStyler: ({ highlightState }: { highlightState?: string }) =>
+                    highlightState === 'highlighted-item' ? { fontSize: 4 } : {},
+            });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBe('Sliver label');
+        });
+    });
+
     describe('sectorLabel fitted without fit options', () => {
         const sectorOptions = (name: string, count: number, innerRadiusRatio: number, sectorLabel: object) => ({
             ...options,

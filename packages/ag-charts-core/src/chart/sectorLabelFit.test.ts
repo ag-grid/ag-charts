@@ -323,18 +323,19 @@ describe('sectorLabelPlacer', () => {
 
     const hangText = 'Category 123 label';
     const hangFont = { fontSize: 12, fontFamily: 'sans-serif' };
-    const placeHanging = ({ mid, halfSpan, inner, outer, radius, min }: HangCase) =>
+    const placeHanging = ({ mid, halfSpan, inner, outer, radius, min }: HangCase, drawnAsFitted: boolean) =>
         sectorLabelPlacer(
             anchorAt(radius, mid),
             sector(mid, halfSpan, inner, outer),
             NO_PADDING,
             {},
             0,
-            0
+            0,
+            drawnAsFitted
         )({ text: hangText, policy: { minimumFontSize: min }, font: hangFont });
 
-    // `x` and `y` are where the overflow passes hung each label, a place the gate hides it at.
-    it.each<HangCase>([
+    // `x` and `y` are where the overflow passes hang each label, a place the gate hides it at in its own style.
+    const linelessWedges: HangCase[] = [
         { mid: 0, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 125, y: 10 },
         { mid: 1, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 67.53778823351747, y: 115.18387310098706 },
         {
@@ -356,36 +357,59 @@ describe('sectorLabelPlacer', () => {
             y: 46.940025832667445,
             min: 8,
         },
-    ])('places nothing, without laying it out, for a label no line of which the wedge at mid $mid holds', (c) => {
-        const node = new Text();
-        node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
-        node.setBoxing({});
-        node.text = hangText;
-        node.x = c.x;
-        node.y = c.y;
-        node.setFont(hangFont);
-        expect(areLineBoxesInSector(node.getLineBoxes(), sector(c.mid, c.halfSpan, c.inner, c.outer))).toBe(false);
+    ];
 
-        const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
-        expect(placeHanging(c)).toBeUndefined();
-        expect(layouts).not.toHaveBeenCalled();
+    it.each(linelessWedges)(
+        'places nothing, without laying it out, for a label drawn as fitted that the wedge at mid $mid holds no line of',
+        (c) => {
+            const node = new Text();
+            node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
+            node.setBoxing({});
+            node.text = hangText;
+            node.x = c.x;
+            node.y = c.y;
+            node.setFont(hangFont);
+            expect(areLineBoxesInSector(node.getLineBoxes(), sector(c.mid, c.halfSpan, c.inner, c.outer))).toBe(false);
+
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            expect(placeHanging(c, true)).toBeUndefined();
+            expect(layouts).not.toHaveBeenCalled();
+        }
+    );
+
+    // A state-dependent style can draw the label smaller than it is fitted, so it is hung for the gate to judge.
+    it.each(linelessWedges)('hangs a label a state may restyle at mid $mid where every overflow pass puts it', (c) => {
+        expect(placeHanging(c, false)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
     });
 
-    // A wedge near vertical can hold a line, so the label is still hung where every overflow pass puts it.
-    it.each<HangCase>([
-        { mid: 1.55, halfSpan: 0.005, inner: 0, outer: 250, radius: 125, x: 2.5493898819035823, y: 125.58570627196065 },
-        {
-            mid: -1.5708,
-            halfSpan: 0.02,
-            inner: 0,
-            outer: 250,
-            radius: 125,
-            x: -0.00042934831553062644,
-            y: -182.4939548960836,
-        },
-    ])('hangs a label no wedge position holds at mid $mid where every overflow pass puts it', (c) => {
-        expect(placeHanging(c)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
-    });
+    // A wedge near vertical can hold a line, so the label is hung where every overflow pass puts it.
+    it.each(
+        [
+            {
+                mid: 1.55,
+                halfSpan: 0.005,
+                inner: 0,
+                outer: 250,
+                radius: 125,
+                x: 2.5493898819035823,
+                y: 125.58570627196065,
+            },
+            {
+                mid: -1.5708,
+                halfSpan: 0.02,
+                inner: 0,
+                outer: 250,
+                radius: 125,
+                x: -0.00042934831553062644,
+                y: -182.4939548960836,
+            },
+        ].flatMap((c) => [true, false].map((drawnAsFitted) => ({ ...c, drawnAsFitted })))
+    )(
+        'hangs a label no wedge position holds at mid $mid where every overflow pass puts it (drawn as fitted $drawnAsFitted)',
+        (c) => {
+            expect(placeHanging(c, c.drawnAsFitted)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
+        }
+    );
 
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
         // The first pass, against the estimated block, loses text that the re-placed pass fits whole.

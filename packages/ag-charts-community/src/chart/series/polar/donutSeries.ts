@@ -2282,6 +2282,9 @@ export class DonutSeries extends PolarSeries<
         const boxPadding = expandLabelBoxExtent(sectorLabel);
         const innerRadius = this.radiusScale.convert(0);
         const centred = innerRadius <= 0 && this.visibleSectorCount() === 1;
+        // Only an itemStyler restyles a label by highlight or selection state, which redraws it without a re-fit.
+        const drawnAsFitted = sectorLabel.itemStyler == null;
+        const { centerX, centerY } = this;
 
         for (const datum of this.nodeData) {
             const { outerRadius, startAngle, endAngle } = datum;
@@ -2305,7 +2308,7 @@ export class DonutSeries extends PolarSeries<
                     outerRadius,
                     radialEdgeInset: this.getSideInset(datum, 0),
                 };
-                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
+                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, centerX, centerY, drawnAsFitted);
                 fitPolicy = labelHasBox(font) ? boxedPolicy : unboxedPolicy;
                 fitTarget = { place };
             }
