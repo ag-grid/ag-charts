@@ -1592,7 +1592,7 @@ describe('Crosshair', () => {
                 expectLines('left', { lowKey: ALL_VALUES.lowKey });
             });
 
-            it('draws every listed value for a datum highlighted by keyboard', async () => {
+            it('draws every value for a datum highlighted by keyboard', async () => {
                 chart = await createEnterpriseChart(nearestOptions);
 
                 await tabIntoChart(chart);
@@ -1601,7 +1601,7 @@ describe('Crosshair', () => {
                 expect(lineKeys('left').toSorted(byName)).toEqual(Object.keys(ALL_VALUES).toSorted(byName));
             });
 
-            it('draws every listed value when the keyboard moves on from a hover', async () => {
+            it('draws every value when the keyboard moves on from a hover', async () => {
                 chart = await createEnterpriseChart(nearestOptions);
 
                 await hoverDatum(CANDLES[1].date, 138);
