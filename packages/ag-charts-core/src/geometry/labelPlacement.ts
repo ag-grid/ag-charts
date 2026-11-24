@@ -1,4 +1,4 @@
-import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, PaddingOptions, TextValue, TextWrap } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
@@ -1734,11 +1734,9 @@ let memoTop = 0;
 let labelMemoBase = -1;
 // Whether the label the cascade just returned fits its region and clears every obstacle.
 let placedClear = false;
-// Footprint centres of the pair before (placed, held) and after (traded, moved) a trade.
-const placedCentre: Point = { x: 0, y: 0 };
-const heldCentre: Point = { x: 0, y: 0 };
-const tradedCentre: Point = { x: 0, y: 0 };
-const movedCentre: Point = { x: 0, y: 0 };
+// Centres of the two labels a crossing test compares.
+const crossingCentreA: Point = { x: 0, y: 0 };
+const crossingCentreB: Point = { x: 0, y: 0 };
 
 /** Candidates the label's cascade can reach: its positioned list, or every placement × orientation. */
 function tradeCandidateCount(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): number {
@@ -1962,10 +1960,10 @@ function tryTrade(
 ): PlacedLabel | undefined {
     const holder = tradeHolder!;
     tradeHolder = undefined;
-    const placedCost = footprintCost(placedCentre, placed, labelBaseline);
+    const placedCost = footprintCost(placed, labelBaseline);
     if (placedCost <= TRADE_TOLERANCE || holder.keepPolicy !== keepPolicyOf(d, defaults)) return placed;
     const held = labels[holder.resultSlot];
-    const before = placedCost + footprintCost(heldCentre, held, holder.baseline);
+    const before = placedCost + footprintCost(held, holder.baseline);
     const memoBase = labelMemoBase;
     obstacleIndex.remove(holder.box, holder);
     releaseRefits();
@@ -1978,9 +1976,9 @@ function tryTrade(
             ? placeTradedChoice(d, index)
             : tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
         if (traded == null || !placedClear || losesText(traded, placed)) return placed;
-        const tradedCost = footprintCost(tradedCentre, traded, labelBaseline);
+        const tradedCost = footprintCost(traded, labelBaseline);
         if (tradedCost > before + TRADE_TOLERANCE) return placed;
-        if (holderCannotRecoup(tradedCost, before, placed != null, holder, resolveCandidateStyle ?? resolveCandidate)) {
+        if (holderCannotRecoup(tradedCost, before, placed, held, holder, resolveCandidateStyle ?? resolveCandidate)) {
             return placed;
         }
         insertLabelObstacle(traded, poolSlot);
@@ -1997,8 +1995,8 @@ function tryTrade(
             resolveCandidate
         );
         if (moved == null || !placedClear || losesText(moved, held)) return placed;
-        const after = tradedCost + footprintCost(movedCentre, moved, holder.baseline);
-        if (!tradeImproves(before, after, placed != null, holder.baseline)) return placed;
+        const after = tradedCost + footprintCost(moved, holder.baseline);
+        if (!tradeImproves(before, after, placed, held, traded, moved, holder.baseline)) return placed;
         committed = true;
         insertLabelObstacle(moved, holder.poolIndex);
         labels[holder.resultSlot] = moved;
@@ -2018,12 +2016,13 @@ function tryTrade(
 function holderCannotRecoup(
     tradedCost: number,
     before: number,
-    placedExists: boolean,
+    placed: PlacedLabel | undefined,
+    held: PlacedLabel,
     holder: PooledLabelObstacle,
     resolver: unknown
 ): boolean {
     if (resolver != null || tradedCost < before - TRADE_TOLERANCE) return false;
-    return !placedExists || !pairCrossed(heldCentre, holder.baseline, placedCentre, labelBaseline);
+    return placed == null || !pairCrossed(held, holder.baseline, placed, labelBaseline);
 }
 
 function insertedAfterHolder(o: LabelObstacle): boolean {
@@ -2032,38 +2031,100 @@ function insertedAfterHolder(o: LabelObstacle): boolean {
 
 const footprintBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 
-/** Writes a label's footprint centre to `out` and returns its distance from its first choice's; a dropped label is as far as can be. */
-function footprintCost(out: Point, placed: PlacedLabel | undefined, baseline: BoxBounds): number {
+/** A label's footprint centre distance from its first choice's; a dropped label is as far as can be. */
+function footprintCost(placed: PlacedLabel | undefined, baseline: BoxBounds): number {
     if (placed == null) return Infinity;
     const { x, y, width, height } = labelObstacleBoxInto(footprintBox, placed);
-    out.x = x + width / 2;
-    out.y = y + height / 2;
-    return Math.hypot(out.x - (baseline.x + baseline.width / 2), out.y - (baseline.y + baseline.height / 2));
-}
-
-/** Equal displacement trades only to uncross a pair whose labels sit opposite to their first choices' order. */
-function tradeImproves(before: number, after: number, placedExists: boolean, heldBaseline: BoxBounds): boolean {
-    if (after < before - TRADE_TOLERANCE) return true;
-    if (after > before + TRADE_TOLERANCE || !placedExists) return false;
-    return (
-        pairCrossed(heldCentre, heldBaseline, placedCentre, labelBaseline) &&
-        !pairCrossed(movedCentre, heldBaseline, tradedCentre, labelBaseline)
+    return Math.hypot(
+        x + width / 2 - (baseline.x + baseline.width / 2),
+        y + height / 2 - (baseline.y + baseline.height / 2)
     );
 }
 
-function pairCrossed(a: Point, aBaseline: BoxBounds, b: Point, bBaseline: BoxBounds): boolean {
-    const baseDX = aBaseline.x + aBaseline.width / 2 - (bBaseline.x + bBaseline.width / 2);
-    const baseDY = aBaseline.y + aBaseline.height / 2 - (bBaseline.y + bBaseline.height / 2);
-    return Math.sign(a.x - b.x) * Math.sign(baseDX) < 0 || Math.sign(a.y - b.y) * Math.sign(baseDY) < 0;
+/** Equal displacement trades only to uncross a pair whose labels sit opposite to their first choices' order. */
+function tradeImproves(
+    before: number,
+    after: number,
+    placed: PlacedLabel | undefined,
+    held: PlacedLabel,
+    traded: PlacedLabel,
+    moved: PlacedLabel,
+    heldBaseline: BoxBounds
+): boolean {
+    if (after < before - TRADE_TOLERANCE) return true;
+    if (after > before + TRADE_TOLERANCE || placed == null) return false;
+    return (
+        pairCrossed(held, heldBaseline, placed, labelBaseline) &&
+        !pairCrossed(moved, heldBaseline, traded, labelBaseline)
+    );
 }
 
-/** Whether `next` drops more characters than `previous` or renders at a smaller font size. */
+/** Whether the pair, each at its first choice's size, sits clear of the other in the opposite order to their first choices. */
+function pairCrossed(a: PlacedLabel, aBaseline: BoxBounds, b: PlacedLabel, bBaseline: BoxBounds): boolean {
+    writeCrossingCentre(crossingCentreA, a, aBaseline);
+    writeCrossingCentre(crossingCentreB, b, bBaseline);
+    return (
+        axisCrossed(
+            crossingCentreA.x - crossingCentreB.x,
+            aBaseline.x + aBaseline.width / 2 - (bBaseline.x + bBaseline.width / 2),
+            (aBaseline.width + bBaseline.width) / 2
+        ) ||
+        axisCrossed(
+            crossingCentreA.y - crossingCentreB.y,
+            aBaseline.y + aBaseline.height / 2 - (bBaseline.y + bBaseline.height / 2),
+            (aBaseline.height + bBaseline.height) / 2
+        )
+    );
+}
+
+// Boxes overlapping on an axis have no order on it, so slope or overlap noise never reads as a crossing.
+function axisCrossed(gap: number, baselineGap: number, extent: number): boolean {
+    const clear = Math.max(extent - TRADE_TOLERANCE, TRADE_TOLERANCE);
+    return Math.abs(baselineGap) >= clear && gap * Math.sign(baselineGap) <= -clear;
+}
+
+/** The centre of a first-choice-sized box anchored where `placed` is, so wrapping or fitting cannot move it. */
+function writeCrossingCentre(out: Point, placed: PlacedLabel, baseline: BoxBounds) {
+    const { x, y, width, height } = labelObstacleBoxInto(footprintBox, placed);
+    // Pinned on the edges a shrink keeps, as `shrinkCompassCandidate` and `shrinkPositionedCandidate` pin them.
+    const anchor = placed.candidate?.fitTo?.anchor;
+    let pinX = 0;
+    let pinY = 0;
+    if (anchor != null) {
+        pinX = anchorPinX(anchor);
+        pinY = anchorPinY(anchor);
+    } else if (placed.placement != null && labelGapOf(placed.datum) > 0) {
+        pinX = labelPlacements[placed.placement].x;
+        pinY = labelPlacements[placed.placement].y;
+    }
+    out.x = x + width / 2 - (pinX * (width - baseline.width)) / 2;
+    out.y = y + height / 2 - (pinY * (height - baseline.height)) / 2;
+}
+
+/** Whether `next` drops more characters, renders at a smaller font size or wraps onto more lines than `previous`. */
 function losesText(next: PlacedLabel, previous: PlacedLabel | undefined): boolean {
     if (previous == null) return false;
     return (
         droppedCharacters(next) > droppedCharacters(previous) ||
-        (next.fontSize ?? Infinity) < (previous.fontSize ?? Infinity)
+        (next.fontSize ?? Infinity) < (previous.fontSize ?? Infinity) ||
+        lineCount(next.text) > lineCount(previous.text)
     );
+}
+
+function lineCount(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return breakCount(text) + 1;
+    let count = 1;
+    for (const segment of text) {
+        if (segment.type !== 'image') count += breakCount(segment.text);
+    }
+    return count;
+}
+
+function breakCount(text: TextValue): number {
+    if (typeof text !== 'string') return 0;
+    let count = 0;
+    for (let i = text.indexOf('\n'); i >= 0; i = text.indexOf('\n', i + 1)) count++;
+    return count;
 }
 
 function droppedCharacters(placed: PlacedLabel): number {

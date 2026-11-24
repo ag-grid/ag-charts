@@ -4240,10 +4240,86 @@ describe('placeLabels slot trade', () => {
             };
 
         it.each([
+            ['', 0],
+            [' at fractional pixel positions', 8.083],
+        ])(
+            'trades with the one earlier label holding its first choice when that displaces the pair equally and uncrosses it%s',
+            (_, offset) => {
+                const at = (y: number): PositionedLabelCandidate => ({
+                    box: { x: 10, y: y + offset, width: 30, height: 16 },
+                });
+                // The holder's first choice is taken by the obstacle; the pair's first choices clear each other by 4px.
+                const obstacle: LabelObstacle = {
+                    kind: 'rect',
+                    category: 'label',
+                    box: { x: 0, y: 200 + offset, width: 50, height: 8 },
+                };
+                const heldDatum = barDatum('held', heldBox, [at(200), at(230), at(160)]);
+                const blockedDatum = barDatum('blocked', blockedBox, [at(220), at(210)]);
+
+                expect(placedYs([heldDatum, blockedDatum], [obstacle])).toEqual([
+                    { text: 'held', y: 160 + offset },
+                    { text: 'blocked', y: 220 + offset },
+                ]);
+            }
+        );
+
+        it('keeps a pair displaced equally either way when their first choices overlap', () => {
+            expect(placedYs([held([240, 262]), blocked([234, 256])])).toEqual([
+                { text: 'held', y: 240 },
+                { text: 'blocked', y: 256 },
+            ]);
+        });
+
+        it('keeps a pair that crosses only by the extra line of a wrapped label', () => {
+            const box = (cx: number, cy: number) => ({ x: cx - 15, y: cy - 10, width: 30, height: 20 });
+            const obstacle: LabelObstacle = {
+                kind: 'rect',
+                category: 'label',
+                box: { x: 0, y: 90, width: 50, height: 8 },
+            };
+            const heldDatum: PointLabelDatum = {
+                point: { x: 25, y: 100, size: 0 },
+                label: { text: 'held', width: 30, height: 20 },
+                anchor: undefined,
+                placement: undefined,
+                positionedCandidates: [{ box: box(25, 100) }, { box: box(25, 140) }, { box: box(25, 19) }],
+                avoid: { label: true },
+            };
+            // Hung from its bottom edge, the wrapped fallback reaches 24px above the holder's centre; one line would reach 14px.
+            const wrappedDatum: PointLabelDatum = {
+                point: { x: 25, y: 125, size: 0 },
+                label: { text: 'ab cd', width: 30, height: 20 },
+                fit: { text: 'ab cd', policy: { overflowStrategy: 'ellipsis', wrapping: 'on-space' }, font: FONT },
+                anchor: undefined,
+                placement: undefined,
+                positionedCandidates: [
+                    { box: box(25, 125) },
+                    {
+                        box: box(65, 126),
+                        fitTo: {
+                            container: { width: 30, height: 40 },
+                            anchor: { x: 65, y: 136, textAlign: 'center', textBaseline: 'bottom' },
+                            padding: NO_PADDING,
+                        },
+                    },
+                ],
+                avoid: { label: true },
+            };
+
+            expect(
+                [...solve({ s: [heldDatum, wrappedDatum] }, [obstacle]).values()]
+                    .flat()
+                    .map(({ text, x, y }) => ({ text, x, y }))
+            ).toEqual([
+                { text: 'held', x: 10, y: 130 },
+                { text: 'ab\ncd', x: 55, y: 96 },
+            ]);
+        });
+
+        it.each([
             ['displaces the pair less', [234, 254, 280], 0],
             ['displaces the pair less at fractional pixel positions', [234, 254, 280], 8.083],
-            ['displaces the pair equally and uncrosses it', [234, 256], 0],
-            ['displaces the pair equally and uncrosses it at fractional pixel positions', [234, 256], 8.083],
         ])('trades with the one earlier label holding its first choice when that %s', (_, blockedYs, offset) => {
             const shift = (b: BoxBounds) => ({ ...b, y: b.y + offset });
             const heldDatum = barDatum('held', shift(heldBox), stacked(shift(heldBox), [240, 262], offset));
@@ -4673,11 +4749,11 @@ describe('placeLabels slot trade', () => {
         });
 
         it.each([
-            ['costs as much as before and uncrosses the pair', 75, { x: 120, y: 115 }],
-            ['costs a pixel less than before', 76, { x: 125, y: 100 }],
-        ])('trades with a holder that stays put when the traded label %s', (_, tradedY, fallback) => {
-            const at = (cx: number, cy: number, container?: { width: number; height: number }) => ({
-                box: { x: cx - 15, y: cy - 10, width: 30, height: 20 },
+            ['costs as much as before and uncrosses the pair', 121],
+            ['costs less than before', 120],
+        ])('trades with a holder that stays put when the traded label %s', (_, tradedY) => {
+            const at = (cx: number, cy: number, container?: { width: number; height: number }, width = 30) => ({
+                box: { x: cx - width / 2, y: cy - 10, width, height: 20 },
                 fitTo: {
                     container,
                     anchor: { x: cx, y: cy, textAlign: 'center', textBaseline: 'middle' } as OrientationAnchor,
@@ -4686,32 +4762,28 @@ describe('placeLabels slot trade', () => {
             });
             const pointAvoid = { label: true };
             const holder: PointLabelDatum = {
-                point: { x: 77, y: 104, size: 0 },
-                label: { text: 'abc', width: 30, height: 20 },
+                point: { x: 100, y: 126, size: 0 },
+                label: { text: 'abc', width: 100, height: 20 },
                 anchor: undefined,
                 placement: undefined,
-                positionedCandidates: [at(77, 104), at(300, 300)],
+                positionedCandidates: [at(100, 126, undefined, 100), at(300, 300)],
                 avoid: pointAvoid,
             };
-            // The first choice truncates, and the threshold turns the second away from the holder it clears.
+            // The first choice truncates, the threshold turns the second away, and the third crosses below the holder.
             const traded: PointLabelDatum = {
                 point: { x: 100, y: 100, size: 0 },
                 label: { text: 'abc', width: 30, height: 20 },
                 fit: { text: 'abc', policy: { overflowStrategy: 'ellipsis' }, font: FONT },
                 anchor: undefined,
                 placement: undefined,
-                positionedCandidates: [
-                    at(100, 100, { width: 20, height: 20 }),
-                    at(100, tradedY),
-                    at(fallback.x, fallback.y),
-                ],
+                positionedCandidates: [at(100, 100, { width: 20, height: 20 }), at(172, tradedY), at(100, 175)],
                 avoid: pointAvoid,
                 threshold: 10,
             };
 
             expect([...solve({ s: [holder, traded] }).values()].flat().map(({ x, y }) => ({ x, y }))).toEqual([
-                { x: 62, y: 94 },
-                { x: 85, y: tradedY - 10 },
+                { x: 50, y: 116 },
+                { x: 157, y: tradedY - 10 },
             ]);
         });
 
@@ -4827,57 +4899,28 @@ describe('placeLabels slot trade', () => {
             expect(calls).toEqual(['upper@bottom', 'lower@top', 'lower@bottom', 'upper@top']);
         });
 
-        it.each([
-            [
-                'truncates',
-                undefined,
-                [
-                    { text: 'held', y: 90 },
-                    { text: 'abcdef', y: 110 },
-                ],
-            ],
-            [
-                'shrinks',
-                6,
-                [
-                    { text: 'held', y: 103 },
-                    { text: 'abcdef', y: 150 },
-                ],
-            ],
-        ])('keeps the traded label whole when its freed first choice %s', (_, minimumFontSize, expected) => {
-            const held: PointLabelDatum = {
-                point: { x: 100, y: 100, size: 4 },
-                label: { text: 'held', width: 40, height: 20 },
-                anchor: undefined,
-                placement: undefined,
-                placements: ['bottom', 'inside'],
-                gap: 3,
-                avoid: { label: true },
-            };
-            // Inside fits a 40×20 box only by losing text or size, so the trade takes top or nothing.
-            const traded: PointLabelDatum = {
-                point: { x: 100, y: 140, size: 4 },
-                label: { text: 'abcdef', width: 60, height: 20 },
-                fit: {
-                    text: 'abcdef',
-                    policy: { overflowStrategy: 'ellipsis', minimumFontSize },
-                    font: FONT,
-                    boxPadding: NO_PADDING,
-                    boundByRegion: false,
-                },
-                anchor: undefined,
-                placement: undefined,
-                placements: ['inside', 'top', 'bottom'],
-                insideSize: { width: 10, height: 5 },
-                insideOffset: { x: 0, y: -3.5 },
-                gap: 10,
-                avoid: { label: true },
-            };
-
-            expect(ysOf(solve({ s: [held, traded] })).toSorted((a, b) => a.y - b.y)).toEqual(expected);
+        // Labels wider than the 60px between their points, on points 5px apart in height.
+        const slopeLabel = (text: string, x: number, y: number): PointLabelDatum => ({
+            point: { x, y, size: 0 },
+            label: { text, width: 140, height: 20 },
+            anchor: undefined,
+            placement: undefined,
+            placements: ['top', 'bottom'],
+            gap: 3,
+            avoid: { label: true },
         });
 
-        it('shrinks a re-resolved label when no candidate wins outright', () => {
+        it.each([
+            ['right', 220],
+            ['left', 100],
+        ])('keeps a top/bottom alternation whose higher point is on the %s', (_, x) => {
+            expect(ysOf(solve({ s: [slopeLabel('held', 160, 100), slopeLabel('blocked', x, 95)] }))).toEqual([
+                { text: 'held', y: 77 },
+                { text: 'blocked', y: 98 },
+            ]);
+        });
+
+        it('keeps the pair when the re-resolved holder would wrap onto another line', () => {
             const fitOf = (text: string) => ({
                 text,
                 policy: { overflowStrategy: 'hide' as const, wrapping: 'on-space' as const },
@@ -4915,10 +4958,9 @@ describe('placeLabels slot trade', () => {
                 bounds,
                 0
             );
-            // The trade fits the wrapped label inside by wrapping it, freeing room for the other label.
+            // Wrapping the holder inside would free room for the other label, but costs it a line.
             expect([...result.values()].flat().map(({ text, placement }) => ({ text, placement }))).toEqual([
-                { text: 'hello\nthere', placement: 'inside' },
-                { text: 'abc', placement: 'top-right' },
+                { text: 'hello there', placement: 'inside' },
             ]);
         });
 
