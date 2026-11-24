@@ -23,19 +23,22 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    MIN_UNHIGHLIGHT_DELAY,
     compareImageSnapshot,
+    deproxy,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesLabelObstacles,
     getSeriesSelectionNodes,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     topLabelAnchorGap,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { Text } from 'ag-charts-core';
+import { type Text, Transformable } from 'ag-charts-core';
 
 import { getEnterpriseSelectionNodes, getPlacedLabelData } from '../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -1316,6 +1319,133 @@ describe('label collision avoidance', () => {
                 expect(visibleLabelCount(2)).toBe(0);
             }
         );
+
+        // State restyles the marker after the first render, while node data and layout stay as they were.
+        describe('marker restyled by state', () => {
+            const bySelection = ({ selectionState }: { selectionState?: string }) =>
+                selectionState === 'selected-item' ? SQUARE : DIAMOND;
+            const STYLED_MARKER = { enabled: true, ...DIAMOND, itemStyler: bySelection };
+            const select = async (selected: boolean) => {
+                if (selected) {
+                    const { id: seriesId, data } = deproxy(chart).series[1];
+                    chart.setSelection([{ seriesId, itemId: data!.getItemIdFromIndex(0) }]);
+                } else {
+                    chart.clearSelection();
+                }
+                await waitForChartStability(chart);
+            };
+
+            it.each<[string, object]>([
+                ['line', { type: 'line', yKey: 'y', marker: STYLED_MARKER }],
+                ['area', { type: 'area', yKey: 'y', marker: STYLED_MARKER }],
+                ['scatter', { type: 'scatter', yKey: 'y', labelKey: 'l', ...DIAMOND, itemStyler: bySelection }],
+                [
+                    'bubble',
+                    {
+                        type: 'bubble',
+                        yKey: 'y',
+                        sizeKey: 's',
+                        labelKey: 'l',
+                        shape: 'diamond',
+                        minSize: 40,
+                        maxSize: 40,
+                        itemStyler: bySelection,
+                    },
+                ],
+                ['range-area', { type: 'range-area', yLowKey: 'y', yHighKey: 'high', marker: STYLED_MARKER }],
+            ])('%s: moves a label off the square a selection draws, and back', async (_type, series) => {
+                chart = await createEnterpriseChart({
+                    legend: { enabled: false },
+                    axes: {
+                        x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                        y: { type: 'number', position: 'left', min: 0, max: 10 },
+                    },
+                    // Declared last and clear of axis labels, so neither a raise nor the axes' relayout re-solves by chance.
+                    series: [
+                        {
+                            type: 'scatter',
+                            data: [{ x: 5.7, ny: 5.7, l: 'Label' }],
+                            xKey: 'x',
+                            yKey: 'ny',
+                            labelKey: 'l',
+                            size: 4,
+                            label: {
+                                enabled: true,
+                                placement: ['bottom-left', 'top-right'],
+                                truncate: false,
+                                wrapping: 'never',
+                                collision: { alwaysShow: false, collideWith: { axisLabels: true } },
+                            },
+                        },
+                        {
+                            data: [{ x: 5, y: 5, high: 9, s: 1, l: 'A' }],
+                            xKey: 'x',
+                            selection: { enabled: true },
+                            label: {
+                                enabled: true,
+                                formatter: () => 'A',
+                                collision: { collideWith: { axisLabels: true } },
+                            },
+                            ...(series as NonNullable<AgCartesianChartOptions['series']>[number]),
+                        },
+                    ],
+                } as AgCartesianChartOptions);
+                const neighbourPlacements = () =>
+                    getPlacedLabelData<{ placement?: string }>(chart, 0).map((l) => l.placement);
+                expect(neighbourPlacements()).toEqual(['bottom-left']);
+                await select(true);
+                expect(neighbourPlacements()).toEqual(['top-right']);
+                await select(false);
+                expect(neighbourPlacements()).toEqual(['bottom-left']);
+            });
+
+            // A map marker's itemStyler result is cached per datum, so it is the highlight that restyles it here.
+            it('map-marker: shows a label once a highlight shrinks the square it reached over, and hides it again', async () => {
+                const site = { name: 'Site', lat: 52, lon: -1.5 };
+                const far = { name: 'Far', lat: 54, lon: -3 };
+                chart = await createEnterpriseChart({
+                    topology: ukTopology,
+                    series: [
+                        { type: 'map-shape-background' },
+                        {
+                            type: 'map-marker',
+                            data: [site, far],
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            labelKey: 'name',
+                            label: { enabled: true, placement: 'bottom' },
+                            ...SQUARE,
+                            itemStyler: () => ({ fill: 'red' }),
+                            highlight: { unhighlightedItem: { size: 4 } },
+                        },
+                        {
+                            type: 'map-marker',
+                            data: [site],
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            labelKey: 'name',
+                            size: 10,
+                            label: {
+                                enabled: true,
+                                placement: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
+                                spacing: 10,
+                                collision: { alwaysShow: false },
+                            },
+                        },
+                    ],
+                } as AgChartOptions);
+                const { contentGroup } = getSeriesAt(chart, 1);
+                const { point } = getSeriesContextNodeData<{ point: { x: number; y: number } }>(chart, 1).nodeData[1];
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(contentGroup, point.x, point.y);
+                expect(visibleLabelCount(2)).toBe(0);
+                await hoverAction(canvasX, canvasY)(chart);
+                await waitForChartStability(chart);
+                expect(visibleLabelCount(2)).toBe(1);
+                await hoverAction(1, 1)(chart);
+                await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+                expect(visibleLabelCount(2)).toBe(0);
+            });
+        });
 
         // A styler that only recolours draws the same markers, so it must leave every label where it was.
         describe('colour-only styler', () => {

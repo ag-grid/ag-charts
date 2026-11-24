@@ -183,17 +183,18 @@ export abstract class PlacedLabelCartesianSeries<
 
     override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    protected override stampLabelMarkers(): boolean {
         const { enabled, itemStyler, shape } = this.labelMarker;
-        // Stylers and state resolve size and shape after node data, so stamp them from the drawn marker. Only
-        // then does a per-datum style pass run; otherwise markers draw as configured.
-        if (enabled && this.hasItemStylers()) {
-            const itemStyled = itemStyler != null;
-            for (const datum of labelData) {
-                applyStyledMarker(datum, this.labelMarkerStyle(datum), shape, itemStyled);
-            }
+        if (!enabled || !this.isLabelEnabled()) return false;
+        const itemStyled = itemStyler != null;
+        let changed = false;
+        for (const datum of this.contextNodeData?.labelData ?? []) {
+            changed = applyStyledMarker(datum, this.labelMarkerStyle(datum), shape, itemStyled) || changed;
         }
-        return labelData;
+        return changed;
     }
 
     override getLabelDefaults(): SeriesLabelDefaults | undefined {

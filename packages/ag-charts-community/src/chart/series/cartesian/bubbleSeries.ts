@@ -1129,18 +1129,18 @@ export abstract class BubbleScatterSeries<
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
-        // Stylers and state resolve the marker's size and shape after node data was built, so they are
-        // stamped on here — the label's obstacles, gap and inside-marker rect all follow the drawn marker.
-        // Only then does a per-datum style pass run; otherwise markers draw as configured.
-        if (this.hasItemStylers()) {
-            const { itemStyler, shape } = this.marker;
-            const itemStyled = itemStyler != null;
-            for (const datum of labelData) {
-                applyStyledMarker(datum, datum.style, shape, itemStyled);
-            }
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    protected override stampLabelMarkers(): boolean {
+        if (!this.isLabelEnabled()) return false;
+        const { itemStyler, shape } = this.marker;
+        const itemStyled = itemStyler != null;
+        let changed = false;
+        for (const datum of this.contextNodeData?.labelData ?? []) {
+            changed = applyStyledMarker(datum, datum.style, shape, itemStyled) || changed;
         }
-        return labelData;
+        return changed;
     }
 
     override getLabelDefaults() {

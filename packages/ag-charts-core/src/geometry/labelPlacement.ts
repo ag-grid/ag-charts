@@ -632,7 +632,7 @@ function markerSizeOf(d: PointLabelDatum): number {
     return d.markerSize ?? d.point.size;
 }
 
-/** Styler series only: the cached no-styler style can carry a `hideWithSize0` zero that would move unstyled labels. */
+/** Styler series only, as the no-styler style can carry a `hideWithSize0` zero; true when size or shape changed. */
 export function applyStyledMarker(
     datum: {
         readonly point: Readonly<SizedPoint>;
@@ -644,7 +644,8 @@ export function applyStyledMarker(
     style: { size?: number; shape?: AgMarkerShape } | undefined,
     seriesShape: AgMarkerShape | undefined,
     itemStyled: boolean
-): void {
+): boolean {
+    const { markerSize: previousSize, markerShape: previousShape } = datum;
     // An itemStyler's size supersedes the gap baked from the configured size; any other style's only when it
     // resizes the marker. Assigned even when undefined, so a size from an earlier update cannot linger.
     const size = style?.size;
@@ -654,6 +655,7 @@ export function applyStyledMarker(
     datum.anchor = markerShapeAnchor(datum.markerShape);
     datum.markerRestyled =
         datum.markerShape !== seriesShape || (datum.markerSize != null && datum.markerSize !== datum.point.size);
+    return datum.markerSize !== previousSize || datum.markerShape !== previousShape;
 }
 
 /** A styled shape the label may trace: none for a marker that is not drawn or a name with no built-in shape. */

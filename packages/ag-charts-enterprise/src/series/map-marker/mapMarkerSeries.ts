@@ -86,6 +86,8 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly legendItemName: string | undefined;
     readonly point: Readonly<SizedPoint>;
     style: AgMapMarkerSeriesStyle & AgItemShadowStyle;
+    /** The label placed at this marker, stamped with the marker as drawn. */
+    label: MapMarkerNodeLabelDatum | undefined;
 }
 
 interface MapMarkerNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -376,7 +378,7 @@ export class MapMarkerSeries
         // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
         if (labelValue == null || !labelStyle.enabled) return;
 
-        const { labelKey, label, shape, itemStyler } = this.options;
+        const { labelKey, label, shape } = this.options;
         if (labelKey == null || !label.enabled) return;
 
         const { datum, datumIndex, index, idValue, lonValue, latValue, point } = node;
@@ -400,7 +402,7 @@ export class MapMarkerSeries
         const height = text.height + box.top + box.bottom;
         const anchor = Marker.anchor(shape);
 
-        const labelDatum: MapMarkerNodeLabelDatum = {
+        return {
             point: { x: point.x, y: point.y, size: point.size },
             label: { width, height, text: fittedText },
             anchor,
@@ -411,9 +413,6 @@ export class MapMarkerSeries
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
         };
-        // The node's style already holds what its state and itemStyler resolved for the drawn marker.
-        if (this.hasItemStylers()) applyStyledMarker(labelDatum, node.style, shape, itemStyler != null);
-        return labelDatum;
     }
 
     private resolveColumn<T>(
@@ -497,6 +496,7 @@ export class MapMarkerSeries
                 { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
                 false
             ),
+            label: undefined,
         };
     }
 
@@ -521,6 +521,7 @@ export class MapMarkerSeries
         const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
         const label = this.getLabelDatum(node, dataValues.labelValue, labelFit, labelStyle, labelRegion) ?? undefined;
+        node.label = label;
 
         return { node, label };
     }
@@ -546,6 +547,7 @@ export class MapMarkerSeries
 
             const label = this.getLabelDatum(node, dataValues.labelValue, labelFit, labelStyle, labelRegion);
             if (label) {
+                node.label = label;
                 labels.push(label);
             }
         }
@@ -955,10 +957,18 @@ export class MapMarkerSeries
 
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        // State restyles markers without rebuilding node data, so labels are stamped from the marker as drawn.
+        const stampLabels = !isHighlight && this.hasItemStylers();
+        const { shape: seriesShape, itemStyler } = this.options;
+        const itemStyled = itemStyler != null;
+        let labelMarkersChanged = false;
 
         markerSelection.each((marker, markerDatum) => {
-            const { datum, point } = markerDatum;
+            const { datum, point, label } = markerDatum;
             const style = this.getMarkerItemStyle(markerDatum, isHighlight);
+            if (stampLabels && label != null) {
+                labelMarkersChanged = applyStyledMarker(label, style, seriesShape, itemStyled) || labelMarkersChanged;
+            }
 
             marker.shape = style.shape;
             marker.size = style.size;
@@ -996,6 +1006,7 @@ export class MapMarkerSeries
 
             marker.drawingMode = drawingMode;
         });
+        if (labelMarkersChanged) this.invalidateLabelPlacement();
     }
 
     override isProcessedDataAnimatable() {

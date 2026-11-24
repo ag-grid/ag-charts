@@ -769,6 +769,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (this.hasItemStylers()) {
             this.updateDatumStyles({ datumSelection, isHighlight: false });
+            // State restyles markers without rebuilding node data, so only a changed marker re-solves the labels.
+            if (this.stampLabelMarkers()) this.invalidateLabelPlacement();
         }
 
         const { highlightRedraw } = this;
@@ -1526,6 +1528,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         isHighlight: boolean;
     }): void {
         // Override point for sub-classes.
+    }
+
+    /** Stamps each label datum with the marker its style resolved; returns whether any marker's size or shape changed. */
+    protected stampLabelMarkers(): boolean {
+        return false;
     }
 
     protected updatePaths(opts: { itemId?: string; contextData: ContextOf<TTypes>; paths: Path[] }): void {

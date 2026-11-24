@@ -1468,21 +1468,23 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     override getLabelData(): RangeAreaLabelDatum[] {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
-        // Stylers and state resolve size and shape after node data, so stamp them from the drawn marker. Only
-        // then does a per-datum style pass run; otherwise markers draw as configured.
-        if (this.hasItemStylers()) {
-            const { item } = this.options;
-            const itemStyled = this.options.marker.itemStyler != null;
-            for (const datum of labelData) {
-                const { marker } = item[datum.itemType];
-                if (!marker.enabled) continue;
-                const { style } = datum.markerDatum;
-                // Labels keep the configured marker while it is hidden until selected.
-                applyStyledMarker(datum, style === HIDDEN_MARKER_STYLE ? undefined : style, marker.shape, itemStyled);
-            }
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    protected override stampLabelMarkers(): boolean {
+        if (!this.isLabelEnabled()) return false;
+        const { item } = this.options;
+        const itemStyled = this.options.marker.itemStyler != null;
+        let changed = false;
+        for (const datum of this.contextNodeData?.labelData ?? []) {
+            const { marker } = item[datum.itemType];
+            if (!marker.enabled) continue;
+            const { style } = datum.markerDatum;
+            // Labels keep the configured marker while it is hidden until selected.
+            const drawn = style === HIDDEN_MARKER_STYLE ? undefined : style;
+            changed = applyStyledMarker(datum, drawn, marker.shape, itemStyled) || changed;
         }
-        return labelData;
+        return changed;
     }
 
     override getLabelDefaults(): SeriesLabelDefaults {
