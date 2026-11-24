@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { MARKER_SHAPES } from 'ag-charts-core';
+import type { AgMarkerShape, AgMarkerShapeFn } from 'ag-charts-types';
+
 import { Marker } from './marker';
+import { getSharedMarkerPath } from './markerPathCache';
 
 describe('Marker', () => {
     describe('distanceSquared', () => {
@@ -76,6 +80,51 @@ describe('Marker', () => {
             expect(pin.isPointInPath(0, -10)).toBe(true);
             expect(pin.isPointInPath(0, -22)).toBe(true);
             expect(pin.isPointInPath(0, -26)).toBe(false);
+        });
+    });
+
+    describe('getShadowSilhouetteBounds', () => {
+        const IDENTITY = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+        const SIZE = 10;
+        // Curved shapes (heart) round a hair past their box; far below a device pixel.
+        const EPSILON = 1e-3;
+
+        const measure = (shape: AgMarkerShape) => {
+            const marker = new Marker({ shape });
+            marker.size = SIZE;
+            const out = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+            const bounded = marker.getShadowSilhouetteBounds(IDENTITY, 0, out);
+            return { bounded, out };
+        };
+
+        it('bounds every built-in shape by all that it draws', () => {
+            for (const shape of Object.keys(MARKER_SHAPES) as Array<keyof typeof MARKER_SHAPES>) {
+                const { bounded, out } = measure(shape);
+                const anchor = Marker.anchor(shape);
+                const drawn = getSharedMarkerPath(shape, SIZE).computeBBox();
+                const left = drawn.x - (anchor.x - 0.5) * SIZE;
+                const top = drawn.y - (anchor.y - 0.5) * SIZE;
+
+                expect(bounded, shape).toBe(true);
+                expect(out.minX, shape).toBeLessThanOrEqual(left + EPSILON);
+                expect(out.minY, shape).toBeLessThanOrEqual(top + EPSILON);
+                expect(out.maxX, shape).toBeGreaterThanOrEqual(left + drawn.width - EPSILON);
+                expect(out.maxY, shape).toBeGreaterThanOrEqual(top + drawn.height - EPSILON);
+            }
+        });
+
+        it('pads a square, which snaps to device pixels, by a device pixel', () => {
+            expect(measure('square').out).toEqual({ minX: -6, minY: -6, maxX: 6, maxY: 6 });
+            expect(measure('circle').out).toEqual({ minX: -5, minY: -5, maxX: 5, maxY: 5 });
+        });
+
+        it('leaves a custom shape unbounded, as its path can pass its size', () => {
+            const custom: AgMarkerShapeFn = ({ path, x, y, size }) => {
+                path.moveTo(x, y);
+                path.lineTo(x + size * 3, y + size * 3);
+            };
+
+            expect(measure(custom).bounded).toBe(false);
         });
     });
 });

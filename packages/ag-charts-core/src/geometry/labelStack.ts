@@ -10,10 +10,10 @@ import {
     findLargestFittingStep,
     fitLabelText,
     fontWithSize,
-    hasRealChars,
     isErased,
     keptCharacters,
     resolveMinimumFontSize,
+    showsContent,
 } from '../text/textWrapper';
 import type { FontOptions } from '../types/text';
 import { type FitRegion, regionWidthAt } from './fitRegion';
@@ -306,10 +306,6 @@ function fitBlocksToWidth(
         if (fitted[index] == null) dropped += keptCharacters(blocks[index].fit.text);
     }
     return { blocks: fitted, width, height, dropped: Math.max(0, dropped), area, overflows: anyOverflows };
-}
-
-function showsContent(text: NormalisedTextOrSegments): boolean {
-    return hasRealChars(text) || (isArray(text) && text.some((segment) => segment.type === 'image'));
 }
 
 function shapeWidthAt(shape: FitRegion, align: RegionAlign, height: number): number {

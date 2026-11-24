@@ -5,20 +5,9 @@ import type { ContentSegment } from 'ag-charts-types';
 import type { FitRegion } from './fitRegion';
 import { type LabelStack, type LabelStackBlock, fitLabelStack } from './labelStack';
 
-// jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. Every character is 10px
-// wide and every line 20px tall.
-vi.mock('../rendering/canvasUtil', () => ({
-    createCanvasContext: () => ({
-        font: '',
-        measureText: (text: string) => ({
-            width: [...text].length * 10,
-            fontBoundingBoxAscent: 16,
-            fontBoundingBoxDescent: 4,
-            emHeightAscent: 16,
-            emHeightDescent: 4,
-        }),
-    }),
-}));
+vi.mock('../rendering/canvasUtil', async (importOriginal) =>
+    (await import('../test/fixedWidthCanvas')).fixedWidthCanvasUtil(importOriginal)
+);
 
 const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
 

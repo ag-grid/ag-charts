@@ -151,7 +151,7 @@ export class MapMarkerSeries
         new Group({ name: 'markerGroup', batchShadows: 'shared' })
     );
 
-    private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text, false);
+    private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text);
     private highlightLabelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
         this.highlightLabelGroup,
         Text,
