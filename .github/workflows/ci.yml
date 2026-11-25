@@ -2552,11 +2552,16 @@ jobs:
                   if git ls-remote --exit-code --heads origin "$SNAPSHOT_BRANCH" >/dev/null 2>&1 ; then
                     changed=true
                     echo "Snapshot branch $SNAPSHOT_BRANCH exists on origin."
-                  elif git diff --name-only "origin/${BASE_BRANCH}...HEAD" -- '*.png' | grep -q . ; then
-                    changed=true
-                    echo "PR diff touches committed PNG baselines."
                   else
-                    echo "No snapshot changes detected; skipping review installs."
+                    # Not `git diff --name-only | grep -q .`: grep exits on the first line, git then dies
+                    # of SIGPIPE on a long file list, and pipefail reads that as "no changes".
+                    png_rc=0
+                    git diff --quiet "origin/${BASE_BRANCH}...HEAD" -- '*.png' || png_rc=$?
+                    case "$png_rc" in
+                      0) echo "No snapshot changes detected; skipping review installs." ;;
+                      1) changed=true; echo "PR diff touches committed PNG baselines." ;;
+                      *) echo "::warning::Could not diff origin/${BASE_BRANCH}...HEAD (git exit ${png_rc}); skipping review installs." ;;
+                    esac
                   fi
                   echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 
