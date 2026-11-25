@@ -128,7 +128,7 @@ The stroke depth is how far the stroke reaches inside the item:
 - Markers, map shapes and pyramid stages draw their stroke centred on the outline, so the depth is half the `strokeWidth`.
 - An item drawn without a stroke has no depth.
 
-When highlighting or selecting an item draws it with a different `strokeWidth`, the labels inside bar, histogram, waterfall, range-bar, funnel and pyramid items are fitted again to the stroke being drawn. The labels stay where they were placed, and no other label moves.
+When highlighting or selecting an item draws it with a different `strokeWidth`, the labels placed inside the item are fitted again to the stroke being drawn. This applies to bars, histogram bins, waterfall and range-bar items, funnel and pyramid stages, heatmap cells, treemap tiles, sunburst, pie and donut sectors, map shapes, and markers with `'inside'` labels. The labels stay where they were placed, and no other label moves.
 
 Labels placed outside a marker, such as `'top'`, are placed clear of the marker's stroke as well as the marker itself.
 
