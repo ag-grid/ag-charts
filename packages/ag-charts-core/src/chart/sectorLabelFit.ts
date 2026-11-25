@@ -295,7 +295,7 @@ interface PlacedSectorLabel {
     fontSize?: number;
 }
 
-type WedgeLabelLayout = (placed: PlacedSectorLabel, font: FontOptions) => BBox[];
+type WedgeLabelLayout = (placed: PlacedSectorLabel, font: FontOptions) => readonly BBox[];
 
 // Lays candidates out the way the label's own node will draw them, so the fit reads the boxes the
 // visibility gate judges.
@@ -311,7 +311,7 @@ function wedgeLabelLayout(boxing: TextBoxingProperties): WedgeLabelLayout {
         node.x = placed.x;
         node.y = placed.y;
         node.setFont(font);
-        return node.getLineBoxes();
+        return node.getDrawnBoxes();
     };
 }
 
@@ -509,7 +509,7 @@ function fitSectorLabelToWedge(
     sector: SectorBoundaries,
     padding: Required<PaddingOptions>,
     boxing: TextBoxingProperties,
-    layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[],
+    layout: WedgeLabelLayout,
     drawnAsFitted: boolean
 ): PlacedSectorLabel {
     // The series hides any placement a wedge this thin gets, so none is made, unless the node may be drawn in
@@ -588,7 +588,7 @@ function fitSectorLabelToWedge(
         let best: PlacedSectorLabel | undefined;
         let bestKept = 0;
         let laid: PlacedSectorLabel | undefined;
-        let laidBoxes: BBox[] = [];
+        let laidBoxes: readonly BBox[] = [];
         for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && showsContent(placed.text); attempt += 1) {
             // More clearance often places the same text in the same spot, which lays out as it did before.
             const boxes = laid != null && samePlacement(laid, placed) ? laidBoxes : layout(placed, sized);

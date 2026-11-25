@@ -2423,13 +2423,12 @@ export class DonutSeries extends PolarSeries<
                 text.setAlign(label);
                 text.setBoxing(style);
 
-                // A shape-fitted label overhangs its own block box by design, so each line answers for itself, held
-                // to the wedge it was fitted to.
+                // Each line answers for itself, or a boxed label's whole background, held to the wedge it was fitted to.
                 const sectorBounds = insetItemSector(
                     { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset: this.getSideInset(datum, 0) },
                     itemPadding
                 );
-                text.visible = areLineBoxesInSector(text.getLineBoxes(), sectorBounds);
+                text.visible = areLineBoxesInSector(text.getDrawnBoxes(), sectorBounds);
             });
 
         updateSelection(this.labelSelection);

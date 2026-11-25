@@ -36,6 +36,9 @@ import { ImageSegmentNode } from './imageSegmentNode';
 import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 
+// OPTIMIZATION: a boxed label's drawn boxes are its cached bounds alone, so no array is allocated per call.
+const drawnBlock: BBox[] = [];
+
 export interface TextSizeProperties extends FontOptions {
     lineHeight?: number;
     textAlign?: CanvasTextAlign;
@@ -397,6 +400,16 @@ export class Text<D = unknown> extends Shape<D> {
             }
             return box;
         });
+    }
+
+    /**
+     * The boxes the label paints: its background as one block when boxed, which narrower lines do not fill,
+     * else {@link getLineBoxes}. The boxed result is shared scratch, valid until the next call.
+     */
+    getDrawnBoxes(): readonly BBox[] {
+        if (this.boxing == null) return this.getLineBoxes();
+        drawnBlock[0] = this.getBBox();
+        return drawnBlock;
     }
 
     getPlainText() {

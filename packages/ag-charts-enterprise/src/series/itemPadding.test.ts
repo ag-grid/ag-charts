@@ -461,25 +461,35 @@ function drawnLabels(chart: ChartOrProxy): Text[] {
     return labels;
 }
 
-/** Points around `label`'s drawn box grown by `grow`, in canvas coordinates. */
+/**
+ * Points `grow` from `label`'s drawn box, in canvas coordinates: along each side, and round each corner, where
+ * the nearest point of the box is the corner itself rather than a side.
+ */
 function boxOutline(label: Text, grow: number) {
     const { x, y, width, height } = label.getTextMeasureBBox();
-    const left = x - grow;
-    const top = y - grow;
-    const right = x + width + grow;
-    const bottom = y + height + grow;
     const steps = 8;
     const points: { x: number; y: number }[] = [];
+    const push = (px: number, py: number) => {
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(label, px, py);
+        points.push({ x: canvasX, y: canvasY });
+    };
     for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        for (const [px, py] of [
-            [left + (right - left) * t, top],
-            [left + (right - left) * t, bottom],
-            [left, top + (bottom - top) * t],
-            [right, top + (bottom - top) * t],
-        ]) {
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(label, px, py);
-            points.push({ x: canvasX, y: canvasY });
+        push(x + width * t, y - grow);
+        push(x + width * t, y + height + grow);
+        push(x - grow, y + height * t);
+        push(x + width + grow, y + height * t);
+    }
+    const corners = [
+        [x, y, Math.PI],
+        [x + width, y, Math.PI * 1.5],
+        [x + width, y + height, 0],
+        [x, y + height, Math.PI * 0.5],
+    ];
+    for (const [cx, cy, from] of corners) {
+        for (let i = 1; i < steps; i++) {
+            const angle = from + (Math.PI / 2) * (i / steps);
+            push(cx + grow * Math.cos(angle), cy + grow * Math.sin(angle));
         }
     }
     const centre = Transformable.toCanvasPoint(label, x + width / 2, y + height / 2);
@@ -554,6 +564,33 @@ describe('itemPadding', () => {
             const shrunk = tight.mass < loose.mass || tight.width < loose.width;
             expect(shrunk, JSON.stringify({ loose, tight })).toBe(true);
         });
+    });
+
+    it('keeps the whole background of a boxed sector label inside its wedge, not only each line', async () => {
+        await render({
+            data: [
+                { name: 'North', size: 5 },
+                { name: 'South', size: 3 },
+                { name: 'East', size: 1 },
+            ],
+            width: 400,
+            height: 300,
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'size',
+                    legendItemKey: 'name',
+                    sectorLabelKey: 'name',
+                    innerRadiusRatio: 0.7,
+                    itemPadding: 0,
+                    calloutLabel: { enabled: false },
+                    sectorLabel: { fill: '#eee', padding: 6, wrapping: 'on-space', formatter: () => LONG_TEXT },
+                },
+            ],
+        });
+        expect(drawnLabels(chart!).length).toBeGreaterThan(0);
+        expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), 0)).toEqual([]);
     });
 
     describe('sector shapes', () => {
