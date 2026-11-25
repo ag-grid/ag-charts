@@ -365,7 +365,7 @@ export function applyBarLabelOrientation<TStyleDatum = object>(
                           text,
                           fontSize,
                           rotation ?? 0,
-                          (candidate as BarPositionedCandidate).endSpacing
+                          (candidate as BarPositionedCandidate | undefined)?.endSpacing ?? 0
                       );
         }
         target.rotation = toRadians(rotation ?? 0);
