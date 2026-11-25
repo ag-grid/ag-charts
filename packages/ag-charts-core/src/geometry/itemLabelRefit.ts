@@ -84,6 +84,18 @@ export function placedItemLabelRoom(
     return room;
 }
 
+/** The room a centred label was fitted into by `fit`, `width` by `height`, which it re-fits to as its item's edges move. */
+export function itemLabelRoom(
+    insets: ItemLabelInsets,
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    width: number,
+    height: number
+): ItemLabelSource {
+    const { padding, inset, centred } = insets;
+    return { padding, inset, centred, text, fit, width, height, spacing: 0, anchorX: 0, anchorY: 0 };
+}
+
 /**
  * The room a label placed inside its marker was fitted into, by `policy` from the marker's `base` fit: the rect it was
  * bounded by, or for a fit to the marker's outline the box the fitted text took, which stays inside the outline as it
@@ -99,23 +111,11 @@ export function insideMarkerLabelRoom(
     fontSize: number | undefined
 ): ItemLabelSource | undefined {
     if (base == null) return undefined;
-    const box =
-        policy.region == null && policy.maxWidth != null && policy.maxHeight != null
-            ? { width: policy.maxWidth, height: policy.maxHeight }
-            : measureLabelText(fittedText, fontWithSize(font, fontSize));
-    const { padding, inset, centred } = insets;
-    return {
-        padding,
-        inset,
-        centred,
-        text,
-        fit: base,
-        width: box.width,
-        height: box.height,
-        spacing: 0,
-        anchorX: 0,
-        anchorY: 0,
-    };
+    if (policy.region == null && policy.maxWidth != null && policy.maxHeight != null) {
+        return itemLabelRoom(insets, text, base, policy.maxWidth, policy.maxHeight);
+    }
+    const box = measureLabelText(fittedText, fontWithSize(font, fontSize));
+    return itemLabelRoom(insets, text, base, box.width, box.height);
 }
 
 type RefitTextNode = Pick<Text, 'text' | 'fontSize' | 'lineHeight' | 'x' | 'y' | 'getTextMeasureBBox'>;

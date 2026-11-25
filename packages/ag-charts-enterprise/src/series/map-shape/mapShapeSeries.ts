@@ -7,6 +7,8 @@ import type {
     FontOptions,
     Geometry,
     ItemLabelClearance,
+    ItemLabelInsets,
+    ItemLabelSource,
     LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
@@ -33,18 +35,20 @@ import {
     datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
+    fontWithSize,
     formatValue,
     hasRealChars,
     insetItemRegion,
     isArray,
-    itemContentInset,
     itemLabelClearance,
-    itemStrokeDepth,
+    itemLabelInsets,
+    itemLabelRoom,
     keptCharacters,
     lineHeightAtSize,
     measureLabelText,
     measureTextSegments,
     mergeDefaults,
+    refitItemLabelNode,
     resolveLabelFit,
     toPlainText,
     withFitRegion,
@@ -92,6 +96,9 @@ export interface MapShapeNodeLabelDatum {
     readonly datumIndex: number;
     readonly idValue: string;
     readonly datumId: string | number | boolean;
+    readonly itemRoom?: ItemLabelSource;
+    /** The shape the label sits inside, when it re-fits to the stroke that shape draws. */
+    readonly itemDatum?: MapShapeNodeDatum;
 }
 
 export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -118,6 +125,7 @@ interface MapShapeLabelTarget {
     readonly polygon: Position[][];
     readonly datumIndex: number;
     readonly idValue: string;
+    readonly node: MapShapeNodeDatum;
     /** Solves that other sources trigger reuse the last fit while the inputs match. */
     lastFit?: { readonly input: LabelFitDescriptor; readonly placed: PlacedFit | undefined };
 }
@@ -170,6 +178,8 @@ interface LabelFitting {
     font: FontOptions;
     /** The shape's content inset plus the drawn label box, kept clear of the shape edge on each side. */
     inset: ItemLabelClearance;
+    /** Set when a state restyles the shapes' strokes, so their labels re-fit to the stroke drawn. */
+    itemInsets: ItemLabelInsets | undefined;
 }
 
 // The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
@@ -177,7 +187,8 @@ interface LabelFitting {
 function resolveLabelFitting(
     label: NormalisedMapShapeSeriesLabelOptions,
     layoutFont: FontOptions,
-    padding: number
+    insets: ItemLabelInsets,
+    restyled: boolean
 ): LabelFitting {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = label;
     const { fontFamily, fontStyle, fontWeight, fontSize, lineHeight } = layoutFont;
@@ -185,7 +196,8 @@ function resolveLabelFitting(
     return {
         fit: { ...fit, boxed: labelHasBox(label) },
         font: { fontFamily, fontStyle, fontWeight, fontSize, lineHeight },
-        inset: itemLabelClearance(padding, expandLabelBoxExtent(label)),
+        inset: itemLabelClearance(insets.inset, expandLabelBoxExtent(label)),
+        itemInsets: restyled ? insets : undefined,
     };
 }
 export class MapShapeSeries
@@ -373,7 +385,7 @@ export class MapShapeSeries
 
         const { labelKey, label } = this.options;
         if (labelKey == null || !label.enabled) return;
-        const padding = this.labelItemInset();
+        const padding = this.labelItemInsets().inset;
 
         const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
             labelValue,
@@ -508,7 +520,12 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
-        const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), this.labelItemInset());
+        const labelFitting = resolveLabelFitting(
+            label,
+            this.getLabelLayoutFont(),
+            this.labelItemInsets(),
+            this.restylesItemStrokes()
+        );
         if (!this.visible) {
             return { itemId: seriesId, nodeData: [], labelData: [], labelTargets: [], labelFitting };
         }
@@ -552,13 +569,7 @@ export class MapShapeSeries
 
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
-            const polygon =
-                labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
-            if (labelLayout != null && polygon != null) {
-                labelTargets.push({ layout: labelLayout, polygon, datumIndex, idValue: dataValues.idValue });
-            }
-
-            nodeData.push({
+            const node: MapShapeNodeDatum = {
                 series: this,
                 datum,
                 datumIndex,
@@ -566,7 +577,14 @@ export class MapShapeSeries
                 projectedGeometry,
                 legendItemName,
                 style: this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false),
-            });
+            };
+            nodeData.push(node);
+
+            const polygon =
+                labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
+            if (labelLayout != null && polygon != null) {
+                labelTargets.push({ layout: labelLayout, polygon, datumIndex, idValue: dataValues.idValue, node });
+            }
         }
 
         this.warnMissingGeometries(missingGeometries);
@@ -636,17 +654,26 @@ export class MapShapeSeries
         if (contextNodeData == null) return;
         if (placed !== this.appliedPlacedLabels) {
             this.appliedPlacedLabels = placed;
-            contextNodeData.labelData = this.toLabelData(placed, contextNodeData.labelFitting.font);
+            contextNodeData.labelData = this.toLabelData(placed, contextNodeData.labelFitting);
         }
         this.updateLabels();
     }
 
-    private toLabelData(placed: PlacedLabel<unknown>[], font: FontOptions): MapShapeNodeLabelDatum[] {
+    private toLabelData(placed: PlacedLabel<unknown>[], fitting: LabelFitting): MapShapeNodeLabelDatum[] {
+        const { font, fit, itemInsets } = fitting;
         return placed.map((label) => {
             const { text, fontSize, offsetX = 0, offsetY = 0 } = label;
             const { point, target } = placedLabelDatum(label);
             const { datumIndex, idValue } = target;
+            let itemRoom: ItemLabelSource | undefined;
+            if (itemInsets != null) {
+                // The text was fitted to the shape's outline, so the box it took stays inside as the outline moves.
+                const box = measureLabelText(text, fontWithSize(font, fontSize));
+                itemRoom = itemLabelRoom(itemInsets, target.layout.labelText, fit, box.width, box.height);
+            }
             return {
+                itemRoom,
+                itemDatum: itemRoom == null ? undefined : target.node,
                 x: point.x + offsetX,
                 y: point.y + offsetY,
                 text,
@@ -783,13 +810,13 @@ export class MapShapeSeries
         return style;
     }
 
-    /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
     /** How far a label is held in from its shape's edge; a shape's stroke is centred on its outline. */
-    private labelItemInset() {
+    private labelItemInsets() {
         const { padding, stroke, strokeWidth } = this.options;
-        return itemContentInset(padding, itemStrokeDepth(stroke, strokeWidth, true));
+        return itemLabelInsets(padding, stroke, strokeWidth, true);
     }
 
+    /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
     private getLabelLayoutFont(): FontOptions {
         const { label } = this.options;
         if (label.itemStyler == null) return label;
@@ -946,6 +973,11 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            const { itemRoom, itemDatum } = labelDatum;
+            if (itemRoom != null && itemDatum != null) {
+                const drawn = this.getItemStyle(itemDatum, isHighlight);
+                refitItemLabelNode(label, itemRoom, drawn.stroke, drawn.strokeWidth, style);
+            }
             label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });

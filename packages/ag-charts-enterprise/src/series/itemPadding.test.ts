@@ -909,6 +909,16 @@ describe('itemPadding', () => {
                 options: markerCase('area', { marker: { enabled: true, size: 60, ...squareMarker } }),
                 states: { highlight: stateStrokes(2 * depth).highlight },
             },
+            // A map shape's stroke is centred on its outline, so twice the width reaches as deep.
+            {
+                name: 'map-shape',
+                options: fromCase('map-shape', {
+                    stroke: 'black',
+                    strokeWidth: 2,
+                    label: { ...FITTED, formatter: () => LONG_TEXT },
+                }),
+                states: stateStrokes(2 * depth),
+            },
             {
                 name: 'map-marker',
                 // Unlabelled markers at the projection's extremes keep the labelled ones clear of its clipped edges.
