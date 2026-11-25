@@ -13,7 +13,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { type BBox, Transformable } from 'ag-charts-core';
+import { Transformable } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelPlacement,
@@ -23,6 +23,7 @@ import type {
     AgSeriesLabelCollideWithOptions,
 } from 'ag-charts-types';
 
+import { getBackgroundRegionLabelBox } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
 
@@ -962,10 +963,9 @@ describe('Background Region label avoidance', () => {
     }
 
     function regionLabelBox() {
-        const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
-        const box = regions.regions[0].instance.getLabelBox();
+        const box = getBackgroundRegionLabelBox(chart);
         expect(box).toBeDefined();
-        return box as BBox;
+        return box!;
     }
 
     function seriesLabelsOverlapping() {

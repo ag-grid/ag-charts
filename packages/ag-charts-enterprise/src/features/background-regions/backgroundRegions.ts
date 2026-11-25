@@ -24,7 +24,7 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
     readonly underlay = new Group({ name: 'BackgroundRegions-Region' });
     readonly overlay = new Group({ name: 'BackgroundRegions-Label' });
 
-    readonly id = 'backgroundRegions';
+    readonly id = 'backgroundRegions:labels';
     readonly usesPlacedLabels = false;
     nodeDataVersion = 0;
 
