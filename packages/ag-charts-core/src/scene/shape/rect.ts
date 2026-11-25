@@ -465,6 +465,17 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         }
 
         if (strokeWidth > 0) {
+            let visibleX = x;
+            let visibleY = y;
+            let visibleW = w;
+            let visibleH = h;
+            if (clipBBox != null) {
+                visibleX = Math.max(x, clipBBox.x);
+                visibleY = Math.max(y, clipBBox.y);
+                visibleW = Math.max(0, Math.min(x + w, clipBBox.x + clipBBox.width) - visibleX);
+                visibleH = Math.max(0, Math.min(y + h, clipBBox.y + clipBBox.height) - visibleY);
+            }
+
             if (w < pixelSize) {
                 // Too narrow, draw a vertical stroke
                 const lx = x + pixelSize / 2;
@@ -479,7 +490,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 borderPath.lineTo(x + w, ly);
                 strokeWidth = pixelSize;
                 this.borderClipPath = undefined;
-            } else if (strokeWidth < w && strokeWidth < h) {
+            } else if (strokeWidth < visibleW && strokeWidth < visibleH) {
                 const halfStrokeWidth = strokeWidth / 2;
                 x += halfStrokeWidth;
                 y += halfStrokeWidth;
@@ -510,8 +521,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
                 this.borderClipPath.clear();
-                this.borderClipPath.rect(x, y, w, h);
-                borderPath.rect(x, y, w, h);
+                this.borderClipPath.rect(visibleX, visibleY, visibleW, visibleH);
+                borderPath.rect(visibleX, visibleY, visibleW, visibleH);
             }
         } else {
             const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };

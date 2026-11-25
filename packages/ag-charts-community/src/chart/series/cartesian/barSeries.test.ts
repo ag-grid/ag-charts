@@ -5450,3 +5450,42 @@ describe('BarSeries dense bars on a time axis', () => {
         expect(barSpan.filter((pixel) => !isBar(pixel))).toHaveLength(0);
     });
 });
+
+describe('BarSeries stacked stroke wider than the visible segment', () => {
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const STROKE = [255, 0, 0, 255];
+    const isStroke = (pixel: number[]) => pixel.every((value, index) => value === STROKE[index]);
+
+    it.each([30, 1000])('fills only the visible segment with a %ipx stroke', async (strokeWidth) => {
+        chart = await createChart({
+            data: [
+                { q: 'Q1', a: 42, b: 3 },
+                { q: 'Q2', a: 35, b: 9 },
+            ],
+            series: [
+                { type: 'bar', xKey: 'q', yKey: 'a', stacked: true, fill: 'blue', strokeWidth: 0 },
+                { type: 'bar', xKey: 'q', yKey: 'b', stacked: true, fill: 'green', stroke: 'red', strokeWidth },
+            ],
+            axes: { x: { type: 'category' }, y: { type: 'number', max: 90 } },
+            animation: { enabled: false },
+        });
+
+        const { seriesRect } = deproxy(chart);
+        const { nodeData } = getBarSeriesContextNodeData(chart, 1);
+        expect(nodeData).toHaveLength(2);
+        for (const { clipBBox } of nodeData) {
+            const x = seriesRect!.x + clipBBox!.x + clipBBox!.width / 2;
+            const y = seriesRect!.y + clipBBox!.y;
+            expect(isStroke(chartPixelAt(chart, x, y + clipBBox!.height / 2))).toBe(true);
+            expect(isStroke(chartPixelAt(chart, x, y + clipBBox!.height + 3))).toBe(false);
+        }
+    });
+});
