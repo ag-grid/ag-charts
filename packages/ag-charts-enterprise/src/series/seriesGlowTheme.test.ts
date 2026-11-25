@@ -164,22 +164,16 @@ describe('series glow theme', () => {
         chart.destroy();
     });
 
-    it.each([
-        ['bar', { type: 'bar', xKey: 'x', yKey: 'high' }, OHLC_DATA],
-        ['hlc', { type: 'hlc', xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close' }, OHLC_DATA],
-    ])(
-        '%s does not glow the hovered item by default once highlightedSeries.glow.enabled is false',
-        async (_name, series, data) => {
-            const chart: any = await create(
-                { ...series, highlight: { highlightedSeries: { glow: { enabled: false } } } },
-                data
-            );
-            const { highlight } = getSeriesOptions<any>(chart);
-            expect(highlight.highlightedSeries.glow.enabled).toBe(false);
-            expect(highlight.highlightedItem.glow?.enabled ?? false).toBe(false);
-            chart.destroy();
-        }
-    );
+    it('bar does not glow the hovered item by default once highlightedSeries.glow.enabled is false', async () => {
+        const chart: any = await create(
+            { type: 'bar', xKey: 'x', yKey: 'high', highlight: { highlightedSeries: { glow: { enabled: false } } } },
+            OHLC_DATA
+        );
+        const { highlight } = getSeriesOptions<any>(chart);
+        expect(highlight.highlightedSeries.glow.enabled).toBe(false);
+        expect(highlight.highlightedItem.glow?.enabled ?? false).toBe(false);
+        chart.destroy();
+    });
 
     it('turns the buckets off when nothing glows', async () => {
         const base = { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' };

@@ -908,13 +908,9 @@ export function withGlowThemeDefaults<T extends object>(
             seriesBucketPath == null
                 ? { $isUserOption: enabledPaths[0].$path }
                 : { $or: [{ $isUserOption: seriesBucketPath }, { $isUserOption: enabledPaths[0].$path }] };
-        const defaultOn: Operation | true =
-            inheritedGlow == null
-                ? true
-                : { $if: [{ $isUserOption: `${inheritedGlow}/enabled` }, { $path: `${inheritedGlow}/enabled` }, true] };
         result.highlightedItem = {
             ...(result.highlightedItem as object),
-            glow: { enabled: { $if: [userSet, itemEnabled, defaultOn] } },
+            glow: { enabled: { $if: [userSet, itemEnabled, true] } },
         };
     }
     return result as T;

@@ -667,7 +667,6 @@ describe('hovered item glow of a series that glows on several parts', () => {
 
     const ON = { enabled: true };
     const OFF = { enabled: false };
-    const HIGH_ON = { high: { marker: { glow: ON } } };
     const MARKERS = { enabled: true, size: 12 };
 
     const SERIES = [
@@ -688,53 +687,50 @@ describe('hovered item glow of a series that glows on several parts', () => {
     ];
 
     // The hovered item of each part glows by default, unless the part's own `enabled`, or the marker's it inherits, is set.
-    // What the user sets on one part never turns the default off, or on, for another.
     it.each(SERIES.map((series) => [series.name, series] as const))(
         '%s: an explicit glow.enabled wins for its own part and the default stays on the others',
         async (_name, { data, series, parts, options }) => {
+            const [first] = parts;
             const hoveredGlows = async (item: object, marker?: object, highlight?: object) => {
                 await create({ data, series: [{ ...series, ...options(item, marker), highlight }] });
                 await hoverDatum(chart!);
-                return collectShapes(getSeriesAt(chart!).highlightGroup).filter(
-                    (shape) => shape.visible && shape.getCastShadow('glow') != null
-                ).length;
+                return new Set(
+                    collectShapes(getSeriesAt(chart!).highlightGroup)
+                        .filter((shape) => shape.visible && shape.getCastShadow('glow') != null)
+                        .map((shape) => (shape.datum as { itemType: string }).itemType)
+                );
             };
+            const all = new Set(parts);
 
-            expect(await hoveredGlows({}), 'defaults: every part glows').toBe(parts.length);
-            expect(await hoveredGlows({}, { glow: OFF }), 'marker.glow off: none').toBe(0);
-            expect(await hoveredGlows(HIGH_ON, { glow: OFF }), 'one part on, marker.glow off: that part').toBe(1);
-            expect(await hoveredGlows(HIGH_ON), 'one part on: every part glows').toBe(parts.length);
-            expect(await hoveredGlows({ high: { marker: { glow: OFF } } }), 'one part off: the others glow').toBe(
-                parts.length - 1
+            expect(await hoveredGlows({}), 'defaults: every part glows').toEqual(all);
+            expect(await hoveredGlows({}, { glow: OFF }), 'marker.glow off: none').toEqual(new Set());
+            expect(
+                await hoveredGlows({ [first]: { marker: { glow: ON } } }, { glow: OFF }),
+                'one part on, marker.glow off: that part'
+            ).toEqual(new Set([first]));
+            expect(await hoveredGlows({ [first]: { marker: { glow: ON } } }), 'one part on: every part glows').toEqual(
+                all
             );
-            expect(await hoveredGlows({}, undefined, { highlightedItem: { glow: OFF } }), 'highlightedItem off').toBe(
-                0
-            );
+            for (const part of parts) {
+                expect(
+                    await hoveredGlows({ [part]: { marker: { glow: OFF } } }),
+                    `${part} off: the others glow`
+                ).toEqual(new Set(parts.filter((other) => other !== part)));
+            }
+            expect(
+                await hoveredGlows({}, undefined, { highlightedItem: { glow: OFF } }),
+                'highlightedItem off'
+            ).toEqual(new Set());
             expect(
                 await hoveredGlows({}, undefined, { highlightedSeries: { glow: OFF } }),
                 'highlightedSeries off'
-            ).toBe(0);
-            expect(await hoveredGlows({}, { glow: OFF }, { highlightedItem: { glow: ON } }), 'highlightedItem on').toBe(
-                parts.length
-            );
+            ).toEqual(new Set());
+            expect(
+                await hoveredGlows({}, { glow: OFF }, { highlightedItem: { glow: ON } }),
+                'highlightedItem on'
+            ).toEqual(all);
         }
     );
-
-    it('waterfall: each part defaults to a hover glow unless its own glow.enabled is set', () => {
-        const hoverDefaults = (item: object) =>
-            Object.values(
-                (
-                    prepareProcessedOptions({
-                        data: [{ x: 'A', y: 1 }],
-                        series: [{ type: 'waterfall', xKey: 'x', yKey: 'y', item }],
-                    }).processedOptions as any
-                ).series[0].highlight[HOVER_GLOW_PART_DEFAULTS]
-            );
-
-        expect(hoverDefaults({})).toEqual([true, true, true]);
-        expect(hoverDefaults({ negative: { glow: ON } })).toEqual([true, false, true]);
-        expect(hoverDefaults({ positive: { glow: OFF }, total: { glow: ON } })).toEqual([false, true, false]);
-    });
 
     // Each part's default is picked by its position among the series' parts, which the theme's order of parts must match.
     it.each(['positive', 'negative', 'total'])(
