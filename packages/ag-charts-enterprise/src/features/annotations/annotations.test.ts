@@ -2645,6 +2645,29 @@ describe('Annotations', () => {
             }
         });
 
+        // A single point has one label per axis and nothing to shade between. The callout's is at its pointer's tip.
+        it('shows one axis label per axis and no shading for annotations of a single point', async () => {
+            const point = (x: number, y: number) => ({ x: day(x), y });
+            const annotations = [
+                { type: 'text', text: 'Text', ...point(10, 15) },
+                { type: 'comment', text: 'Comment', ...point(25, 30) },
+                { type: 'note', text: 'Note', ...point(40, 45) },
+                { type: 'callout', text: 'Callout', start: point(55, 60), end: point(70, 90) },
+                { type: 'arrow-up', ...point(80, 75) },
+                { type: 'arrow-down', ...point(95, 20) },
+            ] as AgAnnotation[];
+            await prepareChart({ annotations }, withAxes('bottom', 'left', { axisLabel: { visible: 'always' } }));
+
+            // The y axis's labels are numbers and the x axis's are dates.
+            const yTexts = visibleAxisLabels()
+                .map((group) => String([...(group as Group).children()].find((child) => child instanceof Text)?.text))
+                .filter((text) => /^\d+$/.test(text));
+            expect(visibleAxisLabels()).toHaveLength(12);
+            expect(yTexts.sort()).toEqual(['15', '20', '30', '45', '60', '75']);
+
+            await compare();
+        });
+
         it('draws one label and no shading along an axis where the handles share a position', async () => {
             // The two ends are well under a pixel apart along x, so they collapse to one position there.
             const line = { type: 'line', start: { x: day(50), y: 25 }, end: { x: day(50.01), y: 75 } } as AgAnnotation;
