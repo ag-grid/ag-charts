@@ -888,6 +888,16 @@ describe('itemPadding', () => {
                 states: stateStrokes(depth),
                 items: heatmapCells,
             },
+            {
+                name: 'pie',
+                options: fromCase('pie', { strokes: ['black'], strokeWidth: 1 }),
+                states: stateStrokes(depth),
+            },
+            {
+                name: 'donut',
+                options: fromCase('donut', { strokes: ['black'], strokeWidth: 1 }),
+                states: { highlight: stateStrokes(depth).highlight },
+            },
             // A marker's stroke is centred on its outline, so twice the width reaches as deep.
             {
                 name: 'scatter',
