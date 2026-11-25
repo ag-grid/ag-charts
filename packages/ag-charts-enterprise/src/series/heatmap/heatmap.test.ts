@@ -1,4 +1,4 @@
-import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -30,7 +30,9 @@ import {
     getSeriesOptions,
     hoverAction,
     hoverLegendItem,
+    iconSvg,
     isTooltipVisible,
+    preloadImages,
     pressKey,
     setupMockCanvas,
     setupMockConsole,
@@ -1166,25 +1168,15 @@ describe('HeatmapSeries', () => {
     describe('block-leading image segments (treemap parity)', () => {
         // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the cell label, text beside it.
-        const iconSvg = (letter: string) =>
-            `data:image/svg+xml;utf8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">` +
-                    `<circle cx="14" cy="14" r="12" fill="#1f77b4"/>` +
-                    `<text x="14" y="19" text-anchor="middle" font-family="Verdana" font-size="13"` +
-                    ` fill="white" font-weight="bold">${letter}</text></svg>`
-            )}`;
         const ICONS: Record<string, string> = {
-            Florian: iconSvg('F'),
-            Julian: iconSvg('J'),
-            Martian: iconSvg('M'),
+            Florian: iconSvg('#1f77b4'),
+            Julian: iconSvg('#ff7f0e'),
+            Martian: iconSvg('#2ca02c'),
         };
 
         let preloaded: Record<string, SkiaImage> = {};
         beforeAll(async () => {
-            const entries = await Promise.all(
-                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
-            );
-            preloaded = Object.fromEntries(entries);
+            preloaded = await preloadImages(Object.values(ICONS));
         });
 
         it('renders a block-leading image segment in heatmap cell labels', async () => {
