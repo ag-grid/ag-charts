@@ -24,7 +24,7 @@ Collision avoidance is enabled by default, to disable set `label.avoidCollisions
 ```js format="snippet"
 {
     label: {
-        avoidCollisions: false,
+        collision: { alwaysShow: true },
     },
 }
 ```
@@ -116,7 +116,7 @@ A collision is defined as labels coming within 10 pixels of each other. This min
 ```js format="snippet"
 {
     label: {
-        minSpacing: 20,
+        collision: { threshold: 20 },
     },
 }
 ```

@@ -95,7 +95,7 @@ const options: AgCartesianChartOptions = {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
             label: {
-                autoRotate: false,
+                rotation: 0,
             },
         },
         y: {

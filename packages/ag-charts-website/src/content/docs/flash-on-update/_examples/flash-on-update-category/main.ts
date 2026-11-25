@@ -54,7 +54,7 @@ const options: AgCartesianChartOptions<DataType> = {
         x: {
             type: 'category',
             label: {
-                autoRotate: false,
+                rotation: 0,
             },
         },
     },

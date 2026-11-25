@@ -56,7 +56,7 @@ const bottomChartAxis: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            label: { autoRotate: false },
+            label: { rotation: 0 },
             crosshair: { enabled: true },
         },
     },

@@ -105,7 +105,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: true,
             },
             label: {
-                minSpacing: 30,
+                collision: { threshold: 30 },
             },
             gridLine: {
                 style: [

@@ -22,7 +22,7 @@ const options: AgCartesianChartOptions = {
                 step: { unit: 'day', step: 7, epoch: new Date('2025-01-01') },
             },
             label: {
-                autoRotate: true,
+                rotation: [0, 335],
             },
         },
         y: {

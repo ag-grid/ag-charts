@@ -1,7 +1,7 @@
 {
     "demo": "trading-terminal",
     "framework": "react",
-    "sourceHash": "sha256-625ef3139a712ca69a3479d5511a23bda5246f7bac9bd1911e8c7965f43b6ecc",
+    "sourceHash": "sha256-dcab2ad3445d934e815244bd70bb6b2bb2d5fff7573f6b9c99e5ba0a37058906",
     "sourceCommit": "37d17f5e6135215d17fcca4e97b4ef91b0ccea33",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",

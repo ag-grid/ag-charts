@@ -123,9 +123,7 @@ Use `axes.label` to control the appearance of the axis labels.
         y: {
             type: 'number',
             label: {
-                minSpacing: 20,
-                avoidCollisions: false, // enabled by default
-                autoRotate: false, // enabled by default
+                collision: { threshold: 20, alwaysShow: true },
             },
         },
     },

@@ -38,7 +38,7 @@ const options: AgChartOptions = {
         x: {
             type: 'category',
             label: {
-                autoRotate: false,
+                rotation: 0,
             },
             gridLine: {
                 enabled: true,

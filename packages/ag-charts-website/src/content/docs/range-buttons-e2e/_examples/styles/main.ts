@@ -33,7 +33,7 @@ const options: AgCartesianChartOptions<DataType> = {
         { type: 'line', xKey: 'age', xName: 'Age', yKey: 'timeSpentWithCoworkers', yName: 'With Coworkers' },
     ],
     axes: {
-        x: { type: 'category', title: { text: 'Age (years)' }, label: { minSpacing: 30 } },
+        x: { type: 'category', title: { text: 'Age (years)' }, label: { collision: { threshold: 30 } } },
         y: { type: 'number', title: { text: 'Time Spent (hours)' } },
     },
 };

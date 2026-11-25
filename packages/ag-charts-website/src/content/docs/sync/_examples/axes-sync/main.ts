@@ -41,7 +41,7 @@ const commonOptions: AgCartesianChartOptions = {
             type: 'category',
             crosshair: { enabled: false },
             label: {
-                autoRotate: false,
+                rotation: 0,
             },
         },
     },
