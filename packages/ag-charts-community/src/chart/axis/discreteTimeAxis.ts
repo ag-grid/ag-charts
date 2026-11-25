@@ -106,11 +106,7 @@ export class DiscreteTimeAxis<
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
-    /**
-     * Where `'between'` draws the boundary in front of the band at `translation`: halfway to the band before it in
-     * time, which is the next band along a reversed axis. Ticks are sparser than bands, so the neighbouring tick is
-     * not the neighbouring band.
-     */
+    /** The `'between'` boundary halfway to the band before `translation` in time (the next band on a reversed axis). */
     private intervalStart(translation: number) {
         const halfStep = this.scale.step / 2;
         return clampArray(this.options.reverse ? translation + halfStep : translation - halfStep, this.range);
