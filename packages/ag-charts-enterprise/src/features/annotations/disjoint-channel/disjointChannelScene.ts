@@ -1,4 +1,4 @@
-import { type Bounds4, type Logger, type Point, Vec2, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -33,8 +33,8 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelDatum> {
         this.append([this.background, this.topLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
-    protected override getBottom(datum: DisjointChannelDatum, logger: Logger) {
-        return getDisjointChannelBottom(datum, logger);
+    protected override getBottom(datum: DisjointChannelDatum, context: AnnotationContext) {
+        return getDisjointChannelBottom(datum, context);
     }
 
     override dragHandle(datum: DisjointChannelDatum, target: Point, context: AnnotationContext, snapping: boolean) {
@@ -72,7 +72,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelDatum> {
         }
 
         const top = convertLine(datum, context);
-        const bottom = convertLine(this.getBottom(datum, context.logger), context);
+        const bottom = convertLine(this.getBottom(datum, context), context);
         if (!top || !bottom) return;
 
         const vectors = {

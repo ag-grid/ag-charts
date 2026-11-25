@@ -730,6 +730,16 @@ describe('Annotations', () => {
             height: 400,
         };
 
+        // A horizontal bar series swaps its axes, so the `y` of a point is the category axis.
+        const HORIZONTAL_BAR_OPTIONS: AgCartesianChartOptions = {
+            ...BAR_SERIES_OPTIONS,
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+            axes: {
+                x: { type: 'category', position: 'left' },
+                y: { type: 'number', position: 'bottom' },
+            },
+        };
+
         it('should render vertical line annotations at extreme groupPercentage values', async () => {
             await prepareChart(
                 {
@@ -858,7 +868,6 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // A horizontal bar series swaps its axes, so the `y` of a point is the category axis.
         it('should render and round-trip category `y` values on a horizontal bar chart', async () => {
             const annotations = [
                 { type: 'line', start: { x: 5, y: 'Q1' }, end: { x: 5, y: 'Q3' } },
@@ -871,17 +880,7 @@ describe('Annotations', () => {
                 { type: 'horizontal-line', value: 'Q4' },
             ] as AgAnnotation[];
 
-            await prepareChart(
-                { annotations },
-                {
-                    ...BAR_SERIES_OPTIONS,
-                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
-                    axes: {
-                        x: { type: 'category', position: 'left' },
-                        y: { type: 'number', position: 'bottom' },
-                    },
-                }
-            );
+            await prepareChart({ annotations }, HORIZONTAL_BAR_OPTIONS);
             expectWarningsCalls().toHaveLength(0);
             await compare();
 
@@ -892,6 +891,75 @@ describe('Annotations', () => {
             await waitForChartStability(chart);
             expectWarningsCalls().toHaveLength(0);
             expect(chart.getState().annotations).toEqual(state);
+        });
+
+        const isSelected = () => chartBody().querySelector('button[title="Line Color"]') != null;
+        const numericYAxisWarning = (type: string) => [
+            `AG Charts - Annotation [${type}] can only be used with a numeric y-axis.`,
+        ];
+
+        it.each([
+            ['string', ['Q1', 'Q2', 'Q3', 'Q4']],
+            ['numeric', [1, 2, 3, 4]],
+        ])(
+            'does not draw or select parallel and disjoint channels on a category y-axis of %s categories, and keeps them in the state',
+            async (_, [first, second, third, fourth]) => {
+                const annotations = [
+                    { type: 'line', start: { x: 10, y: first }, end: { x: 60, y: first } },
+                    { type: 'parallel-channel', start: { x: 10, y: second }, end: { x: 60, y: second }, height: 1 },
+                    {
+                        type: 'disjoint-channel',
+                        start: { x: 10, y: third },
+                        end: { x: 60, y: third },
+                        startHeight: 1,
+                        endHeight: 1,
+                    },
+                ] as AgAnnotation[];
+                const data = [first, second, third, fourth].map((category, i) => ({ category, value: 50 + 10 * i }));
+
+                await prepareChart({ annotations }, { ...HORIZONTAL_BAR_OPTIONS, data });
+                expectWarningsCalls().toEqual([
+                    numericYAxisWarning('parallel-channel'),
+                    numericYAxisWarning('disjoint-channel'),
+                ]);
+                await compare();
+
+                const { x, y } = getSeriesRect(chart);
+                const clickCategory = (category: string | number) =>
+                    clickAt({
+                        x: x + getAxisCoordinate(chart, 'bottom', 35),
+                        y: y + getAxisCoordinate(chart, 'left', category),
+                    });
+                for (const category of [second, third]) {
+                    await clickCategory(category);
+                    expect(isSelected()).toBe(false);
+                }
+
+                await clickCategory(first);
+                expect(isSelected()).toBe(true);
+
+                expect(chart.getState().annotations).toMatchObject(annotations);
+            }
+        );
+
+        it('does not select a channel restored with coordinates it can no longer draw', async () => {
+            const channel = {
+                type: 'parallel-channel',
+                start: { x: 'Q1', y: 40 },
+                end: { x: 'Q4', y: 40 },
+                height: 10,
+            };
+            await prepareChart({ annotations: [channel] as AgAnnotation[] }, BAR_SERIES_OPTIONS);
+
+            await applyAnnotations([{ ...channel, start: { x: 'Q1', y: 'Q2' }, end: { x: 'Q4', y: 'Q2' } }]);
+            expectWarningsCalls().toEqual([numericYAxisWarning('parallel-channel')]);
+            const { x, y } = getSeriesRect(chart);
+            await clickAt({
+                x: x + getAxisCoordinate(chart, 'bottom', 'Q2'),
+                y: y + getAxisCoordinate(chart, 'left', 40),
+            });
+
+            expect(isSelected()).toBe(false);
         });
     });
 
