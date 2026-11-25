@@ -18,6 +18,7 @@ import {
     type DynamicContext,
     type FontOptions,
     type InternalAgColorType,
+    type ItemLabelSource,
     type LabelObstacle,
     type Mutable,
     type NormalisedHeatmapSeriesOwnOptions,
@@ -43,10 +44,12 @@ import {
     isPlainObject,
     isPlainResult,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     joinFormatted,
     measureLabelText,
     mergeDefaults,
+    placedItemLabelRoom,
     resetRememberedResults,
     resolveLabelAvoidance,
     resolveTextAlign,
@@ -101,6 +104,7 @@ interface HeatmapLabelDatum extends Point {
     offsetX?: number;
     offsetY?: number;
     hidden?: boolean;
+    itemRoom?: ItemLabelSource;
     fontStyle: FontStyle | undefined;
     fontFamily: string;
     fontWeight: FontWeight | undefined;
@@ -1154,6 +1158,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return labelSelection.update(data);
     }
 
+    /** The style the cell under `datum` is drawn with, which its label re-fits to. */
+    drawnItemStroke(datum: HeatmapLabelDatum, isHighlight: boolean): HeatmapCellStyle {
+        return this.getItemStyle(datum, isHighlight);
+    }
+
     protected updateLabelNodes(opts: {
         labelSelection: Selection<HeatmapLabelDatum, Text<HeatmapLabelDatum>>;
         isHighlight?: boolean;
@@ -1270,9 +1279,18 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             labelDatum.hidden = true;
         }
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        const insets = this.restylesItemStrokes() ? itemLabelInsets(itemPadding, stroke, strokeWidth) : undefined;
         for (const { datum, candidate, text, fontSize, offsetX, offsetY } of placed as PlacedLabel<unknown>[]) {
-            const { target } = datum as HeatmapPlacedLabelDatum;
+            const { target, fit } = datum as HeatmapPlacedLabelDatum;
             const { anchor } = candidate as HeatmapLabelCandidate;
+            // Only a series whose states restroke its cells keeps rooms, so other labels never grow the property.
+            if (insets != null || target.itemRoom != null) {
+                target.itemRoom =
+                    insets == null || fit == null
+                        ? undefined
+                        : placedItemLabelRoom(target.itemRoom, insets, fit, candidate, text, fontSize, 0, 0);
+            }
             target.hidden = false;
             target.x = anchor.x;
             target.y = anchor.y;

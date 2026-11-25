@@ -1687,6 +1687,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return { ...datum, x, y };
     }
 
+    protected override get labelItemPadding() {
+        return this.options.itemPadding;
+    }
+
+    protected override restingMarkerStyles() {
+        return this.contextNodeData?.styles;
+    }
+
     protected override readLabelPoint(datum: LabelSelectionDatum): Point {
         return datum;
     }

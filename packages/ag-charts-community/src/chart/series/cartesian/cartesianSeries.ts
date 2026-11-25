@@ -1695,6 +1695,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         });
     }
 
+    /** The datum of the copy the highlight layer draws for `datumIndex`, when it draws one. */
+    protected highlightDatumAt(datumIndex: number): DatumOf<TTypes> | undefined {
+        for (const { node, datum } of this.highlightSelection) {
+            if (!this.highlightSelection.isGarbage(node) && datum.datumIndex === datumIndex) return datum;
+        }
+        return undefined;
+    }
+
     // Re-renders both label selections after the placement engine has written back the chosen
     // orientation, so highlighted labels pick up the resolved rotation too.
     protected refreshPlacedLabelNodes() {

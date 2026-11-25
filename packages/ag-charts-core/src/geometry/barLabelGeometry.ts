@@ -3,12 +3,13 @@ import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 import { toArray } from '../data/arrays';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
-import { type LabelFit, fontWithSize } from '../text/textWrapper';
+import type { LabelFit } from '../text/textWrapper';
 import type { Point } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { toDegrees, toRadians } from './angle';
 import type { BoxBounds } from './boxBounds';
-import { type ItemLabelSource, itemContentInset, itemStrokeDepth } from './itemPadding';
+import { type ItemLabelInsets, placedItemLabelRoom } from './itemLabelRefit';
+import type { ItemLabelSource } from './itemPadding';
 import {
     type LabelAvoidance,
     type LabelFitDescriptor,
@@ -207,23 +208,6 @@ export interface BarLabelTarget {
     itemRoom?: ItemLabelSource;
 }
 
-/** How an item holds its labels in: the padding option and the inset it merged to with the resting stroke. */
-export interface BarItemLabelInsets {
-    readonly padding: number;
-    readonly inset: number;
-    readonly centred: boolean;
-}
-
-/** {@link BarItemLabelInsets} for an item drawn with `stroke` at rest. */
-export function itemLabelInsets(
-    padding: number,
-    stroke: unknown,
-    strokeWidth: number | undefined,
-    centred = false
-): BarItemLabelInsets {
-    return { padding, inset: itemContentInset(padding, itemStrokeDepth(stroke, strokeWidth, centred)), centred };
-}
-
 /**
  * The bar-specific metadata a {@link PositionedLabelCandidate} carries when it comes from a bar-family
  * label: the render anchor and granular placement written back onto the label node when the candidate
@@ -363,7 +347,7 @@ export function buildBarPositionedLabelDatum(
  */
 export function applyBarLabelOrientation<TStyleDatum = object>(
     placed: readonly PlacedLabel<unknown>[],
-    insetsOf?: (datum: BarPlacedLabelDatum<TStyleDatum>) => BarItemLabelInsets | undefined
+    insetsOf?: (datum: BarPlacedLabelDatum<TStyleDatum>) => ItemLabelInsets | undefined
 ): void {
     for (const { datum, rotation, offsetX, offsetY, candidate, text, fontSize } of placed) {
         const { target, fit } = datum as BarPlacedLabelDatum;
@@ -373,7 +357,16 @@ export function applyBarLabelOrientation<TStyleDatum = object>(
             target.itemRoom =
                 insets == null || fit == null
                     ? undefined
-                    : barItemRoom(target.itemRoom, insets, fit, candidate, text, fontSize, rotation ?? 0);
+                    : placedItemLabelRoom(
+                          target.itemRoom,
+                          insets,
+                          fit,
+                          candidate,
+                          text,
+                          fontSize,
+                          rotation ?? 0,
+                          (candidate as BarPositionedCandidate).endSpacing
+                      );
         }
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
@@ -393,58 +386,6 @@ export function applyBarLabelOrientation<TStyleDatum = object>(
             target.placement = placement;
         }
     }
-}
-
-/** Which way an anchored label's end moves in: `1` from the low side, `-1` from the high side, `0` when centred. */
-function inwardOf(low: boolean, high: boolean): number {
-    if (low) return 1;
-    return high ? -1 : 0;
-}
-
-/**
- * The room `candidate` fitted an inside label into, written into `out` when given; `undefined` for an outside one.
- * A shaped room keeps the box the fitted text took, which stays inside the shape as its edges move in or out.
- */
-function barItemRoom(
-    out: ItemLabelSource | undefined,
-    insets: BarItemLabelInsets,
-    fit: LabelFitDescriptor,
-    candidate: PositionedLabelCandidate | undefined,
-    fittedText: NormalisedTextOrSegments,
-    fontSize: number | undefined,
-    rotationDeg: number
-): ItemLabelSource | undefined {
-    const fitTo = candidate?.fitTo;
-    if (fitTo?.container == null) return undefined;
-    const container =
-        fitTo.shape == null
-            ? fitTo.container
-            : measureLabelText(fittedText, fontWithSize(fitTo.font ?? fit.font, fontSize));
-    // An anchored label faces the end it hangs off, so its alignment says which way that end moves in.
-    const { textAlign, textBaseline } = fitTo.anchor;
-    const room = out ?? {
-        ...insets,
-        text: fit.text,
-        fit: fit.policy,
-        width: 0,
-        height: 0,
-        spacing: 0,
-        anchorX: 0,
-        anchorY: 0,
-    };
-    room.text = fit.text;
-    room.fit = fit.policy;
-    // The room is kept in canvas axes, so a quarter-turned label's glyph width runs along its height.
-    const turned = rotationDeg % 180 !== 0;
-    room.width = turned ? container.height : container.width;
-    room.height = turned ? container.width : container.height;
-    room.padding = insets.padding;
-    room.inset = insets.inset;
-    room.centred = insets.centred;
-    room.spacing = (candidate as BarPositionedCandidate).endSpacing;
-    room.anchorX = inwardOf(textAlign === 'left', textAlign === 'right');
-    room.anchorY = inwardOf(textBaseline === 'top', textBaseline === 'bottom');
-    return room;
 }
 
 /**

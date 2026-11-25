@@ -2,9 +2,12 @@ import type {
     BoxBounds,
     CandidateStyleResolver,
     InsideMarkerFit,
+    ItemLabelInsets,
+    ItemLabelSource,
     LabelMeasureContext,
     MeasuredLabel,
     NormalisedPlacedSeriesLabelOptions,
+    NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -18,18 +21,22 @@ import {
     applyStyledMarker,
     cachedTextMeasurer,
     drawnStrokeWidth,
+    insideMarkerLabelRoom,
     insideMarkerPolicy,
     itemContentInset,
     itemLabelClearance,
+    itemLabelInsets,
     lineHeightAtSize,
     markerShapeAnalysis,
     measurePlacedLabel,
+    refitItemLabelNode,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
 } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import {
     expandPlacementLabelBoxExtent,
     placedLabelTextOffset,
@@ -44,12 +51,22 @@ import {
     resolveInsidePlacement,
 } from '../../labelUtil';
 import { Marker } from '../../marker/marker';
+import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
-import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from './cartesianSeriesTypes';
+import type {
+    CartesianSeriesNodeDatum,
+    CartesianSeriesTypes,
+    DatumOf,
+    LabelOf,
+    LabelSelectionOf,
+} from './cartesianSeriesTypes';
 
 /** The mutable subset of {@link PointLabelDatum} a placed-label series populates on each datum. */
-export type MutablePlacedLabelFields = Writeable<Omit<PointLabelDatum, 'point'>>;
+export type MutablePlacedLabelFields = Writeable<Omit<PointLabelDatum, 'point'>> & {
+    /** The room an inside label was fitted into, so a state drawing its marker with another stroke re-fits it. */
+    itemRoom?: ItemLabelSource;
+};
 
 /** Pre-computed label config a placed-label series caches on its node-data context. */
 export interface PlacedLabelContext extends LabelMeasureContext {
@@ -91,7 +108,14 @@ const DISABLED_LABEL_CONTEXT: MarkerLabelContext = {
  */
 export interface PlacedLabelSeriesTypes extends CartesianSeriesTypes {
     readonly labelParams: object;
-    readonly label: SeriesNodeDatum & PointLabelDatum & { readonly labelText?: NormalisedTextOrSegments };
+    readonly datum: CartesianSeriesNodeDatum & { readonly style?: NormalisedSeriesMarkerStyle };
+    readonly label: SeriesNodeDatum &
+        PointLabelDatum &
+        MutablePlacedLabelFields & {
+            readonly labelText?: NormalisedTextOrSegments;
+            /** The marker drawn at the label's point. */
+            readonly markerDatum?: { readonly style?: NormalisedSeriesMarkerStyle };
+        };
 }
 
 function setLabelPointerEvents(text: Text) {
@@ -112,10 +136,18 @@ export abstract class PlacedLabelCartesianSeries<
     protected abstract writeLabelPoint(datum: LabelOf<TTypes>, x: number, y: number): LabelOf<TTypes>;
 
     /** Writes the placed `(x, y)` and the engine's resolved placement onto a copy of the datum. */
-    private placedLabelDatum(placed: PlacedLabel<LabelOf<TTypes>>): LabelOf<TTypes> {
+    private placedLabelDatum(placed: PlacedLabel<LabelOf<TTypes>>, insets?: ItemLabelInsets): LabelOf<TTypes> {
         const datum = this.writeLabelPoint(placed.datum, placed.x, placed.y);
         const mutable = datum as MutablePlacedLabelFields;
         mutable.placement = placed.placement ?? datum.placement;
+        // Only a series whose states restroke its markers keeps rooms, so other labels never grow the property.
+        if (insets != null) {
+            const { fit } = placed.datum;
+            mutable.itemRoom =
+                fit == null || placed.placement !== 'inside'
+                    ? undefined
+                    : insideMarkerLabelRoom(insets, fit, placed.text, placed.fontSize);
+        }
         // A re-fitted label is fitted to the candidate the engine chose, so the node must render that text
         // at that size and reserve its box rather than the up-front measurement the cascade started from.
         if (placed.datum.fit != null) {
@@ -130,6 +162,28 @@ export abstract class PlacedLabelCartesianSeries<
     }
     /** Reads the label anchor point from a datum. */
     protected abstract readLabelPoint(datum: LabelOf<TTypes>): Point;
+    /** The series' `itemPadding`, which labels inside its markers keep from their edges. */
+    protected abstract get labelItemPadding(): number;
+    /** The marker style each highlight state draws a marker with when nothing restyles it. */
+    protected abstract restingMarkerStyles(): SeriesNodeStyleContext<NormalisedSeriesMarkerStyle> | undefined;
+
+    /** The insets labels inside markers keep at rest, when a state can draw the markers with another stroke. */
+    private labelItemInsets(): ItemLabelInsets | undefined {
+        if (!this.restylesItemStrokes()) return undefined;
+        const { stroke, strokeWidth } = this.labelMarker;
+        return itemLabelInsets(this.labelItemPadding, stroke, strokeWidth, true);
+    }
+
+    /** The style the marker under `datum`'s label is drawn with, as `updateDatumNodes` resolves it. */
+    drawnItemStroke(
+        datum: LabelOf<TTypes>,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): NormalisedSeriesMarkerStyle | undefined {
+        const marker = isHighlight ? this.highlightDatumAt(datum.datumIndex) : datum.markerDatum;
+        const state = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
+        return marker?.style ?? this.restingMarkerStyles()?.[state];
+    }
     protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
     /** The series' typed label options; bridges the concrete series onto the shared base generic. */
     protected abstract get labelProperty(): NormalisedPlacedSeriesLabelOptions<TTypes['labelParams']>;
@@ -194,6 +248,8 @@ export abstract class PlacedLabelCartesianSeries<
     protected abstract get labelMarker(): {
         readonly enabled: boolean;
         readonly shape: AgMarkerShape;
+        readonly stroke?: unknown;
+        readonly strokeWidth?: number;
         readonly itemStyler?: unknown;
     };
     /** The style resolved for the marker drawn at the label's point. */
@@ -237,16 +293,18 @@ export abstract class PlacedLabelCartesianSeries<
     ): LabelOf<TTypes>[] | undefined {
         // Source highlight labels from placed positions, not the original vertices, so hover-driven
         // updates match placement (and don't resurface labels the collision pass dropped).
+        const insets = this.labelItemInsets();
         const items = this.placedLabelData
             .filter((label) => label.datum.datumIndex === highlightedItem.datumIndex)
-            .map((label) => this.placedLabelDatum(label));
+            .map((label) => this.placedLabelDatum(label, insets));
         return items.length === 0 ? undefined : items;
     }
 
     override updatePlacedLabelData(labelData: PlacedLabel<LabelOf<TTypes>>[]) {
         this.placedLabelData = labelData;
+        const insets = this.labelItemInsets();
         this.labelSelection.update(
-            labelData.map((label) => this.placedLabelDatum(label)),
+            labelData.map((label) => this.placedLabelDatum(label, insets)),
             setLabelPointerEvents
         );
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -312,6 +370,10 @@ export abstract class PlacedLabelCartesianSeries<
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+                if (datum.itemRoom != null) {
+                    const drawn = this.drawnItemStroke(datum, isHighlight, activeHighlight);
+                    refitItemLabelNode(text, datum.itemRoom, drawn?.stroke, drawn?.strokeWidth, style, 'free');
+                }
                 text.setBoxing(style);
             } else {
                 text.visible = false;

@@ -7,11 +7,11 @@ import {
 } from 'ag-charts-community';
 import type {
     BBox,
-    BarItemLabelInsets,
     BoxBounds,
     DomainWithMetadata,
     DynamicContext,
     FillStrokeMorph,
+    ItemLabelInsets,
     LabelFit,
     Normalised,
     NormalisedBaseFunnelSeriesOwnOptions,
@@ -593,7 +593,7 @@ export abstract class BaseFunnelSeries<
     }
 
     /** How a stage holds its inside labels in, for a state's stroke to re-fit them; `undefined` where a series has none. */
-    protected labelItemInsets(_datumIndex: number): BarItemLabelInsets | undefined {
+    protected labelItemInsets(_datumIndex: number): ItemLabelInsets | undefined {
         return undefined;
     }
 

@@ -9,7 +9,6 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     BandScale,
-    type BarItemLabelInsets,
     type BarPlacedLabelDatum,
     type BoxBounds,
     type CallbackParamRules,
@@ -17,6 +16,7 @@ import {
     type DomainWithMetadata,
     type DynamicContext,
     type FillStrokeMorph,
+    type ItemLabelInsets,
     type LabelAvoidance,
     type Mutable,
     type Normalised,
@@ -1353,7 +1353,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
-        const insetsByType = new Map<AgWaterfallSeriesItemType, BarItemLabelInsets>();
+        const insetsByType = new Map<AgWaterfallSeriesItemType, ItemLabelInsets>();
         const insetsOf = (datum: BarPlacedLabelDatum<WaterfallNodeDatum>) => {
             const itemType = datum.styleDatum?.itemType;
             if (itemType == null) return undefined;

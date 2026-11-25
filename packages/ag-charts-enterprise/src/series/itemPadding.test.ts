@@ -844,8 +844,29 @@ describe('itemPadding', () => {
             ...CASES.find((c) => c.name === name)!.options({ strokes: ['black'], strokeWidth, ...state }),
             data: Array.from({ length: 8 }, (_, i) => ({ stage: `Stage ${i + 1}`, value: 1000 - 100 * i })),
         });
+        // A shared case drawn with a thin resting stroke, so each state's deeper stroke is what moves its edges.
+        const fromCase = (name: string, resting: Record<string, unknown>) => (state: object) =>
+            CASES.find((c) => c.name === name)!.options({ ...resting, ...state });
+        // A square marker is its own bounding box, so the label clearance measured to it is exact.
+        const squareMarker = { shape: 'square', stroke: 'black', strokeWidth: 2 };
+        const longMarkerLabel = { ...markerLabel, formatter: () => LONG_TEXT };
+        // Axes with room around every marker, so none is clipped at the edge of the series area.
+        const markerCase =
+            (name: string, resting: Record<string, unknown>) =>
+            (state: object): AgChartOptions => ({
+                ...(fromCase(name, { ...resting, label: longMarkerLabel })(state) as AgCartesianChartOptions),
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 4 },
+                    y: { type: 'number', position: 'left', min: 0, max: 60 },
+                },
+            });
         const depth = 12;
-        const RESTYLED = [
+        const RESTYLED: {
+            name: string;
+            options: (state: object) => AgChartOptions;
+            states: Record<string, object>;
+            items?: (chart: ChartOrProxy) => Item[];
+        }[] = [
             { name: 'centred bar', options: barAt('inside-center'), states: stateStrokes(depth) },
             { name: 'end-anchored bar', options: barAt('inside-end'), states: stateStrokes(depth) },
             {
@@ -861,25 +882,54 @@ describe('itemPadding', () => {
             { name: 'funnel', options: stage('funnel', 1), states: { highlight: stateStrokes(depth).highlight } },
             // A pyramid stage's stroke is centred on its outline, so twice the width reaches as deep.
             { name: 'pyramid', options: stage('pyramid', 2), states: { highlight: stateStrokes(2 * depth).highlight } },
-        ].flatMap(({ name, options, states }) =>
+            {
+                name: 'heatmap',
+                options: fromCase('heatmap', { stroke: 'black', strokeWidth: 1 }),
+                states: stateStrokes(depth),
+                items: heatmapCells,
+            },
+            // A marker's stroke is centred on its outline, so twice the width reaches as deep.
+            {
+                name: 'scatter',
+                options: markerCase('scatter', squareMarker),
+                states: stateStrokes(2 * depth),
+            },
+            {
+                name: 'bubble',
+                options: markerCase('bubble', squareMarker),
+                states: stateStrokes(2 * depth),
+            },
+            {
+                name: 'line',
+                options: markerCase('line', { marker: { size: 60, ...squareMarker } }),
+                states: { highlight: stateStrokes(2 * depth).highlight },
+            },
+            {
+                name: 'area',
+                options: markerCase('area', { marker: { enabled: true, size: 60, ...squareMarker } }),
+                states: { highlight: stateStrokes(2 * depth).highlight },
+            },
+        ];
+        const RESTYLED_STATES = RESTYLED.flatMap(({ name, options, states, items = shapeItems }) =>
             Object.entries(states).map(([state, stateOptions]) => ({
                 name,
                 state,
                 options: options(stateOptions),
+                items,
                 act: state === 'selection' ? clickAction : hoverAction,
             }))
         );
 
-        it.each(RESTYLED)('re-fits $name labels to the stroke $state draws', async ({ options, act }) => {
+        it.each(RESTYLED_STATES)('re-fits $name labels to the stroke $state draws', async ({ options, items, act }) => {
             await render(options);
-            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).not.toEqual([]);
+            expect(labelsTooCloseToTheirItem(chart!, items(chart!), depth)).not.toEqual([]);
 
             // A label sits inside its item and takes no pointer events, so its centre picks the item.
             const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
             await act(x + width / 2, y + height / 2)(chart!);
 
             expect(drawnLabels(chart!).length).toBeGreaterThan(0);
-            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+            expect(labelsTooCloseToTheirItem(chart!, items(chart!), depth)).toEqual([]);
             await compareImageSnapshot(chart!, ctx);
         });
 

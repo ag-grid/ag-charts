@@ -7,6 +7,8 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     InsideMarkerFit,
+    ItemLabelInsets,
+    ItemLabelSource,
     LabelFit,
     LabelFitDescriptor,
     LabelPlacement,
@@ -42,15 +44,18 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    insideMarkerLabelRoom,
     insideMarkerPolicy,
     itemContentInset,
     itemLabelClearance,
+    itemLabelInsets,
     itemStrokeDepth,
     lineHeightAtSize,
     markerLabelRect,
     markerShapeAnalysis,
     measurePlacedLabel,
     placedLabelFit,
+    refitItemLabelNode,
     rescaleVisibleRange,
     resolveLabelAvoidance,
     resolveLabelFit,
@@ -80,6 +85,7 @@ import {
     type StrokeOptions,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
@@ -259,6 +265,9 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     // WARNING: internal cross-filtering state, unrelated to the public data-selection API. Do not use.
     readonly crossFilterSelected: boolean | undefined;
     style?: NormalisedSeriesMarkerStyle;
+    /** The room an inside label was fitted into, and the marker datum whose drawn stroke re-fits it. */
+    itemRoom?: ItemLabelSource;
+    itemDatum?: BubbleScatterNodeDatum;
 }
 
 interface BubbleSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
@@ -1396,9 +1405,19 @@ export abstract class BubbleScatterSeries<
 
     // Maps a placed label inline rather than through `getHighlightLabelData`, since a bubble's label
     // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
-    private placedLabelDatum(placed: PlacedLabel<BubbleScatterNodeDatum>): BubbleScatterNodeDatum {
+    private placedLabelDatum(
+        placed: PlacedLabel<BubbleScatterNodeDatum>,
+        insets?: ItemLabelInsets
+    ): BubbleScatterNodeDatum {
+        const { fit } = placed.datum;
+        const itemRoom =
+            insets == null || fit == null || placed.placement !== 'inside'
+                ? undefined
+                : insideMarkerLabelRoom(insets, fit, placed.text, placed.fontSize);
         return {
             ...placed.datum,
+            itemRoom,
+            itemDatum: itemRoom == null ? undefined : placed.datum,
             placement: placed.placement ?? placed.datum.placement,
             // A re-fitted label is fitted to the candidate the engine chose, so the node renders that
             // text at that size rather than the up-front measurement the cascade started from.
@@ -1416,8 +1435,9 @@ export abstract class BubbleScatterSeries<
 
     public override updatePlacedLabelData(labelData: PlacedLabel<BubbleScatterNodeDatum>[]) {
         this.placedLabelData = labelData;
+        const insets = this.labelItemInsets();
         this.labelSelection.update(
-            labelData.map((v) => this.placedLabelDatum(v)),
+            labelData.map((v) => this.placedLabelDatum(v, insets)),
             (text) => {
                 text.pointerEvents = PointerEvents.None;
             }
@@ -1436,7 +1456,7 @@ export abstract class BubbleScatterSeries<
                 ? []
                 : this.placedLabelData
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
-                      .map((label) => this.placedLabelDatum(label));
+                      .map((label) => this.placedLabelDatum(label, this.labelItemInsets()));
 
         this.highlightLabelSelection =
             this.updateLabelSelection({
@@ -1502,8 +1522,30 @@ export abstract class BubbleScatterSeries<
             text.lineHeight = lineHeightAtSize(style, datum.label.fontSize);
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+            if (datum.itemRoom != null) {
+                const drawn = this.drawnItemStroke(datum, isHighlight, activeHighlight);
+                refitItemLabelNode(text, datum.itemRoom, drawn?.stroke, drawn?.strokeWidth, style, 'free');
+            }
             text.setBoxing(style);
         });
+    }
+
+    /** The insets labels inside markers keep at rest, when a state can draw the markers with another stroke. */
+    private labelItemInsets(): ItemLabelInsets | undefined {
+        if (!this.restylesItemStrokes()) return undefined;
+        const { marker } = this;
+        return itemLabelInsets(this.options.itemPadding, marker.stroke, marker.strokeWidth, true);
+    }
+
+    /** The style the marker under `datum`'s label is drawn with, as `updateDatumNodes` resolves it. */
+    drawnItemStroke(
+        datum: BubbleScatterNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): NormalisedSeriesMarkerStyle | undefined {
+        const marker = isHighlight ? this.highlightDatumAt(datum.datumIndex) : datum.itemDatum;
+        const state = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
+        return marker?.style ?? this.contextNodeData?.styles[state];
     }
 
     protected override updateLabelSelection(opts: {

@@ -1115,7 +1115,15 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {
-        return { ...datum, point: { ...datum.point, x, y } };
+        return { ...datum, point: { ...datum.point, x, y }, markerDatum: datum.markerDatum ?? datum };
+    }
+
+    protected override get labelItemPadding() {
+        return this.options.itemPadding;
+    }
+
+    protected override restingMarkerStyles() {
+        return this.contextNodeData?.styles;
     }
 
     protected override readLabelPoint(datum: LineNodeDatum): Point {
