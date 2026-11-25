@@ -2,3 +2,9 @@
 @import url(./annotationsToolbar.css);
 @import url(./axisButton.css);
 @import url(./settings-dialog/settingsDialog.css);
+
+/* Keyboard-only: pointer events on annotations are hit-tested by the series area. */
+.ag-charts-annotations .ag-charts-annotations__item,
+.ag-charts-annotations .ag-charts-annotations__mover {
+    pointer-events: none;
+}

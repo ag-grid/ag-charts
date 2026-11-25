@@ -10,6 +10,7 @@ import {
     canvasImage,
     deproxy,
     differingBytes,
+    dominantRedStrength,
     endHover,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
@@ -848,5 +849,53 @@ describe('series-level glow (enterprise series)', () => {
                 });
             }
         );
+    });
+});
+
+describe('the strength of the glow of translucent flow links', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    // The links are see-through by default, and their glow is red over a white chart, with no blur, so that the green
+    // channel of a pixel in it is 255 * (1 - strength). The glow is cut out of the links, and the nodes are blue.
+    const glowStrength = async (type: 'sankey' | 'chord', glow: object, link: object = {}) => {
+        chart = await createEnterpriseChart({
+            data: FLOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type,
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    node: { fill: '#0000ff', fillOpacity: 1 },
+                    link: {
+                        fill: '#0000ff',
+                        stroke: undefined,
+                        glow: { enabled: true, fill: 'red', blur: 0, spread: 6, ...glow },
+                        ...link,
+                    },
+                },
+            ],
+        } as AgChartOptions);
+        return dominantRedStrength(canvasImage(chart).data);
+    };
+
+    it.each(['sankey', 'chord'] as const)(
+        'should cast a %s link glow with no fillOpacity at 0.4, not 0.2',
+        async (type) => {
+            expect(await glowStrength(type, {})).toBeCloseTo(0.4, 1);
+        }
+    );
+
+    it.each(['sankey', 'chord'] as const)('should cast a %s link glow with a fillOpacity of 1 as set', async (type) => {
+        expect(await glowStrength(type, { fillOpacity: 1 })).toBe(1);
     });
 });

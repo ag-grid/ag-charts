@@ -104,6 +104,11 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
         this.toggleHandles(hovered || active);
     }
 
+    /** The annotation's bounds on the canvas without its handles, which show only while it is hovered or selected. */
+    public getFocusBBox() {
+        return this.computeBBoxWithoutHandles();
+    }
+
     protected computeBBoxWithoutHandles() {
         return Transformable.toCanvas(this, Group.computeChildrenBBox(this.excludeChildren({ instance: Handle })));
     }

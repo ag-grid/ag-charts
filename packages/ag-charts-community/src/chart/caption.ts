@@ -84,7 +84,6 @@ export class Caption implements CaptionLike {
     private truncated = false;
     private proxyText?: BoundedTextWidget;
     private lastProxyTextContent?: string;
-    private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const { text, padding, wrapping, truncate } = this;
@@ -144,18 +143,7 @@ export class Caption implements CaptionLike {
             this.proxyText.textContent = textContent;
             this.lastProxyTextContent = textContent;
         }
-
-        // Only update bounds if they changed
-        const { lastProxyBBox } = this;
-        if (
-            bbox.x !== lastProxyBBox?.x ||
-            bbox.y !== lastProxyBBox?.y ||
-            bbox.width !== lastProxyBBox?.width ||
-            bbox.height !== lastProxyBBox?.height
-        ) {
-            this.proxyText.setBounds(bbox);
-            this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
-        }
+        this.proxyText.setBounds(bbox);
 
         const axisCtx = moduleCtx.axisManager.getAxisIdContext(axisId);
         axisWidget.setBounds(axisCtx?.getCanvasBounds() ?? {});
@@ -195,6 +183,5 @@ export class Caption implements CaptionLike {
         this.proxyText.destroy();
         this.proxyText = undefined;
         this.lastProxyTextContent = undefined;
-        this.lastProxyBBox = undefined;
     }
 }

@@ -154,6 +154,20 @@ const ITEM_GLOW_INDEX = 1;
 /** The `shadow` an item styler is given: the one the item would cast, with no deprecated `color`. */
 type StylerShadow = Readonly<Omit<NormalisedDropShadowOptions, 'color'>>;
 
+/** The overrides of a shadow that sets some of its fields: a `fill` alone is opaque, and `fillOpacitySet` follows `fillOpacity`. */
+function shadowOverrides<T extends { enabled?: boolean; fill?: unknown; fillOpacity?: number }>(shadow: T) {
+    let fillOpacitySet: boolean | undefined;
+    if (shadow.fillOpacity != null) fillOpacitySet = true;
+    else if (shadow.fill != null) fillOpacitySet = false;
+
+    return {
+        fillOpacity: shadow.fill == null ? undefined : 1,
+        ...shadow,
+        enabled: shadow.enabled ?? true,
+        fillOpacitySet,
+    };
+}
+
 /** The `shadow` that `highlightedItem` sets. */
 type HighlightedItemShadow = NonNullable<AgShadowHighlightStyleOptions['shadow']>;
 
@@ -1248,12 +1262,12 @@ export abstract class Series<
      */
     protected toStylerShadow(shadow: NormalisedDropShadowOptions | undefined): StylerShadow | undefined {
         if (!shadow?.enabled) return undefined;
-        if (!('color' in shadow)) return shadow;
+        if (!('color' in shadow) && !('fillOpacitySet' in shadow)) return shadow;
 
         const cache = (this.stylerShadows ??= new WeakMap());
         let stylerShadow = cache.get(shadow);
         if (stylerShadow == null) {
-            const { color, ...rest } = shadow;
+            const { color, fillOpacitySet: _fillOpacitySet, ...rest } = shadow;
             stylerShadow = { ...rest, fill: rest.fill ?? color };
             cache.set(shadow, stylerShadow);
         }
@@ -1344,12 +1358,7 @@ export abstract class Series<
         for (let i = 0; i < cascades.length; i++) {
             if (cascades[i].source === seriesShadow) return cascades[i].shadow;
         }
-        const overrides = {
-            fillOpacity: bucket.fill == null ? undefined : 1,
-            ...bucket,
-            enabled: bucket.enabled ?? true,
-        };
-        const shadow = mergeDefaults(overrides, seriesShadow) as NormalisedDropShadowOptions;
+        const shadow = mergeDefaults(shadowOverrides(bucket), seriesShadow) as NormalisedDropShadowOptions;
         cascades.push({ source: seriesShadow, shadow });
         return shadow;
     }
@@ -1541,11 +1550,7 @@ export abstract class Series<
             `s${JSON.stringify(itemShadow)}`,
             cascaded,
             () => {
-                const overrides = {
-                    fillOpacity: itemShadow.fill == null ? undefined : 1,
-                    ...itemShadow,
-                    enabled: itemShadow.enabled ?? true,
-                };
+                const overrides = shadowOverrides(itemShadow);
                 const merged = mergeDefaults(
                     overrides,
                     cascaded,

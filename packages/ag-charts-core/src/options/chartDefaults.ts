@@ -353,6 +353,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'locked',
         'magnet',
         'measurer-drawing',
+        'move',
         'no-magnet',
         'note-annotation',
         'ohlc-series',
@@ -706,6 +707,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     fill: colorOrRef,
     fillOpacity: ratio,
     color: deprecated(colorOrRef, 'Use `fill` instead.'),
+    ...undocumentedDefs({ fillOpacitySet: boolean }),
 };
 
 export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
