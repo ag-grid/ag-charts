@@ -336,6 +336,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -473,6 +474,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -610,6 +612,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -1143,6 +1146,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -1276,6 +1280,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -1402,6 +1407,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -1868,6 +1874,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -2006,6 +2013,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -2144,6 +2152,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -2282,6 +2291,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -2420,6 +2430,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -2558,6 +2569,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -2696,6 +2708,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3167,6 +3180,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3301,6 +3315,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3435,6 +3450,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3569,6 +3585,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3703,6 +3720,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3837,6 +3855,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -3971,6 +3990,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -4105,6 +4125,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -4557,6 +4578,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "itemStyler": [Function],
       "label": {
         "border": {
@@ -5025,6 +5047,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -5162,6 +5185,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -5299,6 +5323,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -5436,6 +5461,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -5902,6 +5928,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -6050,6 +6077,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -6198,6 +6226,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -6346,6 +6375,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -6494,6 +6524,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -6972,6 +7003,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -7432,6 +7464,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -7898,6 +7931,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -8351,6 +8385,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -8808,6 +8843,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -8939,6 +8975,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -9397,6 +9434,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -9531,6 +9569,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -9993,6 +10032,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -10127,6 +10167,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -10261,6 +10302,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -10395,6 +10437,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -10529,6 +10572,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -10663,6 +10707,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -10797,6 +10842,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -11253,6 +11299,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -11391,6 +11438,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -11529,6 +11577,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -11667,6 +11716,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -11805,6 +11855,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -11943,6 +11994,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12081,6 +12133,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12219,6 +12272,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12357,6 +12411,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12495,6 +12550,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12633,6 +12689,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12771,6 +12828,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -12909,6 +12967,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -13047,6 +13106,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -13185,6 +13245,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -13323,6 +13384,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -13782,6 +13844,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -14248,6 +14311,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -14404,6 +14468,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -14560,6 +14625,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -14716,6 +14782,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -14872,6 +14939,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -15028,6 +15096,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -15184,6 +15253,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -15673,6 +15743,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -15808,6 +15879,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -15943,6 +16015,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -16404,6 +16477,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -16538,6 +16612,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -16672,6 +16747,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -16806,6 +16882,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -16940,6 +17017,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -17074,6 +17152,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -17558,6 +17637,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -17705,6 +17785,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -17852,6 +17933,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -17999,6 +18081,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -18478,6 +18561,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -18956,6 +19040,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         },
       ],
       "innerRadiusRatio": 0.5,
+      "itemPadding": 2,
       "lineDash": [
         0,
       ],
@@ -19430,6 +19515,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -19567,6 +19653,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -20020,6 +20107,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "lineDash": [
         0,
       ],
@@ -20462,6 +20550,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
           "opacity": 0.2,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -20932,6 +21021,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -21086,6 +21176,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -21240,6 +21331,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -21394,6 +21486,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -21548,6 +21641,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -21702,6 +21796,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -22189,6 +22284,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -22323,6 +22419,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -22457,6 +22554,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -22591,6 +22689,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -23053,6 +23152,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -23187,6 +23287,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -23321,6 +23422,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -23455,6 +23557,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -23589,6 +23692,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "opacity": 0.3,
         },
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -24076,6 +24180,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         },
       },
       "id": "sparkline",
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -24579,6 +24684,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         },
       },
       "id": "sparkline",
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -25082,6 +25188,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         },
       },
       "id": "sparkline",
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -25575,6 +25682,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -26079,6 +26187,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -26582,6 +26691,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,
@@ -27087,6 +27197,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       "interpolation": {
         "type": "linear",
       },
+      "itemPadding": 2,
       "label": {
         "border": {
           "enabled": false,

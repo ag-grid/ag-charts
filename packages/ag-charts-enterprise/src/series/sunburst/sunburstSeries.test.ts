@@ -290,7 +290,7 @@ describe('SunburstSeries', () => {
                     .filter((text) => text.visible)
                     .map((text) => text.text)
             );
-            expect(texts).toEqual(expect.arrayContaining(['Telecom…', 'Application…']));
+            expect(texts).toEqual(expect.arrayContaining(['Telecom S…', 'Application…']));
             await compare();
         });
     });
