@@ -284,11 +284,13 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const bandRoomAt = (depth: number, bandSize: number, rotation: number) =>
             Math.max(0, bandSize - tickLabelSpacing(optionsMap[depth].threshold, Math.cos(rotation) < 1 - 1e-9));
 
-        // Truncation fits a label to the room, and to its band only when `toBand` is set.
+        // Truncation fits a label to the room, and to its band only when `toBand` is set. A `centred` label stays
+        // centred on its anchor rather than shifting inward from the chart edge.
         const fitLabel = (
             { index, datum, depth, value, inputText }: LabelCandidate,
             rotation: number,
-            toBand = false
+            toBand = false,
+            centred = false
         ): FittedLabel | undefined => {
             const depthOptionsAt = optionsMap[depth];
             const bandSize = (datum.leafCount === 0 ? 1 : datum.leafCount) * step;
@@ -377,9 +379,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
             const truncates = depthOptionsAt.truncate === true;
             let along = Infinity;
             if (alongBounds != null && truncates) {
-                along = labelSlides(rotation, horizontal)
-                    ? alongBounds[1] - alongBounds[0]
-                    : 2 * Math.min(datum.screen - alongBounds[0], alongBounds[1] - datum.screen);
+                along =
+                    labelSlides(rotation, horizontal) && !centred
+                        ? alongBounds[1] - alongBounds[0]
+                        : 2 * Math.min(datum.screen - alongBounds[0], alongBounds[1] - datum.screen);
                 along = Math.max(0, along);
             }
             if (measured != null && measured.alongSize > along) measured = measureFitted(fitToRoom(along));
@@ -429,12 +432,43 @@ export class GroupedCategoryAxis extends CategoryAxis<
             depthFits[depth] = best?.fits ?? new Map();
         };
 
+        // Whether shifting a label inward to keep it within the chart leaves it clear of the other labels at its depth.
+        const shiftClears = ({ datum, depth }: LabelCandidate, { alongSize }: FittedLabel) => {
+            const alongBounds = this.chartLayout?.alongBounds;
+            if (alongBounds == null) return true;
+            const min = datum.screen - alongSize / 2;
+            const max = datum.screen + alongSize / 2;
+            const shift = Math.max(0, alongBounds[0] - min) - Math.max(0, max - alongBounds[1]);
+            if (shift === 0) return true;
+            const spacing = tickLabelSpacing(optionsMap[depth].threshold, false);
+            return candidatesAtDepth[depth].every((other) => {
+                const otherFit = depthFits[depth].get(other);
+                if (other.datum === datum || otherFit == null) return true;
+                const half = otherFit.alongSize / 2;
+                return (
+                    other.datum.screen - half >= max + shift + spacing ||
+                    other.datum.screen + half <= min + shift - spacing
+                );
+            });
+        };
+
         for (const candidate of candidates) {
             const { depth } = candidate;
             if (depthFits[depth] == null) fitDepth(depth);
             let fitted = depthFits[depth].get(candidate);
-            // Labels overflowing their group at the chosen rotation truncate to it before being hidden.
-            if (fitted?.exceedsBand && !optionsMap[depth].alwaysShow) {
+            const { alwaysShow, truncate } = optionsMap[depth];
+            const exceedsBand = fitted?.exceedsBand === true && !alwaysShow;
+            // Labels overflowing their group at the chosen rotation truncate to it before being hidden, and edge
+            // labels that cannot shift inward clear of their neighbours are fitted centred on their anchor instead.
+            if (
+                fitted != null &&
+                !alwaysShow &&
+                truncate === true &&
+                labelSlides(depthRotation[depth], horizontal) &&
+                !shiftClears(candidate, fitted)
+            ) {
+                fitted = fitLabel(candidate, depthRotation[depth], exceedsBand, true);
+            } else if (exceedsBand) {
                 fitted = fitLabel(candidate, depthRotation[depth], true);
             }
             if (fitted == null) continue;

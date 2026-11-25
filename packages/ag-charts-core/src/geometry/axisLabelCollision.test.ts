@@ -45,6 +45,19 @@ describe('axisLabelsOverlap', () => {
         expect(axisLabelsOverlap([other, box(0)], 6)).toBe(true);
     });
 
+    it.each([
+        ['along the text', box(0), box(5), 15],
+        ['across the text', box(0), { ...box(0), y: 6 }, 4],
+    ])('lets boxes overlap by up to a negative spacing, %s', (_, first, second, overlap) => {
+        for (const boxes of [
+            [first, second],
+            [second, first],
+        ]) {
+            expect(axisLabelsOverlap(boxes, -(overlap - 1))).toBe(true);
+            expect(axisLabelsOverlap(boxes, -overlap)).toBe(false);
+        }
+    });
+
     it('counts each box colliding with an earlier one, up to the limit', () => {
         const boxes = [box(0), box(10), box(15), box(100)];
         expect(countAxisLabelOverlaps(boxes)).toBe(2);

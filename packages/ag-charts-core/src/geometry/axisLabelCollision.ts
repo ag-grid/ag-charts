@@ -8,14 +8,27 @@ export function tickLabelSpacing(threshold: number | undefined, rotated: boolean
     return rotated ? 0 : (threshold ?? DEFAULT_TICK_LABEL_SPACING);
 }
 
-/** Boxes colliding with an earlier one once their width and height grow by `spacing`, counted up to `limit`. */
+/**
+ * A box grows its width and height by a positive `spacing`; a negative one lets it overlap another by up to that
+ * much, measured along the direction the two are apart in.
+ */
+function labelBoxCollides(other: BoxBounds, { x, y, width, height }: BoxBounds, spacing: number): boolean {
+    if (spacing >= 0) return boxCollides(other, x, y, width + spacing, height + spacing);
+    const overlapX = Math.min(x + width, other.x + other.width) - Math.max(x, other.x);
+    const overlapY = Math.min(y + height, other.y + other.height) - Math.max(y, other.y);
+    if (overlapX <= 0 || overlapY <= 0) return false;
+    const apartAlongX =
+        Math.abs(x + width / 2 - other.x - other.width / 2) >= Math.abs(y + height / 2 - other.y - other.height / 2);
+    return (apartAlongX ? overlapX : overlapY) > -spacing;
+}
+
+/** Boxes colliding with an earlier one at `spacing`, counted up to `limit`. */
 export function countAxisLabelOverlaps(boxes: readonly BoxBounds[], spacing: number = 0, limit = Infinity): number {
     const result: BoxBounds[] = [];
     let count = 0;
 
     for (const box of boxes) {
-        const { x, y, width, height } = box;
-        if (result.some((l) => boxCollides(l, x, y, width + spacing, height + spacing))) {
+        if (result.some((l) => labelBoxCollides(l, box, spacing))) {
             count++;
             if (count >= limit) break;
         }
@@ -25,7 +38,7 @@ export function countAxisLabelOverlaps(boxes: readonly BoxBounds[], spacing: num
     return count;
 }
 
-/** True when any box collides with an earlier one after growing its width and height by `spacing`. */
+/** True when any box collides with an earlier one at `spacing`. */
 export function axisLabelsOverlap(boxes: readonly BoxBounds[], spacing: number = 0): boolean {
     return countAxisLabelOverlaps(boxes, spacing, 1) > 0;
 }

@@ -120,18 +120,19 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         return {
             rotation,
             labelRotation: initialRotation + rotation,
-            textAlign: getTextAlign(parallel, configuredRotation, rotation, sideFlag, regularFlipFlag),
+            textAlign:
+                options.labelTextAlign ??
+                getTextAlign(parallel, configuredRotation, rotation, sideFlag, regularFlipFlag),
             textBaseline: labelBaseline ?? computedBaseline,
         };
     };
-    const { alongBounds } = options;
+    const { alongBounds, labelAnchorOffset = 0 } = options;
     // Labels running along the axis shift inward from the chart's edge while that keeps them clear of their
     // neighbours; others are fitted again to the space between their anchor and that edge.
     const keepWithinChart = (ticks: TickDatum[], rotationIndex: number) => {
         if (alongBounds == null) return ticks;
         const [start, end] = alongBounds;
         const { rotation, textAlign, textBaseline } = labelFrame(rotationIndex);
-        const { labelTextAlign = textAlign, labelAnchorOffset = 0 } = options;
         const drawn = configuredRotation + rotation;
         const slides = Math.abs(options.isVertical ? Math.sin(drawn) : Math.cos(drawn)) > 1 - 1e-6;
         const extentOf = (tick: TickDatum) =>
@@ -142,7 +143,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
                 options.isVertical === true,
                 labelPadding,
                 textBaseline,
-                labelTextAlign
+                textAlign
             );
         const fitTo = (tick: TickDatum, alongOf: (extent: [number, number], tick: TickDatum) => number | undefined) => {
             for (let attempt = 0; attempt < 3; attempt++) {
@@ -228,6 +229,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const labelData = createLabelData(
             ticks,
             labelOffset,
+            labelAnchorOffset,
             labelRotation,
             labelPadding,
             textBaseline,
@@ -702,6 +704,7 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
 function createLabelData(
     tickData: TickDatum[],
     labelOffset: number,
+    anchorOffset: number,
     labelRotation: number,
     labelPadding: Required<PaddingOptions>,
     textBaseline: VerticalAlign,
@@ -717,7 +720,7 @@ function createLabelData(
         if (tickLabel == null || tickLabel === '') continue;
 
         const crossOffset = labelOffset + (bandOffsets?.[i] ?? 0);
-        const { x, y } = rotatePoint(crossOffset, translation + labelShift, labelRotation);
+        const { x, y } = rotatePoint(crossOffset, translation + anchorOffset + labelShift, labelRotation);
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;
         // The boxes are compared in the label's own frame, where the anchor sits on the baseline:

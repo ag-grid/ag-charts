@@ -1853,6 +1853,24 @@ describe('CartesianAxis', () => {
             expect(Transformable.toCanvas(first).x).toBeGreaterThanOrEqual(0);
         });
 
+        it('keeps labels clear of each other at their configured alignment', async () => {
+            // Clear when centred, but right-aligned the long labels reach back over the short ones.
+            const labels = Array.from({ length: 7 }, (_, i) => (i % 2 === 1 ? `Long${i}abcdefghijklmnopq` : `S${i}`));
+            chart = await createChart({
+                data: labels.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { textAlign: 'right', rotation: [0] } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const boxes = getAxisLabelNodes(chart, 'bottom').map((node) => Transformable.toCanvas(node));
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        });
+
         it('shifts an edge label inward rather than truncating it when it stays clear of its neighbour', async () => {
             const platforms = ['Windows Server', 'macOS', 'Linux'];
             chart = await createChart({

@@ -98,7 +98,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
      * where they will actually render.
      */
     labelBaseline?: VerticalAlign;
-    /** A configured `label.textAlign`, which edge fitting measures labels at rather than the computed alignment. */
+    /** A configured `label.textAlign`, which fitting and collision checks measure labels at, as they render. */
     labelTextAlign?: ResolvedTextAlign;
     /** How far along the axis a configured alignment moves each label's anchor from its tick, to the band edge. */
     labelAnchorOffset?: number;
