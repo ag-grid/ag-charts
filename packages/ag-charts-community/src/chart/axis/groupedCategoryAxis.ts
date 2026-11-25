@@ -432,23 +432,27 @@ export class GroupedCategoryAxis extends CategoryAxis<
             depthFits[depth] = best?.fits ?? new Map();
         };
 
-        // Whether shifting a label inward to keep it within the chart leaves it clear of the other labels at its depth.
+        // A label's extent along the axis once shifted inward to keep it within the chart. A refitted label
+        // only shrinks about its anchor or the chart edge, so this also bounds it after refitting.
+        const shiftedExtent = (screen: number, alongSize: number, [lower, upper]: [number, number]) => {
+            const min = screen - alongSize / 2;
+            const max = screen + alongSize / 2;
+            const shift = Math.max(0, lower - min) - Math.max(0, max - upper);
+            return { min: min + shift, max: max + shift, shifted: shift !== 0 };
+        };
+
+        // Whether shifting a label inward leaves it clear of the other labels at its depth, wherever they end up.
         const shiftClears = ({ datum, depth }: LabelCandidate, { alongSize }: FittedLabel) => {
             const alongBounds = this.chartLayout?.alongBounds;
             if (alongBounds == null) return true;
-            const min = datum.screen - alongSize / 2;
-            const max = datum.screen + alongSize / 2;
-            const shift = Math.max(0, alongBounds[0] - min) - Math.max(0, max - alongBounds[1]);
-            if (shift === 0) return true;
+            const { min, max, shifted } = shiftedExtent(datum.screen, alongSize, alongBounds);
+            if (!shifted) return true;
             const spacing = tickLabelSpacing(optionsMap[depth].threshold, false);
             return candidatesAtDepth[depth].every((other) => {
                 const otherFit = depthFits[depth].get(other);
                 if (other.datum === datum || otherFit == null) return true;
-                const half = otherFit.alongSize / 2;
-                return (
-                    other.datum.screen - half >= max + shift + spacing ||
-                    other.datum.screen + half <= min + shift - spacing
-                );
+                const otherExtent = shiftedExtent(other.datum.screen, otherFit.alongSize, alongBounds);
+                return otherExtent.min >= max + spacing || otherExtent.max <= min - spacing;
             });
         };
 

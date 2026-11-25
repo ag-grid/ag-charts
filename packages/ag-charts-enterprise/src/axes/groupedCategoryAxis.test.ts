@@ -88,29 +88,38 @@ describe('Grouped Category', () => {
         chart?.destroy();
     });
 
-    it('keeps a label shifted inward from the chart edge clear of its neighbour', async () => {
-        const leaves = Array.from({ length: 20 }, (_, i) => `Category Label ${String(i).padStart(4, '0')}`);
-        chart = await createEnterpriseChart({
-            data: leaves.map((leaf, i) => ({ grouping: ['Group', leaf], value: i + 1 })),
-            series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
-            axes: {
-                x: { type: 'grouped-category', position: 'bottom', depthOptions: [{ label: { rotation: 0 } }, {}] },
-                y: { type: 'number', position: 'right' },
-            },
-            zoom: { enabled: true },
-            initialState: { zoom: { ratioX: { start: 0.02, end: 0.32 } } },
-        });
+    it.each([
+        { name: 'one edge', labelWidth: 4, start: 0.02, end: 0.32, count: 6 },
+        { name: 'both edges', labelWidth: 50, start: 0.025, end: 0.075, count: 2 },
+    ])(
+        'keeps labels shifted inward from the chart edge clear of their neighbours, $name',
+        async ({ labelWidth, start, end, count }) => {
+            const leaves = Array.from(
+                { length: 20 },
+                (_, i) => `Category Label ${String(i).padStart(labelWidth, '0')}`
+            );
+            chart = await createEnterpriseChart({
+                data: leaves.map((leaf, i) => ({ grouping: ['Group', leaf], value: i + 1 })),
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', depthOptions: [{ label: { rotation: 0 } }, {}] },
+                    y: { type: 'number', position: 'right' },
+                },
+                zoom: { enabled: true },
+                initialState: { zoom: { ratioX: { start, end } } },
+            });
 
-        const boxes = getAxisLabelNodes(chart, 'bottom')
-            .filter((node) => getLabelText(node) !== 'Group')
-            .map((node) => Transformable.toCanvas(node))
-            .sort((a, b) => a.x - b.x);
-        expect(boxes).toHaveLength(6);
-        expect(boxes[0].x).toBeGreaterThanOrEqual(0);
-        for (let i = 1; i < boxes.length; i++) {
-            expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            const boxes = getAxisLabelNodes(chart, 'bottom')
+                .filter((node) => getLabelText(node) !== 'Group')
+                .map((node) => Transformable.toCanvas(node))
+                .sort((a, b) => a.x - b.x);
+            expect(boxes).toHaveLength(count);
+            expect(boxes[0].x).toBeGreaterThanOrEqual(0);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
         }
-    });
+    );
 
     describe('AG-18185 callback standardisation', () => {
         let formatter: ReturnType<typeof vi.fn>;
