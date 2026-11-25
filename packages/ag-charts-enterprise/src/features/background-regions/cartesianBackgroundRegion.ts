@@ -217,16 +217,20 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         if (bbox == null) return;
 
         const radians = toRadians(rotation ?? 0);
-        const cos = Math.abs(Math.cos(radians));
-        const sin = Math.abs(Math.sin(radians));
-        const halfWidth = (bbox.width * cos + bbox.height * sin) / 2;
-        const halfHeight = (bbox.width * sin + bbox.height * cos) / 2;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        const halfWidth = (bbox.width * Math.abs(cos) + bbox.height * Math.abs(sin)) / 2;
+        const halfHeight = (bbox.width * Math.abs(sin) + bbox.height * Math.abs(cos)) / 2;
+        // A box grows by its padding before it turns, so its off-centre shift turns with it.
+        const [shiftX, shiftY] = labelNode.hasBoxing()
+            ? [xPaddingDiff * cos - yPaddingDiff * sin, xPaddingDiff * sin + yPaddingDiff * cos]
+            : [xPaddingDiff, yPaddingDiff];
 
         const anchorX = bounds.x1 + (Vec4.width(bounds) * (anchor.regionH + 1)) / 2;
         const anchorY = bounds.y1 + (Vec4.height(bounds) * (anchor.regionV + 1)) / 2;
 
-        const x = anchorX - (halfWidth + spacing) * anchor.labelH - xPaddingDiff / 2 + xOffset;
-        const y = anchorY - (halfHeight + spacing) * anchor.labelV - yPaddingDiff / 2 + yOffset;
+        const x = anchorX - (halfWidth + spacing) * anchor.labelH - shiftX / 2 + xOffset;
+        const y = anchorY - (halfHeight + spacing) * anchor.labelV - shiftY / 2 + yOffset;
 
         labelNode.rotation = radians;
         labelNode.x = x;

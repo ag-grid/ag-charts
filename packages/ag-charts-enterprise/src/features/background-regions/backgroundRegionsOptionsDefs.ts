@@ -64,7 +64,7 @@ const backgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgroundRegionLabel> =
     ...labelFitOptionsDefs,
     ...labelAutoFontSizeOptionsDefs,
     ...undocumentedDefs({
-        spacing: positiveNumber,
+        spacing: number,
     }),
 };
 

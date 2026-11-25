@@ -1091,12 +1091,17 @@ describe('Background Region label fitting', () => {
         expect(zoomed.text).toBe(unzoomed.text);
     });
 
-    it.each(['inside-left', 'inside-top', 'inside-bottom-right'] as const)(
-        'holds a boxed label with asymmetric padding at %s within the region',
-        async (position) => {
+    it.each([
+        ['inside-left', 0],
+        ['inside-top', 0],
+        ['inside-bottom-right', 0],
+        ['inside-left', 90],
+    ] as const)(
+        'holds a boxed label with asymmetric padding at %s rotated %d within the region',
+        async (position, rotation) => {
             const padding = { left: 0, right: 40, top: 0, bottom: 20 };
             const { box, regionBox: region } = await renderLabel(
-                { position, fill: 'white', padding },
+                { position, rotation, fill: 'white', padding },
                 { region: SMALL }
             );
 

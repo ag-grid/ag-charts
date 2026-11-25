@@ -530,6 +530,7 @@ describe('Quadrant Preset', () => {
             },
             CENTRED_ON_ONE_AXIS: regionLabelOptions('inside-outer-center', undefined, { spacing: 40 }),
             NONE: regionLabelOptions('inside-inner-inner', undefined, { spacing: 0 }),
+            NEGATIVE: regionLabelOptions('inside-inner-inner', undefined, { spacing: -10 }),
             PER_REGION: regionLabelOptions('inside-inner-inner', { bottomRight: { spacing: 40 } }),
         };
 
