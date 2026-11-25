@@ -4,9 +4,9 @@ import type {
     NormalisedCategoryAxisOptions,
     OrdinalTimeScale,
 } from 'ag-charts-core';
-import { UnitTimeScale } from 'ag-charts-core';
+import { UnitTimeScale, clampArray, findMinMax } from 'ag-charts-core';
 
-import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
+import type { AxisFillDatum } from './axisUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
 
@@ -14,97 +14,55 @@ export class DiscreteTimeAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
     TOptions extends NormalisedBaseCategoryStyleAxisOptions = NormalisedCategoryAxisOptions,
 > extends CategoryAxis<S, TOptions> {
-    protected override calculateGridLine(
-        { index: tickIndex, tickId, translation }: GridLineStyleTickDatum,
-        index: number,
-        p1: number,
-        p2: number,
-        ticks: GridLineStyleTickDatum[]
-    ): AxisLineDatum {
-        const { horizontal, range } = this;
-        const gridLine = this.options.gridLine;
-
-        if (this.options.interval?.placement !== 'between') {
-            return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
-        }
-
-        const prevTick = ticks[index - 1];
-        const offset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
-        const [x1, y1, x2, y2] = horizontal
-            ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
-            : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
-        const { style } = gridLine;
-        const { stroke, strokeWidth = 0, lineDash } = style[tickIndex % style.length] ?? {};
-
-        return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
-    }
-
+    /** Each tick's fill spans its interval, from its grid line to the next one in time. */
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
         if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
-        return ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks));
-    }
+        if (ticks.length === 0) return [];
 
-    protected override calculateGridFill(
-        { tickId, translation }: Pick<GridLineStyleTickDatum, 'tickId' | 'translation'>,
-        index: number,
-        gridFillIndex: number,
-        p1: number,
-        p2: number,
-        ticks: GridLineStyleTickDatum[]
-    ): AxisFillDatum {
         const { horizontal, range } = this;
-        const gridLine = this.options.gridLine;
+        const { reverse, gridLine } = this.options;
+        const [rangeMin, rangeMax] = findMinMax(range);
+        // A reversed axis runs time from right to left, so sort by offset to walk the edges in one direction.
+        const edges = ticks
+            .map((tick) => ({ tick, offset: this.betweenOffset(tick.translation) }))
+            .sort((a, b) => a.offset - b.offset);
+        const bounds = [rangeMin, ...edges.map(({ offset }) => offset), rangeMax];
 
-        if (this.options.interval?.placement !== 'between') {
-            return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
+        const { style } = gridLine;
+        const gridFills: AxisFillDatum[] = [];
+        const pushFill = (tickId: string, start: number, end: number, gridFillIndex: number) => {
+            if (end <= start) return;
+            const [x1, y1, x2, y2] = horizontal
+                ? [start, Math.max(p1, p2), end, Math.min(p1, p2)]
+                : [Math.min(p1, p2), start, Math.max(p1, p2), end];
+            const { fill, fillOpacity } = style[((gridFillIndex % style.length) + style.length) % style.length] ?? {};
+            gridFills.push({ tickId, x1, y1, x2, y2, fill, fillOpacity });
+        };
+
+        // The span before the earliest tick is the unlabelled interval before it.
+        const earliest = reverse ? edges.at(-1)!.tick : edges[0].tick;
+        const [beforeStart, beforeEnd] = reverse ? bounds.slice(-2) : bounds.slice(0, 2);
+        pushFill(`before:${earliest.tickId}`, beforeStart, beforeEnd, earliest.index - 1);
+
+        for (let i = 0; i < edges.length; i++) {
+            const { tick } = edges[i];
+            const [start, end] = reverse ? [bounds[i], bounds[i + 1]] : [bounds[i + 1], bounds[i + 2]];
+            pushFill(tick.tickId, start, end, tick.index);
         }
 
-        const prevTick = ticks[index - 1];
-        const nextTick = ticks[index + 1];
-        const startOffset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
-        const endOffset = nextTick == null ? range[1] : translation + (nextTick.translation - translation) / 2;
-
-        const [x1, y1, x2, y2] = horizontal
-            ? [startOffset, Math.max(p1, p2), endOffset, Math.min(p1, p2)]
-            : [Math.min(p1, p2), startOffset, Math.max(p1, p2), endOffset];
-        const { fill, fillOpacity } = gridLine.style[gridFillIndex % gridLine.style.length] ?? {};
-
-        return { tickId, x1, y1, x2, y2, fill, fillOpacity };
+        return gridFills;
     }
 
-    protected override calculateTickLine(
-        { isPrimary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'isPrimary'>,
-        index: number,
-        direction: number,
-        ticks: TickDatum[],
-        scrollbarThickness: number = 0
-    ): AxisLineDatum {
-        const { horizontal, primaryTick, range } = this;
-        const tick = this.options.tick;
+    /** The latest interval closes at the axis start when the axis is reversed. */
+    protected override betweenEnd(): number {
+        return this.options.reverse ? this.range[0] : this.range[1];
+    }
 
-        if (this.options.interval?.placement !== 'between') {
-            return super.calculateTickLine(
-                { isPrimary, tickId, translation },
-                index,
-                direction,
-                ticks,
-                scrollbarThickness
-            );
-        }
-
-        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
-        const h = -direction * this.getTickSize(datumTick);
-        const prevTick = ticks[index - 1];
-        const offset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
-        const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing(datumTick));
-        const [x1, y1, x2, y2] = horizontal
-            ? [offset, tickOffset, offset, tickOffset + h]
-            : [tickOffset, offset, tickOffset + h, offset];
-        const { stroke, width: strokeWidth } = datumTick;
-        const lineDash = undefined;
-
-        return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
+    /** Halfway to the band before `translation` in time, the next band along a reversed axis. */
+    protected override betweenOffset(translation: number): number {
+        const halfStep = this.scale.step / 2;
+        return clampArray(this.options.reverse ? translation + halfStep : translation - halfStep, this.range);
     }
 }

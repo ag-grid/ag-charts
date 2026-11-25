@@ -66,6 +66,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
+import type { AxisFillDatum, AxisLineDatum } from '../axis/axisUtil';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -521,12 +522,14 @@ interface AxisLayoutInternals {
     };
     tickLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
     gridLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    gridFillGroupSelection: { nodes(): Iterable<{ datum?: AxisFillDatum }> };
     unzoomedTickLayoutCache?: { domain: unknown[] };
     tickLayoutCache?: { domain: unknown[] };
     calculateTickLayout(...args: unknown[]): unknown;
 }
 
 interface AxisLineNode {
+    datum?: AxisLineDatum;
     x1: number;
     y1: number;
     x2: number;
@@ -562,6 +565,27 @@ export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLay
 /** What the axis at `position` drew from its tick layout, as `getAxisTickLayouts` describes it. */
 export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string): AxisTickLayout {
     return toAxisTickLayout(findAxisInternals(chartOrProxy, position));
+}
+
+function laidOut<T>(nodes: Iterable<{ datum?: T }>): T[] {
+    const data = Array.from(nodes, (node) => node.datum);
+    expect(data.every((datum) => datum != null)).toBe(true);
+    return data.filter((datum) => datum != null);
+}
+
+/** The tick lines or grid lines of the axis at `position` as laid out, in scene-graph order. */
+export function getAxisLines(
+    chartOrProxy: ChartOrProxy<any>,
+    position: string,
+    kind: 'tick' | 'grid'
+): AxisLineDatum[] {
+    const axis = findAxisInternals(chartOrProxy, position);
+    return laidOut(kind === 'tick' ? axis.tickLineGroupSelection.nodes() : axis.gridLineGroupSelection.nodes());
+}
+
+/** The grid fills of the axis at `position` as laid out, in scene-graph order. */
+export function getAxisGridFills(chartOrProxy: ChartOrProxy<any>, position: string): AxisFillDatum[] {
+    return laidOut(findAxisInternals(chartOrProxy, position).gridFillGroupSelection.nodes());
 }
 
 /** The domain the scale of the axis at `position` autoscaled to. */

@@ -7,9 +7,17 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgTimeAxisParentLevel,
+    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
-import { getAxisLabelSource, getAxisLabelTexts } from '../test/axisAccessors';
+import {
+    findAxis,
+    getAxisBandExtent,
+    getAxisLabelNodes,
+    getAxisLabelSource,
+    getAxisLabelTexts,
+    getLabelText,
+} from '../test/axisAccessors';
 import { compareAxisSnapshots, mixinDerivedCases } from '../test/axisTestCases';
 import {
     type ChartOrProxy,
@@ -17,6 +25,8 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
+    getAxisGridFills,
+    getAxisLines,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -623,6 +633,99 @@ describe('Time Axis Examples', () => {
             });
 
             expect(getAxisLabelTexts(chart, 'left', { visibleOnly: false })).toEqual([]);
+        });
+    });
+
+    describe('AG-17508 interval placement between', () => {
+        const dayData = Array.from({ length: 150 }, (_, i) => ({ date: new Date(2024, 0, 1 + i), value: i % 7 }));
+        const firstDay = dayData[0].date.getTime();
+        const dayBefore = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
+
+        const createDayChart = (x: Omit<AgUnitTimeAxisOptions, 'type' | 'position'>) =>
+            createChart({
+                data: dayData,
+                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                axes: { x: { type: 'unit-time', position: 'bottom', ...x }, y: { type: 'number', position: 'left' } },
+            });
+
+        const bandCentre = (value: Date) => {
+            const { start, bandwidth } = getAxisBandExtent(chart, 'bottom', value);
+            return start + bandwidth / 2;
+        };
+
+        it.each([
+            { name: 'tick lines', kind: 'tick', reverse: false },
+            { name: 'tick lines on a reversed axis', kind: 'tick', reverse: true },
+            { name: 'grid lines', kind: 'grid', reverse: false },
+        ] as const)('places $name halfway between each labelled day and the day before', async ({ kind, reverse }) => {
+            chart = await createDayChart({ reverse, gridLine: { enabled: true } });
+
+            // The first day has no day before it on the axis, so its interval starts at the axis end it is drawn at.
+            const range = findAxis(chart, 'bottom').range;
+            const firstDayEdge = reverse ? Math.max(...range) : Math.min(...range);
+            const offsets = new Map(getAxisLines(chart, 'bottom', kind).map((line) => [line.tickId, line.offset]));
+            const labels = getAxisLabelNodes(chart, 'bottom');
+            expect(labels.length).toBeGreaterThan(10);
+
+            for (const label of labels) {
+                const { date } = dayData.find((d) => Math.abs(bandCentre(d.date) - label.datum.x) < 1e-6)!;
+                const expected =
+                    date.getTime() === firstDay ? firstDayEdge : (bandCentre(date) + bandCentre(dayBefore(date))) / 2;
+                expect(offsets.get(label.datum.tickId), getLabelText(label)).toBeCloseTo(expected, 6);
+            }
+        });
+
+        it.each([
+            { kind: 'tick', reverse: false },
+            { kind: 'tick', reverse: true },
+            { kind: 'grid', reverse: false },
+            { kind: 'grid', reverse: true },
+        ] as const)('draws one $kind line at each end of the axis (reverse: $reverse)', async ({ kind, reverse }) => {
+            chart = await createDayChart({ reverse, gridLine: { enabled: true } });
+
+            const [rangeMin, rangeMax] = findAxis(chart, 'bottom').range.toSorted((a, b) => a - b);
+            const offsets = getAxisLines(chart, 'bottom', kind).map((line) => line.offset);
+            expect(offsets.filter((offset) => Math.abs(offset - rangeMin) < 1e-6)).toHaveLength(1);
+            expect(offsets.filter((offset) => Math.abs(offset - rangeMax) < 1e-6)).toHaveLength(1);
+        });
+
+        it.each([
+            { name: 'the first day', min: undefined, reverse: false },
+            { name: 'mid-interval', min: new Date(2024, 0, 10), reverse: false },
+            { name: 'mid-interval on a reversed axis', min: new Date(2024, 0, 10), reverse: true },
+        ])('tiles grid fills between the grid lines when the axis starts at $name', async ({ min, reverse }) => {
+            chart = await createDayChart({
+                min,
+                reverse,
+                gridLine: { enabled: true, style: [{ fill: 'red' }, { fill: 'blue' }] },
+            });
+
+            const range = findAxis(chart, 'bottom').range;
+            const [rangeMin, rangeMax] = [Math.min(...range), Math.max(...range)];
+            const fills = getAxisGridFills(chart, 'bottom').toSorted((a, b) => a.x1 - b.x1);
+            const innerLines = getAxisLines(chart, 'bottom', 'grid')
+                .map((line) => line.offset)
+                .filter((offset) => offset > rangeMin + 1e-6 && offset < rangeMax - 1e-6)
+                .toSorted((a, b) => a - b);
+
+            expect(fills.at(0)?.x1).toBeCloseTo(rangeMin, 6);
+            expect(fills.at(-1)?.x2).toBeCloseTo(rangeMax, 6);
+            for (let i = 1; i < fills.length; i++) {
+                expect(fills[i].x1).toBeCloseTo(fills[i - 1].x2, 6);
+                expect(fills[i].fill).not.toBe(fills[i - 1].fill);
+            }
+            expect(fills.slice(1).map((fill) => fill.x1)).toEqual(
+                innerLines.map((offset) => expect.closeTo(offset, 6))
+            );
+
+            // Each labelled tick's fill is its own interval, so it holds that tick's label.
+            const fillsById = new Map(fills.map((fill) => [fill.tickId, fill]));
+            for (const label of getAxisLabelNodes(chart, 'bottom')) {
+                const fill = fillsById.get(label.datum.tickId);
+                expect(fill, getLabelText(label)).toBeDefined();
+                expect(label.datum.x, getLabelText(label)).toBeGreaterThanOrEqual(fill!.x1);
+                expect(label.datum.x, getLabelText(label)).toBeLessThanOrEqual(fill!.x2);
+            }
         });
     });
 
