@@ -899,7 +899,6 @@ describe('Annotations', () => {
             ]);
             await compare();
 
-            // Clicking where each channel would be selects nothing, so no options popup opens...
             const { x, y } = getSeriesRect(chart);
             const clickCategory = (category: string) =>
                 clickAt({
@@ -911,7 +910,6 @@ describe('Annotations', () => {
                 expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
             }
 
-            // ...whereas the same click on the line does.
             await clickCategory('Q1');
             expect(chartBody().querySelector('button[title="Line Color"]')).not.toBeNull();
 
