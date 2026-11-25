@@ -35,8 +35,9 @@
     position: absolute;
 }
 
-/* A button that is left for a neighbour lowers at once, or it covers the shared edge of the one taking its place. */
-.ag-charts-toolbar:has(.ag-charts-toolbar__button:is(:hover, :focus-visible)) {
+/* A button beside the one being hovered or focused lowers at once, or it covers the shared edge of the one taking its place. */
+.ag-charts-toolbar__button:has(+ .ag-charts-toolbar__button:is(:hover, :focus-visible)),
+.ag-charts-toolbar__button:is(:hover, :focus-visible) + .ag-charts-toolbar__button {
     --toolbar-button-z-index-timing: step-start;
 }
 
@@ -75,6 +76,7 @@
     background: var(--toolbar-button-background-color--hover);
     border-color: var(--toolbar-button-border-color--hover);
     color: var(--toolbar-button-text-color--hover);
+    --toolbar-button-z-index-timing: step-start;
     z-index: 2;
 }
 
@@ -102,6 +104,7 @@
 .ag-charts-toolbar__button:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
+    --toolbar-button-z-index-timing: step-start;
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 

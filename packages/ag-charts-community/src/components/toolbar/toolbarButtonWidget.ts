@@ -253,7 +253,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
         super.setEnabled(enabled);
         if (raising) {
             // The transition takes its timing from the style recalculated here, before the override is removed.
-            getComputedStyle(this.elem).getPropertyValue('z-index');
+            this.elem.ownerDocument.defaultView?.getComputedStyle(this.elem).getPropertyValue('z-index');
             this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, null);
         }
     }
