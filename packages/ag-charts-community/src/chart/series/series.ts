@@ -154,17 +154,28 @@ const ITEM_GLOW_INDEX = 1;
 /** The `shadow` an item styler is given: the one the item would cast, with no deprecated `color`. */
 type StylerShadow = Readonly<Omit<NormalisedDropShadowOptions, 'color'>>;
 
-/** The overrides of a shadow that sets some of its fields: a `fill` alone is opaque, and `fillOpacitySet` follows `fillOpacity`. */
-function shadowOverrides<T extends { enabled?: boolean; fill?: unknown; fillOpacity?: number }>(shadow: T) {
-    let fillOpacitySet: boolean | undefined;
-    if (shadow.fillOpacity != null) fillOpacitySet = true;
-    else if (shadow.fill != null) fillOpacitySet = false;
+/**
+ * The overrides of a shadow that sets some of its fields: a `fill` alone is opaque, and `_fillOpacitySet` follows
+ * `fillOpacity`. With the `cascaded` shadow that it is merged over, a `fillOpacity` equal to the cascaded one keeps
+ * the cascaded flag, so that a styler can return, or spread, the shadow it was given.
+ */
+function shadowOverrides<T extends { enabled?: boolean; fill?: unknown; fillOpacity?: number }>(
+    shadow: T,
+    cascaded?: Pick<NormalisedDropShadowOptions, 'fillOpacity' | '_fillOpacitySet'>
+) {
+    let _fillOpacitySet: boolean | undefined;
+    if (shadow.fillOpacity != null) {
+        // Written as `false`, not left unset, as the base that the theme resolves for a styler's `fillOpacity` is set.
+        _fillOpacitySet = shadow.fillOpacity === cascaded?.fillOpacity ? (cascaded._fillOpacitySet ?? false) : true;
+    } else if (shadow.fill != null) {
+        _fillOpacitySet = false;
+    }
 
     return {
         fillOpacity: shadow.fill == null ? undefined : 1,
         ...shadow,
         enabled: shadow.enabled ?? true,
-        fillOpacitySet,
+        _fillOpacitySet,
     };
 }
 
@@ -1257,17 +1268,18 @@ export abstract class Series<
 
     /**
      * The `shadow` for an item styler's params: unset where it casts none, and with no deprecated `color`, which the
-     * `shadow` that a styler returns cannot have, so that a styler can return, or spread, what it was given.
-     * It is the shadow itself where it has no `color`, and one cached copy of it otherwise, so nothing is allocated per item.
+     * `shadow` that a styler returns cannot have, so that a styler can return, or spread, what it was given. It has no
+     * `_fillOpacitySet` either: {@link mergeItemShadow} takes it from the shadow cast with no styler. It is the shadow
+     * itself where it has none of those, and one cached copy of it otherwise, so nothing is allocated per item.
      */
     protected toStylerShadow(shadow: NormalisedDropShadowOptions | undefined): StylerShadow | undefined {
         if (!shadow?.enabled) return undefined;
-        if (!('color' in shadow) && !('fillOpacitySet' in shadow)) return shadow;
+        if (!('color' in shadow) && !('_fillOpacitySet' in shadow)) return shadow;
 
         const cache = (this.stylerShadows ??= new WeakMap());
         let stylerShadow = cache.get(shadow);
         if (stylerShadow == null) {
-            const { color, fillOpacitySet: _fillOpacitySet, ...rest } = shadow;
+            const { color, _fillOpacitySet: _stripped, ...rest } = shadow;
             stylerShadow = { ...rest, fill: rest.fill ?? color };
             cache.set(shadow, stylerShadow);
         }
@@ -1535,7 +1547,10 @@ export abstract class Series<
         );
     }
 
-    /** A styler's `shadow` over `cascaded`, over the series' and theme's `shadow`; a `fill` alone is opaque. */
+    /**
+     * A styler's `shadow` over `cascaded`, over the series' and theme's `shadow`; a `fill` alone is opaque. Its `fillOpacity`
+     * casts at its own alpha unless it equals that of `cascaded`, which a styler that returns or spreads its `shadow` does.
+     */
     protected mergeItemShadow(
         cascaded: NormalisedDropShadowOptions | undefined,
         itemShadow: NonNullable<AgItemShadowStyle['shadow']>
@@ -1550,7 +1565,7 @@ export abstract class Series<
             `s${JSON.stringify(itemShadow)}`,
             cascaded,
             () => {
-                const overrides = shadowOverrides(itemShadow);
+                const overrides = shadowOverrides(itemShadow, cascaded);
                 const merged = mergeDefaults(
                     overrides,
                     cascaded,

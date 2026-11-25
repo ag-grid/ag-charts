@@ -450,6 +450,19 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
     ) as T;
 }
 
+/**
+ * Accepts `key` only in a post-theme pass, where its value was computed by the theme. From user input it is an unknown
+ * option, so that a user cannot set what the theme alone computes.
+ */
+export function themeComputed(key: string, validator: Validator): Validator {
+    return attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+        if (context.params.silentAdvisories) return validator(value, context);
+
+        const parentPath = context.path.slice(0, Math.max(0, context.path.length - key.length - 1));
+        return { valid: false, cleared: null, invalid: [new UnknownError([], value, parentPath, key)] };
+    }, validator[descriptionSymbol] ?? 'a value');
+}
+
 /** Spread inside a defs literal for keys absent from its options type; typed as empty so the literal type-checks. */
 export function undocumentedDefs(defs: Record<string, Validator | OptionsDefs<any>>): Record<never, never> {
     const result: Record<string, Validator | OptionsDefs<any>> = {};

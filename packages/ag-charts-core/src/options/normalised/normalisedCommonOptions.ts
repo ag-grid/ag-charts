@@ -91,7 +91,7 @@ export type NormalisedDropShadowOptions = Normalised<
 > & {
     glow?: true;
     /** Whether the `fillOpacity` was set by a user or theme override, not the theme default; unset when not known. */
-    fillOpacitySet?: boolean;
+    _fillOpacitySet?: boolean;
     /** A glow with no `gap` that is cast in an overlay, which cuts it only where its item, and every item that glows, is painted. */
     overlay?: true;
     /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */
