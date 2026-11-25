@@ -123,7 +123,7 @@ export class CategoryAxis<
                     {
                         index: ticks.at(-1)!.index + 1,
                         tickId: `after:${ticks.at(-1)!.tickId}`,
-                        translation: this.range[1],
+                        translation: this.betweenEnd(),
                     },
                     ticks.length,
                     p1,
@@ -143,15 +143,14 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { horizontal, scale } = this;
+        const { horizontal } = this;
         const gridLine = this.options.gridLine;
 
         if (this.options.interval?.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
         }
 
-        const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
-        const offset = translation - halfStep;
+        const offset = this.betweenOffset(translation);
         const [x1, y1, x2, y2] = horizontal
             ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
             : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
@@ -228,7 +227,7 @@ export class CategoryAxis<
         if (this.options.interval?.placement === 'between' && ticks.length > 0) {
             tickLines.push(
                 super.calculateTickLine(
-                    { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
+                    { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.betweenEnd() },
                     ticks.length,
                     direction,
                     ticks,
@@ -247,7 +246,7 @@ export class CategoryAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, primaryTick, scale } = this;
+        const { horizontal, primaryTick } = this;
         const tick = this.options.tick;
 
         if (this.options.interval?.placement !== 'between') {
@@ -262,8 +261,7 @@ export class CategoryAxis<
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
-        const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
-        const offset = translation - halfStep;
+        const offset = this.betweenOffset(translation);
         const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing(datumTick));
         const [x1, y1, x2, y2] = horizontal
             ? [offset, tickOffset, offset, tickOffset + h]
@@ -272,6 +270,17 @@ export class CategoryAxis<
         const lineDash = undefined;
 
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
+    }
+
+    /** Where `'between'` draws the line that closes the last band. */
+    protected betweenEnd(): number {
+        return this.range[1];
+    }
+
+    /** Where `'between'` draws the tick and grid line in front of the band at `translation`. */
+    protected betweenOffset(translation: number): number {
+        const { step } = this.scale;
+        return translation - (translation < step ? Math.floor(step / 2) : step / 2);
     }
 
     private reduceBandScalePadding() {

@@ -13,7 +13,6 @@ import {
 import type { AxisValuePick } from '../../module/axisContext';
 import type { LabelNodeDatum } from '../axis/axis';
 import type { TickInterval } from '../axis/axisTick';
-import type { AxisFillDatum, AxisLineDatum } from '../axis/axisUtil';
 import { CartesianAxis } from '../axis/cartesianAxis';
 import type { GenerateTicksOptions } from '../axis/generateTicksUtils';
 import type { ChartAxisLabel, ChartLayout } from '../chartAxis';
@@ -35,19 +34,6 @@ export interface AxisLabelOptions {
 // `Axis.tickLabelGroupSelection` is protected, and the label nodes are the only record of what the axis drew.
 interface TickLabelSelectionHost {
     tickLabelGroupSelection: { nodes(): Iterable<TransformableText<LabelNodeDatum>> };
-}
-
-// `CartesianAxis`' line and fill selections are protected, and their nodes are the only record of what was drawn.
-interface AxisGridSelectionHost {
-    tickLineGroupSelection: { nodes(): Iterable<{ datum?: AxisLineDatum }> };
-    gridLineGroupSelection: { nodes(): Iterable<{ datum?: AxisLineDatum }> };
-    gridFillGroupSelection: { nodes(): Iterable<{ datum?: AxisFillDatum }> };
-}
-
-function drawnData<T>(nodes: Iterable<{ datum?: T }>): T[] {
-    const data = Array.from(nodes, (node) => node.datum);
-    expect(data.every((datum) => datum != null)).toBe(true);
-    return data.filter((datum) => datum != null);
 }
 
 // `Axis.chartLayout` is protected; it is the only record of the room the chart gave the axis.
@@ -79,22 +65,6 @@ export function getAxisLabelNodes(
     const nodes = Array.from(tickLabelGroupSelection.nodes());
     expect(nodes.every(hasDatum)).toBe(true);
     return nodes.filter(hasDatum).filter((node) => !visibleOnly || node.datum.visible);
-}
-
-/** The tick lines or grid lines of the axis at `position` as laid out, in scene-graph order. */
-export function getAxisLines(
-    chartOrProxy: ChartOrProxy<any>,
-    position: string,
-    kind: 'tick' | 'grid'
-): AxisLineDatum[] {
-    const axis = findAxis(chartOrProxy, position) as unknown as AxisGridSelectionHost;
-    return drawnData(kind === 'tick' ? axis.tickLineGroupSelection.nodes() : axis.gridLineGroupSelection.nodes());
-}
-
-/** The grid fills of the axis at `position` as laid out, in scene-graph order. */
-export function getAxisGridFills(chartOrProxy: ChartOrProxy<any>, position: string): AxisFillDatum[] {
-    const axis = findAxis(chartOrProxy, position) as unknown as AxisGridSelectionHost;
-    return drawnData(axis.gridFillGroupSelection.nodes());
 }
 
 /** A label's text as one string; the segments of a rich-text label are joined. */

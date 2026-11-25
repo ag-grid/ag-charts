@@ -7,16 +7,15 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgTimeAxisParentLevel,
+    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
 import {
     findAxis,
     getAxisBandExtent,
-    getAxisGridFills,
     getAxisLabelNodes,
     getAxisLabelSource,
     getAxisLabelTexts,
-    getAxisLines,
     getLabelText,
 } from '../test/axisAccessors';
 import { compareAxisSnapshots, mixinDerivedCases } from '../test/axisTestCases';
@@ -26,6 +25,8 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
+    getAxisGridFills,
+    getAxisLines,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -640,6 +641,13 @@ describe('Time Axis Examples', () => {
         const firstDay = dayData[0].date.getTime();
         const dayBefore = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
 
+        const createDayChart = (x: Omit<AgUnitTimeAxisOptions, 'type' | 'position'>) =>
+            createChart({
+                data: dayData,
+                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                axes: { x: { type: 'unit-time', position: 'bottom', ...x }, y: { type: 'number', position: 'left' } },
+            });
+
         const bandCentre = (value: Date) => {
             const { start, bandwidth } = getAxisBandExtent(chart, 'bottom', value);
             return start + bandwidth / 2;
@@ -650,14 +658,7 @@ describe('Time Axis Examples', () => {
             { name: 'tick lines on a reversed axis', kind: 'tick', reverse: true },
             { name: 'grid lines', kind: 'grid', reverse: false },
         ] as const)('places $name halfway between each labelled day and the day before', async ({ kind, reverse }) => {
-            chart = await createChart({
-                data: dayData,
-                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-                axes: {
-                    x: { type: 'unit-time', position: 'bottom', reverse, gridLine: { enabled: true } },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+            chart = await createDayChart({ reverse, gridLine: { enabled: true } });
 
             // The first day has no day before it on the axis, so its interval starts at the axis end it is drawn at.
             const range = findAxis(chart, 'bottom').range;
@@ -675,23 +676,28 @@ describe('Time Axis Examples', () => {
         });
 
         it.each([
+            { kind: 'tick', reverse: false },
+            { kind: 'tick', reverse: true },
+            { kind: 'grid', reverse: false },
+            { kind: 'grid', reverse: true },
+        ] as const)('draws one $kind line at each end of the axis (reverse: $reverse)', async ({ kind, reverse }) => {
+            chart = await createDayChart({ reverse, gridLine: { enabled: true } });
+
+            const [rangeMin, rangeMax] = findAxis(chart, 'bottom').range.toSorted((a, b) => a - b);
+            const offsets = getAxisLines(chart, 'bottom', kind).map((line) => line.offset);
+            expect(offsets.filter((offset) => Math.abs(offset - rangeMin) < 1e-6)).toHaveLength(1);
+            expect(offsets.filter((offset) => Math.abs(offset - rangeMax) < 1e-6)).toHaveLength(1);
+        });
+
+        it.each([
             { name: 'the first day', min: undefined, reverse: false },
             { name: 'mid-interval', min: new Date(2024, 0, 10), reverse: false },
             { name: 'mid-interval on a reversed axis', min: new Date(2024, 0, 10), reverse: true },
         ])('tiles grid fills between the grid lines when the axis starts at $name', async ({ min, reverse }) => {
-            chart = await createChart({
-                data: dayData,
-                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-                axes: {
-                    x: {
-                        type: 'unit-time',
-                        position: 'bottom',
-                        min,
-                        reverse,
-                        gridLine: { enabled: true, style: [{ fill: 'red' }, { fill: 'blue' }] },
-                    },
-                    y: { type: 'number', position: 'left' },
-                },
+            chart = await createDayChart({
+                min,
+                reverse,
+                gridLine: { enabled: true, style: [{ fill: 'red' }, { fill: 'blue' }] },
             });
 
             const range = findAxis(chart, 'bottom').range;
@@ -711,6 +717,15 @@ describe('Time Axis Examples', () => {
             expect(fills.slice(1).map((fill) => fill.x1)).toEqual(
                 innerLines.map((offset) => expect.closeTo(offset, 6))
             );
+
+            // Each labelled tick's fill is its own interval, so it holds that tick's label.
+            const fillsById = new Map(fills.map((fill) => [fill.tickId, fill]));
+            for (const label of getAxisLabelNodes(chart, 'bottom')) {
+                const fill = fillsById.get(label.datum.tickId);
+                expect(fill, getLabelText(label)).toBeDefined();
+                expect(label.datum.x, getLabelText(label)).toBeGreaterThanOrEqual(fill!.x1);
+                expect(label.datum.x, getLabelText(label)).toBeLessThanOrEqual(fill!.x2);
+            }
         });
     });
 
