@@ -635,11 +635,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return shadow?.glow === true || shadow?.fillOpacitySet === true;
     }
 
-    /**
-     * Whether the glow that the item casts itself, as the hovered copy drawn as a cutout does, has its footprint cut out of it when
-     * its `gap` is unset and the item paints see-through, as the glow overlay does at rest. A set `gap` is cut whatever the paint.
-     * Only the copies that a {@link Group.holdsHighlight} group draws are cut so: they are the hovered items.
-     */
+    /** Whether the glow this item casts itself is cut by its footprint: a hovered copy, with no `gap`, that paints see-through. */
     private cutsSeeThroughGlow(slot: ShadowSlot): boolean {
         return (
             slot === 'glow' &&
@@ -786,10 +782,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
     }
 
-    /**
-     * Whether something the shape paints is less than opaque, so that a glow beneath it shows through: its fill, which a gradient
-     * or pattern may fade only in part, or its stroke, or the node's own `opacity`. An item that paints nothing is not.
-     */
+    /** Whether a glow beneath the shape shows through its fill (a gradient or pattern may fade in part), stroke or `opacity`. */
     paintsSeeThrough(): boolean {
         const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
         const fillPainted = this.hasCastableFill();

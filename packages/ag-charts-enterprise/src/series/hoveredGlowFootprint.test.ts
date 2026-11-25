@@ -120,7 +120,7 @@ describe('the hovered glow of an enterprise series, with no gap', () => {
 
                         const { covered, share } = changedShare(withGlow, none);
                         expect(covered).toBeGreaterThan(1000);
-                        // The footprint is clear of the glow, bar the antialiased pixels at its edge, which a gap of 0 leaves as it does.
+                        // Clear of the glow bar the antialiased edge, which a gap of 0 leaves as well.
                         expect(share).toBeLessThan(0.1);
                         // The glow still shows beside the item.
                         expect(outsideShare(withGlow, none)).toBeGreaterThan(100);
@@ -135,10 +135,7 @@ describe('the hovered glow of an enterprise series, with no gap', () => {
         // From the inside of the edge of the marker to the glow past it, which takes in the anti-aliased pixels of the edge.
         const DISTANCES = [-6, -1, 0, 0.5, 1, 3, 6];
 
-        /**
-         * The hovered low and high markers of a range area share one glow. The `itemStyler` makes the high one see-through and the
-         * low one opaque, so the batch of the glow holds both.
-         */
+        /** The hovered low (opaque) and high (see-through) markers of a range area share one glow batch. */
         const options = (
             highOpacity: number,
             glowOptions: object,

@@ -90,11 +90,7 @@ export interface ShadowKey {
     readonly hovered?: boolean;
 }
 
-/**
- * Whether a glow key of hovered items with no `gap` has a caster that paints see-through, whose footprint is then cut out of the
- * glow, as the glow overlay does at rest. A caster that paints opaque is left uncut, as it hides the glow, and cutting it would
- * lighten its anti-aliased edge. A set `gap` is cut by {@link castPlan} whatever the paint.
- */
+/** Whether a hovered glow key with no `gap` has a see-through caster, whose footprint is cut out of the glow like at rest. */
 function cutsSeeThrough({ hovered, slot, shadow, casters }: ShadowKey): boolean {
     if (hovered !== true || slot !== 'glow' || shadow.gap != null) return false;
 
@@ -1164,7 +1160,7 @@ function castPlan(
                 erase.restore();
             }
             const resolutionOfHole = { x: holeScaleX, y: holeScaleY };
-            // The glow of an overlay with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint.
+            // An overlay, or a hovered key cut like one, is cut only where an item is painted, whereas a `gap` clears the whole footprint.
             const painted = key.shadow.overlay === true || plan.cutsSeeThrough;
             rendered =
                 eraseFootprints(

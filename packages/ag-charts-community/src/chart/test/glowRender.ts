@@ -129,10 +129,7 @@ export function dominantRedStrength(data: ArrayLike<number>) {
     return strengthOfRed([255, green, green]);
 }
 
-/**
- * The pixels `distances` from the edge of `box`, taken as a circle, at each of `angles` (degrees, anticlockwise from the right).
- * A negative distance is inside the edge.
- */
+/** The pixels `distances` out from the edge of `box` taken as a circle (negative is inside), at each of `angles` in degrees. */
 export function pixelsAroundCircle(
     chartOrProxy: ChartOrProxy<any>,
     { x, y, width, height }: { x: number; y: number; width: number; height: number },

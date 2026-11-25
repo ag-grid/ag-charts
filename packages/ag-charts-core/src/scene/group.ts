@@ -153,10 +153,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     /** Whether this group or one above it {@link castsHoveredGlows}, which {@link preRender} sets before the group's counts. */
     private inHoveredLayer = false;
 
-    /**
-     * Whether the group holds the highlight copies of hovered items. A glow with no `gap` that it batches has the footprint of
-     * those that paint see-through cut out of it, as the glow overlay does at rest.
-     */
+    /** Whether the group holds the highlight copies of hovered items, which cut a no-`gap` glow where they paint see-through. */
     readonly holdsHighlight: boolean;
 
     /** Whether this group or one above it {@link holdsHighlight}, which {@link preRender} sets before the group's counts. */

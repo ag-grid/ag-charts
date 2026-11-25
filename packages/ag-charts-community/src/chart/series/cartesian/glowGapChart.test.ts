@@ -123,9 +123,7 @@ describe('glow gap in a chart', () => {
         ],
     });
 
-    // The glow is cast by the series on every item, or by the highlight copy of the hovered one, which is drawn the same.
-    // The hovered copy casts its own glow when it is a cutout, through the highlight group's batch when it is drawn over the item
-    // beneath, and through the series' glow overlay when it is not brought to the front.
+    // The hovered copy casts its glow itself as a cutout, through the highlight group's batch over the item, else through the overlay.
     describe.each([
         { name: 'bar', build: (gap?: number) => bars({ glow: glow(gap) }), hovered: false, inside: isClear },
         {
@@ -208,9 +206,7 @@ describe('glow gap in a chart', () => {
         });
     });
 
-    // What a hovered item with no `gap` renders outside its footprint is pinned beside it, as #9221's head rendered it before the
-    // footprint of a see-through item was cut: the glow ring and, for an opaque item, its anti-aliased edge. They are the
-    // pixels at `DISTANCES` from the edge of a 40px item, at `ANGLES` (degrees, anticlockwise from the right), spread 10 and blur 6.
+    // Pins the pixels outside the footprint of a hovered item with no `gap`: its glow ring and, if opaque, its anti-aliased edge.
     describe('the footprint of the hovered item, with no gap', () => {
         const HOVERED_GLOW = { fill: 'red', fillOpacity: 1, blur: 6, spread: 10 };
         const SPREAD_0_GLOW = { fill: 'red', fillOpacity: 1, blur: 8, spread: 0 };

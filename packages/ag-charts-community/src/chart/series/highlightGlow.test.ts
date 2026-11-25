@@ -1292,8 +1292,7 @@ describe('highlight glow', () => {
             });
 
             describe('parity of the routes that cast a glow at a spread of 0', () => {
-                // With no spread and no blur the glow lies under the item. It shows only where the item's paint lets it through, and
-                // a hovered item that paints see-through has its footprint cut out of a glow with no `gap`, so it shows nowhere.
+                // The glow lies under the item and shows only where its paint lets it through, which a cut footprint never does.
                 const RED_FILL = '#ff0000';
                 const BLUE_FILL = '#0000ff';
                 const NO_GLOW = { enabled: false };
