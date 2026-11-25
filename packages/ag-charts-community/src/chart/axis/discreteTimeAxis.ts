@@ -4,7 +4,7 @@ import type {
     NormalisedCategoryAxisOptions,
     OrdinalTimeScale,
 } from 'ag-charts-core';
-import { UnitTimeScale } from 'ag-charts-core';
+import { UnitTimeScale, clampArray } from 'ag-charts-core';
 
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
@@ -21,15 +21,14 @@ export class DiscreteTimeAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { horizontal, range } = this;
+        const { horizontal } = this;
         const gridLine = this.options.gridLine;
 
         if (this.options.interval?.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
         }
 
-        const prevTick = ticks[index - 1];
-        const offset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
+        const offset = this.intervalStart(translation);
         const [x1, y1, x2, y2] = horizontal
             ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
             : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
@@ -39,39 +38,39 @@ export class DiscreteTimeAxis<
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
+    /** One fill between each pair of neighbouring grid lines, and from each end of the axis to its nearest grid line. */
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
         if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
-        return ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks));
-    }
+        if (ticks.length === 0) return [];
 
-    protected override calculateGridFill(
-        { tickId, translation }: Pick<GridLineStyleTickDatum, 'tickId' | 'translation'>,
-        index: number,
-        gridFillIndex: number,
-        p1: number,
-        p2: number,
-        ticks: GridLineStyleTickDatum[]
-    ): AxisFillDatum {
         const { horizontal, range } = this;
-        const gridLine = this.options.gridLine;
+        const { style } = this.options.gridLine;
+        const [rangeMin, rangeMax] = [Math.min(...range), Math.max(...range)];
+        const edges = ticks
+            .map((tick) => ({ tick, offset: this.intervalStart(tick.translation) }))
+            .sort((a, b) => a.offset - b.offset);
+        const first = edges[0].tick;
 
-        if (this.options.interval?.placement !== 'between') {
-            return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
+        const gridFills: AxisFillDatum[] = [];
+        const pushFill = (tickId: string, start: number, end: number, gridFillIndex: number) => {
+            if (end - start <= 0) return;
+            const [x1, y1, x2, y2] = horizontal
+                ? [start, Math.max(p1, p2), end, Math.min(p1, p2)]
+                : [Math.min(p1, p2), start, Math.max(p1, p2), end];
+            const { fill, fillOpacity } = style[gridFillIndex % style.length] ?? {};
+            gridFills.push({ tickId, x1, y1, x2, y2, fill, fillOpacity });
+        };
+
+        // Tick indices are consecutive, so the fill before the first edge takes the index after it for its parity.
+        pushFill(`before:${first.tickId}`, rangeMin, edges[0].offset, first.index + 1);
+        for (let i = 0; i < edges.length; i++) {
+            const { tick, offset } = edges[i];
+            pushFill(tick.tickId, offset, edges[i + 1]?.offset ?? rangeMax, tick.index);
         }
 
-        const prevTick = ticks[index - 1];
-        const nextTick = ticks[index + 1];
-        const startOffset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
-        const endOffset = nextTick == null ? range[1] : translation + (nextTick.translation - translation) / 2;
-
-        const [x1, y1, x2, y2] = horizontal
-            ? [startOffset, Math.max(p1, p2), endOffset, Math.min(p1, p2)]
-            : [Math.min(p1, p2), startOffset, Math.max(p1, p2), endOffset];
-        const { fill, fillOpacity } = gridLine.style[gridFillIndex % gridLine.style.length] ?? {};
-
-        return { tickId, x1, y1, x2, y2, fill, fillOpacity };
+        return gridFills;
     }
 
     protected override calculateTickLine(
@@ -81,7 +80,7 @@ export class DiscreteTimeAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, primaryTick, range } = this;
+        const { horizontal, primaryTick } = this;
         const tick = this.options.tick;
 
         if (this.options.interval?.placement !== 'between') {
@@ -96,8 +95,7 @@ export class DiscreteTimeAxis<
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
-        const prevTick = ticks[index - 1];
-        const offset = prevTick == null ? range[0] : translation - (translation - prevTick.translation) / 2;
+        const offset = this.intervalStart(translation);
         const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing(datumTick));
         const [x1, y1, x2, y2] = horizontal
             ? [offset, tickOffset, offset, tickOffset + h]
@@ -106,5 +104,15 @@ export class DiscreteTimeAxis<
         const lineDash = undefined;
 
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
+    }
+
+    /**
+     * Where `'between'` draws the boundary in front of the band at `translation`: halfway to the band before it in
+     * time, which is the next band along a reversed axis. Ticks are sparser than bands, so the neighbouring tick is
+     * not the neighbouring band.
+     */
+    private intervalStart(translation: number) {
+        const halfStep = this.scale.step / 2;
+        return clampArray(this.options.reverse ? translation + halfStep : translation - halfStep, this.range);
     }
 }
