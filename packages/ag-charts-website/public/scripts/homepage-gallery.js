@@ -1,9 +1,8 @@
 /*
  * Homepage gallery chart manager. Externalised from an inline `define:vars` script
  * (see HomepageGalleryExamples.astro) so the site Content-Security-Policy can drop
- * script-src 'unsafe-inline'. This script embeds build-hashed CSS-module class
- * names, so a static SHA-256 hash would change every build — hence externalisation
- * rather than hashing. Configuration arrives via data- attributes.
+ * script-src 'unsafe-inline'. Configuration arrives via data- attributes, and the
+ * HomepageGalleryTabs island announces tab changes with a document event.
  *
  * Must load as a classic script so document.currentScript resolves (it is only set
  * during synchronous execution) and the data- attributes can be captured up front.
@@ -17,9 +16,8 @@
 (function () {
     const el = document.currentScript;
     const config = {
-        initialExampleId: el.dataset.initialExampleId,
-        buttonsClass: el.dataset.buttonsClass,
-        activeButtonClass: el.dataset.activeButtonClass,
+        tablistId: el.dataset.tablistId,
+        selectEvent: el.dataset.selectEvent,
         updateExamplesVariable: el.dataset.updateExamplesVar,
         updateFunctionName: el.dataset.updateFnName,
         loadingId: el.dataset.loadingId,
@@ -31,6 +29,7 @@
     globalThis.__agHomepageGalleryListening = true;
 
     let activeChartManager = null;
+    let activeUpdateExample = null;
     // Bumped per mount and on every swap, so a readiness poll started by an earlier visit
     // cannot initialise a later one (which would leave two chart managers on one
     // container, only the last of them reachable for teardown).
@@ -87,8 +86,8 @@
     }
 
     function init() {
-        const buttons = document.querySelectorAll(`.${config.buttonsClass}`);
-        if (buttons.length === 0) {
+        const tablist = document.getElementById(config.tablistId);
+        if (!tablist) {
             return;
         }
 
@@ -100,38 +99,20 @@
         });
         activeChartManager = chartManager;
 
-        let currentExampleId = config.initialExampleId;
-
         // Called from example `updateExample` function
         window[config.updateFunctionName] = (options) => {
             chartManager.apply({ options });
         };
 
-        const updateExample = (exampleId) => {
-            const button = document.querySelector(`.${config.buttonsClass}[data-example-id="${exampleId}"]`);
-            buttons.forEach((btn) => btn.classList.remove(config.activeButtonClass));
-            button?.classList.add(config.activeButtonClass);
-
+        activeUpdateExample = (exampleId) => {
             window[config.updateExamplesVariable][exampleId]();
         };
 
-        buttons.forEach((button) => {
-            const { exampleId } = button.dataset;
-
-            button.addEventListener('click', () => {
-                if (exampleId === currentExampleId) {
-                    return;
-                }
-
-                currentExampleId = exampleId;
-
-                updateExample(exampleId);
-            });
-
-            if (config.initialExampleId === exampleId) {
-                updateExample(exampleId);
-            }
-        });
+        // The island can hydrate and take a click before the chart library is ready
+        const selectedTab = tablist.querySelector('[aria-selected="true"]');
+        if (selectedTab) {
+            activeUpdateExample(selectedTab.dataset.exampleId);
+        }
     }
 
     // Waits for the AgCharts UMD and the examples bundle, both of which are separate
@@ -153,6 +134,10 @@
         poll();
     }
 
+    document.addEventListener(config.selectEvent, (event) => {
+        activeUpdateExample?.(event.detail.exampleId);
+    });
+
     document.addEventListener('astro:page-load', () => {
         if (!document.getElementById(config.loadingId)) {
             // Not the homepage (or the gallery is absent) — nothing to wire up.
@@ -168,5 +153,6 @@
         mountId++;
         activeChartManager?.destroy();
         activeChartManager = null;
+        activeUpdateExample = null;
     });
 })();

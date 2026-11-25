@@ -45,34 +45,29 @@ describe('Caption', () => {
 
     describe('#create', () => {
         describe('text align', () => {
-            it('left', async () => {
+            it.each([
+                ['left', 'left', 'left', 'left'],
+                ['center', 'center', 'center', 'center'],
+                ['right', 'right', 'right', 'right'],
+                ['mixed', 'left', 'center', 'right'],
+            ] as const)('%s', async (_name, titleAlign, subtitleAlign, footnoteAlign) => {
                 const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
+                    title: { text: 'Monthly Sales Report 2023', textAlign: titleAlign, maxWidth: 180 },
+                    subtitle: {
+                        text: 'Region: North America (Values in USD)',
+                        textAlign: subtitleAlign,
+                        maxWidth: 150,
+                    },
+                    footnote: {
+                        text: 'Source: Sales Department Generated on 2023-12-20',
+                        textAlign: footnoteAlign,
+                        maxWidth: 180,
+                    },
                 });
                 await compare(instance);
             });
 
-            it('center', async () => {
-                const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
-                });
-                await compare(instance);
-            });
-
-            it('right', async () => {
-                const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                });
-                await compare(instance);
-            });
-
-            it('mixed', async () => {
+            it('keeps explicit line breaks as authored', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
@@ -135,22 +130,23 @@ describe('Caption', () => {
         });
     });
 
+    const titleChartOptions: AgCartesianChartOptions = {
+        data: [
+            { x: 'A', y: 3 },
+            { x: 'B', y: 5 },
+        ],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        legend: { enabled: false },
+    };
+
+    async function createTitle(title: AgCartesianChartOptions['title']) {
+        const proxy = (await createChart({ ...titleChartOptions, title })) as AgChartProxy;
+        const chartInstance = deproxy(proxy);
+        return { proxy, caption: chartInstance.title };
+    }
+
     describe('minimumFontSize', () => {
         const titleText = 'Quarterly revenue by region';
-        const baseOptions: AgCartesianChartOptions = {
-            data: [
-                { x: 'A', y: 3 },
-                { x: 'B', y: 5 },
-            ],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            legend: { enabled: false },
-        };
-
-        async function createTitle(title: AgCartesianChartOptions['title']) {
-            const proxy = (await createChart({ ...baseOptions, title })) as AgChartProxy;
-            const chartInstance = deproxy(proxy);
-            return { proxy, caption: chartInstance.title };
-        }
 
         it('a title that cannot fit its maxWidth truncates at its configured font size', async () => {
             const { proxy, caption } = await createTitle({
@@ -235,6 +231,38 @@ describe('Caption', () => {
                 ],
               ]
             `);
+            proxy.destroy();
+        });
+    });
+
+    describe('wrapping', () => {
+        it('a clipped title keeps every word its last line holds', async () => {
+            const { proxy, caption } = await createTitle({
+                text: 'Quarterly revenue by region and product line',
+                fontSize: 20,
+                maxWidth: 200,
+                maxHeight: 50,
+            });
+            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product l…');
+            await compare(proxy);
+            proxy.destroy();
+        });
+
+        it('a rich-text title moves a word in its own font onto a one-word last line', async () => {
+            const { proxy, caption } = await createTitle({
+                maxWidth: 200,
+                maxHeight: 200,
+                text: [
+                    { text: 'Quarterly revenue by region and ', fontSize: 20 },
+                    { text: 'product', fontSize: 20, fontWeight: 'bold' },
+                    { text: ' line', fontSize: 20 },
+                ],
+            });
+            const segments = caption.node.text as { text: string }[];
+            expect(segments.map((segment) => segment.text).join('')).toBe(
+                'Quarterly revenue by\nregion and\nproduct line'
+            );
+            await compare(proxy);
             proxy.destroy();
         });
     });

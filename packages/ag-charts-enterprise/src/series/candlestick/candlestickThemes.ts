@@ -12,6 +12,7 @@ import {
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillSolidDefaults,
     lineDashThemeDefault,
     withGlowThemeDefaults,
     withLineDashThemeDefaults,
@@ -38,6 +39,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                 ['gradient', FILL_GRADIENT_LINEAR_KEYED_DEFAULTS(key)],
                 ['image', FILL_IMAGE_DEFAULTS],
                 ['pattern', FILL_PATTERN_KEYED_DEFAULTS(key)],
+                ['solid', fillSolidDefaults(FILL_PATTERN_KEYED_DEFAULTS(key))],
             ],
         },
         stroke: {

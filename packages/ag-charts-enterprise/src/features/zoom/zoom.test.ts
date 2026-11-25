@@ -41,7 +41,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection, type DeepReadonly, Transformable } from 'ag-charts-core';
+import { ChartAxisDirection, type DeepReadonly, Transformable, type TransformableText } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -1949,6 +1949,41 @@ describe('Zoom', () => {
                 expect(crossLine.rangeGroup.visible).toBe(false);
                 expect(crossLine.labelGroup.visible).toBe(false);
             });
+        });
+    });
+
+    describe('line cross line label fitting', () => {
+        const LABEL = 'Quarterly revenue forecast review '.repeat(30).trim();
+
+        async function renderedLabelText(ratioX: { start: number; end: number }) {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 101 }, (_, i) => ({ x: i, y: i % 7 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [{ type: 'line', value: 50, label: { text: LABEL, placement: 'top' } }],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            await prepareChart({ axes: 'x' }, { ratioX }, options, false);
+            await waitForChartStability(chart);
+
+            const [crossLine] = getCrossLinesPlugin(deproxy(chart).axes.findById('x')!)!.getInstances();
+            const [label] = crossLine.labelGroup.children();
+            expect(crossLine.labelGroup.visible).toBe(true);
+            return String((label as TransformableText).text);
+        }
+
+        it('wraps the label the same when zoomed and panned off-centre', async () => {
+            const full = await renderedLabelText({ start: 0, end: 1 });
+            chart.destroy();
+            const zoomed = await renderedLabelText({ start: 0.45, end: 0.65 });
+
+            expect(full.includes('\n')).toBe(true);
+            expect(zoomed).toBe(full);
         });
     });
 

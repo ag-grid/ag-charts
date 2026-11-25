@@ -1,8 +1,9 @@
 import { vi } from 'vitest';
 
-import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type { DynamicContext, LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import { BBox } from 'ag-charts-core';
 
+import type { ChartRegistry } from '../../module/moduleContext';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import { AxisLabelSource } from './axisLabelSource';
 import { LabelManager } from './labelManager';
@@ -11,6 +12,10 @@ type AnySeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;
 
 const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
 const RECT = new BBox(0, 0, 200, 200);
+
+// The solve reads only the pixel ratio custom marker shapes are traced at.
+const createLabelManager = () =>
+    new LabelManager({ scene: { pixelRatio: 1 } } as unknown as DynamicContext<ChartRegistry>);
 
 function labelDatum(x: number, y: number, text: string, overrides?: Partial<PointLabelDatum>): PointLabelDatum {
     return {
@@ -60,7 +65,7 @@ function placedTexts(series: ReturnType<typeof fakeSeries>, call = -1): string[]
 describe('LabelManager', () => {
     describe('placement caching', () => {
         it('reuses the cached solve while the placement inputs are unchanged', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             manager.updateLabels([series], NO_PADDING, RECT);
@@ -74,7 +79,7 @@ describe('LabelManager', () => {
         });
 
         it('re-solves when a series bumps its node-data version', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             manager.updateLabels([series], NO_PADDING, RECT);
@@ -85,7 +90,7 @@ describe('LabelManager', () => {
         });
 
         it('re-solves when the layout bounds change', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             manager.updateLabels([series], NO_PADDING, RECT);
@@ -95,7 +100,7 @@ describe('LabelManager', () => {
         });
 
         it('re-solves when the chart padding changes the bounds', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             manager.updateLabels([series], NO_PADDING, RECT);
@@ -105,7 +110,7 @@ describe('LabelManager', () => {
         });
 
         it('re-solves when the set of visible series changes', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const first = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
             const second = fakeSeries({ id: 'b', datums: [labelDatum(150, 50, 'two')] });
 
@@ -117,7 +122,7 @@ describe('LabelManager', () => {
         });
 
         it('re-solves when a series is replaced under the same id and node-data version', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const original = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
             const replacement = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'two')] });
 
@@ -132,7 +137,7 @@ describe('LabelManager', () => {
             { case: 're-solves when the paint order changes', next: 1, solves: 2 },
             { case: 'reuses the cached solve while the paint order is unchanged', next: 0, solves: 1 },
         ])('$case', ({ next, solves }) => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             manager.updateLabels([series], NO_PADDING, RECT, NO_PADDING, () => new Map([['a', 0]]));
@@ -145,7 +150,7 @@ describe('LabelManager', () => {
             { drawn: 'under', rank: 0, placed: ['I'] },
             { drawn: 'over', rank: 2, placed: [] },
         ])('places a bar label lying on its bar over another bar drawn $drawn it: $placed', ({ rank, placed }) => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const ownBar = { x: 80, y: 80, width: 40, height: 100 };
             const own = fakeSeries({
                 id: 'own',
@@ -185,7 +190,7 @@ describe('LabelManager', () => {
 
     describe('no placed-label series', () => {
         it('places nothing and clears the cached solve', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
             const plain = fakeSeries({ id: 'b', usesPlacedLabels: false });
 
@@ -203,7 +208,7 @@ describe('LabelManager', () => {
 
     describe('label data carry-forward', () => {
         it('keeps the previous label data for a series that reports non-point data', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             manager.updateLabels([series], NO_PADDING, RECT);
@@ -219,7 +224,7 @@ describe('LabelManager', () => {
         });
 
         it('places nothing for a series that has never reported point data', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a' });
             series.getLabelData.mockReturnValue([{ notALabelDatum: true }] as unknown as PointLabelDatum[]);
 
@@ -231,7 +236,7 @@ describe('LabelManager', () => {
 
     describe('obstacles', () => {
         it('gathers obstacles from every visible series, including those placing no labels', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
             const blocker = fakeSeries({
                 id: 'b',
@@ -249,7 +254,7 @@ describe('LabelManager', () => {
 
     describe('resolution order', () => {
         it('resolves series in declaration order, and restores it after a hide and show', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             // Both labels want the same spot; placement is greedy, so the first series declared wins.
             const first = fakeSeries({ id: 'a', datums: [labelDatum(100, 100, 'first')] });
             const second = fakeSeries({ id: 'b', datums: [labelDatum(100, 100, 'second')] });
@@ -266,7 +271,7 @@ describe('LabelManager', () => {
         });
 
         it('places both series when their labels do not compete', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const first = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'first')] });
             const second = fakeSeries({ id: 'b', datums: [labelDatum(150, 150, 'second')] });
 
@@ -279,7 +284,7 @@ describe('LabelManager', () => {
 
     describe('measuring', () => {
         it('solves one source on its own, leaving the cached solve in place', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             // Both labels want the same spot, so the chart-wide solve drops the second.
             const first = fakeSeries({ id: 'a', datums: [labelDatum(100, 100, 'first')] });
             const second = fakeSeries({ id: 'b', datums: [labelDatum(100, 100, 'second')] });
@@ -300,7 +305,7 @@ describe('LabelManager', () => {
         }
 
         it('places a registered source with no label-placing series present', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'A')]);
             manager.registerSource(crossLines);
 
@@ -310,7 +315,7 @@ describe('LabelManager', () => {
         });
 
         it('drops a registered source from the solve once it is unregistered', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'crossLine')]);
             const line = fakeSeries({ id: 'line', datums: [labelDatum(50, 50, 'series')] });
             manager.registerSource(crossLines);
@@ -327,7 +332,7 @@ describe('LabelManager', () => {
         });
 
         it('keeps a replacement registered under an id its predecessor then unregisters', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const first = registered('crossLines:x', [labelDatum(100, 100, 'first')]);
             const second = registered('crossLines:x', [labelDatum(100, 100, 'second')]);
 
@@ -343,7 +348,7 @@ describe('LabelManager', () => {
         });
 
         it('re-solves when a registered source bumps its node-data version', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'crossLine')]);
             const line = fakeSeries({ id: 'line', datums: [labelDatum(50, 50, 'series')] });
             manager.registerSource(crossLines);
@@ -359,7 +364,7 @@ describe('LabelManager', () => {
         });
 
         it('stops reading a source that no longer places labels', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const crossLines = registered('crossLines:x', [labelDatum(100, 100, 'crossLine')]);
             const line = fakeSeries({ id: 'line', datums: [labelDatum(50, 50, 'series')] });
             manager.registerSource(crossLines);
@@ -376,7 +381,7 @@ describe('LabelManager', () => {
         });
 
         it('applies a registered source obstacle to series labels', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const line = fakeSeries({
                 id: 'line',
                 datums: [labelDatum(50, 50, 'series', { avoid: { label: true } })],
@@ -402,7 +407,7 @@ describe('LabelManager', () => {
 
     describe('layout invalidation', () => {
         it('asks for one re-layout per update, holding every source through it', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const x = fakeSeries({ id: 'crossLines:x', datums: [labelDatum(50, 50, 'x')], invalidatesLayout: true });
             const y = fakeSeries({ id: 'crossLines:y', datums: [labelDatum(150, 150, 'y')] });
             manager.registerSource(x);
@@ -420,7 +425,7 @@ describe('LabelManager', () => {
         });
 
         it('asks for no re-layout while every placement matches its layout', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
 
             expect(manager.updateLabels([series], NO_PADDING, RECT)).toBe(false);
@@ -437,7 +442,7 @@ describe('LabelManager', () => {
         }
 
         it('skips axis labels, and their invalidations, while no label avoids them', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const { source, boxes } = axisSource();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
             manager.registerSource(source);
@@ -452,7 +457,7 @@ describe('LabelManager', () => {
         });
 
         it('gathers axis labels, and re-solves on their invalidation, once a label avoids them', () => {
-            const manager = new LabelManager();
+            const manager = createLabelManager();
             const { source, boxes } = axisSource();
             const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one', { avoid: OPTED_IN })] });
             manager.registerSource(source);

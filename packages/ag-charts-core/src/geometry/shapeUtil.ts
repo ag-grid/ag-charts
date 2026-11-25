@@ -52,23 +52,30 @@ export function getMaxInnerRectSize(
  * @returns The smallest outer rectangle that contains the rotated inner rectangle.
  */
 export function getMinOuterRectSize(rotationDeg: number, innerWidth: number, innerHeight: number = Infinity): Size {
-    const w = innerWidth;
-    const h = innerHeight;
+    return getMinOuterRectSizeInto({ width: 0, height: 0 }, rotationDeg, innerWidth, innerHeight);
+}
 
+/** {@link getMinOuterRectSize}, written into `out` instead of a new object. */
+export function getMinOuterRectSizeInto(out: Size, rotationDeg: number, w: number, h: number): Size {
     // Periodic every 180 degrees
     const angle = (rotationDeg % 180) * (Math.PI / 180);
     const sin = Math.abs(Math.sin(angle));
     const cos = Math.abs(Math.cos(angle));
 
-    // Special cases
-    if (sin === 0) return { width: w, height: h }; // 0 or 180
-    if (cos === 0) return { width: h, height: w }; // 90
-
-    // Bounding-box of a rotated rectangle
-    return {
-        width: w * cos + h * sin,
-        height: w * sin + h * cos,
-    };
+    if (sin === 0) {
+        // 0 or 180
+        out.width = w;
+        out.height = h;
+    } else if (cos === 0) {
+        // 90
+        out.width = h;
+        out.height = w;
+    } else {
+        // Bounding-box of a rotated rectangle
+        out.width = w * cos + h * sin;
+        out.height = w * sin + h * cos;
+    }
+    return out;
 }
 
 export function rotatePoint(

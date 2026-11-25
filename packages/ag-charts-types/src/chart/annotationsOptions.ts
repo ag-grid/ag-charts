@@ -153,17 +153,15 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 // ***********
 
 /**
- * How strongly annotation points snap to the values of the nearest datum, measured along the y-axis.
- * - `'weak'` snaps only when the pointer is within `range` pixels of a value.
- * - `'strong'` always snaps to the nearest value.
+ * How close the pointer must be to a value of a datum for annotation points to snap to it.
+ * - A number is the distance in pixels, from a value of a datum at its position, within which points snap to it.
+ * - `'nearest'` always snaps to the nearest value, from any distance.
  */
-export type AgAnnotationMagnetMode = 'weak' | 'strong';
+export type AgAnnotationMagnetRange = 'nearest' | PixelSize;
 
 export interface AgAnnotationMagnet extends Toggleable {
-    /** How strongly annotation points snap to the position and values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts whether the magnet is enabled. Default: `'weak'` */
-    mode?: AgAnnotationMagnetMode;
-    /** The distance in pixels from a value of a datum, at its position, within which a `'weak'` magnet snaps to it. Default: `20` */
-    range?: PixelSize;
+    /** The range within which annotation points snap to the position and values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts whether the magnet is enabled. Default: `20` */
+    range?: AgAnnotationMagnetRange;
 }
 
 export interface AgAnnotationsOptions extends Toggleable {
@@ -573,16 +571,31 @@ export type AgAnnotationValue = AgStateSerializableValueType | AgStateSerializab
 
 export interface AgAnnotationsToolbar extends Toggleable {
     /** The buttons to show in the toolbar. */
-    buttons?: AgAnnotationsToolbarButton[];
+    buttons?: AgAnnotationsToolbarItem[];
     /** Padding in pixels around the toolbar. */
     padding?: number;
     /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
     buttonSize?: PixelSize;
 }
 
+export type AgAnnotationsToolbarItem = AgAnnotationsToolbarButton | AgAnnotationsToolbarSwitch;
+
 export interface AgAnnotationsToolbarButton extends ToolbarButton {
+    /**
+     * The type of toolbar item.
+     *
+     * Default: `'button'`
+     */
+    type?: 'button';
     /** The action to perform when the button is clicked. */
     value: AgAnnotationsToolbarButtonValue;
+}
+
+export interface AgAnnotationsToolbarSwitch extends ToolbarSwitch {
+    /** The type of toolbar item. */
+    type: 'switch';
+    /** The action to perform when the switch is toggled. */
+    value: AgAnnotationsToolbarSwitchValue;
 }
 
 export type AgAnnotationsToolbarButtonValue =
@@ -602,8 +615,9 @@ export type AgAnnotationsToolbarButtonValue =
     | 'comment'
     | 'callout'
     | 'note'
-    | 'magnet'
     | 'clear';
+
+export type AgAnnotationsToolbarSwitchValue = 'magnet';
 
 // *******************
 // * Options Toolbar *

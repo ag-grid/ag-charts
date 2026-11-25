@@ -64,7 +64,7 @@ import {
 import { Shape, Transformable, roundTo } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
-import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getSeriesInstance, getSeriesLabelTexts } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     createEnterpriseChart,
@@ -628,6 +628,32 @@ describe('RangeBarSeries', () => {
 
         chart = await createEnterpriseChart(options);
         await compare();
+    });
+
+    // A wide label over a neighbour's slots at both ends: the narrow one moves inside rather than the wide one wrapping.
+    it('trades first-choice label slots within the series', async () => {
+        const wide = 'A much, much wider label';
+        chart = await createEnterpriseChart({
+            data: [
+                { x: 'a', low: 20, high: 40, name: 'A' },
+                { x: 'b', low: 19, high: 41, name: wide },
+                ...Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, low: 0, high: 1, name: '' })),
+            ],
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: { placement: ['outside', 'inside'], formatter: ({ datum }) => datum.name },
+                },
+            ],
+        });
+        const [narrowLow, narrowHigh, wideLow, wideHigh] = getSeriesLabelTexts(chart).filter((node) => node.visible);
+
+        expect([narrowLow, narrowHigh, wideLow, wideHigh].map((node) => node.text)).toEqual(['A', 'A', wide, wide]);
+        expect(narrowHigh.y).toBeGreaterThan(wideHigh.y);
+        expect(narrowLow.y).toBeLessThan(wideLow.y);
     });
 
     // Frame-trajectory coverage for the range-bar animations: initial reveal, update, add, remove, shuffle, and legend-toggle midpoint collapse.

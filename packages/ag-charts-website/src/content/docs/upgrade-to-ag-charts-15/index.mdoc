@@ -94,6 +94,7 @@ This release includes the following behaviour changes:
 
 - Cartesian cross line labels now default to `wrapping: 'on-space'` and `truncate: true`. Setting one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or `minimumFontSize`, or giving `placement` as an array, no longer changes the defaults of the others.
 - A range cross line label with an `inside` placement that is longer than its band now wraps on spaces and truncates with an ellipsis to fit the band, instead of rendering at full length past it. To keep the previous rendering, set `wrapping: 'never'` and `truncate: false`.
+- A line cross line label, or a range cross line label placed outside its band, that is longer than the series area and its axes now wraps on spaces and truncates with an ellipsis to fit it, instead of rendering at full length. To keep the previous rendering, set `wrapping: 'never'` and `truncate: false`, or an explicit `maxWidth`.
 - The default value of a cartesian cross line label `placement` has changed from `'top'` to `['top', 'bottom']`, so a label that does not fit at the top is placed at the bottom.
 
 {% /expandingSection %}

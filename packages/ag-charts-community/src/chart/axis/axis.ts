@@ -71,12 +71,15 @@ import type {
 
 import type { AxisLayout } from '../../core/eventsHub';
 import type {
+    AxisA11YFocusRotation,
     AxisA11YTickData,
     AxisBandDatum,
     AxisBandMeasurement,
     AxisContext,
     AxisFormattableLabel,
     AxisValuePick,
+    AxisValueTickSize,
+    CrossLineLabelRoom,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -186,6 +189,11 @@ type TickLayoutCacheKey<D, TickLayoutMeta> = Omit<
     TickLayoutCache<D, TickLayoutMeta>,
     'tickLayout' | 'domainIsPrimitive'
 >;
+
+function isQuarterTurn(rotation: number) {
+    const turns = rotation / (Math.PI / 2);
+    return Math.abs(turns - Math.round(turns)) < 1e-6;
+}
 
 /** Whether `value` is immutable, so a domain of such values compared by identity can't have changed in place. */
 function isPrimitiveCategory(value: unknown) {
@@ -354,6 +362,8 @@ export abstract class Axis<
      * The distance between the grid ticks and the axis ticks.
      */
     gridPadding = 0;
+
+    labelRoom: CrossLineLabelRoom | undefined = undefined;
 
     /**
      * Is used to avoid collisions between axis labels and series.
@@ -736,6 +746,11 @@ export abstract class Axis<
     /** See {@link AxisLayout.label.boxOffset}. Only axes that offset a boxed tick label report one. */
     protected getLabelBoxOffset(): number {
         return 0;
+    }
+
+    /** See {@link AxisContext.valueTickSize}. */
+    protected valueTickSize(_infer?: boolean): AxisValueTickSize | undefined {
+        return undefined;
     }
 
     protected getTickSize(tick: { enabled: boolean; size: number } = this.options.tick) {
@@ -1186,44 +1201,8 @@ export abstract class Axis<
         // Handle null/undefined values with empty string unless allowNull is true (for formatter access)
         if (input == null && !allowNull) return '';
 
-        const { moduleCtx, dataDomain } = this;
-        domain ??= dataDomain.domain;
-        const { formatManager } = moduleCtx;
-        const boundSeries = this.formatterBoundSeries.get();
-
-        let inputFractionDigits: number | undefined;
-        switch (source) {
-            case 'crosshair':
-            case 'annotation-label':
-                inputFractionDigits = this.layout.label.fractionDigits + 1;
-                break;
-            case 'series-label':
-                inputFractionDigits = 2;
-                break;
-            case 'tooltip':
-                inputFractionDigits = 3;
-                break;
-            case 'legend-label':
-                inputFractionDigits = undefined;
-                break;
-        }
-
-        const formatParams = this.datumFormatParams(
-            input,
-            {
-                source,
-                datum,
-                seriesId,
-                legendItemName,
-                key,
-                property: this.getFormatterProperty(),
-                domain,
-                boundSeries,
-            },
-            inputFractionDigits,
-            undefined,
-            'long'
-        );
+        const { formatManager } = this.moduleCtx;
+        const formatParams = this.datumFormatterParams(input, source, seriesId, legendItemName, datum, key, domain);
         const { type, value } = formatParams;
 
         const f = this.createCallWithContext(contextProvider);
@@ -1255,6 +1234,61 @@ export abstract class Axis<
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
+    }
+
+    private datumFormatterParams(
+        input: any,
+        source: Exclude<AnyFormatterSource, 'axis-label' | 'gradient-legend'>,
+        seriesId?: string,
+        legendItemName?: string,
+        datum?: any,
+        key?: string,
+        domain: any[] = this.dataDomain.domain
+    ) {
+        let inputFractionDigits: number | undefined;
+        switch (source) {
+            case 'crosshair':
+            case 'annotation-label':
+                inputFractionDigits = this.layout.label.fractionDigits + 1;
+                break;
+            case 'series-label':
+                inputFractionDigits = 2;
+                break;
+            case 'tooltip':
+                inputFractionDigits = 3;
+                break;
+            case 'legend-label':
+                inputFractionDigits = undefined;
+                break;
+        }
+
+        return this.datumFormatParams(
+            input,
+            {
+                source,
+                datum,
+                seriesId,
+                legendItemName,
+                key,
+                property: this.getFormatterProperty(),
+                domain,
+                boundSeries: this.formatterBoundSeries.get(),
+            },
+            inputFractionDigits,
+            undefined,
+            'long'
+        );
+    }
+
+    /** See {@link AxisContext.formatWithCrosshairLabel}. */
+    private formatWithCrosshairLabel(input: unknown): string | undefined {
+        const label = this.getModuleMap().getModule<AxisFormattableLabel<any, any>>('crosshair');
+        if (label == null || input == null) return undefined;
+
+        const formatParams = this.datumFormatterParams(input, 'crosshair');
+        const { type, value } = formatParams;
+        const text = label.formatValue(this.createCallWithContext(undefined), type, value, formatParams);
+        return text == null ? undefined : toPlainText(text);
     }
 
     getBBox(): BBox {
@@ -1416,6 +1450,9 @@ export abstract class Axis<
             get range() {
                 return axis.range;
             },
+            get labelRoom() {
+                return axis.labelRoom;
+            },
             get seriesAreaVisible() {
                 return axis.seriesAreaVisible;
             },
@@ -1456,6 +1493,8 @@ export abstract class Axis<
                     allowNull
                 );
             },
+            formatWithCrosshairLabel: (value) => this.formatWithCrosshairLabel(value),
+            valueTickSize: (infer) => this.valueTickSize(infer),
             attachLabel: (node: Node) => this.attachLabel(node),
             attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
@@ -1491,9 +1530,12 @@ export abstract class Axis<
             }
         }
 
-        const labels = new Map<string, { text: string; bbox: BBox }>();
+        const labels = new Map<
+            string,
+            { text: string; bbox: BBox; rotated?: { bbox: BBox; rotation: AxisA11YFocusRotation } }
+        >();
         if (this.tickLabelGroup.visible) {
-            const { a11yTempText } = this;
+            const { a11yTempText, tickLabelGroup } = this;
             for (const node of this.tickLabelGroupSelection.nodes()) {
                 const { datum } = node;
                 if (datum == null || !node.visible || !datum.visible) continue;
@@ -1506,7 +1548,10 @@ export abstract class Axis<
                 if (bbox == null) continue;
                 labels.set(datum.tickId, {
                     text: datum.textUntruncated ?? toPlainText(datum.text),
-                    bbox: Transformable.toCanvas(this.tickLabelGroup, bbox),
+                    bbox: Transformable.toCanvas(tickLabelGroup, bbox),
+                    rotated: isQuarterTurn(datum.rotation)
+                        ? undefined
+                        : this.getA11YRotatedLabel(datum, a11yTempText.computeBBoxWithoutTransforms()),
                 });
             }
         }
@@ -1549,7 +1594,17 @@ export abstract class Axis<
             let focusBounds = vertical
                 ? new BBox(crossStart, alongStart, crossSize, alongSize)
                 : new BBox(alongStart, crossStart, alongSize, crossSize);
-            if (label != null) {
+            let focusRotation: AxisA11YFocusRotation | undefined;
+            // An axis-aligned box around a slanted label overlaps its neighbours, so outline the label itself.
+            if (label?.rotated != null) {
+                const { bbox, rotation } = label.rotated;
+                focusBounds = bbox.clone();
+                focusRotation = {
+                    angle: rotation.angle,
+                    originX: rotation.originX - axisBounds.x,
+                    originY: rotation.originY - axisBounds.y,
+                };
+            } else if (label != null) {
                 focusBounds = BBox.merge([focusBounds, label.bbox]);
             }
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
@@ -1565,9 +1620,25 @@ export abstract class Axis<
                 groupPercentage,
                 ariaLabel,
                 focusBounds,
+                focusRotation,
             });
         }
         return result;
+    }
+
+    /** A label's un-rotated box and its rotation, both in canvas space. */
+    private getA11YRotatedLabel(datum: LabelNodeDatum, localBBox: BBox | undefined) {
+        if (localBBox == null) return undefined;
+        const { tickLabelGroup } = this;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(
+            tickLabelGroup,
+            datum.rotationCenterX,
+            datum.rotationCenterY
+        );
+        return {
+            bbox: Transformable.toCanvas(tickLabelGroup, localBBox),
+            rotation: { angle: datum.rotation, originX: canvasX, originY: canvasY },
+        };
     }
 
     /** Canvas bounds of the axis title at its laid-out position, if the axis shows one. */

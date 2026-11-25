@@ -1,5 +1,7 @@
-import type { AgChartLabelOrientation, PaddingOptions, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, AgMarkerShape, PaddingOptions, TextValue, TextWrap } from 'ag-charts-types';
 
+import { markerShapeAnchor } from '../chart/markerShapes';
+import { isSupportedMarkerShape } from '../chart/markerUtil';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedErrorBarSeriesLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
@@ -29,8 +31,23 @@ import type { Point, SizedPoint } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
 import { type BoxBounds, boxCollides, boxContains, isFiniteBox } from './boxBounds';
-import type { FitRegion } from './fitRegion';
+import { type FitRegion, InsetMaskFitRegion } from './fitRegion';
 import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
+import {
+    type InsideMarkerFit,
+    type InsideMarkerPolicyScratch,
+    type MarkerShapeAnalysis,
+    drawnMarkerShapeAnalysis,
+    insideMarkerPolicy,
+} from './markerLabelRect';
+import {
+    type MarkerOutline,
+    type PlacedMarkerOutline,
+    markerOutline,
+    markerOutlineOverlapsRect,
+    markerOutlineSpans,
+    placeMarkerOutline,
+} from './markerOutline';
 import {
     type OrientedRect,
     orientedRectOverlapsBox,
@@ -38,7 +55,7 @@ import {
     orientedRectsOverlap,
     writeOrientedRect,
 } from './orientedRect';
-import { getMinOuterRectSize } from './shapeUtil';
+import { getMinOuterRectSizeInto } from './shapeUtil';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type { LabelFit } from '../text/textWrapper';
@@ -85,14 +102,27 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
-    const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
-    let overflowStrategy: OverflowStrategy | undefined;
-    if (truncate ?? defaultToTruncate) {
-        overflowStrategy = 'ellipsis';
-    } else if (hideOnOverflow) {
-        overflowStrategy = 'hide';
-    }
-    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
+    const overflowStrategy = resolveOverflowStrategy(fit.truncate, hideOnOverflow, defaultToTruncate);
+    if (overflowStrategy == null && fit.wrapping == null && fit.minimumFontSize == null) return undefined;
+    return toLabelFit(fit, overflowStrategy);
+}
+
+/** The {@link resolveLabelFit} policy for a label that is always fitted, whether or not it opted in. */
+export function resolveAlwaysLabelFit(fit: LabelFitOptions, hideOnOverflow = false): LabelFit {
+    return toLabelFit(fit, resolveOverflowStrategy(fit.truncate, hideOnOverflow, false));
+}
+
+function resolveOverflowStrategy(
+    truncate: boolean | undefined,
+    hideOnOverflow: boolean,
+    defaultToTruncate: boolean
+): OverflowStrategy | undefined {
+    if (truncate ?? defaultToTruncate) return 'ellipsis';
+    return hideOnOverflow ? 'hide' : undefined;
+}
+
+function toLabelFit(fit: LabelFitOptions, overflowStrategy: OverflowStrategy | undefined): LabelFit {
+    const { maxWidth, maxHeight, wrapping, minimumFontSize } = fit;
     return { maxWidth, maxHeight, wrapping, overflowStrategy, minimumFontSize };
 }
 
@@ -117,6 +147,8 @@ export interface LabelFitDescriptor {
      * for even an ellipsis overflows it rather than being erased.
      */
     readonly fitOverflow?: LabelFit;
+    /** How the series fitted {@link policy} to its marker, re-applied to a restyled marker's shape and size. */
+    readonly insideMarker?: InsideMarkerFit;
     /**
      * Bound the text by the datum's {@link PointLabelDatum.region} as well as by {@link policy}. A bar
      * label fits its bar rect, but a point label's region is the plotting area, which contains its
@@ -150,7 +182,7 @@ export function resolveLabelFitDescriptors(
  */
 export interface CandidateFitTarget {
     readonly container?: { readonly width: number; readonly height: number };
-    /** Whether {@link container} is the label's own shape, kept clear by the collision threshold. Defaults to `true`. */
+    /** Whether {@link container} is the label's own shape, which a negative collision threshold lets it spill past. Defaults to `true`. */
     readonly ownShape?: boolean;
     /** Shape the text is fitted to, when the candidate's container is only its bounding box. */
     readonly shape?: FitRegion;
@@ -233,6 +265,10 @@ export interface PointLabelDatum {
      * styler (`size: size * 2`).
      */
     readonly markerSize?: number;
+    /** A marker styler drew a shape or size other than the series', so `inside` fits that marker instead. */
+    readonly markerRestyled?: boolean;
+    /** Shape of the marker drawn at {@link point}, whose outline labels avoid; collides as a circle when unset. */
+    readonly markerShape?: AgMarkerShape;
     /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
     readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
@@ -517,6 +553,18 @@ export type LabelObstacle =
           readonly entityIndex?: number;
       }
     | {
+          /** A marker of diameter `2r` drawn centred on `(cx, cy)`, colliding by its shape's outline. */
+          readonly kind: 'markerOutline';
+          readonly box: BoxBounds;
+          readonly cx: number;
+          readonly cy: number;
+          readonly r: number;
+          readonly outline: PlacedMarkerOutline;
+          readonly category?: ObstacleCategory;
+          readonly sourceId?: string;
+          readonly entityIndex?: number;
+      }
+    | {
           readonly kind: 'rect';
           readonly box: BoxBounds;
           readonly category?: ObstacleCategory;
@@ -584,16 +632,37 @@ function markerSizeOf(d: PointLabelDatum): number {
     return d.markerSize ?? d.point.size;
 }
 
-/**
- * Stamps the marker diameter a `marker.itemStyler` resolved onto a label datum, so the label's obstacles,
- * gap, anchor correction and inside-marker rect all scale off the marker that is drawn. Call only for a
- * series that has a marker styler: the cached no-styler style can carry a `hideWithSize0` zero, and
- * honouring that would move labels on existing charts that style nothing.
- */
-export function applyStyledMarkerSize(datum: { markerSize?: number }, styledSize: number | undefined): void {
-    // Assigned even when undefined: label data is reused across updates, so a styler that returned a size
-    // on an earlier update and none now must not leave that size behind.
-    datum.markerSize = styledSize;
+/** Series whose state restyles markers only, as others' cached style can carry a `hideWithSize0` zero; true on a change. */
+export function applyStyledMarker(
+    datum: {
+        readonly point: Readonly<SizedPoint>;
+        markerSize?: number;
+        markerShape?: AgMarkerShape;
+        markerRestyled?: boolean;
+        anchor?: Point;
+    },
+    style: { size?: number; shape?: AgMarkerShape } | undefined,
+    seriesShape: AgMarkerShape | undefined,
+    itemStyled: boolean
+): boolean {
+    const { markerSize: previousSize, markerShape: previousShape } = datum;
+    // An itemStyler's size supersedes the gap baked from the configured size; any other style's only when it
+    // resizes the marker. Assigned even when undefined, so a size from an earlier update cannot linger.
+    const size = style?.size;
+    datum.markerSize = itemStyled || size !== datum.point.size ? size : undefined;
+    datum.markerShape = tracedShape(style?.shape, datum.markerSize ?? datum.point.size) ?? seriesShape;
+    // The label and the marker obstacle both offset from the point by the anchor of the shape drawn there.
+    datum.anchor = markerShapeAnchor(datum.markerShape);
+    datum.markerRestyled =
+        datum.markerShape !== seriesShape || (datum.markerSize != null && datum.markerSize !== datum.point.size);
+    return datum.markerSize !== previousSize || datum.markerShape !== previousShape;
+}
+
+/** A styled shape the label may trace: none for a marker that is not drawn or a name with no built-in shape. */
+function tracedShape(shape: AgMarkerShape | undefined, size: number): AgMarkerShape | undefined {
+    const drawn = size > 0;
+    if (!drawn || shape == null) return undefined;
+    return typeof shape === 'function' || isSupportedMarkerShape(shape) ? shape : undefined;
 }
 
 /**
@@ -684,14 +753,28 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
     'bottom-right': { x: 1, y: 1 },
 };
 
-// Mutable marker obstacle pooled across passes to keep the per-marker hot path allocation-free.
+// Mutable marker obstacles pooled across passes to keep the per-marker hot path allocation-free. Both kinds
+// share one property layout, so the obstacle reads stay monomorphic when circles and outlines mix.
 interface PooledCircleObstacle {
     kind: 'circle';
     box: BoxBounds;
     cx: number;
     cy: number;
     r: number;
+    outline: undefined;
     category: ObstacleCategory;
+    sourceId: string | undefined;
+}
+
+interface PooledMarkerOutlineObstacle {
+    kind: 'markerOutline';
+    box: BoxBounds;
+    cx: number;
+    cy: number;
+    r: number;
+    outline: PlacedMarkerOutline;
+    category: ObstacleCategory;
+    sourceId: string | undefined;
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
@@ -702,11 +785,27 @@ interface PooledLabelObstacle {
     category: ObstacleCategory;
     labelGroup: string | undefined;
     outranks: boolean | undefined;
+    // Slot-trade fields, by value so the pool holds no label, datum or candidate between solves.
+    poolIndex: number;
+    insertOrder: number;
+    // The latest `insertOrder` when the label resolved: entries up to it are the ones its exclusions were tested on.
+    resolvedAt: number;
+    seriesOrdinal: number;
+    // Where the label sits in its series' result list.
+    resultSlot: number;
+    memoBase: number;
+    // The label has a first-choice baseline and a fallback, so it can give way in a trade.
+    tradable: boolean;
+    keepPolicy: number;
+    baseline: BoxBounds;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
+const markerOutlinePool: PooledMarkerOutlineObstacle[] = [];
+// Pooled outline obstacles the current solve placed, whose shapes it lets go of when it ends.
+let placedOutlineCount = 0;
 const labelObstaclePool: PooledLabelObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the positive part of the collision threshold, a
@@ -732,14 +831,14 @@ let candidateThreshold = 0;
 let candidateContainSlack = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on and
-// so never avoids. Radius disambiguates a coincident marker of a different size; -1 never matches.
+// Centre and radius of the candidate datum's own anchor marker, which the threshold never applies against.
+// Radius disambiguates a coincident marker of a different size; -1 never matches.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
 // The candidate's own bar rect: obstacles intersecting it are excluded, except foreign shapes.
 let candidateOwnBox: BoxBounds | undefined;
-// Series id and datum index naming the candidate's own shape among the owned `shape` obstacles.
+// Series id and datum index naming the candidate's own shape and marker among the owned obstacles.
 let candidateSourceId: string | undefined;
 let candidateEntityIndex: number | undefined;
 // The stack of the candidate's bar, whose shapes all count as its own.
@@ -750,6 +849,8 @@ let candidateOwnShapeResolved = false;
 // Each source's rank in the solve's paint order (higher drawn over lower), and the candidate series' rank.
 let solvePaintOrder: ReadonlyMap<string, number> | undefined;
 let candidatePaintRank: number | undefined;
+// The pixel ratio the solve's markers render at, which a custom marker shape is traced at.
+let solvePixelRatio = 1;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
@@ -794,6 +895,13 @@ const boundedFit: {
 // Reduced font size the candidate being tested was fitted at, `undefined` at the configured size. Read
 // by `recordBestChoice` rather than threaded through it as one more positional argument.
 let candidateFontSize: number | undefined;
+// Stands in for a released policy, so the scratch keeps no series' fit between solves.
+const releasedPolicy: LabelFit = {};
+// Fit policy the candidate being tested was sized under, which its obstacle re-fit keeps.
+let candidatePolicy: LabelFit = releasedPolicy;
+// The restyled-marker policy, refilled per datum; its copy of the series base is redone only when that changes.
+const restyledPolicy: InsideMarkerPolicyScratch = { policy: {}, region: new InsetMaskFitRegion() };
+let restyledPolicyBase: LabelFit | undefined;
 // Size the collision-shrink search is currently re-running the cascade at, `undefined` outside a trial.
 let candidateTrialFontSize: number | undefined;
 // The candidate font at the trial size, refilled per candidate while a trial is running.
@@ -821,7 +929,7 @@ function candidateFontAt(font: FontOptions): FontOptions {
 }
 // Per-datum inputs to `cascadeCandidates`, refilled by `placeAvoidingLabel` before it runs. Held here
 // rather than passed so the cascade can be re-run without allocating a closure or an argument list.
-let cascadeDatum: PointLabelDatum;
+let cascadeDatum: PointLabelDatum | undefined;
 let cascadeIndex = 0;
 let cascadePlacements: readonly LabelPlacement[] | undefined;
 let cascadeOrientations: AgChartLabelOrientation[] | undefined;
@@ -884,8 +992,7 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
  * How much of the collision threshold a containment region takes: only the negative part, which is spill
  * allowance — the label may overflow the region by that much without counting as a collision. A positive
  * threshold must not inset a containment region, because the label is flushed against that region's raw
- * edge and an inset bound could then only ever reject it. Positive clearance is the glyph budget's job
- * ({@link deflateContainer}), not containment's.
+ * edge and an inset bound could then only ever reject it. A positive threshold clears other obstacles only.
  */
 function containmentThreshold(threshold: number): number {
     return Math.min(threshold, 0);
@@ -902,12 +1009,12 @@ function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxB
     return dest;
 }
 
-// The only way a positive threshold reaches an own shape: text wraps or truncates to the clearance it
-// must keep, rather than the box moving to make room.
-function deflateContainer(container: { width: number; height: number } | undefined, threshold: number) {
-    if (container == null || threshold === 0) return container;
-    candidateContainer.width = Math.max(0, container.width - 2 * threshold);
-    candidateContainer.height = Math.max(0, container.height - 2 * threshold);
+// A label's own room, widened by the spill allowance of a negative threshold.
+function spillContainer(container: { width: number; height: number } | undefined, threshold: number) {
+    const spill = containmentThreshold(threshold);
+    if (container == null || spill === 0) return container;
+    candidateContainer.width = container.width - 2 * spill;
+    candidateContainer.height = container.height - 2 * spill;
     return candidateContainer;
 }
 
@@ -923,6 +1030,23 @@ function worstObstacleOverlap(o: LabelObstacle): void {
     if (overlapWidth > 0 && overlapHeight > 0) {
         candidateWorstOverlap = Math.max(candidateWorstOverlap, overlapWidth * overlapHeight);
     }
+}
+
+function isOwnMarker(o: LabelObstacle): boolean {
+    return (
+        (o.kind === 'circle' || o.kind === 'markerOutline') &&
+        o.sourceId === candidateSourceId &&
+        (o.category ?? 'shape') === 'marker' &&
+        o.cx === candidateOwnMarkerCx &&
+        o.cy === candidateOwnMarkerCy &&
+        o.r === candidateOwnMarkerR
+    );
+}
+
+/** The box `o` is tested against: the label's own marker never sees a positive threshold. */
+function obstacleTestBox(o: LabelObstacle): BoxBounds | undefined {
+    if (candidateThreshold > 0 && isOwnMarker(o)) return candidateBox;
+    return candidateTestBox();
 }
 
 /** True when `o` is a shape owned by a datum other than the candidate's, outside the candidate's stack. */
@@ -977,16 +1101,22 @@ function overlapLiesOnOwnShape(under: BoxBounds): boolean {
     return x0 >= x1 || y0 >= y1 || boxContains(own, x0, y0, x1 - x0, y1 - y0);
 }
 
+/** True when series `sourceId` is painted under the candidate's series. */
+function paintedUnderCandidate(sourceId: string | undefined): boolean {
+    // The candidate's own series shares its paint level, so is never under it.
+    if (candidatePaintRank == null || sourceId == null || sourceId === candidateSourceId) return false;
+    const rank = solvePaintOrder?.get(sourceId);
+    return rank != null && rank < candidatePaintRank;
+}
+
 /** True when foreign shape `o` is painted under the candidate's own bar, which covers all of it the label overlaps. */
 function foreignShapeHidden(o: LabelObstacle): boolean {
-    // A bar of the candidate's own series shares its paint level, so is never under it.
-    if (candidatePaintRank == null || o.sourceId == null || o.sourceId === candidateSourceId) return false;
-    const rank = solvePaintOrder?.get(o.sourceId);
-    return rank != null && rank < candidatePaintRank && overlapLiesOnOwnShape(o.box);
+    return paintedUnderCandidate(o.sourceId) && overlapLiesOnOwnShape(o.box);
 }
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
+    if (tradeHolderOrder !== Infinity && insertedAfterHolder(o)) return false;
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
         return true;
     }
@@ -995,15 +1125,10 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     }
 
     const category = o.category ?? 'shape';
-    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
-    // directional labels fall through to the circle test, which measures their real clearance.
+    // An `inside` label is centred on its own marker and drawn over the markers of series painted under it.
     if (
         candidatePlacement === 'inside' &&
-        category === 'marker' &&
-        o.kind === 'circle' &&
-        o.cx === candidateOwnMarkerCx &&
-        o.cy === candidateOwnMarkerCy &&
-        o.r === candidateOwnMarkerR
+        (isOwnMarker(o) || (category === 'marker' && paintedUnderCandidate(o.sourceId)))
     ) {
         return true;
     }
@@ -1044,6 +1169,14 @@ function obstacleOverlapsBox(o: LabelObstacle, testBox: BoxBounds): boolean {
     switch (o.kind) {
         case 'circle':
             return circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height);
+        case 'markerOutline': {
+            const halfWidth = width / 2;
+            const halfHeight = height / 2;
+            return (
+                boxCollides(o.box, x, y, width, height) &&
+                markerOutlineOverlapsRect(o.outline, x + halfWidth, y + halfHeight, halfWidth, halfHeight, 1, 0)
+            );
+        }
         case 'rect':
             return boxCollides(o.box, x, y, width, height);
         case 'orientedRect':
@@ -1059,6 +1192,13 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     switch (o.kind) {
         case 'circle':
             return orientedRectOverlapsCircle(rect, o.cx, o.cy, o.r);
+        case 'markerOutline': {
+            const { cx, cy, halfWidth, halfHeight, cos, sin } = rect;
+            return (
+                orientedRectOverlapsBox(rect, o.box) &&
+                markerOutlineOverlapsRect(o.outline, cx, cy, halfWidth, halfHeight, cos, sin)
+            );
+        }
         case 'rect':
             return orientedRectOverlapsBox(rect, o.box);
         case 'orientedRect':
@@ -1076,7 +1216,7 @@ function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, 
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     if (obstacleExcluded(o)) return false;
-    const testBox = candidateTestBox();
+    const testBox = obstacleTestBox(o);
     return testBox != null && obstacleOverlapsBox(o, testBox);
 }
 
@@ -1106,8 +1246,9 @@ let shrinkPinY = 0;
 // only comes back a whole line at a time and any smaller reduction returns the box unchanged.
 let shrinkFloorX = 0;
 let shrinkFloorY = 0;
-// The obstacle's extent across the candidate's own span on the other axis.
-const obstacleSpan = { min: 0, max: 0 };
+// The obstacle's extent along each axis, across the candidate's own span on the other.
+const obstacleSpanX = { min: 0, max: 0 };
+const obstacleSpanY = { min: 0, max: 0 };
 // The four retreats one obstacle offers, refilled per obstacle: how far each side must come in, or
 // `Infinity` for a side the box cannot afford to move that far.
 const sideRetreat: Record<RetreatSide, number> = { left: Infinity, right: Infinity, top: Infinity, bottom: Infinity };
@@ -1118,35 +1259,27 @@ function sideRetreats(pin: number, isMinEdge: boolean): boolean {
     return pin === 0 || pin > 0 !== isMinEdge;
 }
 
-/**
- * Writes the obstacle's horizontal extent across `[top, bottom]` into {@link obstacleSpan}. A circle is
- * measured at the half-width it really has where the label sits, not at its bounding box's corner, which
- * would have the label retreat from room the marker never occupies. A custom shape has no such narrowing
- * to offer, so it keeps its box.
- */
-function writeObstacleSpanX(o: LabelObstacle, top: number, bottom: number) {
+/** A marker's real width at the label, so the label never retreats from box corners the marker leaves empty. */
+function writeObstacleSpans(o: LabelObstacle, left: number, top: number, right: number, bottom: number) {
+    if (o.kind === 'markerOutline') {
+        markerOutlineSpans(obstacleSpanX, obstacleSpanY, o.outline, left, top, right, bottom);
+        return;
+    }
     if (o.kind !== 'circle') {
-        obstacleSpan.min = o.box.x;
-        obstacleSpan.max = o.box.x + o.box.width;
+        obstacleSpanX.min = o.box.x;
+        obstacleSpanX.max = o.box.x + o.box.width;
+        obstacleSpanY.min = o.box.y;
+        obstacleSpanY.max = o.box.y + o.box.height;
         return;
     }
     const dy = Math.max(0, o.cy - bottom, top - o.cy);
-    const half = Math.sqrt(Math.max(0, o.r * o.r - dy * dy));
-    obstacleSpan.min = o.cx - half;
-    obstacleSpan.max = o.cx + half;
-}
-
-/** {@link writeObstacleSpanX} on the other axis: the obstacle's vertical extent across `[left, right]`. */
-function writeObstacleSpanY(o: LabelObstacle, left: number, right: number) {
-    if (o.kind !== 'circle') {
-        obstacleSpan.min = o.box.y;
-        obstacleSpan.max = o.box.y + o.box.height;
-        return;
-    }
+    const halfWidth = Math.sqrt(Math.max(0, o.r * o.r - dy * dy));
+    obstacleSpanX.min = o.cx - halfWidth;
+    obstacleSpanX.max = o.cx + halfWidth;
     const dx = Math.max(0, o.cx - right, left - o.cx);
-    const half = Math.sqrt(Math.max(0, o.r * o.r - dx * dx));
-    obstacleSpan.min = o.cy - half;
-    obstacleSpan.max = o.cy + half;
+    const halfHeight = Math.sqrt(Math.max(0, o.r * o.r - dx * dx));
+    obstacleSpanY.min = o.cy - halfHeight;
+    obstacleSpanY.max = o.cy + halfHeight;
 }
 
 /**
@@ -1158,38 +1291,35 @@ function affordableRetreat(retreat: number, extent: number, allowed: boolean, fl
     return allowed && retreat >= floor && retreat > 0 && retreat < extent ? retreat : Infinity;
 }
 
-// Never returns a verdict: unlike the collision test this visits every obstacle, since the reduction has
-// to answer all of them. An obstacle sits in every grid cell it spans, so this visitor can see it more
-// than once: accumulating with `max` keeps the measurement idempotent.
+// Never returns a verdict: the reduction must answer every obstacle, unlike the collision test.
 function accumulateObstacleReduction(o: LabelObstacle): boolean | void {
     if (obstacleExcluded(o)) return;
-    const testBox = candidateTestBox();
+    const testBox = obstacleTestBox(o);
     if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
     const { x, y, width, height } = testBox;
     const spentWidth = width / retreatSpread(shrinkPinX, shrinkSlideLimitX);
     const spentHeight = height / retreatSpread(shrinkPinY, shrinkSlideLimitY);
-    writeObstacleSpanX(o, y, y + height);
+    writeObstacleSpans(o, x, y, x + width, y + height);
     sideRetreat.left = affordableRetreat(
-        obstacleSpan.max - x,
+        obstacleSpanX.max - x,
         spentWidth,
         sideRetreats(shrinkPinX, true),
         shrinkFloorX
     );
     sideRetreat.right = affordableRetreat(
-        x + width - obstacleSpan.min,
+        x + width - obstacleSpanX.min,
         spentWidth,
         sideRetreats(shrinkPinX, false),
         shrinkFloorX
     );
-    writeObstacleSpanY(o, x, x + width);
     sideRetreat.top = affordableRetreat(
-        obstacleSpan.max - y,
+        obstacleSpanY.max - y,
         spentHeight,
         sideRetreats(shrinkPinY, true),
         shrinkFloorY
     );
     sideRetreat.bottom = affordableRetreat(
-        y + height - obstacleSpan.min,
+        y + height - obstacleSpanY.min,
         spentHeight,
         sideRetreats(shrinkPinY, false),
         shrinkFloorY
@@ -1299,7 +1429,7 @@ function measureShrinkReduction(
         accumulateRegionIntrusion(region);
     }
     inflateBoxInto(queryBox, candidateBox, inflate);
-    if (obstacleIndex.query(queryBox, accumulateObstacleReduction)) return false;
+    if (obstacleIndex.queryDistinct(queryBox, accumulateObstacleReduction)) return false;
     balanceCentredIntrusion();
     if (shrinkExceedsCap()) return false;
     shrinkReduction.width = shrinkIntrusion.left + shrinkIntrusion.right;
@@ -1337,53 +1467,89 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
     return gridCellSize(extentSum, extentCount);
 }
 
-// Anchor-adjusted marker centre, written into the shared scratch (allocation-free). Marker-obstacle
+// Anchor-adjusted marker centre and outline, written into the shared scratch (allocation-free). Marker-obstacle
 // creation and the `inside` own-marker match both read it, so they cannot drift out of sync.
-const markerCentre = { cx: 0, cy: 0 };
+const markerCentre: { cx: number; cy: number; outline: MarkerOutline | undefined } = {
+    cx: 0,
+    cy: 0,
+    outline: undefined,
+};
 function markerCentreOf(d: PointLabelDatum) {
     const { x, y } = d.point;
     const size = markerSizeOf(d);
+    const { anchor } = d;
     markerCentre.cx = x;
     markerCentre.cy = y;
-    if (d.anchor != null) {
-        markerCentre.cx -= (d.anchor.x - 0.5) * size;
-        markerCentre.cy -= (d.anchor.y - 0.5) * size;
+    // An undrawn marker's shape is never traced, as it is never drawn.
+    markerCentre.outline = size > 0 ? markerOutline(d.markerShape, size, solvePixelRatio) : undefined;
+    if (anchor != null) {
+        markerCentre.cx -= (anchor.x - 0.5) * size;
+        markerCentre.cy -= (anchor.y - 0.5) * size;
     }
 }
 
-/** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
+/** Inserts a pooled obstacle for every sized marker into the obstacle index, shaped as the marker is drawn. */
 function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
-    let markerCount = 0;
-    for (const { datums } of data.values()) {
+    let circleCount = 0;
+    for (const [seriesId, { datums }] of data) {
         for (const d of datums) {
             const size = markerSizeOf(d);
             if (size <= 0) continue;
             markerCentreOf(d);
-            const { cx, cy } = markerCentre;
-            const r = size / 2;
-            let obstacle = markerPool[markerCount];
-            if (obstacle == null) {
-                obstacle = {
-                    kind: 'circle',
-                    box: { x: 0, y: 0, width: 0, height: 0 },
-                    cx: 0,
-                    cy: 0,
-                    r: 0,
-                    category: 'marker',
-                };
-                markerPool.push(obstacle);
+            if (markerCentre.outline == null) {
+                insertCircleObstacle(circleCount++, size, seriesId);
+            } else {
+                insertOutlineObstacle(placedOutlineCount++, size, markerCentre.outline, seriesId);
             }
-            markerCount++;
-            obstacle.cx = cx;
-            obstacle.cy = cy;
-            obstacle.r = r;
-            obstacle.box.x = cx - r;
-            obstacle.box.y = cy - r;
-            obstacle.box.width = size;
-            obstacle.box.height = size;
-            obstacleIndex.insert(obstacle.box, obstacle);
         }
     }
+}
+
+/** Inserts the pooled circle obstacle at `index` for the marker of diameter `size` at {@link markerCentre}. */
+function insertCircleObstacle(index: number, size: number, sourceId: string) {
+    const { cx, cy } = markerCentre;
+    const r = size / 2;
+    let obstacle = markerPool[index];
+    if (obstacle == null) {
+        const box = { x: 0, y: 0, width: 0, height: 0 };
+        obstacle = { kind: 'circle', box, cx, cy, r, outline: undefined, category: 'marker', sourceId };
+        markerPool.push(obstacle);
+    }
+    obstacle.sourceId = sourceId;
+    obstacle.cx = cx;
+    obstacle.cy = cy;
+    obstacle.r = r;
+    const { box } = obstacle;
+    box.x = cx - r;
+    box.y = cy - r;
+    box.width = size;
+    box.height = size;
+    obstacleIndex.insert(box, obstacle);
+}
+
+/** {@link insertCircleObstacle} for a marker drawn as `outline`, indexed by the outline's own bounds. */
+function insertOutlineObstacle(index: number, size: number, outline: MarkerOutline, sourceId: string) {
+    const { cx, cy } = markerCentre;
+    const r = size / 2;
+    let obstacle = markerOutlinePool[index];
+    if (obstacle == null) {
+        const box = { x: 0, y: 0, width: 0, height: 0 };
+        const placed = placeMarkerOutline(outline, cx, cy, size);
+        obstacle = { kind: 'markerOutline', box, cx, cy, r, outline: placed, category: 'marker', sourceId };
+        markerOutlinePool.push(obstacle);
+    } else {
+        placeMarkerOutline(outline, cx, cy, size, obstacle.outline);
+    }
+    obstacle.sourceId = sourceId;
+    obstacle.cx = cx;
+    obstacle.cy = cy;
+    obstacle.r = r;
+    const { box } = obstacle;
+    box.x = cx + outline.minX * size + outline.minOffsetX;
+    box.y = cy + outline.minY * size + outline.minOffsetY;
+    box.width = (outline.maxX - outline.minX) * size + outline.maxOffsetX - outline.minOffsetX;
+    box.height = (outline.maxY - outline.minY) * size + outline.maxOffsetY - outline.minOffsetY;
+    obstacleIndex.insert(box, obstacle);
 }
 
 /** True if any series has labels to place; gates the per-update sort and obstacle-index build. */
@@ -1451,7 +1617,7 @@ function noLabelQueriesIndex(data: Map<string, SeriesLabels>): boolean {
     for (const { datums, defaults, resolveCandidate } of data.values()) {
         const resolvesCandidates = resolveCandidate != null;
         for (const d of datums) {
-            if (d.label.text === '') continue;
+            if (isUnlabelled(d)) continue;
             if (!isSoleCandidateKeep(d, defaults, resolvesCandidates)) return false;
         }
     }
@@ -1478,6 +1644,7 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: Lab
  * addition to markers and already-placed labels. All obstacles block all labels, regardless of order.
  * A function is only called when some label will query the obstacle index.
  * @param paintOrder Each source's paint rank by source id, higher drawn over lower.
+ * @param pixelRatio The ratio markers render at, so a custom shape is measured on the path rendering traces.
  * @returns Placed labels for all series.
  */
 export function placeLabels(
@@ -1485,10 +1652,12 @@ export function placeLabels(
     bounds: BoxBounds,
     padding = 5,
     obstacles: LabelObstacles = [],
-    paintOrder?: ReadonlyMap<string, number>
+    paintOrder?: ReadonlyMap<string, number>,
+    pixelRatio = 1
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
     solvePaintOrder = paintOrder;
+    solvePixelRatio = pixelRatio;
 
     // placeLabels runs on every chart update; a chart with no labels must not touch the index.
     if (!hasAnyLabels(data)) return result;
@@ -1509,37 +1678,128 @@ export function placeLabels(
     // Common keep-only case (line/area/bar with a single placement): no label queries the index, so
     // building it and seeding it with obstacles is wasted work.
     const useIndex = !noLabelQueriesIndex(placementData);
-    if (useIndex) {
-        buildObstacleIndex(placementData, obstacles, bounds);
-    }
 
-    let labelObstacleCount = 0;
-    for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
-        placementData
-    )) {
-        const labels: PlacedLabel[] = [];
-        if (datums[0]?.label == null) continue;
-        candidateSourceId = seriesId;
-        candidatePaintRank = paintOrder?.get(seriesId);
-        for (let index = 0, ln = datums.length; index < ln; index++) {
-            const d = datums[index];
-            // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
-            // they neither occupy a placement nor act as obstacles against labels that do have text.
-            if (d.label.text === '') continue;
-            const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
-            if (placed != null) {
-                labels.push(placed);
-                if (useIndex && d.obstacle !== false) {
-                    // Every placed label is a fixed obstacle for the labels resolved after it.
-                    labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+    try {
+        if (useIndex) {
+            buildObstacleIndex(placementData, obstacles, bounds);
+        }
+        let labelObstacleCount = 0;
+        for (const [seriesId, { datums, defaults, resolveCandidateStyle, resolveCandidate }] of orderKeepFirst(
+            placementData
+        )) {
+            const labels: PlacedLabel[] = [];
+            if (datums[0]?.label == null) continue;
+            candidateSourceId = seriesId;
+            candidatePaintRank = paintOrder?.get(seriesId);
+            solveSeriesOrdinal++;
+            seriesTradableCount = 0;
+            releaseMemo();
+            const resolves = resolveCandidateStyle != null || resolveCandidate != null;
+            for (let index = 0, ln = datums.length; index < ln; index++) {
+                const d = datums[index];
+                // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
+                // they neither occupy a placement nor act as obstacles against labels that do have text.
+                if (isUnlabelled(d)) continue;
+                const obstacle = useIndex && d.obstacle !== false;
+                beginLabelTrade(obstacle ? tradeCandidateCount(d, defaults) : 0, resolves);
+                let placed = tryPlaceLabel(
+                    d,
+                    defaults,
+                    index,
+                    padding,
+                    bounds,
+                    resolveCandidateStyle,
+                    resolveCandidate
+                );
+                if (tradeHolder != null) {
+                    placed = tryTrade(
+                        d,
+                        placed,
+                        labels,
+                        labelObstacleCount,
+                        defaults,
+                        index,
+                        padding,
+                        bounds,
+                        resolveCandidateStyle,
+                        resolveCandidate
+                    );
+                }
+                if (placed != null) {
+                    labels.push(placed);
+                    if (obstacle) {
+                        // Every placed label is a fixed obstacle for the labels resolved after it.
+                        labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+                        stampTradeEntry(labelObstaclePool[labelObstacleCount - 1], labels.length - 1, d, defaults);
+                    }
                 }
             }
-        }
 
-        result.set(seriesId, labels);
+            result.set(seriesId, labels);
+        }
+    } finally {
+        if (useIndex) obstacleIndex.clear();
+        releaseSolveReferences();
     }
 
     return result;
+}
+
+// Stands in for a released region, so the scratch keeps no caller's box between solves.
+const releasedRegion: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+
+/** Drops the module scratch's hold on the last solve's datums, text, shapes and series callbacks. */
+function releaseSolveReferences() {
+    cascadeDatum = undefined;
+    cascadePlacements = undefined;
+    cascadeOrientations = undefined;
+    cascadeStyle = undefined;
+    cascadeFitSource = undefined;
+    cascadeMeasurer = undefined;
+    cascadeRawRegion = releasedRegion;
+    cascadeRegion = releasedRegion;
+    cascadeFitRegion = undefined;
+    positionedDatum = undefined;
+    positionedBounds = releasedRegion;
+    positionedResolve = undefined;
+    positionedFitSource = undefined;
+    candidateAvoid = undefined;
+    candidateOwnBox = undefined;
+    candidateOwnShape = undefined;
+    candidateStack = undefined;
+    solvePaintOrder = undefined;
+    candidatePolicy = releasedPolicy;
+    restyledPolicyBase = undefined;
+    restyledPolicy.policy = releasedPolicy;
+    markerCentre.outline = undefined;
+    for (let i = 0; i < placedOutlineCount; i++) {
+        markerOutlinePool[i].outline.outline = undefined;
+    }
+    placedOutlineCount = 0;
+    fittedLabel.text = '';
+    candidateLabel.text = '';
+    boundedFit.region = undefined;
+    releaseChoice(bestChoice);
+    releaseChoice(keptChoiceBackup);
+    releaseMemo();
+    deferredStyles.length = 0;
+    deferredTexts.length = 0;
+    releaseRefits();
+    tradedChoiceSet = false;
+    tradedChoice.text = '';
+    tradedChoice.placement = undefined;
+    deferredPlacements.length = 0;
+    deferredShrinkCount = 0;
+    labelMemoBase = -1;
+    tradeHolder = undefined;
+    tradeReplaying = false;
+    tradeHolderOrder = Infinity;
+}
+
+function releaseChoice(choice: CandidateChoice) {
+    choice.text = '';
+    choice.candidate = undefined;
+    choice.stack = undefined;
 }
 
 /**
@@ -1547,32 +1807,48 @@ export function placeLabels(
  * (the common path, zero-allocation); rotated labels return their outer axis-aligned footprint so
  * later labels avoid the true rotated extent, not the narrower measured box.
  */
-function labelObstacleBox(placed: PlacedLabel): BoxBounds {
-    if (placed.rotation == null) return placed;
-    const { width, height } = getMinOuterRectSize(placed.rotation, placed.width, placed.height);
-    return { x: placed.x, y: placed.y, width, height };
+function labelObstacleBoxInto(out: BoxBounds, placed: PlacedLabel): BoxBounds {
+    out.x = placed.x;
+    out.y = placed.y;
+    if (placed.rotation == null) {
+        out.width = placed.width;
+        out.height = placed.height;
+        return out;
+    }
+    getMinOuterRectSizeInto(out, placed.rotation, placed.width, placed.height);
+    return out;
 }
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
-    const box = labelObstacleBox(placed);
     const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
             kind: 'rect',
-            box,
+            box: { x: 0, y: 0, width: 0, height: 0 },
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
             category: 'label',
             labelGroup,
             outranks,
+            poolIndex: count,
+            insertOrder: 0,
+            resolvedAt: 0,
+            seriesOrdinal: 0,
+            resultSlot: 0,
+            memoBase: -1,
+            tradable: false,
+            keepPolicy: 0,
+            baseline: { x: 0, y: 0, width: 0, height: 0 },
         };
         labelObstaclePool.push(obstacle);
     } else {
-        obstacle.box = box;
         obstacle.labelGroup = labelGroup;
         obstacle.outranks = outranks;
     }
+    // Copied rather than referenced: the pool outlives the solve, and the placed label holds its datum.
+    const { box } = obstacle;
+    labelObstacleBoxInto(box, placed);
     const { rotation } = placed;
     if (rotation != null && collidesByRotatedRect(placed.candidate, rotation)) {
         obstacle.kind = 'orientedRect';
@@ -1582,8 +1858,434 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     } else {
         obstacle.kind = 'rect';
     }
+    obstacle.insertOrder = ++labelInsertOrder;
     obstacleIndex.insert(box, obstacle);
     return count + 1;
+}
+
+// Slot trade: a label held off its first choice by one earlier same-series label may swap with it.
+const TRADE_TOLERANCE = 1e-6;
+// Bumped per series, so a memo slot or pool entry stamped by an earlier series or solve never matches.
+let solveSeriesOrdinal = 0;
+// Stamped on each label entry as it enters the index, so a re-resolved holder knows which labels it never tested.
+let labelInsertOrder = 0;
+let labelResolvedAt = 0;
+// The holder's `resolvedAt` while a trade re-resolves it; labels inserted since must be avoided outright.
+let tradeHolderOrder = Infinity;
+let seriesTradableCount = 0;
+// The label being resolved records its first choice's footprint, and may look for a holder there.
+let labelTracksBaseline = false;
+let labelMayTrade = false;
+let labelBaselineSet = false;
+const labelBaseline: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+let tradeHolder: PooledLabelObstacle | undefined;
+let tradeBlockedOtherwise = false;
+// A trade re-resolution reads resolved candidates back rather than calling the styler again.
+let tradeReplaying = false;
+// Every resolved candidate of this series, at `memoBase + candidate index`; valid while its stamp is `solveSeriesOrdinal`.
+const memoValues: unknown[] = [];
+const memoStamp: number[] = [];
+let memoTop = 0;
+let labelMemoBase = -1;
+// Whether the label the cascade just returned fits its region and clears every obstacle.
+let placedClear = false;
+// Centres of the two labels a crossing test compares.
+const crossingCentreA: Point = { x: 0, y: 0 };
+const crossingCentreB: Point = { x: 0, y: 0 };
+
+/** Candidates the label's cascade can reach: its positioned list, or every placement × orientation. */
+function tradeCandidateCount(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): number {
+    if (d.positionedCandidates != null) return d.positionedCandidates.length;
+    return ((d.placements ?? defaults?.placements)?.length ?? 1) * (orientationsOf(d)?.length ?? 1);
+}
+
+function beginLabelTrade(candidateCount: number, resolves: boolean) {
+    tradedChoiceSet = false;
+    labelTracksBaseline = candidateCount > 1;
+    labelMayTrade = labelTracksBaseline && seriesTradableCount > 0;
+    labelBaselineSet = false;
+    labelResolvedAt = labelInsertOrder;
+    tradeHolder = undefined;
+    labelMemoBase = -1;
+    if (!labelTracksBaseline || !resolves) return;
+    labelMemoBase = memoTop;
+    memoTop += candidateCount;
+    while (memoStamp.length < memoTop) {
+        memoStamp.push(0);
+        memoValues.push(undefined);
+    }
+}
+
+/** Memo slot of the current label's `k`-th candidate when a trade can replay it: resolved already, or `-1`. */
+function replayableSlot(k: number): number {
+    if (labelMemoBase < 0) return -1;
+    const slot = labelMemoBase + k;
+    return memoStamp[slot] === solveSeriesOrdinal ? slot : -1;
+}
+
+/** Keeps the first resolution of each candidate, so a trade replays what the label's own cascade saw. */
+function storeResolution(k: number, value: unknown) {
+    if (labelMemoBase < 0) return;
+    const slot = labelMemoBase + k;
+    if (memoStamp[slot] === solveSeriesOrdinal) return;
+    memoValues[slot] = value;
+    memoStamp[slot] = solveSeriesOrdinal;
+}
+
+/** Trades never cross series, so each series starts the memo afresh and keeps no earlier resolution alive. */
+function releaseMemo() {
+    for (let i = 0; i < memoTop; i++) memoValues[i] = undefined;
+    memoTop = 0;
+}
+
+/** The `ci`-th positioned candidate as the series' styler resolves it; outside a trade the styler runs as it always has. */
+function resolvePositionedAt(d: PointLabelDatum, ci: number): PositionedLabelCandidate {
+    const candidate = d.positionedCandidates![ci];
+    if (positionedResolve == null) return candidate;
+    if (tradeReplaying) {
+        const slot = replayableSlot(ci);
+        if (slot >= 0) return memoValues[slot] as PositionedLabelCandidate;
+    }
+    const resolved = positionedResolve(d, candidate);
+    storeResolution(ci, resolved);
+    return resolved;
+}
+
+/** {@link resolvePositionedAt} for the compass cascade's `k`-th `(placement × orientation)`. */
+function resolveStyleAt(
+    d: PointLabelDatum,
+    placement: LabelPlacement | undefined,
+    orientation: AgChartLabelOrientation | undefined,
+    k: number
+): CandidateLabelStyle | undefined {
+    if (cascadeStyle == null) return undefined;
+    if (tradeReplaying) {
+        const slot = replayableSlot(k);
+        if (slot >= 0) return memoValues[slot] as CandidateLabelStyle | undefined;
+    }
+    const style = cascadeStyle(d, placement, orientation);
+    storeResolution(k, style);
+    return style;
+}
+
+// The compass first choice a trade re-resolution would settle on, recorded instead of re-resolving it.
+let tradedChoiceSet = false;
+const tradedChoice: {
+    text: NormalisedTextOrSegments;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    placement: LabelPlacement | undefined;
+    rotation: number;
+    offsetX: number;
+    offsetY: number;
+    fontSize: number | undefined;
+} = {
+    text: '',
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    placement: undefined,
+    rotation: 0,
+    offsetX: 0,
+    offsetY: 0,
+    fontSize: 0,
+};
+
+function recordTradedChoice(
+    text: NormalisedTextOrSegments,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    placement: LabelPlacement | undefined,
+    rotation: number,
+    offsetX: number,
+    offsetY: number
+) {
+    tradedChoiceSet = true;
+    tradedChoice.text = text;
+    tradedChoice.x = x;
+    tradedChoice.y = y;
+    tradedChoice.width = width;
+    tradedChoice.height = height;
+    tradedChoice.placement = placement;
+    tradedChoice.rotation = rotation;
+    tradedChoice.offsetX = offsetX;
+    tradedChoice.offsetY = offsetY;
+    tradedChoice.fontSize = candidateFontSize;
+}
+
+/** The label at {@link tradedChoice}, as `cascadeCandidates` returns an outright winner. */
+function placeTradedChoice(d: PointLabelDatum, index: number): PlacedLabel {
+    const c = tradedChoice;
+    tradedChoiceSet = false;
+    placedClear = true;
+    const placed: PlacedLabel = {
+        index,
+        text: c.text,
+        x: c.x,
+        y: c.y,
+        width: c.width,
+        height: c.height,
+        datum: d,
+        placement: c.placement,
+        rotation: c.rotation === 0 ? undefined : c.rotation,
+        offsetX: c.offsetX,
+        offsetY: c.offsetY,
+        fontSize: c.fontSize,
+    };
+    c.text = '';
+    c.placement = undefined;
+    return placed;
+}
+
+/** Records the first candidate's tested footprint and, when only obstacles turned it away, which label holds it. */
+function recordTradeBaseline(blocked: boolean) {
+    labelBaseline.x = candidateBox.x;
+    labelBaseline.y = candidateBox.y;
+    labelBaseline.width = candidateBox.width;
+    labelBaseline.height = candidateBox.height;
+    labelBaselineSet = true;
+    if (!blocked || !labelMayTrade) return;
+    tradeBlockedOtherwise = false;
+    obstacleIndex.query(queryBox, collectTradeHolder);
+    if (tradeBlockedOtherwise) tradeHolder = undefined;
+}
+
+// Uses the cascade's own collision test, so a holder only inside the threshold gap is found too.
+function collectTradeHolder(o: LabelObstacle): boolean | void {
+    if (!obstacleOverlapsCandidate(o)) return;
+    // An obstacle spanning several cells is visited once per cell.
+    if (o === tradeHolder) return;
+    if (tradeHolder == null && isTradableEntry(o)) {
+        tradeHolder = o;
+        return;
+    }
+    tradeBlockedOtherwise = true;
+    return true;
+}
+
+function isTradableEntry(o: LabelObstacle): o is PooledLabelObstacle {
+    const entry = o as Partial<PooledLabelObstacle>;
+    return entry.seriesOrdinal === solveSeriesOrdinal && entry.tradable === true;
+}
+
+/** `alwaysShow` and `neverDrop` as one value, so only labels kept or dropped alike trade. */
+function keepPolicyOf(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): number {
+    return ((d.alwaysShow ?? defaults?.alwaysShow ?? true) ? 1 : 0) | (d.neverDrop === true ? 2 : 0);
+}
+
+/** Writes the slot-trade fields of the entry just inserted for the current label. */
+function stampTradeEntry(
+    entry: PooledLabelObstacle,
+    resultSlot: number,
+    d: PointLabelDatum,
+    defaults: SeriesLabelDefaults | undefined
+) {
+    entry.seriesOrdinal = solveSeriesOrdinal;
+    entry.resolvedAt = labelResolvedAt;
+    entry.resultSlot = resultSlot;
+    entry.memoBase = labelMemoBase;
+    entry.tradable = labelTracksBaseline && labelBaselineSet;
+    if (!entry.tradable) return;
+    entry.keepPolicy = keepPolicyOf(d, defaults);
+    const { baseline } = entry;
+    baseline.x = labelBaseline.x;
+    baseline.y = labelBaseline.y;
+    baseline.width = labelBaseline.width;
+    baseline.height = labelBaseline.height;
+    seriesTradableCount++;
+}
+
+/** Re-resolves the label with its holder lifted, then the holder around it; the index is left without the label. */
+function tryTrade(
+    d: PointLabelDatum,
+    placed: PlacedLabel | undefined,
+    labels: PlacedLabel[],
+    poolSlot: number,
+    defaults: SeriesLabelDefaults | undefined,
+    index: number,
+    padding: number,
+    bounds: BoxBounds,
+    resolveCandidateStyle: CandidateStyleResolver | undefined,
+    resolveCandidate: PositionedCandidateResolver | undefined
+): PlacedLabel | undefined {
+    const holder = tradeHolder!;
+    tradeHolder = undefined;
+    const placedCost = footprintCost(placed, labelBaseline);
+    if (placedCost <= TRADE_TOLERANCE || holder.keepPolicy !== keepPolicyOf(d, defaults)) return placed;
+    const held = labels[holder.resultSlot];
+    const before = placedCost + footprintCost(held, holder.baseline);
+    const memoBase = labelMemoBase;
+    obstacleIndex.remove(holder.box, holder);
+    releaseRefits();
+    labelTracksBaseline = false;
+    tradeReplaying = true;
+    let inserted = false;
+    let committed = false;
+    try {
+        const traded = tradedChoiceSet
+            ? placeTradedChoice(d, index)
+            : tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
+        if (traded == null || !placedClear || losesText(traded, placed)) return placed;
+        const tradedCost = footprintCost(traded, labelBaseline);
+        if (tradedCost > before + TRADE_TOLERANCE) return placed;
+        if (holderCannotRecoup(tradedCost, before, placed, held, holder, resolveCandidateStyle ?? resolveCandidate)) {
+            return placed;
+        }
+        insertLabelObstacle(traded, poolSlot);
+        inserted = true;
+        labelMemoBase = holder.memoBase;
+        tradeHolderOrder = holder.resolvedAt;
+        const moved = tryPlaceLabel(
+            held.datum,
+            defaults,
+            held.index,
+            padding,
+            bounds,
+            resolveCandidateStyle,
+            resolveCandidate
+        );
+        if (moved == null || !placedClear || losesText(moved, held)) return placed;
+        const after = tradedCost + footprintCost(moved, holder.baseline);
+        if (!tradeImproves(before, after, placed, held, traded, moved, holder.baseline)) return placed;
+        committed = true;
+        insertLabelObstacle(moved, holder.poolIndex);
+        labels[holder.resultSlot] = moved;
+        return traded;
+    } finally {
+        releaseRefits();
+        tradeReplaying = false;
+        tradeHolderOrder = Infinity;
+        labelTracksBaseline = true;
+        labelMemoBase = memoBase;
+        if (inserted) obstacleIndex.remove(labelObstaclePool[poolSlot].box, labelObstaclePool[poolSlot]);
+        if (!committed) obstacleIndex.insert(holder.box, holder);
+    }
+}
+
+/** Alone costing `before`, the traded label can only win {@link tradeImproves}'s tie. Unstyled series only. */
+function holderCannotRecoup(
+    tradedCost: number,
+    before: number,
+    placed: PlacedLabel | undefined,
+    held: PlacedLabel,
+    holder: PooledLabelObstacle,
+    resolver: unknown
+): boolean {
+    if (resolver != null || tradedCost < before - TRADE_TOLERANCE) return false;
+    return placed == null || !pairCrossed(held, holder.baseline, placed, labelBaseline);
+}
+
+function insertedAfterHolder(o: LabelObstacle): boolean {
+    return ((o as Partial<PooledLabelObstacle>).insertOrder ?? 0) > tradeHolderOrder;
+}
+
+const footprintBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+
+/** A label's footprint centre distance from its first choice's; a dropped label is as far as can be. */
+function footprintCost(placed: PlacedLabel | undefined, baseline: BoxBounds): number {
+    if (placed == null) return Infinity;
+    const { x, y, width, height } = labelObstacleBoxInto(footprintBox, placed);
+    return Math.hypot(
+        x + width / 2 - (baseline.x + baseline.width / 2),
+        y + height / 2 - (baseline.y + baseline.height / 2)
+    );
+}
+
+/** Equal displacement trades only to uncross a pair whose labels sit opposite to their first choices' order. */
+function tradeImproves(
+    before: number,
+    after: number,
+    placed: PlacedLabel | undefined,
+    held: PlacedLabel,
+    traded: PlacedLabel,
+    moved: PlacedLabel,
+    heldBaseline: BoxBounds
+): boolean {
+    if (after < before - TRADE_TOLERANCE) return true;
+    if (after > before + TRADE_TOLERANCE || placed == null) return false;
+    return (
+        pairCrossed(held, heldBaseline, placed, labelBaseline) &&
+        !pairCrossed(moved, heldBaseline, traded, labelBaseline)
+    );
+}
+
+/** Whether the pair, each at its first choice's size, sits clear of the other in the opposite order to their first choices. */
+function pairCrossed(a: PlacedLabel, aBaseline: BoxBounds, b: PlacedLabel, bBaseline: BoxBounds): boolean {
+    writeCrossingCentre(crossingCentreA, a, aBaseline);
+    writeCrossingCentre(crossingCentreB, b, bBaseline);
+    return (
+        axisCrossed(
+            crossingCentreA.x - crossingCentreB.x,
+            aBaseline.x + aBaseline.width / 2 - (bBaseline.x + bBaseline.width / 2),
+            (aBaseline.width + bBaseline.width) / 2
+        ) ||
+        axisCrossed(
+            crossingCentreA.y - crossingCentreB.y,
+            aBaseline.y + aBaseline.height / 2 - (bBaseline.y + bBaseline.height / 2),
+            (aBaseline.height + bBaseline.height) / 2
+        )
+    );
+}
+
+// Boxes overlapping on an axis have no order on it, so slope or overlap noise never reads as a crossing.
+function axisCrossed(gap: number, baselineGap: number, extent: number): boolean {
+    const clear = Math.max(extent - TRADE_TOLERANCE, TRADE_TOLERANCE);
+    return Math.abs(baselineGap) >= clear && gap * Math.sign(baselineGap) <= -clear;
+}
+
+/** The centre of a first-choice-sized box anchored where `placed` is, so wrapping or fitting cannot move it. */
+function writeCrossingCentre(out: Point, placed: PlacedLabel, baseline: BoxBounds) {
+    const { x, y, width, height } = labelObstacleBoxInto(footprintBox, placed);
+    // Pinned on the edges a shrink keeps, as `shrinkCompassCandidate` and `shrinkPositionedCandidate` pin them.
+    const anchor = placed.candidate?.fitTo?.anchor;
+    let pinX = 0;
+    let pinY = 0;
+    if (anchor != null) {
+        pinX = anchorPinX(anchor);
+        pinY = anchorPinY(anchor);
+    } else if (placed.placement != null && labelGapOf(placed.datum) > 0) {
+        pinX = labelPlacements[placed.placement].x;
+        pinY = labelPlacements[placed.placement].y;
+    }
+    out.x = x + width / 2 - (pinX * (width - baseline.width)) / 2;
+    out.y = y + height / 2 - (pinY * (height - baseline.height)) / 2;
+}
+
+/** Whether `next` drops more characters, renders at a smaller font size or wraps onto more lines than `previous`. */
+function losesText(next: PlacedLabel, previous: PlacedLabel | undefined): boolean {
+    if (previous == null) return false;
+    return (
+        droppedCharacters(next) > droppedCharacters(previous) ||
+        (next.fontSize ?? Infinity) < (previous.fontSize ?? Infinity) ||
+        lineCount(next.text) > lineCount(previous.text)
+    );
+}
+
+function lineCount(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return breakCount(text) + 1;
+    let count = 1;
+    for (const segment of text) {
+        if (segment.type !== 'image') count += breakCount(segment.text);
+    }
+    return count;
+}
+
+function breakCount(text: TextValue): number {
+    if (typeof text !== 'string') return 0;
+    let count = 0;
+    for (let i = text.indexOf('\n'); i >= 0; i = text.indexOf('\n', i + 1)) count++;
+    return count;
+}
+
+function droppedCharacters(placed: PlacedLabel): number {
+    if (placed.stack != null) return placed.stack.dropped;
+    const { fit, label } = placed.datum;
+    return Math.max(0, textLength(fit?.text ?? label.text) - textLength(placed.text));
 }
 
 /** The gap from `centre` on one axis, widened to clear the overlay on the side `direction` faces. */
@@ -1619,12 +2321,47 @@ function positionLabelBox(
     }
     let x = point.x - width / 2 + dx - shiftX;
     let y = point.y - height / 2 + dy - shiftY;
-    if (placement === 'inside' && d.insideOffset) {
-        x += d.insideOffset.x * markerSize;
-        y += d.insideOffset.y * markerSize;
+    const insideOffset = placement === 'inside' ? insideOffsetOf(d) : undefined;
+    if (insideOffset) {
+        x += insideOffset.x * markerSize;
+        y += insideOffset.y * markerSize;
     }
     out.x = x;
     out.y = y;
+}
+
+/** The `inside` offset of the marker drawn: the series' shape's, or a restyled marker's own. */
+function insideOffsetOf(d: PointLabelDatum): Readonly<Point> | undefined {
+    if (d.insideOffset == null || d.markerRestyled !== true) return d.insideOffset;
+    return drawnAnalysisOf(d).rect.offset;
+}
+
+/** {@link insideOffsetOf} for the inscribed rect an `inside` candidate must fit. */
+function insideSizeOf(d: PointLabelDatum): Readonly<{ width: number; height: number }> | undefined {
+    if (d.insideSize == null || d.markerRestyled !== true) return d.insideSize;
+    return drawnAnalysisOf(d).rect;
+}
+
+/** The room a restyled marker offers its `inside` label, as rendering draws it. */
+function drawnAnalysisOf(d: PointLabelDatum): MarkerShapeAnalysis {
+    return drawnMarkerShapeAnalysis(d.markerShape, markerSizeOf(d), solvePixelRatio);
+}
+
+/** A restyled marker's `inside` label is fitted as the series fits its own marker, at the drawn shape and size. */
+function insideFitPolicy(d: PointLabelDatum, fit: LabelFitDescriptor): LabelFit {
+    const { insideMarker } = fit;
+    if (d.markerRestyled !== true || insideMarker == null) return fit.policy;
+    if (restyledPolicyBase !== insideMarker.base) {
+        restyledPolicyBase = insideMarker.base;
+        restyledPolicy.policy = { ...insideMarker.base };
+    }
+    return insideMarkerPolicy(insideMarker, drawnAnalysisOf(d), markerSizeOf(d), restyledPolicy);
+}
+
+/** No text to place; a restyled marker's label is re-fitted from its source, not its series-bound measurement. */
+function isUnlabelled(d: PointLabelDatum): boolean {
+    if (d.label.text !== '') return false;
+    return d.markerRestyled !== true || d.fit?.insideMarker == null || textLength(d.fit.text) === 0;
 }
 
 /** Number of characters in a label's text, summed across rich-text segments. */
@@ -1654,9 +2391,10 @@ function fitLabelToCandidate(
     container: { width: number; height: number } | undefined,
     fontSearch: boolean,
     candidateRegion?: FitRegion,
-    candidateRegionAlign?: RegionAlign
+    candidateRegionAlign?: RegionAlign,
+    policy: LabelFit = fit.policy
 ) {
-    const { text, policy } = fit;
+    const { text } = fit;
     const maxWidth = Math.min(policy.maxWidth ?? Infinity, container?.width ?? Infinity);
     const maxHeight = Math.min(policy.maxHeight ?? Infinity, container?.height ?? Infinity);
     const full = source ?? measureLabelText(text, font);
@@ -1747,11 +2485,12 @@ function insideMarkerCandidateContainer(
     rotation: number,
     threshold: number
 ) {
-    if (placement !== 'inside' || d.insideSize == null) return undefined;
+    const insideSize = placement === 'inside' ? insideSizeOf(d) : undefined;
+    if (insideSize == null) return undefined;
     const markerSize = markerSizeOf(d);
     const upright = rotation % 180 === 0;
-    const width = (upright ? d.insideSize.width : d.insideSize.height) * markerSize;
-    const height = (upright ? d.insideSize.height : d.insideSize.width) * markerSize;
+    const width = (upright ? insideSize.width : insideSize.height) * markerSize;
+    const height = (upright ? insideSize.height : insideSize.width) * markerSize;
     // Only a negative threshold reaches the budget, matching how the candidate's containment region is
     // deflated: a positive one is clearance from obstacles, not room taken off the marker.
     const inset = 2 * containmentThreshold(threshold);
@@ -1843,13 +2582,17 @@ function sizeCandidateLabel(
     }
     const font = candidateFontAt(style?.font ?? fit.font);
     const boxPadding = style?.boxPadding ?? fit.boxPadding;
+    const insideMarker = insideMarkerCandidateContainer(d, placement, boxPadding, rotation, threshold);
     const container =
-        insideMarkerCandidateContainer(d, placement, boxPadding, rotation, threshold) ??
-        (fit.boundByRegion ? compassCandidateContainer(fitRegion, boxPadding, rotation) : undefined);
+        insideMarker ?? (fit.boundByRegion ? compassCandidateContainer(fitRegion, boxPadding, rotation) : undefined);
     // A styled or trialled candidate re-measures the source under its own font; an unstyled one at the
     // configured size shares the cascade's single measurement.
     const source = style == null && candidateTrialFontSize == null ? fitSource : styledFitSource(fit, font);
-    if (!fitLabelToCandidate(fit, font, source, container, candidateTrialFontSize == null)) return false;
+    candidatePolicy = placement === 'inside' ? insideFitPolicy(d, fit) : fit.policy;
+    const fontSearch = candidateTrialFontSize == null;
+    if (!fitLabelToCandidate(fit, font, source, container, fontSearch, undefined, undefined, candidatePolicy)) {
+        return false;
+    }
     writeCandidateLabel(boxPadding, font);
     return true;
 }
@@ -1893,7 +2636,8 @@ function refitCandidateShrunk(
     source: { width: number; height: number } | undefined,
     boxPadding: Required<PaddingOptions> | undefined,
     reduceWidth: number,
-    reduceHeight: number
+    reduceHeight: number,
+    policy: LabelFit = fit.policy
 ): boolean {
     // Only the reduced axis is bound to what the glyph currently occupies: pinning the other to its current
     // extent as well would forbid the wrap that trades width for height.
@@ -1901,10 +2645,102 @@ function refitCandidateShrunk(
     shrunkContainer.height = reduceAxis(candidateLabel.maxHeight, candidateLabel.glyphHeight, reduceHeight);
     // The obstacle re-fit answers a collision with text, never with a smaller font: reducing the size is
     // the ladder's job, which runs once per label over every candidate rather than per candidate.
-    if (!fitLabelToCandidate(fit, font, source, shrunkContainer, false)) return false;
-    if (!hasRealChars(fittedLabel.text)) return false;
+    if (!(tradeReplaying ? refitRemembered(fit, font, source, policy) : refitText(fit, font, source, policy))) {
+        return false;
+    }
     writeCandidateLabel(boxPadding, font);
     return true;
+}
+
+function refitText(
+    fit: LabelFitDescriptor,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    policy: LabelFit
+): boolean {
+    return (
+        fitLabelToCandidate(fit, font, source, shrunkContainer, false, undefined, undefined, policy) &&
+        hasRealChars(fittedLabel.text)
+    );
+}
+
+// Shrink re-fits of the label a trade is re-resolving: a pure function of these inputs, so a repeat is read back.
+const REFIT_STRIDE = 13;
+const REFIT_REF_STRIDE = 7;
+const REFIT_CAPACITY = 16;
+const refitNumbers: number[] = [];
+const refitRefs: unknown[] = [];
+let refitCount = 0;
+
+function refitRemembered(
+    fit: LabelFitDescriptor,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    policy: LabelFit
+): boolean {
+    const sw = source?.width ?? Number.NaN;
+    const sh = source?.height ?? Number.NaN;
+    const { width: cw, height: ch } = shrunkContainer;
+    for (let i = 0; i < refitCount; i++) {
+        const o = i * REFIT_STRIDE;
+        const r = i * REFIT_REF_STRIDE;
+        if (
+            refitRefs[r] !== fit ||
+            refitRefs[r + 6] !== policy ||
+            refitRefs[r + 1] !== font.fontFamily ||
+            refitRefs[r + 2] !== font.fontStyle ||
+            refitRefs[r + 3] !== font.fontWeight ||
+            !Object.is(refitNumbers[o], font.fontSize) ||
+            !Object.is(refitNumbers[o + 1], font.lineHeight ?? Number.NaN) ||
+            !Object.is(refitNumbers[o + 2], sw) ||
+            !Object.is(refitNumbers[o + 3], sh) ||
+            refitNumbers[o + 4] !== cw ||
+            refitNumbers[o + 5] !== ch
+        ) {
+            continue;
+        }
+        if (refitNumbers[o + 6] === 0) return false;
+        fittedLabel.text = refitRefs[r + 4] as NormalisedTextOrSegments;
+        fittedLabel.fontSize = refitRefs[r + 5] as number | undefined;
+        fittedLabel.width = refitNumbers[o + 7];
+        fittedLabel.height = refitNumbers[o + 8];
+        fittedLabel.dropped = refitNumbers[o + 9];
+        fittedLabel.shrink = refitNumbers[o + 10];
+        fittedLabel.maxWidth = refitNumbers[o + 11];
+        fittedLabel.maxHeight = refitNumbers[o + 12];
+        return true;
+    }
+    const ok = refitText(fit, font, source, policy);
+    if (refitCount === REFIT_CAPACITY) return ok;
+    const i = refitCount++;
+    const o = i * REFIT_STRIDE;
+    const r = i * REFIT_REF_STRIDE;
+    refitRefs[r] = fit;
+    refitRefs[r + 1] = font.fontFamily;
+    refitRefs[r + 2] = font.fontStyle;
+    refitRefs[r + 3] = font.fontWeight;
+    refitRefs[r + 4] = fittedLabel.text;
+    refitRefs[r + 5] = fittedLabel.fontSize;
+    refitRefs[r + 6] = policy;
+    refitNumbers[o] = font.fontSize;
+    refitNumbers[o + 1] = font.lineHeight ?? Number.NaN;
+    refitNumbers[o + 2] = sw;
+    refitNumbers[o + 3] = sh;
+    refitNumbers[o + 4] = cw;
+    refitNumbers[o + 5] = ch;
+    refitNumbers[o + 6] = ok ? 1 : 0;
+    refitNumbers[o + 7] = fittedLabel.width;
+    refitNumbers[o + 8] = fittedLabel.height;
+    refitNumbers[o + 9] = fittedLabel.dropped;
+    refitNumbers[o + 10] = fittedLabel.shrink;
+    refitNumbers[o + 11] = fittedLabel.maxWidth;
+    refitNumbers[o + 12] = fittedLabel.maxHeight;
+    return ok;
+}
+
+function releaseRefits() {
+    refitRefs.length = 0;
+    refitCount = 0;
 }
 
 /**
@@ -2069,7 +2905,8 @@ function shrinkCompassCandidate(
     const source = unstyled ? cascadeFitSource : styledFitSource(fit, font);
     const reduceWidth = upright ? shrinkReduction.width : shrinkReduction.height;
     const reduceHeight = upright ? shrinkReduction.height : shrinkReduction.width;
-    if (!refitCandidateShrunk(fit, font, source, style?.boxPadding ?? fit.boxPadding, reduceWidth, reduceHeight)) {
+    const boxPadding = style?.boxPadding ?? fit.boxPadding;
+    if (!refitCandidateShrunk(fit, font, source, boxPadding, reduceWidth, reduceHeight, candidatePolicy)) {
         return false;
     }
     positionCandidate(d, placement, rotation, candidateLabel.width, candidateLabel.height, cascadeGap, cascadeSpacing);
@@ -2274,6 +3111,7 @@ interface CandidateChoice {
     candidate: PositionedLabelCandidate | undefined;
     fontSize: number | undefined;
     stack: FittedLabelStack | undefined;
+    ordinal: number;
 }
 
 /**
@@ -2307,6 +3145,7 @@ const bestChoice: CandidateChoice = {
     candidate: undefined,
     fontSize: undefined,
     stack: undefined,
+    ordinal: 0,
 };
 
 // Stack fitted to the candidate being tested, read back by `recordBestChoice`.
@@ -2325,8 +3164,11 @@ function recordBestChoice(
     placement: LabelPlacement | undefined,
     candidate: PositionedLabelCandidate | undefined
 ) {
-    if (tier > bestChoice.tier || (tier === bestChoice.tier && score >= bestChoice.score)) return;
+    if (tier > bestChoice.tier || (tier === bestChoice.tier && score >= bestChoice.score && !deferredOutranks(score))) {
+        return;
+    }
     bestChoice.tier = tier;
+    bestChoice.ordinal = recordOrdinal;
     bestChoice.score = score;
     bestChoice.text = text;
     bestChoice.x = candidateBox.x;
@@ -2342,8 +3184,14 @@ function recordBestChoice(
     bestChoice.stack = candidateStack;
 }
 
+/** A deferred shrink tying the incumbent still wins when the cascade would have reached it first. */
+function deferredOutranks(score: number): boolean {
+    return recordingDeferred && score === bestChoice.score && recordOrdinal < bestChoice.ordinal;
+}
+
 /** Materialises {@link bestChoice} as the cascade's result, or `undefined` when no candidate was recorded. */
 function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undefined {
+    placedClear = bestChoice.tier === TIER_FIT;
     if (bestChoice.tier === Infinity) return undefined;
     return {
         index,
@@ -2390,11 +3238,13 @@ function endFloorFallback() {
  * recorded against {@link bestChoice} instead, leaving `undefined` for the caller to resolve.
  */
 function cascadeCandidates(): PlacedLabel | undefined {
-    const d = cascadeDatum;
+    const d = cascadeDatum!;
     const candidateCount = cascadePlacements?.length ?? 1;
     const orientationCount = cascadeOrientations?.length ?? 1;
     // A trial can only win outright, so it records nothing, except the floor trial of a kept label.
     const recordBest = candidateTrialFontSize == null || floorRecordsKept;
+    // An outright winner leaves its pass's deferred candidates behind.
+    if (deferredShrinkCount > 0) releaseDeferredShrinks();
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidateAt(cascadePlacements, d.placement, pi);
         for (let oi = 0; oi < orientationCount; oi++) {
@@ -2402,7 +3252,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
             const rotation = orientation == null ? 0 : orientationAngles[orientation];
             // A label disabled at every candidate is dropped entirely: unplaced, it never enters the
             // obstacle index, so it reserves no space from its neighbours.
-            const style = cascadeStyle?.(d, placement, orientation);
+            recordOrdinal = pi * orientationCount + oi;
+            const style = resolveStyleAt(d, placement, orientation, recordOrdinal);
             if (style?.hidden === true) continue;
             if (
                 !sizeCandidateLabel(d, style, placement, rotation, cascadeThreshold, cascadeFitRegion, cascadeFitSource)
@@ -2422,7 +3273,15 @@ function cascadeCandidates(): PlacedLabel | undefined {
                     : deflateRegion(deflatedInsideRegionBox, insideRegion, cascadeContainThreshold);
             inflateBoxInto(queryBox, candidateBox, cascadeInflate);
             const contained = boxContains(containRegion, x, y, cw, ch);
-            if (contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            const clear = contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+            if (pi === 0 && oi === 0 && labelTracksBaseline && candidateTrialFontSize == null) {
+                recordTradeBaseline(contained && !clear);
+                // Its holder lifted, this candidate clears and wins the label's re-resolution outright.
+                if (tradeHolder != null && dropped === 0) {
+                    recordTradedChoice(text, x, y, width, height, placement, rotation, offsetX, offsetY);
+                }
+            }
+            if (clear) {
                 if (dropped === 0) {
                     return {
                         index: cascadeIndex,
@@ -2470,12 +3329,100 @@ function cascadeCandidates(): PlacedLabel | undefined {
             // Obstacle-only failure: the candidate has the room, an obstacle is taking part of it. Shrinking
             // is tried last so a failed attempt can clobber the shared candidate scratch freely, and only
             // outside a trial, whose candidates can win outright but record nothing.
-            if (contained && candidateTrialFontSize == null && shrinkCompassCandidate(d, style, placement, rotation)) {
+            if (!contained || candidateTrialFontSize != null) continue;
+            if (tradeReplaying) {
+                // An outright winner later in the cascade discards every shrunk choice, so a trade defers them.
+                deferShrink(style);
+            } else if (shrinkCompassCandidate(d, style, placement, rotation)) {
                 recordShrunkChoice(rotation, placement, undefined);
             }
         }
     }
+    if (deferredShrinkCount > 0) shrinkDeferredCandidates();
     return undefined;
+}
+
+// Candidates a trade re-resolution left to shrink, in cascade order, with the scratch each shrink reads.
+const DEFERRED_STRIDE = 13;
+const deferredScratch: number[] = [];
+const deferredStyles: (CandidateLabelStyle | undefined)[] = [];
+const deferredTexts: NormalisedTextOrSegments[] = [];
+const deferredPlacements: (LabelPlacement | undefined)[] = [];
+let deferredShrinkCount = 0;
+// The cascade position of the candidate being recorded; deferred shrinks rank against earlier records by it.
+let recordOrdinal = 0;
+let recordingDeferred = false;
+
+function deferShrink(style: CandidateLabelStyle | undefined) {
+    const i = deferredShrinkCount++;
+    const o = i * DEFERRED_STRIDE;
+    const l = candidateLabel;
+    deferredScratch[o] = recordOrdinal;
+    deferredScratch[o + 1] = l.width;
+    deferredScratch[o + 2] = l.height;
+    deferredScratch[o + 3] = l.dropped;
+    deferredScratch[o + 4] = l.shrink;
+    deferredScratch[o + 5] = l.glyphWidth;
+    deferredScratch[o + 6] = l.glyphHeight;
+    deferredScratch[o + 7] = l.maxWidth;
+    deferredScratch[o + 8] = l.maxHeight;
+    deferredScratch[o + 9] = candidateBox.x;
+    deferredScratch[o + 10] = candidateBox.y;
+    deferredScratch[o + 11] = candidateBox.width;
+    deferredScratch[o + 12] = candidateBox.height;
+    deferredStyles[i] = style;
+    deferredTexts[i] = l.text;
+    deferredPlacements[i] = candidatePlacement;
+}
+
+function releaseDeferredShrinks() {
+    for (let i = 0; i < deferredShrinkCount; i++) {
+        deferredStyles[i] = undefined;
+        deferredTexts[i] = '';
+    }
+    deferredShrinkCount = 0;
+}
+
+/** Shrinks the deferred candidates in cascade order, each from the scratch the cascade left it with. */
+function shrinkDeferredCandidates() {
+    const d = cascadeDatum!;
+    const count = deferredShrinkCount;
+    recordingDeferred = true;
+    try {
+        for (let i = 0; i < count; i++) {
+            const o = i * DEFERRED_STRIDE;
+            const l = candidateLabel;
+            recordOrdinal = deferredScratch[o];
+            l.text = deferredTexts[i];
+            l.width = deferredScratch[o + 1];
+            l.height = deferredScratch[o + 2];
+            l.dropped = deferredScratch[o + 3];
+            l.shrink = deferredScratch[o + 4];
+            l.glyphWidth = deferredScratch[o + 5];
+            l.glyphHeight = deferredScratch[o + 6];
+            l.maxWidth = deferredScratch[o + 7];
+            l.maxHeight = deferredScratch[o + 8];
+            candidateBox.x = deferredScratch[o + 9];
+            candidateBox.y = deferredScratch[o + 10];
+            candidateBox.width = deferredScratch[o + 11];
+            candidateBox.height = deferredScratch[o + 12];
+            const placement = deferredPlacements[i];
+            candidatePlacement = placement;
+            const rotation = cascadeRotationAt(recordOrdinal);
+            if (shrinkCompassCandidate(d, deferredStyles[i], placement, rotation)) {
+                recordShrunkChoice(rotation, placement, undefined);
+            }
+        }
+    } finally {
+        recordingDeferred = false;
+        releaseDeferredShrinks();
+    }
+}
+
+function cascadeRotationAt(k: number): number {
+    const orientationCount = cascadeOrientations?.length ?? 1;
+    const orientation = candidateAt(cascadeOrientations, cascadeSingleOrientation, k % orientationCount);
+    return orientation == null ? 0 : orientationAngles[orientation];
 }
 
 /** Records the candidate a shrink pass left on the scratch, scored by the text and glyph area it gave up. */
@@ -2556,6 +3503,7 @@ function placeAvoidingLabel(
     bestChoice.tier = Infinity;
     bestChoice.score = Infinity;
     candidateStack = undefined;
+    placedClear = true;
     if (d.positionedCandidates != null) {
         return placeFromPositionedCandidates(d, avoid, threshold, index, bounds, resolveCandidate);
     }
@@ -2597,7 +3545,9 @@ function placeAvoidingLabel(
     cascadeContainThreshold = containmentThreshold(threshold);
     candidateContainSlack = -cascadeContainThreshold;
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
-    cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
+    // A positive threshold takes no room off the label's own shape.
+    const fitThreshold = d.ownBox == null ? threshold : cascadeContainThreshold;
+    cascadeFitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, fitThreshold);
     // inside-start/inside-end centre on the bar's end, so a candidate rotated along the bar would
     // straddle it; slide it flush inside its own bar rect instead.
     cascadeFlushToRegion = d.region != null && d.neverDrop === true;
@@ -2613,7 +3563,7 @@ function placeAvoidingLabel(
 }
 
 // Per-datum inputs to `positionedCandidatesPass`, so the font ladder can re-run it without allocating.
-let positionedDatum: PointLabelDatum;
+let positionedDatum: PointLabelDatum | undefined;
 let positionedIndex = 0;
 let positionedBounds: BoxBounds;
 let positionedResolve: PositionedCandidateResolver | undefined;
@@ -2686,7 +3636,7 @@ function placeFromPositionedCandidates(
 
 /** One pass of {@link placeFromPositionedCandidates}; a trial records nothing except at a kept label's floor. */
 function positionedCandidatesPass(): PlacedLabel | undefined {
-    const d = positionedDatum;
+    const d = positionedDatum!;
     const candidates = d.positionedCandidates!;
     const { fit } = d;
     const threshold = candidateThreshold;
@@ -2700,7 +3650,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         if (trial && positionedFitFailed[ci] === true) continue;
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
-        const c = positionedResolve == null ? candidates[ci] : positionedResolve(d, candidates[ci]);
+        const c = resolvePositionedAt(d, ci);
         // A candidate the styler disabled is skipped, so a label disabled at every candidate is dropped.
         if (c.hidden === true) continue;
         if (trial && (fit == null || c.fitTo == null)) continue;
@@ -2769,6 +3719,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+        if (ci === 0 && labelTracksBaseline && !trial) recordTradeBaseline(placeable && !clear);
         if (placeable && !clear && nudgeCandidate(c.slideAxis, region, inflate)) {
             clear = true;
             offsetX += candidateBox.x - x;
@@ -2844,15 +3795,14 @@ let nudgeAlongY = false;
 
 function measureNudge(o: LabelObstacle): void {
     if (!obstacleOverlapsCandidate(o)) return;
-    const { x, y, width, height } = candidateTestBox()!;
+    const { x, y, width, height } = obstacleTestBox(o)!;
+    writeObstacleSpans(o, x, y, x + width, y + height);
     if (nudgeAlongY) {
-        writeObstacleSpanY(o, x, x + width);
-        nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (y + height));
-        nudgeAfter = Math.max(nudgeAfter, obstacleSpan.max - y);
+        nudgeBefore = Math.min(nudgeBefore, obstacleSpanY.min - (y + height));
+        nudgeAfter = Math.max(nudgeAfter, obstacleSpanY.max - y);
     } else {
-        writeObstacleSpanX(o, y, y + height);
-        nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (x + width));
-        nudgeAfter = Math.max(nudgeAfter, obstacleSpan.max - x);
+        nudgeBefore = Math.min(nudgeBefore, obstacleSpanX.min - (x + width));
+        nudgeAfter = Math.max(nudgeAfter, obstacleSpanX.max - x);
     }
 }
 
@@ -2865,7 +3815,7 @@ function nudgeCandidate(axis: 'x' | 'y' | undefined, region: BoxBounds, inflate:
     nudgeAlongY = axis === 'y';
     nudgeBefore = 0;
     nudgeAfter = 0;
-    obstacleIndex.query(queryBox, measureNudge);
+    obstacleIndex.queryDistinct(queryBox, measureNudge);
     return -nudgeBefore <= nudgeAfter
         ? tryNudge(nudgeBefore, region, inflate) || tryNudge(nudgeAfter, region, inflate)
         : tryNudge(nudgeAfter, region, inflate) || tryNudge(nudgeBefore, region, inflate);
@@ -3039,14 +3989,8 @@ function fitPositionedCandidateAt(
     threshold: number
 ): boolean {
     const fontSearch = candidateTrialFontSize == null;
-    const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
-    // The clearance a label keeps from its own surface must not erase it: refit to the surface
-    // itself rather than draw the bare ellipsis the deflated container left.
-    const fitted =
-        fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign) &&
-        (container === fitTo.container ||
-            hasRealChars(fittedLabel.text) ||
-            fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign));
+    const container = fitTo.ownShape === false ? fitTo.container : spillContainer(fitTo.container, threshold);
+    const fitted = fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign);
     if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
     if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
@@ -3093,13 +4037,9 @@ function leadCharacter(text: string): string | undefined {
     return graphemeSegments(text.trimStart())[0];
 }
 
-/** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
+/** Fits a stack into {@link candidateStack}. */
 function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, threshold: number): boolean {
-    const container = deflateContainer(fitTo.container, threshold);
-    let fitted = fitLabelStack(stack, container, fitTo.shape, fitTo.shapeAlign);
-    if (fitted == null && container !== fitTo.container) {
-        fitted = fitLabelStack(stack, fitTo.container, fitTo.shape, fitTo.shapeAlign);
-    }
+    const fitted = fitLabelStack(stack, spillContainer(fitTo.container, threshold), fitTo.shape, fitTo.shapeAlign);
     if (fitted == null) return false;
     const first = fitted.blocks.find((block) => block != null);
     candidateStack = fitted;
@@ -3217,10 +4157,11 @@ function insideRegionFor(
     boxWidth: number,
     boxHeight: number
 ): BoxBounds | undefined {
-    if (placement !== 'inside' || d.insideSize == null) return undefined;
+    const insideSize = placement === 'inside' ? insideSizeOf(d) : undefined;
+    if (insideSize == null) return undefined;
     const markerSize = markerSizeOf(d);
-    const rw = d.insideSize.width * markerSize;
-    const rh = d.insideSize.height * markerSize;
+    const rw = insideSize.width * markerSize;
+    const rh = insideSize.height * markerSize;
     insideRegionBox.x = x + boxWidth / 2 - rw / 2;
     insideRegionBox.y = y + boxHeight / 2 - rh / 2;
     insideRegionBox.width = rw;

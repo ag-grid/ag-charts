@@ -6,7 +6,9 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getAxisCoordinate,
     getSeriesNodeData,
+    getSeriesOptions,
     getSeriesRect,
     getSwapChainText,
     hoverAction,
@@ -30,7 +32,9 @@ import type {
     AgThemeOverrides,
 } from 'ag-charts-types';
 
+import { openAnnotationSettings } from '../../features/annotations/test/fixture';
 import { setupEnterpriseModules } from '../../setup';
+import { getMiniChartSeriesOptions } from '../../test/featureAccessors';
 import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
 import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
@@ -38,6 +42,8 @@ import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volu
 import { priceVolume } from './priceVolumePreset';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
+
+const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
@@ -166,11 +172,11 @@ describe('priceVolumePreset', () => {
     });
 
     it.each([
-        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, mode: 'weak', range: 20 } },
+        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, range: 20 } },
         {
             name: 'applies a theme override of the magnet',
-            theme: { overrides: { common: { annotations: { magnet: { enabled: true, mode: 'strong' } } } } },
-            expected: { enabled: true, mode: 'strong', range: 20 },
+            theme: { overrides: { common: { annotations: { magnet: { enabled: true, range: 'nearest' } } } } },
+            expected: { enabled: true, range: 'nearest' },
         },
     ] as const)('$name', async ({ theme, expected }) => {
         chart = AgCharts.createFinancialChart(
@@ -211,6 +217,21 @@ describe('priceVolumePreset', () => {
         expect(getSwapChainText()).toContain('close');
         await pressKey(internal, 'ArrowDown');
         expect(getSwapChainText()).toContain('volume');
+    });
+
+    it('leaves the navigator volume line solid when the price line is dashed', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                chartType: 'line',
+                navigator: true,
+                data: getStockData().slice(0, 40),
+                theme: { overrides: { line: { series: { lineDash: 'dash' } } } },
+            } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        expect(getSeriesOptions(chart, 1).lineDash).toEqual([6, 4]);
+        expect(getMiniChartSeriesOptions(chart).lineDash).toEqual([0]);
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
@@ -306,8 +327,6 @@ describe('priceVolumePreset', () => {
     });
 
     describe('volumeProfile', () => {
-        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
-
         const VOLUME_PROFILE_EXAMPLES: Record<string, AgFinancialChartOptions> = {
             default: { data: getStockData(), volumeProfile },
             'placement left': { data: getStockData(), volumeProfile: { ...volumeProfile, placement: 'left' } },
@@ -504,8 +523,6 @@ describe('priceVolumePreset', () => {
             centerX?: number;
         }
 
-        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
-
         // Levels run highest price first, so index 2 is 200 and index 21 is 152.5, which has no volume.
         const LEVEL_200 = 2;
         const EMPTY_LEVEL = 21;
@@ -666,8 +683,6 @@ describe('priceVolumePreset', () => {
     });
 
     describe('hlc chart type', () => {
-        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
-
         const HLC_EXAMPLES: Record<string, AgFinancialChartOptions> = {
             'volume and volume profile': { volume: true, volumeProfile },
             'volume only': { volume: true },
@@ -844,6 +859,39 @@ describe('priceVolumePreset', () => {
             expect(Number(value).toFixed(2)).toBe(labels.at(-1)?.price);
             expect(isTickMultiple(String(value))).toBe(snapped);
         });
+
+        it.each<[string, AgFinancialChartOptions, string[]]>([
+            ['the step of the data', {}, ['0.009994', '137.123456']],
+            ['the tickSize', { tickSize: 0.25 }, ['0.25', '137.12']],
+            [
+                'the tickSize ahead of the one of the volume profile',
+                { tickSize: 0.25, volumeProfile },
+                ['0.25', '137.12'],
+            ],
+            ['the tick size of the levels of the volume profile', { volumeProfile }, ['2.5', '137.1']],
+        ])(
+            'shows a price in the annotation settings at the decimals of %s, which its spinner steps by',
+            async (_name, options, expected) => {
+                const price = 137.123456;
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({
+                        data: getStockData(),
+                        ...options,
+                        initialState: { annotations: [{ type: 'horizontal-line', value: price }] },
+                    })
+                );
+                await waitForChartStability(chart);
+                const { x, y, width } = getSeriesRect(chart);
+
+                const body = await openAnnotationSettings(chart, {
+                    x: x + width / 2,
+                    y: y + getAxisCoordinate(chart, 'right', price),
+                });
+
+                const input = body.querySelector<HTMLInputElement>('input[aria-label="Value: Y"]')!;
+                expect([input.step, input.value]).toEqual(expected);
+            }
+        );
 
         it('rounds the pointer price inside a candle rather than snapping to its values', async () => {
             chart = AgCharts.createFinancialChart(
@@ -1062,9 +1110,14 @@ describe('priceVolumePreset', () => {
             expect(presetButtons({ common: {} })).toHaveLength(7);
         });
 
-        it('includes the magnet button by default, before the clear button', () => {
-            const values = presetButtons()?.map((button) => button.value);
-            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
+        it('includes the magnet switch by default, before the clear button', () => {
+            const buttons = presetButtons();
+            expect(buttons?.map((button) => button.value).slice(-2)).toEqual(['magnet', 'clear']);
+            expect(buttons?.at(-2)).toMatchObject({
+                type: 'switch',
+                icon: 'no-magnet',
+                checkedOverrides: { icon: 'magnet' },
+            });
         });
     });
 });

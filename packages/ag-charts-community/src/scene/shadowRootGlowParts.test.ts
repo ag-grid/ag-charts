@@ -57,7 +57,14 @@ describe('the parts of the glow overlay', () => {
     });
 
     /** Items at one opacity, in rows from `top`, which overlap those of the other keys, whose glows share one key as they cast the same. */
-    const items = (count: number, top: number, opacity: number, size: Layout['size'], shift: number, glow: Partial<typeof GLOW> = GLOW) =>
+    const items = (
+        count: number,
+        top: number,
+        opacity: number,
+        size: Layout['size'],
+        shift: number,
+        glow: Partial<typeof GLOW> = GLOW
+    ) =>
         Array.from({ length: count }, (_, i) => {
             const item = new TestRect();
             const scale = size == null ? 1 : size.width / WIDTH;
@@ -207,7 +214,12 @@ describe('the parts of the glow overlay', () => {
     });
 
     /** Two groups of casters, each below the count of a part, drawn as one key if `joined` and as a key of its own otherwise. */
-    const twoGroups = (opacities: [number, number], tops: [number, number], joined: boolean, glow: Partial<typeof GLOW> = GLOW) => {
+    const twoGroups = (
+        opacities: [number, number],
+        tops: [number, number],
+        joined: boolean,
+        glow: Partial<typeof GLOW> = GLOW
+    ) => {
         const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
         for (const [i, opacity] of opacities.entries()) {
             const group = new Group({ name: 'series', batchShadows: 'shared' });
