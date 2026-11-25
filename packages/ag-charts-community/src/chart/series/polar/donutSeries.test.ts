@@ -1493,6 +1493,53 @@ describe('DonutSeries', () => {
             expect(node.visible).toBe(false);
             expect(node.text).toBe('Sliver label');
         });
+
+        it('places nothing for rich text always drawn in the style it is fitted in', async () => {
+            const node = await sliverLabelNode({
+                fontSize: 12,
+                formatter: () => [{ text: 'Sliver ' }, { text: 'label', fontSize: 10, fontWeight: 'bold' }],
+            });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBeUndefined();
+        });
+
+        // A 3° sliver holds no 12px line, but the label drawn 4px tall on highlight fits where the full fit put it.
+        it('shows a label once a highlight restyles it to fit a wedge that holds none of its lines as fitted', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Hi', size: 3 },
+                        { name: 'Big', size: 357 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            rotation: 90,
+                            sectorLabel: {
+                                fontSize: 12,
+                                wrapping: 'never',
+                                truncate: false,
+                                itemStyler: ({ highlightState }) =>
+                                    highlightState === 'highlighted-item' ? { fontSize: 4 } : {},
+                            },
+                        },
+                    ],
+                })
+            );
+            const sliverLabels = () =>
+                getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection')
+                    .filter((node) => node.datum?.datumIndex === 0)
+                    .map((node) => node.visible);
+            expect(sliverLabels()).toEqual([false]);
+
+            const sliver = classCast(chart.series[0], DonutSeries).getNodeData()![0];
+            chart.ctx.highlightManager.updateHighlight(chart.id, sliver);
+            await waitForChartStability(chart);
+
+            expect(sliverLabels()).toEqual([true]);
+        });
     });
 
     describe('sectorLabel fitted without fit options', () => {
