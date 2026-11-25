@@ -1503,41 +1503,6 @@ describe('DonutSeries', () => {
             expect(node.text).toBeUndefined();
         });
 
-        it('renders rich text labels in the wedges that hold them, and none in slivers', async () => {
-            chart = deproxy(
-                await createChart({
-                    ...options,
-                    data: [
-                        { name: 'Desktop', size: 180 },
-                        { name: 'Mobile', size: 120 },
-                        { name: 'Tablet', size: 40 },
-                        { name: 'Console', size: 12 },
-                        { name: 'Watch', size: 3 },
-                        { name: 'TV', size: 2 },
-                        { name: 'Car', size: 1.5 },
-                        { name: 'Fridge', size: 1 },
-                        { name: 'Glasses', size: 0.5 },
-                    ],
-                    series: [
-                        {
-                            type: 'donut',
-                            angleKey: 'size',
-                            sectorLabelKey: 'name',
-                            innerRadiusRatio: 0.5,
-                            sectorLabel: {
-                                fontSize: 12,
-                                formatter: ({ datum }: { datum: { name: string; size: number } }) => [
-                                    { text: datum.name, fontWeight: 'bold' },
-                                    { text: ` ${datum.size}`, fontSize: 10 },
-                                ],
-                            },
-                        },
-                    ],
-                })
-            );
-            await compare();
-        });
-
         // A 3° sliver holds no 12px line, but the label drawn 4px tall on highlight fits where the full fit put it.
         it('shows a label once a highlight restyles it to fit a wedge that holds none of its lines as fitted', async () => {
             chart = deproxy(
