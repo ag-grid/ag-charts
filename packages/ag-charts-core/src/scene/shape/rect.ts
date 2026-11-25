@@ -417,6 +417,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             this.effectiveStrokeWidth = 0;
             this.lastUpdatePathStrokeWidth = 0;
             this.microPixelEffectOpacity = 0;
+            this.borderClipPath = undefined;
             return;
         }
 
@@ -556,7 +557,23 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         if (this.squareCorners) {
             return this.getBBox().containsPoint(x, y);
         }
-        return super.isPointInPath(x, y);
+        const hitPath = this.hitPath();
+        return hitPath.closedPath && hitPath.isPointInPath(x, y);
+    }
+
+    protected override distanceSquaredTransformedPoint(x: number, y: number): number {
+        const hitPath = this.hitPath();
+        if (hitPath.closedPath && hitPath.isPointInPath(x, y)) {
+            return 0;
+        }
+        return hitPath.distanceSquared(x, y);
+    }
+
+    /** A rect drawn by its stroke alone has an empty fill path, so it is hit where its stroke paints. */
+    private hitPath(): ExtendedPath2D {
+        this.updatePathIfDirty();
+        const { path, borderClipPath } = this;
+        return borderClipPath != null && path.isEmpty() ? borderClipPath : path;
     }
 
     get midPoint(): { x: number; y: number } {
