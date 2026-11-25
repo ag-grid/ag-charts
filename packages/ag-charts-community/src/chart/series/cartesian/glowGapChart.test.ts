@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { visibleItems } from '../../test/glowRender';
 import {
     type Chart,
+    chartPixelAt,
     createChart,
     deproxy,
     expectWarningMessages,
@@ -20,22 +19,22 @@ import {
 // and ends 10px further out.
 const glow = (gap?: number) => ({ blur: 0, spread: 10, fill: 'red', fillOpacity: 1, gap });
 
-// The item is half-opaque blue on a white chart, and a glow is cast at the strength of its item, so it is pink beside it. Where
-// the glow is beneath the item, the item is purple over it, with less green than the lavender of the item over white.
+// The item is half-opaque blue on a white chart, and a glow with a `fillOpacity` of 1 is solid red beside it. Where the glow is
+// beneath the item, the item is purple over it, with less green than the lavender of the item over white.
 const WHITE = [255, 255, 255, 255];
-/** The glow beside the item: red at the strength of the item. */
-const GLOW_PINK = [255, 127, 127, 255];
+/** The glow beside the item: red at the strength that it is set to. */
+const GLOW_RED = [255, 0, 0, 255];
 const TRANSLUCENT_ITEM = { fill: 'blue', fillOpacity: 0.5, strokeWidth: 0 };
 const LAVENDER_GREEN = 128;
 
-/** Whether the pixel is pink: a glow is cast on it. */
+/** Whether the pixel is reddened: a glow is cast on it. */
 const isGlowing = (pixel: number[]) => pixel[0] === 255 && pixel[1] < 255;
 /** Whether the item is over white, as a glow that is cut out of the footprint of the item leaves it. */
 const isClear = (pixel: number[]) => Math.abs(pixel[1] - LAVENDER_GREEN) <= 2 && pixel[2] === 255;
 
 describe('glow gap in a chart', () => {
     setupMockConsole();
-    const canvas = setupMockCanvas();
+    setupMockCanvas();
 
     let chart: Chart | undefined;
 
@@ -54,16 +53,9 @@ describe('glow gap in a chart', () => {
         return created;
     };
 
-    const pixelAt = (x: number, y: number) => {
-        const { data, width } = canvas.snapshot();
-        const i = (Math.round(y) * width + Math.round(x)) * 4;
-        return Array.from(data.slice(i, i + 4));
-    };
+    const pixelAt = (x: number, y: number) => chartPixelAt(chart!, x, y);
 
-    const firstItem = () => {
-        const [node] = getSeriesSelectionNodes<Node>(chart!, 'datumSelection').filter((n) => n.visible);
-        return Transformable.toCanvas(node);
-    };
+    const firstItem = () => visibleItems(chart!)[0];
 
     /** The pixel `distance` to the right of the first item, along the line across its middle, which is inside it if negative. */
     const rightOfFirstItem = () => {
@@ -117,8 +109,8 @@ describe('glow gap in a chart', () => {
             const at = await createAndHover();
 
             expect(isGlowing(at(3))).toBe(true);
-            expect(at(3)).toEqual(GLOW_PINK);
-            expect(at(8)).toEqual(GLOW_PINK);
+            expect(at(3)).toEqual(GLOW_RED);
+            expect(at(8)).toEqual(GLOW_RED);
             expect(isClear(at(-10))).toBe(true);
         });
 
@@ -126,8 +118,8 @@ describe('glow gap in a chart', () => {
             const at = await createAndHover(0);
 
             expect(isClear(at(-10))).toBe(true);
-            expect(at(3)).toEqual(GLOW_PINK);
-            expect(at(8)).toEqual(GLOW_PINK);
+            expect(at(3)).toEqual(GLOW_RED);
+            expect(at(8)).toEqual(GLOW_RED);
             expect(at(15)).toEqual(WHITE);
         });
 
@@ -144,7 +136,7 @@ describe('glow gap in a chart', () => {
 
     describe('around the hovered item, cast by its highlight copy', () => {
         it.each([
-            ['let a highlight gap of 0 clear a series gap', { gap: 0 }, GLOW_PINK],
+            ['let a highlight gap of 0 clear a series gap', { gap: 0 }, GLOW_RED],
             ['inherit the series gap where the bucket sets none', { blur: 0 }, WHITE],
         ])('should %s', async (_name, bucket, expected) => {
             await create(bars({ glow: glow(5), highlight: { highlightedItem: { glow: bucket } } }));
