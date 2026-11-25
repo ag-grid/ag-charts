@@ -1503,6 +1503,47 @@ describe('DonutSeries', () => {
             expect(node.text).toBeUndefined();
         });
 
+        // The four thinnest slivers lie flat at 3 o'clock, shorter than any line, so their labels are never laid out.
+        it('lays out no rich text label in the slivers too thin for any of its lines', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Desktop', size: 180 },
+                        { name: 'Mobile', size: 120 },
+                        { name: 'Tablet', size: 40 },
+                        { name: 'Console', size: 12 },
+                        { name: 'Watch', size: 3 },
+                        { name: 'TV', size: 2 },
+                        { name: 'Car', size: 1.5 },
+                        { name: 'Fridge', size: 1 },
+                        { name: 'Glasses', size: 0.5 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.5,
+                            rotation: 90,
+                            sectorLabel: {
+                                fontSize: 12,
+                                formatter: ({ datum }: { datum: { name: string; size: number } }) => [
+                                    { text: datum.name, fontWeight: 'bold' },
+                                    { text: ` ${datum.size}`, fontSize: 10 },
+                                ],
+                            },
+                        },
+                    ],
+                })
+            );
+            const nodes = getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection');
+            const placed = nodes.filter((node) => node.text != null).map((node) => node.datum?.datumIndex);
+            const shown = nodes.filter((node) => node.visible).map((node) => node.datum?.datumIndex);
+            expect(placed).toEqual([0, 1, 2, 3, 4]);
+            expect(shown).toEqual([1, 2, 3]);
+        });
+
         // A 3° sliver holds no 12px line, but the label drawn 4px tall on highlight fits where the full fit put it.
         it('shows a label once a highlight restyles it to fit a wedge that holds none of its lines as fitted', async () => {
             chart = deproxy(
