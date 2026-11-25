@@ -6,18 +6,24 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getCrossLineLabelNode,
+    getSeriesSelectionNodes,
     prepareProcessedOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgChartInstance,
     AgChartOptions,
     AgSeriesAreaBackgroundRegion,
+    AgSeriesLabelCollideWithOptions,
 } from 'ag-charts-types';
 
+import { getBackgroundRegionLabelBox } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
 
@@ -903,6 +909,100 @@ describe('Background Region label fitting', () => {
                 'AG Charts - Option `seriesArea.backgroundRegions[0].label.minimumFontSize` cannot be set to `30`; expecting a number greater than 0 and the value to be less than or equal to `fontSize`, ignoring.',
             ],
         ]);
+    });
+});
+
+describe('Background Region label avoidance', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(async () => {
+        if (chart != null) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    // Every datum shares a y value, so the series labels form one row across the region label.
+    function avoidanceChart({
+        seriesCollideWith,
+        crossLinePlacement,
+    }: {
+        seriesCollideWith?: AgSeriesLabelCollideWithOptions;
+        crossLinePlacement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
+    }): AgCartesianChartOptions {
+        const crossLines =
+            crossLinePlacement == null
+                ? undefined
+                : [{ type: 'line' as const, value: 50, label: { text: 'CROSS LINE', placement: crossLinePlacement } }];
+        return {
+            data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {
+                        enabled: crossLinePlacement == null,
+                        placement: ['bottom', 'top'],
+                        collision: { collideWith: seriesCollideWith },
+                    },
+                },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, max: 100, crossLines },
+            },
+            seriesArea: {
+                backgroundRegions: [{ label: { text: 'REGION LABEL', fontSize: 40, position: 'inside' } }],
+            },
+        };
+    }
+
+    function regionLabelBox() {
+        const box = getBackgroundRegionLabelBox(chart);
+        expect(box).toBeDefined();
+        return box!;
+    }
+
+    function seriesLabelsOverlapping() {
+        const region = regionLabelBox();
+        const shown = getSeriesSelectionNodes(chart, 'labelSelection')
+            .filter((node) => node.visible)
+            .map((node) => Transformable.toCanvas(node));
+        expect(shown.length).toBeGreaterThan(0);
+        return shown.filter((box) => box.collidesBBox(region)).length;
+    }
+
+    it('keeps series labels clear of a region label unless they may overlap it', async () => {
+        chart = await createEnterpriseChart(avoidanceChart({ seriesCollideWith: { regionLabels: true } }));
+        const allowed = seriesLabelsOverlapping();
+        await chart.update(prepareEnterpriseTestOptions(avoidanceChart({})));
+        await waitForChartStability(chart);
+
+        expect(allowed).toBeGreaterThan(0);
+        expect(seriesLabelsOverlapping()).toBe(0);
+    });
+
+    it('moves a cross line label off a region label', async () => {
+        const crossLineOverlaps = () => {
+            const node = getCrossLineLabelNode(deproxy(chart).axes.findById('y')!);
+            expect(node?.visible).toBe(true);
+            return Transformable.toCanvas(node!).collidesBBox(regionLabelBox());
+        };
+
+        chart = await createEnterpriseChart(avoidanceChart({ crossLinePlacement: 'inside' }));
+        const sole = crossLineOverlaps();
+        await chart.update(
+            prepareEnterpriseTestOptions(avoidanceChart({ crossLinePlacement: ['inside', 'inside-left'] }))
+        );
+        await waitForChartStability(chart);
+
+        expect(sole).toBe(true);
+        expect(crossLineOverlaps()).toBe(false);
     });
 });
 

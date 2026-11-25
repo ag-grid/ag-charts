@@ -1,4 +1,4 @@
-import type { CrossLine } from 'ag-charts-core';
+import type { CrossLine, TransformableText } from 'ag-charts-core';
 
 import type { ChartAxis } from '../../chartAxis';
 import type { CrossLinesPlugin } from '../crossLinesPlugin';
@@ -22,4 +22,12 @@ export function getCrossLinesPlugin(axis: ChartAxis): CrossLinesPlugin | undefin
     return (
         moduleMap.getModule<CrossLinesPlugin>('crossLines') ?? moduleMap.getModule<CrossLinesPlugin>('polarCrossLines')
     );
+}
+
+/** The label node of the axis's first cross line; its label group holds nothing else. */
+export function getCrossLineLabelNode(axis: ChartAxis): TransformableText | undefined {
+    const [crossLine] = getCrossLinesPlugin(axis)?.getInstances() ?? [];
+    if (crossLine == null) return;
+    const [node] = crossLine.labelGroup.children();
+    return node as TransformableText | undefined;
 }

@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BBox,
     type Bounds4,
     Group,
     type Logger,
@@ -8,6 +9,7 @@ import {
     Rect,
     type Scale,
     ScaleAlignment,
+    Transformable,
     TransformableText,
     Vec4,
     bandRangeExpansion,
@@ -168,6 +170,12 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         labelNode.y = y;
         labelNode.rotationCenterX = x;
         labelNode.rotationCenterY = y;
+    }
+
+    getLabelBox(): BBox | undefined {
+        const { labelGroup, labelNode } = this;
+        if (!labelGroup.visible || labelNode.text == null || labelNode.text === '') return;
+        return Transformable.toCanvas(labelNode);
     }
 
     private getBounds(index: number): Bounds4 | undefined {
