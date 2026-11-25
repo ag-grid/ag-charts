@@ -44,6 +44,15 @@ export const ITEM_SHADOW: AgDropShadowOptions = {
     blur: 9,
 };
 
+/** A gradient fill that is opaque red at one end and fades to transparent at the other, so that a glow beneath it shows through the fade. */
+export const FADING_FILL = {
+    type: 'gradient',
+    colorStops: [
+        { color: 'rgb(255, 0, 0)', stop: 0 },
+        { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+    ],
+} as const;
+
 /** The glow an item styler returns in the item styler tests, distinct from `SERIES_GLOW` and `HIGHLIGHT_GLOW` in every field. */
 export const ITEM_GLOW: AgGlowOptions = { enabled: true, fill: '#ff00ff', fillOpacity: 0.9, blur: 11, spread: 6 };
 

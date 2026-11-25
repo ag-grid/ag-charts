@@ -4,6 +4,7 @@ import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } fro
 
 import { expectSamePixels } from '../../test/expectSamePixels';
 import { visibleItems } from '../../test/glowRender';
+import { FADING_FILL } from '../../test/shadowFixtures';
 import {
     type Chart,
     chartPixelAt,
@@ -213,13 +214,18 @@ describe('glow gap in a chart', () => {
     describe('the footprint of the hovered item, with no gap', () => {
         const HOVERED_GLOW = { fill: 'red', fillOpacity: 1, blur: 6, spread: 10 };
         const SPREAD_0_GLOW = { fill: 'red', fillOpacity: 1, blur: 8, spread: 0 };
-        const FADING_FILL = {
-            type: 'gradient',
-            colorStops: [
-                { color: 'rgb(255, 0, 0)', stop: 0 },
-                { color: 'rgba(255, 0, 0, 0)', stop: 1 },
-            ],
+        const TRANSPARENT_PATTERN = {
+            type: 'pattern',
+            pattern: 'squares',
+            width: 10,
+            height: 10,
+            fill: 'blue',
+            fillOpacity: 1,
+            backgroundFill: 'rgba(0, 0, 0, 0)',
+            strokeOpacity: 0,
         };
+        // The same render differs by 1/255 between hosts, so a pin of bytes holds within 2, which the regressions it guards exceed.
+        const PIN_TOLERANCE = 2;
         const ALL_ANGLES = [0, 45, 90, 200];
         const EDGE_DISTANCES = [-1, 0, 0.5, 1];
         const RING_DISTANCES = [2, 4, 8, 12];
@@ -333,7 +339,8 @@ describe('glow gap in a chart', () => {
 
                 expectSamePixels(
                     bytesOf([...around(EDGE_DISTANCES, ALL_ANGLES), ...around(RING_DISTANCES, ALL_ANGLES)]),
-                    bytesOf([...EDGE_OF_OPAQUE_CIRCLE, ...RING_OF_CIRCLE])
+                    bytesOf([...EDGE_OF_OPAQUE_CIRCLE, ...RING_OF_CIRCLE]),
+                    PIN_TOLERANCE
                 );
             });
 
@@ -349,7 +356,7 @@ describe('glow gap in a chart', () => {
 
                 expectSamePixels(bytesOf(withGlow), bytesOf(withNoGlow), 2);
                 await createHovered(hovered(series, HOVERED_GLOW, mode));
-                expectSamePixels(bytesOf(around(RING_DISTANCES, ALL_ANGLES)), bytesOf(RING_OF_CIRCLE));
+                expectSamePixels(bytesOf(around(RING_DISTANCES, ALL_ANGLES)), bytesOf(RING_OF_CIRCLE), PIN_TOLERANCE);
             });
 
             it('should keep a gradient that fades to transparent its own colour with no spread, and leave the glow beside it as it is', async () => {
@@ -364,7 +371,27 @@ describe('glow gap in a chart', () => {
 
                 expectSamePixels(bytesOf(withGlow), bytesOf(withNoGlow), 2);
                 await createHovered(hovered(series, SPREAD_0_GLOW, mode));
-                expectSamePixels(bytesOf(around(RING_DISTANCES, [0, 90, 200])), bytesOf(RING_OF_FADING_SQUARE));
+                expectSamePixels(
+                    bytesOf(around(RING_DISTANCES, [0, 90, 200])),
+                    bytesOf(RING_OF_FADING_SQUARE),
+                    PIN_TOLERANCE
+                );
+            });
+
+            it('should keep a pattern with a transparent background its own colour with no spread, and leave the glow beside it as it is', async () => {
+                const series = { shape: 'square', fill: TRANSPARENT_PATTERN, fillOpacity: 1 };
+                // The squares of the pattern hide the glow beneath them, so it is the gaps between them that tell the cut.
+                const { withGlow, withNoGlow } = await hoveredAndWithNoGlow(
+                    series,
+                    SPREAD_0_GLOW,
+                    mode,
+                    [-18, -14, -10, -6, -2],
+                    [0, 45, 90, 135, 180, 225, 270, 315]
+                );
+
+                expectSamePixels(bytesOf(withGlow), bytesOf(withNoGlow), 2);
+                await createHovered(hovered(series, SPREAD_0_GLOW, mode));
+                expect(around([3], [0])[0]).not.toEqual(WHITE);
             });
 
             it('should keep an opaque fill under a translucent stroke its own colour', async () => {

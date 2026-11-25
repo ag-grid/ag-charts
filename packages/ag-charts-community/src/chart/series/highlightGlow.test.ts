@@ -7,6 +7,7 @@ import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions, AgGlowOpt
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
+import { expectSamePixels } from '../test/expectSamePixels';
 import {
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
@@ -16,6 +17,7 @@ import {
 } from '../test/seriesAccessors';
 import {
     CATEGORY_DATA,
+    FADING_FILL,
     HIGHLIGHT_GLOW,
     HIGHLIGHT_SHADOW,
     HISTOGRAM_DATA,
@@ -1292,20 +1294,13 @@ describe('highlight glow', () => {
             describe('parity of the routes that cast a glow at a spread of 0', () => {
                 // With no spread and no blur the glow lies under the item. It shows only where the item's paint lets it through, and
                 // a hovered item that paints see-through has its footprint cut out of a glow with no `gap`, so it shows nowhere.
-                const FADING = {
-                    type: 'gradient',
-                    colorStops: [
-                        { color: 'rgb(255, 0, 0)', stop: 0 },
-                        { color: 'rgba(255, 0, 0, 0)', stop: 1 },
-                    ],
-                };
                 const RED_FILL = '#ff0000';
                 const BLUE_FILL = '#0000ff';
                 const NO_GLOW = { enabled: false };
                 const ZERO = glow({ spread: 0, blur: 0 });
 
                 const PAINTS = [
-                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL, true],
+                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING_FILL }, RED_FILL, true],
                     [
                         'a dashed stroke round a marker with no fill',
                         SERIES[3],
@@ -1354,7 +1349,7 @@ describe('highlight glow', () => {
                             const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
                             const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
 
-                            sameWithin(cast, none);
+                            expectSamePixels({ data: cast }, { data: none }, 2);
                         });
 
                         it('casts the same pixels where the canvas cannot tint as where it can', async () => {
@@ -1397,10 +1392,7 @@ describe('highlight glow', () => {
                         const none = await sample(NO_GLOW);
 
                         // The gradient is opaque at one end and transparent at the other, and the footprint is clear at both.
-                        for (const [end, pixel] of cast.entries()) {
-                            for (const [i, v] of pixel.entries())
-                                expect(Math.abs(v - none[end][i])).toBeLessThanOrEqual(2);
-                        }
+                        expectSamePixels({ data: cast.flat() }, { data: none.flat() }, 2);
                     }
                 );
             });
