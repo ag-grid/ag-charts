@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Bounds4, Logger, Point } from 'ag-charts-core';
+import type { Bounds4, Point } from 'ag-charts-core';
 import { Path, Transformable } from 'ag-charts-core';
 
 import { getBackgroundColours } from '../annotationDatum';
@@ -29,7 +29,7 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
         const { locked, visible } = datum;
 
         const top = convertLine(datum, context);
-        const bottom = convertLine(this.getBottom(datum, context.logger), context);
+        const bottom = convertLine(this.getBottom(datum, context), context);
 
         if (top == null || bottom == null) {
             this.visible = false;
@@ -123,7 +123,10 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
         }
     }
 
-    protected abstract getBottom(datum: Datum, logger: Logger): { start: DataPoint; end: DataPoint } | undefined;
+    protected abstract getBottom(
+        datum: Datum,
+        context: AnnotationContext
+    ): { start: DataPoint; end: DataPoint } | undefined;
 
     protected abstract updateLines(
         datum: Datum,

@@ -879,42 +879,49 @@ describe('Annotations', () => {
             expect(chart.getState().annotations).toEqual(state);
         });
 
-        it('does not draw or select parallel and disjoint channels on a category y-axis, and keeps them in the state', async () => {
-            const annotations = [
-                { type: 'line', start: { x: 10, y: 'Q1' }, end: { x: 60, y: 'Q1' } },
-                { type: 'parallel-channel', start: { x: 10, y: 'Q2' }, end: { x: 60, y: 'Q2' }, height: 1 },
-                {
-                    type: 'disjoint-channel',
-                    start: { x: 10, y: 'Q3' },
-                    end: { x: 60, y: 'Q3' },
-                    startHeight: 1,
-                    endHeight: 1,
-                },
-            ] as AgAnnotation[];
+        it.each([
+            ['string', ['Q1', 'Q2', 'Q3', 'Q4']],
+            ['numeric', [1, 2, 3, 4]],
+        ])(
+            'does not draw or select parallel and disjoint channels on a category y-axis of %s categories, and keeps them in the state',
+            async (_, [first, second, third, fourth]) => {
+                const annotations = [
+                    { type: 'line', start: { x: 10, y: first }, end: { x: 60, y: first } },
+                    { type: 'parallel-channel', start: { x: 10, y: second }, end: { x: 60, y: second }, height: 1 },
+                    {
+                        type: 'disjoint-channel',
+                        start: { x: 10, y: third },
+                        end: { x: 60, y: third },
+                        startHeight: 1,
+                        endHeight: 1,
+                    },
+                ] as AgAnnotation[];
+                const data = [first, second, third, fourth].map((category, i) => ({ category, value: 50 + 10 * i }));
 
-            await prepareChart({ annotations }, HORIZONTAL_BAR_OPTIONS);
-            expectWarningsCalls().toEqual([
-                ['AG Charts - Annotation [parallel-channel] can only be used with a numeric y-axis.'],
-                ['AG Charts - Annotation [disjoint-channel] can only be used with a numeric y-axis.'],
-            ]);
-            await compare();
+                await prepareChart({ annotations }, { ...HORIZONTAL_BAR_OPTIONS, data });
+                expectWarningsCalls().toEqual([
+                    ['AG Charts - Annotation [parallel-channel] can only be used with a numeric y-axis.'],
+                    ['AG Charts - Annotation [disjoint-channel] can only be used with a numeric y-axis.'],
+                ]);
+                await compare();
 
-            const { x, y } = getSeriesRect(chart);
-            const clickCategory = (category: string) =>
-                clickAt({
-                    x: x + getAxisCoordinate(chart, 'bottom', 35),
-                    y: y + getAxisCoordinate(chart, 'left', category),
-                });
-            for (const category of ['Q2', 'Q3']) {
-                await clickCategory(category);
-                expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
+                const { x, y } = getSeriesRect(chart);
+                const clickCategory = (category: string | number) =>
+                    clickAt({
+                        x: x + getAxisCoordinate(chart, 'bottom', 35),
+                        y: y + getAxisCoordinate(chart, 'left', category),
+                    });
+                for (const category of [second, third]) {
+                    await clickCategory(category);
+                    expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
+                }
+
+                await clickCategory(first);
+                expect(chartBody().querySelector('button[title="Line Color"]')).not.toBeNull();
+
+                expect(chart.getState().annotations).toMatchObject(annotations);
             }
-
-            await clickCategory('Q1');
-            expect(chartBody().querySelector('button[title="Line Color"]')).not.toBeNull();
-
-            expect(chart.getState().annotations).toMatchObject(annotations);
-        });
+        );
     });
 
     describe('bigint coordinates (AG-16608)', () => {

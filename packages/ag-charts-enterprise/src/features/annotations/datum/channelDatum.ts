@@ -1,4 +1,4 @@
-import { type Logger, isNumericValue, subtractValues } from 'ag-charts-core';
+import { BandScale, isNumericValue, subtractValues } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import {
@@ -12,7 +12,7 @@ import {
     createChannelTextDatum,
     createSelectionAxesFields,
 } from '../annotationDatum';
-import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
+import type { AnnotationContext, AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import { type StartEndDatum, createStartEndDatum } from './startEndDatum';
 
 export interface ChannelTypeDatum
@@ -50,16 +50,16 @@ export function getChannelDefaultOpacity(datum: ChannelTypeDatum, colorPickerTyp
     }
 }
 
-/** The bottom edge, or `undefined` when the y-axis is not numeric: a height has no meaning on a category axis. */
+/** The bottom edge, or `undefined` when the y-axis is a category axis or the values are not numeric. */
 export function getChannelBottom(
     datum: ChannelTypeDatum,
     startHeight: AgNumericValue,
     endHeight: AgNumericValue,
-    logger: Logger
+    { logger, yAxis }: AnnotationContext
 ): { start: DataPoint; end: DataPoint } | undefined {
     const { start, end } = datum;
 
-    if (!isNumericValue(start.y) || !isNumericValue(end.y)) {
+    if (yAxis.scale instanceof BandScale || !isNumericValue(start.y) || !isNumericValue(end.y)) {
         logger.warnOnce(`Annotation [${datum.type}] can only be used with a numeric y-axis.`);
         return;
     }

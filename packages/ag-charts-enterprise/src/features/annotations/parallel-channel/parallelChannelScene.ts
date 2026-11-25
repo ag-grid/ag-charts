@@ -1,4 +1,4 @@
-import { type Bounds4, type Logger, type Point, Vec2, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -45,8 +45,8 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
         return [topLeft, topRight, bottomLeft, bottomRight].map((handle) => handle.getCenter());
     }
 
-    protected override getBottom(datum: ParallelChannelDatum, logger: Logger) {
-        return getParallelChannelBottom(datum, logger);
+    protected override getBottom(datum: ParallelChannelDatum, context: AnnotationContext) {
+        return getParallelChannelBottom(datum, context);
     }
 
     override dragHandle(datum: ParallelChannelDatum, target: Point, context: AnnotationContext, snapping: boolean) {
@@ -85,7 +85,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
         }
 
         const top = convertLine(datum, context);
-        const bottom = convertLine(this.getBottom(datum, context.logger), context);
+        const bottom = convertLine(this.getBottom(datum, context), context);
         if (!top || !bottom) return;
 
         const vectors = {
