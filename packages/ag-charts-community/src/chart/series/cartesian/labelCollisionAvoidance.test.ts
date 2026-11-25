@@ -1333,9 +1333,8 @@ describe('label collision avoidance', () => {
                             yKey: 'y',
                             sizeKey: 'size',
                             labelKey: 'l',
-                            minSize: 64,
-                            maxSize: 64,
-                            itemPadding: 0,
+                            minSize: 72,
+                            maxSize: 72,
                             itemStyler,
                             label: { enabled: true, placement: 'inside', truncate: true },
                         },
@@ -1387,28 +1386,27 @@ describe('label collision avoidance', () => {
             ];
             const series = (marker: { shape: string; size: number; itemStyler?: () => object }) => {
                 const label = { enabled: true, placement: 'inside' };
-                const itemPadding = 0;
                 if (type === 'line') {
                     const formatter = ({ datum }: any) => datum.l;
                     const lineMarker = { enabled: true, ...marker };
                     const lineLabel = { ...label, formatter };
-                    return { type, data, xKey: 'x', yKey: 'y', itemPadding, marker: lineMarker, label: lineLabel };
+                    return { type, data, xKey: 'x', yKey: 'y', marker: lineMarker, label: lineLabel };
                 }
                 const { size, ...rest } = marker;
                 const sizing = type === 'bubble' ? { sizeKey: 's', minSize: size, maxSize: size } : { size };
-                return { type, data, xKey: 'x', yKey: 'y', labelKey: 'l', itemPadding, ...sizing, ...rest, label };
+                return { type, data, xKey: 'x', yKey: 'y', labelKey: 'l', ...sizing, ...rest, label };
             };
             const placed = async (marker: Parameters<typeof series>[0]) => {
                 chart?.destroy();
                 chart = await createChart({ legend: { enabled: false }, series: [series(marker)] } as any);
                 return placedBoxes();
             };
-            const drawn = await placed(by === 'size' ? { shape: 'circle', size: 60 } : { shape: 'heart', size: 60 });
+            const drawn = await placed(by === 'size' ? { shape: 'circle', size: 80 } : { shape: 'heart', size: 80 });
             expect(drawn.length).toBeGreaterThan(0);
             const restyled =
                 by === 'size'
-                    ? { shape: 'circle', size: 20, itemStyler: () => ({ size: 60 }) }
-                    : { shape: 'circle', size: 60, itemStyler: () => ({ shape: 'heart' }) };
+                    ? { shape: 'circle', size: 20, itemStyler: () => ({ size: 80 }) }
+                    : { shape: 'circle', size: 80, itemStyler: () => ({ shape: 'heart' }) };
             expect(await placed(restyled)).toEqual(drawn);
         });
 
