@@ -2778,10 +2778,17 @@ describe('Annotations', () => {
             await compare();
         });
 
-        it('shades out to the further edge of the tick labels and axis labels, and stops short of the axis titles', async () => {
+        // The depth is the axis's ticks and tick labels, so it cannot change with the values the labels show, which made
+        // it flicker as a handle was dragged.
+        it('shades the ticks and tick labels to a fixed depth and stops short of the axis titles', async () => {
             const { axes, ...options } = withAxes();
+            const LOW_LINE: AgAnnotation = {
+                type: 'line',
+                start: { x: day(20), y: 5.4321 },
+                end: { x: day(80), y: 17.8765 },
+            };
             await prepareChart(
-                { annotations: [LINE] },
+                { annotations: [LINE, LOW_LINE] },
                 {
                     ...options,
                     axes: {
@@ -2791,8 +2798,20 @@ describe('Annotations', () => {
                 }
             );
 
-            await clickDatum(50, 50);
+            // The depth is across the axis, so it is the shorter side of the shading.
+            const depths = () =>
+                findSceneNodes(chart, (node) => node.name === 'AnnotationSelectionAxisShading' && node.visible)
+                    .map((node) => Math.min((node as any).width, (node as any).height))
+                    .sort((a, b) => a - b);
 
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+            const depth = depths();
+            expect(depth).toHaveLength(2);
+            await compare();
+
+            // The labels of this line have long decimals, where the other's read 25 and 75.
+            await clickDatum(50, 11.65);
+            expect(depths()).toEqual(depth);
             await compare();
         });
 

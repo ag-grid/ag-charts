@@ -128,15 +128,8 @@ class AxisSelectionOverlay {
         shading.visible = (axisShading.enabled ?? true) && positions.length >= 2 && end > start;
         if (!shading.visible) return;
 
-        // The shading reaches the further of the tick labels and the annotation's own labels, which sit beyond them.
-        const outerEdge = (box: BBox) => {
-            const [near, size] = isX ? [box.y, box.height] : [box.x, box.width];
-            return outward > 0 ? near + size : near;
-        };
-        const labelReach = this.labels
-            .filter((label) => label.visible)
-            .map((label) => outward * (outerEdge(label.getBBox()) - origin));
-        const reach = Math.max(context.thickness, ...labelReach);
+        // A fixed depth, the axis's ticks and tick labels, so that it does not change with the labels' values.
+        const reach = context.thickness;
         const from = outward > 0 ? origin : origin - reach;
         const along = end - start;
         if (isX) {
