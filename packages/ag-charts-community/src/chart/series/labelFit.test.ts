@@ -853,6 +853,8 @@ describe('series label fit', () => {
                     minSize: 60,
                     maxSize: 260,
                     shape: 'heart',
+                    // Without padding, so the smallest heart's inscribed rect stays tall enough to truncate into.
+                    itemPadding: 0,
                     label: { enabled: true, placement: 'inside', truncate: true, formatter: (p: any) => p.datum.label },
                 },
             ],
