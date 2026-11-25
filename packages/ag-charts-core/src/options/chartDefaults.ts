@@ -68,6 +68,7 @@ import {
     textWrap,
     themeOperator,
 } from './optionsDefaults';
+import { HOVER_GLOW_PART_DEFAULTS } from './themeUtil';
 import {
     ErrorType,
     type OptionsDefs,
@@ -742,9 +743,16 @@ function glowItemHighlightDefs<I extends object>(itemHighlightOptionsDef: I) {
     return { highlightedItem: { ...unhighlightedItem, shadow: highlightedItemShadowOptionsDefs }, unhighlightedItem };
 }
 
+/** One entry for each part of the series with the most parts that glow, the three of a waterfall. */
+const HOVER_GLOW_PART_DEFAULTS_DEFS = { part0: boolean, part1: boolean, part2: boolean };
+
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    return { ...highlightOptionsDef(undefined), ...glowItemHighlightDefs(itemHighlightOptionsDef) };
+    return {
+        ...highlightOptionsDef(undefined),
+        ...glowItemHighlightDefs(itemHighlightOptionsDef),
+        ...undocumentedDefs({ [HOVER_GLOW_PART_DEFAULTS]: HOVER_GLOW_PART_DEFAULTS_DEFS }),
+    };
 }
 
 /** As {@link glowHighlightOptionsDef}, for a series that also has highlighted-series and unhighlighted-series slots. */
@@ -755,6 +763,7 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     return {
         ...multiSeriesHighlightOptionsDef(undefined, { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }),
         ...glowItemHighlightDefs(itemHighlightOptionsDef),
+        ...undocumentedDefs({ [HOVER_GLOW_PART_DEFAULTS]: HOVER_GLOW_PART_DEFAULTS_DEFS }),
     };
 }
 

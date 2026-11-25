@@ -830,6 +830,14 @@ export function withFollowedGlowThemeDefaults<T extends object>(
     return result as T;
 }
 
+/**
+ * The undocumented `highlight` key that holds, for each part of a series with a `glow` on several parts, keyed by its
+ * position among the parts, whether the part's hovered item glows unless its `glow` sets otherwise.
+ */
+export const HOVER_GLOW_PART_DEFAULTS = 'hoverGlowDefaults';
+
+export const hoverGlowPartKey = (index: number) => `part${index}`;
+
 /** Where the `glow` that a highlight falls back to is in the theme. */
 export interface GlowThemePaths {
     /**
@@ -884,21 +892,29 @@ export function withGlowThemeDefaults<T extends object>(
         : undefined;
     const itemEnabled = seriesBucketPath == null ? seriesEnabled : { $path: seriesBucketPath };
     for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
-    if (glowOnHover) {
-        // With several parts there is no one series-level glow, so the default is lost only where every part's is set.
-        const userPartsEnabled = enabledPaths.map(({ $path }) => ({ $isUserOption: $path }));
-        const userParts: Operation = perPart ? { $and: userPartsEnabled } : userPartsEnabled[0];
+    if (glowOnHover && perPart) {
+        // A part's hover default is lost where the user sets its `enabled`, or the `enabled` it inherits.
+        const partDefault = (path: string): Operation => {
+            const inherited: Operation | true =
+                inheritedGlow == null ? true : { $if: [{ $isUserOption: `${inheritedGlow}/enabled` }, false, true] };
+            return { $if: [{ $isUserOption: `${path}/enabled` }, false, inherited] };
+        };
+        // An object, not an array: `$index` in a path would resolve to the position in an array.
+        result[HOVER_GLOW_PART_DEFAULTS] = Object.fromEntries(
+            glowPaths.map((path, i) => [hoverGlowPartKey(i), partDefault(path)])
+        );
+    } else if (glowOnHover) {
         const userSet: Operation =
-            seriesBucketPath == null ? userParts : { $or: [{ $isUserOption: seriesBucketPath }, userParts] };
+            seriesBucketPath == null
+                ? { $isUserOption: enabledPaths[0].$path }
+                : { $or: [{ $isUserOption: seriesBucketPath }, { $isUserOption: enabledPaths[0].$path }] };
         const defaultOn: Operation | true =
             inheritedGlow == null
                 ? true
                 : { $if: [{ $isUserOption: `${inheritedGlow}/enabled` }, { $path: `${inheritedGlow}/enabled` }, true] };
         result.highlightedItem = {
             ...(result.highlightedItem as object),
-            glow: {
-                enabled: { $if: [userSet, perPart && seriesBucketPath == null ? undefined : itemEnabled, defaultOn] },
-            },
+            glow: { enabled: { $if: [userSet, itemEnabled, defaultOn] } },
         };
     }
     return result as T;

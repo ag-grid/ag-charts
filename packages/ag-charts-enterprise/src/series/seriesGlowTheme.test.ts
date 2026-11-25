@@ -103,10 +103,6 @@ const PER_PART = new Set([
     'range-area marker',
 ]);
 
-// The series whose theme glows the hovered item by default (`highlightedItem.glow.enabled`), whichever part it is in,
-// unless the user sets the glow of every part.
-const HOVER_GLOW_BY_THEME = new Set(['hlc marker', 'range-area marker', 'waterfall positive', 'waterfall total']);
-
 describe('series glow theme', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -131,16 +127,12 @@ describe('series glow theme', () => {
         chart.destroy();
     });
 
-    // A bucket that has no `glow` of its own has no one value to follow, so it leaves each part to its own `glow`, except
-    // `highlightedItem` where the theme glows the hovered item by default.
-    it.each(MULTI_PART)('%s leaves a bucket with no glow to each part', async (name, series, data, buckets) => {
+    // A bucket that has no `glow` of its own has no one value to follow, so it leaves each part to its own `glow`.
+    it.each(MULTI_PART)('%s leaves a bucket with no glow to each part', async (_name, series, data, buckets) => {
         const chart: any = await create(series, data);
         const highlight = getSeriesOptions<any>(chart).highlight;
         expect(buckets.map((bucket) => [bucket, highlight[bucket]?.glow?.enabled])).toEqual(
-            buckets.map((bucket) => [
-                bucket,
-                HOVER_GLOW_BY_THEME.has(name) && bucket === 'highlightedItem' ? true : undefined,
-            ])
+            buckets.map((bucket) => [bucket, undefined])
         );
         chart.destroy();
     });
@@ -172,19 +164,6 @@ describe('series glow theme', () => {
         chart.destroy();
     });
 
-    // With one part set, the others keep the default hover glow, which no one `enabled` can drop for the set part alone.
-    it('keeps the default hover glow of the parts that the user did not set', async () => {
-        const item = { positive: { glow: ON }, negative: { glow: ON }, total: { glow: ON } };
-        const WATERFALL = { type: 'waterfall', xKey: 'x', yKey: 'y' };
-        const some: any = await create({ ...WATERFALL, item: { total: { glow: ON } } }, WATERFALL_DATA);
-        expect(getSeriesOptions<any>(some).highlight.highlightedItem.glow.enabled).toBe(true);
-        some.destroy();
-
-        const every: any = await create({ ...WATERFALL, item }, WATERFALL_DATA);
-        expect(getSeriesOptions<any>(every).highlight.highlightedItem.glow?.enabled).toBeUndefined();
-        every.destroy();
-    });
-
     it.each([
         ['bar', { type: 'bar', xKey: 'x', yKey: 'high' }, OHLC_DATA],
         ['hlc', { type: 'hlc', xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close' }, OHLC_DATA],
@@ -197,7 +176,7 @@ describe('series glow theme', () => {
             );
             const { highlight } = getSeriesOptions<any>(chart);
             expect(highlight.highlightedSeries.glow.enabled).toBe(false);
-            expect(highlight.highlightedItem.glow.enabled).toBe(false);
+            expect(highlight.highlightedItem.glow?.enabled ?? false).toBe(false);
             chart.destroy();
         }
     );

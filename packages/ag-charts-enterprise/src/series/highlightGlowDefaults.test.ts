@@ -21,13 +21,14 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { HOVER_GLOW_PART_DEFAULTS, Transformable } from 'ag-charts-core';
 
 import { setupEnterpriseModules } from '../setup';
-import { nodeNamed } from '../test/glowSeriesCases';
+import { RANGE, nodeNamed } from '../test/glowSeriesCases';
 import {
     HIERARCHY_SHADOW_DATA,
     OHLC_DATA,
+    collectShapes,
     createEnterpriseChart,
     itemNodes,
     prepareEnterpriseTestOptions,
@@ -406,9 +407,13 @@ describe('highlight and glow defaults (Defaults sheet)', () => {
                     ? 'unhighlightedBranch'
                     : 'unhighlightedSeries';
 
-            expect(highlight.highlightedItem?.glow?.enabled === true, 'highlightedItem.glow').toBe(
-                row.highlightedItemGlow === true
-            );
+            // A series with a glow on several parts lists whether each part glows on hover, in place of one value.
+            const partDefaults: Record<string, boolean> | undefined = highlight[HOVER_GLOW_PART_DEFAULTS];
+            const hoverGlow =
+                partDefaults == null
+                    ? highlight.highlightedItem?.glow?.enabled === true
+                    : Object.values(partDefaults).every(Boolean);
+            expect(hoverGlow, 'highlightedItem.glow').toBe(row.highlightedItemGlow === true);
             expect(highlight.highlightedItem?.stroke, 'highlightedItem.stroke').toBe(row.highlightedItemStroke?.stroke);
             expect(highlight.highlightedItem?.strokeWidth, 'highlightedItem.strokeWidth').toBe(
                 row.highlightedItemStroke?.strokeWidth
@@ -655,20 +660,78 @@ describe('hovered item glow that the user turns off', () => {
     );
 });
 
-describe('hovered item glow of a series whose parts inherit marker.glow', () => {
-    const hoverGlowEnabled = (series: object) =>
-        (prepareProcessedOptions({ data: DATA, series: [series] }).processedOptions as any).series[0].highlight
-            .highlightedItem.glow.enabled;
+describe('hovered item glow of a series that glows on several parts', () => {
+    useChart();
 
-    // The parts' glows fall back to marker.glow, so the user turning that off turns off the hover glow they inherit.
-    it.each([
-        ['line', { type: 'line', xKey: 'category', yKey: 'value' }],
-        ['hlc', { type: 'hlc', xKey: 'category', highKey: 'high', lowKey: 'low', closeKey: 'close' }],
-        ['range-area', { type: 'range-area', xKey: 'category', yLowKey: 'low', yHighKey: 'high' }],
-    ])('%s: glows on hover unless marker.glow.enabled is set false', (_name, series) => {
-        expect(hoverGlowEnabled(series)).toBe(true);
-        expect(hoverGlowEnabled({ ...series, marker: { glow: { enabled: false } } })).toBe(false);
-        expect(hoverGlowEnabled({ ...series, marker: { glow: { enabled: true } } })).toBe(true);
+    const ON = { enabled: true };
+    const OFF = { enabled: false };
+    const HIGH_ON = { high: { marker: { glow: ON } } };
+    const MARKERS = { enabled: true, size: 12 };
+
+    const SERIES = [
+        {
+            name: 'hlc',
+            data: OHLC_DATA,
+            series: { type: 'hlc', xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close' },
+            parts: ['high', 'low', 'close'],
+            options: (item: object, marker?: object) => ({ marker: { ...MARKERS, ...marker }, item }),
+        },
+        {
+            name: 'range-area',
+            data: RANGE,
+            series: { type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high' },
+            parts: ['low', 'high'],
+            options: (item: object, marker?: object) => ({ marker: { ...MARKERS, ...marker }, item }),
+        },
+    ];
+
+    // The hovered item of each part glows by default, unless the part's own `enabled`, or the marker's it inherits, is set.
+    // What the user sets on one part never turns the default off, or on, for another.
+    it.each(SERIES.map((series) => [series.name, series] as const))(
+        '%s: an explicit glow.enabled wins for its own part and the default stays on the others',
+        async (_name, { data, series, parts, options }) => {
+            const hoveredGlows = async (item: object, marker?: object, highlight?: object) => {
+                await create({ data, series: [{ ...series, ...options(item, marker), highlight }] });
+                await hoverDatum(chart!);
+                return collectShapes(getSeriesAt(chart!).highlightGroup).filter(
+                    (shape) => shape.visible && shape.getCastShadow('glow') != null
+                ).length;
+            };
+
+            expect(await hoveredGlows({}), 'defaults: every part glows').toBe(parts.length);
+            expect(await hoveredGlows({}, { glow: OFF }), 'marker.glow off: none').toBe(0);
+            expect(await hoveredGlows(HIGH_ON, { glow: OFF }), 'one part on, marker.glow off: that part').toBe(1);
+            expect(await hoveredGlows(HIGH_ON), 'one part on: every part glows').toBe(parts.length);
+            expect(await hoveredGlows({ high: { marker: { glow: OFF } } }), 'one part off: the others glow').toBe(
+                parts.length - 1
+            );
+            expect(await hoveredGlows({}, undefined, { highlightedItem: { glow: OFF } }), 'highlightedItem off').toBe(
+                0
+            );
+            expect(
+                await hoveredGlows({}, undefined, { highlightedSeries: { glow: OFF } }),
+                'highlightedSeries off'
+            ).toBe(0);
+            expect(await hoveredGlows({}, { glow: OFF }, { highlightedItem: { glow: ON } }), 'highlightedItem on').toBe(
+                parts.length
+            );
+        }
+    );
+
+    it('waterfall: each part defaults to a hover glow unless its own glow.enabled is set', () => {
+        const hoverDefaults = (item: object) =>
+            Object.values(
+                (
+                    prepareProcessedOptions({
+                        data: [{ x: 'A', y: 1 }],
+                        series: [{ type: 'waterfall', xKey: 'x', yKey: 'y', item }],
+                    }).processedOptions as any
+                ).series[0].highlight[HOVER_GLOW_PART_DEFAULTS]
+            );
+
+        expect(hoverDefaults({})).toEqual([true, true, true]);
+        expect(hoverDefaults({ negative: { glow: ON } })).toEqual([true, false, true]);
+        expect(hoverDefaults({ positive: { glow: OFF }, total: { glow: ON } })).toEqual([false, true, false]);
     });
 });
 
