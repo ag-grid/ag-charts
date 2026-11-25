@@ -881,8 +881,6 @@ describe('Annotations', () => {
         });
     });
 
-    // A height has no meaning on a category axis, so a channel against one is kept in the state but neither drawn
-    // nor selectable.
     describe('channels on a category y-axis (AG-19435)', () => {
         const HORIZONTAL_BAR_OPTIONS: AgCartesianChartOptions = {
             data: ['Q1', 'Q2', 'Q3', 'Q4'].map((category, i) => ({ category, value: 20 * (i + 1) })),
@@ -916,15 +914,21 @@ describe('Annotations', () => {
             ]);
             await compare();
 
-            // Clicking where each channel would be selects nothing, so no options popup opens.
+            // Clicking where each channel would be selects nothing, so no options popup opens...
             const { x, y } = getSeriesRect(chart);
-            for (const category of ['Q2', 'Q3']) {
-                await clickAt({
+            const clickCategory = (category: string) =>
+                clickAt({
                     x: x + getAxisCoordinate(chart, 'bottom', 35),
                     y: y + getAxisCoordinate(chart, 'left', category),
                 });
+            for (const category of ['Q2', 'Q3']) {
+                await clickCategory(category);
                 expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
             }
+
+            // ...whereas the same click on the line does.
+            await clickCategory('Q1');
+            expect(chartBody().querySelector('button[title="Line Color"]')).not.toBeNull();
 
             expect(chart.getState().annotations).toMatchObject(annotations);
         });
