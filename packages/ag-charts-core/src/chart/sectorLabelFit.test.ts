@@ -512,12 +512,12 @@ describe('sectorLabelPlacer', () => {
                 font,
                 boundByRegion: true,
             };
-            const place = (drawnAsFitted: boolean) =>
+            const placeDrawn = (drawnAsFitted: boolean) =>
                 sectorLabelPlacer(anchor, wedge, padding, boxing, 0, 0, drawnAsFitted)(fit);
             const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
-            const fast = place(true);
+            const fast = placeDrawn(true);
             const fastLayouts = layouts.mock.calls.length;
-            const full = place(false);
+            const full = placeDrawn(false);
             const rich = Array.isArray(text);
             if (rich && fastLayouts === 0 && layouts.mock.calls.length > 0) fastPath += 1;
             layouts.mockRestore();
