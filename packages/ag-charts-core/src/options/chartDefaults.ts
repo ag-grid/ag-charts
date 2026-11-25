@@ -354,6 +354,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'locked',
         'magnet',
         'measurer-drawing',
+        'no-magnet',
         'note-annotation',
         'ohlc-series',
         'pan-end',

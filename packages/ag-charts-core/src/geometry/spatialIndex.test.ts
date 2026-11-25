@@ -154,6 +154,47 @@ describe('SpatialIndex', () => {
         }
         expect(repeats).toBeGreaterThan(0);
     });
+
+    describe('remove', () => {
+        // A 2x2 grid of 50px cells; `spanning` covers all four, the others one cell each.
+        const spanning = { x: 25, y: 25, width: 50, height: 50 };
+        const topLeft = { x: 0, y: 0, width: 10, height: 10 };
+        const bottomRight = { x: 90, y: 90, width: 10, height: 10 };
+        const whole = { x: 0, y: 0, width: 100, height: 100 };
+        const indexOf = (...refs: string[]) => {
+            const index = new SpatialIndex<string>();
+            index.reset(whole, 50);
+            const boxes: Record<string, BoxBounds> = { spanning, topLeft, bottomRight };
+            for (const ref of refs) index.insert(boxes[ref], ref);
+            return index;
+        };
+        const visits = (index: SpatialIndex<string>) => {
+            const seen: string[] = [];
+            index.query(whole, (ref) => {
+                seen.push(ref);
+            });
+            return seen;
+        };
+
+        it('takes a ref out of every cell its box spans and keeps the others in order', () => {
+            const index = indexOf('topLeft', 'spanning', 'bottomRight');
+            index.remove(spanning, 'spanning');
+            expect(visits(index)).toEqual(['topLeft', 'bottomRight']);
+        });
+
+        it('leaves the index unchanged for a ref it does not hold', () => {
+            const index = indexOf('topLeft', 'bottomRight');
+            index.remove(spanning, 'spanning');
+            expect(visits(index)).toEqual(['topLeft', 'bottomRight']);
+        });
+
+        it('leaves one entry per cell after a ref is inserted, removed and inserted again', () => {
+            const index = indexOf('topLeft', 'spanning');
+            index.remove(spanning, 'spanning');
+            index.insert(spanning, 'spanning');
+            expect(visits(index)).toEqual(['topLeft', 'spanning', 'spanning', 'spanning', 'spanning']);
+        });
+    });
 });
 
 describe('gridCellSize', () => {

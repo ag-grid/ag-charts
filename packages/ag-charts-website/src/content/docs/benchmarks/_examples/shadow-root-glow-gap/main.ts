@@ -29,7 +29,7 @@ const chart = AgCharts.create(options);
 /** inScope */
 function getBenchmarkConfig() {
     const config = getShadowRootConfig(
-        ['glow-gap-bar', 'glow-gap-scatter'],
+        ['glow-gap-bar', 'glow-gap-scatter', 'glow-gap-scatter-series'],
         chart,
         (opts) => AgCharts.create(opts),
         VERSION,

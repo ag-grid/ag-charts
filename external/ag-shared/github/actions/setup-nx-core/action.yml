@@ -236,6 +236,43 @@ runs:
               restore-keys: cache-nx-v20-${{ inputs.nx_cache_hash }}-
               # fail-on-cache-miss: true
 
+        - name: Check Nx cache DB machine ID
+          # Nx only restores artifacts recorded in its cache DB, which it names after the machine ID
+          # (.nx/workspace-data/<id>-v6.db). Hosted runners share a machine ID only within one runner
+          # image, so a cache saved on another image (an image rollout, or ubuntu-latest vs a pinned
+          # ubuntu-NN.04) is ignored in full. Nx's own "Unrecognized Cache Artifacts" warning is easy
+          # to miss in the log, so raise an annotation. Diagnostic only: it must never fail setup.
+          if: runner.os == 'Linux' && inputs.cache_mode != 'off' && inputs.nx_restore != 'false'
+          continue-on-error: true
+          shell: bash
+          run: |
+              shopt -s nullglob
+              # Same lookup Nx uses on Linux (nx/src/utils/machine-id-cache.js).
+              raw_id=$( (cat /var/lib/dbus/machine-id /etc/machine-id 2>/dev/null || hostname) | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+              hashed_id=$(printf '%s' "$raw_id" | sha256sum | cut -d' ' -f1)
+              dbs=(.nx/workspace-data/*.db)
+              entries=0
+              if [ -d .nx/cache ]; then
+                  entries=$(find .nx/cache -mindepth 1 -maxdepth 1 -type d ! -name terminalOutputs | wc -l | tr -d ' ')
+              fi
+              echo "Runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+              echo "Machine ID: ${raw_id} (sha256 ${hashed_id})"
+              echo "Restored Nx cache entries: ${entries}"
+              echo "Restored Nx cache DBs: ${dbs[*]:-none}"
+              if [ "${entries}" -eq 0 ]; then
+                  exit 0
+              fi
+              for db in "${dbs[@]}"; do
+                  name=$(basename "${db}" | tr '[:upper:]' '[:lower:]')
+                  case "${name}" in
+                      "${raw_id}"-* | "${hashed_id}"-*)
+                          echo "Restored Nx cache DB matches this machine."
+                          exit 0
+                          ;;
+                  esac
+              done
+              echo "::warning title=Nx cache DB from another machine::Restored ${entries} Nx cache entries, but no cache DB in .nx/workspace-data matches machine ID ${raw_id} (runner image ${ImageOS:-unknown} ${ImageVersion:-unknown}). Nx will ignore the restored cache, usually because it was saved on a different runner image. See https://nx.dev/troubleshooting/unknown-local-cache"
+
         - name: Setup Node.js
           id: setup_node
           uses: actions/setup-node@v7
@@ -250,6 +287,12 @@ runs:
           # `yarn` invocation below.
           shell: bash
           run: corepack enable
+
+        - name: Record restored Nx cache DBs
+          # Before the postinstall runs nx, which may create this machine's DB alongside it.
+          if: inputs.cache_mode != 'off' && inputs.nx_restore != 'false'
+          shell: bash
+          run: node "${{ github.action_path }}/nx-cache-db.mjs" snapshot "${RUNNER_TEMP}/nx-cache-state.json"
 
         - name: Tidy Nx Cache
           uses: ./external/ag-shared/github/actions/tidy-nx-cache
@@ -373,6 +416,12 @@ runs:
                 # reads it. Installing under cache_mode:ro is safe — nothing is saved.
                 yarn install --immutable
               fi
+
+        - name: Adopt restored Nx cache DB
+          # Nx names its cache DB after the machine ID, which runners don't share predictably.
+          if: inputs.cache_mode != 'off' && inputs.nx_restore != 'false'
+          shell: bash
+          run: node "${{ github.action_path }}/nx-cache-db.mjs" adopt "${RUNNER_TEMP}/nx-cache-state.json"
 
         - name: Save node_modules
           # Explicit save of the freshly installed tree (see "Restore node_modules" for

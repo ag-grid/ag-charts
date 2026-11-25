@@ -1886,6 +1886,30 @@ describe('CartesianAxis', () => {
             expect(lines[1]).toContain('\u2026');
         });
 
+        it('refills the last line of a clipped title before its ellipsis, but not across a line break', async () => {
+            chart = await createChart({
+                data: NUMERIC_DATA,
+                title: { text: 'Quarterly Spending On Information Technology', maxWidth: 220, maxHeight: 30 },
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: { text: 'Information Technology Budget', maxWidth: 160, maxHeight: 20 },
+                    },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        title: { text: 'Spending\nIn Millions Of Pounds', maxWidth: 160, maxHeight: 20 },
+                    },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(getAxisTitleText(chart, 'bottom')).toBe('Information Technology B\u2026');
+            expect(getAxisTitleText(chart, 'left')).toBe('Spending\u2026');
+            await compare('cartesian-axis-title-max-height-refill');
+        });
+
         it('should not wrap title when wrapping is "never"', async () => {
             const options: AgCartesianChartOptions = {
                 data: NUMERIC_DATA,
