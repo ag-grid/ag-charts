@@ -231,7 +231,8 @@
         "{projectRoot}/eslint.*",
         "{workspaceRoot}/tsconfig.base.json",
         "{projectRoot}/tsconfig.json",
-        "{projectRoot}/tsconfig.lint.*"
+        "{projectRoot}/tsconfig.lint.*",
+        "tsDeclarations"
       ],
       "outputs": [],
       "configurations": {
