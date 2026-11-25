@@ -136,7 +136,10 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelDatum> {
     override containsPoint(x: number, y: number) {
         return (
             super.containsPoint(x, y) ||
-            (this.middleLine.visible && this.middleLine.strokeWidth > 0 && this.middleLine.containsPoint(x, y))
+            (this.visible &&
+                this.middleLine.visible &&
+                this.middleLine.strokeWidth > 0 &&
+                this.middleLine.containsPoint(x, y))
         );
     }
 

@@ -922,6 +922,28 @@ describe('Annotations', () => {
                 expect(chart.getState().annotations).toMatchObject(annotations);
             }
         );
+
+        it('does not select a channel restored with coordinates it can no longer draw', async () => {
+            const channel = {
+                type: 'parallel-channel',
+                start: { x: 'Q1', y: 40 },
+                end: { x: 'Q4', y: 40 },
+                height: 10,
+            };
+            await prepareChart({ annotations: [channel] as AgAnnotation[] }, BAR_SERIES_OPTIONS);
+
+            await applyAnnotations([{ ...channel, start: { x: 'Q1', y: 'Q2' }, end: { x: 'Q4', y: 'Q2' } }]);
+            expectWarningsCalls().toEqual([
+                ['AG Charts - Annotation [parallel-channel] can only be used with a numeric y-axis.'],
+            ]);
+            const { x, y } = getSeriesRect(chart);
+            await clickAt({
+                x: x + getAxisCoordinate(chart, 'bottom', 'Q2'),
+                y: y + getAxisCoordinate(chart, 'left', 40),
+            });
+
+            expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
+        });
     });
 
     describe('bigint coordinates (AG-16608)', () => {

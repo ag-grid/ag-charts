@@ -103,6 +103,8 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
 
         this.activeHandle = undefined;
 
+        if (!this.visible) return false;
+
         for (const [handle, child] of Object.entries(handles)) {
             if (child.containsPoint(x, y)) {
                 this.activeHandle = handle;
