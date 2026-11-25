@@ -556,6 +556,36 @@ describe('itemPadding', () => {
         });
     });
 
+    describe('sector shapes', () => {
+        const wedges = (padding: number, innerRadiusRatio?: number): AgChartOptions => ({
+            data: [
+                { name: 'Alpha', size: 90 },
+                { name: 'Beta', size: 10 },
+            ],
+            width: 400,
+            height: 400,
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    label: { ...BOXED, minimumFontSize: 6 },
+                    padding,
+                    ...(innerRadiusRatio == null ? {} : { innerRadiusRatio }),
+                },
+            ],
+        });
+
+        it.each([
+            { shape: 'a wedge from the centre', innerRadiusRatio: undefined },
+            { shape: 'a sector around a hole', innerRadiusRatio: 0.3 },
+        ])('keeps a sunburst label in $shape clear of every edge', async ({ innerRadiusRatio }) => {
+            await render(wedges(12, innerRadiusRatio));
+            expect(drawnLabels(chart!).length).toBe(2);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), 12)).toEqual([]);
+        });
+    });
+
     describe('labels placed outside their items', () => {
         const OUTSIDE: { name: string; options: (padding: number) => AgChartOptions }[] = [
             {
@@ -698,6 +728,13 @@ describe('itemPadding', () => {
                     series: [{ type: 'radar-line', angleKey: 'x', radiusKey: 'y', ...padding }],
                 }),
             },
+            ...(['radial-bar', 'radial-column', 'nightingale'] as const).map((type) => ({
+                name: type,
+                options: (padding: Record<string, unknown>): AgChartOptions => ({
+                    data: barData,
+                    series: [{ type, angleKey: 'x', radiusKey: 'y', label: { enabled: true }, ...padding }],
+                }),
+            })),
             {
                 name: 'sunburst',
                 options: (padding) => ({

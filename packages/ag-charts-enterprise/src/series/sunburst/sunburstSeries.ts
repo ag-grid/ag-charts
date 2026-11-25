@@ -39,10 +39,9 @@ import {
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
-    insetItemRegion,
+    insetItemSector,
     isFullSweep,
     isGradientFill,
-    itemLabelClearance,
     measureLabelText,
     mergeDefaults,
     readDatumKey,
@@ -98,15 +97,17 @@ interface LabelLayout {
     boxPadding: Required<PaddingOptions>;
 }
 
-/** The annular sector a node's labels are fitted to, in the series' centred frame. */
+/** The annular sector a node's labels are fitted to, centred on the series and held `padding` clear of its edges. */
 interface SunburstLabelRing {
-    readonly innerRadius: number;
-    readonly outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
     readonly sweep: number;
     readonly theta: number;
     readonly radiusScale: number;
-    /** How far, in pixels, the drawn straight edges sit inside the edges at the sector's angles. */
-    readonly edgeInset: number;
+    /** How far, in pixels, the label's straight edges sit inside the edges at the sector's angles. */
+    radialEdgeInset: number;
     /** The depth-0 sector of a sunburst with no hole, which reaches the centre. */
     readonly wedge: boolean;
     /** A sole depth-0 node filling the whole disc. */
@@ -140,8 +141,8 @@ function heightBoundRegion(widthFor: (height: number) => number): FitRegion {
 }
 
 /** How far along the bisector the drawn straight edges of a sector narrower than half a turn are `width` apart. */
-function edgeSpanRadius({ sweep, edgeInset }: SunburstLabelRing, width: number) {
-    return (width + (2 * edgeInset) / Math.cos(sweep * 0.5)) / (2 * Math.tan(sweep * 0.5));
+function edgeSpanRadius({ sweep, radialEdgeInset }: SunburstLabelRing, width: number) {
+    return (width + (2 * radialEdgeInset) / Math.cos(sweep * 0.5)) / (2 * Math.tan(sweep * 0.5));
 }
 
 /**
@@ -149,12 +150,12 @@ function edgeSpanRadius({ sweep, edgeInset }: SunburstLabelRing, width: number) 
  * turn up, the cut-out lies behind the centre, so only the label's near side has to clear it.
  */
 function wedgeApexRadius(ring: SunburstLabelRing, width: number) {
-    return ring.sweep < Math.PI ? edgeSpanRadius(ring, width) : ring.edgeInset;
+    return ring.sweep < Math.PI ? edgeSpanRadius(ring, width) : ring.radialEdgeInset;
 }
 
 /** How far out the near side of a parallel label may sit: from half a turn up, the drawn straight edges sit in front of the centre. */
-function parallelNearSide({ sweep, innerRadius, edgeInset }: SunburstLabelRing) {
-    return sweep < Math.PI ? innerRadius : Math.max(innerRadius, edgeInset);
+function parallelNearSide({ sweep, innerRadius, radialEdgeInset }: SunburstLabelRing) {
+    return sweep < Math.PI ? innerRadius : Math.max(innerRadius, radialEdgeInset);
 }
 
 /** How far out the near side of a perpendicular label `width` across may sit, clear of the drawn straight edges. */
@@ -163,8 +164,8 @@ function perpendicularNearSide(ring: SunburstLabelRing, width: number) {
 }
 
 /** How far apart the drawn straight edges of a sector narrower than half a turn are at `radius`. */
-function edgeSpanAt({ sweep, edgeInset }: SunburstLabelRing, radius: number) {
-    return 2 * (radius * Math.tan(sweep * 0.5) - edgeInset / Math.cos(sweep * 0.5));
+function edgeSpanAt({ sweep, radialEdgeInset }: SunburstLabelRing, radius: number) {
+    return 2 * (radius * Math.tan(sweep * 0.5) - radialEdgeInset / Math.cos(sweep * 0.5));
 }
 
 /** How far from the centre a sector's labels are drawn, for a stack of the given size. */
@@ -172,8 +173,7 @@ function sectorLabelRadius(
     ring: SunburstLabelRing,
     labelPlacement: LabelPlacement,
     width: number,
-    height: number,
-    padding: number
+    height: number
 ): number {
     const { innerRadius, outerRadius, radiusScale, wedge } = ring;
     switch (labelPlacement) {
@@ -182,23 +182,17 @@ function sectorLabelRadius(
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
             const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
-            const minimumRadius = parallelNearSide(ring) + padding + height;
+            const minimumRadius = parallelNearSide(ring) + height;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
-            const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
+            const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (width / 2) ** 2));
             return Math.min(Math.max(idealRadius, minimumRadius), maximumRadius);
         }
         case LabelPlacement.Perpendicular: {
-            if (!wedge) {
-                const span = height + 2 * padding;
-                const minimumRadius = perpendicularNearSide(ring, span) + padding + width * 0.5;
-                const maximumRadius =
-                    Math.sqrt(Math.max(0, outerRadius ** 2 - (span * 0.5) ** 2)) - padding - width * 0.5;
-                const middle = (innerRadius + outerRadius) * 0.5;
-                return minimumRadius > maximumRadius ? middle : clamp(minimumRadius, middle, maximumRadius);
-            }
             const minimumRadius = perpendicularNearSide(ring, height) + width * 0.5;
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
-            return (minimumRadius + maximumRadius) * 0.5;
+            if (wedge) return (minimumRadius + maximumRadius) * 0.5;
+            const middle = (innerRadius + outerRadius) * 0.5;
+            return minimumRadius > maximumRadius ? middle : clamp(minimumRadius, middle, maximumRadius);
         }
     }
 }
@@ -525,6 +519,7 @@ export class SunburstSeries extends HierarchySeries<
             innerRadiusRatio,
             innerRadiusSize,
             innerCircle,
+            padding,
         } = this.options;
 
         this.contentGroup.translationX = width / 2;
@@ -649,18 +644,23 @@ export class SunburstSeries extends HierarchySeries<
 
             const innerRadius = hole + depth * radiusScale + innerArcGap(depth, 0);
             const outerRadius = hole + (depth + 1) * radiusScale - outerArcGap(depth, 0);
-            node.ring = {
-                innerRadius,
-                outerRadius,
-                sweep: endAngle - startAngle,
-                theta: angleOffset + (startAngle + endAngle) / 2,
-                radiusScale,
-                edgeInset: sideGap(node, 0),
-                // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
-                // centre-circle and wedge-from-centre label forms no longer apply to it.
-                wedge: depth === 0 && hole === 0,
-                centreCircle: depth === 0 && hole === 0 && parent?.sumSize === sumSize,
-            };
+            node.ring = insetItemSector(
+                {
+                    startAngle,
+                    endAngle,
+                    innerRadius,
+                    outerRadius,
+                    sweep: endAngle - startAngle,
+                    theta: angleOffset + (startAngle + endAngle) / 2,
+                    radiusScale,
+                    radialEdgeInset: sideGap(node, 0),
+                    // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
+                    // centre-circle and wedge-from-centre label forms no longer apply to it.
+                    wedge: depth === 0 && hole === 0,
+                    centreCircle: depth === 0 && hole === 0 && parent?.sumSize === sumSize,
+                },
+                padding
+            );
         });
 
         // Placed labels are written back once the label manager has fitted them to this layout.
@@ -848,14 +848,10 @@ export class SunburstSeries extends HierarchySeries<
      * takes the form the sector favours at the size it is fitted at; the form favoured at full size is first.
      */
     private sectorLabelCandidates(ring: SunburstLabelRing, naturalHeight: number): SunburstLabelCandidate[] {
-        const { padding } = this.options;
-        const clearance = itemLabelClearance(padding);
-        const paddedRegion = (widthFor: (height: number) => number) =>
-            insetItemRegion(heightBoundRegion(widthFor), clearance);
         const { innerRadius, outerRadius, sweep, wedge } = ring;
         const chordAt = (offset: number) => Math.sqrt(Math.max(0, outerRadius ** 2 - offset ** 2));
         if (ring.centreCircle) {
-            const shape = paddedRegion((height) => 2 * chordAt(height * 0.5));
+            const shape = heightBoundRegion((height) => 2 * chordAt(height * 0.5));
             return [this.sectorLabelCandidate(ring, LabelPlacement.CenterCircle, shape)];
         }
 
@@ -863,18 +859,18 @@ export class SunburstSeries extends HierarchySeries<
         const nearSide = parallelNearSide(ring);
         const parallelWidth = (height: number) => Math.min(2 * chordAt(nearSide + height), straightEdges);
         if (!wedge && sweep >= Math.PI / 4) {
-            return [this.sectorLabelCandidate(ring, LabelPlacement.Parallel, paddedRegion(parallelWidth))];
+            return [this.sectorLabelCandidate(ring, LabelPlacement.Parallel, heightBoundRegion(parallelWidth))];
         }
 
         const widthAcross = (height: number) => chordAt(height * 0.5) - perpendicularNearSide(ring, height);
         const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
-        const parallel = paddedRegion((height) => (parallelWins(height) ? parallelWidth(height) : 0));
-        const perpendicular = paddedRegion((height) => (parallelWins(height) ? 0 : widthAcross(height)));
+        const parallel = heightBoundRegion((height) => (parallelWins(height) ? parallelWidth(height) : 0));
+        const perpendicular = heightBoundRegion((height) => (parallelWins(height) ? 0 : widthAcross(height)));
         const candidates = [
             this.sectorLabelCandidate(ring, LabelPlacement.Parallel, parallel),
             this.sectorLabelCandidate(ring, LabelPlacement.Perpendicular, perpendicular),
         ];
-        return parallelWins(naturalHeight + 2 * padding) ? candidates : candidates.reverse();
+        return parallelWins(naturalHeight) ? candidates : candidates.reverse();
     }
 
     private sectorLabelCandidate(
@@ -883,13 +879,12 @@ export class SunburstSeries extends HierarchySeries<
         shape: FitRegion
     ): SunburstLabelCandidate {
         const { translationX: centreX, translationY: centreY } = this.contentGroup;
-        const { padding } = this.options;
         const { theta } = ring;
         const cos = Math.cos(theta);
         const sin = Math.sin(theta);
         const centreFor = (width: number, height: number) => {
             // A parallel stack is drawn inwards from this radius, so its centre lies half its height further in.
-            const edge = sectorLabelRadius(ring, labelPlacement, width, height, padding);
+            const edge = sectorLabelRadius(ring, labelPlacement, width, height);
             const radius = labelPlacement === LabelPlacement.Parallel ? edge - height / 2 : edge;
             return { x: centreX + cos * radius, y: centreY + sin * radius };
         };
@@ -939,7 +934,7 @@ export class SunburstSeries extends HierarchySeries<
         const circleQuarter =
             (top ? CircleQuarter.Top : CircleQuarter.Bottom) & (right ? CircleQuarter.Right : CircleQuarter.Left);
 
-        const labelRadius = sectorLabelRadius(ring, labelPlacement, labelWidth, labelHeight, this.options.padding);
+        const labelRadius = sectorLabelRadius(ring, labelPlacement, labelWidth, labelHeight);
 
         for (let index = 0; index < tags.length; index++) {
             const tag = tags[index];
