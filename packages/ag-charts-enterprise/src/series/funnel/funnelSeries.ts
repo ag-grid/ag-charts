@@ -114,8 +114,8 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     }
 
     protected override labelItemInsets(datumIndex: number) {
-        const { itemPadding, strokes, strokeWidth, label } = this.options;
-        return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth, label.spacing);
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth);
     }
 
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {

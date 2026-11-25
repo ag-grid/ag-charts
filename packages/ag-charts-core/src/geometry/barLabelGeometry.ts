@@ -207,11 +207,10 @@ export interface BarLabelTarget {
     itemRoom?: ItemLabelSource;
 }
 
-/** How an item holds its labels in: the padding option, the inset it merged to with the resting stroke, and the anchored-end spacing. */
+/** How an item holds its labels in: the padding option and the inset it merged to with the resting stroke. */
 export interface BarItemLabelInsets {
     readonly padding: number;
     readonly inset: number;
-    readonly spacing: number;
     readonly centred: boolean;
 }
 
@@ -220,15 +219,9 @@ export function itemLabelInsets(
     padding: number,
     stroke: unknown,
     strokeWidth: number | undefined,
-    spacing: number,
     centred = false
 ): BarItemLabelInsets {
-    return {
-        padding,
-        inset: itemContentInset(padding, itemStrokeDepth(stroke, strokeWidth, centred)),
-        spacing,
-        centred,
-    };
+    return { padding, inset: itemContentInset(padding, itemStrokeDepth(stroke, strokeWidth, centred)), centred };
 }
 
 /**
@@ -239,6 +232,7 @@ export function itemLabelInsets(
 interface BarPositionedCandidate extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
     readonly placement: string;
+    readonly endSpacing: number;
 }
 
 /**
@@ -375,14 +369,11 @@ export function applyBarLabelOrientation<TStyleDatum = object>(
         const { target, fit } = datum as BarPlacedLabelDatum;
         // Only a series whose states restroke its items keeps rooms, so other labels never grow the property.
         if (insetsOf != null || target.itemRoom != null) {
-            const insets =
-                fit == null || (rotation ?? 0) !== 0
-                    ? undefined
-                    : insetsOf?.(datum as BarPlacedLabelDatum<TStyleDatum>);
+            const insets = fit == null ? undefined : insetsOf?.(datum as BarPlacedLabelDatum<TStyleDatum>);
             target.itemRoom =
                 insets == null || fit == null
                     ? undefined
-                    : barItemRoom(target.itemRoom, insets, fit, candidate, text, fontSize);
+                    : barItemRoom(target.itemRoom, insets, fit, candidate, text, fontSize, rotation ?? 0);
         }
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
@@ -420,7 +411,8 @@ function barItemRoom(
     fit: LabelFitDescriptor,
     candidate: PositionedLabelCandidate | undefined,
     fittedText: NormalisedTextOrSegments,
-    fontSize: number | undefined
+    fontSize: number | undefined,
+    rotationDeg: number
 ): ItemLabelSource | undefined {
     const fitTo = candidate?.fitTo;
     if (fitTo?.container == null) return undefined;
@@ -430,15 +422,26 @@ function barItemRoom(
             : measureLabelText(fittedText, fontWithSize(fitTo.font ?? fit.font, fontSize));
     // An anchored label faces the end it hangs off, so its alignment says which way that end moves in.
     const { textAlign, textBaseline } = fitTo.anchor;
-    const room = out ?? { ...insets, text: fit.text, fit: fit.policy, width: 0, height: 0, anchorX: 0, anchorY: 0 };
+    const room = out ?? {
+        ...insets,
+        text: fit.text,
+        fit: fit.policy,
+        width: 0,
+        height: 0,
+        spacing: 0,
+        anchorX: 0,
+        anchorY: 0,
+    };
     room.text = fit.text;
     room.fit = fit.policy;
-    room.width = container.width;
-    room.height = container.height;
+    // The room is kept in canvas axes, so a quarter-turned label's glyph width runs along its height.
+    const turned = rotationDeg % 180 !== 0;
+    room.width = turned ? container.height : container.width;
+    room.height = turned ? container.width : container.height;
     room.padding = insets.padding;
     room.inset = insets.inset;
     room.centred = insets.centred;
-    room.spacing = insets.spacing;
+    room.spacing = (candidate as BarPositionedCandidate).endSpacing;
     room.anchorX = inwardOf(textAlign === 'left', textAlign === 'right');
     room.anchorY = inwardOf(textBaseline === 'top', textBaseline === 'bottom');
     return room;

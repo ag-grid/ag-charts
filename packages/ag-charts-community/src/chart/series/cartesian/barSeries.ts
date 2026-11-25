@@ -2113,10 +2113,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
-        const { itemPadding, stroke, strokeWidth, label } = this.options;
-        const insets = this.restylesItemStrokes()
-            ? itemLabelInsets(itemPadding, stroke, strokeWidth, label.spacing)
-            : undefined;
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        const insets = this.restylesItemStrokes() ? itemLabelInsets(itemPadding, stroke, strokeWidth) : undefined;
         applyBarLabelOrientation(placed, insets && (() => insets));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();

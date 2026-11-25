@@ -823,7 +823,7 @@ describe('itemPadding', () => {
             selection: { selection: { enabled: true, selectedItem: { strokeWidth }, unselectedItem: { strokeWidth } } },
         });
         const barAt =
-            (placement: 'inside-center' | 'inside-end') =>
+            (placement: 'inside-center' | 'inside-end', orientation?: 'vertical' | 'vertical-reversed') =>
             (state: object): AgChartOptions =>
                 cartesian(
                     {
@@ -832,8 +832,10 @@ describe('itemPadding', () => {
                         yKey: 'y',
                         stroke: 'black',
                         strokeWidth: 1,
+                        // Turned text wraps to a horizontal bar's thickness, so it fills the bar.
+                        direction: orientation == null ? undefined : 'horizontal',
                         ...state,
-                        label: { ...FITTED, formatter: () => LONG_TEXT, placement },
+                        label: { ...FITTED, formatter: () => LONG_TEXT, placement, orientation },
                     },
                     narrowBarData
                 );
@@ -846,6 +848,16 @@ describe('itemPadding', () => {
         const RESTYLED = [
             { name: 'centred bar', options: barAt('inside-center'), states: stateStrokes(depth) },
             { name: 'end-anchored bar', options: barAt('inside-end'), states: stateStrokes(depth) },
+            {
+                name: 'rotated centred bar',
+                options: barAt('inside-center', 'vertical'),
+                states: { highlight: stateStrokes(depth).highlight },
+            },
+            {
+                name: 'rotated end-anchored bar',
+                options: barAt('inside-end', 'vertical-reversed'),
+                states: { highlight: stateStrokes(depth).highlight },
+            },
             { name: 'funnel', options: stage('funnel', 1), states: { highlight: stateStrokes(depth).highlight } },
             // A pyramid stage's stroke is centred on its outline, so twice the width reaches as deep.
             { name: 'pyramid', options: stage('pyramid', 2), states: { highlight: stateStrokes(2 * depth).highlight } },
@@ -868,6 +880,32 @@ describe('itemPadding', () => {
 
             expect(drawnLabels(chart!).length).toBeGreaterThan(0);
             expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+            await compareImageSnapshot(chart!, ctx);
+        });
+
+        it('keeps an end-anchored label past an inner whisker when a state stroke stays shallower than it', async () => {
+            const options = cartesian(
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    stroke: 'black',
+                    strokeWidth: 1,
+                    ...stateStrokes(depth).highlight,
+                    errorBar: { yLowerKey: 'lo', yUpperKey: 'y' },
+                    label: { ...FITTED, formatter: () => LONG_TEXT, placement: 'inside-end', spacing: 2 },
+                },
+                narrowBarData.map((datum) => ({ ...datum, lo: datum.y - 10 }))
+            );
+            const tops = () => drawnLabels(chart!).map((label) => Transformable.toCanvas(label).y);
+            await render(options);
+            const resting = tops();
+            expect(resting.length).toBe(narrowBarData.length);
+
+            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
+            await hoverAction(x + width / 2, y + height / 2)(chart!);
+
+            expect(tops()).toEqual(resting);
             await compareImageSnapshot(chart!, ctx);
         });
 

@@ -1246,10 +1246,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {
-        const { itemPadding, stroke, strokeWidth, label } = this.options;
-        const insets = this.restylesItemStrokes()
-            ? itemLabelInsets(itemPadding, stroke, strokeWidth, label.spacing)
-            : undefined;
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        const insets = this.restylesItemStrokes() ? itemLabelInsets(itemPadding, stroke, strokeWidth) : undefined;
         applyBarLabelOrientation(placed, insets && (() => insets));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();

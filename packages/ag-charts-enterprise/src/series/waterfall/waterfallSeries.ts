@@ -1359,8 +1359,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             if (itemType == null) return undefined;
             let insets = insetsByType.get(itemType);
             if (insets == null) {
-                const { stroke, strokeWidth, label } = this.getItemConfig(itemType);
-                insets = itemLabelInsets(this.options.itemPadding, stroke, strokeWidth, label.spacing);
+                const { stroke, strokeWidth } = this.getItemConfig(itemType);
+                insets = itemLabelInsets(this.options.itemPadding, stroke, strokeWidth);
                 insetsByType.set(itemType, insets);
             }
             return insets;

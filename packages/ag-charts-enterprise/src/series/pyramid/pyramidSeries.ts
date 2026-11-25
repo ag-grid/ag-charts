@@ -791,7 +791,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             this.restylesItemStrokes()
                 ? ({ styleDatum }) =>
                       styleDatum &&
-                      itemLabelInsets(itemPadding, cycledValue(strokes, styleDatum.datumIndex), strokeWidth, 0, true)
+                      itemLabelInsets(itemPadding, cycledValue(strokes, styleDatum.datumIndex), strokeWidth, true)
                 : undefined
         );
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);

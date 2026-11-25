@@ -626,7 +626,8 @@ export function updateLabelNode<TParams>(
             textNode.lineHeight = lineHeightAtSize(style, labelDatum.fittedFontSize);
         }
         if (labelDatum.itemRoom != null) {
-            refitItemLabel(series, textNode, labelDatum.itemRoom, style, isHighlight, activeHighlight);
+            const turned = (labelDatum.rotation ?? 0) !== 0;
+            refitItemLabel(series, textNode, labelDatum.itemRoom, style, turned, isHighlight, activeHighlight);
         }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {
@@ -645,25 +646,76 @@ export function updateLabelNode<TParams>(
 }
 
 const itemLabelRefit: ItemLabelRefit = { width: 0, height: 0, shiftX: 0, shiftY: 0 };
+const turnedLabelRoom = { width: 0, height: 0 };
 
-/** Re-fits a label to the room its item's drawn stroke leaves, when that stroke moves an edge of the room. */
+/**
+ * Re-fits a label to the room its item's drawn stroke leaves, when that stroke moves an edge of the room.
+ * A `turned` (quarter-turned) label pivots about its glyph-box centre, so it is moved by what its drawn extent changed.
+ */
 function refitItemLabel(
     series: SeriesLike,
     textNode: Text<SeriesNodeDatum>,
     room: ItemLabelSource,
     style: FontOptions,
+    turned: boolean,
     isHighlight: boolean,
     activeHighlight: HighlightNodeDatum | undefined
 ) {
     const { datum } = textNode;
     const drawn = datum == null ? undefined : series.drawnItemStroke?.(datum, isHighlight, activeHighlight);
     if (drawn == null || !refitItemLabelRoom(room, drawn.stroke, drawn.strokeWidth, itemLabelRefit)) return;
-    const { text, fontSize = style.fontSize } = fitLabelToContainerAutoSize(room.text, room.fit, style, itemLabelRefit);
+    let glyphRoom: { width: number; height: number } = itemLabelRefit;
+    let before: BoxBounds | undefined;
+    if (turned) {
+        turnedLabelRoom.width = itemLabelRefit.height;
+        turnedLabelRoom.height = itemLabelRefit.width;
+        glyphRoom = turnedLabelRoom;
+        before = textNode.getTextMeasureBBox();
+    }
+    const { text, fontSize = style.fontSize } = fitLabelToContainerAutoSize(room.text, room.fit, style, glyphRoom);
     textNode.text = text;
     textNode.fontSize = fontSize;
     textNode.lineHeight = lineHeightAtSize(style, fontSize);
-    textNode.x += itemLabelRefit.shiftX;
-    textNode.y += itemLabelRefit.shiftY;
+    let { shiftX, shiftY } = itemLabelRefit;
+    if (before != null) {
+        const after = textNode.getTextMeasureBBox();
+        shiftX += turnedEdgeShift(
+            room.anchorX,
+            before.x,
+            before.width,
+            before.height,
+            after.x,
+            after.width,
+            after.height
+        );
+        shiftY += turnedEdgeShift(
+            room.anchorY,
+            before.y,
+            before.height,
+            before.width,
+            after.y,
+            after.height,
+            after.width
+        );
+    }
+    textNode.x += shiftX;
+    textNode.y += shiftY;
+}
+
+/**
+ * How far a quarter-turned label moves along one canvas axis to keep its drawn anchored edge, or its centre, where
+ * it was: its glyph box spans `start` and `size` on that axis before turning, and `extent` across it after.
+ */
+function turnedEdgeShift(
+    anchor: number,
+    start0: number,
+    size0: number,
+    extent0: number,
+    start1: number,
+    size1: number,
+    extent1: number
+): number {
+    return start0 + size0 / 2 - (start1 + size1 / 2) - (anchor * (extent0 - extent1)) / 2;
 }
 
 interface PlacementConfig {
@@ -902,6 +954,8 @@ export interface BarPositionedCandidate<
 > extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
     readonly placement: TPlacement;
+    /** The gap the anchored end keeps from the bar end, any error-bar overhang included. */
+    readonly endSpacing: number;
     /**
      * Inputs {@link createBarPositionedCandidateResolver} rebuilds this candidate from under the style its
      * `itemStyler` resolves there, once the cascade reaches it.
@@ -1131,11 +1185,12 @@ function positionBarLabelCandidate<TPlacement extends string>(
     const width = labelWidth + boxPadding.left + boxPadding.right;
     const height = labelHeight + boxPadding.top + boxPadding.bottom;
     const rotationDeg = orientationAngles[orientation];
+    const endSpacing = barPlacementSpacing(spec.spacing, placement, spec.endOverhang);
     const anchor = adjustLabelPlacement({
         isUpward: spec.isUpward,
         isVertical: spec.isVertical,
         placement,
-        spacing: barPlacementSpacing(spec.spacing, placement, spec.endOverhang),
+        spacing: endSpacing,
         boxPadding,
         rect: spec.rect,
         rotation: toRadians(rotationDeg),
@@ -1154,6 +1209,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         rotation: rotationDeg === 0 ? undefined : rotationDeg,
         anchor,
         placement: reportedPlacement,
+        endSpacing,
         size: style == null ? undefined : { width, height },
         hidden: style?.hidden,
         // An outside candidate floats, so it offers no container and only the label's own
