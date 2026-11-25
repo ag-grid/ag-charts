@@ -1,7 +1,7 @@
 import { toIterable } from '../data/iterators';
 import { clamp } from '../data/numbers';
 import { canRenderTextOffscreen } from '../rendering/canvasUtil';
-import { SceneChangeDetection } from '../rendering/changeDetectable';
+import { DeclaredSceneChangeDetection, SceneChangeDetection } from '../rendering/changeDetectable';
 import { alignBefore } from '../rendering/pixel';
 import type { SerializedGroupProps, SerializedNodeState } from '../types/scene';
 import { BBox } from './bbox';
@@ -133,19 +133,22 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     glowOwner: object | undefined = undefined;
 
     /** Whether the shapes of the group cut their footprint out of the glows of their {@link glowOwner} alone. */
-    @SceneChangeDetection()
-    cutsOwnGlows: boolean = false;
+    @DeclaredSceneChangeDetection()
+    cutsOwnGlows!: boolean;
+    declare __cutsOwnGlows: boolean; // optimised field accessor
 
     /**
      * Whether the shapes of the child groups of a {@link cutsOwnGlows} group cut in its frame, so that a group per datum, such as
      * an error bar, makes none of its own. Those child groups must not transform, clip or fade what they hold, nor cast.
      */
-    @SceneChangeDetection()
-    cutsGroupedShapes: boolean = false;
+    @DeclaredSceneChangeDetection()
+    cutsGroupedShapes!: boolean;
+    declare __cutsGroupedShapes: boolean; // optimised field accessor
 
     /** Whether the groups at or below this one hold the hovered item, whose glows the root casts above its overlay. */
-    @SceneChangeDetection()
-    castsHoveredGlows: boolean = false;
+    @DeclaredSceneChangeDetection()
+    castsHoveredGlows!: boolean;
+    declare __castsHoveredGlows: boolean; // optimised field accessor
 
     /** Whether this group or one above it {@link castsHoveredGlows}, which {@link preRender} sets before the group's counts. */
     private inHoveredLayer = false;
@@ -228,9 +231,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
         this.batchShadows = opts?.batchShadows ?? false;
-        this.cutsOwnGlows = opts?.cutsOwnGlows === true;
-        this.cutsGroupedShapes = opts?.cutsGroupedShapes === true;
-        this.castsHoveredGlows = opts?.castsHoveredGlows === true;
+        // Set without their setters, as a new group is already dirty and a chart can make tens of thousands of groups.
+        this.__cutsOwnGlows = opts?.cutsOwnGlows === true;
+        this.__cutsGroupedShapes = opts?.cutsGroupedShapes === true;
+        this.__castsHoveredGlows = opts?.castsHoveredGlows === true;
         this.shadowRoot = opts?.shadowRoot === true;
         this.glowOverlayZIndex = opts?.shadowRoot === true ? opts.glowOverlayZIndex : undefined;
     }
@@ -549,13 +553,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.dirty) {
             counts = super.preRender(renderCtx, 0);
 
+            // Runs for every dirty group in every frame, so each flag is read once, through its backing field.
             const parent = this.parentNode;
-            this.inHoveredLayer = this.castsHoveredGlows || (parent instanceof Group && parent.inHoveredLayer);
-            const countCasters = this.batchShadows !== false;
-            this.inOwnCuts = this.cutsOwnGlows || (parent instanceof Group && parent.inOwnCuts);
+            const parentGroup = parent instanceof Group ? parent : undefined;
+            this.inHoveredLayer = this.__castsHoveredGlows || parentGroup?.inHoveredLayer === true;
+            this.inOwnCuts = this.__cutsOwnGlows || parentGroup?.inOwnCuts === true;
             const ownCuts = this.inOwnCuts;
-            const shared = this.sharesShadows();
-            const glows = this.sharesGlows();
+            const countCasters = this.batchShadows !== false;
+            const shared = countCasters && this.sharesShadows();
+            const glows = countCasters && this.sharesGlows();
+            const cutsGroupedShapes = this.__cutsGroupedShapes;
             let casters = 0;
             let glowCasters = 0;
             let cuts = 0;
@@ -575,7 +582,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 }
                 // Only a group has groups in its counts, so a datum is not tested. The child groups of a group that cuts their
                 // shapes in its frame do not cast.
-                if (!this.cutsGroupedShapes && childCounts.groups > 0 && child.visible && child instanceof Group) {
+                if (!cutsGroupedShapes && childCounts.groups > 0 && child.visible && child instanceof Group) {
                     sharedBelow += child.getSharedCasterCount();
                 }
             }
@@ -843,10 +850,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the group casts its glows through the overlay of the nearest shadow root, with its shadows batched or not. */
     private sharesGlows(): boolean {
+        const { batchShadows } = this;
         return (
-            this.batchShadows === 'shared' ||
-            this.batchShadows === 'by-layer' ||
-            (this.batchShadows === true && this.inHoveredLayer)
+            batchShadows === 'shared' || batchShadows === 'by-layer' || (batchShadows === true && this.inHoveredLayer)
         );
     }
 
@@ -908,6 +914,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the nearest shadow root covers the group, and if so, whether its cutouts are covered too. */
     private getSharedShadowCover(): ShadowCover | undefined {
+        // A group that batches nothing shares nothing, which is most groups in most renders.
+        if (this.batchShadows === false) return;
         // A group that shares only its glows is covered only where the root holds an overlay, so without one the walk is skipped.
         if (!this.sharesShadows() && !(this.sharesGlows() && this.getSharedCasterCount() > 0)) return;
 

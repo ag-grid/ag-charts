@@ -45,34 +45,29 @@ describe('Caption', () => {
 
     describe('#create', () => {
         describe('text align', () => {
-            it('left', async () => {
+            it.each([
+                ['left', 'left', 'left', 'left'],
+                ['center', 'center', 'center', 'center'],
+                ['right', 'right', 'right', 'right'],
+                ['mixed', 'left', 'center', 'right'],
+            ] as const)('%s', async (_name, titleAlign, subtitleAlign, footnoteAlign) => {
                 const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
+                    title: { text: 'Monthly Sales Report 2023', textAlign: titleAlign, maxWidth: 180 },
+                    subtitle: {
+                        text: 'Region: North America (Values in USD)',
+                        textAlign: subtitleAlign,
+                        maxWidth: 150,
+                    },
+                    footnote: {
+                        text: 'Source: Sales Department Generated on 2023-12-20',
+                        textAlign: footnoteAlign,
+                        maxWidth: 180,
+                    },
                 });
                 await compare(instance);
             });
 
-            it('center', async () => {
-                const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
-                });
-                await compare(instance);
-            });
-
-            it('right', async () => {
-                const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                });
-                await compare(instance);
-            });
-
-            it('mixed', async () => {
+            it('keeps explicit line breaks as authored', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
@@ -248,7 +243,7 @@ describe('Caption', () => {
                 maxWidth: 200,
                 maxHeight: 50,
             });
-            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product…');
+            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product l…');
             await compare(proxy);
             proxy.destroy();
         });
