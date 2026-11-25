@@ -879,6 +879,11 @@ describe('Annotations', () => {
             expect(chart.getState().annotations).toEqual(state);
         });
 
+        const isSelected = () => chartBody().querySelector('button[title="Line Color"]') != null;
+        const numericYAxisWarning = (type: string) => [
+            `AG Charts - Annotation [${type}] can only be used with a numeric y-axis.`,
+        ];
+
         it.each([
             ['string', ['Q1', 'Q2', 'Q3', 'Q4']],
             ['numeric', [1, 2, 3, 4]],
@@ -900,8 +905,8 @@ describe('Annotations', () => {
 
                 await prepareChart({ annotations }, { ...HORIZONTAL_BAR_OPTIONS, data });
                 expectWarningsCalls().toEqual([
-                    ['AG Charts - Annotation [parallel-channel] can only be used with a numeric y-axis.'],
-                    ['AG Charts - Annotation [disjoint-channel] can only be used with a numeric y-axis.'],
+                    numericYAxisWarning('parallel-channel'),
+                    numericYAxisWarning('disjoint-channel'),
                 ]);
                 await compare();
 
@@ -913,11 +918,11 @@ describe('Annotations', () => {
                     });
                 for (const category of [second, third]) {
                     await clickCategory(category);
-                    expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
+                    expect(isSelected()).toBe(false);
                 }
 
                 await clickCategory(first);
-                expect(chartBody().querySelector('button[title="Line Color"]')).not.toBeNull();
+                expect(isSelected()).toBe(true);
 
                 expect(chart.getState().annotations).toMatchObject(annotations);
             }
@@ -933,16 +938,14 @@ describe('Annotations', () => {
             await prepareChart({ annotations: [channel] as AgAnnotation[] }, BAR_SERIES_OPTIONS);
 
             await applyAnnotations([{ ...channel, start: { x: 'Q1', y: 'Q2' }, end: { x: 'Q4', y: 'Q2' } }]);
-            expectWarningsCalls().toEqual([
-                ['AG Charts - Annotation [parallel-channel] can only be used with a numeric y-axis.'],
-            ]);
+            expectWarningsCalls().toEqual([numericYAxisWarning('parallel-channel')]);
             const { x, y } = getSeriesRect(chart);
             await clickAt({
                 x: x + getAxisCoordinate(chart, 'bottom', 'Q2'),
                 y: y + getAxisCoordinate(chart, 'left', 40),
             });
 
-            expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
+            expect(isSelected()).toBe(false);
         });
     });
 
