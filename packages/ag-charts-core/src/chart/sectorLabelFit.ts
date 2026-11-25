@@ -127,22 +127,10 @@ export function fitSectorLabelRect(
     return { centerX, centerY: anchor.y + (down - up) / 2, width, height };
 }
 
-// Radial slack (px) that band and room placement keep from the arcs, so a corner rounded outward still passes
-// the visibility gate; a box held on its anchor is tested as the gate tests it, with no slack.
-const SECTOR_ARC_INSET = 0.75;
 // Two bands whose widths are within this many px count as equally wide, so the tie-break toward the band
 // furthest from the centre decides between them rather than sub-pixel noise.
 const SECTOR_WIDTH_TOLERANCE = 2;
 const BAND_STEPS = 48;
-
-/** Sector shrunk radially by {@link SECTOR_ARC_INSET}, so a box it accepts also clears the drawn arcs. */
-function arcInsetSector(sector: SectorBoundaries): SectorBoundaries {
-    return {
-        ...sector,
-        innerRadius: sector.innerRadius > 0 ? sector.innerRadius + SECTOR_ARC_INSET : 0,
-        outerRadius: Math.abs(sector.outerRadius) - SECTOR_ARC_INSET,
-    };
-}
 
 /** True when a box of `block`'s size centred on `anchor` passes the wedge test the visibility gate applies. */
 function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, { width, height }: BlockSize) {
@@ -156,21 +144,21 @@ function fitsOnAnchor(anchor: Point, sector: SectorBoundaries, { width, height }
  * bind) searched outward from the bisector with {@link isPointInSector}. Seeded from the bisector, so an
  * anchor on the chart's centre has no ray to seed from and must be excluded by the caller.
  */
-function sectorBands(anchor: Point, inset: SectorBoundaries, height: number) {
+function sectorBands(anchor: Point, sector: SectorBoundaries, height: number) {
     const radius = Math.hypot(anchor.x, anchor.y);
     const midCos = anchor.x / radius;
     const midSin = anchor.y / radius;
-    const outer = inset.outerRadius;
+    const outer = sector.outerRadius;
     const halfHeight = height / 2;
     const limit = outer * 2;
-    const { contains: inInset, insideUntil, outsideFrom } = bandTester.reset(inset);
+    const { contains: inWedge, insideUntil, outsideFrom } = bandTester.reset(sector);
     // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
     const edge = (seedX: number, y: number, dir: -1 | 1) =>
         seedX +
         dir *
             furthestInside(
                 limit,
-                (t) => inInset(seedX + dir * t, y),
+                (t) => inWedge(seedX + dir * t, y),
                 insideUntil(seedX, y, dir, 0, limit),
                 outsideFrom(seedX, y, dir, 0, limit)
             );
@@ -186,7 +174,7 @@ function sectorBands(anchor: Point, inset: SectorBoundaries, height: number) {
         let fits = true;
         for (const y of [centerY - halfHeight, centerY + halfHeight]) {
             const seedX = seedAt(y);
-            if (!inInset(seedX, y)) {
+            if (!inWedge(seedX, y)) {
                 fits = false;
                 break;
             }
@@ -222,9 +210,8 @@ export function sectorLabelRoom(anchor: Point, sector: SectorBoundaries, lineHei
         // No bisector to seed the bands from, so the wedge goes unmeasured and no font size is rejected.
         return { area: Infinity, capacityAt: () => Infinity };
     }
-    const inset = arcInsetSector(sector);
-    const { bands } = sectorBands(anchor, inset, lineHeight);
-    const step = (2 * inset.outerRadius) / BAND_STEPS;
+    const { bands } = sectorBands(anchor, sector, lineHeight);
+    const step = (2 * sector.outerRadius) / BAND_STEPS;
     const widest = bands.map((band) => band.width).toSorted((a, b) => b - a);
     return {
         area: widest.reduce((total, width) => total + width * step, 0),
@@ -253,8 +240,7 @@ function centreSectorLabelInBand(
     if (radius < 1e-6) {
         return null;
     }
-    // Probe against arc-inset radii so the chosen box clears the arcs by SECTOR_ARC_INSET on both sides.
-    const { bands, maxWidth } = sectorBands(anchor, arcInsetSector(sector), height);
+    const { bands, maxWidth } = sectorBands(anchor, sector, height);
     if (blockWidth != null) {
         const nearest = nearestBandHolding(bands, anchor, Math.min(blockWidth, maxWidth) - SECTOR_WIDTH_TOLERANCE);
         if (nearest != null) {

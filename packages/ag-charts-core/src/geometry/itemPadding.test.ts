@@ -105,6 +105,16 @@ describe('itemPadding', () => {
             });
         });
 
+        it('leaves the straight edges of a full turn alone, as it has none to move in', () => {
+            const sector = { startAngle: 0, endAngle: 2 * Math.PI, innerRadius: 20, outerRadius: 100 };
+            expect(insetItemSector(sector, 2)).toEqual({
+                startAngle: 0,
+                endAngle: 2 * Math.PI,
+                innerRadius: 22,
+                outerRadius: 98,
+            });
+        });
+
         it('moves the sector it is given rather than allocating another', () => {
             const sector = { startAngle: 0, endAngle: 1, innerRadius: 0, outerRadius: -100 };
             expect(insetItemSector(sector, 2)).toBe(sector);

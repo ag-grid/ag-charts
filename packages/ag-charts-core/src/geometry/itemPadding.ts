@@ -1,6 +1,6 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
-import type { SectorBoundaries } from '../scene/util/sector';
+import { type SectorBoundaries, isFullSweep } from '../scene/util/sector';
 import type { BoxBounds } from './boxBounds';
 import { type FitRegion, insetFitRegion } from './fitRegion';
 
@@ -77,10 +77,10 @@ export function insetItemRegion(region: FitRegion, clearance: ItemLabelClearance
  */
 export function insetItemSector<T extends SectorBoundaries>(sector: T, itemPadding: number): T {
     if (itemPadding === 0) return sector;
-    const { innerRadius, outerRadius, radialEdgeInset = 0 } = sector;
+    const { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset = 0 } = sector;
     if (innerRadius > 0) sector.innerRadius = innerRadius + itemPadding;
     // A sector drawn with a negative radius keeps its sign, and moves in by the same distance.
     sector.outerRadius = Math.sign(outerRadius) * Math.max(0, Math.abs(outerRadius) - itemPadding);
-    sector.radialEdgeInset = radialEdgeInset + itemPadding;
+    if (!isFullSweep(startAngle, endAngle)) sector.radialEdgeInset = radialEdgeInset + itemPadding;
     return sector;
 }

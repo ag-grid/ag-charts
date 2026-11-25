@@ -2395,6 +2395,7 @@ export class DonutSeries extends PolarSeries<
 
     private updateSectorLabelNodes(legendItemValues: string[] | undefined) {
         const { options, sectorLabels } = this;
+        const { itemPadding } = options;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
         const innerRadius = this.radiusScale.convert(0);
@@ -2422,14 +2423,12 @@ export class DonutSeries extends PolarSeries<
                 text.setAlign(label);
                 text.setBoxing(style);
 
-                // A shape-fitted label overhangs its own block box by design, so each line answers for itself.
-                const sectorBounds = {
-                    startAngle,
-                    endAngle,
-                    innerRadius,
-                    outerRadius,
-                    radialEdgeInset: this.getSideInset(datum, 0),
-                };
+                // A shape-fitted label overhangs its own block box by design, so each line answers for itself, held
+                // to the wedge it was fitted to.
+                const sectorBounds = insetItemSector(
+                    { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset: this.getSideInset(datum, 0) },
+                    itemPadding
+                );
                 text.visible = areLineBoxesInSector(text.getLineBoxes(), sectorBounds);
             });
 
