@@ -1,10 +1,12 @@
 import { expect } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
-import { getSeriesNodeData } from './seriesAccessors';
+import { getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
 import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
 
@@ -110,6 +112,28 @@ export function canvasImage(chartOrProxy: ChartOrProxy<any>): { data: Uint8Clamp
     const { canvas } = deproxy(chartOrProxy).ctx.scene;
     const { data } = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
     return { data: new Uint8ClampedArray(data) };
+}
+
+/** The strength of a red cast with no blur, read off its pixel over a white chart: the green channel is 255 * (1 - strength). */
+export const strengthOfRed = (pixel: ArrayLike<number>) => 1 - pixel[1] / 255;
+
+/** The strength that most of the red pixels with equal green and blue in RGBA `data` are cast at, as the edge of a cast is antialiased. */
+export function dominantRedStrength(data: ArrayLike<number>) {
+    const greens = new Map<number, number>();
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i] === 255 && data[i + 1] === data[i + 2] && data[i + 1] < 255) {
+            greens.set(data[i + 1], (greens.get(data[i + 1]) ?? 0) + 1);
+        }
+    }
+    const [[green]] = [...greens].sort(([, a], [, b]) => b - a);
+    return strengthOfRed([255, green, green]);
+}
+
+/** The visible items of the first datum selection of a chart, in canvas coordinates. */
+export function visibleItems(chartOrProxy: ChartOrProxy<any>) {
+    return getSeriesSelectionNodes<Node>(deproxy(chartOrProxy), 'datumSelection')
+        .filter((n) => n.visible)
+        .map((n) => Transformable.toCanvas(n));
 }
 
 /** Raises the highlight on a datum, as the pointer would. */
