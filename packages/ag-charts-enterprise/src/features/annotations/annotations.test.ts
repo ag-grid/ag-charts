@@ -2515,16 +2515,16 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The labels take the line colour and the shading the background, or the line colour where there is none.
+        // The labels and shading keep their own colours whatever the annotation's, so that they stay legible.
         // Each case is snapshotted, as one annotation is selected at a time.
         const selectedCases: Array<{ name: string; annotation: AgAnnotation; body: { x: number; y: number } }> = [
             {
-                name: 'a line that follows its line colour',
-                annotation: { ...LINE, stroke: RED },
+                name: 'a line with a white stroke',
+                annotation: { ...LINE, stroke: '#ffffff' },
                 body: LINE_BODY,
             },
             {
-                name: 'a line that yields to the fills set on its axis label and shading',
+                name: 'a line with the fills set on its axis label and shading',
                 annotation: {
                     ...LINE,
                     stroke: RED,
@@ -2534,7 +2534,7 @@ describe('Annotations', () => {
                 body: LINE_BODY,
             },
             {
-                name: 'a parallel channel that labels with its line colour and shades with its background',
+                name: 'a parallel channel with its own stroke and background',
                 // Its four corners are labelled, not the middle handles that only move an edge.
                 annotation: { ...PARALLEL_CHANNEL, stroke: RED, background: { fill: BLUE, fillOpacity: 0.3 } },
                 body: CHANNEL_BODY,
@@ -2552,7 +2552,7 @@ describe('Annotations', () => {
                 body: CHANNEL_BODY,
             },
             {
-                name: 'a Fibonacci retracement that follows its range stroke',
+                name: 'a Fibonacci retracement with its own range stroke',
                 annotation: { type: 'fibonacci-retracement', start: START, end: END, rangeStroke: GREEN },
                 // On the 0.5 level, which is drawn between the two x positions.
                 body: LINE_BODY,
@@ -2563,24 +2563,13 @@ describe('Annotations', () => {
                 body: LINE_BODY,
             },
             {
-                name: 'a quick range measuring up that follows its up styles',
+                name: 'a quick range with its own up styles',
                 annotation: {
                     type: 'quick-date-price-range',
                     start: START,
                     end: END,
                     up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
                     down: { stroke: BLUE, fill: BLUE, fillOpacity: 0.1 },
-                },
-                body: LINE_BODY,
-            },
-            {
-                name: 'a quick range measuring down that follows its down styles',
-                annotation: {
-                    type: 'quick-date-price-range',
-                    start: END,
-                    end: START,
-                    up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
-                    down: { stroke: BLUE, fill: GREEN, fillOpacity: 0.1 },
                 },
                 body: LINE_BODY,
             },

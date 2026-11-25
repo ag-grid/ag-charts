@@ -46,7 +46,7 @@ const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as co
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel, background.fillOpacity),
+    ...selectionAxes(axisLabel),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'annotationColor' },
     handle: { ...handle },
@@ -72,7 +72,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(axisLabel, background.fillOpacity),
+        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -148,7 +148,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(axisLabel, background.fillOpacity),
+        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },

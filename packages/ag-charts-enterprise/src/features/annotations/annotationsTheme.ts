@@ -97,16 +97,16 @@ export const QUICK_MEASURER_DIVIDER_THEME = { stroke: '#fff', strokeWidth: 1, st
 
 const background = { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.075 } as const;
 
-// The labels and shading take the annotation's colours. A line has no fill to shade with, so it passes the opacity.
-export const selectionAxes = (label: WithThemeParams<AgAnnotationAxisLabel>, shadingOpacity?: number) =>
+// The labels and shading do not follow the annotation's colours, as the axis labels of a horizontal or vertical line.
+export const selectionAxes = (label: WithThemeParams<AgAnnotationAxisLabel>) =>
     ({
-        axisLabel: { ...label, fill: undefined },
-        axisShading: { enabled: true, fillOpacity: shadingOpacity },
+        axisLabel: { ...label },
+        axisShading: { enabled: true, fill: { $ref: 'foregroundColor' }, fillOpacity: background.fillOpacity },
     }) as const;
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel, background.fillOpacity),
+    ...selectionAxes(axisLabel),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'foregroundColor' },
     handle: { ...handle },
@@ -222,7 +222,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(axisLabel, background.fillOpacity),
+        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -302,7 +302,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(axisLabel, background.fillOpacity),
+        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
