@@ -1,8 +1,7 @@
-import type { Logger } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { type ChannelMiddleDatum, createChannelMiddleDatum, defineAnnotationDatum } from '../annotationDatum';
-import { AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import {
     type ChannelTypeDatum,
     createChannelTypeDatum,
@@ -26,6 +25,6 @@ export const parallelChannelDatum = defineAnnotationDatum<ParallelChannelDatum>(
     }
 );
 
-export function getParallelChannelBottom(datum: ParallelChannelDatum, logger: Logger) {
-    return getChannelBottom(datum, datum.height, datum.height, logger);
+export function getParallelChannelBottom(datum: ParallelChannelDatum, context: AnnotationContext) {
+    return getChannelBottom(datum, datum.height, datum.height, context);
 }

@@ -27,7 +27,20 @@ const { DraggablePopover } = _ModuleSupport;
 
 const MULTI_COLOR_CLASS = 'ag-charts-dialog__color-picker-button--multi-color';
 
-export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
+function toColorWithOpacity(color: string, opacity: number | undefined) {
+    const { r, g, b } = Color.fromString(color);
+    return new Color(r, g, b, opacity).toHexString();
+}
+
+export type DialogCloseOutcome = 'applied' | 'cancelled' | 'unchanged';
+
+export interface DialogOptions extends _ModuleSupport.PopoverOptions {
+    /**
+     * Whether the dialog, and the colour pickers in it, show Apply and Cancel buttons. Closing the dialog any other way
+     * than Apply counts as Cancel.
+     */
+    showActionButtons?: boolean;
+}
 
 interface RadioGroupOptions<T extends string> {
     label: string;
@@ -98,6 +111,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchor?: Widget;
     private colorPickerButtonMouseDown?: Event;
     private seriesRect?: BBox;
+    private applyButton?: InputButtonWidget;
+
+    /** Whether Apply and Cancel buttons are shown, as set by the options of the current show. */
+    private showActionButtons = false;
+    /** Whether the dialog is closing through Apply. */
+    private applied = false;
+    /** Whether anything has changed since the dialog opened. */
+    private changed = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id: string) {
         super(ctx, id);
@@ -105,6 +126,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected override showWithChildren(children: Widget[], options: Options): ContainerWidget {
+        this.showActionButtons = options.showActionButtons ?? false;
+        this.applied = false;
+        this.changed = false;
+        this.applyButton = undefined;
+        if (this.showActionButtons) {
+            children = [...children, this.createActionButtons()];
+        }
         const popover = super.showWithChildren(children, options);
         popover.addClass('ag-charts-dialog');
         popover.setAriaRole('dialog');
@@ -135,6 +163,24 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         if (!anchor) return;
 
         this.colorPicker.setAnchor(anchor, fallbackAnchor);
+    }
+
+    /** Closes the dialog, keeping the changes made since it opened. */
+    public apply() {
+        this.applied = true;
+        this.hide();
+    }
+
+    /** Enables the Apply button, once there is a change to apply. */
+    public markChanged() {
+        this.changed = true;
+        this.applyButton?.setEnabled(true);
+    }
+
+    /** How the dialog closed, which is `unchanged` when there was nothing to apply or cancel. */
+    protected get closeOutcome(): DialogCloseOutcome {
+        if (!this.changed) return 'unchanged';
+        return this.applied ? 'applied' : 'cancelled';
     }
 
     /**************
@@ -321,6 +367,27 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
+    private createActionButtons() {
+        const { localeManager } = this.ctx;
+        const actions = new ContainerWidget('ag-charts-dialog__actions');
+        const cancelButton = new InputButtonWidget(
+            { label: localeManager.t('annotationsCancel') },
+            'ag-charts-dialog__cancel-button'
+        );
+        const applyButton = new InputButtonWidget(
+            { label: localeManager.t('annotationsApply') },
+            'ag-charts-dialog__apply-button'
+        );
+        // There is nothing to apply until something changes.
+        applyButton.setEnabled(false);
+        cancelButton.addListener('click', () => this.hide());
+        applyButton.addListener('click', () => this.apply());
+        actions.addChild(cancelButton);
+        actions.addChild(applyButton);
+        this.applyButton = applyButton;
+        return actions;
+    }
+
     protected createColorPicker({
         color,
         opacity,
@@ -334,8 +401,15 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
+        // The colour the picker opens with, which changes as the user picks.
+        const current = { color, opacity, isMultiColor };
         const colorEl = new InputButtonWidget({ label: altTextT }, 'ag-charts-dialog__color-picker-button');
         colorEl.setAriaLabel(altTextT);
+        const paintSwatch = (swatchColor?: string, swatchOpacity?: number, multi?: boolean) => {
+            const hasColor = !multi && swatchColor != null && swatchColor !== '';
+            colorEl.setCSSVariable('--color', hasColor ? toColorWithOpacity(swatchColor, swatchOpacity) : null);
+            colorEl.toggleClass(MULTI_COLOR_CLASS, !!multi);
+        };
         colorEl.setTabIndex(0);
         colorEl.setTitle(altTextT);
         colorEl.addListener('mousedown', ({ sourceEvent }) => {
@@ -345,43 +419,56 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
-            // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
-            // eslint-disable-next-line aglint/widget-boundary -- reads back the swatch's CSS variable and class; Widget only sets them.
-            const swatchEl = colorEl.getElement();
-            const swatch = {
-                color: swatchEl.style.getPropertyValue('--color'),
-                isMultiColor: swatchEl.classList.contains(MULTI_COLOR_CLASS),
+            const opening = { ...current };
+            let settled = { ...opening };
+            let opened = false;
+            const changeColor = (
+                newColorOpacity: string,
+                newColor: string,
+                newOpacity: number,
+                newIsMultiColor: boolean,
+                restoring = false
+            ) => {
+                current.color = newColor;
+                current.opacity = newOpacity;
+                current.isMultiColor = newIsMultiColor;
+                colorEl.setCSSVariable('--color', newColorOpacity);
+                colorEl.toggleClass(MULTI_COLOR_CLASS, newIsMultiColor);
+                onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
+                // The picker reports a default colour as it opens, and a cancel puts the colour back; neither is an edit.
+                if (opened && !restoring) this.markChanged();
             };
             this.colorPicker.show({
                 anchor,
                 fallbackAnchor,
-                color,
-                opacity,
-                isMultiColor,
+                color: opening.color,
+                opacity: opening.opacity,
+                isMultiColor: opening.isMultiColor,
                 hasMultiColorOption,
+                showActionButtons: this.showActionButtons,
                 sourceEvent,
-                onChange: (newColorOpacity: string, newColor: string, newOpacity: number, newIsMultiColor: boolean) => {
-                    colorEl.setCSSVariable('--color', newColorOpacity);
-                    colorEl.toggleClass(MULTI_COLOR_CLASS, newIsMultiColor);
-                    onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
-                },
+                onChange: (...args) => changeColor(...args),
                 onChangeHide: (cancelled) => {
+                    if (cancelled && this.showActionButtons) {
+                        // The dialog holds back its history until Apply, so there is no record to revert to. Put the
+                        // colour back to what the picker settled on as it opened, leaving the dialog's other changes alone.
+                        const { color: c = '', opacity: o = 1, isMultiColor: m = false } = settled;
+                        if (c !== '') changeColor(toColorWithOpacity(c, o), c, o, m, true);
+                        return;
+                    }
                     if (cancelled) {
-                        colorEl.setCSSVariable('--color', swatch.color === '' ? null : swatch.color);
-                        colorEl.toggleClass(MULTI_COLOR_CLASS, swatch.isMultiColor);
+                        // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
+                        paintSwatch(opening.color, opening.opacity, opening.isMultiColor);
                     }
                     onChangeHide(cancelled);
                 },
             });
+            // A colour that was unset has been given the picker's default by now.
+            settled = { ...current };
+            opened = true;
         });
 
-        if (isMultiColor) {
-            colorEl.addClass(MULTI_COLOR_CLASS);
-        } else if (color != null && color !== '') {
-            const hex = Color.fromString(color);
-            const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
-            colorEl.setCSSVariable('--color', hexWithOpacity.toHexString());
-        }
+        paintSwatch(color, opacity, isMultiColor);
 
         group.addChild(colorEl);
 
@@ -419,8 +506,22 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     private onKeyDown(event: KeyboardEvent) {
-        if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing || event.key !== 'Escape') return;
-        this.hide();
+        // A colour picker handles its own Enter and Escape, and prevents their default.
+        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+
+        if (event.key === 'Escape') {
+            this.hide();
+        } else if (event.key === 'Enter' && this.showActionButtons) {
+            // A button, select or text area already does something with Enter.
+            const tagName = (event.target as Element | null)?.tagName;
+            if (tagName === 'BUTTON' || tagName === 'SELECT' || tagName === 'TEXTAREA') return;
+
+            // Commit the field being edited before it closes with the dialog.
+            (this.ctx.agDocument.document.activeElement as HTMLElement | null)?.blur();
+            this.apply();
+            // Closing returns focus to the toolbar button, which the Enter keypress would otherwise press.
+            event.preventDefault();
+        }
     }
 
     private reposition() {

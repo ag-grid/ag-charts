@@ -92,7 +92,7 @@ type ActionEvents = {
     lineStyle: AnnotationLineStyle;
     lineText: LinearSettingsDialogTextChangeProps;
     textContent: string;
-    toolbarPressSettings: Event;
+    toolbarPressSettings: { sourceEvent: Event; textInputValue?: string; bbox?: BBox };
     updateTextInputBBox: BBox | undefined;
 };
 
@@ -102,6 +102,7 @@ type DataEvents = {
     deleteAll: undefined;
     reset: undefined;
     selectLast: undefined;
+    selectWithKeyboard: number;
 };
 
 type ProcessEvents = {
