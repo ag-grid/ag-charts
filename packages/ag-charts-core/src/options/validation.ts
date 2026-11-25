@@ -27,6 +27,7 @@ const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
 const deprecatedSymbol = Symbol('deprecated');
 const enterpriseSymbol = Symbol('enterprise');
+const themeComputedSymbol = Symbol('themeComputed');
 export const unionSymbol = Symbol('union');
 
 // Memoised Object.keys per OptionsDefs node. WeakMap avoids mutating (and thus
@@ -65,6 +66,7 @@ type PrivateSymbols = {
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
     [enterpriseSymbol]?: boolean;
+    [themeComputedSymbol]?: boolean;
     [deprecatedSymbol]?: string;
     [unionSymbol]?: string;
 };
@@ -110,7 +112,8 @@ export interface ValidateParams {
      * When true, validators that emit advisory warnings (e.g. `deprecated()`) should stay silent.
      * Used during post-theme passes where the values originate from theme expansion rather than
      * the user — emitting a deprecation warning for a theme-injected value would be a false
-     * positive.
+     * positive. It also admits the keys that `themeComputed` rejects from user input, so a pass over
+     * user input must not set it.
      */
     silentAdvisories?: boolean;
     /** Accept a theme operator (`{ $op: ... }`) wherever a value is expected, as theme templates and overrides may. */
@@ -316,7 +319,11 @@ export function validate<T>(
             if (!required || optionsDisabled) continue;
         }
 
-        if (params.themeOperators && isThemeOperator(value)) {
+        if (
+            params.themeOperators &&
+            isThemeOperator(value) &&
+            !(validatorOrDefs[themeComputedSymbol] && !params.silentAdvisories)
+        ) {
             cleared[key as keyof T] = value;
             continue;
         }
@@ -446,7 +453,11 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
         isFunction(validatorOrDefs)
             ? (value: unknown, context: any) => validatorOrDefs(value, context)
             : optionsDefs(validatorOrDefs),
-        { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
+        {
+            [undocumentedSymbol]: true,
+            [descriptionSymbol]: validatorOrDefs[descriptionSymbol],
+            [themeComputedSymbol]: validatorOrDefs[themeComputedSymbol],
+        }
     ) as T;
 }
 
@@ -455,12 +466,13 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
  * option, so that a user cannot set what the theme alone computes.
  */
 export function themeComputed(key: string, validator: Validator): Validator {
-    return attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+    const computed = attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
         if (context.params.silentAdvisories) return validator(value, context);
 
         const parentPath = context.path.slice(0, Math.max(0, context.path.length - key.length - 1));
         return { valid: false, cleared: null, invalid: [new UnknownError([], value, parentPath, key)] };
     }, validator[descriptionSymbol] ?? 'a value');
+    return Object.assign(computed, { [themeComputedSymbol]: true });
 }
 
 /** Spread inside a defs literal for keys absent from its options type; typed as empty so the literal type-checks. */

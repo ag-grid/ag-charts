@@ -155,18 +155,18 @@ const ITEM_GLOW_INDEX = 1;
 type StylerShadow = Readonly<Omit<NormalisedDropShadowOptions, 'color'>>;
 
 /**
- * The overrides of a shadow that sets some of its fields: a `fill` alone is opaque, and `_fillOpacitySet` follows
- * `fillOpacity`. With the `cascaded` shadow that it is merged over, a `fillOpacity` equal to the cascaded one keeps
- * the cascaded flag, so that a styler can return, or spread, the shadow it was given.
+ * The overrides of a shadow that sets some of its fields: a `fill` alone is opaque, and a `fillOpacity` of its own is set.
+ * One equal to that of an enabled `cascaded`, the shadow a styler was given, keeps the flag of `cascaded`.
  */
 function shadowOverrides<T extends { enabled?: boolean; fill?: unknown; fillOpacity?: number }>(
     shadow: T,
-    cascaded?: Pick<NormalisedDropShadowOptions, 'fillOpacity' | '_fillOpacitySet'>
+    cascaded?: Pick<NormalisedDropShadowOptions, 'enabled' | 'fillOpacity' | '_fillOpacitySet'>
 ) {
     let _fillOpacitySet: boolean | undefined;
     if (shadow.fillOpacity != null) {
-        // Written as `false`, not left unset, as the base that the theme resolves for a styler's `fillOpacity` is set.
-        _fillOpacitySet = shadow.fillOpacity === cascaded?.fillOpacity ? (cascaded._fillOpacitySet ?? false) : true;
+        const given = cascaded?.enabled === true && shadow.fillOpacity === cascaded.fillOpacity;
+        // Not left unset, as the base that the theme resolves for a styler's `fillOpacity` is set.
+        _fillOpacitySet = given ? (cascaded._fillOpacitySet ?? false) : true;
     } else if (shadow.fill != null) {
         _fillOpacitySet = false;
     }
@@ -1267,10 +1267,9 @@ export abstract class Series<
     private stylerShadows?: WeakMap<NormalisedDropShadowOptions, StylerShadow>;
 
     /**
-     * The `shadow` for an item styler's params: unset where it casts none, and with no deprecated `color`, which the
-     * `shadow` that a styler returns cannot have, so that a styler can return, or spread, what it was given. It has no
-     * `_fillOpacitySet` either: {@link mergeItemShadow} takes it from the shadow cast with no styler. It is the shadow
-     * itself where it has none of those, and one cached copy of it otherwise, so nothing is allocated per item.
+     * The `shadow` for an item styler's params: unset where it casts none, and with no deprecated `color` or
+     * `_fillOpacitySet`, so that a styler can return, or spread, what it was given. It is the shadow itself where it has
+     * neither, and one cached copy of it otherwise, so nothing is allocated per item.
      */
     protected toStylerShadow(shadow: NormalisedDropShadowOptions | undefined): StylerShadow | undefined {
         if (!shadow?.enabled) return undefined;
@@ -1548,8 +1547,8 @@ export abstract class Series<
     }
 
     /**
-     * A styler's `shadow` over `cascaded`, over the series' and theme's `shadow`; a `fill` alone is opaque. Its `fillOpacity`
-     * casts at its own alpha unless it equals that of `cascaded`, which a styler that returns or spreads its `shadow` does.
+     * A styler's `shadow` over `cascaded`, over the series' and theme's `shadow`; a `fill` alone is opaque. A `fillOpacity`
+     * equal to that of the `cascaded` shadow it was given keeps the flag of `cascaded`; any other casts at its own alpha.
      */
     protected mergeItemShadow(
         cascaded: NormalisedDropShadowOptions | undefined,

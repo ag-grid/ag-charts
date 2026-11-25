@@ -69,6 +69,18 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         shadow: (fillOpacity?: number) => ({ shadow: { ...SHADOW, fillOpacity } }),
     };
 
+    // The theme's black shadow at its unset fillOpacity of 0.5, so the red channel is what it takes away.
+    const THEME_SHADOW = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
+    const shadowStrength = ([red]: number[]) => 1 - red / 255;
+
+    const hoveredCast = (series: object, highlightedItem: object) =>
+        castBeside(
+            { fillOpacity: 0.5, ...series, highlight: { unhighlightedItem: { opacity: 1 }, highlightedItem } },
+            {},
+            undefined,
+            true
+        );
+
     describe('with a fillOpacity of 1 set, on bars at a fillOpacity of 0.5', () => {
         it.each(['glow', 'shadow'] as const)('should cast the %s as it casts it on opaque bars', async (name) => {
             const opaque = await castBeside({ ...CASTS[name](1), fillOpacity: 1 });
@@ -134,15 +146,6 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
     });
 
     describe('from the shadow of the highlightedItem, on the hovered bar at a fillOpacity of 0.5', () => {
-        const hoveredCast = (series: object, highlightedItem: object) =>
-            castBeside(
-                { fillOpacity: 0.5, ...series, highlight: { unhighlightedItem: { opacity: 1 }, highlightedItem } },
-                {},
-                undefined,
-                true
-            );
-        const THEME_SHADOW = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
-
         it('should cast a fillOpacity of the bucket as set, over a shadow with the fillOpacity of the theme', async () => {
             const [red] = await hoveredCast({ shadow: THEME_SHADOW }, { shadow: { fillOpacity: 1 } });
 
@@ -187,10 +190,6 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
     });
 
     describe('from an itemStyler that returns or spreads the shadow or glow it was given', () => {
-        // The theme's black shadow at its unset fillOpacity of 0.5, so the red channel is what it takes away.
-        const THEME_SHADOW = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
-        const shadowStrength = ([red]: number[]) => 1 - red / 255;
-
         type Styler = (given: { shadow?: object; glow?: object }) => object | undefined;
         const SHADOW_STYLERS: Record<string, Styler | undefined> = {
             'no styler': undefined,
@@ -241,23 +240,22 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
 
         it('should cast the shadow of the highlightedItem on the hovered bar as it does with no styler', async () => {
             const hovered = (itemStyler: Styler | undefined) =>
-                castBeside(
-                    {
-                        shadow: THEME_SHADOW,
-                        fillOpacity: 0.5,
-                        itemStyler,
-                        highlight: { unhighlightedItem: { opacity: 1 }, highlightedItem: { shadow: { xOffset: 20 } } },
-                    },
-                    {},
-                    undefined,
-                    true
-                );
+                hoveredCast({ shadow: THEME_SHADOW, itemStyler }, { shadow: { xOffset: 20 } });
             const unstyled = await hovered(undefined);
 
             expect(shadowStrength(unstyled)).toBeCloseTo(0.25, 1);
             expect(await hovered(SHADOW_STYLERS['returns the shadow'])).toEqual(unstyled);
             expect(await hovered(SHADOW_STYLERS['spreads the shadow'])).toEqual(unstyled);
         });
+
+        it.each([0.5, 0.6])(
+            'should cast a shadow that the styler enables at a fillOpacity of %s at that value, given no shadow',
+            async (fillOpacity) => {
+                const itemStyler = () => ({ shadow: { ...THEME_SHADOW, fillOpacity } });
+
+                expect(shadowStrength(await castBeside({ fillOpacity: 0.5, itemStyler }))).toBeCloseTo(fillOpacity, 1);
+            }
+        );
 
         // A glow always casts at its own alpha, whatever flag its shadow carries, so a styler cannot change its strength.
         it.each([
@@ -273,49 +271,39 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
     });
 
     describe('with the flag that the theme computes, set in user options', () => {
-        const THEME_SHADOW = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
         const KEYS = ['_fillOpacitySet', 'fillOpacitySet'];
-        // The theme's black shadow at 0.5 x the 0.5 of the bars, which the flag would cast at the shadow's own 0.5.
-        const UNSET_CAST = 255 * (1 - 0.25);
+        // 0.5 x the 0.5 of the bars, where the flag would cast at the shadow's own 0.5.
+        const UNSET_CAST = 0.25;
 
         const expectDroppedWith = (key: string) => {
             expectWarningsCalls().toEqual([[expect.stringContaining(key)]]);
         };
 
         it.each(KEYS)('should drop %s from the shadow of the series, and cast as without it', async (key) => {
-            const red = (await castBeside({ shadow: { ...THEME_SHADOW, [key]: true }, fillOpacity: 0.5 }))[0];
+            const cast = await castBeside({ shadow: { ...THEME_SHADOW, [key]: true }, fillOpacity: 0.5 });
 
-            expect(red).toBeCloseTo(UNSET_CAST, -1);
+            expect(shadowStrength(cast)).toBeCloseTo(UNSET_CAST, 1);
             expectDroppedWith(key);
         });
 
-        it('should drop it from a theme override, and cast as without it', async () => {
-            const theme = { overrides: { bar: { series: { shadow: { _fillOpacitySet: true } } } } };
-            const red = (await castBeside({ shadow: THEME_SHADOW, fillOpacity: 0.5 }, { theme }))[0];
+        it.each([
+            ['a value', true],
+            ['a theme operator', { $path: './enabled' }],
+        ])('should drop it from a theme override with %s, and cast as without it', async (_name, value) => {
+            const theme = { overrides: { bar: { series: { shadow: { _fillOpacitySet: value } } } } };
+            const cast = await castBeside({ shadow: THEME_SHADOW, fillOpacity: 0.5 }, { theme });
 
-            expect(red).toBeCloseTo(UNSET_CAST, -1);
+            expect(shadowStrength(cast)).toBeCloseTo(UNSET_CAST, 1);
             expectDroppedWith('_fillOpacitySet');
         });
 
         it('should drop it from the shadow of the highlightedItem, and cast as without it', async () => {
             const hovered = (bucket: object) =>
-                castBeside(
-                    {
-                        shadow: THEME_SHADOW,
-                        fillOpacity: 0.5,
-                        highlight: {
-                            unhighlightedItem: { opacity: 1 },
-                            highlightedItem: { shadow: { xOffset: 20, ...bucket } },
-                        },
-                    },
-                    {},
-                    undefined,
-                    true
-                );
+                hoveredCast({ shadow: THEME_SHADOW }, { shadow: { xOffset: 20, ...bucket } });
             const without = await hovered({});
             const flagged = await hovered({ _fillOpacitySet: true });
 
-            expect(without[0]).toBeCloseTo(UNSET_CAST, -1);
+            expect(shadowStrength(without)).toBeCloseTo(UNSET_CAST, 1);
             expect(flagged).toEqual(without);
             expectDroppedWith('_fillOpacitySet');
         });

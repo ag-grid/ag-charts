@@ -122,7 +122,8 @@ function checkPlacements(defs: ReturnType<typeof themeOptionsDefFor>, placements
     const errors: string[] = [];
     for (const [label, overrides] of placements) {
         checked.push(label);
-        const { invalid } = validate({ overrides }, defs, 'theme', { logger });
+        // The templates are the library's own, so keys that the theme computes are valid in them.
+        const { invalid } = validate({ overrides }, defs, 'theme', { logger, silentAdvisories: true });
         for (const error of invalid) errors.push(`${label}: ${String(error)}`);
     }
     return { checked, errors };
