@@ -627,7 +627,11 @@ export class Annotations extends AbstractModuleInstance {
                 this.reset();
             }),
             optionsToolbar.events.on('pressed-settings', ({ sourceEvent }) => {
-                this.state.transition('toolbarPressSettings', sourceEvent);
+                this.state.transition('toolbarPressSettings', {
+                    sourceEvent,
+                    textInputValue: this.textInput.getValue(),
+                    bbox: this.textInput.getBBox(),
+                });
             }),
             optionsToolbar.events.on('pressed-lock', ({ locked }) => {
                 this.recordActionAfterNextUpdate(locked ? 'Locked' : 'Unlocked');

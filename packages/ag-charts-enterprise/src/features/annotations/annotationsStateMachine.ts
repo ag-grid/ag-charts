@@ -160,6 +160,9 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
     protected node?: AnnotationScene;
 
+    /** Set while the text input closes for a press of Settings, so the annotation stays selected under the dialog. */
+    private keepsSelectionOnTextInputExit = false;
+
     override inheritedProperties() {
         return ANNOTATIONS_MAIN_STATE_MACHINE_INHERITED_PROPERTIES;
     }
@@ -472,7 +475,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 toolbarPressSettings: {
                     guard: guardActiveHasSettings,
-                    action: (sourceEvent: Event) => {
+                    action: ({ sourceEvent }: { sourceEvent: Event }) => {
                         ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
                 },
@@ -603,14 +606,37 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     action: actionCancel,
                 },
 
+                // Saves the text and opens the dialog on the same annotation, as pressing it outside editing does.
+                toolbarPressSettings: {
+                    guard: guardActiveHasSettings,
+                    target: States.Idle,
+                    action: ({
+                        sourceEvent,
+                        ...saved
+                    }: {
+                        sourceEvent: Event;
+                        textInputValue?: string;
+                        bbox?: BBox;
+                    }) => {
+                        actionSaveText(saved);
+                        // Saving empty text deletes the annotation, which leaves nothing to open the dialog on.
+                        if (this.active == null) return;
+                        this.keepsSelectionOnTextInputExit = true;
+                        ctx.showAnnotationSettings(this.active, sourceEvent);
+                    },
+                },
+
                 onExit: () => {
                     ctx.stopInteracting();
                     ctx.hideTextInput();
 
                     const wasActive = this.active;
-                    this.hovered = undefined;
-                    this.updateActive(undefined);
-                    ctx.select(this.active, wasActive);
+                    if (!this.keepsSelectionOnTextInputExit) {
+                        this.hovered = undefined;
+                        this.updateActive(undefined);
+                        ctx.select(this.active, wasActive);
+                    }
+                    this.keepsSelectionOnTextInputExit = false;
 
                     if (wasActive == null) return;
 

@@ -1639,6 +1639,7 @@ describe('Annotations', () => {
             return { x: point.x + 5, y: point.y - 5 };
         };
 
+        const SETTINGS_ACTIVE = 'ag-charts-toolbar__button--active';
         const tabNames = () =>
             Array.from(chartBody().querySelectorAll('.ag-charts-dialog__tab-button'), (button) => button.textContent);
         const activePanel = () => chartBody().querySelector<HTMLElement>('.ag-charts-dialog__tab-panel--active')!;
@@ -1804,6 +1805,37 @@ describe('Annotations', () => {
             await waitForChartStability(chart);
             expect(chartBody().querySelector('.ag-charts-text-input__textarea')).not.toBeNull();
             expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+        });
+
+        it('saves the text being edited in place and opens the dialog from the options toolbar', async () => {
+            const edited = families.slice(0, 2);
+            await prepareChart({ annotations: edited.map(({ annotation }) => annotation) });
+
+            for (const [index, { at, tabs }] of edited.entries()) {
+                const { type } = families[index].annotation;
+                const point = pointOn(...at);
+                await clickAt(point);
+                await clickAt(point); // starts editing the text in place
+                const textArea = chartBody().querySelector<HTMLElement>('.ag-charts-text-input__textarea')!;
+                expect(textArea, type).not.toBeNull();
+                textArea.innerText = `Typed ${type}`;
+                textArea.dispatchEvent(new Event('input'));
+                await waitForChartStability(chart);
+
+                await press('button[title="Settings"]');
+
+                expect(chartBody().querySelector('.ag-charts-text-input__textarea'), type).toBeNull();
+                expect(tabNames(), type).toEqual(tabs);
+                expect(activePanel().querySelector('textarea')!.value, type).toBe(`Typed ${type}`);
+                expect(chart.getState().annotations?.[index], type).toMatchObject({ type, text: `Typed ${type}` });
+                expect(
+                    chartBody().querySelector('button[title="Settings"]')?.classList.contains(SETTINGS_ACTIVE),
+                    type
+                ).toBe(true);
+                if (index < edited.length - 1) await press('.ag-charts-dialog__close-button');
+            }
+
+            await compare();
         });
 
         it('keeps cleared text as a draft while the dialog is open and deletes the annotation when it closes empty', async () => {
