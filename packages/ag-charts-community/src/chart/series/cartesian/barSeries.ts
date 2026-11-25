@@ -3,6 +3,7 @@ import type {
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
+    ItemLabelSource,
     LabelFit,
     Mutable,
     NormalisedBarSeriesOptions,
@@ -49,6 +50,7 @@ import {
     isContinuous,
     isFiniteNumber,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     maxValue,
     measureLabelText,
@@ -71,6 +73,7 @@ import type {
     PaddingOptions,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { ChartAxis } from '../../chartAxis';
@@ -102,6 +105,7 @@ import {
     createBarCandidateStyleResolver,
     createBarPositionedCandidateResolver,
     fitLabelToContainerAutoSize,
+    insideBarAnchorSpacing,
     insideBarLabelBounds,
     pickPlacementStyle,
     styledBarLabelBox,
@@ -153,6 +157,8 @@ interface BarNodeLabelDatum {
     fittedText?: NormalisedTextOrSegments;
     /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
     fittedFontSize?: number;
+    /** The room an inside label was fitted into, for a state drawing another stroke to re-fit it. */
+    itemRoom?: ItemLabelSource;
     // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
     x: number;
     y: number;
@@ -1251,7 +1257,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isUpward,
                 isVertical: !ctx.barAlongX,
                 placement,
-                spacing,
+                spacing: insideBarAnchorSpacing(placement ?? 'inside-center', spacing, ctx.itemPadding),
                 boxPadding: ctx.boxPadding,
                 rect,
                 rotation,
@@ -1990,6 +1996,25 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         opts.datumSelection.each(updateDatumNode);
     }
 
+    drawnItemStroke(
+        datum: BarNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): NormalisedBarSeriesStyle | undefined {
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
+        // Mirrors the style `updateDatumNode` draws the bar with; the highlight copy restyles its own datum.
+        if (isHighlight) {
+            return this.getItemStyle(
+                datum.datumIndex,
+                true,
+                highlightState,
+                this.getDataSelectionState(datum.datumIndex),
+                this.getDataCandidacyState(datum.datumIndex)
+            );
+        }
+        return datum.style ?? this.contextNodeData?.styles[highlightState ?? HighlightState.None];
+    }
+
     getLabelObstacles() {
         const nodeData = this.contextNodeData?.nodeData;
         const obstacles = barLabelObstaclesFor(
@@ -2088,7 +2113,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, stroke, strokeWidth, label } = this.options;
+        const insets = this.restylesItemStrokes()
+            ? itemLabelInsets(itemPadding, stroke, strokeWidth, label.spacing)
+            : undefined;
+        applyBarLabelOrientation(placed, insets && (() => insets));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

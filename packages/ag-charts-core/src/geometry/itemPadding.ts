@@ -1,6 +1,8 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { type SectorBoundaries, isFullSweep } from '../scene/util/sector';
+import type { LabelFit } from '../text/textWrapper';
 import type { BoxBounds } from './boxBounds';
 import { type FitRegion, insetFitRegion } from './fitRegion';
 
@@ -31,6 +33,57 @@ export function itemStrokeDepth(stroke: unknown, strokeWidth: number | undefined
  */
 export function itemContentInset(padding: number, strokeDepth: number): number {
     return padding >= 0 ? Math.max(strokeDepth, padding) : Math.max(0, strokeDepth + padding);
+}
+
+/**
+ * The room an in-item label was fitted into against its item's resting stroke, kept so it can be fitted again
+ * when a state draws the item with another stroke.
+ */
+export interface ItemLabelRoom {
+    /** The room the label's glyphs were fitted into. */
+    width: number;
+    height: number;
+    /** The configured padding, and the inset it resolved to against the resting stroke. */
+    padding: number;
+    inset: number;
+    /** Whether the item's stroke is centred on its outline rather than drawn inside it. */
+    centred: boolean;
+    /** The gap an anchored end reserves, and that end's inward direction on each axis; `0` on a centred axis. */
+    spacing: number;
+    anchorX: number;
+    anchorY: number;
+}
+
+/** An in-item label's unfitted text and fit, with the room it was fitted into, so a state's stroke can re-fit it. */
+export interface ItemLabelSource extends ItemLabelRoom {
+    text: NormalisedTextOrSegments;
+    fit: LabelFit;
+}
+
+/** {@link ItemLabelRoom} re-measured for a drawn stroke, and how far an anchored label moves with its end. */
+export interface ItemLabelRefit {
+    width: number;
+    height: number;
+    shiftX: number;
+    shiftY: number;
+}
+
+/** Writes `room` re-measured for the drawn stroke into `out`; `false`, leaving `out` alone, when no edge moves. */
+export function refitItemLabelRoom(
+    room: ItemLabelRoom,
+    stroke: unknown,
+    strokeWidth: number | undefined,
+    out: ItemLabelRefit
+): boolean {
+    const inset = itemContentInset(room.padding, itemStrokeDepth(stroke, strokeWidth, room.centred));
+    const delta = inset - room.inset;
+    if (delta === 0) return false;
+    const anchored = itemEdgeInset(inset, room.spacing) - itemEdgeInset(room.inset, room.spacing);
+    out.width = Math.max(0, room.width - delta - (room.anchorX === 0 ? delta : anchored));
+    out.height = Math.max(0, room.height - delta - (room.anchorY === 0 ? delta : anchored));
+    out.shiftX = room.anchorX * anchored;
+    out.shiftY = room.anchorY * anchored;
+    return true;
 }
 
 /**

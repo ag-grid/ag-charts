@@ -47,6 +47,7 @@ import {
     isNumber,
     isNumericValue,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     maxValue,
     measureLabelText,
@@ -67,6 +68,7 @@ import type {
     AgNumericValue,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { ChartAxis } from '../../chartAxis';
@@ -98,6 +100,7 @@ import {
     createBarCandidateStyleResolver,
     createBarPositionedCandidateResolver,
     fitLabelToContainerAutoSize,
+    insideBarAnchorSpacing,
     insideBarLabelBounds,
     pickPlacementStyle,
     styledBarLabelBox,
@@ -699,7 +702,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isUpward,
             isVertical: true,
             placement,
-            spacing: label.spacing,
+            spacing: insideBarAnchorSpacing(placement, label.spacing, itemPadding),
             boxPadding: resolvePlacementLabelBoxExtent(label, placementStyle),
             rect,
             rotation,
@@ -1015,6 +1018,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return style;
     }
 
+    drawnItemStroke(
+        datum: HistogramNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): NormalisedHistogramSeriesStyle | undefined {
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
+        // Mirrors the style `updateDatumNodes` draws the bin with; the highlight copy restyles its own datum.
+        if (isHighlight) return this.getItemStyle(datum.datumIndex, true, highlightState);
+        return datum.style ?? this.contextNodeData?.styles[highlightState];
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
         isHighlight: boolean;
@@ -1232,7 +1246,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, stroke, strokeWidth, label } = this.options;
+        const insets = this.restylesItemStrokes()
+            ? itemLabelInsets(itemPadding, stroke, strokeWidth, label.spacing)
+            : undefined;
+        applyBarLabelOrientation(placed, insets && (() => insets));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

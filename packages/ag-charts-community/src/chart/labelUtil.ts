@@ -12,6 +12,8 @@ import type {
     FitRegion,
     FontOptions,
     IsAny,
+    ItemLabelRefit,
+    ItemLabelSource,
     LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
@@ -44,6 +46,7 @@ import {
     insideBarContainer,
     insideBarValueInsets,
     isRotatable,
+    itemEdgeInset,
     itemLabelClearance,
     labelBoxCentreOffset,
     lineHeightAtSize,
@@ -51,6 +54,7 @@ import {
     measureLabelText,
     mergeDefaults,
     orientationAngles,
+    refitItemLabelRoom,
     resolveLabelAvoidance,
     resolveLabelFitDescriptors,
     rotatedLabelInset,
@@ -99,6 +103,12 @@ interface SeriesLike {
     ): HighlightState;
     getSelectionStateString(datumIndex: DatumIndex | undefined): SelectionState | undefined;
     getCandidateStateString(datumIndex: DatumIndex | undefined): SelectionState | undefined;
+    /** The stroke the item behind a label is drawn with in its current state, for labels that keep an {@link ItemLabelSource}. */
+    drawnItemStroke?(
+        datum: SeriesNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): { stroke?: unknown; strokeWidth?: number } | undefined;
 }
 
 type Bounds = {
@@ -149,6 +159,8 @@ type LabelDatum = Point & {
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
     offsetX?: number;
     offsetY?: number;
+    /** Kept by an upright inside label fitted to its item, so a state drawing another stroke re-fits it. */
+    itemRoom?: ItemLabelSource;
 };
 
 /**
@@ -614,6 +626,9 @@ export function updateLabelNode<TParams>(
             textNode.fontSize = labelDatum.fittedFontSize;
             textNode.lineHeight = lineHeightAtSize(style, labelDatum.fittedFontSize);
         }
+        if (labelDatum.itemRoom != null) {
+            refitItemLabel(series, textNode, labelDatum.itemRoom, style, isHighlight, activeHighlight);
+        }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {
             const rotation = labelDatum.rotation ?? 0;
@@ -628,6 +643,33 @@ export function updateLabelNode<TParams>(
     } else {
         textNode.visible = false;
     }
+}
+
+const itemLabelRefit: ItemLabelRefit = { width: 0, height: 0, shiftX: 0, shiftY: 0 };
+
+/** Re-fits a label to the room its item's drawn stroke leaves, when that stroke moves an edge of the room. */
+function refitItemLabel(
+    series: SeriesLike,
+    textNode: Text<SeriesNodeDatum>,
+    room: ItemLabelSource,
+    style: FontOptions,
+    isHighlight: boolean,
+    activeHighlight: HighlightNodeDatum | undefined
+) {
+    const { datum } = textNode;
+    const drawn = datum == null ? undefined : series.drawnItemStroke?.(datum, isHighlight, activeHighlight);
+    if (drawn == null || !refitItemLabelRoom(room, drawn.stroke, drawn.strokeWidth, itemLabelRefit)) return;
+    const { text, fontSize = style.fontSize } = fitLabelToContainerAutoSize(room.text, room.fit, style, itemLabelRefit);
+    textNode.text = text;
+    textNode.fontSize = fontSize;
+    textNode.lineHeight = lineHeightAtSize(style, fontSize);
+    textNode.x += itemLabelRefit.shiftX;
+    textNode.y += itemLabelRefit.shiftY;
+}
+
+/** The gap an inside bar label keeps from the end it is anchored against: `spacing`, or the item inset when larger. */
+export function insideBarAnchorSpacing(placement: BarLabelPlacement, spacing: number, itemInset: number): number {
+    return placement.startsWith('inside') ? itemEdgeInset(itemInset, spacing) : spacing;
 }
 
 interface PlacementConfig {

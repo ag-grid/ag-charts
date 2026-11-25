@@ -37,6 +37,7 @@ import {
     fontWithSize,
     isArray,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     measureLabelText,
     measureTextSegments,
@@ -784,7 +785,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<PyramidNodeLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        applyBarLabelOrientation<PyramidNodeLabelDatum>(
+            placed,
+            this.restylesItemStrokes()
+                ? ({ styleDatum }) =>
+                      styleDatum &&
+                      itemLabelInsets(itemPadding, cycledValue(strokes, styleDatum.datumIndex), strokeWidth, 0, true)
+                : undefined
+        );
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);
         this.refreshPlacedLabelNodes();
     }
@@ -872,6 +881,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData);
+    }
+
+    drawnItemStroke(datum: PyramidNodeLabelDatum, isHighlight: boolean) {
+        return this.getItemStyle(datum, isHighlight);
     }
 
     protected getItemStyle(

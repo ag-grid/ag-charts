@@ -1875,6 +1875,17 @@ export abstract class Series<
         return false;
     }
 
+    /** Whether state can draw an item with a stroke other than its resting one: a styler, selection or a highlight `strokeWidth`. */
+    protected restylesItemStrokes(): boolean {
+        if (this.hasItemStylers()) return true;
+        if (!this.isHighlightEnabled()) return false;
+        for (const state of highlightStates) {
+            const { strokeWidth } = this.getHighlightStyle(false, undefined, state) as { strokeWidth?: number };
+            if (strokeWidth != null) return true;
+        }
+        return false;
+    }
+
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
         // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.

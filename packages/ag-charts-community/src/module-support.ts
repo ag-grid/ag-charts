@@ -106,6 +106,7 @@ export {
     fitLabelToContainer,
     fitLabelToContainerAutoSize,
     getLabelStyles,
+    insideBarAnchorSpacing,
     insideBarLabelBounds,
     pickPlacementStyle,
     resolveBarLabelCandidate,

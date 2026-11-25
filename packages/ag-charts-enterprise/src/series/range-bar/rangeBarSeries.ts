@@ -48,6 +48,7 @@ import {
     insideBarContainer,
     isContinuous,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     labelBoxCentreOffset,
     measureLabelText,
@@ -1371,6 +1372,22 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         } satisfies CallbackParamRules<AgRangeBarSeriesItemStylerParams>;
     }
 
+    drawnItemStroke(
+        datum: RangeBarNodeLabelDatum,
+        isHighlight: boolean,
+        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
+    ): NormalisedRangeBarSeriesStyle {
+        const { datumIndex } = datum;
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        return this.getItemStyle(
+            datumIndex,
+            isHighlight,
+            highlightState,
+            this.getDataSelectionState(datumIndex),
+            this.getDataCandidacyState(datumIndex)
+        );
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<RangeBarNodeDatum, Rect<RangeBarNodeDatum>>;
         isHighlight: boolean;
@@ -1545,7 +1562,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, stroke, strokeWidth, label } = this.options;
+        const insets = this.restylesItemStrokes()
+            ? itemLabelInsets(itemPadding, stroke, strokeWidth, label.spacing)
+            : undefined;
+        applyBarLabelOrientation(placed, insets && (() => insets));
         // yLow and yHigh route independently, so only the colliding end is hidden.
         applyPlacedBarLabelVisibility(
             this.contextNodeData?.labelData,

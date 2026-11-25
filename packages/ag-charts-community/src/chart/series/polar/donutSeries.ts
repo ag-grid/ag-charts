@@ -1284,12 +1284,10 @@ export class DonutSeries extends PolarSeries<
         return stroke == null ? 0 : strokeWidth / 2;
     }
 
-    /** How far a sector label is held in from its sector's edges; the sector is drawn inset by half its stroke. */
-    private sectorLabelInset({ sectorFormat }: PieDonutNodeDatum) {
-        return itemContentInset(
-            this.options.itemPadding,
-            itemStrokeDepth(sectorFormat.stroke, sectorFormat.strokeWidth, false)
-        );
+    /** How far a sector label is held in from its sector's edges against its resting stroke, drawn inset by half its width. */
+    private sectorLabelInset({ datumIndex }: PieDonutNodeDatum) {
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        return itemContentInset(itemPadding, itemStrokeDepth(cycledValue(strokes, datumIndex), strokeWidth, false));
     }
 
     /** The wedge a sector label is fitted to and shown in. */

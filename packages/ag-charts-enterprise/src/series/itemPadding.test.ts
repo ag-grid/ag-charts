@@ -8,9 +8,11 @@ import type {
 } from 'ag-charts-community';
 import {
     type ChartOrProxy,
+    clickAction,
     compareImageSnapshot,
     expectWarningsCalls,
     getSeriesOptions,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
@@ -754,6 +756,8 @@ describe('itemPadding', () => {
     });
 
     describe('stroke', () => {
+        // Narrow bars, so the labels fill the room they are given.
+        const narrowBarData = Array.from({ length: 8 }, (_, i) => ({ x: `Q${i + 1}`, y: 40 + 10 * (i % 3) }));
         // `depth` is how far the stroke reaches inside the item's geometric edge.
         const STROKED: { name: string; options: (padding: number, depth: number) => AgChartOptions }[] = [
             {
@@ -769,8 +773,7 @@ describe('itemPadding', () => {
                             itemPadding: padding,
                             label: { ...FITTED, formatter: () => LONG_TEXT },
                         },
-                        // Narrow bars, so the labels fill the room they are given.
-                        Array.from({ length: 8 }, (_, i) => ({ x: `Q${i + 1}`, y: 40 + 10 * (i % 3) }))
+                        narrowBarData
                     ),
             },
             {
@@ -812,6 +815,79 @@ describe('itemPadding', () => {
                 expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), inset)).toEqual([]);
                 await compareImageSnapshot(chart!, ctx);
             });
+        });
+
+        // Each state draws every item with a stroke reaching `depth` inside it, so every label must re-fit to it.
+        const stateStrokes = (strokeWidth: number) => ({
+            highlight: { highlight: { highlightedItem: { strokeWidth }, unhighlightedItem: { strokeWidth } } },
+            selection: { selection: { enabled: true, selectedItem: { strokeWidth }, unselectedItem: { strokeWidth } } },
+        });
+        const barAt =
+            (placement: 'inside-center' | 'inside-end') =>
+            (state: object): AgChartOptions =>
+                cartesian(
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        stroke: 'black',
+                        strokeWidth: 1,
+                        ...state,
+                        label: { ...FITTED, formatter: () => LONG_TEXT, placement },
+                    },
+                    narrowBarData
+                );
+        // Many stages, so each is short enough for its label to fill the room it is given.
+        const stage = (name: string, strokeWidth: number) => (state: object) => ({
+            ...CASES.find((c) => c.name === name)!.options({ strokes: ['black'], strokeWidth, ...state }),
+            data: Array.from({ length: 8 }, (_, i) => ({ stage: `Stage ${i + 1}`, value: 1000 - 100 * i })),
+        });
+        const depth = 12;
+        const RESTYLED = [
+            { name: 'centred bar', options: barAt('inside-center'), states: stateStrokes(depth) },
+            { name: 'end-anchored bar', options: barAt('inside-end'), states: stateStrokes(depth) },
+            { name: 'funnel', options: stage('funnel', 1), states: { highlight: stateStrokes(depth).highlight } },
+            // A pyramid stage's stroke is centred on its outline, so twice the width reaches as deep.
+            { name: 'pyramid', options: stage('pyramid', 2), states: { highlight: stateStrokes(2 * depth).highlight } },
+        ].flatMap(({ name, options, states }) =>
+            Object.entries(states).map(([state, stateOptions]) => ({
+                name,
+                state,
+                options: options(stateOptions),
+                act: state === 'selection' ? clickAction : hoverAction,
+            }))
+        );
+
+        it.each(RESTYLED)('re-fits $name labels to the stroke $state draws', async ({ options, act }) => {
+            await render(options);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).not.toEqual([]);
+
+            // A label sits inside its item and takes no pointer events, so its centre picks the item.
+            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
+            await act(x + width / 2, y + height / 2)(chart!);
+
+            expect(drawnLabels(chart!).length).toBeGreaterThan(0);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+            await compareImageSnapshot(chart!, ctx);
+        });
+
+        it('holds an end-anchored label clear of a stroke deeper than its spacing', async () => {
+            await render(
+                cartesian(
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        stroke: 'black',
+                        strokeWidth: depth,
+                        label: { placement: 'inside-end', spacing: 2, collision: { alwaysShow: true } },
+                    },
+                    barData
+                )
+            );
+            expect(drawnLabels(chart!).length).toBe(barData.length);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+            await compareImageSnapshot(chart!, ctx);
         });
 
         it('moves a label placed outside a marker clear of its stroke', async () => {

@@ -9,6 +9,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     BandScale,
+    type BarItemLabelInsets,
     type BarPlacedLabelDatum,
     type BoxBounds,
     type CallbackParamRules,
@@ -46,6 +47,7 @@ import {
     fontWithSize,
     isContinuous,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     maxValue,
     measureLabelText,
@@ -74,6 +76,7 @@ const {
     createBarPositionedCandidateResolver,
     styledBarLabelBox,
     toResolvedPlacement,
+    insideBarAnchorSpacing,
     insideBarLabelBounds,
     resolvePlacementLabelBoxExtent,
     fitLabelToContainerAutoSize,
@@ -823,7 +826,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     isUpward,
                     isVertical: !barAlongX,
                     placement,
-                    spacing: label.spacing,
+                    spacing: insideBarAnchorSpacing(placement ?? 'inside-center', label.spacing, itemInset),
                     boxPadding,
                     rect,
                     rotation: labelRotation,
@@ -1118,6 +1121,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } satisfies CallbackParamRules<AgWaterfallSeriesItemStylerParams>;
     }
 
+    drawnItemStroke(
+        datum: WaterfallNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
+    ): Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash> {
+        const { datumIndex, itemType } = datum;
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        return this.getItemStyle(datum, isHighlight, highlightState, itemType, this.getDataSelectionState(datumIndex));
+    }
+
     protected override updateDatumStyles({
         datumSelection,
         isHighlight,
@@ -1340,7 +1353,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const insetsByType = new Map<AgWaterfallSeriesItemType, BarItemLabelInsets>();
+        const insetsOf = (datum: BarPlacedLabelDatum<WaterfallNodeDatum>) => {
+            const itemType = datum.styleDatum?.itemType;
+            if (itemType == null) return undefined;
+            let insets = insetsByType.get(itemType);
+            if (insets == null) {
+                const { stroke, strokeWidth, label } = this.getItemConfig(itemType);
+                insets = itemLabelInsets(this.options.itemPadding, stroke, strokeWidth, label.spacing);
+                insetsByType.set(itemType, insets);
+            }
+            return insets;
+        };
+        applyBarLabelOrientation(placed, this.restylesItemStrokes() ? insetsOf : undefined);
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

@@ -10,6 +10,7 @@ import {
     itemEdgeInset,
     itemLabelClearance,
     itemStrokeDepth,
+    refitItemLabelRoom,
 } from './itemPadding';
 
 describe('itemPadding', () => {
@@ -38,6 +39,48 @@ describe('itemPadding', () => {
             { padding: -2, depth: 0, expected: 0 },
         ])('holds a label $expected in at padding $padding over a stroke $depth deep', (c) => {
             expect(itemContentInset(c.padding, c.depth)).toBe(c.expected);
+        });
+    });
+
+    describe('refitItemLabelRoom', () => {
+        const room = {
+            width: 80,
+            height: 40,
+            padding: 2,
+            inset: 2,
+            centred: false,
+            spacing: 0,
+            anchorX: 0,
+            anchorY: 0,
+        };
+        const refit = () => ({ width: Number.NaN, height: Number.NaN, shiftX: Number.NaN, shiftY: Number.NaN });
+
+        it('leaves the room alone for a stroke that moves no edge', () => {
+            const out = refit();
+            expect(refitItemLabelRoom(room, 'red', 1, out)).toBe(false);
+            expect(out.width).toBeNaN();
+        });
+
+        it.each([
+            { stroke: 'red', centred: false, expected: { width: 72, height: 32, shiftX: 0, shiftY: 0 } },
+            { stroke: 'red', centred: true, expected: { width: 78, height: 38, shiftX: 0, shiftY: 0 } },
+            { stroke: undefined, centred: false, expected: undefined },
+        ])('shrinks the room for a 6px $stroke stroke (centred $centred)', (c) => {
+            const out = refit();
+            const moved = refitItemLabelRoom({ ...room, centred: c.centred }, c.stroke, 6, out);
+            expect(moved ? out : undefined).toEqual(c.expected);
+        });
+
+        it('grows the room back for a stroke shallower than the one it was fitted against', () => {
+            const out = refit();
+            refitItemLabelRoom({ ...room, inset: 6 }, 'red', 0, out);
+            expect(out).toEqual({ width: 88, height: 48, shiftX: 0, shiftY: 0 });
+        });
+
+        it('moves an anchored end only past the spacing it reserves', () => {
+            const out = refit();
+            refitItemLabelRoom({ ...room, spacing: 8, anchorY: -1 }, 'red', 12, out);
+            expect(out).toEqual({ width: 60, height: 26, shiftX: 0, shiftY: -4 });
         });
     });
 

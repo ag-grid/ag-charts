@@ -10,6 +10,7 @@ import {
     Rect,
     cycledValue,
     itemContentInset,
+    itemLabelInsets,
     itemStrokeDepth,
     mergeDefaults,
     withoutCasts,
@@ -110,6 +111,11 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
     protected override labelItemInset(datumIndex: number) {
         const { itemPadding, strokes, strokeWidth } = this.options;
         return itemContentInset(itemPadding, itemStrokeDepth(cycledValue(strokes, datumIndex), strokeWidth, false));
+    }
+
+    protected override labelItemInsets(datumIndex: number) {
+        const { itemPadding, strokes, strokeWidth, label } = this.options;
+        return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth, label.spacing);
     }
 
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {

@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-community';
 import type {
     BBox,
+    BarItemLabelInsets,
     BoxBounds,
     DomainWithMetadata,
     DynamicContext,
@@ -591,6 +592,15 @@ export abstract class BaseFunnelSeries<
         return 0;
     }
 
+    /** How a stage holds its inside labels in, for a state's stroke to re-fit them; `undefined` where a series has none. */
+    protected labelItemInsets(_datumIndex: number): BarItemLabelInsets | undefined {
+        return undefined;
+    }
+
+    drawnItemStroke(datum: FunnelNodeLabelDatum, isHighlight: boolean) {
+        return this.getItemStyle(datum, isHighlight);
+    }
+
     /** The placement-style overrides for a resolved placement; `undefined` where a series has none. */
     protected labelPlacementStyle(
         _placement: FunnelLabelPlacement | undefined
@@ -885,7 +895,12 @@ export abstract class BaseFunnelSeries<
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<FunnelNodeLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
+        applyBarLabelOrientation<FunnelNodeLabelDatum>(
+            placed,
+            this.restylesItemStrokes()
+                ? ({ styleDatum }) => styleDatum && this.labelItemInsets(styleDatum.datumIndex)
+                : undefined
+        );
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);
         this.refreshPlacedLabelNodes();
     }
