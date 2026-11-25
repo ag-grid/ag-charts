@@ -2,14 +2,16 @@ import { vi } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
 import {
+    type AxisLabelNode,
     deproxy,
+    getAxisLabelNodes,
+    getLabelText,
     getSwapChainText,
     setupMockCanvas,
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection } from 'ag-charts-core';
-import type { BoxBounds } from 'ag-charts-core';
+import { type BoxBounds, type ButtonWidget, ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { setupMockConsole } from 'ag-charts-test';
 import type { AgChartInstance } from 'ag-charts-types';
 
@@ -36,6 +38,80 @@ function getA11YTickData(chart: AgChartInstance, axisId: string) {
     return deproxy(chart)
         .ctx.axisManager.getAxisIdContext(axisId as any)!
         .getA11YTickData();
+}
+
+const MONTH_LABELS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+].map((month) => `${month} 2025`);
+
+function monthsOptions(xAxis: object, months = MONTH_LABELS): AgCartesianChartOptions {
+    return {
+        data: months.map((month, units) => ({ month, units })),
+        series: [{ type: 'bar', xKey: 'month', yKey: 'units' }],
+        axes: {
+            x: { type: 'category', position: 'bottom', listeners: { click: () => {} }, ...xAxis },
+            y: { type: 'number', position: 'left' },
+        },
+    };
+}
+
+// Proxy buttons are positioned, and so rotated, through the container that wraps them.
+function getPositionedStyle(button: ButtonWidget) {
+    return button.getElement().parentElement!.style;
+}
+
+type Corners = { x: number; y: number }[];
+
+function boxCorners({ x, y, width, height }: BoxBounds): Corners {
+    return [
+        { x, y },
+        { x: x + width, y },
+        { x: x + width, y: y + height },
+        { x, y: y + height },
+    ];
+}
+
+// Where the button's CSS `rotate()` about its `transform-origin` puts each corner of its box, in canvas space.
+function buttonCanvasCorners(axisBounds: BoxBounds, button: ButtonWidget): Corners {
+    const { x, y, width, height } = button.getBounds();
+    const { transform, transformOrigin } = getPositionedStyle(button);
+    const angle = Number(/^rotate\((.+)rad\)$/.exec(transform)?.[1] ?? 0);
+    const [originX, originY] = transformOrigin === '' ? [0, 0] : transformOrigin.split(' ').map(Number.parseFloat);
+    const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+    return boxCorners({ x: 0, y: 0, width, height }).map((corner) => {
+        const dx = corner.x - originX;
+        const dy = corner.y - originY;
+        return {
+            x: axisBounds.x + x + originX + dx * cos - dy * sin,
+            y: axisBounds.y + y + originY + dx * sin + dy * cos,
+        };
+    });
+}
+
+function labelCanvasCorners(node: AxisLabelNode): Corners {
+    return boxCorners(node.computeBBoxWithoutTransforms()!).map((corner) => {
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(node, corner.x, corner.y);
+        return { x: canvasX, y: canvasY };
+    });
+}
+
+function isSlanted(node: AxisLabelNode) {
+    return !Number.isInteger(node.rotation / (Math.PI / 2));
+}
+
+function expectCornersCloseTo(actual: Corners, expected: Corners) {
+    expect(actual).toEqual(expected.map(({ x, y }) => ({ x: expect.closeTo(x, 3), y: expect.closeTo(y, 3) })));
 }
 
 function countText(text: string) {
@@ -163,6 +239,83 @@ describe('AxisInteraction keyboard navigation', () => {
         expect(document.activeElement).toBe(buttons[0].getElement());
     });
 
+    test.each([
+        { name: 'auto-rotated', label: { wrapping: 'never' } },
+        { name: 'rotation: 30', label: { rotation: 30 } },
+    ])('outlines each $name tick label with a box rotated to match it', async ({ label }) => {
+        await createChart(monthsOptions({ label }));
+
+        const nodes = getAxisLabelNodes(chart, 'bottom');
+        const buttons = getTickButtons(chart, 'x');
+        expect(buttons).toHaveLength(MONTH_LABELS.length);
+        expect(nodes).toHaveLength(MONTH_LABELS.length);
+
+        const axisBounds = getWidgets(chart)
+            .acquireAxisWidget('x' as any)
+            .getBounds();
+        for (const button of buttons) {
+            const node = nodes.find((n) => getLabelText(n) === button.getElement().textContent);
+            expect(isSlanted(node!)).toBe(true);
+            expectCornersCloseTo(buttonCanvasCorners(axisBounds, button), labelCanvasCorners(node!));
+        }
+    });
+
+    test.each([
+        { name: 'rotation: 0', options: monthsOptions({ label: { rotation: 0, avoidCollisions: false } }) },
+        { name: 'rotation: 90', options: monthsOptions({ label: { rotation: 90 } }) },
+        {
+            name: 'grouped-category',
+            options: {
+                data: MONTH_LABELS.map((month, units) => ({ month: ['2025', month], units })),
+                series: [{ type: 'bar', xKey: 'month', yKey: 'units' }],
+                axes: {
+                    x: {
+                        type: 'grouped-category',
+                        position: 'bottom',
+                        depthOptions: [{ label: { rotation: 30 } }, {}],
+                        listeners: { click: () => {} },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions,
+        },
+    ])('keeps axis-aligned focus boxes for $name', async ({ name, options }) => {
+        await createChart(options);
+        expect(getAxisLabelNodes(chart, 'bottom').some(isSlanted)).toBe(name === 'grouped-category');
+
+        const buttons = getTickButtons(chart, 'x');
+        expect(buttons.length).toBeGreaterThan(0);
+        for (const button of buttons) {
+            expect(getPositionedStyle(button).transform).toBe('');
+        }
+    });
+
+    test('keeps the band box for a tick whose label is not drawn', async () => {
+        const hidden = MONTH_LABELS[2];
+        await createChart(
+            monthsOptions({
+                label: { rotation: 30, formatter: ({ value }: { value: string }) => (value === hidden ? '' : value) },
+            })
+        );
+
+        const tickData = getA11YTickData(chart, 'x');
+        const buttons = getTickButtons(chart, 'x');
+        const hiddenIndex = tickData.findIndex((tick) => tick.value === hidden);
+        expect(hiddenIndex).toBeGreaterThanOrEqual(0);
+        for (const [i, button] of buttons.entries()) {
+            expect(getPositionedStyle(button).transform === '').toBe(i === hiddenIndex);
+        }
+    });
+
+    // Known gap: collision avoidance drops whole category ticks, leaving the unlabelled ones keyboard-unreachable.
+    test.skip('reaches every category when collision avoidance drops some labels', async () => {
+        const months = Array.from({ length: 60 }, (_, i) => `${MONTH_LABELS[i % 12]} #${Math.floor(i / 12)}`);
+        await createChart(monthsOptions({}, months));
+
+        expect(getAxisLabelNodes(chart, 'bottom').length).toBeLessThan(months.length);
+        expect(getTickButtons(chart, 'x').map((button) => button.getElement().textContent)).toEqual(months);
+    });
+
     test('removing and re-adding a titled axis leaves a single title', async () => {
         const withY2: AgCartesianChartOptions = {
             data: DATA,
@@ -218,6 +371,8 @@ describe('AxisInteraction keyboard navigation after an animated layout change', 
         expect(buttons).toHaveLength(expectedTicks.length);
         for (const [i, button] of buttons.entries()) {
             expectBoxCloseTo(button.getBounds(), expectedTicks[i].focusBounds);
+            const { angle } = expectedTicks[i].focusRotation ?? {};
+            expect(getPositionedStyle(button).transform).toBe(angle == null ? '' : `rotate(${angle}rad)`);
         }
     }
 

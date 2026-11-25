@@ -377,6 +377,29 @@ describe('wrapLines', () => {
             expect(result).toEqual(['Ab', 'Cd', 'Ef']);
         });
 
+        it.each([
+            [
+                'fills the last kept line with the text wrapped below it',
+                'Information Technology',
+                `Information Tec${E}`,
+            ],
+            ['does not refill across an explicit line break', 'Information\nTechnology', `Information${E}`],
+            ['refills from a following line the wrap truncated', 'Abc Defghijklmnopqrstu', `Abc Defghijklmn${E}`],
+        ])('clipped to maxHeight %s', (_, text, expected) => {
+            expect(wrapLines(text, { font, maxWidth: 160, maxHeight: LINE_HEIGHT })).toEqual([expected]);
+            const explicit = { font, maxWidth: 160, maxHeight: LINE_HEIGHT, lineHeight: LINE_HEIGHT };
+            expect(wrapLines(text, explicit)).toEqual([expected]);
+        });
+
+        it.each([undefined, LINE_HEIGHT])(
+            'refills with a line the wrap ellipsised for a narrower band, keeping one ellipsis (line height %s)',
+            (lineHeight) => {
+                const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 90 : 40);
+                const options = { font, maxWidth: 90, maxWidthAt, maxHeight: LINE_HEIGHT, lineHeight };
+                expect(wrapLines('A WWWWWWWWWWWW', options)).toEqual([`A WWW${E}`]);
+            }
+        );
+
         it('should wrap at word boundary when line exceeds maxWidth', () => {
             // 'Hello World' = 110px, maxWidth = 60px → wraps between words
             const result = wrapLines('Hello World', { font, maxWidth: 60 });
@@ -555,11 +578,21 @@ describe('wrapLines', () => {
 
         it.each([
             ['keeps the words of a line that clipping keeps', 'AA BB CC DD EE FF G', ['AA BB CC', `DD EE FF${E}`]],
-            ['joins a word onto a clipped last line', 'AA BB CC DDDDD EEEEEEEE', ['AA BB', `CC DDDDD${E}`]],
-            ['rejoins across an explicit line break', 'AA BB C\nDDDD EEEEEEEEE', ['AA BB', `C DDDD${E}`]],
+            [
+                'joins a word onto a last line the refill could not add to',
+                `AA BB CC DDDDD ${WIDE_GRAPHEME}`,
+                ['AA BB', `CC DDDDD${E}`],
+            ],
+            ['stops at an explicit line break', 'AA BB C\nDDDD EEEEEEEEE', ['AA BB C', `DDDD EEE${E}`]],
             ['leaves a line clipped to a lone ellipsis', `AA BB CC ${WIDE_GRAPHEME} D`, ['AA BB CC', E]],
         ])('runs after clipping: %s', (_, text, expected) => {
             expect(wrapLines(text, { font, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT })).toEqual(expected);
+        });
+
+        it('does not rejoin across an explicit line break after a row the shape dropped', () => {
+            const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 100 : 50);
+            const options = { font, maxWidth: 100, lineHeight: LINE_HEIGHT, maxWidthAt };
+            expect(wrapLines(`AA BB CC ${WIDE_GRAPHEME}\nD`, options)).toEqual(['AA BB CC', 'D']);
         });
     });
 
@@ -688,6 +721,24 @@ describe('clipLines', () => {
         const lines = ['Hello', 'World'];
         expect(clipLines(lines, measurer, { font, maxWidth: 100, maxHeight: 40 })).toEqual(lines);
     });
+
+    it.each([
+        ['measured', undefined],
+        ['explicit', LINE_HEIGHT],
+    ])(
+        'refills the last kept line measuring no more of the lines below than its width takes (%s line height)',
+        (_, lineHeight) => {
+            const lines = Array.from({ length: 1000 }, () => 'Abcd');
+            const breaks = lines.map(() => ' ');
+            const textWidth = vi.spyOn(measurer, 'textWidth');
+            const options = { font, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT, lineHeight };
+            const result = clipLines(lines, measurer, options, breaks);
+            expect(result).toEqual(['Abcd', `Abcd Abc${E}`]);
+            expect(textWidth.mock.calls.length).toBeLessThan(50);
+            for (const [measured] of textWidth.mock.calls) expect(measured.length).toBeLessThanOrEqual(20);
+            textWidth.mockRestore();
+        }
+    );
 });
 
 const text = (t: string, extra?: Partial<TextSegment>): TextSegment => ({ text: t, ...extra });
@@ -901,6 +952,29 @@ describe('wrapTextSegments — image segment overflow', () => {
     });
 });
 
+describe('wrapTextSegments — clipping', () => {
+    it.each([
+        ['in one segment', [text('Information Technology')], `Information Tec${E}`],
+        ['across segments', [text('Information '), text('Technology', { fontWeight: 'bold' })], `Information Tec${E}`],
+        ['but not across an explicit line break', [text('Information\nTechnology')], `Information${E}`],
+    ])('refills the last line kept under maxHeight %s', (_, segments, expected) => {
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 160, maxHeight: LINE_HEIGHT });
+        expect(textOf(result)).toBe(expected);
+    });
+
+    it('refills with a line the wrap ellipsised for a narrower band, keeping one ellipsis', () => {
+        const maxWidthAt = (top: number) => (top < LINE_HEIGHT ? 90 : 40);
+        const options = { font: baseFont, maxWidth: 90, maxWidthAt, maxHeight: LINE_HEIGHT };
+        expect(textOf(wrapTextSegments([text('A WWWWWWWWWWWW')], options))).toBe(`A WWW${E}`);
+    });
+
+    it('does not refill from a line taller than the one it fills', () => {
+        const segments = [text('AA BB CC DD '), text('GGGGGGGG', { lineHeight: 2 * LINE_HEIGHT })];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 90, maxHeight: 2 * LINE_HEIGHT });
+        expect(textOf(result)).toBe(`AA BB\nCC DD${E}`);
+    });
+});
+
 describe('wrapTextSegments — orphans', () => {
     type Options = Partial<Parameters<typeof wrapTextSegments>[1]>;
     const fit = (segments: ContentSegment[], options?: Options) =>
@@ -915,7 +989,7 @@ describe('wrapTextSegments — orphans', () => {
             'AA BB CC\nDD EE FF\nG HHHHHHH',
         ],
         ['across segments', [text('AA BB '), text('CC'), text(' D')], undefined, 'AA BB\nCC D'],
-        ['onto a clipped last line', [text('AA BB CC DDDDD EEEEEEEE')], 2 * LINE_HEIGHT, `AA BB\nCC DDDDD${E}`],
+        ['onto a clipped last line', [text(`AA BB CC DDDDD ${WIDE_GRAPHEME}`)], 2 * LINE_HEIGHT, `AA BB\nCC DDDDD${E}`],
     ])('avoids an orphan %s', (_, segments, maxHeight, expected) => {
         expect(textOf(fit(segments, { maxHeight }))).toBe(expected);
     });
@@ -1660,20 +1734,48 @@ describe('fitLabelText bounded by a shape', () => {
     });
 
     it.each([
-        ['fitLabelText', (fit: LabelFit) => String(fitLabelText('ABAAD AC A DDBCABD - BBC-DBCB-DAACB', fit, font))],
+        ['fitLabelText', (fit: LabelFit) => String(fitLabelText(`ABAAD AC A DDBCABD ${WIDE_GRAPHEME}X`, fit, font))],
         [
             'fitLabelTextToRegion',
-            (fit: LabelFit) => String(fitLabelTextToRegion('ABAAD AC A DDBCABD - BBC-DBCB-DAACB', fit, font).text),
+            (fit: LabelFit) => String(fitLabelTextToRegion(`ABAAD AC A DDBCABD ${WIDE_GRAPHEME}X`, fit, font).text),
         ],
         [
             'rich text',
             (fit: LabelFit) =>
-                textOf(fitLabelText([text('ABAAD AC A DDBCABD - BBC-DBCB-DAACB')], fit, font) as MeasuredSegment[]),
+                textOf(fitLabelText([text(`ABAAD AC A DDBCABD ${WIDE_GRAPHEME}X`)], fit, font) as MeasuredSegment[]),
         ],
     ])('%s avoids an orphan the ellipsis leaves on the last line', (_, fitText) => {
         const region: FitRegion = { spanAt: () => [-85, 85], extentAbove: 0, extentBelow: 2 * LINE_HEIGHT };
         const fit: LabelFit = { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' };
         expect(fitText(fit)).toBe(`ABAAD AC\nA DDBCABD${E}`);
+    });
+
+    it.each([
+        ['fitLabelText', (source: string, fit: LabelFit) => String(fitLabelText(source, fit, font))],
+        [
+            'fitLabelTextToRegion',
+            (source: string, fit: LabelFit) => String(fitLabelTextToRegion(source, fit, font).text),
+        ],
+        [
+            'rich text',
+            (source: string, fit: LabelFit) => textOf(fitLabelText([text(source)], fit, font) as MeasuredSegment[]),
+        ],
+        [
+            'rich text broken between segments',
+            (source: string, fit: LabelFit) => {
+                const [first, rest] = source.split('\n');
+                return textOf(fitLabelText([text(`${first}\n`), text(rest)], fit, font) as MeasuredSegment[]);
+            },
+        ],
+    ])('%s never moves a word across an explicit line break', (_, fitText) => {
+        const fit = (lines: number): LabelFit => ({
+            region: { spanAt: () => [-45, 45], extentAbove: 0, extentBelow: lines * LINE_HEIGHT },
+            regionAlign: 'start',
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
+        });
+        expect(fitText('AA BB C\nD', fit(5))).toBe('AA BB C\nD');
+        expect(fitText('AA BB C\nDDDD EEEEEEEEE', fit(2))).toBe(`AA BB C\nDDDD EEE${E}`);
     });
 
     it('sizes a band from one line, not from the whole of a multi-line source', () => {

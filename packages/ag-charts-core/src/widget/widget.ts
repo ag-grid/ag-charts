@@ -254,6 +254,21 @@ export abstract class Widget<
         this.elem.style.transform = `translate(${x}px, ${y}px)`;
     }
 
+    /**
+     * Rotates the element clockwise by `angle` radians about (`originX`, `originY`), in CSS pixels from its top-left
+     * corner, or removes the rotation when `angle` is `undefined`. Replaces any transform from `setTranslate()`.
+     */
+    setRotation(angle: number | undefined, originX = 0, originY = 0) {
+        const { style } = this.elemContainer ?? this.elem;
+        if (angle == null) {
+            style.removeProperty('transform');
+            style.removeProperty('transform-origin');
+        } else {
+            style.transform = `rotate(${angle}rad)`;
+            style.transformOrigin = `${originX}px ${originY}px`;
+        }
+    }
+
     /** Sets the CSS `border-radius` in CSS pixels, or removes it when `undefined`. */
     setBorderRadius(radius: number | undefined) {
         this.elem.style.borderRadius = radius == null ? '' : `${radius}px`;
