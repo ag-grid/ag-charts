@@ -102,7 +102,7 @@ type DataEvents = {
     deleteAll: undefined;
     reset: undefined;
     selectLast: undefined;
-    selectIndex: number;
+    selectWithKeyboard: number;
 };
 
 type ProcessEvents = {

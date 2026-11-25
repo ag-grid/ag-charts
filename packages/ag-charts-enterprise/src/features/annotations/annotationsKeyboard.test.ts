@@ -346,17 +346,31 @@ describe('Annotations keyboard navigation', () => {
             expect(moveButton()).toBe(toolbarButtons()[1]);
         });
 
-        it('does not show the Move Annotation button when the annotation is selected with a pointer', async () => {
-            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
-
+        async function clickLine() {
             const { x, y, width, height } = getSeriesRect(chart);
             const centre = { x: x + width / 2, y: y + height / 2 };
             await hoverAction(centre.x, centre.y)(chart);
             await clickAction(centre.x, centre.y)(chart);
             await waitForChartStability(chart);
+        }
+
+        it('does not show the Move Annotation button when the annotation is selected with a pointer', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+
+            await clickLine();
 
             expect(toolbarButtons().length).toBeGreaterThan(0);
             expect(moveButton()).toBeUndefined();
+        });
+
+        it('adds the Move Annotation button when the keyboard selects the annotation that a pointer selected', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await clickLine();
+            expect(moveButton()).toBeUndefined();
+
+            await openOptions();
+
+            expect(moveButton()).toBeDefined();
         });
 
         it('moves focus to the next annotation after deleting one', async () => {

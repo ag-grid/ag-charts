@@ -60,6 +60,7 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
     }
 
     private idle = true;
+    private keyboardSelected = false;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         super(
@@ -78,6 +79,9 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
                 },
                 (idle) => {
                     this.idle = idle;
+                },
+                (keyboardSelected) => {
+                    this.keyboardSelected = keyboardSelected;
                 }
             )
         );
@@ -85,6 +89,11 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
 
     public isIdle() {
         return this.idle;
+    }
+
+    /** Whether the keyboard selected the active annotation, which adds the toolbar's keyboard-only buttons. */
+    public isKeyboardSelected() {
+        return this.keyboardSelected;
     }
 
     // TODO: remove this leak
@@ -144,7 +153,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
     protected hovered?: number;
 
-    private updateActive(index: number | undefined) {
+    private updateActive(index: number | undefined, keyboard = false) {
+        this.setKeyboardSelected(index != null && keyboard);
         if (index === this.active) return;
         this.active = index;
         this.setActive(index);
@@ -167,7 +177,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
     constructor(
         ctx: AnnotationsStateMachineContext,
         private readonly setActive: (index?: number) => void,
-        setIdle: (idle: boolean) => void
+        setIdle: (idle: boolean) => void,
+        private readonly setKeyboardSelected: (keyboardSelected: boolean) => void
     ) {
         const createDatum =
             <T extends AnnotationDatum>(type: AnnotationType) =>
@@ -371,9 +382,9 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     ctx.select(this.active, previousActive);
                 },
 
-                selectIndex: (index) => {
+                selectWithKeyboard: (index) => {
                     const previousActive = this.active;
-                    this.updateActive(index);
+                    this.updateActive(index, true);
                     ctx.select(this.active, previousActive);
                 },
 
@@ -386,6 +397,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                             return isTextType(datum) && isWriteable(datum);
                         },
                         target: States.TextInput,
+                        action: () => this.setKeyboardSelected(false),
                     },
                     {
                         action: () => {

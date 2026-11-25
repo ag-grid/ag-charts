@@ -151,8 +151,6 @@ export class Annotations extends AbstractModuleInstance {
         onMoveBlur: () => this.onMoveBlur(),
     });
 
-    /** Whether the Annotation Options Toolbar was opened with the keyboard, which adds its keyboard-only buttons. */
-    private keyboardOptions = false;
     /** The id of the annotation that the arrow keys move after the Move Annotation button is pressed, if any. */
     private movingId?: string;
     /** The annotation whose list item, keyboard-opened toolbar or mover the keyboard is on, if any. */
@@ -344,7 +342,7 @@ export class Annotations extends AbstractModuleInstance {
                     selectedNode.toggleActive(true);
                     selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
-                        optionsToolbar.updateButtons(this.annotationData.at(index!)!, this.keyboardOptions);
+                        optionsToolbar.updateButtons(this.annotationData.at(index!)!, this.state.isKeyboardSelected());
                         this.postUpdateFns.push(() => {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
@@ -353,7 +351,6 @@ export class Annotations extends AbstractModuleInstance {
                         });
                     }
                 } else {
-                    this.keyboardOptions = false;
                     this.popAnnotationState(InteractionState.AnnotationsSelected);
                     this.popAnnotationState(InteractionState.Annotations);
                 }
@@ -1171,7 +1168,6 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
-        this.keyboardOptions = false;
         this.keyboardFocusId = undefined;
 
         // The states finish an endpoint from the last hover, so it is refreshed to the click's own point and modifiers.
@@ -1248,7 +1244,6 @@ export class Annotations extends AbstractModuleInstance {
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
-        this.keyboardOptions = false;
         this.keyboardFocusId = undefined;
 
         const context = this.getAnnotationContext();
@@ -1491,9 +1486,8 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         const wasActive = this.state.getActive() === index;
-        this.keyboardOptions = true;
         this.keyboardFocusId = id;
-        this.state.transition('selectIndex', index);
+        this.state.transition('selectWithKeyboard', index);
 
         if (!this.optionsToolbar.isEnabled()) return;
 
@@ -1509,7 +1503,7 @@ export class Annotations extends AbstractModuleInstance {
         const node = this.annotations.at(index) as AnnotationSceneUnion | undefined;
         if (datum == null || node == null) return;
 
-        this.optionsToolbar.updateButtons(datum, this.keyboardOptions);
+        this.optionsToolbar.updateButtons(datum, this.state.isKeyboardSelected());
         this.optionsToolbar.show();
         this.optionsToolbar.setAnchorScene(node);
     }
@@ -1518,7 +1512,7 @@ export class Annotations extends AbstractModuleInstance {
     private onOptionsEscape(sourceEvent: KeyboardEvent) {
         // TODO: the design wants this for a toolbar opened by a pointer click too, which hands the annotation over
         // to the keyboard. Decide whether to support that before extending it.
-        if (!this.keyboardOptions) return;
+        if (!this.state.isKeyboardSelected()) return;
 
         const active = this.state.getActive();
         const datum = active == null ? undefined : this.annotationData.at(active);
