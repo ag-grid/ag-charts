@@ -1026,12 +1026,12 @@ describe('ChartTheme', () => {
 
         it.each([
             ['category', 'bar', 'label', { ...fittedLabels, rotation: [0, 335] }],
-            ['grouped-category', 'bar', 'group', { ...fittedLabels, rotation: 270 }],
+            ['grouped-category', 'bar', 'group', { ...fittedLabels, rotation: 270 }, 0],
             ['number', 'line', 'value', wholeLabels],
             ['log', 'line', 'value', wholeLabels],
             ['time', 'line', 'date', wholeLabels],
             ['unit-time', 'bar', 'date', wholeLabels],
-        ])('resolves the %s axis label fit defaults', async (type, seriesType, xKey, expected) => {
+        ])('resolves the %s axis label fit defaults', async (type, seriesType, xKey, expected, threshold?: number) => {
             chart = deproxy(
                 AgCharts.create({
                     data: fitData,
@@ -1046,7 +1046,7 @@ describe('ChartTheme', () => {
 
             const label = getResolvedAxisLabelOptions(chart, type);
             expect(label).toMatchObject({ ...expected, collision: { alwaysShow: false } });
-            expect(label.collision.threshold).toBeUndefined();
+            expect(label.collision.threshold).toBe(threshold);
         });
     });
 

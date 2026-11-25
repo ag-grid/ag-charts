@@ -1838,6 +1838,21 @@ describe('CartesianAxis', () => {
             await compare('cartesian-axis-label-truncates-long-first-label');
         });
 
+        it('keeps a long edge label within the chart at its configured alignment', async () => {
+            chart = await createChart({
+                data: categories.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { textAlign: 'right' } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const [first] = getAxisLabelNodes(chart, 'bottom');
+            expect(getLabelText(first).endsWith('…')).toBe(true);
+            expect(Transformable.toCanvas(first).x).toBeGreaterThanOrEqual(0);
+        });
+
         it('shifts an edge label inward rather than truncating it when it stays clear of its neighbour', async () => {
             const platforms = ['Windows Server', 'macOS', 'Linux'];
             chart = await createChart({
@@ -1920,6 +1935,26 @@ describe('CartesianAxis', () => {
             for (const node of getAxisLabelNodes(chart, 'bottom')) {
                 expect(node.datum.rotation).toBeCloseTo(toRadians(335));
             }
+        });
+
+        it('applies the collision threshold to labels turned back to horizontal', async () => {
+            // Tall and narrow, so only unrotated labels clear each other, and then not by the threshold.
+            const tallLabels = Array.from({ length: 8 }, (_, i) => Array.from({ length: 8 }, () => i).join('\n'));
+            chart = await createChart({
+                data: tallLabels.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { rotation: [90, 0], collision: { threshold: 300 } },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(tallLabels.filter((_, i) => i % 2 === 0));
+            for (const node of getAxisLabelNodes(chart, 'bottom')) expect(node.datum.rotation).toBeCloseTo(Math.PI / 2);
         });
 
         describe('with ticks fixed by the interval', () => {

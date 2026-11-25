@@ -33,7 +33,13 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<
     themeTemplate: mergeDefaults(
         {
             tick: { enabled: true, stroke: { $ref: 'groupedCategoryLineColor' } },
-            label: { spacing: 10, rotation: 270, wrapping: 'on-space', truncate: true },
+            label: {
+                spacing: 10,
+                rotation: 270,
+                wrapping: 'on-space',
+                truncate: true,
+                collision: { threshold: 0 },
+            },
             maxThicknessRatio: 0.5,
             spacing: 15,
             paddingInner: 0.4,

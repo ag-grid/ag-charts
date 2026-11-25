@@ -98,6 +98,10 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
      * where they will actually render.
      */
     labelBaseline?: VerticalAlign;
+    /** A configured `label.textAlign`, which edge fitting measures labels at rather than the computed alignment. */
+    labelTextAlign?: ResolvedTextAlign;
+    /** How far along the axis a configured alignment moves each label's anchor from its tick, to the band edge. */
+    labelAnchorOffset?: number;
     /**
      * Per-label displacement, outward along the label offset, that `CartesianAxis.alignLabelBands` will apply once
      * the ticks are laid out (a configured `label.verticalAlign` flush, or a rotated label's box

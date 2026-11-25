@@ -296,6 +296,40 @@ describe('Grouped Category Axis Examples', () => {
         });
     });
 
+    describe('collision threshold', () => {
+        const data = ['North', 'South'].flatMap((group) =>
+            ['a', 'b', 'c'].map((leaf, i) => ({ grouping: [group, leaf], value: i + 1 }))
+        );
+        const options = (axisThreshold?: number, leafThreshold?: number): AgCartesianChartOptions => ({
+            data,
+            axes: {
+                x: {
+                    type: 'grouped-category',
+                    position: 'bottom',
+                    label: { collision: { threshold: axisThreshold } },
+                    depthOptions: [{ label: { rotation: [0], collision: { threshold: leafThreshold } } }],
+                },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+        });
+
+        it('labels every band by default', async () => {
+            chart = await createChart(options());
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(expect.arrayContaining(['a', 'b', 'c', 'North']));
+        });
+
+        it.each([
+            ['the axis', options(200)],
+            ['a depth', options(undefined, 200)],
+        ])('removes labels the threshold does not fit in their band, set on %s', async (_, chartOptions) => {
+            chart = await createChart(chartOptions);
+            const texts = getAxisLabelTexts(chart, 'bottom');
+            expect(texts).toEqual(expect.arrayContaining(['North', 'South']));
+            expect(texts).not.toEqual(expect.arrayContaining(['a']));
+        });
+    });
+
     it('provides full text for truncated labels', async () => {
         const longLabel = 'Extremely long grouped-category axis label that forces truncation';
         const data = Array.from({ length: 6 }, (_, index) => ({

@@ -113,7 +113,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     const rotationFits = Array.from({ length: rotations.length + 1 }, () => new WeakMap<TickData, RotationFit>());
     const labelPadding = expandLabelPadding(label);
     const spacingAt = (rotation: number) =>
-        tickLabelSpacing(label.collision.threshold, configuredRotation !== 0 || rotation !== 0);
+        tickLabelSpacing(label.collision.threshold, Math.cos(configuredRotation + rotation) < 1 - 1e-9);
     const computedBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
     const labelFrame = (fitIndex: number) => {
         const rotation = autoRotations[rotationOf(fitIndex)];
@@ -131,10 +131,19 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         if (alongBounds == null) return ticks;
         const [start, end] = alongBounds;
         const { rotation, textAlign, textBaseline } = labelFrame(rotationIndex);
+        const { labelTextAlign = textAlign, labelAnchorOffset = 0 } = options;
         const drawn = configuredRotation + rotation;
         const slides = Math.abs(options.isVertical ? Math.sin(drawn) : Math.cos(drawn)) > 1 - 1e-6;
         const extentOf = (tick: TickDatum) =>
-            labelAlongExtent(tick, drawn, options.isVertical === true, labelPadding, textBaseline, textAlign);
+            labelAlongExtent(
+                tick,
+                labelAnchorOffset,
+                drawn,
+                options.isVertical === true,
+                labelPadding,
+                textBaseline,
+                labelTextAlign
+            );
         const fitTo = (tick: TickDatum, alongOf: (extent: [number, number], tick: TickDatum) => number | undefined) => {
             for (let attempt = 0; attempt < 3; attempt++) {
                 const along = alongOf(extentOf(tick), tick);
@@ -144,7 +153,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
             return tick;
         };
         const toEdge = (extent: [number, number], tick: TickDatum) =>
-            alongWithin(extent, tick.translation, alongBounds);
+            alongWithin(extent, tick.translation + labelAnchorOffset, alongBounds);
         const toChart = (extent: [number, number]) => (extent[1] - extent[0] > end - start ? end - start : undefined);
         const spacing = spacingAt(rotation);
         const reaches = (other: TickDatum | undefined, min: number, max: number) => {
@@ -725,6 +734,7 @@ function createLabelData(
 /** How far along the axis a label's padded box reaches, as drawn turned by `rotation` from the horizontal. */
 function labelAlongExtent(
     { textMetrics, translation }: TickDatum,
+    anchorOffset: number,
     rotation: number,
     isVertical: boolean,
     labelPadding: Required<PaddingOptions>,
@@ -739,7 +749,8 @@ function labelAlongExtent(
     const alongY = isVertical ? Math.cos(rotation) : -Math.sin(rotation);
     const min = Math.min(alongX * left, alongX * right) + Math.min(alongY * top, alongY * bottom);
     const max = Math.max(alongX * left, alongX * right) + Math.max(alongY * top, alongY * bottom);
-    return [translation + min, translation + max];
+    const anchor = translation + anchorOffset;
+    return [anchor + min, anchor + max];
 }
 
 /** The along-axis size to refit a label to so it stays within `bounds`, or `undefined` when it already does. */

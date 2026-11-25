@@ -27,6 +27,7 @@ import {
     lineHeightAtSize,
     normalizeAngle360FromDegrees,
     sortBasedOnArray,
+    tickLabelSpacing,
     toArray,
     toPlainText,
     toRadians,
@@ -126,11 +127,12 @@ export class GroupedCategoryAxis extends CategoryAxis<
                           truncate: depthLabel?.truncate ?? label?.truncate,
                           rotation: depthLabel?.rotation ?? (i === 0 ? label?.rotation : defaultNonLeafRotation), // Default top-level label rotation only applies to label leaves
                           alwaysShow: depthLabel?.collision?.alwaysShow ?? label?.collision.alwaysShow ?? false,
+                          threshold: depthLabel?.collision?.threshold ?? label?.collision.threshold ?? 0,
                           maxWidth: depthLabel?.maxWidth ?? label?.maxWidth,
                           maxHeight: depthLabel?.maxHeight ?? label?.maxHeight,
                           minimumFontSize: depthLabel?.minimumFontSize ?? label?.minimumFontSize,
                       }
-                    : { enabled: false, spacing: 0, rotation: 0, alwaysShow: true }
+                    : { enabled: false, spacing: 0, rotation: 0, alwaysShow: true, threshold: 0 }
             );
         }
         return optionsMap;
@@ -278,6 +280,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
             candidatesAtDepth[depth].push(candidate);
         }
 
+        // The size along the axis a label keeps within, leaving the collision threshold to its neighbours.
+        const bandRoomAt = (depth: number, bandSize: number, rotation: number) =>
+            Math.max(0, bandSize - tickLabelSpacing(optionsMap[depth].threshold, Math.cos(rotation) < 1 - 1e-9));
+
         // Truncation fits a label to the room, and to its band only when `toBand` is set.
         const fitLabel = (
             { index, datum, depth, value, inputText }: LabelCandidate,
@@ -286,6 +292,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         ): FittedLabel | undefined => {
             const depthOptionsAt = optionsMap[depth];
             const bandSize = (datum.leafCount === 0 ? 1 : datum.leafCount) * step;
+            const bandRoom = bandRoomAt(depth, bandSize, normalizeAngle360FromDegrees(rotation));
             const room = labelRoom - usedRoomAtDepth(depth);
             const baseStyles = this.getLabelStyles(
                 { value, formattedValue: inputText, depth, index: index - 1 },
@@ -320,7 +327,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 const turned = tempText.getBBox();
                 const across = horizontal ? turned.height : turned.width;
                 const alongSize = horizontal ? turned.width : turned.height;
-                return { text, styles, bbox, across, alongSize, exceedsBand: labelExceedsBand(alongSize, bandSize) };
+                return { text, styles, bbox, across, alongSize, exceedsBand: labelExceedsBand(alongSize, bandRoom) };
             };
 
             const measureFitted = (fitted: { text: any; fontSize?: number }) => {
@@ -337,7 +344,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             };
 
             // Labels are only wrapped to their band when they must keep within it.
-            const wrapBand = depthOptionsAt.alwaysShow ? Infinity : bandSize;
+            const wrapBand = depthOptionsAt.alwaysShow ? Infinity : bandRoom;
             let measured: ReturnType<typeof measure>;
             if (isLabelFitEnabled(depthOptionsAt)) {
                 let fitted = fitToRoom(wrapBand);
@@ -378,7 +385,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             if (measured != null && measured.alongSize > along) measured = measureFitted(fitToRoom(along));
             if (toBand && truncates && measured?.exceedsBand) {
                 const minChars = Math.min(MIN_TRUNCATED_CHARS, keptChars(inputText));
-                measured = measureFitted(fitToRoom(Math.min(along, bandSize)));
+                measured = measureFitted(fitToRoom(Math.min(along, bandRoom)));
                 if (measured != null && keptChars(measured.text) < minChars) return;
             }
             if (measured == null) return;
@@ -513,7 +520,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 const { width, height } = tempText.getBBox();
                 const labelSize = horizontal ? width : height;
                 const availableRange = isLeaf ? step : datum.leafCount * step;
-                if (labelExceedsBand(labelSize, availableRange)) {
+                if (labelExceedsBand(labelSize, bandRoomAt(depth, availableRange, labelRotation))) {
                     labelBBoxes.delete(index);
                     continue;
                 }

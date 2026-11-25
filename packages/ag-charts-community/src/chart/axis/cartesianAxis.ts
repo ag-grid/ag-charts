@@ -415,6 +415,7 @@ export abstract class CartesianAxis<
 
         const { primaryLabel, scale, range, defaultTickMinSpacing, minimumTimeGranularity } = this;
         const { interval, reverse } = this.options;
+        const labelTextAlign = this.resolveLabelTextAlign(label.textAlign);
 
         const tickGenerationResult = generateTicks({
             label,
@@ -446,6 +447,10 @@ export abstract class CartesianAxis<
                     : undefined,
             inRange: (translation: number) => this.inRange(translation, 0.001),
             labelBaseline: this.resolveLabelBaseline(label.verticalAlign),
+            labelTextAlign,
+            labelAnchorOffset: this.horizontal
+                ? getBandEdgeOffset(scale.bandwidth ?? 0, labelTextAlign)
+                : getVerticalBandEdgeOffset(scale.bandwidth ?? 0, label.verticalAlign),
             labelBandOffsets: (ticks, rotation, textAlign, textBaseline) =>
                 this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness),
             tickFormatter: (...args) => this.tickFormatter(...args),
@@ -459,7 +464,6 @@ export abstract class CartesianAxis<
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
 
         if (removeOverflowLabels) {
-            const labelTextAlign = this.resolveLabelTextAlign(label?.textAlign);
             // Selecting the alignment the axis already computes must leave the labels untouched, so
             // the edge arithmetic only departs from its centre-anchored form once the two differ.
             const alignmentOverride = labelTextAlign === tickGenerationResult.textAlign ? undefined : labelTextAlign;
