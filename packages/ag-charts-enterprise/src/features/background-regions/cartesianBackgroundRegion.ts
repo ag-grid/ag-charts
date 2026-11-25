@@ -213,13 +213,14 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const { spacing, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets(label);
         const anchor = this.getAnchor();
 
-        const bbox = labelNode.getBBox();
+        const bbox = labelNode.computeBBoxWithoutTransforms();
         if (bbox == null) return;
 
-        const { width, height } = bbox;
-
-        const halfWidth = width / 2;
-        const halfHeight = height / 2;
+        const radians = toRadians(rotation ?? 0);
+        const cos = Math.abs(Math.cos(radians));
+        const sin = Math.abs(Math.sin(radians));
+        const halfWidth = (bbox.width * cos + bbox.height * sin) / 2;
+        const halfHeight = (bbox.width * sin + bbox.height * cos) / 2;
 
         const anchorX = bounds.x1 + (Vec4.width(bounds) * (anchor.regionH + 1)) / 2;
         const anchorY = bounds.y1 + (Vec4.height(bounds) * (anchor.regionV + 1)) / 2;
@@ -227,7 +228,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const x = anchorX - (halfWidth + spacing) * anchor.labelH - xPaddingDiff / 2 + xOffset;
         const y = anchorY - (halfHeight + spacing) * anchor.labelV - yPaddingDiff / 2 + yOffset;
 
-        labelNode.rotation = toRadians(rotation ?? 0);
+        labelNode.rotation = radians;
         labelNode.x = x;
         labelNode.y = y;
         labelNode.rotationCenterX = x;

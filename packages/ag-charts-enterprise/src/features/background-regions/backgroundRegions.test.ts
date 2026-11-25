@@ -1025,6 +1025,16 @@ describe('Background Region label fitting', () => {
         expect(box.width).toBeLessThanOrEqual(region.width);
     });
 
+    it('anchors a rotated label by its turned footprint', async () => {
+        const { box, regionBox: region } = await renderLabel(
+            { position: 'inside-left', rotation: 270 },
+            { region: MEDIUM }
+        );
+
+        expect(box.x).toBeCloseTo(region.x, 0);
+        expect(box.x + box.width).toBeLessThan(region.x + region.width);
+    });
+
     it('replaces the region width with a larger maxWidth', async () => {
         const { text, box, regionBox: region } = await renderLabel({ maxWidth: 1000 }, { region: NARROW });
 
