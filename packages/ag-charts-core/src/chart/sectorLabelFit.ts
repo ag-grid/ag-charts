@@ -421,7 +421,6 @@ function shortestLine(text: NormalisedTextOrSegments, font: FontOptions): number
         if (!(height > 0 && Number.isFinite(height))) return undefined;
         shortest = Math.min(shortest, height);
     }
-    // Text without a character to show has no line to prove anything about.
     return Number.isFinite(shortest) ? shortest : undefined;
 }
 
@@ -565,8 +564,7 @@ function fitSectorLabelToWedge(
     drawnAsFitted: boolean
 ): PlacedSectorLabel {
     // The series hides any placement a wedge this thin gets, so none is made, unless the node may be drawn in
-    // another style than the one this proves against. A size is asked about again as it is placed, so the last
-    // answer is kept.
+    // another style than the one this proves against.
     let provedFor: FontOptions | undefined;
     let proved = false;
     const holdsNone = (sized: FontOptions) => {
