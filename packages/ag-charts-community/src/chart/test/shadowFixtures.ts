@@ -53,6 +53,17 @@ export const FADING_FILL = {
     ],
 } as const;
 
+/** A pattern of squares with no fill and no background, so that it paints nothing; set its `fill` for squares that hide what is beneath. */
+export const TRANSPARENT_PATTERN = {
+    type: 'pattern',
+    pattern: 'squares',
+    width: 10,
+    height: 10,
+    fill: 'rgba(0, 0, 0, 0)',
+    backgroundFill: 'rgba(0, 0, 0, 0)',
+    strokeOpacity: 0,
+} as const;
+
 /** The glow an item styler returns in the item styler tests, distinct from `SERIES_GLOW` and `HIGHLIGHT_GLOW` in every field. */
 export const ITEM_GLOW: AgGlowOptions = { enabled: true, fill: '#ff00ff', fillOpacity: 0.9, blur: 11, spread: 6 };
 

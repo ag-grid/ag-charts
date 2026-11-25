@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { expectSamePixels } from '../../test/expectSamePixels';
-import { visibleItems } from '../../test/glowRender';
-import { FADING_FILL } from '../../test/shadowFixtures';
+import { bytesOf, pixelsAroundCircle, visibleItems } from '../../test/glowRender';
+import { FADING_FILL, TRANSPARENT_PATTERN } from '../../test/shadowFixtures';
 import {
     type Chart,
     chartPixelAt,
@@ -214,16 +214,7 @@ describe('glow gap in a chart', () => {
     describe('the footprint of the hovered item, with no gap', () => {
         const HOVERED_GLOW = { fill: 'red', fillOpacity: 1, blur: 6, spread: 10 };
         const SPREAD_0_GLOW = { fill: 'red', fillOpacity: 1, blur: 8, spread: 0 };
-        const TRANSPARENT_PATTERN = {
-            type: 'pattern',
-            pattern: 'squares',
-            width: 10,
-            height: 10,
-            fill: 'blue',
-            fillOpacity: 1,
-            backgroundFill: 'rgba(0, 0, 0, 0)',
-            strokeOpacity: 0,
-        };
+        const BLUE_SQUARES = { ...TRANSPARENT_PATTERN, fill: 'blue', fillOpacity: 1 };
         // The same render differs by 1/255 between hosts, so a pin of bytes holds within 2, which the regressions it guards exceed.
         const PIN_TOLERANCE = 2;
         const ALL_ANGLES = [0, 45, 90, 200];
@@ -298,21 +289,8 @@ describe('glow gap in a chart', () => {
         });
 
         /** The pixels `distances` from the edge of the first item, at each of `angles`, taking the item as a circle. */
-        const around = (distances: number[], angles: number[]) => {
-            const { x, y, width, height } = firstItem();
-            const [centreX, centreY, radius] = [x + width / 2, y + height / 2, width / 2];
-            return distances.flatMap((d) =>
-                angles.map((angle) => {
-                    const radians = (angle * Math.PI) / 180;
-                    return pixelAt(
-                        centreX + (radius + d) * Math.cos(radians),
-                        centreY - (radius + d) * Math.sin(radians)
-                    );
-                })
-            );
-        };
-
-        const bytesOf = (pixels: number[][]) => ({ data: pixels.flat() });
+        const around = (distances: number[], angles: number[]) =>
+            pixelsAroundCircle(chart!, firstItem(), distances, angles);
 
         const createHovered = async (options: AgChartOptions) => {
             await create(options);
@@ -379,7 +357,7 @@ describe('glow gap in a chart', () => {
             });
 
             it('should keep a pattern with a transparent background its own colour with no spread, and leave the glow beside it as it is', async () => {
-                const series = { shape: 'square', fill: TRANSPARENT_PATTERN, fillOpacity: 1 };
+                const series = { shape: 'square', fill: BLUE_SQUARES, fillOpacity: 1 };
                 // The squares of the pattern hide the glow beneath them, so it is the gaps between them that tell the cut.
                 const { withGlow, withNoGlow } = await hoveredAndWithNoGlow(
                     series,

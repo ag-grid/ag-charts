@@ -8,7 +8,7 @@ import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
-import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
+import { type ChartOrProxy, chartPixelAt, countChartPixels, deproxy, waitForChartStability } from './utils';
 
 /** An opaque, unblurred glow, so that the shape of the cast can be read off the render. */
 export const HARD_GLOW: AgGlowOptions = { enabled: true, fillOpacity: 1, blur: 0 };
@@ -128,6 +128,32 @@ export function dominantRedStrength(data: ArrayLike<number>) {
     const [[green]] = [...greens].sort(([, a], [, b]) => b - a);
     return strengthOfRed([255, green, green]);
 }
+
+/**
+ * The pixels `distances` from the edge of `box`, taken as a circle, at each of `angles` (degrees, anticlockwise from the right).
+ * A negative distance is inside the edge.
+ */
+export function pixelsAroundCircle(
+    chartOrProxy: ChartOrProxy<any>,
+    { x, y, width, height }: { x: number; y: number; width: number; height: number },
+    distances: number[],
+    angles: number[]
+): number[][] {
+    const [centreX, centreY, radius] = [x + width / 2, y + height / 2, width / 2];
+    return distances.flatMap((d) =>
+        angles.map((angle) => {
+            const radians = (angle * Math.PI) / 180;
+            return chartPixelAt(
+                chartOrProxy,
+                centreX + (radius + d) * Math.cos(radians),
+                centreY - (radius + d) * Math.sin(radians)
+            );
+        })
+    );
+}
+
+/** RGBA pixels as the bytes that {@link expectSamePixels} compares. */
+export const bytesOf = (pixels: number[][]) => ({ data: pixels.flat() });
 
 /** The visible items of the first datum selection of a chart, in canvas coordinates. */
 export function visibleItems(chartOrProxy: ChartOrProxy<any>) {
