@@ -45,6 +45,11 @@ export function anchorRoom(
     return Math.max(availableExtent(anchorAt, labelDir, pad, low, high), 0);
 }
 
+/** Zoom stretches a scale's range linearly about its axis range, so this undoes it for one position. */
+export function unzoomedPosition(position: number, [s0, s1]: readonly number[], [r0, r1]: readonly number[]): number {
+    return s1 === s0 ? position : r0 + ((position - s0) * (r1 - r0)) / (s1 - s0);
+}
+
 /** `roomX` by `roomY` less the boxing `insets`, turned to `rotation` degrees. */
 export function turnedRoom(
     roomX: number,

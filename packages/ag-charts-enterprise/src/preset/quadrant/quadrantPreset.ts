@@ -65,7 +65,6 @@ const LABEL_POSITIONS: Record<AgQuadrantRegionLabelPosition, RegionLabelPosition
     'inside-inner-inner': perRegion('inside-bottom-right', 'inside-bottom-left', 'inside-top-right', 'inside-top-left'),
 };
 
-// `spacing` is undocumented on region labels.
 type QuadrantRegionLabel = AgSeriesAreaBackgroundRegionLabel & { spacing?: number };
 
 function createRegionLabel(

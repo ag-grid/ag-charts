@@ -28,6 +28,7 @@ import {
     resolvePadding,
     toRadians,
     turnedRoom,
+    unzoomedPosition,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -61,10 +62,6 @@ export const anchors: Record<AgSeriesAreaBackgroundRegionLabelPosition, Anchor> 
     'inside-top-right': { regionH: 1, regionV: -1, labelH: 1, labelV: -1 },
     inside: { regionH: 0, regionV: 0, labelH: 0, labelV: 0 },
 };
-
-function unzoomedPosition(position: number, [s0, s1]: readonly number[], [r0, r1]: readonly [number, number]): number {
-    return s1 === s0 ? position : r0 + ((position - s0) * (r1 - r0)) / (s1 - s0);
-}
 
 export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegion {
     static readonly className = 'BackgroundRegion';
@@ -163,13 +160,12 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const { label } = this.opts;
         if (!label) return fit;
 
-        const { padding, rotation = 0, spacing = 0, xOffset = 0, yOffset = 0 } = label;
+        const { padding, rotation = 0, xOffset = 0, yOffset = 0 } = label;
+        const { spacing, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets(label);
         const anchor = this.getAnchor();
         const sideH = anchor.regionH !== 0 && anchor.labelH === -anchor.regionH;
         const sideV = anchor.regionV !== 0 && anchor.labelV === -anchor.regionV;
         const room = sideH || sideV ? unzoomedBounds : bounds;
-        const xPaddingDiff = (padding.right ?? 0) - (padding.left ?? 0);
-        const yPaddingDiff = (padding.bottom ?? 0) - (padding.top ?? 0);
         const roomX = sideH
             ? Infinity
             : anchorRoom(anchor.regionH, anchor.labelH, spacing, room.x1, Vec4.width(room), xPaddingDiff);
@@ -184,7 +180,16 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
             fit.maxWidth != null || xOffset !== 0,
             fit.maxHeight != null || yOffset !== 0
         );
-        return rotated == null ? fit : { ...fit, rotated, hideOverflowingEllipsis: true };
+        return rotated == null ? fit : { ...fit, rotated };
+    }
+
+    /** Shared by fitting and positioning, so the room is measured from where the label is drawn. */
+    private labelAnchorOffsets({ padding, spacing = 0 }: NonNullable<NormalisedSeriesAreaBackgroundRegion['label']>) {
+        return {
+            spacing,
+            xPaddingDiff: (padding.right ?? 0) - (padding.left ?? 0),
+            yPaddingDiff: (padding.bottom ?? 0) - (padding.top ?? 0),
+        };
     }
 
     private positionLabel(bounds: Bounds4) {
@@ -194,16 +199,14 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         } = this;
         if (!label) return;
 
-        const { padding, rotation, spacing = 0, xOffset = 0, yOffset = 0 } = label;
+        const { rotation, xOffset = 0, yOffset = 0 } = label;
+        const { spacing, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets(label);
         const anchor = this.getAnchor();
 
         const bbox = labelNode.getBBox();
         if (bbox == null) return;
 
         const { width, height } = bbox;
-
-        const xPaddingDiff = (padding.right ?? 0) - (padding.left ?? 0);
-        const yPaddingDiff = (padding.bottom ?? 0) - (padding.top ?? 0);
 
         const halfWidth = width / 2;
         const halfHeight = height / 2;

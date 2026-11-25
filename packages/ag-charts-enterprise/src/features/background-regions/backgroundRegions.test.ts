@@ -867,6 +867,7 @@ describe('Background Region label fitting', () => {
             zoom?: { start: number; end: number };
         } = {}
     ) {
+        chart?.destroy();
         const options: AgCartesianChartOptions = { ...fitLabelOptions(label, region), theme };
         if (zoom) {
             options.zoom = { enabled: true, axes: 'xy' };
@@ -979,7 +980,6 @@ describe('Background Region label fitting', () => {
             expect(unrotated.text).toBe(LONG_LABEL);
             expect(unrotated.box.width).toBeGreaterThan(unrotated.regionBox.width);
 
-            chart.destroy();
             const rotated = await renderLabel({ position, rotation: 270 }, { region: SHORT });
             expect(rotated.text).not.toBe(LONG_LABEL);
             expect(rotated.box.height).toBeLessThanOrEqual(rotated.regionBox.height);
@@ -1006,7 +1006,6 @@ describe('Background Region label fitting', () => {
 
     it('replaces the region height with a larger maxHeight', async () => {
         const bounded = await renderLabel({}, { region: SMALL });
-        chart.destroy();
         const { text, box, regionBox: region } = await renderLabel({ maxHeight: 1000 }, { region: SMALL });
 
         expect(text.split('\n').length).toBeGreaterThan(bounded.text.split('\n').length);
@@ -1041,7 +1040,6 @@ describe('Background Region label fitting', () => {
 
     it('rewraps an inside label to the visible region under zoom', async () => {
         const unzoomed = await renderLabel({ position: 'inside' }, { region: NARROW });
-        chart.destroy();
         const zoomed = await renderLabel({ position: 'inside' }, { region: NARROW, zoom: { start: 0.4, end: 0.6 } });
 
         expect(zoomed.text.split('\n').length).toBeLessThan(unzoomed.text.split('\n').length);
@@ -1049,12 +1047,21 @@ describe('Background Region label fitting', () => {
 
     it('keeps a side label at its zoomed-out bound under zoom', async () => {
         const unzoomed = await renderLabel({ position: 'top' }, { region: MEDIUM });
-        chart.destroy();
         const zoomed = await renderLabel({ position: 'top' }, { region: MEDIUM, zoom: { start: 0.4, end: 0.6 } });
 
         expect(unzoomed.text).not.toBe(LONG_LABEL);
         expect(zoomed.text).toBe(unzoomed.text);
     });
+
+    it('keeps the lead character of a label its region has no room for', async () => {
+        const { text } = await renderLabel(
+            {},
+            { region: { xRange: { start: 50, end: 50.5 }, yRange: { start: 50, end: 51 } } }
+        );
+
+        expect(text.startsWith('A')).toBe(true);
+    });
+
     it('rejects a minimumFontSize above fontSize', async () => {
         const options = fitLabelOptions({ maxWidth: 120, minimumFontSize: 30 });
 

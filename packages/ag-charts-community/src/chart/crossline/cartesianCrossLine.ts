@@ -28,6 +28,7 @@ import {
     resolvePadding,
     toRadians,
     turnedRoom,
+    unzoomedPosition,
     validateCrossLineValue,
 } from 'ag-charts-core';
 import type {
@@ -458,11 +459,8 @@ export class CartesianCrossLine implements CrossLine<NormalisedAxisCrossLineLabe
         this.labelHeld = hold && this.labelHidden;
     }
 
-    /** Zoom stretches the scale range linearly about the axis range, so this undoes it. */
     private unzoomedPosition(position: number): number {
-        const [s0, s1] = this.scale?.range ?? this.clippedRange;
-        const [r0, r1] = this.clippedRange;
-        return s1 === s0 ? position : r0 + ((position - s0) * (r1 - r0)) / (s1 - s0);
+        return unzoomedPosition(position, this.scale?.range ?? this.clippedRange, this.clippedRange);
     }
 
     private bandBounds([r0, r1]: NodeData = this.data ?? [0, 0]): BBox {
