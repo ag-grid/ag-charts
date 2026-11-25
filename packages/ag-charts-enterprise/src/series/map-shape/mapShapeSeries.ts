@@ -35,7 +35,6 @@ import {
     datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
-    fontWithSize,
     formatValue,
     hasRealChars,
     insetItemRegion,
@@ -97,8 +96,6 @@ export interface MapShapeNodeLabelDatum {
     readonly idValue: string;
     readonly datumId: string | number | boolean;
     readonly itemRoom?: ItemLabelSource;
-    /** The shape the label sits inside, when it re-fits to the stroke that shape draws. */
-    readonly itemDatum?: MapShapeNodeDatum;
 }
 
 export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -125,7 +122,6 @@ interface MapShapeLabelTarget {
     readonly polygon: Position[][];
     readonly datumIndex: number;
     readonly idValue: string;
-    readonly node: MapShapeNodeDatum;
     /** Solves that other sources trigger reuse the last fit while the inputs match. */
     lastFit?: { readonly input: LabelFitDescriptor; readonly placed: PlacedFit | undefined };
 }
@@ -513,6 +509,11 @@ export class MapShapeSeries
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     private appliedPlacedLabels: PlacedLabel<unknown>[] | undefined = undefined;
+    /** The style each layer last drew its shapes in, by datum index, while a state restyles their strokes. */
+    private readonly drawnItemStyles = [
+        new Map<number, MapShapeNodeDatum['style']>(),
+        new Map<number, MapShapeNodeDatum['style']>(),
+    ] as const;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, options, scale, previousLabelLayouts } = this;
         const { label, legendItemName, colorKey } = options;
@@ -569,7 +570,13 @@ export class MapShapeSeries
 
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
-            const node: MapShapeNodeDatum = {
+            const polygon =
+                labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
+            if (labelLayout != null && polygon != null) {
+                labelTargets.push({ layout: labelLayout, polygon, datumIndex, idValue: dataValues.idValue });
+            }
+
+            nodeData.push({
                 series: this,
                 datum,
                 datumIndex,
@@ -577,14 +584,7 @@ export class MapShapeSeries
                 projectedGeometry,
                 legendItemName,
                 style: this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false),
-            };
-            nodeData.push(node);
-
-            const polygon =
-                labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
-            if (labelLayout != null && polygon != null) {
-                labelTargets.push({ layout: labelLayout, polygon, datumIndex, idValue: dataValues.idValue, node });
-            }
+            });
         }
 
         this.warnMissingGeometries(missingGeometries);
@@ -661,19 +661,20 @@ export class MapShapeSeries
 
     private toLabelData(placed: PlacedLabel<unknown>[], fitting: LabelFitting): MapShapeNodeLabelDatum[] {
         const { font, fit, itemInsets } = fitting;
+        const boxPadding = expandLabelBoxExtent(this.options.label);
         return placed.map((label) => {
             const { text, fontSize, offsetX = 0, offsetY = 0 } = label;
             const { point, target } = placedLabelDatum(label);
             const { datumIndex, idValue } = target;
             let itemRoom: ItemLabelSource | undefined;
             if (itemInsets != null) {
-                // The text was fitted to the shape's outline, so the box it took stays inside as the outline moves.
-                const box = measureLabelText(text, fontWithSize(font, fontSize));
-                itemRoom = itemLabelRoom(itemInsets, target.layout.labelText, fit, box.width, box.height);
+                const labelText = target.layout.labelText;
+                itemRoom = itemLabelRoom(itemInsets, labelText, fit, 0, 0);
+                const descriptor = { text: labelText, policy: fit, font, boxPadding, boundByRegion: false };
+                itemRoom.refit = (inset) => this.placeLabel(target, descriptor, itemLabelClearance(inset, boxPadding));
             }
             return {
                 itemRoom,
-                itemDatum: itemRoom == null ? undefined : target.node,
                 x: point.x + offsetX,
                 y: point.y + offsetY,
                 text,
@@ -710,14 +711,15 @@ export class MapShapeSeries
         this.updateDatumStyles({ datumSelection, isHighlight: false });
         this.updateDatumNodes({ datumSelection, drawingMode: 'overlay', isHighlight: false });
 
-        this.updateLabels();
-
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode, isHighlight: true });
+
+        // After both layers, so each label re-fits to the stroke its own layer drew.
+        this.updateLabels();
     }
 
     private updateLabels() {
@@ -885,6 +887,9 @@ export class MapShapeSeries
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const { shadow, glow } = this.options;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        drawnStyles.clear();
+        const restyled = this.contextNodeData?.labelFitting.itemInsets != null;
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { projectedGeometry } = nodeDatum;
@@ -899,6 +904,7 @@ export class MapShapeSeries
 
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
+            if (restyled) drawnStyles.set(nodeDatum.datumIndex, nodeDatum.style);
 
             const castState = this.getItemCastState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
             geoGeometry.fillShadow = this.resolveItemShadow(
@@ -945,6 +951,7 @@ export class MapShapeSeries
     }) {
         const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
         labelSelection.each((label, labelDatum) => {
             const { x, y, text, fontSize, lineHeight, datumIndex } = labelDatum;
             type P = AgMapShapeSeriesLabelFormatterParams;
@@ -973,10 +980,10 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            const { itemRoom, itemDatum } = labelDatum;
-            if (itemRoom != null && itemDatum != null) {
-                const drawn = this.getItemStyle(itemDatum, isHighlight);
-                refitItemLabelNode(label, itemRoom, drawn.stroke, drawn.strokeWidth, style);
+            if (labelDatum.itemRoom != null) {
+                const drawn = drawnStyles.get(datumIndex);
+                if (drawn != null)
+                    refitItemLabelNode(label, labelDatum.itemRoom, drawn.stroke, drawn.strokeWidth, style);
             }
             label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);

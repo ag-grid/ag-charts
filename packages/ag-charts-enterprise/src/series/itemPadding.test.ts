@@ -1025,6 +1025,129 @@ describe('itemPadding', () => {
             await compareImageSnapshot(chart!, ctx);
         });
 
+        const shortHierarchy = [
+            {
+                name: 'home',
+                children: [
+                    { name: 'docs', size: 40 },
+                    { name: 'media', size: 30 },
+                ],
+            },
+            { name: 'usr', children: [{ name: 'lib', size: 30 }] },
+        ];
+        const withStroke = { strokes: ['black'], strokeWidth: 1 };
+        // A short one-line label in an item with room to spare, which a deep state stroke must not hide.
+        const SHORT_IN_LARGE: { name: string; options: AgChartOptions; kept: string }[] = [
+            {
+                name: 'pie',
+                options: sectorChart('pie', stageData, {
+                    ...withStroke,
+                    sectorLabel: FITTED,
+                    ...stateStrokes(depth).highlight,
+                }),
+                kept: 'Visited',
+            },
+            {
+                name: 'donut',
+                options: sectorChart('donut', stageData, {
+                    ...withStroke,
+                    sectorLabel: FITTED,
+                    ...stateStrokes(depth).highlight,
+                }),
+                kept: 'Visited',
+            },
+            {
+                name: 'sunburst',
+                options: sunburstChart(shortHierarchy, { ...withStroke, ...hierarchyStateStrokes(depth) }),
+                kept: 'home',
+            },
+            {
+                name: 'map-shape',
+                options: fromCase('map-shape', { stroke: 'black', strokeWidth: 2, label: FITTED })(
+                    stateStrokes(2 * depth).highlight
+                ),
+                kept: 'Scotland',
+            },
+            {
+                name: 'pyramid',
+                options: CASES.find((c) => c.name === 'pyramid')!.options({
+                    strokes: ['black'],
+                    strokeWidth: 2,
+                    label: { ...FITTED, formatter: ({ datum }: { datum: { stage: string } }) => datum.stage },
+                    ...stateStrokes(2 * depth).highlight,
+                }),
+                kept: 'Visited',
+            },
+            {
+                name: 'bubble',
+                options: cartesian(
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        labelKey: 'name',
+                        minSize: 60,
+                        maxSize: 90,
+                        stroke: 'black',
+                        strokeWidth: 2,
+                        label: { ...FITTED, placement: INSIDE },
+                        ...stateStrokes(2 * depth).highlight,
+                    },
+                    markerData
+                ),
+                kept: 'South',
+            },
+        ];
+
+        it.each(SHORT_IN_LARGE)(
+            'keeps a short $name label drawn where a deep state stroke leaves it room',
+            async ({ options, kept }) => {
+                await render(options);
+                const target = drawnLabels(chart!).find((label) => label.text === kept);
+                expect(target).toBeDefined();
+
+                const { x, y, width, height } = Transformable.toCanvas(target!);
+                await hoverAction(x + width / 2, y + height / 2)(chart!);
+
+                // Kept whole, not hidden or truncated by a room narrower than its shape leaves it.
+                expect(drawnLabels(chart!).map((label) => label.text)).toContain(kept);
+                expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+                await compareImageSnapshot(chart!, ctx);
+            }
+        );
+
+        it('re-fits a treemap label stack to its tile as one, so the secondary label is not crushed', async () => {
+            await render(
+                fromCase('treemap', {
+                    secondaryLabelKey: 'size',
+                    tile: {
+                        ...TREEMAP_TILE,
+                        stroke: 'black',
+                        strokeWidth: 1,
+                        label: { ...FITTED, fontSize: 24 },
+                        secondaryLabel: { ...FITTED, fontSize: 24 },
+                        ...hierarchyStateStrokes(depth),
+                    },
+                })({})
+            );
+            const secondarySizes = () =>
+                drawnLabels(chart!)
+                    .filter((label) => /^\d+$/.test(String(label.text)))
+                    .map((label) => label.fontSize);
+            const resting = secondarySizes();
+            expect(resting.length).toBeGreaterThan(0);
+
+            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
+            await hoverAction(x + width / 2, y + height / 2)(chart!);
+
+            // Shrunk with the label above it, not squeezed into the height it took beside it at rest.
+            expect(secondarySizes()).toHaveLength(resting.length);
+            for (const size of secondarySizes()) expect(size).toBeGreaterThan(FITTED.minimumFontSize);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+            await compareImageSnapshot(chart!, ctx);
+        });
+
         it('keeps an end-anchored label past an inner whisker when a state stroke stays shallower than it', async () => {
             const options = cartesian(
                 {

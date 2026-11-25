@@ -2001,17 +2001,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         isHighlight: boolean,
         activeHighlight: HighlightNodeDatum | undefined
     ): NormalisedBarSeriesStyle | undefined {
-        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
-        // Mirrors the style `updateDatumNode` draws the bar with; the highlight copy restyles its own datum.
-        if (isHighlight) {
-            return this.getItemStyle(
-                datum.datumIndex,
-                true,
-                highlightState,
-                this.getDataSelectionState(datum.datumIndex),
-                this.getDataCandidacyState(datum.datumIndex)
-            );
-        }
+        if (isHighlight) return this.highlightDatumAt(datum.datumIndex)?.style;
+        const highlightState = this.getHighlightState(activeHighlight, false, datum.datumIndex);
         return datum.style ?? this.contextNodeData?.styles[highlightState ?? HighlightState.None];
     }
 

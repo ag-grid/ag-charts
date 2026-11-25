@@ -54,10 +54,23 @@ export interface ItemLabelRoom {
     anchorY: number;
 }
 
+/** A label fitted afresh to its item's own shape: its text and size, and where its node is drawn when that moves. */
+export interface ItemLabelFit {
+    readonly text: NormalisedTextOrSegments;
+    readonly fontSize?: number;
+    readonly x?: number;
+    readonly y?: number;
+}
+
 /** An in-item label's unfitted text and fit, with the room it was fitted into, so a state's stroke can re-fit it. */
 export interface ItemLabelSource extends ItemLabelRoom {
     text: NormalisedTextOrSegments;
     fit: LabelFit;
+    /**
+     * Fits the label to its item's own shape held `inset` in from its edge, for a shape no rect stands for;
+     * `undefined` when nothing fits. Without it the label re-fits to the room's rect.
+     */
+    refit?: (inset: number) => ItemLabelFit | undefined;
 }
 
 /** {@link ItemLabelRoom} re-measured for a drawn stroke, and how far an anchored label moves with its end. */

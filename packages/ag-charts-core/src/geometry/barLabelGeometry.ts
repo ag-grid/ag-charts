@@ -362,8 +362,6 @@ export function applyBarLabelOrientation<TStyleDatum = object>(
                           insets,
                           fit,
                           candidate,
-                          text,
-                          fontSize,
                           rotation ?? 0,
                           (candidate as BarPositionedCandidate | undefined)?.endSpacing ?? 0
                       );

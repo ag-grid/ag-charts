@@ -182,9 +182,12 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
         const fillBBox = this.getShapeFillBBox();
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        if (isHighlight) drawnStyles.clear();
 
         datumSelection.each((rect, datum) => {
             const style = this.getItemStyle(datum, isHighlight);
+            drawnStyles.set(datum.datumIndex, style);
             rect.setStyleProperties(style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

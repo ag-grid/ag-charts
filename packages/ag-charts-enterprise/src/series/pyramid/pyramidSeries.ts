@@ -864,7 +864,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum) ?? [];
         this.highlightLabelSelection = highlightLabelSelection.update(highlightLabelData);
-        this.updateValueLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
@@ -872,6 +871,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateValueLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.animationState.transition('update');
     }
@@ -883,8 +883,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return opts.datumSelection.update(opts.nodeData);
     }
 
+    /** The style each layer last drew its stages in, by datum index; the highlighted datum is shared by both layers. */
+    private readonly drawnItemStyles = [
+        new Map<number, NormalisedPyramidSeriesStyle>(),
+        new Map<number, NormalisedPyramidSeriesStyle>(),
+    ] as const;
+
     drawnItemStroke(datum: PyramidNodeLabelDatum, isHighlight: boolean) {
-        return this.getItemStyle(datum, isHighlight);
+        return this.drawnItemStyles[isHighlight ? 1 : 0].get(datum.datumIndex);
     }
 
     protected getItemStyle(
@@ -956,8 +962,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
+        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        drawnStyles.clear();
         datumSelection.each((_, nodeDatum) => {
             nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+            drawnStyles.set(nodeDatum.datumIndex, nodeDatum.style);
         });
     }
 

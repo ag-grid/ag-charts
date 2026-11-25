@@ -597,8 +597,14 @@ export abstract class BaseFunnelSeries<
         return undefined;
     }
 
+    /** The style each layer last drew its stages in, by datum index. */
+    protected readonly drawnItemStyles = [
+        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
+        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
+    ] as const;
+
     drawnItemStroke(datum: FunnelNodeLabelDatum, isHighlight: boolean) {
-        return this.getItemStyle(datum, isHighlight);
+        return this.drawnItemStyles[isHighlight ? 1 : 0].get(datum.datumIndex);
     }
 
     /** The placement-style overrides for a resolved placement; `undefined` where a series has none. */

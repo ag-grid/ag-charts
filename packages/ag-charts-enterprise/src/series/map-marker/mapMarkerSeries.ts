@@ -91,8 +91,6 @@ export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
     readonly itemRoom?: ItemLabelSource;
-    /** The marker the label sits inside, when it re-fits to the stroke that marker draws. */
-    readonly itemDatum?: MapMarkerNodeDatum;
 }
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -172,6 +170,11 @@ export class MapMarkerSeries
     /** How an `inside`-only label is fitted to its marker this pass, as scatter fits its own. */
     private labelInsideMarkerFit: InsideMarkerFit | undefined;
     private labelItemInsets: ItemLabelInsets | undefined;
+    /** The style each layer last drew its markers in, by datum index, while a state restyles their strokes. */
+    private readonly drawnItemStyles = [
+        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
+        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
+    ] as const;
     private readonly labelInsideMarkerPolicy: InsideMarkerPolicyScratch = {
         policy: {},
         region: new InsetMaskFitRegion(),
@@ -441,7 +444,7 @@ export class MapMarkerSeries
             const insets = this.labelItemInsets;
             if (insets != null) {
                 const { base } = insideMarkerFit;
-                itemRoom = insideMarkerLabelRoom(insets, base, policy, labelText, fittedText, labelStyle, undefined);
+                itemRoom = insideMarkerLabelRoom(insets, base, policy, labelText, labelStyle);
             }
         }
         const text = measureLabelText(fittedText, labelStyle);
@@ -465,7 +468,6 @@ export class MapMarkerSeries
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
             itemRoom,
-            itemDatum: itemRoom == null ? undefined : node,
         };
     }
 
@@ -825,6 +827,7 @@ export class MapMarkerSeries
     }) {
         const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
         labelSelection.each((label, placedLabel) => {
             const { x, y, width, height, text, datum: labelDatum } = placedLabel;
             type P = AgMapMarkerSeriesLabelFormatterParams;
@@ -854,18 +857,14 @@ export class MapMarkerSeries
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             if (labelDatum?.itemRoom != null) {
-                const drawn = this.drawnMarkerStyle(labelDatum, isHighlight);
-                refitItemLabelNode(label, labelDatum.itemRoom, drawn?.stroke, drawn?.strokeWidth, style);
+                const drawn = drawnStyles.get(labelDatum.datumIndex);
+                if (drawn != null)
+                    refitItemLabelNode(label, labelDatum.itemRoom, drawn.stroke, drawn.strokeWidth, style);
             }
             const datumIndex = labelDatum?.datumIndex;
             label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });
-    }
-
-    /** The style the marker under `datum`'s label is drawn with, which the label re-fits to. */
-    private drawnMarkerStyle(datum: MapMarkerNodeLabelDatum, isHighlight: boolean) {
-        return datum.itemDatum == null ? undefined : this.getMarkerItemStyle(datum.itemDatum, isHighlight);
     }
 
     private getHighlightedLabelId(highlightedDatum: MapMarkerNodeDatum | undefined = this.getHighlightedDatum()) {
@@ -1046,10 +1045,14 @@ export class MapMarkerSeries
         const { shape: seriesShape, itemStyler } = this.options;
         const itemStyled = itemStyler != null;
         let labelMarkersChanged = false;
+        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        drawnStyles.clear();
+        const restyled = this.labelItemInsets != null;
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point, label } = markerDatum;
             const style = this.getMarkerItemStyle(markerDatum, isHighlight);
+            if (restyled) drawnStyles.set(markerDatum.datumIndex, style);
             if (stampLabels && label != null) {
                 labelMarkersChanged = applyStyledMarker(label, style, seriesShape, itemStyled) || labelMarkersChanged;
             }

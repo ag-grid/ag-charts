@@ -1023,9 +1023,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         isHighlight: boolean,
         activeHighlight: HighlightNodeDatum | undefined
     ): NormalisedHistogramSeriesStyle | undefined {
-        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
-        // Mirrors the style `updateDatumNodes` draws the bin with; the highlight copy restyles its own datum.
-        if (isHighlight) return this.getItemStyle(datum.datumIndex, true, highlightState);
+        if (isHighlight) return this.highlightDatumAt(datum.datumIndex)?.style;
+        const highlightState = this.getHighlightState(activeHighlight, false, datum.datumIndex);
         return datum.style ?? this.contextNodeData?.styles[highlightState];
     }
 

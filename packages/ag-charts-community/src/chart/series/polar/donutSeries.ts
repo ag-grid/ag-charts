@@ -64,7 +64,6 @@ import {
     itemLabelInsets,
     itemLabelRoom,
     jsonDiff,
-    measureLabelText,
     mergeDefaults,
     modulus,
     normalizeAngle180,
@@ -226,6 +225,8 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
+    /** The stroke width this layer's sector was last drawn with, which its label is held clear of. */
+    drawnStrokeWidth?: number;
 }
 
 interface ProcessedDataValues {
@@ -353,7 +354,7 @@ export class DonutSeries extends PolarSeries<
     private labelTargets: { readonly label: PolarLabelDatum }[] = [];
     private readonly sectorLabels = new Map<number, PolarLabelDatum>();
     /** Each sector label's room, kept while a state restyles the sectors' strokes; `font` measures a fitted box. */
-    private readonly sectorLabelRooms = new Map<number, { room: ItemLabelSource; font?: FontOptions }>();
+    private readonly sectorLabelRooms = new Map<number, ItemLabelSource>();
     private readonly calloutLabels = new Map<number, PolarLabelDatum>();
     private readonly calloutProbeText = new Text();
     private innerLabelTargets: PolarLabelDatum[] = [];
@@ -1301,13 +1302,10 @@ export class DonutSeries extends PolarSeries<
     }
 
     /** The wedge a sector label is fitted to and shown in. */
-    private sectorLabelBounds(datum: PieDonutNodeDatum, innerRadius: number) {
+    private sectorLabelBounds(datum: PieDonutNodeDatum, innerRadius: number, inset = this.sectorLabelInset(datum)) {
         const { startAngle, endAngle, outerRadius } = datum;
         const radialEdgeInset = this.getSideInset(datum, 0);
-        return insetItemSector(
-            { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset },
-            this.sectorLabelInset(datum)
-        );
+        return insetItemSector({ startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset }, inset);
     }
 
     // Only the sides face a neighbouring sector, and a lone sector's sides meet each other.
@@ -1375,6 +1373,7 @@ export class DonutSeries extends PolarSeries<
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
+            datum.drawnStrokeWidth = format.strokeWidth;
 
             if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
@@ -2347,13 +2346,31 @@ export class DonutSeries extends PolarSeries<
                 textBaseline: 'middle',
             };
             sectorLabels.set(datum.datumIndex, label);
-            if (restyled) {
-                // A wedge-fitted label keeps the box its fitted text took, which stays inside the wedge.
-                const { width = 0, height = 0 } = fitTarget.container ?? {};
-                const room = itemLabelRoom(this.sectorLabelInsets(datum), label.text, fitPolicy, width, height);
-                sectorLabelRooms.set(datum.datumIndex, { room, font: fitTarget.container == null ? font : undefined });
-            }
             const fit = { text: label.text, policy: fitPolicy, font, boxPadding, boundByRegion: true };
+            if (restyled) {
+                const { width = 0, height = 0 } = fitTarget.container ?? {};
+                const room: ItemLabelSource = itemLabelRoom(
+                    this.sectorLabelInsets(datum),
+                    label.text,
+                    fitPolicy,
+                    width,
+                    height
+                );
+                if (fitTarget.container == null) {
+                    // The node draws relative to the series centre, so the wedge is placed about the origin.
+                    room.refit = (inset) =>
+                        sectorLabelPlacer(
+                            { x, y },
+                            this.sectorLabelBounds(datum, innerRadius, inset),
+                            boxPadding,
+                            font,
+                            0,
+                            0,
+                            drawnAsFitted
+                        )(fit);
+                }
+                sectorLabelRooms.set(datum.datumIndex, room);
+            }
             this.pushLabel(data, label, { font, boxPadding }, fitTarget, fit);
         }
     }
@@ -2413,13 +2430,6 @@ export class DonutSeries extends PolarSeries<
 
     override updatePlacedLabelData(placed: PlacedLabel<unknown>[], seriesRect?: BBox) {
         writePlacedPolarLabels(this.labelTargets, placed);
-        for (const [datumIndex, { room, font }] of this.sectorLabelRooms) {
-            const label = placedPolarLabel(this.sectorLabels.get(datumIndex));
-            if (font == null || label == null) continue;
-            const box = measureLabelText(label.fittedText ?? label.text, fontWithSize(font, label.fittedFontSize));
-            room.width = box.width;
-            room.height = box.height;
-        }
         const { dataModel, processedData } = this;
         const legendItemValues =
             dataModel == null || processedData == null
@@ -2460,10 +2470,9 @@ export class DonutSeries extends PolarSeries<
                 text.setFont(fontWithSize(style, label.fittedFontSize));
                 text.setAlign(label);
                 text.setBoxing(style);
-                const room = this.sectorLabelRooms.get(datum.datumIndex)?.room;
+                const room = this.sectorLabelRooms.get(datum.datumIndex);
                 if (room != null) {
-                    const drawn = this.getItemStyle(datum, isDatumHighlighted, true, undefined, legendItemValues);
-                    refitItemLabelNode(text, room, drawn.stroke, drawn.strokeWidth, style);
+                    refitItemLabelNode(text, room, datum.sectorFormat.stroke, datum.drawnStrokeWidth, style);
                 }
 
                 // Each line answers for itself, or a boxed label's whole background, held to the wedge it was fitted to.

@@ -117,6 +117,8 @@ interface HeatmapLabelDatum extends Point {
     xSpan: number;
     ySpan: number;
     style: NormalisedHeatmapSeriesStyle;
+    /** The cell the label sits in, whose style each restyle replaces. */
+    readonly cell: HeatmapNodeDatum;
 }
 
 interface HeatmapLabelCandidate extends PositionedLabelCandidate {
@@ -844,6 +846,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             x: anchorX + textAlignFactor * xSpan,
             y: anchorY + verticalAlignFactor * ySpan,
             style: nodeDatum.style,
+            cell: nodeDatum,
         };
     }
 
@@ -1159,8 +1162,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     /** The style the cell under `datum` is drawn with, which its label re-fits to. */
-    drawnItemStroke(datum: HeatmapLabelDatum, isHighlight: boolean): HeatmapCellStyle {
-        return this.getItemStyle(datum, isHighlight);
+    /** The style the cell under `datum`'s label was drawn with on that layer. */
+    drawnItemStroke(datum: HeatmapLabelDatum, isHighlight: boolean): HeatmapCellStyle | undefined {
+        return isHighlight ? this.highlightDatumAt(datum.datumIndex)?.style : datum.cell.style;
     }
 
     protected updateLabelNodes(opts: {
@@ -1289,7 +1293,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 target.itemRoom =
                     insets == null || fit == null
                         ? undefined
-                        : placedItemLabelRoom(target.itemRoom, insets, fit, candidate, text, fontSize, 0, 0);
+                        : placedItemLabelRoom(target.itemRoom, insets, fit, candidate, 0, 0);
             }
             target.hidden = false;
             target.x = anchor.x;

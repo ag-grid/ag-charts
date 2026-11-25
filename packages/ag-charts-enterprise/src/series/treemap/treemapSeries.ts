@@ -46,11 +46,11 @@ import {
     drawnLineHeight,
     findDiscreteColorBinLabel,
     findLargestFittingFontSize,
+    fitLabelStack,
     fitLabelText,
     fontWithSize,
     formatValue,
     insetItemRect,
-    inwardOf,
     isErased,
     isGradientFill,
     isNumberEqual,
@@ -1025,7 +1025,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             text.x = label.x;
             text.y = label.y;
             if (label.itemRoom != null) {
-                refitItemLabelNode(text, label.itemRoom, itemStyle.stroke, itemStyle.strokeWidth, style, 'free');
+                refitItemLabelNode(text, label.itemRoom, itemStyle.stroke, itemStyle.strokeWidth, style);
             }
             text.visible = true;
 
@@ -1179,14 +1179,47 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         );
     }
 
+    private writeTileLabels(datum: TreemapPlacedLabelDatum, stack: FittedLabelStack) {
+        const { node, room, tags, stack: labelStack, insets } = datum;
+        const layouts = this.tileLabelLayouts(datum, room, stack);
+        if (insets != null && labelStack != null && node.bbox != null) {
+            const { bbox } = node;
+            let refitted: { inset: number; layouts: (LabelLayout | undefined)[] } | undefined;
+            // The stack re-fits as one to the tile held further in, as the engine fitted it.
+            const refitStack = (inset: number) => {
+                if (refitted?.inset !== inset) {
+                    const inner = insetItemRect(bbox, inset);
+                    const fitted = fitLabelStack(labelStack, inner);
+                    refitted = { inset, layouts: fitted == null ? [] : this.tileLabelLayouts(datum, inner, fitted) };
+                }
+                return refitted.layouts;
+            };
+            layouts.forEach((layout, index) => {
+                if (layout == null) return;
+                const { text, policy } = labelStack.blocks[index].fit;
+                const room: ItemLabelSource = itemLabelRoom(insets, text, policy, 0, 0);
+                room.refit = (inset) => refitStack(inset)[index];
+                layout.itemRoom = room;
+            });
+        }
+        tags.forEach((tag, index) => {
+            if (tag === TextNodeTag.Primary) {
+                node.label = layouts[index];
+            } else {
+                node.secondaryLabel = layouts[index];
+            }
+        });
+    }
+
     /**
-     * Lays the fitted blocks out within the tile: each block aligns on its own `verticalAlign`, and a pair
-     * that shares an alignment, or overflows the tile, is kept together as one block.
+     * Lays the fitted blocks out within `room`: each block aligns on its own `verticalAlign`, and a pair
+     * that shares an alignment, or overflows the room, is kept together as one block.
      */
-    private writeTileLabels(
-        { node, room, tags, stack: labelStack, insets }: TreemapPlacedLabelDatum,
+    private tileLabelLayouts(
+        { tags, stack: labelStack }: TreemapPlacedLabelDatum,
+        room: BoxBounds,
         stack: FittedLabelStack
-    ) {
+    ): (LabelLayout | undefined)[] {
         const { tile } = this.options;
         const { spacing } = tile.label;
         const blocks = tags.map((tag, index) => {
@@ -1220,38 +1253,17 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         }
 
         const isRtl = this.ctx.domManager.isRtl;
-        const write = (block: (typeof blocks)[number], boxCentreY: number) => {
-            if (block == null) return;
-            const { fitted, props, font, padding, tag } = block;
+        const layout = (block: (typeof blocks)[number], boxCentreY: number) => {
+            if (block == null) return undefined;
+            const { fitted, props, font, padding } = block;
             const textAlign = resolveTextAlign(props.textAlign, isRtl);
             const factor = textAlignFactors[textAlign] ?? 0.5;
             const width = room.width - padding.left - padding.right;
             const x = room.x + padding.left + width * factor;
             const y = boxCentreY + (padding.top - padding.bottom) * 0.5;
-            const layout = this.labelLayout(props, fitted.text, fitted.fontSize, x, y, 'middle', font);
-            const blockFit = labelStack?.blocks[tags.indexOf(tag)].fit;
-            if (insets != null && blockFit != null) {
-                // A lone label re-fits to the tile; a stacked one keeps the height it took beside the other.
-                const { verticalAlign } = props;
-                const alone = first == null || second == null;
-                layout.itemRoom = itemLabelRoom(
-                    insets,
-                    blockFit.text,
-                    blockFit.policy,
-                    width,
-                    alone ? room.height - boxHeightOf(padding) : fitted.height,
-                    inwardOf(textAlign === 'left', textAlign === 'right'),
-                    alone ? inwardOf(verticalAlign === 'top', verticalAlign === 'bottom') : 0
-                );
-            }
-            if (tag === TextNodeTag.Primary) {
-                node.label = layout;
-            } else {
-                node.secondaryLabel = layout;
-            }
+            return this.labelLayout(props, fitted.text, fitted.fontSize, x, y, 'middle', font);
         };
-        write(first, firstY);
-        write(second, secondY);
+        return [layout(first, firstY), layout(second, secondY)];
     }
 
     private labelLayout(

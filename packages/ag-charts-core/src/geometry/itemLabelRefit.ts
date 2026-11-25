@@ -1,10 +1,11 @@
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { measureLabelText } from '../rendering/textMeasurer';
 import type { Text } from '../scene/shape/text';
 import { lineHeightAtSize } from '../text/textUtil';
-import { type LabelFit, fitLabelTextOrOverflowAutoSize, fontWithSize } from '../text/textWrapper';
+import { type LabelFit, type RegionAlign, fitLabelTextOrOverflowAutoSize, hasRealChars } from '../text/textWrapper';
 import type { FontOptions } from '../types/text';
+import { type FitRegion, insetFitRegion } from './fitRegion';
 import {
+    type ItemLabelFit,
     type ItemLabelRefit,
     type ItemLabelSource,
     itemContentInset,
@@ -38,25 +39,20 @@ export function inwardOf(low: boolean, high: boolean): number {
 
 /**
  * The room the placement engine fitted an inside label into, written into `out` when given; `undefined` for a
- * candidate with no container. A shaped room keeps the box the fitted text took, which stays inside the shape as
- * its edges move in or out. `spacing` is the gap an anchored end keeps from its item's edge.
+ * candidate with no container. A shaped room re-fits to the candidate's shape held further in, as the engine
+ * fitted it. `spacing` is the gap an anchored end keeps from its item's edge.
  */
 export function placedItemLabelRoom(
     out: ItemLabelSource | undefined,
     insets: ItemLabelInsets,
     fit: LabelFitDescriptor,
     candidate: PositionedLabelCandidate | undefined,
-    fittedText: NormalisedTextOrSegments,
-    fontSize: number | undefined,
     rotationDeg: number,
     spacing: number
 ): ItemLabelSource | undefined {
     const fitTo = candidate?.fitTo;
     if (fitTo?.container == null) return undefined;
-    const container =
-        fitTo.shape == null
-            ? fitTo.container
-            : measureLabelText(fittedText, fontWithSize(fitTo.font ?? fit.font, fontSize));
+    const { container, shape } = fitTo;
     // An anchored label faces the end it hangs off, so its alignment says which way that end moves in.
     const { textAlign, textBaseline } = fitTo.anchor;
     const room = out ?? {
@@ -81,7 +77,37 @@ export function placedItemLabelRoom(
     room.spacing = spacing;
     room.anchorX = inwardOf(textAlign === 'left', textAlign === 'right');
     room.anchorY = inwardOf(textBaseline === 'top', textBaseline === 'bottom');
+    room.refit =
+        shape == null
+            ? undefined
+            : (inset) =>
+                  refitToShape(fit, fitTo.font ?? fit.font, container, shape, fitTo.shapeAlign, inset - insets.inset);
     return room;
+}
+
+/** Fits a label as the engine fitted it to its candidate's shape and container, each held `delta` further in. */
+function refitToShape(
+    fit: Pick<LabelFitDescriptor, 'text' | 'policy' | 'fitOverflow'>,
+    font: FontOptions,
+    container: { width: number; height: number },
+    shape: FitRegion,
+    shapeAlign: RegionAlign | undefined,
+    delta: number
+): ItemLabelFit | undefined {
+    const { policy } = fit;
+    const { text, fontSize } = fitLabelTextOrOverflowAutoSize(
+        fit.text,
+        {
+            ...policy,
+            maxWidth: Math.min(policy.maxWidth ?? Infinity, Math.max(0, container.width - 2 * delta)),
+            maxHeight: Math.min(policy.maxHeight ?? Infinity, Math.max(0, container.height - 2 * delta)),
+            region: insetFitRegion(shape, delta, delta),
+            regionAlign: shapeAlign,
+        },
+        fit.fitOverflow,
+        font
+    );
+    return hasRealChars(text) ? { text, fontSize } : undefined;
 }
 
 /**
@@ -102,25 +128,25 @@ export function itemLabelRoom(
 }
 
 /**
- * The room a label placed inside its marker was fitted into, by `policy` from the marker's `base` fit: the rect it was
- * bounded by, or for a fit to the marker's outline the box the fitted text took, which stays inside the outline as it
- * moves in or out. `undefined` for a label not bound to its marker.
+ * The room a label inside a marker was fitted into by `policy`, when `base` is how the series fits it; a marker
+ * fitted by its shape re-fits to that shape held further in.
  */
 export function insideMarkerLabelRoom(
     insets: ItemLabelInsets,
     base: LabelFit | undefined,
     policy: LabelFit,
     text: NormalisedTextOrSegments,
-    fittedText: NormalisedTextOrSegments,
-    font: FontOptions,
-    fontSize: number | undefined
+    font: FontOptions
 ): ItemLabelSource | undefined {
     if (base == null) return undefined;
-    if (policy.region == null && policy.maxWidth != null && policy.maxHeight != null) {
-        return itemLabelRoom(insets, text, base, policy.maxWidth, policy.maxHeight);
+    const { region, maxWidth = Infinity, maxHeight = Infinity } = policy;
+    const room = itemLabelRoom(insets, text, base, maxWidth, maxHeight);
+    if (region != null) {
+        const container = { width: maxWidth, height: maxHeight };
+        room.refit = (inset) =>
+            refitToShape({ text, policy }, font, container, region, policy.regionAlign, inset - insets.inset);
     }
-    const box = measureLabelText(fittedText, fontWithSize(font, fontSize));
-    return itemLabelRoom(insets, text, base, box.width, box.height);
+    return room;
 }
 
 type RefitTextNode = Pick<Text, 'text' | 'fontSize' | 'lineHeight' | 'x' | 'y' | 'getTextMeasureBBox'>;
@@ -132,6 +158,8 @@ type RefitTextNode = Pick<Text, 'text' | 'fontSize' | 'lineHeight' | 'x' | 'y' |
 export type ItemLabelLayout = 'aligned' | 'free' | 'turned';
 
 const itemLabelRefit: ItemLabelRefit = { width: 0, height: 0, shiftX: 0, shiftY: 0 };
+/** The last fit each shaped re-fit gave, so a label re-fits only when its item's drawn stroke changes depth. */
+const shapedRefits = new WeakMap<object, { inset: number; fit: ItemLabelFit | undefined }>();
 const turnedLabelRoom = { width: 0, height: 0 };
 
 /**
@@ -147,6 +175,11 @@ export function refitItemLabelNode(
     layout: ItemLabelLayout = 'aligned'
 ): void {
     if (!refitItemLabelRoom(room, stroke, strokeWidth, itemLabelRefit)) return;
+    if (room.refit != null) {
+        const inset = itemContentInset(room.padding, itemStrokeDepth(stroke, strokeWidth, room.centred));
+        refitShapedItemLabelNode(textNode, room, room.refit, inset, font);
+        return;
+    }
     const turned = layout === 'turned';
     let glyphRoom: { width: number; height: number } = itemLabelRefit;
     if (turned) {
@@ -176,6 +209,46 @@ export function refitItemLabelNode(
     }
     textNode.x += shiftX;
     textNode.y += shiftY;
+}
+
+/**
+ * Re-fits a label to its item's own shape at the inset the drawn stroke leaves. A fit that does not place the label
+ * keeps its centre, or its anchored edge moved in with the item's.
+ */
+function refitShapedItemLabelNode(
+    textNode: RefitTextNode,
+    room: ItemLabelSource,
+    refit: (inset: number) => ItemLabelFit | undefined,
+    inset: number,
+    font: FontOptions
+): void {
+    let last = shapedRefits.get(refit);
+    if (last?.inset !== inset) {
+        last = { inset, fit: refit(inset) };
+        shapedRefits.set(refit, last);
+    }
+    const { fit } = last;
+    if (fit == null) {
+        textNode.text = '';
+        return;
+    }
+    const before = fit.x == null || fit.y == null ? textNode.getTextMeasureBBox() : undefined;
+    const fontSize = fit.fontSize ?? font.fontSize;
+    textNode.text = fit.text;
+    textNode.fontSize = fontSize;
+    textNode.lineHeight = lineHeightAtSize(font, fontSize);
+    if (before != null) {
+        const after = textNode.getTextMeasureBBox();
+        const { anchorX, anchorY } = room;
+        const { shiftX, shiftY } = itemLabelRefit;
+        textNode.x +=
+            shiftX + drawnEdgeShift(anchorX, before.x, before.width, before.width, after.x, after.width, after.width);
+        textNode.y +=
+            shiftY +
+            drawnEdgeShift(anchorY, before.y, before.height, before.height, after.y, after.height, after.height);
+    }
+    if (fit.x != null) textNode.x = fit.x;
+    if (fit.y != null) textNode.y = fit.y;
 }
 
 /**
