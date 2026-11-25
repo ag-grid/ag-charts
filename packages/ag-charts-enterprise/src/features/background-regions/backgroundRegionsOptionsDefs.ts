@@ -12,6 +12,7 @@ import {
     positiveNumber,
     string,
     strokeOptionsDef,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 import type {
@@ -62,6 +63,9 @@ const backgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgroundRegionLabel> =
     yOffset: number,
     ...labelFitOptionsDefs,
     ...labelAutoFontSizeOptionsDefs,
+    ...undocumentedDefs({
+        spacing: positiveNumber,
+    }),
 };
 
 export const backgroundRegionOptionsDef: OptionsDefs<AgSeriesAreaBackgroundRegion> = {

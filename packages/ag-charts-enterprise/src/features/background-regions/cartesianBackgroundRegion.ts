@@ -3,6 +3,7 @@ import {
     type BBox,
     type Bounds4,
     Group,
+    type LabelFit,
     type Logger,
     type NormalisedSeriesAreaBackgroundRegion,
     type NormalisedSeriesAreaBackgroundRegionRange,
@@ -12,14 +13,20 @@ import {
     Transformable,
     TransformableText,
     Vec4,
+    anchorRoom,
     bandRangeExpansion,
     clampArray,
     createId,
+    fitKeptLabel,
     fitLabelTextAutoSize,
     fontWithSize,
+    freeTurnedRoom,
+    hasRealChars,
     isValidScaleValue,
     resolveLabelFit,
+    resolvePadding,
     toRadians,
+    turnedRoom,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -55,6 +62,10 @@ export const anchors: Record<AgSeriesAreaBackgroundRegionLabelPosition, Anchor> 
     'inside-top-right': { regionH: 1, regionV: -1, labelH: 1, labelV: -1 },
     inside: { regionH: 0, regionV: 0, labelH: 0, labelV: 0 },
 };
+
+function unzoomedPosition(position: number, [s0, s1]: readonly number[], [r0, r1]: readonly [number, number]): number {
+    return s1 === s0 ? position : r0 + ((position - s0) * (r1 - r0)) / (s1 - s0);
+}
 
 export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegion {
     static readonly className = 'BackgroundRegion';
@@ -96,7 +107,8 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         if (labelBounds == null) return;
 
-        this.updateLabelNode(labelBounds);
+        const unzoomedBounds = this.getSeriesAreaBounds(this.unzoomed(bounds)) ?? labelBounds;
+        this.updateLabelNode(labelBounds, unzoomedBounds);
     }
 
     private updateRegionNode(bounds: Bounds4) {
@@ -114,12 +126,12 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         this.regionNode.strokeWidth = opts.strokeWidth ?? 1;
     }
 
-    private updateLabelNode(bounds: Bounds4) {
-        this.updateLabel();
+    private updateLabelNode(bounds: Bounds4, unzoomedBounds: Bounds4) {
+        this.updateLabel(bounds, unzoomedBounds);
         this.positionLabel(bounds);
     }
 
-    private updateLabel() {
+    private updateLabel(bounds: Bounds4, unzoomedBounds: Bounds4) {
         const {
             labelNode,
             opts: { label },
@@ -128,14 +140,52 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         if (label.text == null || label.text === '') return;
 
-        const { text, fontSize } = fitLabelTextAutoSize(label.text, resolveLabelFit(label), label);
+        labelNode.setBoxing(label);
+        const policy = resolveLabelFit(label);
+        const fit = policy == null ? undefined : this.boundLabel(policy, bounds, unzoomedBounds);
+        const fitted = fitLabelTextAutoSize(label.text, fit, label);
+        const { text, fontSize } =
+            fit != null && hasRealChars(label.text) && !hasRealChars(fitted.text)
+                ? fitKeptLabel(label.text, fit, label)
+                : fitted;
 
         labelNode.fill = label.color;
         labelNode.text = text;
         labelNode.textAlign = 'center';
         labelNode.textBaseline = 'middle';
         labelNode.setFont(fontWithSize(label, fontSize));
-        labelNode.setBoxing(label);
+    }
+
+    /**
+     * The room the region leaves the label at its position, which an explicit bound or offset frees on its axis.
+     * A label on a side of the region is measured zoomed out, so zoom and pan never rewrap it.
+     */
+    private boundLabel(fit: LabelFit, bounds: Bounds4, unzoomedBounds: Bounds4): LabelFit {
+        const { label } = this.opts;
+        if (!label) return fit;
+
+        const { padding, rotation = 0, spacing = 0, xOffset = 0, yOffset = 0 } = label;
+        const anchor = this.getAnchor();
+        const sideH = anchor.regionH !== 0 && anchor.labelH === -anchor.regionH;
+        const sideV = anchor.regionV !== 0 && anchor.labelV === -anchor.regionV;
+        const room = sideH || sideV ? unzoomedBounds : bounds;
+        const xPaddingDiff = (padding.right ?? 0) - (padding.left ?? 0);
+        const yPaddingDiff = (padding.bottom ?? 0) - (padding.top ?? 0);
+        const roomX = sideH
+            ? Infinity
+            : anchorRoom(anchor.regionH, anchor.labelH, spacing, room.x1, Vec4.width(room), xPaddingDiff);
+        const roomY = sideV
+            ? Infinity
+            : anchorRoom(anchor.regionV, anchor.labelV, spacing, room.y1, Vec4.height(room), yPaddingDiff);
+
+        const insets = this.labelNode.hasBoxing() ? resolvePadding(padding) : undefined;
+        const turned = turnedRoom(roomX, roomY, rotation, insets);
+        const rotated = freeTurnedRoom(
+            turned,
+            fit.maxWidth != null || xOffset !== 0,
+            fit.maxHeight != null || yOffset !== 0
+        );
+        return rotated == null ? fit : { ...fit, rotated, hideOverflowingEllipsis: true };
     }
 
     private positionLabel(bounds: Bounds4) {
@@ -145,7 +195,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         } = this;
         if (!label) return;
 
-        const { padding, rotation, xOffset = 0, yOffset = 0 } = label;
+        const { padding, rotation, spacing = 0, xOffset = 0, yOffset = 0 } = label;
         const anchor = this.getAnchor();
 
         const bbox = labelNode.getBBox();
@@ -162,8 +212,8 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const anchorX = bounds.x1 + (Vec4.width(bounds) * (anchor.regionH + 1)) / 2;
         const anchorY = bounds.y1 + (Vec4.height(bounds) * (anchor.regionV + 1)) / 2;
 
-        const x = anchorX - halfWidth * anchor.labelH - xPaddingDiff / 2 + xOffset;
-        const y = anchorY - halfHeight * anchor.labelV - yPaddingDiff / 2 + yOffset;
+        const x = anchorX - (halfWidth + spacing) * anchor.labelH - xPaddingDiff / 2 + xOffset;
+        const y = anchorY - (halfHeight + spacing) * anchor.labelV - yPaddingDiff / 2 + yOffset;
 
         labelNode.rotation = toRadians(rotation ?? 0);
         labelNode.x = x;
@@ -218,6 +268,19 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         if (Vec4.width(clamped) === 0 || Vec4.height(clamped) === 0) return;
 
         return clamped;
+    }
+
+    /** Zoom stretches each scale's range linearly about its axis range, so this undoes it. */
+    private unzoomed(bounds: Bounds4): Bounds4 {
+        const { xAxis, yAxis } = this;
+        if (!xAxis || !yAxis) return bounds;
+
+        return Vec4.from(
+            unzoomedPosition(bounds.x1, xAxis.scale.range, xAxis.range),
+            unzoomedPosition(bounds.y1, yAxis.scale.range, yAxis.range),
+            unzoomedPosition(bounds.x2, xAxis.scale.range, xAxis.range),
+            unzoomedPosition(bounds.y2, yAxis.scale.range, yAxis.range)
+        );
     }
 
     /**

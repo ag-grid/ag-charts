@@ -3,29 +3,31 @@ import {
     Group,
     type LabelFit,
     PointerEvents,
+    ROTATION_EPSILON,
     Range,
     type TextMeasurer,
     Transformable,
     TransformableText,
     type TurnedBounds,
+    anchorRoom,
+    availableExtent,
     bandRangeExpansion,
     cachedTextMeasurer,
     clampArray,
     createId,
     crossLineHitTolerance,
-    drawnLineHeight,
     findMinMax,
+    fitKeptLabel,
     fitLabelText,
     fitLabelTextAutoSize,
     fontWithSize,
+    freeTurnedRoom,
     hasRealChars,
-    leadCharacterWidth,
     resolveLabelAvoidance,
     resolveLabelFit,
-    resolveMinimumFontSize,
     resolvePadding,
     toRadians,
-    turnedBoundsHolding,
+    turnedRoom,
     validateCrossLineValue,
 } from 'ag-charts-core';
 import type {
@@ -44,7 +46,7 @@ import type {
 import type { AgCartesianAxisPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import { rangeAlignment } from '../rangeAlignment';
-import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
+import { type Anchor, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 type PaddingSide = 'left' | 'right' | 'top' | 'bottom';
@@ -59,57 +61,6 @@ function realignAnchor(anchor: Anchor, horizontal: boolean): Anchor {
         if (anchor.rangeV === 1 && anchor.labelV === -1) return { ...anchor, labelV: 1 };
     }
     return anchor;
-}
-
-/** A rotation component below this is a rounding artefact, not a real one, and must not divide a bound. */
-const ROTATION_EPSILON = 1e-6;
-
-/**
- * Room along one axis from the point the anchor pins. `labelDir` is `labelH`/`labelV`: the label grows away
- * from `anchorAt` when that is `1` or `-1`, symmetrically about it when `0`.
- */
-function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: number, low: number, high: number) {
-    if (labelDir === 1) return anchorAt - pad - low;
-    if (labelDir === -1) return high - (anchorAt + pad);
-    return 2 * Math.min(anchorAt - low, high - anchorAt);
-}
-
-/** The longest a label's own dimension can run at `along`/`across` (its turned cos/sin) inside a box. */
-function turnedSpan(width: number, height: number, along: number, across: number): number {
-    return Math.min(
-        along > ROTATION_EPSILON ? width / along : Infinity,
-        across > ROTATION_EPSILON ? height / across : Infinity
-    );
-}
-
-function anchorAlong(rangeDir: AnchorDirection, start: number, size: number, paddingDiff: number): number {
-    return start + (size * (rangeDir + 1)) / 2 - paddingDiff / 2;
-}
-
-/** Room along one axis between the anchor on the band and the bounds `low` to `high`. */
-function anchorRoom(
-    rangeDir: AnchorDirection,
-    labelDir: AnchorDirection,
-    pad: number,
-    start: number,
-    size: number,
-    paddingDiff: number,
-    low: number,
-    high: number
-): number {
-    return Math.max(availableExtent(anchorAlong(rangeDir, start, size, paddingDiff), labelDir, pad, low, high), 0);
-}
-
-/** Room the band leaves along one axis for a label anchored inside it. */
-function bandRoom(
-    rangeDir: AnchorDirection,
-    labelDir: AnchorDirection,
-    pad: number,
-    start: number,
-    size: number,
-    paddingDiff: number
-): number {
-    return availableExtent(anchorAlong(rangeDir, start, size, paddingDiff), labelDir, pad, start, start + size);
 }
 
 type NodeData = [number, number];
@@ -616,7 +567,7 @@ export class CartesianCrossLine implements CrossLine<NormalisedAxisCrossLineLabe
         const fitted = fitLabelTextAutoSize(text, fit, label);
         const kept =
             fit != null && this.keepsLabel && hasRealChars(text) && !hasRealChars(fitted.text)
-                ? this.keptLabel(text, fit)
+                ? fitKeptLabel(text, fit, label)
                 : {
                       text: typeof fitted.text === 'string' ? fitted.text : text,
                       fontSize: fitted.fontSize ?? label.fontSize,
@@ -626,28 +577,6 @@ export class CartesianCrossLine implements CrossLine<NormalisedAxisCrossLineLabe
         if (held) this.heldFitted = entry;
         else this.fitted = entry;
         return entry;
-    }
-
-    /** Refits a kept label left without a character, its bounds grown as `fitPositionedCandidateAt` grows them. */
-    private keptLabel(text: string, fit: LabelFit): FittedLabel {
-        const { label } = this;
-        const fontSize = resolveMinimumFontSize(label.minimumFontSize, label.fontSize);
-        const font = fontWithSize(label, fontSize);
-        const leadWidth = leadCharacterWidth(text, font);
-        const lineHeight = drawnLineHeight(font);
-        const { rotated: band, maxWidth, maxHeight, ...rest } = fit;
-        const policy: LabelFit = {
-            ...rest,
-            maxWidth: maxWidth == null ? undefined : Math.max(maxWidth, leadWidth),
-            maxHeight: maxHeight == null ? undefined : Math.max(maxHeight, lineHeight),
-        };
-        if (band != null) {
-            const rotated = turnedBoundsHolding(band, leadWidth, lineHeight);
-            const fitted = fitLabelText(text, { ...policy, rotated }, font);
-            if (typeof fitted === 'string' && hasRealChars(fitted)) return { text: fitted, fontSize, rotated };
-        }
-        const own = fitLabelText(text, policy, font);
-        return { text: typeof own === 'string' && hasRealChars(own) ? own : text, fontSize };
     }
 
     /** The fit bound differs between placements, so each is laid out to measure it. */
@@ -715,41 +644,20 @@ export class CartesianCrossLine implements CrossLine<NormalisedAxisCrossLineLabe
         return this.turnedRoom(roomX, roomY);
     }
 
-    /** `roomX` by `roomY` less the boxing insets, turned to the label's rotation. */
     private turnedRoom(roomX: number, roomY: number): TurnedBounds {
         const { label } = this;
-        const rotation = label.rotation ?? 0;
-        const cos = Math.abs(Math.cos(toRadians(rotation)));
-        const sin = Math.abs(Math.sin(toRadians(rotation)));
-        const insets = this.boxed ? resolvePadding(label.padding) : undefined;
-        const insetsH = insets == null ? 0 : insets.left + insets.right;
-        const insetsV = insets == null ? 0 : insets.top + insets.bottom;
-        const width = Math.max(roomX - insetsH * cos - insetsV * sin, 0);
-        const height = Math.max(roomY - insetsH * sin - insetsV * cos, 0);
-        return { rotation, width, height };
+        return turnedRoom(roomX, roomY, label.rotation ?? 0, this.boxed ? resolvePadding(label.padding) : undefined);
     }
 
     /** The room the visible band leaves a turned label inside it; an explicit bound frees that dimension of it. */
     private bandTurnedBounds(fit: Pick<LabelFit, 'maxWidth' | 'maxHeight'>, anchor: Anchor): TurnedBounds | undefined {
         const { labelBounds: band } = this;
         if (band == null) return;
-        if (fit.maxWidth != null && fit.maxHeight != null) return;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
-        const roomX = bandRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
-        const roomY = bandRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
-
-        const turned = this.turnedRoom(roomX, roomY);
-        if (fit.maxWidth == null && fit.maxHeight == null) return turned;
-
-        const { width, height } = turned;
-        const cos = Math.abs(Math.cos(toRadians(turned.rotation)));
-        const sin = Math.abs(Math.sin(toRadians(turned.rotation)));
-
-        // In the label's own frame, hence unturned: the band bounds only the dimension left without a bound.
-        return fit.maxWidth == null
-            ? { rotation: 0, width: turnedSpan(width, height, cos, sin), height: Infinity }
-            : { rotation: 0, width: Infinity, height: turnedSpan(width, height, sin, cos) };
+        const roomX = anchorRoom(anchor.rangeH, anchor.labelH, pad, band.x, band.width, xPaddingDiff);
+        const roomY = anchorRoom(anchor.rangeV, anchor.labelV, pad, band.y, band.height, yPaddingDiff);
+        return freeTurnedRoom(this.turnedRoom(roomX, roomY), fit.maxWidth != null, fit.maxHeight != null);
     }
 
     /** False once the fit has erased the text of a label that `collision.alwaysShow: false` lets hide. */
