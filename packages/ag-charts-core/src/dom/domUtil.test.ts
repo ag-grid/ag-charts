@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { isFocused } from './domUtil';
+import { containsFocus, isFocused } from './domUtil';
 
 describe('isFocused', () => {
     afterEach(() => {
@@ -39,5 +39,40 @@ describe('isFocused', () => {
 
     it('is false for a detached element', () => {
         expect(isFocused(document.createElement('input'))).toBe(false);
+    });
+});
+
+describe('containsFocus', () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+    });
+
+    function createGroup(parent: Node) {
+        const group = document.createElement('div');
+        const input = document.createElement('input');
+        group.appendChild(input);
+        parent.appendChild(group);
+        return { group, input };
+    }
+
+    it.each([
+        ['the light DOM', () => document.body],
+        [
+            'a shadow root',
+            () => document.body.appendChild(document.createElement('div')).attachShadow({ mode: 'open' }),
+        ],
+    ])('is true for an ancestor of the focused element in %s', (_name, getParent) => {
+        const { group, input } = createGroup(getParent());
+        input.focus();
+
+        expect(containsFocus(group)).toBe(true);
+        expect(containsFocus(input)).toBe(true);
+    });
+
+    it('is false when the focus is outside the element', () => {
+        const { group } = createGroup(document.body);
+        createGroup(document.body).input.focus();
+
+        expect(containsFocus(group)).toBe(false);
     });
 });

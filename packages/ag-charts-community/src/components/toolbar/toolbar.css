@@ -10,6 +10,8 @@
     --toolbar-button-overlap: 0px;
     --toolbar-button-padding: 6px;
     --toolbar-button-text-color: var(--ag-charts-button-text-color);
+    /* Lowering a button's stacking order waits for its colour transition; the rules that raise it do not. */
+    --toolbar-button-z-index-timing: step-end;
 
     --toolbar-button-background-color--active: var(--ag-charts-button-active-background-color);
     --toolbar-button-border-color--active: var(--ag-charts-button-active-border-color);
@@ -31,6 +33,13 @@
     flex-wrap: nowrap;
     gap: var(--toolbar-button-gap);
     position: absolute;
+}
+
+/* A button being hovered or focused rises at once, and its neighbours lower at once, or they cover its shared edges. */
+.ag-charts-toolbar__button:is(:hover, :focus-visible),
+.ag-charts-toolbar__button:has(+ .ag-charts-toolbar__button:is(:hover, :focus-visible)),
+.ag-charts-toolbar__button:is(:hover, :focus-visible) + .ag-charts-toolbar__button {
+    --toolbar-button-z-index-timing: step-start;
 }
 
 /* Button */
@@ -56,7 +65,8 @@
     transition:
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
-        color 0.25s ease-in-out;
+        color 0.25s ease-in-out,
+        z-index 0.25s var(--toolbar-button-z-index-timing);
     white-space: nowrap;
     /* On an edge shared with a neighbour, the stacking order is disabled, default, hover, active. */
     z-index: 1;
@@ -75,6 +85,7 @@
 .ag-charts-toolbar__button[aria-pressed='true'],
 .ag-charts-toolbar__button[aria-pressed='true']:hover {
     --toolbar-button-border-width: var(--toolbar-button-border-width--active);
+    --toolbar-button-z-index-timing: step-start;
     background: var(--toolbar-button-background-color--active);
     border-color: var(--toolbar-button-border-color--active);
     color: var(--toolbar-button-text-color--active);

@@ -118,7 +118,7 @@ export interface AgSeriesLabelCollideWithOptions {
      */
     shapes?: boolean;
     /**
-     * Whether labels may overlap other labels, including cross line labels.
+     * Whether labels may overlap other series labels.
      *
      * Default: `false`
      */
@@ -135,6 +135,18 @@ export interface AgSeriesLabelCollideWithOptions {
      * Default: `false`
      */
     axisLabels?: boolean;
+    /**
+     * Whether labels may overlap cross line labels.
+     *
+     * Default: `false`
+     */
+    crossLineLabels?: boolean;
+    /**
+     * Whether labels may overlap background region labels.
+     *
+     * Default: `false`
+     */
+    regionLabels?: boolean;
 }
 
 /** The kinds of chart element a label may overlap, on a series that supports error bars. */
