@@ -30,6 +30,7 @@ import {
     datumKeyReader,
     findDiscreteColorBinLabel,
     fitLabelText,
+    fitLabelTextOrOverflow,
     formatValue,
     insideMarkerPolicy,
     isSupportedMarkerShape,
@@ -42,7 +43,13 @@ import {
     toArray,
     withoutCasts,
 } from 'ag-charts-core';
-import type { BBox, InsideMarkerFit, InsideMarkerPolicyScratch } from 'ag-charts-core';
+import type {
+    BBox,
+    InsideMarkerFit,
+    InsideMarkerPolicyScratch,
+    MarkerShapeAnalysis,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgMapMarkerSeriesItemStylerParams,
@@ -405,16 +412,22 @@ export class MapMarkerSeries
         if (labelText == null) return;
 
         const insideMarkerFit = this.labelInsideMarkerFit;
-        const fit =
-            insideMarkerFit == null
-                ? labelFit
-                : insideMarkerPolicy(
-                      insideMarkerFit,
-                      markerShapeAnalysis(shape),
-                      point.size,
-                      this.labelInsideMarkerPolicy
-                  );
-        const fittedText = fitLabelText(labelText, fit, labelStyle);
+        let insideAnalysis: MarkerShapeAnalysis | undefined;
+        let fittedText: NormalisedTextOrSegments;
+        if (insideMarkerFit == null) {
+            fittedText = fitLabelText(labelText, labelFit, labelStyle);
+        } else {
+            insideAnalysis = markerShapeAnalysis(shape);
+            const policy = insideMarkerPolicy(
+                insideMarkerFit,
+                insideAnalysis,
+                point.size,
+                this.labelInsideMarkerPolicy
+            );
+            // Like scatter, an `alwaysShow` label keeps its text on a marker too small to hold even an ellipsis.
+            const overflow = label.collision.alwaysShow ? labelFit : undefined;
+            fittedText = fitLabelTextOrOverflow(labelText, policy, overflow, labelStyle);
+        }
         const text = measureLabelText(fittedText, labelStyle);
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
         const box = expandLabelBoxExtent(labelStyle);
@@ -428,6 +441,8 @@ export class MapMarkerSeries
             anchor,
             markerShape: shape,
             placement,
+            // The text is fitted to the shape's inscribed rect, so it is drawn centred on that rect.
+            insideOffset: insideAnalysis?.rect.offset,
             // An inside label rides with its marker, so only directional placements can spill out.
             region: placement === 'inside' ? undefined : labelRegion,
             datumIndex,

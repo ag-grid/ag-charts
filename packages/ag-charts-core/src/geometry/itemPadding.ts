@@ -78,9 +78,11 @@ export function insetItemRegion(region: FitRegion, clearance: ItemLabelClearance
 export function insetItemSector<T extends SectorBoundaries>(sector: T, itemPadding: number): T {
     if (itemPadding === 0) return sector;
     const { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset = 0 } = sector;
-    if (innerRadius > 0) sector.innerRadius = innerRadius + itemPadding;
+    const outer = Math.max(0, Math.abs(outerRadius) - itemPadding);
+    // A ring thinner than twice the padding closes up rather than turning inside out.
+    if (innerRadius > 0) sector.innerRadius = Math.min(innerRadius + itemPadding, outer);
     // A sector drawn with a negative radius keeps its sign, and moves in by the same distance.
-    sector.outerRadius = Math.sign(outerRadius) * Math.max(0, Math.abs(outerRadius) - itemPadding);
+    sector.outerRadius = Math.sign(outerRadius) * outer;
     if (!isFullSweep(startAngle, endAngle)) sector.radialEdgeInset = radialEdgeInset + itemPadding;
     return sector;
 }

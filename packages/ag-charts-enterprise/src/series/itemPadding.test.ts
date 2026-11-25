@@ -14,7 +14,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
-import { type Node, Shape, Text, Transformable } from 'ag-charts-core';
+import { type BBox, type Node, RotatableText, Shape, Text, Transformable, TransformableText } from 'ag-charts-core';
 
 import { getSeriesGroup, getSeriesInstance } from '../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../test/utils';
@@ -32,9 +32,10 @@ interface ItemPaddingCase {
     readonly name: string;
     /** The chart, with `padding` set through `paddingOption` when given. */
     readonly options: (padding?: Record<string, unknown>) => AgChartOptions;
-    readonly paddingOption: PaddingOption;
-    /** Reads the padding the series resolved, defaulted or set. */
-    readonly resolvedPadding: (options: Record<string, any>) => unknown;
+    /** Where the series reads the padding, `itemPadding` unless it keeps an option of its own. */
+    readonly paddingOption?: PaddingOption;
+    /** Reads the padding the series resolved, defaulted or set; `itemPadding` unless given. */
+    readonly resolvedPadding?: (options: Record<string, any>) => unknown;
     /** The item shapes, for a series that does not draw each item as its own shape node. */
     readonly items?: (chart: ChartOrProxy) => Item[];
 }
@@ -45,10 +46,11 @@ interface Item {
     readonly area: number;
 }
 
-// Every label draws a box, so the distance is measured to what is drawn rather than to the glyphs.
+// Most labels draw a box, so the distance is measured to what is drawn rather than to the glyphs.
 const BOXED = { fill: '#ffffffcc', padding: 2 };
 // The labels are long enough to fill their items, so the fit is what keeps them clear of the edges.
-const FITTED = { ...BOXED, wrapping: 'on-space', minimumFontSize: 6 } as const;
+const UNBOXED_FITTED = { wrapping: 'on-space', minimumFontSize: 6 } as const;
+const FITTED = { ...BOXED, ...UNBOXED_FITTED };
 const LONG_TEXT = 'Revenue grew strongly across every region this quarter';
 
 const cartesian = (series: AgCartesianSeriesOptions, data: object[]): AgCartesianChartOptions => ({
@@ -87,13 +89,43 @@ const hierarchy = [
     { name: 'Healthcare providers and services', children: [{ name: 'Pharmaceutical research', size: 30 }] },
 ];
 
+const sectorChart = (
+    type: 'pie' | 'donut',
+    data: object[],
+    padding?: Record<string, unknown>,
+    sectorLabel: object = FITTED
+): AgChartOptions => ({
+    data,
+    width: 400,
+    height: 300,
+    legend: { enabled: false },
+    series: [
+        {
+            type,
+            angleKey: 'value',
+            legendItemKey: 'stage',
+            sectorLabelKey: 'stage',
+            calloutLabel: { enabled: false },
+            sectorLabel: { ...sectorLabel, formatter: () => LONG_TEXT },
+            ...padding,
+        },
+    ],
+});
+
+const sunburstChart = (data: object[], series?: Record<string, unknown>): AgChartOptions => ({
+    data,
+    width: 400,
+    height: 400,
+    series: [
+        { type: 'sunburst', labelKey: 'name', sizeKey: 'size', label: { ...BOXED, minimumFontSize: 6 }, ...series },
+    ],
+});
+
 const TREEMAP_TILE = { label: { ...BOXED, minimumFontSize: 6 } };
 
 const CASES: ItemPaddingCase[] = [
     {
         name: 'bar',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 { type: 'bar', xKey: 'x', yKey: 'y', label: { ...FITTED, formatter: () => LONG_TEXT }, ...padding },
@@ -102,8 +134,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'histogram',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 { type: 'histogram', xKey: 'x', label: { ...FITTED, formatter: () => LONG_TEXT }, ...padding },
@@ -112,8 +142,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'waterfall',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 {
@@ -130,8 +158,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'range-bar',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 {
@@ -147,8 +173,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'funnel',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) => ({
             data: stageData,
             width: 400,
@@ -167,8 +191,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'pyramid',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) => ({
             data: stageData,
             width: 400,
@@ -187,8 +209,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'heatmap',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 {
@@ -208,89 +228,27 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'pie',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
-        options: (padding) => ({
-            data: stageData,
-            width: 400,
-            height: 300,
-            legend: { enabled: false },
-            series: [
-                {
-                    type: 'pie',
-                    angleKey: 'value',
-                    legendItemKey: 'stage',
-                    sectorLabelKey: 'stage',
-                    calloutLabel: { enabled: false },
-                    sectorLabel: { ...FITTED, formatter: () => LONG_TEXT },
-                    ...padding,
-                },
-            ],
-        }),
+        options: (padding) => sectorChart('pie', stageData, padding),
     },
     {
         // A lone sector centres its label in the square inscribed in the pie.
         name: 'pie with one sector',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
-        options: (padding) => ({
-            data: stageData.slice(0, 1),
-            width: 400,
-            height: 300,
-            legend: { enabled: false },
-            series: [
-                {
-                    type: 'pie',
-                    angleKey: 'value',
-                    legendItemKey: 'stage',
-                    sectorLabelKey: 'stage',
-                    calloutLabel: { enabled: false },
-                    sectorLabel: { ...FITTED, fontSize: 40, formatter: () => LONG_TEXT },
-                    ...padding,
-                },
-            ],
-        }),
+        options: (padding) => sectorChart('pie', stageData.slice(0, 1), padding, { ...FITTED, fontSize: 40 }),
     },
     {
         name: 'donut',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
-        options: (padding) => ({
-            data: stageData,
-            width: 400,
-            height: 300,
-            legend: { enabled: false },
-            series: [
-                {
-                    type: 'donut',
-                    angleKey: 'value',
-                    legendItemKey: 'stage',
-                    sectorLabelKey: 'stage',
-                    calloutLabel: { enabled: false },
-                    sectorLabel: { ...FITTED, formatter: () => LONG_TEXT },
-                    ...padding,
-                },
-            ],
-        }),
+        options: (padding) => sectorChart('donut', stageData, padding),
+    },
+    {
+        // Without a background, each line is held clear of the wedge on its own.
+        name: 'donut with unboxed labels',
+        options: (padding) => sectorChart('donut', stageData, padding, UNBOXED_FITTED),
     },
     {
         name: 'sunburst',
         paddingOption: (padding) => ({ padding }),
         resolvedPadding: (o) => o.padding,
-        options: (padding) => ({
-            data: hierarchy,
-            width: 400,
-            height: 400,
-            series: [
-                {
-                    type: 'sunburst',
-                    labelKey: 'name',
-                    sizeKey: 'size',
-                    label: { ...BOXED, minimumFontSize: 6 },
-                    ...padding,
-                },
-            ],
-        }),
+        options: (padding) => sunburstChart(hierarchy, padding),
     },
     {
         name: 'treemap',
@@ -326,8 +284,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'scatter',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 { type: 'scatter', xKey: 'x', yKey: 'y', labelKey: 'name', size: 60, label: markerLabel, ...padding },
@@ -336,8 +292,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'bubble',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 {
@@ -356,8 +310,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'line',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 { type: 'line', xKey: 'x', yKey: 'y', marker: { size: 60 }, label: markerLabel, ...padding },
@@ -366,8 +318,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'area',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) =>
             cartesian(
                 {
@@ -383,8 +333,6 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'map-marker',
-        paddingOption: itemPadding,
-        resolvedPadding: (o) => o.itemPadding,
         options: (padding) => ({
             data: [
                 { name: 'London', lat: 51.5, lon: -0.12 },
@@ -407,6 +355,8 @@ const CASES: ItemPaddingCase[] = [
         }),
     },
 ];
+
+const paddedOptions = (c: ItemPaddingCase, padding: number) => c.options((c.paddingOption ?? itemPadding)(padding));
 
 function isDrawn(node: Node): boolean {
     for (const n of [node, ...node.traverseUp()]) {
@@ -462,11 +412,19 @@ function drawnLabels(chart: ChartOrProxy): Text[] {
 }
 
 /**
- * Points `grow` from `label`'s drawn box, in canvas coordinates: along each side, and round each corner, where
+ * The boxes `label` paints, in its own frame: each line of a plain unboxed label answers for itself, as the
+ * series tests it, and anything else is its whole block, background included.
+ */
+function paintedBoxes(label: Text): BBox[] {
+    const rotated = label instanceof RotatableText || label instanceof TransformableText;
+    return rotated ? [label.getTextMeasureBBox()] : label.getDrawnBoxes();
+}
+
+/**
+ * Points `grow` from a box `label` paints, in canvas coordinates: along each side, and round each corner, where
  * the nearest point of the box is the corner itself rather than a side.
  */
-function boxOutline(label: Text, grow: number) {
-    const { x, y, width, height } = label.getTextMeasureBBox();
+function boxOutline(label: Text, { x, y, width, height }: BBox, grow: number) {
     const steps = 8;
     const points: { x: number; y: number }[] = [];
     const push = (px: number, py: number) => {
@@ -492,19 +450,20 @@ function boxOutline(label: Text, grow: number) {
             push(cx + grow * Math.cos(angle), cy + grow * Math.sin(angle));
         }
     }
-    const centre = Transformable.toCanvasPoint(label, x + width / 2, y + height / 2);
-    return { points, centre: { x: centre.canvasX, y: centre.canvasY } };
+    return points;
 }
 
 /** The labels drawn closer than `padding` to the edge of the item they sit in. */
 function labelsTooCloseToTheirItem(chart: ChartOrProxy, items: Item[], padding: number) {
-    // Shapes are drawn on whole or half pixels, so the edge a label is measured to can be up to a pixel out.
-    const tolerance = 1;
+    // Shapes are drawn on whole or half pixels, so the edge a label is measured to can be half a pixel out.
+    const tolerance = 0.5;
     const offenders: string[] = [];
     for (const label of drawnLabels(chart)) {
-        const { points, centre } = boxOutline(label, Math.max(0, padding - tolerance));
+        const block = label.getTextMeasureBBox();
+        const centre = Transformable.toCanvasPoint(label, block.x + block.width / 2, block.y + block.height / 2);
+        const points = paintedBoxes(label).flatMap((box) => boxOutline(label, box, Math.max(0, padding - tolerance)));
         const owner = items
-            .filter((item) => item.contains(centre.x, centre.y))
+            .filter((item) => item.contains(centre.canvasX, centre.canvasY))
             .sort((a, b) => a.area - b.area)
             .at(0);
         if (owner == null || points.some((point) => !owner.contains(point.x, point.y))) {
@@ -549,18 +508,19 @@ describe('itemPadding', () => {
 
         it('defaults to 2', async () => {
             await render(c.options());
-            expect(c.resolvedPadding(getSeriesOptions(chart!))).toBe(2);
+            const resolvedPadding = c.resolvedPadding ?? ((o) => o.itemPadding);
+            expect(resolvedPadding(getSeriesOptions(chart!))).toBe(2);
         });
 
         it.each([0, 2, 6])('keeps every label inside its item at least %ipx from its edge', async (padding) => {
-            await render(c.options(c.paddingOption(padding)));
+            await render(paddedOptions(c, padding));
             expect(drawnLabels(chart!).length).toBeGreaterThan(0);
             expect(labelsTooCloseToTheirItem(chart!, itemsOf(chart!), padding)).toEqual([]);
         });
 
         it('takes room from the labels as it grows, shrinking or hiding what no longer fits', async () => {
-            const loose = drawnLabelFootprint(await render(c.options(c.paddingOption(0))));
-            const tight = drawnLabelFootprint(await render(c.options(c.paddingOption(24))));
+            const loose = drawnLabelFootprint(await render(paddedOptions(c, 0)));
+            const tight = drawnLabelFootprint(await render(paddedOptions(c, 24)));
             const shrunk = tight.mass < loose.mass || tight.width < loose.width;
             expect(shrunk, JSON.stringify({ loose, tight })).toBe(true);
         });
@@ -594,24 +554,14 @@ describe('itemPadding', () => {
     });
 
     describe('sector shapes', () => {
-        const wedges = (padding: number, innerRadiusRatio?: number): AgChartOptions => ({
-            data: [
-                { name: 'Alpha', size: 90 },
-                { name: 'Beta', size: 10 },
-            ],
-            width: 400,
-            height: 400,
-            series: [
-                {
-                    type: 'sunburst',
-                    labelKey: 'name',
-                    sizeKey: 'size',
-                    label: { ...BOXED, minimumFontSize: 6 },
-                    padding,
-                    ...(innerRadiusRatio == null ? {} : { innerRadiusRatio }),
-                },
-            ],
-        });
+        const wedges = (padding: number, innerRadiusRatio?: number) =>
+            sunburstChart(
+                [
+                    { name: 'Alpha', size: 90 },
+                    { name: 'Beta', size: 10 },
+                ],
+                { padding, ...(innerRadiusRatio == null ? {} : { innerRadiusRatio }) }
+            );
 
         it.each([
             { shape: 'a wedge from the centre', innerRadiusRatio: undefined },
@@ -808,7 +758,7 @@ describe('itemPadding', () => {
             'draws %s labels held 6px clear of their items',
             async (name) => {
                 const c = CASES.find((entry) => entry.name === name)!;
-                await render(c.options(c.paddingOption(6)));
+                await render(paddedOptions(c, 6));
                 await compareImageSnapshot(chart!, ctx);
             }
         );

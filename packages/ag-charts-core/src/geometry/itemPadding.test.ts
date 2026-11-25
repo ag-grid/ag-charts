@@ -94,6 +94,13 @@ describe('itemPadding', () => {
             });
         });
 
+        it('closes a ring thinner than twice itemPadding rather than turning it inside out', () => {
+            const sector = { startAngle: 0, endAngle: 1, innerRadius: 50, outerRadius: 53 };
+            const { innerRadius, outerRadius } = insetItemSector(sector, 4);
+            expect(innerRadius).toBe(49);
+            expect(outerRadius).toBe(49);
+        });
+
         it('keeps a sector with no hole reaching its centre', () => {
             const sector = { startAngle: 0, endAngle: 1, innerRadius: 0, outerRadius: 100 };
             expect(insetItemSector(sector, 2)).toEqual({
