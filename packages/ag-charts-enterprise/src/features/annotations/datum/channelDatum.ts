@@ -59,7 +59,7 @@ export function getChannelBottom(
 ): { start: DataPoint; end: DataPoint } | undefined {
     const { start, end } = datum;
 
-    if (yAxis.scale instanceof BandScale || !isNumericValue(start.y) || !isNumericValue(end.y)) {
+    if (BandScale.is(yAxis.scale) || !isNumericValue(start.y) || !isNumericValue(end.y)) {
         logger.warnOnce(`Annotation [${datum.type}] can only be used with a numeric y-axis.`);
         return;
     }
