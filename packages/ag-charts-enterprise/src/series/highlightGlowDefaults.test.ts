@@ -11,6 +11,7 @@ import {
     differingBytes,
     expectSamePixels,
     getSeriesAt,
+    getSeriesNodeData,
     hoverDatum,
     hoverNode,
     prepareProcessedOptions,
@@ -28,6 +29,7 @@ import { RANGE, nodeNamed } from '../test/glowSeriesCases';
 import {
     HIERARCHY_SHADOW_DATA,
     OHLC_DATA,
+    WATERFALL_DATA,
     collectShapes,
     createEnterpriseChart,
     itemNodes,
@@ -732,6 +734,61 @@ describe('hovered item glow of a series that glows on several parts', () => {
         expect(hoverDefaults({})).toEqual([true, true, true]);
         expect(hoverDefaults({ negative: { glow: ON } })).toEqual([true, false, true]);
         expect(hoverDefaults({ positive: { glow: OFF }, total: { glow: ON } })).toEqual([false, true, false]);
+    });
+
+    // Each part's default is picked by its position among the series' parts, which the theme's order of parts must match.
+    it.each(['positive', 'negative', 'total'])(
+        'waterfall: a hovered %s bar loses the default glow alone when its own glow is disabled',
+        async (disabled) => {
+            await create({
+                data: [...WATERFALL_DATA, { x: 'Total', y: 12 }],
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'x',
+                        yKey: 'y',
+                        item: { [disabled]: { glow: OFF } },
+                        totals: [{ totalType: 'subtotal', index: 3, axisLabel: 'Total' }],
+                    },
+                ],
+            });
+
+            const hoveredGlows = async (itemType: string) => {
+                const datum = getSeriesNodeData<_ModuleSupport.HighlightNodeDatum & { itemType: string }>(chart!).find(
+                    (node) => node.itemType === itemType
+                )!;
+                await hoverNode(chart!, datum);
+                return collectShapes(getSeriesAt(chart!).highlightGroup).filter(
+                    (shape) => shape.visible && shape.getCastShadow('glow') != null
+                ).length;
+            };
+
+            // The `total` options style the subtotal bar.
+            for (const [itemType, part] of [
+                ['positive', 'positive'],
+                ['negative', 'negative'],
+                ['subtotal', 'total'],
+            ]) {
+                const glows = await hoveredGlows(itemType);
+                expect(glows > 0, `${itemType} bar glows`).toBe(part !== disabled);
+            }
+        }
+    );
+});
+
+describe('hovered item glow of a series whose marker inherits marker.glow', () => {
+    const hoverGlowEnabled = (marker?: object) =>
+        (
+            prepareProcessedOptions({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'category', yKey: 'value', marker }],
+            }).processedOptions as any
+        ).series[0].highlight.highlightedItem.glow.enabled;
+
+    it('line: glows on hover unless marker.glow.enabled is set false', () => {
+        expect(hoverGlowEnabled()).toBe(true);
+        expect(hoverGlowEnabled({ glow: { enabled: false } })).toBe(false);
+        expect(hoverGlowEnabled({ glow: { enabled: true } })).toBe(true);
     });
 });
 
