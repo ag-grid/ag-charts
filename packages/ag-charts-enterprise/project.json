@@ -111,6 +111,7 @@
     "test:validate-size": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["production", "^production"],
       "options": {
         "cwd": "{projectRoot}",
         "command": "size-limit"
