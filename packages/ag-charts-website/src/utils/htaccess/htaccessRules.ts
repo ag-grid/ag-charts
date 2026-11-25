@@ -88,8 +88,9 @@ const CANONICAL_ORIGIN = 'https://www.ag-grid.com';
 // never runs for /charts: a child .htaccess with `RewriteEngine On` replaces its parent's rewrite
 // rules rather than inheriting them. An allowlist, not "anything but www", so that requests on a
 // host we don't own (origin health checks, a proxy's internal name) are served rather than looped.
+// angulargrid.com is not here: its own CloudFront distribution redirects it, so it never reaches us.
 const NON_CANONICAL_HOSTS =
-    '^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$';
+    '^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com)$';
 
 function escapeRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
