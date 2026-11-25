@@ -3,19 +3,19 @@ import { type BoxBounds, boxCollides } from './boxBounds';
 
 const DEFAULT_TICK_LABEL_SPACING = 10;
 
-/** Gap kept between cartesian tick labels at any rotation. */
-export function tickLabelSpacing(threshold: number | undefined): number {
-    return threshold ?? DEFAULT_TICK_LABEL_SPACING;
+/** Gap kept between cartesian tick labels: rotated labels pack edge to edge. */
+export function tickLabelSpacing(threshold: number | undefined, rotated: boolean): number {
+    return rotated ? 0 : (threshold ?? DEFAULT_TICK_LABEL_SPACING);
 }
 
-/** Boxes, in their text's frame, closer than `spacing` along the text to an overlapping earlier one, counted up to `limit`. */
+/** Boxes colliding with an earlier one once their width and height grow by `spacing`, counted up to `limit`. */
 export function countAxisLabelOverlaps(boxes: readonly BoxBounds[], spacing: number = 0, limit = Infinity): number {
     const result: BoxBounds[] = [];
     let count = 0;
 
     for (const box of boxes) {
         const { x, y, width, height } = box;
-        if (result.some((l) => boxCollides(l, x - spacing, y, width + 2 * spacing, height))) {
+        if (result.some((l) => boxCollides(l, x, y, width + spacing, height + spacing))) {
             count++;
             if (count >= limit) break;
         }
@@ -25,7 +25,7 @@ export function countAxisLabelOverlaps(boxes: readonly BoxBounds[], spacing: num
     return count;
 }
 
-/** True when any box, in its text's frame, is closer than `spacing` along the text to an overlapping earlier one. */
+/** True when any box collides with an earlier one after growing its width and height by `spacing`. */
 export function axisLabelsOverlap(boxes: readonly BoxBounds[], spacing: number = 0): boolean {
     return countAxisLabelOverlaps(boxes, spacing, 1) > 0;
 }
@@ -41,12 +41,15 @@ export interface TickLabelFit<T> {
     /** Characters truncation drops from the labels at this rotation. */
     droppedChars(candidate: T, rotationIndex: number): number;
     overlapCount(candidate: T, rotationIndex: number): number;
+    /** The smallest step between shown labels that clears them, for ticks that cannot be thinned. */
+    clearStride(candidate: T, rotationIndex: number): number;
 }
 
 /**
  * Per candidate, the first clear rotation that fits whole wins, else the clear one truncating least; with `truncates`,
  * fit index `rotationCount` (truncated at the last rotation) is tried before a sparser candidate.
- * If none clears, or labels are always shown, the fewest collisions win; pinned ticks keep the first pinned candidate.
+ * If none clears, or labels are always shown, the fewest collisions win; pinned ticks keep the first pinned candidate
+ * and show every `labelStride`th label, at the rotation needing the smallest stride.
  */
 export function thinTickLabels<T>(
     next: () => TickLabelCandidate<T> | undefined,
@@ -54,7 +57,7 @@ export function thinTickLabels<T>(
     alwaysShow: boolean,
     rotationCount: number,
     truncates = false
-): { candidate: T | undefined; rotationIndex: number } {
+): { candidate: T | undefined; rotationIndex: number; labelStride: number } {
     const fitCount = truncates ? rotationCount + 1 : rotationCount;
     let candidate: T | undefined;
     let firstPinned: T | undefined;
@@ -62,15 +65,30 @@ export function thinTickLabels<T>(
     for (let step = next(); step != null; step = next()) {
         candidate = step.candidate;
         const rotationIndex = clearRotation(candidate, fit, rotationCount);
-        if (rotationIndex != null) return { candidate, rotationIndex };
-        if (truncates && !fit.overlaps(candidate, rotationCount)) return { candidate, rotationIndex: rotationCount };
+        if (rotationIndex != null) return { candidate, rotationIndex, labelStride: 1 };
+        if (truncates && !fit.overlaps(candidate, rotationCount)) {
+            return { candidate, rotationIndex: rotationCount, labelStride: 1 };
+        }
         if (alwaysShow) break;
         if (step.pinned) firstPinned ??= candidate;
     }
 
-    candidate = firstPinned ?? candidate;
-    if (candidate == null) return { candidate, rotationIndex: 0 };
-    return { candidate, rotationIndex: leastOverlappingRotation(candidate, fit, fitCount) };
+    if (firstPinned != null) return smallestStride(firstPinned, fit, fitCount);
+    if (candidate == null) return { candidate, rotationIndex: 0, labelStride: 1 };
+    return { candidate, rotationIndex: leastOverlappingRotation(candidate, fit, fitCount), labelStride: 1 };
+}
+
+function smallestStride<T>(candidate: T, fit: TickLabelFit<T>, fitCount: number) {
+    let rotationIndex = 0;
+    let labelStride = Infinity;
+    for (let index = 0; index < fitCount; index++) {
+        const stride = fit.clearStride(candidate, index);
+        if (stride < labelStride) {
+            rotationIndex = index;
+            labelStride = stride;
+        }
+    }
+    return { candidate, rotationIndex, labelStride };
 }
 
 function clearRotation<T>(candidate: T, fit: TickLabelFit<T>, rotationCount: number): number | undefined {

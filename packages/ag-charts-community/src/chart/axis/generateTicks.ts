@@ -112,7 +112,8 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     const rotationOf = (fitIndex: number) => Math.min(fitIndex, lastRotationIndex);
     const rotationFits = Array.from({ length: rotations.length + 1 }, () => new WeakMap<TickData, RotationFit>());
     const labelPadding = expandLabelPadding(label);
-    const labelSpacing = tickLabelSpacing(label.collision.threshold);
+    const spacingAt = (rotation: number) =>
+        tickLabelSpacing(label.collision.threshold, configuredRotation !== 0 || rotation !== 0);
     const computedBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
     const labelFrame = (fitIndex: number) => {
         const rotation = autoRotations[rotationOf(fitIndex)];
@@ -145,10 +146,11 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const toEdge = (extent: [number, number], tick: TickDatum) =>
             alongWithin(extent, tick.translation, alongBounds);
         const toChart = (extent: [number, number]) => (extent[1] - extent[0] > end - start ? end - start : undefined);
+        const spacing = spacingAt(rotation);
         const reaches = (other: TickDatum | undefined, min: number, max: number) => {
             if (other?.tickLabel == null || other.tickLabel === '') return false;
             const [otherMin, otherMax] = extentOf(other);
-            return otherMin < max + labelSpacing && otherMax > min - labelSpacing;
+            return otherMin < max + spacing && otherMax > min - spacing;
         };
         return ticks.map((tick, i) => {
             if (tick.isPrimary || tick.tickLabel == null || tick.tickLabel === '') return tick;
@@ -167,7 +169,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const { rotation } = labelFrame(lastRotationIndex);
         const drawn = configuredRotation + rotation;
         const alongText = Math.abs(options.isVertical ? Math.sin(drawn) : Math.cos(drawn));
-        const maxWidth = minTickGap(ticks) * alongText - labelSpacing - labelPadding.left - labelPadding.right;
+        const maxWidth = minTickGap(ticks) * alongText - spacingAt(rotation) - labelPadding.left - labelPadding.right;
         if (Number.isNaN(maxWidth) || maxWidth <= 0) return;
         const cleared: TickDatum[] = [];
         for (let tick of ticks) {
@@ -207,28 +209,15 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         }
         return fit;
     };
-    const countOverlaps = (candidate: TickData, rotationIndex: number, limit: number) => {
-        const { tickData } = fitAt(candidate, rotationIndex);
+    const countLabelOverlaps = (ticks: TickDatum[], rotationIndex: number, limit: number, spacing?: number) => {
         const { rotation, labelRotation, textAlign, textBaseline } = labelFrame(rotationIndex);
         // Where the band flush will leave each label, rather than where the anchor sits now: rotated
         // labels of differing size flush by differing amounts, along their own text direction.
         // The flush is measured off the label nodes, so it needs the rendered rotation - not
         // `labelRotation`, whose `defaultRotation` is only the frame `createLabelData` compares in.
-        const bandOffsets = labelBandOffsets?.(
-            tickData.ticks,
-            configuredRotation + rotation,
-            textAlign,
-            computedBaseline
-        );
-
-        const timeOverlaps = countAxisLabelOverlaps(
-            createTimeLabelData(options, tickData, labelRotation, rotation),
-            labelSpacing,
-            limit
-        );
-        if (timeOverlaps >= limit) return timeOverlaps;
+        const bandOffsets = labelBandOffsets?.(ticks, configuredRotation + rotation, textAlign, computedBaseline);
         const labelData = createLabelData(
-            tickData.ticks,
+            ticks,
             labelOffset,
             labelRotation,
             labelPadding,
@@ -236,7 +225,18 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
             textAlign,
             bandOffsets
         );
-        return timeOverlaps + countAxisLabelOverlaps(labelData, labelSpacing, limit - timeOverlaps);
+        return countAxisLabelOverlaps(labelData, spacing ?? spacingAt(rotation), limit);
+    };
+    const countOverlaps = (candidate: TickData, rotationIndex: number, limit: number) => {
+        const { tickData } = fitAt(candidate, rotationIndex);
+        const { rotation, labelRotation } = labelFrame(rotationIndex);
+        const timeOverlaps = countAxisLabelOverlaps(
+            createTimeLabelData(options, tickData, labelRotation, rotation),
+            spacingAt(rotation),
+            limit
+        );
+        if (timeOverlaps >= limit) return timeOverlaps;
+        return timeOverlaps + countLabelOverlaps(tickData.ticks, rotationIndex, limit - timeOverlaps);
     };
     const labelFit = {
         overlaps: (candidate: TickData, rotationIndex: number) => {
@@ -249,6 +249,16 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
             const fit = fitAt(candidate, rotationIndex);
             fit.overlapCount ??= countOverlaps(candidate, rotationIndex, Infinity);
             return fit.overlapCount;
+        },
+        // Fixed ticks are only thinned where their labels actually overlap, never to keep the threshold.
+        clearStride: (candidate: TickData, rotationIndex: number) => {
+            const { ticks } = fitAt(candidate, rotationIndex).tickData;
+            if (countLabelOverlaps(ticks, rotationIndex, 1, 0) === 0) return 1;
+            const labelCount = ticks.filter(isStridedLabel).length;
+            for (let stride = 2; stride < labelCount; stride++) {
+                if (countLabelOverlaps(showEveryNthLabel(ticks, stride), rotationIndex, 1, 0) === 0) return stride;
+            }
+            return Math.max(1, labelCount);
         },
     };
 
@@ -273,7 +283,11 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     // A wider domain only crowds pinned ticks, so later candidates must stay within the first pinned one.
     let domainLimit: TDatum[] | undefined;
 
-    const { candidate: thinnedTickData, rotationIndex } = thinTickLabels(
+    const {
+        candidate: thinnedTickData,
+        rotationIndex,
+        labelStride,
+    } = thinTickLabels(
         () => {
             while (index <= maxIterations) {
                 const next = buildTickData(options, tickGenerationType, tickData, index, domainLimit);
@@ -293,6 +307,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     );
 
     tickData = fitAt(thinnedTickData ?? tickData, rotationIndex).tickData;
+    if (labelStride > 1) tickData = { ...tickData, ticks: showEveryNthLabel(tickData.ticks, labelStride) };
     const autoRotation = autoRotations[rotationOf(rotationIndex)];
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
@@ -734,6 +749,19 @@ function alongWithin([min, max]: [number, number], anchor: number, [start, end]:
     if (min < start && anchor > min) scale = Math.min(scale, (anchor - start) / (anchor - min));
     if (max > end && max > anchor) scale = Math.min(scale, (end - anchor) / (max - anchor));
     return Math.max(0, (max - min) * scale);
+}
+
+function isStridedLabel({ isPrimary, tickLabel }: TickDatum) {
+    return !isPrimary && tickLabel != null && tickLabel !== '';
+}
+
+/** Keeps every tick, labelling only every `stride`th labelled one from the first. */
+function showEveryNthLabel(ticks: TickDatum[], stride: number) {
+    let labelIndex = 0;
+    return ticks.map((tick) => {
+        if (!isStridedLabel(tick)) return tick;
+        return labelIndex++ % stride === 0 ? tick : { ...tick, tickLabel: undefined };
+    });
 }
 
 function minTickGap(ticks: TickDatum[]) {

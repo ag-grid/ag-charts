@@ -36,7 +36,6 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<
             groupPaddingInner: 0,
             maxThicknessRatio: 0.3,
             spacing: 15,
-            label: { collision: { threshold: 40 } },
             gridLine: { enabled: false },
             interval: { placement: 'between' },
         },

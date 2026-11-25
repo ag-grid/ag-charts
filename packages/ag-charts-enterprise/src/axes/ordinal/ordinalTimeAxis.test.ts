@@ -738,7 +738,7 @@ describe('Ordinal Time Axis Examples', () => {
             rotation: 0,
             wrapping: 'never',
             truncate: false,
-            collision: { alwaysShow: false, threshold: 40 },
+            collision: { alwaysShow: false },
         });
     });
 

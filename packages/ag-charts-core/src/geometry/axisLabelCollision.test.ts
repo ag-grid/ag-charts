@@ -14,12 +14,17 @@ import {
 } from './axisLabelCollision';
 
 describe('tickLabelSpacing', () => {
-    it('defaults to 10px', () => {
-        expect(tickLabelSpacing(undefined)).toBe(10);
+    it('defaults to 10px for unrotated labels', () => {
+        expect(tickLabelSpacing(undefined, false)).toBe(10);
     });
 
     it('uses the threshold when set', () => {
-        expect(tickLabelSpacing(4)).toBe(4);
+        expect(tickLabelSpacing(4, false)).toBe(4);
+    });
+
+    it('packs rotated labels edge to edge, whatever the threshold', () => {
+        expect(tickLabelSpacing(undefined, true)).toBe(0);
+        expect(tickLabelSpacing(40, true)).toBe(0);
     });
 });
 
@@ -30,17 +35,14 @@ describe('axisLabelsOverlap', () => {
         expect(axisLabelsOverlap([box(0), box(50), box(10)])).toBe(true);
     });
 
-    it('treats boxes closer than the spacing along the text as colliding, whichever side the later one is on', () => {
-        expect(axisLabelsOverlap([box(25), box(0)])).toBe(false);
-        expect(axisLabelsOverlap([box(25), box(0)], 6)).toBe(true);
-        expect(axisLabelsOverlap([box(0), box(25)], 6)).toBe(true);
-        expect(axisLabelsOverlap([box(0), box(25)], 5)).toBe(false);
-    });
-
-    it('keeps no spacing across the text', () => {
-        const below = { ...box(0), y: box(0).y + box(0).height + 1 };
-        expect(axisLabelsOverlap([box(0), below], 10)).toBe(false);
-        expect(axisLabelsOverlap([below, box(0)], 10)).toBe(false);
+    it.each([
+        ['along the text', box(25)],
+        ['across the text', { ...box(0), y: 15 }],
+    ])('grows only the later box by the spacing, %s', (_, other) => {
+        expect(axisLabelsOverlap([box(0), other], 5)).toBe(false);
+        expect(axisLabelsOverlap([box(0), other], 6)).toBe(false);
+        expect(axisLabelsOverlap([other, box(0)], 5)).toBe(false);
+        expect(axisLabelsOverlap([other, box(0)], 6)).toBe(true);
     });
 
     it('counts each box colliding with an earlier one, up to the limit', () => {
@@ -56,6 +58,7 @@ describe('thinTickLabels', () => {
         overlaps: number[];
         dropped?: number[];
         pinned?: boolean;
+        strides?: number[];
     }
 
     function candidates(...sets: Set[]) {
@@ -68,6 +71,7 @@ describe('thinTickLabels', () => {
         const fit = {
             overlaps: (set: Set, rotationIndex: number) => set.overlaps[rotationIndex] > 0,
             droppedChars: (set: Set, rotationIndex: number) => set.dropped?.[rotationIndex] ?? 0,
+            clearStride: (set: Set, rotationIndex: number) => set.strides?.[rotationIndex] ?? 1,
             overlapCount: (set: Set, rotationIndex: number) => {
                 counted.push(rotationIndex);
                 return set.overlaps[rotationIndex];
@@ -78,7 +82,7 @@ describe('thinTickLabels', () => {
 
     it('walks to the first candidate whose labels do not overlap', () => {
         const { next, fit, sets } = candidates({ overlaps: [1] }, { overlaps: [0] }, { overlaps: [0] });
-        expect(thinTickLabels(next, fit, false, 1)).toEqual({ candidate: sets[1], rotationIndex: 0 });
+        expect(thinTickLabels(next, fit, false, 1)).toEqual({ candidate: sets[1], rotationIndex: 0, labelStride: 1 });
     });
 
     it('keeps the first candidate when labels are always shown', () => {
@@ -88,48 +92,56 @@ describe('thinTickLabels', () => {
 
     it('uses the first rotation in the list at which the labels fit whole', () => {
         const { next, fit, sets } = candidates({ overlaps: [1, 0, 0] }, { overlaps: [0] });
-        expect(thinTickLabels(next, fit, false, 3)).toEqual({ candidate: sets[0], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, false, 3)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 1 });
     });
 
     it('prefers a later rotation that fits whole over an earlier one that truncates', () => {
         const { next, fit, sets } = candidates({ overlaps: [1, 0, 0], dropped: [0, 4, 0] });
-        expect(thinTickLabels(next, fit, false, 3)).toEqual({ candidate: sets[0], rotationIndex: 2 });
+        expect(thinTickLabels(next, fit, false, 3)).toEqual({ candidate: sets[0], rotationIndex: 2, labelStride: 1 });
     });
 
     it('truncates at the clear rotation that drops the fewest characters, ties going to the earlier', () => {
         const { next, fit, sets } = candidates({ overlaps: [0, 0, 0], dropped: [9, 3, 3] });
-        expect(thinTickLabels(next, fit, false, 3)).toEqual({ candidate: sets[0], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, false, 3)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 1 });
     });
 
     it('truncates rather than thins', () => {
         const { next, fit, sets } = candidates({ overlaps: [1, 0], dropped: [0, 20] }, { overlaps: [0, 0] });
-        expect(thinTickLabels(next, fit, false, 2)).toEqual({ candidate: sets[0], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, false, 2)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 1 });
     });
 
     it('thins once every rotation collides, without counting collisions', () => {
         const { next, fit, sets, counted } = candidates({ overlaps: [2, 1] }, { overlaps: [1, 0] });
-        expect(thinTickLabels(next, fit, false, 2)).toEqual({ candidate: sets[1], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, false, 2)).toEqual({ candidate: sets[1], rotationIndex: 1, labelStride: 1 });
         expect(counted).toEqual([]);
     });
 
     it('truncates at the last rotation before thinning, once every rotation collides', () => {
         const { next, fit, sets } = candidates({ overlaps: [2, 1, 0] }, { overlaps: [0, 0] });
-        expect(thinTickLabels(next, fit, false, 2, true)).toEqual({ candidate: sets[0], rotationIndex: 2 });
+        expect(thinTickLabels(next, fit, false, 2, true)).toEqual({
+            candidate: sets[0],
+            rotationIndex: 2,
+            labelStride: 1,
+        });
     });
 
     it('thins once the truncated labels still collide', () => {
         const { next, fit, sets } = candidates({ overlaps: [2, 1, 1] }, { overlaps: [1, 0, 0] });
-        expect(thinTickLabels(next, fit, false, 2, true)).toEqual({ candidate: sets[1], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, false, 2, true)).toEqual({
+            candidate: sets[1],
+            rotationIndex: 1,
+            labelStride: 1,
+        });
     });
 
     it('keeps the rotation with the fewest collisions when labels are always shown', () => {
         const { next, fit, sets } = candidates({ overlaps: [5, 2, 3] }, { overlaps: [0, 0, 0] });
-        expect(thinTickLabels(next, fit, true, 3)).toEqual({ candidate: sets[0], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, true, 3)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 1 });
     });
 
     it('still falls back through the rotations when labels are always shown', () => {
         const { next, fit, sets } = candidates({ overlaps: [1, 0] }, { overlaps: [0, 0] });
-        expect(thinTickLabels(next, fit, true, 2)).toEqual({ candidate: sets[0], rotationIndex: 1 });
+        expect(thinTickLabels(next, fit, true, 2)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 1 });
     });
 
     it('moves on from a pinned candidate to a later pinned one whose labels fit', () => {
@@ -137,9 +149,17 @@ describe('thinTickLabels', () => {
         expect(thinTickLabels(next, fit, false, 2).candidate).toBe(sets[1]);
     });
 
-    it('keeps the first pinned candidate when none clears the overlap', () => {
-        const { next, fit, sets } = candidates({ overlaps: [2, 1], pinned: true }, { overlaps: [1, 1], pinned: true });
-        expect(thinTickLabels(next, fit, false, 2)).toEqual({ candidate: sets[0], rotationIndex: 1 });
+    it('shows every nth label of the first pinned candidate, at the rotation needing the smallest stride', () => {
+        const { next, fit, sets } = candidates(
+            { overlaps: [2, 1], strides: [3, 2], pinned: true },
+            { overlaps: [1, 1], pinned: true }
+        );
+        expect(thinTickLabels(next, fit, false, 2)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 2 });
+    });
+
+    it('shows every pinned label when labels are always shown', () => {
+        const { next, fit, sets } = candidates({ overlaps: [2, 1], strides: [3, 2], pinned: true });
+        expect(thinTickLabels(next, fit, true, 2)).toEqual({ candidate: sets[0], rotationIndex: 1, labelStride: 1 });
     });
 
     it('settles on the last candidate once they run out', () => {

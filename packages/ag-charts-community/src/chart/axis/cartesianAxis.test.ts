@@ -8,6 +8,7 @@ import type {
     AgCategoryAxisOptions,
     AgChartInstance,
     AgGroupedCategoryDepthOptions,
+    AgNumberAxisOptions,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-types';
@@ -1898,7 +1899,7 @@ describe('CartesianAxis', () => {
             for (const node of nodes) expect(node.datum.rotation).toBeCloseTo(toRadians(335));
         });
 
-        it('keeps labels the collision threshold apart', async () => {
+        it('keeps unrotated labels the collision threshold apart, turning them rather than removing any', async () => {
             const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
             const options = (threshold?: number): AgCartesianChartOptions => ({
                 data: quarters.map((category, i) => ({ category, value: i + 1 })),
@@ -1911,12 +1912,46 @@ describe('CartesianAxis', () => {
 
             chart = await createChart(options());
             expect(getAxisLabelTexts(chart, 'bottom')).toEqual(quarters);
+            for (const node of getAxisLabelNodes(chart, 'bottom')) expect(node.datum.rotation).toBe(0);
             chart.destroy();
 
             chart = await createChart(options(300));
-            const texts = getAxisLabelTexts(chart, 'bottom');
-            expect(texts.length).toBeLessThan(quarters.length);
-            expect(quarters).toEqual(expect.arrayContaining(texts));
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(quarters);
+            for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                expect(node.datum.rotation).toBeCloseTo(toRadians(335));
+            }
+        });
+
+        describe('with ticks fixed by the interval', () => {
+            const options = (label: AgNumberAxisOptions['label']): AgCartesianChartOptions => ({
+                data: NUMERIC_DATA,
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 20, interval: { step: 1 }, label },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+            const allValues = Array.from({ length: 21 }, (_, i) => String(i));
+
+            it('labels every tick whose labels do not overlap, whatever the collision threshold', async () => {
+                chart = await createChart(options({ collision: { threshold: 30 } }));
+                expect(getAxisLabelTexts(chart, 'left')).toEqual(allValues);
+            });
+
+            it('labels every nth tick that clears overlapping labels, keeping every tick', async () => {
+                chart = await createChart(options({ fontSize: 30 }));
+                const values = getAxisLabelTexts(chart, 'left').map(Number);
+                const stride = values[1] - values[0];
+                expect(values[0]).toBe(0);
+                expect(stride).toBeGreaterThan(1);
+                expect(values).toEqual(Array.from(values, (_, i) => i * stride));
+                expect(getAxisTickLayout(chart, 'left').gridLines).toHaveLength(allValues.length);
+            });
+
+            it('labels every tick when labels are always shown', async () => {
+                chart = await createChart(options({ fontSize: 30, collision: { alwaysShow: true } }));
+                expect(getAxisLabelTexts(chart, 'left')).toEqual(allValues);
+            });
         });
     });
 
