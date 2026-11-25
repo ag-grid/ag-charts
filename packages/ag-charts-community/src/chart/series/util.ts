@@ -1,5 +1,5 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
-import { Color, Transformable, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
+import { Color, Transformable, findMaxIndex, findMinIndex, isSolidFill, isString } from 'ag-charts-core';
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
@@ -208,7 +208,11 @@ const opaqueMarkerFillCache = new Map<string, boolean>();
 export function isOpaqueMarkerFillStyle(style?: { fill?: unknown; fillOpacity?: number; opacity?: number }): boolean {
     if (style == null) return false;
 
-    const fill = style.fill;
+    let fill = style.fill;
+    if (isSolidFill(fill)) {
+        if ((fill.fillOpacity ?? 1) < 1) return false;
+        fill = fill.fill;
+    }
     if (!isString(fill)) return false;
 
     const fillString = fill.trim();

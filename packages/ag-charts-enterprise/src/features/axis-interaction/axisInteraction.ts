@@ -17,6 +17,7 @@ import {
     ButtonWidget,
     ChartAxisDirection,
     boxEmpty,
+    boxesEqual,
     callWithContext,
 } from 'ag-charts-core';
 
@@ -33,6 +34,8 @@ type SeriesAreaHoverEvent = _ModuleSupport.SeriesAreaHoverEvent;
 type PartialAxisClickEvent = CallbackParamRules<Omit<AgAxisClickEvent<string>, 'type'>> & { type?: never };
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
+
+type FocusedTick = { axisId: AxisID; index: number };
 
 type ProxyAxis = {
     axisId: AxisID;
@@ -99,6 +102,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
+            ctx.animationManager.addListener('animation-stop', () => this.onAnimationStop()),
             ctx.eventsHub.on('axis-interaction:update', (event) => this.onUpdate(event)),
             ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
@@ -119,6 +123,30 @@ export class AxisInteraction extends AbstractModuleInstance {
         this.refresh();
     }
 
+    // Axes reach their new layout after `layout:complete`, so re-measure once they settle.
+    // Unchanged proxies must not be rewritten: DOM writes outside an update force a reflow on the next one.
+    private onAnimationStop() {
+        if (this.needsProxies() && this.axes.some((axis) => this.hasAxisMoved(axis))) {
+            this.refresh();
+        }
+    }
+
+    private hasAxisMoved(axis: ProxyAxis): boolean {
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axis.axisId);
+        if (axisCtx == null) return false;
+        if (!boxesEqual(axisCtx.getCanvasBounds(), axis.bounds)) return true;
+
+        const tickData = axisCtx.getA11YTickData();
+        return (
+            tickData.length !== axis.a11yTickData.length ||
+            tickData.some(
+                (tick, i) =>
+                    !boxesEqual(tick.focusBounds, axis.a11yTickData[i].focusBounds) ||
+                    tick.focusRotation?.angle !== axis.a11yTickData[i].focusRotation?.angle
+            )
+        );
+    }
+
     private onUpdate(event: AxisInteractionUpdateEvent) {
         const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
@@ -131,22 +159,33 @@ export class AxisInteraction extends AbstractModuleInstance {
         this.refresh();
     }
 
-    private refresh() {
-        const isEnabled =
+    private needsProxies() {
+        return (
             (this.isEnabled() &&
                 (this.isEnabledDoubleClick() ||
                     this.isEnabledDragging() ||
                     this.isEnabledScrolling() ||
                     this.isEnabledContextMenu())) ||
-            this.hasClickListeners();
+            this.hasClickListeners()
+        );
+    }
+
+    private refresh() {
+        const focusedTick = this.findFocusedTick();
+
+        const isEnabled = this.needsProxies();
 
         for (const axis of this.axes) {
             axis.div.setHidden(!isEnabled);
         }
-        if (!isEnabled) return;
+        if (isEnabled) {
+            this.processAxisDiff();
+            this.updateOverlappingAxisPointerEvents();
+        }
 
-        this.processAxisDiff();
-        this.updateOverlappingAxisPointerEvents();
+        if (focusedTick != null) {
+            this.restoreTickFocus(focusedTick, isEnabled);
+        }
     }
 
     private processAxisDiff() {
@@ -183,6 +222,35 @@ export class AxisInteraction extends AbstractModuleInstance {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
             this.updateAxisInteraction(axis, axisCtx);
         }
+    }
+
+    private findFocusedTick(): FocusedTick | undefined {
+        for (const { axisId, div } of this.axes) {
+            for (const button of div.acquireInteractions().tickButtons.iterateChildren()) {
+                if (button.isFocused()) return { axisId, index: button.index };
+            }
+        }
+    }
+
+    /** Matches series item focus; with no tick to land on, focus goes to the series area rather than the document body. */
+    private restoreTickFocus({ axisId, index }: FocusedTick, isEnabled: boolean) {
+        const axis = this.axes.find((a) => a.axisId === axisId);
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        const canHoldFocus =
+            isEnabled &&
+            axis != null &&
+            axisCtx != null &&
+            needsTabStop(this.ctx.chartService, axisCtx) &&
+            !boxEmpty(axisCtx.getCanvasBounds());
+        if (canHoldFocus) {
+            const buttons = [...axis.div.acquireInteractions().tickButtons.iterateChildren()];
+            const target = buttons.at(Math.min(index, buttons.length - 1));
+            if (target != null) {
+                if (!target.isFocused()) target.focus();
+                return;
+            }
+        }
+        this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
     }
 
     private onSeriesAreaHover(event: SeriesAreaHoverEvent) {
@@ -560,9 +628,14 @@ export class AxisInteraction extends AbstractModuleInstance {
             return b;
         });
         for (const button of tickButtonList.iterateChildren()) {
-            const tickData = axis.a11yTickData[button.index];
-            button.setTextContent(tickData.ariaLabel);
-            button.setBounds(tickData.focusBounds);
+            const { ariaLabel, focusBounds, focusRotation } = axis.a11yTickData[button.index];
+            button.setTextContent(ariaLabel);
+            button.setBounds(focusBounds);
+            button.setRotation(
+                focusRotation?.angle,
+                (focusRotation?.originX ?? 0) - focusBounds.x,
+                (focusRotation?.originY ?? 0) - focusBounds.y
+            );
         }
     }
 

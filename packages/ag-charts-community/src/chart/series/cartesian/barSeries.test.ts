@@ -2373,6 +2373,46 @@ describe('BarSeries', () => {
             const placements = upper.map(({ label: placed }) => (placed?.hidden ? 'hidden' : placed?.placement));
             expect(new Set(placements)).toEqual(new Set(['inside-center']));
         });
+
+        // The shorter bar's first choice crosses the taller bar's top, where the taller bar's label would ignore it.
+        it('never trades two labels onto each other', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'a', y: 64 },
+                    { x: 'b', y: 17 },
+                    { x: 'b', y: 15.4 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            placement: ['outside-end', 'inside-end'],
+                            collision: { collideWith: { shapes: true } },
+                        },
+                    },
+                ],
+            });
+            const boxes = getVisibleLabelTextNodes(chart).map((node) => [node.text, node.getBBox()] as const);
+            const [taller, shorter] = boxes.filter(([text]) => text !== '64').map(([, box]) => box);
+
+            expect(boxes.map(([text]) => text)).toEqual(['64', '17', '15.4']);
+            expect(shorter.y).toBeGreaterThanOrEqual(taller.y + taller.height);
+        });
+
+        // The taller bar covers every slot of the shorter one's label, so no trade can place both.
+        it.each([
+            ['shorter bar first', [16, 17], '16'],
+            ['taller bar first', [17, 16], '17'],
+        ])('keeps the first-placed label of two overlapping bars (%s)', async (_, values, kept) => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 64 }, ...values.map((y) => ({ x: 'b', y }))],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { placement: ['outside-end', 'inside-end'] } }],
+            });
+
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(['64', kept]);
+        });
     });
 
     describe('item styler', () => {

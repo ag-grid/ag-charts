@@ -64,6 +64,46 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
     },
+    DASHED_SERIES: {
+        options: {
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'bar',
+                    stroke: 'black',
+                    strokeWidth: 2,
+                    lineDash: 'dash',
+                    data: xyData([2, 3, 4, 2, 1, 1, 3, 4, 5, 4, 3], 'bar'),
+                },
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'thick',
+                    strokeWidth: 5,
+                    lineDash: 'dash',
+                    marker: { enabled: false },
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6], 'thick'),
+                },
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'dotted',
+                    lineDash: [1, 3],
+                    marker: { enabled: false },
+                    data: xyData([9, 8, 6, 7, 9, 10, 9, 5, 4, 6, 8], 'dotted'),
+                },
+            ],
+            navigator: {
+                height: 80,
+                miniChart: {},
+            },
+        },
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number' },
+            seriesTypes: ['bar', 'line', 'line'],
+        }),
+    },
     HORIZONTAL_BAR_SERIES: {
         options: {
             series: [

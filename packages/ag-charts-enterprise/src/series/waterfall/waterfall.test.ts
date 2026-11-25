@@ -33,6 +33,7 @@ import {
     expectWarningMessages,
     expectWarningsCalls,
     getSeriesContextNodeData,
+    getSeriesOptions,
     getSeriesSelectionNodes,
     hoverAction,
     magnitudePair,
@@ -51,6 +52,7 @@ import {
     DEFAULT_DISABLED_SHADOW,
     SMALL_SHADOW,
     createEnterpriseChart,
+    createStockThemedChart,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
@@ -1688,6 +1690,32 @@ describe('WaterfallSeries', () => {
                 )
             );
         });
+    });
+
+    it('fills the ag-accessible total with a pattern in the neutral colour', async () => {
+        chart = await createStockThemedChart(
+            {
+                data: [
+                    { x: 'a', y: 5 },
+                    { x: 'b', y: -2 },
+                ],
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'x',
+                        yKey: 'y',
+                        totals: [{ totalType: 'total', index: 1, axisLabel: 'Total' }],
+                    },
+                ],
+            },
+            'ag-accessible'
+        );
+
+        const { item } = getSeriesOptions<{
+            item: { total: { fill: unknown }; negative: { fillOpacity: number } };
+        }>(chart);
+        expect(item.total.fill).toMatchObject({ type: 'pattern', pattern: 'forward-slanted-lines', fill: '#606060' });
+        expect(item.negative.fillOpacity).toBe(0.2);
     });
 });
 

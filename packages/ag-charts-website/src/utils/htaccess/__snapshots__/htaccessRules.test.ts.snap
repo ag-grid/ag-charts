@@ -152,7 +152,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     # segment has a dot, taken for a file unless it is a real directory (an archive version such as
     # 14.2.0).
     RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
-    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com)$ [NC]
     RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteCond %{REQUEST_URI} [^/]$
@@ -162,7 +162,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]
 
     # Canonical host is www.ag-grid.com; no other host may serve pages directly.
-    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com)$ [NC]
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
 </IfModule>
 
@@ -285,7 +285,7 @@ exports[`generated redirect rules snapshot > redirect rules output is unchanged 
     # segment has a dot, taken for a file unless it is a real directory (an archive version such as
     # 14.2.0).
     RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
-    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com)$ [NC]
     RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteCond %{REQUEST_URI} [^/]$
@@ -295,7 +295,7 @@ exports[`generated redirect rules snapshot > redirect rules output is unchanged 
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]
 
     # Canonical host is www.ag-grid.com; no other host may serve pages directly.
-    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com)$ [NC]
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
 </IfModule>"
 `;

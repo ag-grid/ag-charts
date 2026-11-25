@@ -2,6 +2,7 @@ import {
     BBox,
     type BoxBounds,
     type CandidateStyleResolver,
+    type DynamicContext,
     type LabelObstacle,
     type NormalisedPaddingOptions,
     type PlacedLabel,
@@ -13,6 +14,8 @@ import {
     labelsAvoidAxisLabels,
     placeLabels,
 } from 'ag-charts-core';
+
+import type { ChartRegistry } from '../../module/moduleContext';
 
 /**
  * Anything taking part in a label solve. A source contributes obstacles whether or not it places
@@ -66,21 +69,22 @@ type PaintOrder = ReadonlyMap<string, number>;
 
 /**
  * Identity of the placement inputs: each source's node-data version (label data and obstacles both
- * derive from node data) and paint rank, and the layout bounds. Unchanged between two updates means
- * placement would produce the same result.
+ * derive from node data) and paint rank, the layout bounds and the pixel ratio custom marker shapes are
+ * traced at. Unchanged between two updates means placement would produce the same result.
  */
 function placementSignature(
     sources: LabelSource[],
     bounds: BoxBounds,
     avoidsAxisLabels: boolean,
-    paintOrder: PaintOrder | undefined
+    paintOrder: PaintOrder | undefined,
+    pixelRatio: number
 ): string {
     let ids = '';
     for (const source of sources) {
         if (source.axisLabelObstacles === true && !avoidsAxisLabels) continue;
         ids += `${source.id}:${source.nodeDataVersion}:${paintOrder?.get(source.id) ?? ''};`;
     }
-    return `${ids}|${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
+    return `${ids}|${bounds.x},${bounds.y},${bounds.width},${bounds.height}|${pixelRatio}`;
 }
 
 // A source replaced under the same id can restart at the same node-data version, so the signature alone misses it.
@@ -96,6 +100,8 @@ export class LabelManager {
     private readonly sources = new Map<string, LabelSource>();
     private holdingPlacements = false;
     private avoidsAxisLabels = false;
+
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     registerSource(source: LabelSource) {
         this.sources.set(source.id, source);
@@ -142,14 +148,15 @@ export class LabelManager {
         // reuse the cached solve; it is still re-applied below to refresh per-datum highlight styling.
         const { avoidsAxisLabels } = this;
         const order = paintOrder?.();
-        let signature = placementSignature(allSources, bounds, avoidsAxisLabels, order);
+        const { pixelRatio } = this.ctx.scene;
+        let signature = placementSignature(allSources, bounds, avoidsAxisLabels, order, pixelRatio);
         let placedLabels = this.lastPlacedLabels;
         const sourcesReplaced = !sameSources(allSources, this.lastSources);
         this.lastSources = allSources;
         if (placedLabels == null || sourcesReplaced || signature !== this.lastPlacementSignature) {
-            placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect, order);
+            placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect, order, pixelRatio);
             if (this.avoidsAxisLabels !== avoidsAxisLabels) {
-                signature = placementSignature(allSources, bounds, this.avoidsAxisLabels, order);
+                signature = placementSignature(allSources, bounds, this.avoidsAxisLabels, order, pixelRatio);
             }
             this.lastPlacementSignature = signature;
             this.lastPlacedLabels = placedLabels;
@@ -182,7 +189,11 @@ export class LabelManager {
         const labels = seriesLabels(source, labelData);
         const bounds = { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height };
         const obstacles = () => source.getLabelObstacles?.(seriesRect) ?? [];
-        return placeLabels(new Map([[source.id, labels]]), bounds, 5, obstacles).get(source.id) ?? [];
+        const { pixelRatio } = this.ctx.scene;
+        return (
+            placeLabels(new Map([[source.id, labels]]), bounds, 5, obstacles, undefined, pixelRatio).get(source.id) ??
+            []
+        );
     }
 
     private computePlacement(
@@ -190,7 +201,8 @@ export class LabelManager {
         allSources: LabelSource[],
         bounds: BoxBounds,
         seriesRect: BBox,
-        paintOrder: PaintOrder | undefined
+        paintOrder: PaintOrder | undefined,
+        pixelRatio: number
     ): Map<string, PlacedLabel[]> {
         // Placement is greedy in iteration order, so the map must be rebuilt in source order rather
         // than mutated: a re-shown series has to reclaim its original slot, not land at the end.
@@ -226,6 +238,6 @@ export class LabelManager {
             return obstacles;
         }
 
-        return placeLabels(this.labelData, bounds, 5, gatherObstacles, paintOrder);
+        return placeLabels(this.labelData, bounds, 5, gatherObstacles, paintOrder, pixelRatio);
     }
 }
