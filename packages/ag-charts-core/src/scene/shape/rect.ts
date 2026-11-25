@@ -465,15 +465,11 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         }
 
         if (strokeWidth > 0) {
-            let visibleX = x;
-            let visibleY = y;
             let visibleW = w;
             let visibleH = h;
             if (clipBBox != null) {
-                visibleX = Math.max(x, clipBBox.x);
-                visibleY = Math.max(y, clipBBox.y);
-                visibleW = Math.max(0, Math.min(x + w, clipBBox.x + clipBBox.width) - visibleX);
-                visibleH = Math.max(0, Math.min(y + h, clipBBox.y + clipBBox.height) - visibleY);
+                visibleW = Math.min(x + w, clipBBox.x + clipBBox.width) - Math.max(x, clipBBox.x);
+                visibleH = Math.min(y + h, clipBBox.y + clipBBox.height) - Math.max(y, clipBBox.y);
             }
 
             if (w < pixelSize) {
@@ -521,8 +517,11 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
                 this.borderClipPath.clear();
-                this.borderClipPath.rect(visibleX, visibleY, visibleW, visibleH);
-                borderPath.rect(visibleX, visibleY, visibleW, visibleH);
+                if (visibleW > 0 && visibleH > 0) {
+                    const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };
+                    clippedRoundRect(this.borderClipPath, x, y, w, h, cornerRadii, clipBBox);
+                    clippedRoundRect(borderPath, x, y, w, h, cornerRadii, clipBBox);
+                }
             }
         } else {
             const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };

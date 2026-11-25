@@ -370,6 +370,10 @@ export function chartPixelAt(chartOrProxy: ChartOrProxy<any>, x: number, y: numb
     return [...context.getImageData(Math.round(x), Math.round(y), 1, 1).data];
 }
 
+export function pixelMatches(pixel: ArrayLike<number>, colour: ArrayLike<number>): boolean {
+    return pixel[0] === colour[0] && pixel[1] === colour[1] && pixel[2] === colour[2] && pixel[3] === colour[3];
+}
+
 /** How many device pixels of the chart's canvas are exactly `colour` (RGBA). */
 export function countChartPixels(chartOrProxy: ChartOrProxy<any>, colour: ArrayLike<number>): number {
     const { canvas } = deproxy(chartOrProxy).ctx.scene;

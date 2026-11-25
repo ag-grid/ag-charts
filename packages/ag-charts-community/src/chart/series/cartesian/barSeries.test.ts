@@ -81,6 +81,7 @@ import {
     getSwapChainText,
     hoverAction,
     mixinReversedAxesCases,
+    pixelMatches,
     prepareTestOptions,
     pressKey,
     repeat,
@@ -5426,7 +5427,7 @@ describe('BarSeries dense bars on a time axis', () => {
 
     it('renders with no gap columns between neighbouring bars', async () => {
         const BAR_COLOUR = [37, 99, 235, 255];
-        const isBar = (pixel: number[]) => pixel.every((value, index) => value === BAR_COLOUR[index]);
+        const isBar = (pixel: number[]) => pixelMatches(pixel, BAR_COLOUR);
         const HALF_HOUR = 30 * 60 * 1000;
         const options: AgCartesianChartOptions = {
             data: Array.from({ length: 336 }, (_, index) => ({
@@ -5462,17 +5463,28 @@ describe('BarSeries stacked stroke wider than the visible segment', () => {
     });
 
     const STROKE = [255, 0, 0, 255];
-    const isStroke = (pixel: number[]) => pixel.every((value, index) => value === STROKE[index]);
 
-    it.each([30, 1000])('fills only the visible segment with a %ipx stroke', async (strokeWidth) => {
+    it.each([
+        { name: 'wider than the segment', strokeWidth: 30 },
+        { name: 'wider than the bar', strokeWidth: 1000 },
+    ])('fills only the visible rounded segment with a stroke $name', async ({ strokeWidth }) => {
         chart = await createChart({
             data: [
                 { q: 'Q1', a: 42, b: 3 },
-                { q: 'Q2', a: 35, b: 9 },
+                { q: 'Q2', a: 35, b: 4 },
             ],
             series: [
                 { type: 'bar', xKey: 'q', yKey: 'a', stacked: true, fill: 'blue', strokeWidth: 0 },
-                { type: 'bar', xKey: 'q', yKey: 'b', stacked: true, fill: 'green', stroke: 'red', strokeWidth },
+                {
+                    type: 'bar',
+                    xKey: 'q',
+                    yKey: 'b',
+                    stacked: true,
+                    fill: 'green',
+                    stroke: 'red',
+                    strokeWidth,
+                    cornerRadius: 10,
+                },
             ],
             axes: { x: { type: 'category' }, y: { type: 'number', max: 90 } },
             animation: { enabled: false },
@@ -5482,10 +5494,12 @@ describe('BarSeries stacked stroke wider than the visible segment', () => {
         const { nodeData } = getBarSeriesContextNodeData(chart, 1);
         expect(nodeData).toHaveLength(2);
         for (const { clipBBox } of nodeData) {
-            const x = seriesRect!.x + clipBBox!.x + clipBBox!.width / 2;
-            const y = seriesRect!.y + clipBBox!.y;
-            expect(isStroke(chartPixelAt(chart, x, y + clipBBox!.height / 2))).toBe(true);
-            expect(isStroke(chartPixelAt(chart, x, y + clipBBox!.height + 3))).toBe(false);
+            const { x, y, width, height } = clipBBox!;
+            const left = seriesRect!.x + x;
+            const top = seriesRect!.y + y;
+            expect(pixelMatches(chartPixelAt(chart, left + width / 2, top + height / 2), STROKE)).toBe(true);
+            expect(pixelMatches(chartPixelAt(chart, left + width / 2, top + height + 3), STROKE)).toBe(false);
+            expect(pixelMatches(chartPixelAt(chart, left + 1, top + 1), STROKE)).toBe(false);
         }
     });
 });
