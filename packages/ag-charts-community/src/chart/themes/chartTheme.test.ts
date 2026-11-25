@@ -16,6 +16,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { Chart } from '../chart';
 import { CartesianChartAxes } from '../chartAxes';
+import { getChartTheme } from '../mapping/themes';
 import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
@@ -1135,6 +1136,27 @@ describe('ChartTheme', () => {
             expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
             expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
             expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
+        });
+    });
+
+    describe('palette solid fills', () => {
+        it('become colour strings, with the built-in colour for one that has none', () => {
+            const pattern = { type: 'pattern', pattern: 'stars', stroke: 'purple' } as const;
+            const fills = [
+                { type: 'solid', fill: 'blue', fillOpacity: 0.5 },
+                { type: 'solid', fill: 'red' },
+                pattern,
+                { type: 'solid' },
+            ] as const;
+
+            const { palette } = getChartTheme({ palette: { fills: [...fills] } });
+
+            expect(palette.fills).toStrictEqual([
+                'rgba(0, 0, 255, 0.5)',
+                'red',
+                pattern,
+                getChartTheme({}).palette.fills[3],
+            ]);
         });
     });
 

@@ -359,6 +359,13 @@ export const FILL_PATTERN_KEYED_DEFAULTS = (
     },
 });
 
+/** A solid fill's defaults: the colour a pattern takes for its stroke, which is the palette colour for a plain fill. */
+export const fillSolidDefaults = (pattern: { stroke: unknown }) => ({
+    type: 'solid',
+    fill: pattern.stroke,
+    fillOpacity: 1,
+});
+
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {
     type: 'image',
     backgroundFill: { $palette: 'fillFallback' },
@@ -931,18 +938,20 @@ export function fillThemeTemplate(gradient: unknown, defaultFill: unknown = { $p
             ['gradient', gradient],
             ['image', FILL_IMAGE_DEFAULTS],
             ['pattern', FILL_PATTERN_DEFAULTS],
+            ['solid', fillSolidDefaults(FILL_PATTERN_DEFAULTS)],
         ],
     };
 }
 
 /** Per-item {@link fillThemeTemplate} for an `$applyCycle` over palette `fills`, where `$1` is the cycled colour. */
-export function cycledFillThemeTemplate(gradient: unknown, pattern: unknown = FILL_PATTERN_DEFAULTS) {
+export function cycledFillThemeTemplate(gradient: unknown, pattern: { stroke: unknown } = FILL_PATTERN_DEFAULTS) {
     return {
         $applySwitch: [
             { $path: ['/type', undefined, { $value: '$1' }] },
             { $value: '$1' },
             ['gradient', gradient],
             ['pattern', pattern],
+            ['solid', fillSolidDefaults(pattern)],
             ['image', FILL_IMAGE_DEFAULTS],
         ],
     };
