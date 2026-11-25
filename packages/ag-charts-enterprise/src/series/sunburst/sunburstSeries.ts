@@ -1036,8 +1036,8 @@ export class SunburstSeries extends HierarchySeries<
             }
             return refitted;
         };
-        layouts.forEach((layout, index) => {
-            if (layout == null) return;
+        for (const [index, layout] of layouts.entries()) {
+            if (layout == null) continue;
             const { text, policy } = labelStack.blocks[index].fit;
             const primary = tags[index] === TextNodeTag.Primary;
             const room: ItemLabelSource = itemLabelRoom(insets, text, policy, 0, 0);
@@ -1055,7 +1055,7 @@ export class SunburstSeries extends HierarchySeries<
                 return { text: to.text, fontSize: to.fontSize, x: cos * dx + sin * dy, y: cos * dy - sin * dx };
             };
             layout.itemRoom = room;
-        });
+        }
     }
 
     /** Each block of a stack fitted to `ring`, laid out in the placement it was fitted for. */

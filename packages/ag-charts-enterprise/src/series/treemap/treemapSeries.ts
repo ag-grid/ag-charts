@@ -1194,21 +1194,21 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 }
                 return refitted.layouts;
             };
-            layouts.forEach((layout, index) => {
-                if (layout == null) return;
+            for (const [index, layout] of layouts.entries()) {
+                if (layout == null) continue;
                 const { text, policy } = labelStack.blocks[index].fit;
-                const room: ItemLabelSource = itemLabelRoom(insets, text, policy, 0, 0);
-                room.refit = (inset) => refitStack(inset)[index];
-                layout.itemRoom = room;
-            });
+                const itemRoom: ItemLabelSource = itemLabelRoom(insets, text, policy, 0, 0);
+                itemRoom.refit = (inset) => refitStack(inset)[index];
+                layout.itemRoom = itemRoom;
+            }
         }
-        tags.forEach((tag, index) => {
+        for (const [index, tag] of tags.entries()) {
             if (tag === TextNodeTag.Primary) {
                 node.label = layouts[index];
             } else {
                 node.secondaryLabel = layouts[index];
             }
-        });
+        }
     }
 
     /**
