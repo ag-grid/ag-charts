@@ -150,6 +150,15 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     /** Whether this group or one above it {@link castsHoveredGlows}, which {@link preRender} sets before the group's counts. */
     private inHoveredLayer = false;
 
+    /**
+     * Whether the group holds the highlight copies of hovered items. A glow with no `gap` that it batches has the footprint of
+     * those that paint see-through cut out of it, as the glow overlay does at rest.
+     */
+    readonly holdsHighlight: boolean;
+
+    /** Whether this group or one above it {@link holdsHighlight}, which {@link preRender} sets before the group's counts. */
+    private inHighlight = false;
+
     /** Whether this group or one above it {@link cutsOwnGlows}, which {@link preRender} sets before the group's counts. */
     private inOwnCuts = false;
 
@@ -220,6 +229,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly cutsOwnGlows?: boolean;
         readonly cutsGroupedShapes?: boolean;
         readonly castsHoveredGlows?: boolean;
+        readonly holdsHighlight?: boolean;
         readonly shadowRoot?: boolean;
         readonly glowOverlayZIndex?: ZIndex;
     }) {
@@ -231,6 +241,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.cutsOwnGlows = opts?.cutsOwnGlows === true;
         this.cutsGroupedShapes = opts?.cutsGroupedShapes === true;
         this.castsHoveredGlows = opts?.castsHoveredGlows === true;
+        this.holdsHighlight = opts?.holdsHighlight === true;
         this.shadowRoot = opts?.shadowRoot === true;
         this.glowOverlayZIndex = opts?.shadowRoot === true ? opts.glowOverlayZIndex : undefined;
     }
@@ -551,6 +562,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
             const parent = this.parentNode;
             this.inHoveredLayer = this.castsHoveredGlows || (parent instanceof Group && parent.inHoveredLayer);
+            this.inHighlight = this.holdsHighlight || (parent instanceof Group && parent.inHighlight);
             const countCasters = this.batchShadows !== false;
             this.inOwnCuts = this.cutsOwnGlows || (parent instanceof Group && parent.inOwnCuts);
             const ownCuts = this.inOwnCuts;
@@ -918,6 +930,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
     protected renderChildren(childRenderCtx: RenderContext) {
+        const previous = shadowPass.highlight;
+        shadowPass.highlight = this.inHighlight;
+        try {
+            this.renderChildrenInOrder(childRenderCtx);
+        } finally {
+            shadowPass.highlight = previous;
+        }
+    }
+
+    private renderChildrenInOrder(childRenderCtx: RenderContext) {
         const { stats } = childRenderCtx;
 
         const covered = this.getSharedShadowCover();
@@ -948,7 +970,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 this.scene,
                 this,
                 childRenderCtx,
-                this.batchShadows === 'by-layer' ? 'layer' : 'run'
+                this.batchShadows === 'by-layer' ? 'layer' : 'run',
+                false,
+                this.inHighlight
             );
             return;
         }

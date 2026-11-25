@@ -1290,7 +1290,8 @@ describe('highlight glow', () => {
             });
 
             describe('parity of the routes that cast a glow at a spread of 0', () => {
-                // With no spread and no blur the glow lies under the item, so it shows only where the item's paint lets it through.
+                // With no spread and no blur the glow lies under the item. It shows only where the item's paint lets it through, and
+                // a hovered item that paints see-through has its footprint cut out of a glow with no `gap`, so it shows nowhere.
                 const FADING = {
                     type: 'gradient',
                     colorStops: [
@@ -1304,12 +1305,13 @@ describe('highlight glow', () => {
                 const ZERO = glow({ spread: 0, blur: 0 });
 
                 const PAINTS = [
-                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL],
+                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL, true],
                     [
                         'a dashed stroke round a marker with no fill',
                         SERIES[3],
                         { fill: 'none', stroke: 'blue', strokeWidth: 4, lineDash: [4, 4], size: 28 },
                         BLUE_FILL,
+                        false,
                     ],
                 ] as const;
 
@@ -1335,14 +1337,24 @@ describe('highlight glow', () => {
                     expect(off.length).toBe(0);
                 };
 
-                describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill) => {
+                describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill, seeThrough) => {
                     describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
                         // Cut out of the item, a glow with no spread has nothing to show.
-                        it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
+                        it.skipIf(drawingMode === 'cutout' || seeThrough)(
+                            'casts something that the item does not hide',
+                            async () => {
+                                const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                                const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
+
+                                expect(cast).not.toEqual(none);
+                            }
+                        );
+
+                        it.runIf(seeThrough)('casts nothing, as its footprint is cut out of the glow', async () => {
                             const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
                             const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
 
-                            expect(cast).not.toEqual(none);
+                            sameWithin(cast, none);
                         });
 
                         it('casts the same pixels where the canvas cannot tint as where it can', async () => {
@@ -1371,7 +1383,7 @@ describe('highlight glow', () => {
                 });
 
                 it.each([undefined, false])(
-                    'casts the glow at its own strength through the transparent end of the gradient, with tinting %s',
+                    'casts no glow through the transparent end of the gradient either, with tinting %s',
                     async (canTint) => {
                         const [, testCase, options] = PAINTS[0];
                         const sample = async (bucketGlow: object) => {
@@ -1384,13 +1396,11 @@ describe('highlight glow', () => {
                         const cast = await sample(ZERO);
                         const none = await sample(NO_GLOW);
 
-                        // The gradient is opaque at one end, which hides a glow of its own colour, and transparent at the other,
-                        // where the glow shows at its own strength, as it does through any see-through item.
-                        const differences = cast.map((pixel, end) =>
-                            Math.max(...pixel.map((v, i) => Math.abs(v - none[end][i])))
-                        );
-                        expect(Math.min(...differences)).toBeLessThanOrEqual(8);
-                        expect(Math.max(...differences)).toBeGreaterThan(8);
+                        // The gradient is opaque at one end and transparent at the other, and the footprint is clear at both.
+                        for (const [end, pixel] of cast.entries()) {
+                            for (const [i, v] of pixel.entries())
+                                expect(Math.abs(v - none[end][i])).toBeLessThanOrEqual(2);
+                        }
                     }
                 );
             });

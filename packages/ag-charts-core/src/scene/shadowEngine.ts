@@ -86,6 +86,22 @@ export interface ShadowKey {
     readonly owner?: object;
     /** The keys of the shapes, such as labels and error bars, that cut their footprint out of this glow alone. */
     ownCuts?: readonly ShadowKey[];
+    /** Whether the casters are the highlight copies of hovered items, see {@link cutsSeeThrough}. */
+    readonly hovered?: boolean;
+}
+
+/**
+ * Whether a glow key of hovered items with no `gap` has a caster that paints see-through, whose footprint is then cut out of the
+ * glow, as the glow overlay does at rest. A caster that paints opaque is left uncut, as it hides the glow, and cutting it would
+ * lighten its anti-aliased edge. A set `gap` is cut by {@link castPlan} whatever the paint.
+ */
+function cutsSeeThrough({ hovered, slot, shadow, casters }: ShadowKey): boolean {
+    if (hovered !== true || slot !== 'glow' || shadow.gap != null) return false;
+
+    for (let i = 0; i < casters.length; i++) {
+        if (casters[i].paintsSeeThrough()) return true;
+    }
+    return false;
 }
 
 /** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
@@ -497,7 +513,7 @@ function putSignature(cache: SignatureTarget, value: number | string) {
 }
 
 /** Writes what a cast of the key reads of it: its shadow and clips, and each caster's revision and frame. */
-function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, frames }: ShadowKey) {
+function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, frames, hovered }: ShadowKey) {
     putSignature(cache, slot);
     putSignature(cache, shadow.fill ?? '');
     putSignature(cache, shadow.fillOpacity ?? 1);
@@ -507,6 +523,7 @@ function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, f
     putSignature(cache, shadow.spread ?? 0);
     putSignature(cache, shadow.gap ?? -1);
     putSignature(cache, shadow.selfCut === true ? 1 : 0);
+    putSignature(cache, hovered === true ? 1 : 0);
     putSignature(cache, clip?.length ?? -1);
     if (clip != null) {
         for (const corner of clip) putSignature(cache, corner);
@@ -762,11 +779,13 @@ function renderPass(
     before?: (index: number) => void,
     erase?: number,
     erasePainted: boolean = false,
-    eraseOp: GlobalCompositeOperation = ERASE
+    eraseOp: GlobalCompositeOperation = ERASE,
+    eraseSeeThroughOnly: boolean = false
 ): boolean {
     let rendered = true;
     const previousErase = shadowPass.erase;
     const previousErasePainted = shadowPass.erasePainted;
+    const previousEraseSeeThroughOnly = shadowPass.eraseSeeThroughOnly;
     const previousEraseOp = shadowPass.eraseOp;
     const previousState = shadowPass.state;
     const previousSlot = shadowPass.slot;
@@ -780,6 +799,7 @@ function renderPass(
     shadowPass.resolution = resolution;
     shadowPass.erase = erase;
     shadowPass.erasePainted = erasePainted;
+    shadowPass.eraseSeeThroughOnly = eraseSeeThroughOnly;
     shadowPass.eraseOp = eraseOp;
     try {
         for (let i = 0; i < casters.length; i++) {
@@ -794,6 +814,7 @@ function renderPass(
         shadowPass.resolution = previousResolution;
         shadowPass.erase = previousErase;
         shadowPass.erasePainted = previousErasePainted;
+        shadowPass.eraseSeeThroughOnly = previousEraseSeeThroughOnly;
         shadowPass.eraseOp = previousEraseOp;
     }
     return rendered;
@@ -915,6 +936,8 @@ interface KeyPlan extends MaskPlan {
     readonly extent: Extent | undefined;
     /** The glow part that holds the plan's glow, once the cast has matched its plans with the parts held. */
     part?: GlowPart;
+    /** Whether the glow, which has no `gap`, is cut by the footprint of its see-through casters, see {@link cutsSeeThrough}. */
+    readonly cutsSeeThrough: boolean;
 }
 
 /**
@@ -1119,7 +1142,7 @@ function castPlan(
     let rendered = drawMask(plan, scratch, transform, renderCtx);
 
     const { gap } = key.shadow;
-    if (gap != null) {
+    if (gap != null || plan.cutsSeeThrough) {
         const region = getGapRegion(key, keyExtent, transform, renderCtx, target, originX, originY, measured);
         if (region == null) return rendered;
 
@@ -1142,9 +1165,21 @@ function castPlan(
             }
             const resolutionOfHole = { x: holeScaleX, y: holeScaleY };
             // The glow of an overlay with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint.
-            const painted = key.shadow.overlay === true;
+            const painted = key.shadow.overlay === true || plan.cutsSeeThrough;
             rendered =
-                eraseFootprints(key, erase, transform, renderCtx, region, resolutionOfHole, gap, painted) && rendered;
+                eraseFootprints(
+                    key,
+                    erase,
+                    transform,
+                    renderCtx,
+                    region,
+                    resolutionOfHole,
+                    gap ?? 0,
+                    painted,
+                    ERASE,
+                    false,
+                    plan.cutsSeeThrough
+                ) && rendered;
             // The target holds what the layer has drawn and the glows of other keys, so only the cut glow is drawn onto it.
             target.save();
             try {
@@ -1187,13 +1222,13 @@ function castPlan(
 
 /** OPTIMIZATION: a blur costs the area it is clipped to, so a key of few casters, such as a hovered item's, is clipped to its extent. */
 function getSmallKeyExtent(
-    key: ShadowKey,
+    { key, cutsSeeThrough: cutsKey }: KeyPlan,
     transform: DOMMatrix,
     renderCtx: RenderContext,
     measured: MeasuredKeys
 ): Extent | undefined {
-    // A key with a `gap` is already cast on a canvas of its own extent.
-    if (key.shadow.gap != null || key.casters.length > MAX_BOUNDED_CASTERS) return;
+    // A key with a `gap`, or cut like one, is already cast on a canvas of its own extent.
+    if (key.shadow.gap != null || cutsKey || key.casters.length > MAX_BOUNDED_CASTERS) return;
 
     const { canvas } = renderCtx.ctx;
     return getShadowExtent(
@@ -1845,7 +1880,8 @@ function eraseFootprints(
     gap: number,
     painted: boolean,
     op: GlobalCompositeOperation = ERASE,
-    clipped: boolean = false
+    clipped: boolean = false,
+    seeThroughOnly: boolean = false
 ): boolean {
     const { frames } = key;
     const place = ([a, b, c, d, e, f]: readonly number[]) =>
@@ -1897,7 +1933,8 @@ function eraseFootprints(
                   },
             gap,
             painted,
-            op
+            op,
+            seeThroughOnly
         );
     } finally {
         erase.restore();
@@ -2022,6 +2059,7 @@ export function castShadows(
             scaleX: canvasWidth / mask.maskWidth,
             scaleY: canvasHeight / mask.maskHeight,
             part: undefined,
+            cutsSeeThrough: cutsSeeThrough(mask.key),
             // A key of many casters is measured only for a kept cast, which measures them all for its cache anyway. A direct cast
             // may be a frame that changes every caster, so measuring them would cost more than clearing the mask whole.
             extent:
@@ -2117,7 +2155,7 @@ export function castShadows(
         // A refused cast's extent is about the layer, so clipping to it would only cost a measure.
         const declined = cache != null && isDeclined(cache, scene);
         for (const plan of plans) {
-            const bound = declined ? undefined : getSmallKeyExtent(plan.key, transform, renderCtx, measured);
+            const bound = declined ? undefined : getSmallKeyExtent(plan, transform, renderCtx, measured);
             castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, measured, bound);
         }
     }

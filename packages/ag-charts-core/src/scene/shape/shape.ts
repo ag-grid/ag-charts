@@ -596,6 +596,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             mode === 'silhouette' ||
             dilatesShadow(shadow) ||
             this.castsOverFillAlpha(slot) ||
+            this.cutsSeeThroughGlow(slot) ||
             (mode === 'fill' && this.getShadowMode(slot) === 'stroke')
         );
     }
@@ -616,6 +617,21 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private castsAtOwnAlpha(slot: ShadowSlot): boolean {
         const shadow = this.getSlot(slot);
         return shadow?.glow === true || shadow?.fillOpacitySet === true;
+    }
+
+    /**
+     * Whether the glow that the item casts itself, as the hovered copy drawn as a cutout does, has its footprint cut out of it when
+     * its `gap` is unset and the item paints see-through, as the glow overlay does at rest. A set `gap` is cut whatever the paint.
+     * Only the copies that a {@link Group.holdsHighlight} group draws are cut so: they are the hovered items.
+     */
+    private cutsSeeThroughGlow(slot: ShadowSlot): boolean {
+        return (
+            slot === 'glow' &&
+            shadowPass.highlight &&
+            this.__drawingMode === 'cutout' &&
+            this.getSlot(slot)?.gap == null &&
+            this.paintsSeeThrough()
+        );
     }
 
     /** Whether the slot casts at its own alpha over a fill that is not uniformly opaque, so its silhouette is cast solid instead. */
@@ -751,6 +767,23 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Whether the stroke is visible and has any alpha to cast a shadow from. */
     private hasCastableStroke(): boolean {
         return this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
+    }
+
+    /**
+     * Whether something the shape paints is less than opaque, so that a glow beneath it shows through: its fill, which a gradient
+     * or pattern may fade only in part, or its stroke, or the node's own `opacity`. An item that paints nothing is not.
+     */
+    paintsSeeThrough(): boolean {
+        const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
+        const fillPainted = this.hasCastableFill();
+        const strokePainted = this.hasCastableStroke();
+        if (!fillPainted && !strokePainted) return false;
+
+        return (
+            opacity < 1 ||
+            (fillPainted && (fillOpacity < 1 || !this.hasOpaquePaint(this.__fill!))) ||
+            (strokePainted && (strokeOpacity < 1 || this.getStrokeAlpha(this.__stroke) < 1))
+        );
     }
 
     /**
@@ -1202,6 +1235,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         painted: boolean = false
     ) {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
+        // An opaque item hides the glow beneath it, and its anti-aliased edge would lose the glow that shows there.
+        if (shadowPass.eraseSeeThroughOnly && !this.paintsSeeThrough()) return;
 
         const drawsStroke = this.hasStrokeOutline() && (!painted || this.hasCastableStroke());
         const drawsFill =
@@ -1327,7 +1362,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             return;
         }
 
-        if (dilatesShadow(shadow) || this.castsOverFillAlpha(slot)) {
+        if (dilatesShadow(shadow) || this.castsOverFillAlpha(slot) || this.cutsSeeThroughGlow(slot)) {
             spreadBounds.minX = minX;
             spreadBounds.minY = minY;
             spreadBounds.maxX = maxX;
@@ -1435,7 +1470,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         scratch.restore();
 
         const { gap } = this.getSlot(slot)!;
-        if (gap != null && this.castGappedShadow(slot, ctx, path, matrix, gap, distance, strength, canvas)) return;
+        const cutsPainted = gap == null && this.cutsSeeThroughGlow(slot);
+        if (
+            (gap != null || cutsPainted) &&
+            this.castGappedShadow(slot, ctx, path, matrix, gap ?? 0, distance, strength, canvas, cutsPainted)
+        ) {
+            return;
+        }
 
         ctx.save();
         ctx.resetTransform();
@@ -1458,7 +1499,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         gap: number,
         distance: number,
         strength: number,
-        silhouette: OffscreenCanvas
+        silhouette: OffscreenCanvas,
+        painted: boolean
     ): boolean {
         const { x, y, width, height } = spreadRegion;
         if (!setGapRegion()) return true;
@@ -1480,7 +1522,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         land.save();
         land.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e - left, matrix.f - top);
-        this.eraseFootprint(slot, land, path, gap);
+        this.eraseFootprint(slot, land, path, gap, painted);
         land.restore();
 
         ctx.save();
