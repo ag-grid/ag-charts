@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { snapshotPixel, visibleItems } from '../../test/glowRender';
+import { visibleItems } from '../../test/glowRender';
 import {
     type Chart,
+    chartPixelAt,
     createChart,
     deproxy,
     expectWarningMessages,
@@ -35,7 +36,7 @@ const isClear = (pixel: number[]) => Math.abs(pixel[1] - LAVENDER_GREEN) <= 2 &&
 
 describe('glow gap in a chart', () => {
     setupMockConsole();
-    const canvas = setupMockCanvas();
+    setupMockCanvas();
 
     let chart: Chart | undefined;
 
@@ -54,7 +55,7 @@ describe('glow gap in a chart', () => {
         return created;
     };
 
-    const pixelAt = (x: number, y: number) => snapshotPixel(canvas, x, y);
+    const pixelAt = (x: number, y: number) => chartPixelAt(chart!, x, y);
 
     const firstItem = () => visibleItems(chart!)[0];
 

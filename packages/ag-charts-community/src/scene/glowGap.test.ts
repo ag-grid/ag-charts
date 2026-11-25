@@ -7,6 +7,7 @@ import { Marker } from '../chart/marker/marker';
 import {
     BLUE_RGB,
     CLEAR,
+    FADING,
     GLOW_CENTRE,
     GLOW_PROBES,
     GLOW_ROUTES,
@@ -143,17 +144,6 @@ describe('glow gap', () => {
             // A blurred glow, which reaches past the item by its blur alone, and a probe 2px left of the item, which is 60 across.
             const blurredGlow = (gap: number | undefined, spread = 0) => ({ ...redGlow(gap), blur: 8, spread });
             const LEFT_EDGE_PROBE: [number, number] = [CENTRE_X - 32, CENTRE_Y];
-
-            // A fill that is transparent at the left of an item and opaque at the right, which an ungapped glow follows.
-            const FADING = {
-                type: 'gradient' as const,
-                gradient: 'linear' as const,
-                rotation: 90,
-                colorStops: [
-                    { color: 'rgba(0, 0, 255, 0)', stop: 0 },
-                    { color: 'rgba(0, 0, 255, 1)', stop: 1 },
-                ],
-            };
 
             const expectNear = (actual: number[], expected: number[]) => {
                 expect(expected[3]).toBeGreaterThan(0);

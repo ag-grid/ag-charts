@@ -8,7 +8,7 @@ import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
-import { type ChartOrProxy, countChartPixels, deproxy, type setupMockCanvas, waitForChartStability } from './utils';
+import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
 
 /** An opaque, unblurred glow, so that the shape of the cast can be read off the render. */
 export const HARD_GLOW: AgGlowOptions = { enabled: true, fillOpacity: 1, blur: 0 };
@@ -112,13 +112,6 @@ export function canvasImage(chartOrProxy: ChartOrProxy<any>): { data: Uint8Clamp
     const { canvas } = deproxy(chartOrProxy).ctx.scene;
     const { data } = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
     return { data: new Uint8ClampedArray(data) };
-}
-
-/** The RGBA of the pixel at `x`, `y` of the mock canvas, as it is drawn now. */
-export function snapshotPixel(canvas: Pick<ReturnType<typeof setupMockCanvas>, 'snapshot'>, x: number, y: number) {
-    const { data, width } = canvas.snapshot();
-    const i = (Math.round(y) * width + Math.round(x)) * 4;
-    return Array.from(data.slice(i, i + 4));
 }
 
 /** The strength of a red cast with no blur, read off its pixel over a white chart: the green channel is 255 * (1 - strength). */

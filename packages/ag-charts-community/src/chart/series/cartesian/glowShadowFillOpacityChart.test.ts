@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { hoverDatum, snapshotPixel, strengthOfRed, visibleItems } from '../../test/glowRender';
+import { hoverDatum, strengthOfRed, visibleItems } from '../../test/glowRender';
 import {
+    chartPixelAt,
     createChart,
     prepareTestOptions,
     setupMockCanvas,
@@ -19,7 +20,7 @@ const WHITE = [255, 255, 255, 255];
 
 describe('glow and shadow strength under the fillOpacity of the item, in a chart', () => {
     setupMockConsole();
-    const canvas = setupMockCanvas();
+    setupMockCanvas();
 
     let chart: AgChartInstance | undefined;
 
@@ -59,7 +60,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         if (dimmed != null || hoverLast) await hoverDatum(chart, 0, hoverLast ? 1 : 0);
 
         const { x, y, width, height } = visibleItems(chart).at(-1)!;
-        return snapshotPixel(canvas, x + width + 5, y + height / 2);
+        return chartPixelAt(chart, x + width + 5, y + height / 2);
     };
 
     const CASTS = {
