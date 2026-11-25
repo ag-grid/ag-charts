@@ -4,6 +4,7 @@ import type { AgAnnotation, AgCartesianChartOptions, AgChartInstance } from 'ag-
 import {
     clickAction,
     deproxy,
+    expectSamePixels,
     getSeriesRect,
     hoverAction,
     pressKey,
@@ -16,7 +17,7 @@ import { ANNOTATIONS_EXAMPLE_OPTIONS, createAnnotationsChart } from './test/fixt
 
 describe('Annotations keyboard navigation', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     let chart: AgChartInstance;
 
@@ -43,6 +44,7 @@ describe('Annotations keyboard navigation', () => {
     const toolbarButtons = () =>
         Array.from(toolbarPopover()?.querySelectorAll<HTMLButtonElement>('.ag-charts-toolbar__button') ?? []);
     const moveButton = () => toolbarButtons().find((button) => button.title === 'Move Annotation');
+    const mover = () => root()?.querySelector<HTMLElement>('.ag-charts-annotations__mover');
     const horizontalLineValue = () => (chart.getState().annotations?.[0] as { value: number }).value;
 
     const toCode = (key: string) => (key === ' ' ? 'Space' : key);
@@ -66,6 +68,12 @@ describe('Annotations keyboard navigation', () => {
     async function openOptions(index = 0) {
         await focusItem(index);
         await keyDown(items()[index], 'Enter');
+    }
+
+    async function startMove(index = 0) {
+        await openOptions(index);
+        moveButton()!.focus();
+        await keyDown(moveButton(), 'Enter');
     }
 
     describe('list', () => {
@@ -170,34 +178,28 @@ describe('Annotations keyboard navigation', () => {
             expect(ratioX?.end).toBeGreaterThan(0.5);
         });
 
-        it('moves the focus to another annotation when an update stops listing the focused one', async () => {
+        it('keeps the focus on its annotation when an update lists another one before it', async () => {
             await prepareChart([
                 { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 150 },
                 { type: 'horizontal-line', value: 60 },
             ]);
-            await focusItem(0);
+            await focusItem(1);
 
-            await chart.setState({
-                ...chart.getState(),
-                annotations: [
-                    { type: 'horizontal-line', value: 30, readOnly: true },
-                    { type: 'horizontal-line', value: 60 },
-                ],
-            });
+            await chart.updateDelta({ axes: { y: { type: 'number', max: 200 } } });
             await waitForChartStability(chart);
 
-            expect(items()).toHaveLength(1);
-            expect(activeElement()).toBe(items()[0]);
+            expect(items().map((item) => item.textContent?.split(',')[0])).toEqual(['30', '150', '60']);
+            expect(activeElement()).toBe(items()[2]);
         });
 
-        it('moves the focus to the series area when an update removes the only, focused, annotation', async () => {
+        it('relabels the annotations when the locale changes', async () => {
             await prepareChart([{ type: 'horizontal-line', value: 50 }]);
-            await focusItem(0);
 
-            await chart.setState({ ...chart.getState(), annotations: [] });
+            await chart.updateDelta({ locale: { localeText: { ariaLabelAnnotation: '${type}: ${description}' } } });
             await waitForChartStability(chart);
 
-            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
+            expect(items()[0].textContent).toBe('Horizontal Line: 50');
         });
 
         it('leaves the focus alone when an update removes the annotation after the keyboard left it', async () => {
@@ -210,6 +212,52 @@ describe('Annotations keyboard navigation', () => {
 
             expect(activeElement()).toBe(document.body);
         });
+    });
+
+    describe('an update that stops listing the focused annotation', () => {
+        const startStates = [
+            { name: 'list item', start: () => focusItem(0) },
+            { name: 'Annotation Options Toolbar', start: () => openOptions(0) },
+            { name: 'move', start: () => startMove(0) },
+        ];
+
+        it.each(startStates)('moves the focus from its $name to another annotation', async ({ start }) => {
+            await prepareChart([
+                { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 60 },
+            ]);
+            await start();
+
+            await chart.setState({
+                ...chart.getState(),
+                annotations: [
+                    { type: 'horizontal-line', value: 30, readOnly: true },
+                    { type: 'horizontal-line', value: 60 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(toolbarPopover()).toBeNull();
+            expect(mover()?.style.display).toBe('none');
+            expect(items()).toHaveLength(1);
+            expect(activeElement()).toBe(items()[0]);
+            expect(items()[0].textContent).toBe('60, Horizontal Line annotation');
+        });
+
+        it.each(startStates)(
+            'moves the focus from its $name to the series area without annotations',
+            async ({ start }) => {
+                await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+                await start();
+
+                await chart.setState({ ...chart.getState(), annotations: [] });
+                await waitForChartStability(chart);
+
+                expect(toolbarPopover()).toBeNull();
+                expect(mover()?.style.display).toBe('none');
+                expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
+            }
+        );
     });
 
     describe('panning', () => {
@@ -311,38 +359,6 @@ describe('Annotations keyboard navigation', () => {
             expect(moveButton()).toBeUndefined();
         });
 
-        it('moves the focus to another annotation when an update makes the annotation read-only', async () => {
-            await prepareChart([
-                { type: 'horizontal-line', value: 30 },
-                { type: 'horizontal-line', value: 60 },
-            ]);
-            await openOptions(0);
-
-            await chart.setState({
-                ...chart.getState(),
-                annotations: [
-                    { type: 'horizontal-line', value: 30, readOnly: true },
-                    { type: 'horizontal-line', value: 60 },
-                ],
-            });
-            await waitForChartStability(chart);
-
-            expect(toolbarPopover()).toBeNull();
-            expect(activeElement()).toBe(items()[0]);
-            expect(items()[0].textContent).toBe('60, Horizontal Line annotation');
-        });
-
-        it('moves the focus to the series area when an update removes the only annotation', async () => {
-            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
-            await openOptions(0);
-
-            await chart.setState({ ...chart.getState(), annotations: [] });
-            await waitForChartStability(chart);
-
-            expect(toolbarPopover()).toBeNull();
-            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
-        });
-
         it('moves focus to the next annotation after deleting one', async () => {
             await prepareChart([
                 { type: 'horizontal-line', value: 30 },
@@ -362,12 +378,6 @@ describe('Annotations keyboard navigation', () => {
     });
 
     describe('Move Annotation', () => {
-        async function startMove() {
-            await openOptions();
-            moveButton()!.focus();
-            await keyDown(moveButton(), 'Enter');
-        }
-
         it('hides the toolbar and hands the arrow keys to the annotation', async () => {
             await prepareChart([{ type: 'horizontal-line', value: 50 }]);
 
@@ -412,33 +422,6 @@ describe('Annotations keyboard navigation', () => {
             expect(moveButton()?.getAttribute('aria-disabled')).toBe('true');
         });
 
-        it('ends the move when the annotation is removed, moving the focus to the series area', async () => {
-            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
-            await startMove();
-
-            await chart.setState({ ...chart.getState(), annotations: [] });
-            await waitForChartStability(chart);
-
-            expect(activeElement()?.classList.contains('ag-charts-swapchain')).toBe(true);
-            expect(root()?.querySelector('.ag-charts-annotations__mover')?.getAttribute('style')).toContain(
-                'display: none'
-            );
-        });
-
-        it('ends the move when the annotation is removed, moving the focus to another annotation', async () => {
-            await prepareChart([
-                { type: 'horizontal-line', value: 30 },
-                { type: 'horizontal-line', value: 60 },
-            ]);
-            await startMove();
-
-            await chart.setState({ ...chart.getState(), annotations: [{ type: 'horizontal-line', value: 60 }] });
-            await waitForChartStability(chart);
-
-            expect(activeElement()).toBe(items()[0]);
-            expect(items()[0].textContent).toBe('60, Horizontal Line annotation');
-        });
-
         it('ends the move when annotations are disabled, moving the focus to the series area', async () => {
             await prepareChart([{ type: 'horizontal-line', value: 50 }]);
             await startMove();
@@ -481,6 +464,39 @@ describe('Annotations keyboard navigation', () => {
             await pressKey(chart, 'z', { ctrlKey: true });
 
             expect(horizontalLineValue()).toBe(50);
+        });
+
+        it('relabels the annotation after a move', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await startMove();
+
+            await keyDown(activeElement(), 'ArrowUp');
+            await keyUp(activeElement(), 'ArrowUp');
+            await keyDown(activeElement(), 'Escape');
+
+            expect(items()[0].textContent).toMatch(/^50\.\d+, Horizontal Line annotation$/);
+        });
+
+        it('keeps the move and deselects the annotation when the focus leaves it', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+            await startMove();
+            await keyDown(activeElement(), 'ArrowUp');
+            await keyUp(activeElement(), 'ArrowUp');
+
+            mover()!.blur();
+            await waitForChartStability(chart);
+            const afterBlur = ctx.snapshot();
+
+            expect(horizontalLineValue()).toBeGreaterThan(50);
+            expect(mover()?.style.display).toBe('none');
+            expect(toolbarPopover()).toBeNull();
+            expect(activeElement()).toBe(document.body);
+            // Selecting and deselecting the annotation again renders it as a deselected annotation.
+            await openOptions();
+            await keyDown(activeElement(), 'Escape');
+            items()[0].blur();
+            await waitForChartStability(chart);
+            expectSamePixels(afterBlur, ctx.snapshot());
         });
 
         it('returns to the Move Annotation button with Escape', async () => {
