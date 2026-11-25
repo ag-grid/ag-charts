@@ -208,7 +208,11 @@ const opaqueMarkerFillCache = new Map<string, boolean>();
 export function isOpaqueMarkerFillStyle(style?: { fill?: unknown; fillOpacity?: number; opacity?: number }): boolean {
     if (style == null) return false;
 
-    const fill = isSolidFill(style.fill) ? style.fill.fill : style.fill;
+    let fill = style.fill;
+    if (isSolidFill(fill)) {
+        if ((fill.fillOpacity ?? 1) < 1) return false;
+        fill = fill.fill;
+    }
     if (!isString(fill)) return false;
 
     const fillString = fill.trim();

@@ -7,6 +7,7 @@ import {
     PATTERN_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
+    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -45,7 +46,14 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
     }),
     'a list of fills': (fill) => ({
         data: DATA,
-        series: [{ type: 'pie', angleKey: 'a', fills: [fill('red').fill, fill('green').fill, fill('blue').fill] }],
+        series: [
+            {
+                type: 'pie',
+                angleKey: 'a',
+                calloutLabelKey: 'month',
+                fills: [fill('red').fill, fill('green').fill, fill('blue').fill],
+            },
+        ],
     }),
     'styler results': (fill) => ({
         data: DATA,
@@ -110,11 +118,31 @@ const multiplyChart = (fill: AgColorType, fillOpacity: number): AgChartOptions =
     ],
 });
 
+const glowChart = (fill: AgColorType): AgChartOptions => ({
+    data: DATA,
+    series: [{ type: 'bar', xKey: 'month', yKey: 'a', fill, glow: { blur: 12 } }],
+});
+
+/** A marker that is highlighted draws as a cutout of the line under it only if its fill is opaque. */
+const highlightedMarkerChart = (fill: AgColorType): AgChartOptions => ({
+    data: DATA,
+    series: [{ type: 'line', id: 'c', xKey: 'month', yKey: 'c', marker: { size: 24, fill } }],
+    initialState: { active: { activeItem: { type: 'series-node', seriesId: 'c', itemId: 1 } } },
+});
+
 /** Charts that no `Fill` can express, as the options with a solid colour and the plain ones it stands for. */
 const EXPLICIT_PAIRS: Record<string, [solid: AgChartOptions, plain: AgChartOptions]> = {
     'a palette solid with an opacity': [
         paletteChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }),
         paletteChart('rgba(255, 0, 0, 0.5)'),
+    ],
+    'a glow that takes the colour of a solid with an opacity': [
+        glowChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }),
+        glowChart('rgba(255, 0, 0, 0.5)'),
+    ],
+    'a highlighted marker with a solid opacity': [
+        highlightedMarkerChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }),
+        highlightedMarkerChart('rgba(255, 0, 0, 0.5)'),
     ],
     'a solid opacity with the opacity set beside it': [
         multiplyChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }, 0.5),
@@ -143,6 +171,17 @@ describe('solid fill', () => {
     it.each(Object.keys(EQUIVALENT_PAIRS))('renders %s as the colours they stand for', (name) =>
         expectSolidMatchesPlain(ctx, { create: createChart, prepare: prepareTestOptions }, ...EQUIVALENT_PAIRS[name])
     );
+
+    it('exports a solid fill to SVG with its opacity in the colour and the opacity beside it kept', async () => {
+        chart = await createChart({
+            ...multiplyChart({ type: 'solid', fill: 'red', fillOpacity: 0.5 }, 0.5),
+            animation: { enabled: false },
+        });
+
+        const svg = deproxy(chart).ctx.scene.toSVG();
+        expect(svg).toContain('fill="rgba(255, 0, 0, 0.5)"');
+        expect(svg).toContain('fill-opacity="0.5"');
+    });
 
     it('takes a solid colour from each pattern of the palette', async () => {
         const fill: AgColorType = { type: 'solid' };

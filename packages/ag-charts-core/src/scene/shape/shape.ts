@@ -601,7 +601,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (shadow?.enabled !== true || shadow.cutOnly === true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
-        const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
+        const { __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
+        const fill = this.fillSolid ?? this.__fill;
         let cast = slot === 'glow' ? this.castGlowMemo : this.castShadowMemo;
         if (
             cast?.shadow !== shadow ||
@@ -674,7 +675,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return (
             this.castsShadowFromStroke(slot) ||
             this.castsShadowFromExtras(slot) ||
-            (this.castsShadowFromFill(slot) && typeof this.__fill !== 'string')
+            (this.castsShadowFromFill(slot) && typeof this.__fill !== 'string' && this.fillSolid == null)
         );
     }
 

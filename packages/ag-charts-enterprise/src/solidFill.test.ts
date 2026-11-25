@@ -20,6 +20,8 @@ const RANGE_DATA = [
     { x: 'c', low: 1, high: 7, open: 3, close: 6 },
 ];
 
+const HLC = { xKey: 'x', highKey: 'high', lowKey: 'low', closeKey: 'close' };
+
 const OHLC = { xKey: 'x', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
 
 /** Enterprise series whose theme resolves a fill through a `$path` or `$applySwitch` of its own. */
@@ -50,6 +52,21 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
                 xKey: 'x',
                 yKey: 'y',
                 item: { positive: fill('green', 0.5), negative: fill('red'), total: fill('grey') },
+            },
+        ],
+    }),
+    'hlc bands and their legend symbol': (fill) => ({
+        data: RANGE_DATA,
+        legend: { enabled: true },
+        // The bands' default fill opacity, which a solid colour's own opacity multiplies, is pinned to 1.
+        series: [
+            {
+                type: 'hlc',
+                ...HLC,
+                item: {
+                    high: { fillOpacity: 1, ...fill('green', 0.5) },
+                    low: { fillOpacity: 1, ...fill('red', 0.5) },
+                },
             },
         ],
     }),

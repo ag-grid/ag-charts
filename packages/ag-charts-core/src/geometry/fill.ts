@@ -21,6 +21,12 @@ export function solidFillColour(fill: AgSolidColor): string | undefined {
     }
 }
 
+/** The colour of a plain or solid fill, or undefined for a gradient, pattern or image. */
+export function plainFillColour(fill: unknown): string | undefined {
+    if (isSolidFill(fill)) return solidFillColour(fill);
+    return typeof fill === 'string' ? fill : undefined;
+}
+
 export function isGradientFill(fill: any): fill is InternalAgGradientColor {
     return isObject(fill) && fill.type == 'gradient';
 }

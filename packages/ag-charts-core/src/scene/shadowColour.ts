@@ -2,7 +2,7 @@ import type { CssColor } from 'ag-charts-types';
 
 import { getOffscreenCanvas } from '../dom/globalsProxy';
 import { Color } from '../format/color';
-import { isGradientFill, isPatternFill, isSolidFill } from '../geometry/fill';
+import { isGradientFill, isPatternFill } from '../geometry/fill';
 import type {
     NormalisedDropShadowOptions,
     ResolvedDropShadowOptions,
@@ -135,14 +135,14 @@ export function getColourAlpha(colour: string): number {
     return getColourInfo(colour).alpha;
 }
 
-/** A paint's solid colour: a gradient's first stop, or the fill of a pattern or solid fill. Undefined for an image or no paint. */
+/** A paint's solid colour: a gradient's first stop or a pattern's fill. Undefined for an image or no paint. */
 export function getSolidColour(paint: unknown, opacity: number = 1): CssColor | undefined {
     if (paint == null || Number.isNaN(opacity) || opacity <= 0) return;
 
     let colour: unknown = paint;
     if (isGradientFill(paint)) {
         colour = paint.colorStops?.[0]?.color;
-    } else if (isPatternFill(paint) || isSolidFill(paint)) {
+    } else if (isPatternFill(paint)) {
         colour = paint.fill;
     }
     return typeof colour === 'string' && isVisibleColour(colour) ? colour : undefined;

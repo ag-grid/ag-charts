@@ -7,8 +7,7 @@ import {
     type NormalisedColorType,
     type Selection,
     isGradientFill,
-    isSolidFill,
-    solidFillColour,
+    plainFillColour,
 } from 'ag-charts-core';
 import type { NormalisedLineDash } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
@@ -128,10 +127,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const legendColour = ({ fill, stroke }: { fill?: NormalisedColorType; stroke?: string }) => {
-            if (isSolidFill(fill)) return solidFillColour(fill);
-            return typeof fill === 'string' ? fill : stroke;
-        };
+        const legendColour = ({ fill, stroke }: { fill?: NormalisedColorType; stroke?: string }) =>
+            plainFillColour(fill) ?? stroke;
         const { up, down } = this.options.item;
 
         const upColorStops = isGradientFill(up.fill)
