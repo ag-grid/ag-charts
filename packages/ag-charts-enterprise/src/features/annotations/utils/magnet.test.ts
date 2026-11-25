@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { magnetTranslation } from './coords';
-import { applyMagnet, nearestMagnetPoint, resolveMagnetMode } from './magnet';
+import { applyMagnet, nearestMagnetPoint, resolveMagnetRange } from './magnet';
 
-describe('resolveMagnetMode', () => {
+describe('resolveMagnetRange', () => {
     it.each([
         { enabled: false, invert: false, expected: undefined },
-        { enabled: true, invert: false, expected: 'strong' },
-        { enabled: false, invert: true, expected: 'strong' },
+        { enabled: true, invert: false, expected: 'nearest' },
+        { enabled: false, invert: true, expected: 'nearest' },
         { enabled: true, invert: true, expected: undefined },
     ])('enabled $enabled with invert $invert is $expected', ({ enabled, invert, expected }) => {
-        expect(resolveMagnetMode(enabled, 'strong', invert)).toBe(expected);
+        expect(resolveMagnetRange(enabled, 'nearest', invert)).toBe(expected);
     });
 });
 
@@ -23,19 +23,19 @@ describe('nearestMagnetPoint', () => {
     ];
 
     it.each([
-        { mode: 'weak', point: { x: 100, y: 41 }, range: 20, expected: candidates[1] },
-        { mode: 'weak', point: { x: 100, y: 60 }, range: 20, expected: candidates[1] },
-        { mode: 'weak', point: { x: 100, y: 61 }, range: 20, expected: undefined },
-        { mode: 'weak', point: { x: 112, y: 40 }, range: 20, expected: candidates[1] },
-        { mode: 'weak', point: { x: 116, y: 53 }, range: 20, expected: undefined },
-        { mode: 'strong', point: { x: 100, y: 60 }, range: 1, expected: candidates[1] },
-        { mode: 'strong', point: { x: 400, y: 500 }, range: 1, expected: candidates[2] },
-    ] as const)('$mode at $point within $range is $expected', ({ mode, point, range, expected }) => {
-        expect(nearestMagnetPoint(point, candidates, mode, range)).toEqual(expected);
+        { point: { x: 100, y: 41 }, range: 20, expected: candidates[1] },
+        { point: { x: 100, y: 60 }, range: 20, expected: candidates[1] },
+        { point: { x: 100, y: 61 }, range: 20, expected: undefined },
+        { point: { x: 112, y: 40 }, range: 20, expected: candidates[1] },
+        { point: { x: 116, y: 53 }, range: 20, expected: undefined },
+        { point: { x: 100, y: 60 }, range: 'nearest', expected: candidates[1] },
+        { point: { x: 400, y: 500 }, range: 'nearest', expected: candidates[2] },
+    ] as const)('$point within $range is $expected', ({ point, range, expected }) => {
+        expect(nearestMagnetPoint(point, candidates, range)).toEqual(expected);
     });
 
     it('has nothing to snap to without candidates', () => {
-        expect(nearestMagnetPoint({ x: 5, y: 5 }, [], 'strong', 20)).toBeUndefined();
+        expect(nearestMagnetPoint({ x: 5, y: 5 }, [], 'nearest')).toBeUndefined();
     });
 });
 
@@ -44,22 +44,22 @@ describe('applyMagnet', () => {
     const candlestick = [20, 50, 120, 80].map((y) => ({ x: 100, y }));
 
     it('snaps both the horizontal and the vertical position', () => {
-        expect(applyMagnet({ x: 93, y: 82 }, candlestick, 'weak', 20)).toEqual({ x: 100, y: 80 });
+        expect(applyMagnet({ x: 93, y: 82 }, candlestick, 20)).toEqual({ x: 100, y: 80 });
     });
 
-    it('leaves the point alone when there is no mode or it is out of range', () => {
+    it('leaves the point alone when there is no range or it is out of range', () => {
         const offset = { x: 93, y: 82 };
-        expect(applyMagnet(offset, candlestick, undefined, 20)).toBe(offset);
-        expect(applyMagnet({ x: 93, y: 100 }, candlestick, 'weak', 5)).toEqual({ x: 93, y: 100 });
+        expect(applyMagnet(offset, candlestick, undefined)).toBe(offset);
+        expect(applyMagnet({ x: 93, y: 100 }, candlestick, 5)).toEqual({ x: 93, y: 100 });
     });
 
-    it('snaps from any distance when strong', () => {
-        expect(applyMagnet({ x: 93, y: 300 }, candlestick, 'strong', 20)).toEqual({ x: 100, y: 120 });
+    it('snaps from any distance when the range is nearest', () => {
+        expect(applyMagnet({ x: 93, y: 300 }, candlestick, 'nearest')).toEqual({ x: 100, y: 120 });
     });
 
     it('leaves the point alone when there is nothing to snap to', () => {
         const offset = { x: 500, y: 82 };
-        expect(applyMagnet(offset, [], 'strong', 20)).toBe(offset);
+        expect(applyMagnet(offset, [], 'nearest')).toBe(offset);
     });
 });
 
