@@ -29,6 +29,7 @@ export * from './chart/test/glowCases';
 export * from './chart/test/glowRender';
 export * from './chart/test/glowRenderSuite';
 export { byteDifference, differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
+export * from './chart/test/solidFills';
 export * from './chart/test/prepareOptions';
 export { optionAt } from './module/test/moduleAccessors';
 export * from './chart/test/syncFixtures';

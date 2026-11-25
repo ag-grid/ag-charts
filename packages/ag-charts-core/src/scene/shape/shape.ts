@@ -1,11 +1,18 @@
-import type { AgDrawingMode, AgImageFill, AgPatternColor, CssColor, StrokeOptions } from 'ag-charts-types';
+import type {
+    AgDrawingMode,
+    AgImageFill,
+    AgPatternColor,
+    AgSolidColor,
+    CssColor,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import { clamp } from '../../data/numbers';
 import { objectsEqual } from '../../data/object';
 import { isFiniteNumber, isString } from '../../data/typeGuards';
 import { Color } from '../../format/color';
 import { boxesEqual } from '../../geometry/boxBounds';
-import { isGradientFill, isImageFill, isPatternFill } from '../../geometry/fill';
+import { isGradientFill, isImageFill, isPatternFill, isSolidFill, solidFillColour } from '../../geometry/fill';
 import { generateUUID } from '../../identity/id';
 import type { Logger } from '../../logging/logger';
 import type {
@@ -250,7 +257,7 @@ function hasLocalTransform(node: Node): node is Node & {
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImageFill;
+export type ShapeColor = CssColor | AgSolidColor | ShapeGradientColor | AgPatternColor | AgImageFill;
 
 type SvgAttributes = StrokeOptions & ResolvedLineDashOptions;
 
@@ -297,6 +304,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
+    private getSolid(fill: ShapeColor | undefined) {
+        if (!isSolidFill(fill)) return;
+        const colour = solidFillColour(fill);
+        return colour == null || colour === 'none' ? 'transparent' : colour;
+    }
+
     private getPattern(fill: ShapeColor | undefined) {
         if (isPatternFill(fill)) return this.createPattern(fill);
     }
@@ -334,6 +347,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     private getMaxFillAlpha(fill: ShapeColor): number {
         if (typeof fill === 'string') return this.getFillAlpha(fill);
+        if (this.fillSolid != null) return this.getFillAlpha(this.fillSolid);
 
         const paint = this.fillGradient ?? this.fillPattern;
         if (paint == null) return 1;
@@ -363,12 +377,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         }
 
+        this.fillSolid = this.getSolid(this.fill);
         this.fillGradient = this.getGradient(this.fill);
         this.fillPattern = this.getPattern(this.fill);
         this.fillImage = this.getImage(this.fill);
         this._cachedFill = this.fill;
     }
 
+    protected fillSolid: CssColor | undefined;
     protected fillGradient: Gradient | undefined;
     protected fillPattern: Pattern | undefined;
     protected fillImage: Image | undefined;
@@ -585,7 +601,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (shadow?.enabled !== true || shadow.cutOnly === true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
-        const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
+        const { __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
+        const fill = this.fillSolid ?? this.__fill;
         let cast = slot === 'glow' ? this.castGlowMemo : this.castShadowMemo;
         if (
             cast?.shadow !== shadow ||
@@ -658,7 +675,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return (
             this.castsShadowFromStroke(slot) ||
             this.castsShadowFromExtras(slot) ||
-            (this.castsShadowFromFill(slot) && typeof this.__fill !== 'string')
+            (this.castsShadowFromFill(slot) && typeof this.__fill !== 'string' && this.fillSolid == null)
         );
     }
 
@@ -1516,6 +1533,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     protected applyFillAndAlpha(ctx: CanvasContext, logger: Logger, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         const {
             __fill: fill,
+            fillSolid,
             fillGradient,
             fillPattern,
             fillImage,
@@ -1528,7 +1546,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalAlpha *= combinedOpacity;
         }
 
-        if (fillGradient) {
+        if (fillSolid != null) {
+            ctx.fillStyle = fillSolid;
+        } else if (fillGradient) {
             const fillBBox =
                 fillBBoxOverride ??
                 this.fillBBox ??
@@ -1665,6 +1685,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         if (typeof fill === 'string') {
             element.setAttribute('fill', fill);
+        } else if (isSolidFill(fill)) {
+            element.setAttribute('fill', this.fillSolid ?? 'none');
         } else if (isGradientFill(fill) && this.fillGradient) {
             defs ??= [];
 
