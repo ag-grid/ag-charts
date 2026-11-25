@@ -881,6 +881,55 @@ describe('Annotations', () => {
         });
     });
 
+    // A height has no meaning on a category axis, so a channel against one is kept in the state but neither drawn
+    // nor selectable.
+    describe('channels on a category y-axis (AG-19435)', () => {
+        const HORIZONTAL_BAR_OPTIONS: AgCartesianChartOptions = {
+            data: ['Q1', 'Q2', 'Q3', 'Q4'].map((category, i) => ({ category, value: 20 * (i + 1) })),
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+            axes: {
+                x: { type: 'category', position: 'left' },
+                y: { type: 'number', position: 'bottom' },
+            },
+            annotations: { enabled: true, toolbar: { enabled: false } },
+            width: 800,
+            height: 400,
+        };
+
+        it('does not draw or select parallel and disjoint channels, and keeps them in the state', async () => {
+            const annotations = [
+                { type: 'line', start: { x: 10, y: 'Q1' }, end: { x: 60, y: 'Q1' } },
+                { type: 'parallel-channel', start: { x: 10, y: 'Q2' }, end: { x: 60, y: 'Q2' }, height: 1 },
+                {
+                    type: 'disjoint-channel',
+                    start: { x: 10, y: 'Q3' },
+                    end: { x: 60, y: 'Q3' },
+                    startHeight: 1,
+                    endHeight: 1,
+                },
+            ] as AgAnnotation[];
+
+            await prepareChart({ annotations }, HORIZONTAL_BAR_OPTIONS);
+            expectWarningsCalls().toEqual([
+                ['AG Charts - Annotation [parallel-channel] can only be used with a numeric y-axis.'],
+                ['AG Charts - Annotation [disjoint-channel] can only be used with a numeric y-axis.'],
+            ]);
+            await compare();
+
+            // Clicking where each channel would be selects nothing, so no options popup opens.
+            const { x, y } = getSeriesRect(chart);
+            for (const category of ['Q2', 'Q3']) {
+                await clickAt({
+                    x: x + getAxisCoordinate(chart, 'bottom', 35),
+                    y: y + getAxisCoordinate(chart, 'left', category),
+                });
+                expect(chartBody().querySelector('button[title="Line Color"]')).toBeNull();
+            }
+
+            expect(chart.getState().annotations).toMatchObject(annotations);
+        });
+    });
+
     describe('bigint coordinates (AG-16608)', () => {
         // Beyond Number precision, so a faithful round-trip can only hold via the serialisable bigint form.
         const BIGINT_X = 9007199254740993n;

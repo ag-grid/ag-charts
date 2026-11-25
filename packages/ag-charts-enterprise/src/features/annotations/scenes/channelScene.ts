@@ -123,7 +123,7 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
         }
     }
 
-    protected abstract getBottom(datum: Datum, logger: Logger): { start: DataPoint; end: DataPoint };
+    protected abstract getBottom(datum: Datum, logger: Logger): { start: DataPoint; end: DataPoint } | undefined;
 
     protected abstract updateLines(
         datum: Datum,
