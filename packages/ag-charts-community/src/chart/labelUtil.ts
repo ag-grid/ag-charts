@@ -1125,9 +1125,8 @@ function positionBarLabelCandidate<TPlacement extends string>(
         fitTo: spec.fitted
             ? {
                   container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
-                  // The container is deflated by the box drawn around the glyph, and the shape has
-                  // to be held clear of its edge by the same amount and `itemPadding`, or a line
-                  // wrapped to the full width of a taper draws its box outside the mark.
+                  // The shape is held clear by the drawn box and `itemPadding`, as the container is, or a
+                  // line wrapped to the full width of a taper draws its box outside the mark.
                   shape: shape && insetItemRegion(shape, itemLabelClearance(itemPadding, boxPadding)),
                   shapeAlign: regionAlignOf(anchor.textBaseline),
                   anchor,

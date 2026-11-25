@@ -450,7 +450,7 @@ function heatmapCells(chart: ChartOrProxy): Item[] {
     return items;
 }
 
-/** The labels a series drew, each as the drawn box around it in its own frame and how to take that to the canvas. */
+/** The labels a series drew. */
 function drawnLabels(chart: ChartOrProxy): Text[] {
     const labels: Text[] = [];
     for (const group of [getSeriesGroup(chart, 'labelGroup'), getSeriesGroup(chart, 'contentGroup')]) {
@@ -711,7 +711,7 @@ describe('itemPadding', () => {
         });
     });
 
-    describe('series without labels inside their items', () => {
+    describe('series that do not take itemPadding', () => {
         const WITHOUT: { name: string; options: (padding: Record<string, unknown>) => AgChartOptions }[] = [
             {
                 name: 'box-plot',

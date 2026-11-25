@@ -1389,8 +1389,7 @@ describe('label collision avoidance', () => {
                 if (type === 'line') {
                     const formatter = ({ datum }: any) => datum.l;
                     const lineMarker = { enabled: true, ...marker };
-                    const lineLabel = { ...label, formatter };
-                    return { type, data, xKey: 'x', yKey: 'y', marker: lineMarker, label: lineLabel };
+                    return { type, data, xKey: 'x', yKey: 'y', marker: lineMarker, label: { ...label, formatter } };
                 }
                 const { size, ...rest } = marker;
                 const sizing = type === 'bubble' ? { sizeKey: 's', minSize: size, maxSize: size } : { size };
