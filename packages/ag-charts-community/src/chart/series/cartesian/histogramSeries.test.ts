@@ -559,6 +559,9 @@ describe('HistogramSeries', () => {
                     yKey: 'y',
                     aggregation: 'sum',
                     bins,
+                    // No item padding or stroke, so `spacing` alone sets the gap an anchored label keeps.
+                    itemPadding: 0,
+                    strokeWidth: 0,
                     label: { enabled: true, ...label },
                 },
             ],
@@ -681,7 +684,7 @@ describe('HistogramSeries', () => {
 
         // Frequency data is all-positive, so the bar base sits on the plot floor. Extend the y-axis
         // below zero so outside-start labels (rendered below the base) have room instead of being clipped.
-        const withPlacement = (label: Record<string, unknown>) => ({
+        const withPlacement = (label: Record<string, unknown>, series: Record<string, unknown> = {}) => ({
             options: {
                 ...HISTOGRAM_SERIES_LABELS,
                 axes: {
@@ -690,6 +693,7 @@ describe('HistogramSeries', () => {
                 },
                 series: (HISTOGRAM_SERIES_LABELS.series ?? []).map((s: any) => ({
                     ...s,
+                    ...series,
                     label: { ...s.label, enabled: true, ...label },
                 })),
             },
@@ -702,7 +706,11 @@ describe('HistogramSeries', () => {
 
         it('lets an explicit spacing override the default gap', async () => {
             // spacing: 0 replaces the theme's default 8px spacing, pinning the label flush to the bar top.
-            chart = await createChart(exampleOptions(withPlacement({ placement: 'inside-end', spacing: 0 })));
+            chart = await createChart(
+                exampleOptions(
+                    withPlacement({ placement: 'inside-end', spacing: 0 }, { itemPadding: 0, strokeWidth: 0 })
+                )
+            );
             await compare();
         });
 

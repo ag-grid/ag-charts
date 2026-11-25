@@ -46,7 +46,6 @@ import {
     insideBarContainer,
     insideBarValueInsets,
     isRotatable,
-    itemEdgeInset,
     itemLabelClearance,
     labelBoxCentreOffset,
     lineHeightAtSize,
@@ -665,11 +664,6 @@ function refitItemLabel(
     textNode.lineHeight = lineHeightAtSize(style, fontSize);
     textNode.x += itemLabelRefit.shiftX;
     textNode.y += itemLabelRefit.shiftY;
-}
-
-/** The gap an inside bar label keeps from the end it is anchored against: `spacing`, or the item inset when larger. */
-export function insideBarAnchorSpacing(placement: BarLabelPlacement, spacing: number, itemInset: number): number {
-    return placement.startsWith('inside') ? itemEdgeInset(itemInset, spacing) : spacing;
 }
 
 interface PlacementConfig {

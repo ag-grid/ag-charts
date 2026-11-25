@@ -81,8 +81,8 @@ export function refitItemLabelRoom(
     const anchored = itemEdgeInset(inset, room.spacing) - itemEdgeInset(room.inset, room.spacing);
     out.width = Math.max(0, room.width - delta - (room.anchorX === 0 ? delta : anchored));
     out.height = Math.max(0, room.height - delta - (room.anchorY === 0 ? delta : anchored));
-    out.shiftX = room.anchorX * anchored;
-    out.shiftY = room.anchorY * anchored;
+    out.shiftX = room.anchorX === 0 ? 0 : room.anchorX * anchored;
+    out.shiftY = room.anchorY === 0 ? 0 : room.anchorY * anchored;
     return true;
 }
 
@@ -165,4 +165,9 @@ export function insetItemSector<T extends SectorBoundaries>(sector: T, itemPaddi
     sector.outerRadius = Math.sign(outerRadius) * outer;
     if (!isFullSweep(startAngle, endAngle)) sector.radialEdgeInset = radialEdgeInset + itemPadding;
     return sector;
+}
+
+/** The gap an inside label keeps from the end it is anchored against: `spacing`, or the item inset when larger. */
+export function insideAnchorSpacing(placement: string, spacing: number, itemInset: number): number {
+    return placement.startsWith('inside') ? itemEdgeInset(itemInset, spacing) : spacing;
 }
