@@ -69,9 +69,8 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         shadow: (fillOpacity?: number) => ({ shadow: { ...SHADOW, fillOpacity } }),
     };
 
-    // The theme's black shadow at its unset fillOpacity of 0.5, so the red channel is what it takes away.
+    // The theme's black shadow at its unset fillOpacity of 0.5, so the green channel strengthOfRed reads is what it takes away.
     const THEME_SHADOW = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
-    const shadowStrength = ([red]: number[]) => 1 - red / 255;
 
     const hoveredCast = (series: object, highlightedItem: object) =>
         castBeside(
@@ -130,7 +129,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         });
 
         it('should cast a shadow at the 0.5 of the theme times the fillOpacity of the bars', async () => {
-            // A shadow in the theme's black, so the red channel is what it takes away.
+            // A shadow in the theme's black, so the green channel strengthOfRed reads is what it takes away.
             const shadow = { enabled: true, xOffset: 30, yOffset: 0, blur: 0 };
 
             expect((await castBeside({ shadow, fillOpacity: 0.5 }))[0]).toBeCloseTo(255 * (1 - 0.25), -1);
@@ -204,7 +203,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         it.each(Object.entries(SHADOW_STYLERS))(
             'should cast the theme shadow at 0.5 x the fillOpacity of the bars with %s',
             async (_name, itemStyler) => {
-                expect(shadowStrength(await shadowCast(THEME_SHADOW, itemStyler))).toBeCloseTo(0.25, 1);
+                expect(strengthOfRed(await shadowCast(THEME_SHADOW, itemStyler))).toBeCloseTo(0.25, 1);
             }
         );
 
@@ -213,8 +212,8 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
             async (name) => {
                 const shadow = { ...THEME_SHADOW, fillOpacity: 1 };
 
-                expect(shadowStrength(await shadowCast(shadow, undefined))).toBeCloseTo(1, 1);
-                expect(shadowStrength(await shadowCast(shadow, SHADOW_STYLERS[name]))).toBeCloseTo(1, 1);
+                expect(strengthOfRed(await shadowCast(shadow, undefined))).toBeCloseTo(1, 1);
+                expect(strengthOfRed(await shadowCast(shadow, SHADOW_STYLERS[name]))).toBeCloseTo(1, 1);
             }
         );
 
@@ -226,7 +225,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
             ['sets only a fillOpacity', () => ({ shadow: { fillOpacity: 0.8 } })],
         ])('should cast a fillOpacity of its own as set, where the styler %s', async (_name, itemStyler) => {
             for (const fillOpacity of [0.5, 1]) {
-                const strength = shadowStrength(await castBeside({ shadow: THEME_SHADOW, fillOpacity, itemStyler }));
+                const strength = strengthOfRed(await castBeside({ shadow: THEME_SHADOW, fillOpacity, itemStyler }));
 
                 expect(strength).toBeCloseTo(0.8, 1);
             }
@@ -235,7 +234,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         it('should cast a fillOpacity equal to the unset theme value as unset, the same cast it was given', async () => {
             const itemStyler = () => ({ shadow: { fillOpacity: 0.5 } });
 
-            expect(shadowStrength(await shadowCast(THEME_SHADOW, itemStyler))).toBeCloseTo(0.25, 1);
+            expect(strengthOfRed(await shadowCast(THEME_SHADOW, itemStyler))).toBeCloseTo(0.25, 1);
         });
 
         it('should cast the shadow of the highlightedItem on the hovered bar as it does with no styler', async () => {
@@ -243,7 +242,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
                 hoveredCast({ shadow: THEME_SHADOW, itemStyler }, { shadow: { xOffset: 20 } });
             const unstyled = await hovered(undefined);
 
-            expect(shadowStrength(unstyled)).toBeCloseTo(0.25, 1);
+            expect(strengthOfRed(unstyled)).toBeCloseTo(0.25, 1);
             expect(await hovered(SHADOW_STYLERS['returns the shadow'])).toEqual(unstyled);
             expect(await hovered(SHADOW_STYLERS['spreads the shadow'])).toEqual(unstyled);
         });
@@ -253,7 +252,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
             async (fillOpacity) => {
                 const itemStyler = () => ({ shadow: { ...THEME_SHADOW, fillOpacity } });
 
-                expect(shadowStrength(await castBeside({ fillOpacity: 0.5, itemStyler }))).toBeCloseTo(fillOpacity, 1);
+                expect(strengthOfRed(await castBeside({ fillOpacity: 0.5, itemStyler }))).toBeCloseTo(fillOpacity, 1);
             }
         );
 
@@ -282,7 +281,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         it.each(KEYS)('should drop %s from the shadow of the series, and cast as without it', async (key) => {
             const cast = await castBeside({ shadow: { ...THEME_SHADOW, [key]: true }, fillOpacity: 0.5 });
 
-            expect(shadowStrength(cast)).toBeCloseTo(UNSET_CAST, 1);
+            expect(strengthOfRed(cast)).toBeCloseTo(UNSET_CAST, 1);
             expectDroppedWith(key);
         });
 
@@ -293,7 +292,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
             const theme = { overrides: { bar: { series: { shadow: { _fillOpacitySet: value } } } } };
             const cast = await castBeside({ shadow: THEME_SHADOW, fillOpacity: 0.5 }, { theme });
 
-            expect(shadowStrength(cast)).toBeCloseTo(UNSET_CAST, 1);
+            expect(strengthOfRed(cast)).toBeCloseTo(UNSET_CAST, 1);
             expectDroppedWith('_fillOpacitySet');
         });
 
@@ -303,7 +302,7 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
             const without = await hovered({});
             const flagged = await hovered({ _fillOpacitySet: true });
 
-            expect(shadowStrength(without)).toBeCloseTo(UNSET_CAST, 1);
+            expect(strengthOfRed(without)).toBeCloseTo(UNSET_CAST, 1);
             expect(flagged).toEqual(without);
             expectDroppedWith('_fillOpacitySet');
         });
