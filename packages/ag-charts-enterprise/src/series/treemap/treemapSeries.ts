@@ -19,6 +19,8 @@ import {
     type FittedLabelStack,
     type FontOptions,
     Group,
+    type ItemLabelInsets,
+    type ItemLabelSource,
     type LabelFit,
     type LabelFitDescriptor,
     type NormalisedAutoSizedSecondaryLabelOptions,
@@ -48,16 +50,18 @@ import {
     fontWithSize,
     formatValue,
     insetItemRect,
+    inwardOf,
     isErased,
     isGradientFill,
     isNumberEqual,
-    itemContentInset,
-    itemStrokeDepth,
+    itemLabelInsets,
+    itemLabelRoom,
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
     mergeGlow,
     readDatumKey,
+    refitItemLabelNode,
     resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
@@ -109,6 +113,8 @@ interface TreemapPlacedLabelDatum extends PointLabelDatum {
     readonly tags: readonly TextNodeTag[];
     /** The room inside the tile or group header the label is placed in. */
     readonly room: BoxBounds;
+    /** Set when a state restyles the tiles' strokes, so their labels re-fit to the stroke drawn. */
+    readonly insets?: ItemLabelInsets;
 }
 
 interface TreemapLabelCandidate extends PositionedLabelCandidate {
@@ -166,6 +172,7 @@ interface LabelLayout {
     verticalAlign: VerticalAlign;
     x: number;
     y: number;
+    itemRoom?: ItemLabelSource;
 }
 
 enum TextNodeTag {
@@ -999,7 +1006,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             }
             const labelPath = this.labelPath(isLeaf, tag);
 
-            const { opacity: highlightOpacity } = this.getItemStyle(node, isLeaf, highlighted) ?? {};
+            const itemStyle = this.getItemStyle(node, isLeaf, highlighted);
 
             const params = this.labelFormatterParams(node);
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -1010,13 +1017,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fillOpacity = highlightOpacity ?? 1;
+            text.fillOpacity = itemStyle.opacity ?? 1;
             text.fill = style.color;
             text.setBoxing(style);
             text.textAlign = label.textAlign;
             text.textBaseline = label.verticalAlign;
             text.x = label.x;
             text.y = label.y;
+            if (label.itemRoom != null) {
+                refitItemLabelNode(text, label.itemRoom, itemStyle.stroke, itemStyle.strokeWidth, style, 'free');
+            }
             text.visible = true;
 
             text.zIndex = 1;
@@ -1032,14 +1042,15 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels) return [];
         const data: TreemapPlacedLabelDatum[] = [];
+        const restyled = this.restylesItemStrokes();
         this.rootNode?.walk((node) => {
-            const datum = node.children.length === 0 ? this.tileLabelDatum(node) : this.groupLabelDatum(node);
+            const datum = node.children.length === 0 ? this.tileLabelDatum(node, restyled) : this.groupLabelDatum(node);
             if (datum != null) data.push(datum);
         });
         return data;
     }
 
-    private tileLabelDatum(node: TreemapNode): TreemapPlacedLabelDatum | undefined {
+    private tileLabelDatum(node: TreemapNode, restyled: boolean): TreemapPlacedLabelDatum | undefined {
         const { bbox, labelText: primaryText, secondaryLabelText: secondaryText } = node;
         if (bbox == null) return;
         const { tile } = this.options;
@@ -1055,16 +1066,15 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const tags = pairTags(primary, secondary);
 
         const stroke = tile.stroke ?? cycledValue(this.options.strokes, node.path?.[0] ?? 0);
-        const room = insetItemRect(
-            bbox,
-            itemContentInset(tile.padding, itemStrokeDepth(stroke, tile.strokeWidth, false))
-        );
+        const insets = itemLabelInsets(tile.padding, stroke, tile.strokeWidth);
+        const room = insetItemRect(bbox, insets.inset);
         const alwaysShow = blocks.some(({ fit }) => fit.fitOverflow != null);
         const { threshold } = (primary == null ? tile.secondaryLabel : tile.label).collision ?? {};
-        return this.placedLabelDatum(node, lead, room, tags, alwaysShow, threshold, {
+        const datum = this.placedLabelDatum(node, lead, room, tags, alwaysShow, threshold, {
             blocks,
             spacing: tile.label.spacing,
         });
+        return restyled ? { ...datum, insets } : datum;
     }
 
     private groupLabelDatum(node: TreemapNode): TreemapPlacedLabelDatum | undefined {
@@ -1173,7 +1183,10 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
      * Lays the fitted blocks out within the tile: each block aligns on its own `verticalAlign`, and a pair
      * that shares an alignment, or overflows the tile, is kept together as one block.
      */
-    private writeTileLabels({ node, room, tags, stack: labelStack }: TreemapPlacedLabelDatum, stack: FittedLabelStack) {
+    private writeTileLabels(
+        { node, room, tags, stack: labelStack, insets }: TreemapPlacedLabelDatum,
+        stack: FittedLabelStack
+    ) {
         const { tile } = this.options;
         const { spacing } = tile.label;
         const blocks = tags.map((tag, index) => {
@@ -1210,10 +1223,27 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const write = (block: (typeof blocks)[number], boxCentreY: number) => {
             if (block == null) return;
             const { fitted, props, font, padding, tag } = block;
-            const factor = textAlignFactors[resolveTextAlign(props.textAlign, isRtl)] ?? 0.5;
-            const x = room.x + padding.left + (room.width - padding.left - padding.right) * factor;
+            const textAlign = resolveTextAlign(props.textAlign, isRtl);
+            const factor = textAlignFactors[textAlign] ?? 0.5;
+            const width = room.width - padding.left - padding.right;
+            const x = room.x + padding.left + width * factor;
             const y = boxCentreY + (padding.top - padding.bottom) * 0.5;
             const layout = this.labelLayout(props, fitted.text, fitted.fontSize, x, y, 'middle', font);
+            const blockFit = labelStack?.blocks[tags.indexOf(tag)].fit;
+            if (insets != null && blockFit != null) {
+                // A lone label re-fits to the tile; a stacked one keeps the height it took beside the other.
+                const { verticalAlign } = props;
+                const alone = first == null || second == null;
+                layout.itemRoom = itemLabelRoom(
+                    insets,
+                    blockFit.text,
+                    blockFit.policy,
+                    width,
+                    alone ? room.height - boxHeightOf(padding) : fitted.height,
+                    inwardOf(textAlign === 'left', textAlign === 'right'),
+                    alone ? inwardOf(verticalAlign === 'top', verticalAlign === 'bottom') : 0
+                );
+            }
             if (tag === TextNodeTag.Primary) {
                 node.label = layout;
             } else {
@@ -1529,6 +1559,17 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
     protected computeFocusBounds(node: Rect): BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
+    }
+
+    /** Tiles are restyled through `tile.highlight` rather than the series' own `highlight`. */
+    protected override restylesItemStrokes(): boolean {
+        if (this.hasItemStylers()) return true;
+        const { enabled, highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch } =
+            this.options.tile.highlight;
+        if (!enabled) return false;
+        return [highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch].some(
+            (style) => style?.strokeWidth != null
+        );
     }
 
     protected override hasItemStylers(): boolean {

@@ -31,7 +31,7 @@ export function itemLabelInsets(
 }
 
 /** Which way an anchored label's end moves in: `1` from the low side, `-1` from the high side, `0` when centred. */
-function inwardOf(low: boolean, high: boolean): number {
+export function inwardOf(low: boolean, high: boolean): number {
     if (low) return 1;
     return high ? -1 : 0;
 }
@@ -84,16 +84,21 @@ export function placedItemLabelRoom(
     return room;
 }
 
-/** The room a centred label was fitted into by `fit`, `width` by `height`, which it re-fits to as its item's edges move. */
+/**
+ * The room a label was fitted into by `fit`, `width` by `height`, which it re-fits to as its item's edges move;
+ * `anchorX` and `anchorY` say which edge, if any, it is aligned to (see {@link inwardOf}).
+ */
 export function itemLabelRoom(
     insets: ItemLabelInsets,
     text: NormalisedTextOrSegments,
     fit: LabelFit,
     width: number,
-    height: number
+    height: number,
+    anchorX = 0,
+    anchorY = 0
 ): ItemLabelSource {
     const { padding, inset, centred } = insets;
-    return { padding, inset, centred, text, fit, width, height, spacing: 0, anchorX: 0, anchorY: 0 };
+    return { padding, inset, centred, text, fit, width, height, spacing: 0, anchorX, anchorY };
 }
 
 /**

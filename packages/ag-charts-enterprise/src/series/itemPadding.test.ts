@@ -916,6 +916,38 @@ describe('itemPadding', () => {
                 }),
                 states: { highlight: hierarchyStateStrokes(depth) },
             },
+            {
+                name: 'treemap',
+                // A treemap restyles its tiles through `tile.highlight`.
+                options: (state) =>
+                    fromCase('treemap', {
+                        tile: {
+                            ...TREEMAP_TILE,
+                            stroke: 'black',
+                            strokeWidth: 1,
+                            label: { ...FITTED, fontSize: 60, formatter: () => LONG_TEXT },
+                            ...state,
+                        },
+                    })({}),
+                states: { highlight: hierarchyStateStrokes(depth) },
+            },
+            {
+                name: 'treemap with a secondary label',
+                options: (state) => ({
+                    ...fromCase('treemap', {
+                        secondaryLabelKey: 'size',
+                        tile: {
+                            ...TREEMAP_TILE,
+                            stroke: 'black',
+                            strokeWidth: 1,
+                            label: { ...FITTED, fontSize: 60, formatter: () => LONG_TEXT },
+                            secondaryLabel: { ...FITTED, fontSize: 30 },
+                            ...state,
+                        },
+                    })({}),
+                }),
+                states: { highlight: hierarchyStateStrokes(depth) },
+            },
             // A marker's stroke is centred on its outline, so twice the width reaches as deep.
             {
                 name: 'scatter',
