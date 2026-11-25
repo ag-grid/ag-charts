@@ -33,14 +33,15 @@ import {
     fitLabelText,
     fitLabelTextOrOverflow,
     formatValue,
+    insideMarkerLabelRoom,
     insideMarkerPolicy,
     isSupportedMarkerShape,
-    itemContentInset,
     itemLabelClearance,
-    itemStrokeDepth,
+    itemLabelInsets,
     markerShapeAnalysis,
     measureLabelText,
     mergeDefaults,
+    refitItemLabelNode,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
@@ -50,6 +51,8 @@ import type {
     BBox,
     InsideMarkerFit,
     InsideMarkerPolicyScratch,
+    ItemLabelInsets,
+    ItemLabelSource,
     MarkerShapeAnalysis,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
@@ -87,6 +90,9 @@ const {
 export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
+    readonly itemRoom?: ItemLabelSource;
+    /** The marker the label sits inside, when it re-fits to the stroke that marker draws. */
+    readonly itemDatum?: MapMarkerNodeDatum;
 }
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -165,6 +171,7 @@ export class MapMarkerSeries
     private readonly sizeScale = new LinearScale();
     /** How an `inside`-only label is fitted to its marker this pass, as scatter fits its own. */
     private labelInsideMarkerFit: InsideMarkerFit | undefined;
+    private labelItemInsets: ItemLabelInsets | undefined;
     private readonly labelInsideMarkerPolicy: InsideMarkerPolicyScratch = {
         policy: {},
         region: new InsetMaskFitRegion(),
@@ -417,6 +424,7 @@ export class MapMarkerSeries
         const insideMarkerFit = this.labelInsideMarkerFit;
         let insideAnalysis: MarkerShapeAnalysis | undefined;
         let fittedText: NormalisedTextOrSegments;
+        let itemRoom: ItemLabelSource | undefined;
         if (insideMarkerFit == null) {
             fittedText = fitLabelText(labelText, labelFit, labelStyle);
         } else {
@@ -430,6 +438,11 @@ export class MapMarkerSeries
             // Like scatter, an `alwaysShow` label keeps its text on a marker too small to hold even an ellipsis.
             const overflow = label.collision.alwaysShow ? labelFit : undefined;
             fittedText = fitLabelTextOrOverflow(labelText, policy, overflow, labelStyle);
+            const insets = this.labelItemInsets;
+            if (insets != null) {
+                const { base } = insideMarkerFit;
+                itemRoom = insideMarkerLabelRoom(insets, base, policy, labelText, fittedText, labelStyle, undefined);
+            }
         }
         const text = measureLabelText(fittedText, labelStyle);
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
@@ -451,6 +464,8 @@ export class MapMarkerSeries
             region: placement === 'inside' ? undefined : labelRegion,
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
+            itemRoom,
+            itemDatum: itemRoom == null ? undefined : node,
         };
     }
 
@@ -460,6 +475,8 @@ export class MapMarkerSeries
         const placements = toArray(label.placement);
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const base = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        const insets = itemLabelInsets(itemPadding, stroke, strokeWidth, true);
+        this.labelItemInsets = base != null && this.restylesItemStrokes() ? insets : undefined;
         this.labelInsideMarkerFit =
             base == null
                 ? undefined
@@ -467,10 +484,7 @@ export class MapMarkerSeries
                       base,
                       threshold: label.collision.threshold ?? 0,
                       masked: false,
-                      clearance: itemLabelClearance(
-                          itemContentInset(itemPadding, itemStrokeDepth(stroke, strokeWidth, true)),
-                          expandLabelBoxExtent(labelStyle)
-                      ),
+                      clearance: itemLabelClearance(insets.inset, expandLabelBoxExtent(labelStyle)),
                   };
         if (base != null) this.labelInsideMarkerPolicy.policy = { ...base };
     }
@@ -839,10 +853,19 @@ export class MapMarkerSeries
             label.lineHeight = lineHeight;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            if (labelDatum?.itemRoom != null) {
+                const drawn = this.drawnMarkerStyle(labelDatum, isHighlight);
+                refitItemLabelNode(label, labelDatum.itemRoom, drawn?.stroke, drawn?.strokeWidth, style);
+            }
             const datumIndex = labelDatum?.datumIndex;
             label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });
+    }
+
+    /** The style the marker under `datum`'s label is drawn with, which the label re-fits to. */
+    private drawnMarkerStyle(datum: MapMarkerNodeLabelDatum, isHighlight: boolean) {
+        return datum.itemDatum == null ? undefined : this.getMarkerItemStyle(datum.itemDatum, isHighlight);
     }
 
     private getHighlightedLabelId(highlightedDatum: MapMarkerNodeDatum | undefined = this.getHighlightedDatum()) {

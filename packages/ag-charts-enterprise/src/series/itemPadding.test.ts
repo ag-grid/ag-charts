@@ -909,6 +909,28 @@ describe('itemPadding', () => {
                 options: markerCase('area', { marker: { enabled: true, size: 60, ...squareMarker } }),
                 states: { highlight: stateStrokes(2 * depth).highlight },
             },
+            {
+                name: 'map-marker',
+                // Unlabelled markers at the projection's extremes keep the labelled ones clear of its clipped edges.
+                options: (state) => {
+                    const options = fromCase('map-marker', {
+                        ...squareMarker,
+                        label: {
+                            ...BOXED,
+                            enabled: true,
+                            placement: INSIDE,
+                            fontSize: 15,
+                            formatter: () => 'Growth figure',
+                        },
+                    })(state);
+                    const extremes = [
+                        { lat: 59, lon: -8 },
+                        { lat: 48, lon: 5 },
+                    ];
+                    return { ...options, data: [...(options.data ?? []), ...extremes] };
+                },
+                states: stateStrokes(2 * depth),
+            },
         ];
         const RESTYLED_STATES = RESTYLED.flatMap(({ name, options, states, items = shapeItems }) =>
             Object.entries(states).map(([state, stateOptions]) => ({

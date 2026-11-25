@@ -2,7 +2,7 @@ import type { NormalisedTextOrSegments } from '../options/normalised/normalisedC
 import { measureLabelText } from '../rendering/textMeasurer';
 import type { Text } from '../scene/shape/text';
 import { lineHeightAtSize } from '../text/textUtil';
-import { fitLabelTextOrOverflowAutoSize, fontWithSize } from '../text/textWrapper';
+import { type LabelFit, fitLabelTextOrOverflowAutoSize, fontWithSize } from '../text/textWrapper';
 import type { FontOptions } from '../types/text';
 import {
     type ItemLabelRefit,
@@ -85,28 +85,30 @@ export function placedItemLabelRoom(
 }
 
 /**
- * The room a label placed inside its marker was fitted into: the rect its fit was bounded by, or for a fit to the
- * marker's outline the box the fitted text took, which stays inside the outline as it moves in or out.
+ * The room a label placed inside its marker was fitted into, by `policy` from the marker's `base` fit: the rect it was
+ * bounded by, or for a fit to the marker's outline the box the fitted text took, which stays inside the outline as it
+ * moves in or out. `undefined` for a label not bound to its marker.
  */
 export function insideMarkerLabelRoom(
     insets: ItemLabelInsets,
-    fit: LabelFitDescriptor,
+    base: LabelFit | undefined,
+    policy: LabelFit,
+    text: NormalisedTextOrSegments,
     fittedText: NormalisedTextOrSegments,
+    font: FontOptions,
     fontSize: number | undefined
 ): ItemLabelSource | undefined {
-    const base = fit.insideMarker?.base;
     if (base == null) return undefined;
-    const { policy } = fit;
     const box =
         policy.region == null && policy.maxWidth != null && policy.maxHeight != null
             ? { width: policy.maxWidth, height: policy.maxHeight }
-            : measureLabelText(fittedText, fontWithSize(fit.font, fontSize));
+            : measureLabelText(fittedText, fontWithSize(font, fontSize));
     const { padding, inset, centred } = insets;
     return {
         padding,
         inset,
         centred,
-        text: fit.text,
+        text,
         fit: base,
         width: box.width,
         height: box.height,

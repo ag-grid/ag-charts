@@ -146,7 +146,15 @@ export abstract class PlacedLabelCartesianSeries<
             mutable.itemRoom =
                 fit == null || placed.placement !== 'inside'
                     ? undefined
-                    : insideMarkerLabelRoom(insets, fit, placed.text, placed.fontSize);
+                    : insideMarkerLabelRoom(
+                          insets,
+                          fit.insideMarker?.base,
+                          fit.policy,
+                          fit.text,
+                          placed.text,
+                          fit.font,
+                          placed.fontSize
+                      );
         }
         // A re-fitted label is fitted to the candidate the engine chose, so the node must render that text
         // at that size and reserve its box rather than the up-front measurement the cascade started from.

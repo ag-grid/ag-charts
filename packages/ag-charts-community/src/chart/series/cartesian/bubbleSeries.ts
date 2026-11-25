@@ -1413,7 +1413,15 @@ export abstract class BubbleScatterSeries<
         const itemRoom =
             insets == null || fit == null || placed.placement !== 'inside'
                 ? undefined
-                : insideMarkerLabelRoom(insets, fit, placed.text, placed.fontSize);
+                : insideMarkerLabelRoom(
+                      insets,
+                      fit.insideMarker?.base,
+                      fit.policy,
+                      fit.text,
+                      placed.text,
+                      fit.font,
+                      placed.fontSize
+                  );
         return {
             ...placed.datum,
             itemRoom,
