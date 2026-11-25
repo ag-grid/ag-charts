@@ -6,7 +6,9 @@ import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
+    AgChartOptions,
     AgChartTheme,
+    AgChartThemeName,
     AgLineSeriesOptions,
     AgStandaloneChartOptions,
 } from 'ag-charts-types';
@@ -14,6 +16,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { Chart } from '../chart';
 import { CartesianChartAxes } from '../chartAxes';
+import { getChartTheme } from '../mapping/themes';
 import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
@@ -519,6 +522,8 @@ describe('ChartTheme', () => {
             ['ag-default-dark', true, 'block', 'center'],
             ['ag-financial', false, 'overlay', 'left'],
             ['ag-financial-dark', true, 'overlay', 'left'],
+            ['ag-accessible', false, 'block', 'center'],
+            ['ag-accessible-dark', true, 'block', 'center'],
         ] as const)(
             'resolves the dark styling scope and caption defaults for %s',
             async (theme, isDark, layoutStyle, textAlign) => {
@@ -1172,6 +1177,27 @@ describe('ChartTheme', () => {
         });
     });
 
+    describe('palette solid fills', () => {
+        it('become colour strings, with the built-in colour for one that has none', () => {
+            const pattern = { type: 'pattern', pattern: 'stars', stroke: 'purple' } as const;
+            const fills = [
+                { type: 'solid', fill: 'blue', fillOpacity: 0.5 },
+                { type: 'solid', fill: 'red' },
+                pattern,
+                { type: 'solid' },
+            ] as const;
+
+            const { palette } = getChartTheme({ palette: { fills: [...fills] } });
+
+            expect(palette.fills).toStrictEqual([
+                'rgba(0, 0, 255, 0.5)',
+                'red',
+                pattern,
+                getChartTheme({}).palette.fills[3],
+            ]);
+        });
+    });
+
     describe('palette.markerShapes', () => {
         type ShapeHolder = { marker?: { shape?: unknown }; shape?: unknown };
         const customShapeFn = () => ({});
@@ -1322,6 +1348,94 @@ describe('ChartTheme', () => {
             await waitForChartStability(chart);
 
             expect(getLegendItemNodes(chart).map((node) => node.marker?.shape)).toEqual(['square', 'triangle']);
+        });
+    });
+
+    describe('accessible theme', () => {
+        interface ThemedSeriesOptions {
+            fill?: unknown;
+            fillOpacity?: number;
+            stroke?: string;
+            strokeWidth?: number;
+            marker: { enabled?: boolean; shape?: string; fill?: string };
+        }
+
+        const cartesianSeries = (type: 'bar' | 'line' | 'area', seriesOptions: object[] = []) =>
+            ['v1', 'v2', 'v3'].map((yKey, index) => ({ type, xKey: 'label', yKey, ...seriesOptions[index] }));
+
+        const createThemedChart = async (theme: AgChartTheme | AgChartThemeName, series: object[]) => {
+            chart = deproxy(AgCharts.create({ data, width: 400, height: 300, theme, series } as AgChartOptions));
+            await waitForChartStability(chart);
+            return series.map((_, index) => getSeriesOptions<ThemedSeriesOptions>(chart, index));
+        };
+
+        it.each(['ag-accessible', 'ag-accessible-dark'] as const)(
+            'fills %s bar series solid, then patterned from the second series',
+            async (theme) => {
+                const series = await createThemedChart(theme, cartesianSeries('bar'));
+                const [solid, first, second] = series.map((s) => s.fill);
+
+                expect(solid).toEqual(expect.any(String));
+                expect(first).toMatchObject({
+                    type: 'pattern',
+                    pattern: 'forward-slanted-lines',
+                    backgroundFillOpacity: 0.2,
+                });
+                expect(second).toMatchObject({ type: 'pattern', pattern: 'vertical-lines' });
+            }
+        );
+
+        it.each(['ag-accessible', 'ag-accessible-dark'] as const)(
+            'shows each %s line series with its own solid marker shape',
+            async (theme) => {
+                const series = await createThemedChart(theme, cartesianSeries('line'));
+
+                expect(series.map((s) => s.marker.shape)).toEqual(['circle', 'square', 'triangle']);
+                for (const { marker, stroke } of series) {
+                    expect(marker.enabled).toBe(true);
+                    expect(marker.fill).toMatch(/^#[0-9a-f]{6}$/);
+                    expect(stroke).toMatch(/^#[0-9a-f]{6}$/);
+                }
+            }
+        );
+
+        it('tints area series by their own fill, not the palette entry', async () => {
+            const series = await createThemedChart(
+                'ag-accessible',
+                cartesianSeries('area', [
+                    { fill: { type: 'pattern', pattern: 'crosshatch', fill: '#ff0000' } },
+                    { fill: '#00ff00' },
+                ])
+            );
+
+            expect(series.map((s) => s.fillOpacity)).toEqual([1, 0.2, 1]);
+        });
+
+        it('keeps user overrides above the built-in ones', async () => {
+            const series = await createThemedChart(
+                { baseTheme: 'ag-accessible', overrides: { line: { series: { marker: { shape: 'pin' } } } } },
+                cartesianSeries('line')
+            );
+
+            expect(series.map((s) => s.marker.shape)).toEqual(['pin', 'pin', 'pin']);
+        });
+
+        it('keeps user palette entries above the built-in ones', async () => {
+            const series = await createThemedChart(
+                { baseTheme: 'ag-accessible', palette: { fills: ['#111111', '#222222', '#333333'] } },
+                cartesianSeries('bar')
+            );
+
+            expect(series.map((s) => s.fill)).toEqual(['#111111', '#222222', '#333333']);
+        });
+
+        it.each([
+            ['bar', cartesianSeries('bar')],
+            ['pie', [{ type: 'pie', angleKey: 'v1', legendItemKey: 'label' }]],
+        ])('outlines %s series with a stroke', async (_type, seriesOptions) => {
+            const [series] = await createThemedChart('ag-accessible', seriesOptions);
+
+            expect(series.strokeWidth).toBeGreaterThan(0);
         });
     });
 });

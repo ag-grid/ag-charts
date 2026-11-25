@@ -6,6 +6,7 @@ import type {
     AgGradientType,
     AgImageFill,
     AgPatternColor,
+    AgSolidColor,
     BorderOptions,
     CssColor,
     FillOptions,
@@ -62,14 +63,17 @@ export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColo
 
 export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
 
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
+export type InternalAgColorType =
+    CssColor | AgSolidColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
 export type RequiredInternalAgColorType =
     | CssColor
+    | AgSolidColor
     | RequiredInternalAgGradientColor
     | RequiredInternalAgPatternColor
     | (RequiredInternalAgImageFill & Pick<InternalAgImageFill, 'url'>);
 
-export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
+export type NormalisedColorType =
+    CssColor | AgSolidColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
 
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;
@@ -86,6 +90,8 @@ export type NormalisedDropShadowOptions = Normalised<
     'enabled' | 'xOffset' | 'yOffset' | 'blur'
 > & {
     glow?: true;
+    /** Whether the `fillOpacity` was set by a user or theme override, not the theme default; unset when not known. */
+    fillOpacitySet?: boolean;
     /** A glow with no `gap` that is cast in an overlay, which cuts it only where its item, and every item that glows, is painted. */
     overlay?: true;
     /** The `gap` of a glow: how far the shadow's silhouette is cut out of it, or undefined to cast it like a shadow. */

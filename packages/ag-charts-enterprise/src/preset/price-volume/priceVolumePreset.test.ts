@@ -8,6 +8,7 @@ import {
     expectWarningsCalls,
     getAxisCoordinate,
     getSeriesNodeData,
+    getSeriesOptions,
     getSeriesRect,
     getSwapChainText,
     hoverAction,
@@ -33,6 +34,7 @@ import type {
 
 import { openAnnotationSettings } from '../../features/annotations/test/fixture';
 import { setupEnterpriseModules } from '../../setup';
+import { getMiniChartSeriesOptions } from '../../test/featureAccessors';
 import { collectShapes } from '../../test/utils';
 import { getStockData } from '../test/stockData';
 import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
@@ -170,11 +172,11 @@ describe('priceVolumePreset', () => {
     });
 
     it.each([
-        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, mode: 'weak', range: 20 } },
+        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, range: 20 } },
         {
             name: 'applies a theme override of the magnet',
-            theme: { overrides: { common: { annotations: { magnet: { enabled: true, mode: 'strong' } } } } },
-            expected: { enabled: true, mode: 'strong', range: 20 },
+            theme: { overrides: { common: { annotations: { magnet: { enabled: true, range: 'nearest' } } } } },
+            expected: { enabled: true, range: 'nearest' },
         },
     ] as const)('$name', async ({ theme, expected }) => {
         chart = AgCharts.createFinancialChart(
@@ -215,6 +217,21 @@ describe('priceVolumePreset', () => {
         expect(getSwapChainText()).toContain('close');
         await pressKey(internal, 'ArrowDown');
         expect(getSwapChainText()).toContain('volume');
+    });
+
+    it('leaves the navigator volume line solid when the price line is dashed', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                chartType: 'line',
+                navigator: true,
+                data: getStockData().slice(0, 40),
+                theme: { overrides: { line: { series: { lineDash: 'dash' } } } },
+            } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        expect(getSeriesOptions(chart, 1).lineDash).toEqual([6, 4]);
+        expect(getMiniChartSeriesOptions(chart).lineDash).toEqual([0]);
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
@@ -1093,9 +1110,14 @@ describe('priceVolumePreset', () => {
             expect(presetButtons({ common: {} })).toHaveLength(7);
         });
 
-        it('includes the magnet button by default, before the clear button', () => {
-            const values = presetButtons()?.map((button) => button.value);
-            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
+        it('includes the magnet switch by default, before the clear button', () => {
+            const buttons = presetButtons();
+            expect(buttons?.map((button) => button.value).slice(-2)).toEqual(['magnet', 'clear']);
+            expect(buttons?.at(-2)).toMatchObject({
+                type: 'switch',
+                icon: 'no-magnet',
+                checkedOverrides: { icon: 'magnet' },
+            });
         });
     });
 });

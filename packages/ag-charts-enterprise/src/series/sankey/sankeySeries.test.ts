@@ -45,6 +45,7 @@ import {
     SMALL_SHADOW,
     collectShapes,
     createEnterpriseChart,
+    createStockThemedChart,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
 } from '../../test/utils';
@@ -986,6 +987,20 @@ describe('SankeySeries', () => {
             await compare();
         });
     });
+
+    it.each(['ag-accessible', 'ag-accessible-dark'] as const)(
+        'should colour nodes from the patterned %s palette',
+        async (theme) => {
+            chart = deproxy(await createStockThemedChart(GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options, theme));
+
+            const { fills, defaultPatternFills } = getSeriesOptions<{
+                fills: Array<{ type?: string; fill?: string }>;
+                defaultPatternFills: string[];
+            }>(chart);
+            expect(fills[1]).toMatchObject({ type: 'pattern' });
+            expect(defaultPatternFills).toContain(fills[1].fill);
+        }
+    );
 
     it('AG-15669 - should correctly invoke itemStyler and apply result to node', async () => {
         const options = {

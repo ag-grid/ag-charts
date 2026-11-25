@@ -51,12 +51,17 @@ const options: AgChartOptions = {
         enabled: true,
         magnet: {
             enabled: true,
-            mode: 'weak',
             range: 30,
         },
         toolbar: {
             buttons: [
-                { icon: 'magnet', tooltip: 'toolbarAnnotationsMagnet', value: 'magnet' },
+                {
+                    type: 'switch',
+                    icon: 'no-magnet',
+                    tooltip: 'toolbarAnnotationsMagnet',
+                    checkedOverrides: { icon: 'magnet' },
+                    value: 'magnet',
+                },
                 { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },
                 { icon: 'delete', tooltip: 'toolbarAnnotationsClearAll', value: 'clear' },
             ],
@@ -66,10 +71,10 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setWeak() {
-    chart.updateDelta({ annotations: { magnet: { mode: 'weak' } } });
+function setRange() {
+    chart.updateDelta({ annotations: { magnet: { range: 30 } } });
 }
 
-function setStrong() {
-    chart.updateDelta({ annotations: { magnet: { mode: 'strong' } } });
+function setNearest() {
+    chart.updateDelta({ annotations: { magnet: { range: 'nearest' } } });
 }

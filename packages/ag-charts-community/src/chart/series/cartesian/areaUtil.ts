@@ -52,6 +52,8 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum, M
     readonly itemId?: never;
     readonly labelText: NormalisedTextOrSegments;
     readonly point: Readonly<SizedPoint>;
+    /** The marker drawn at this label's point, whose styled size and shape the label avoids. */
+    readonly markerDatum?: MarkerSelectionDatum;
 }
 
 export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<

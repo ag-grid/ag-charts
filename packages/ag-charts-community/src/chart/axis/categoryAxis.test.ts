@@ -1,4 +1,4 @@
-import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
@@ -12,6 +12,8 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
+    iconSvg,
+    preloadImages,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -199,27 +201,17 @@ describe('Category Axis', () => {
 
     describe('block image labels', () => {
         // Axis label formatters may return `ContentSegment[]`, so `block: true` image segments reach the same Text shape.
-        const iconSvg = (letter: string, fill: string) =>
-            `data:image/svg+xml;utf8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">` +
-                    `<rect x="1" y="1" width="30" height="30" rx="6" fill="${fill}"/>` +
-                    `<text x="16" y="22" text-anchor="middle" font-family="Verdana" font-size="16"` +
-                    ` fill="white" font-weight="bold">${letter}</text></svg>`
-            )}`;
         const ICONS: Record<string, string> = {
-            Mon: iconSvg('M', '#1f77b4'),
-            Tue: iconSvg('T', '#ff7f0e'),
-            Wed: iconSvg('W', '#2ca02c'),
-            Thu: iconSvg('H', '#d62728'),
-            inline: iconSvg('+', '#9467bd'),
+            Mon: iconSvg('#1f77b4', 'square'),
+            Tue: iconSvg('#ff7f0e', 'square'),
+            Wed: iconSvg('#2ca02c', 'square'),
+            Thu: iconSvg('#d62728', 'square'),
+            inline: iconSvg('#9467bd', 'square'),
         };
 
         let preloaded: Record<string, SkiaImage> = {};
         beforeAll(async () => {
-            const entries = await Promise.all(
-                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
-            );
-            preloaded = Object.fromEntries(entries);
+            preloaded = await preloadImages(Object.values(ICONS));
         });
 
         const DAY_DATA = [

@@ -71,16 +71,17 @@ export function polarLabelData(
     return data;
 }
 
-/** Label solve input for one label drawn at `(centreX, centreY)` plus its own offset. */
+/** Label solve input for one label drawn at `(centreX, centreY)` plus its own offset; `fit` overrides the style's. */
 export function polarLabelDatum(
     label: PolarLabelDatum,
     style: PolarLabelStyle,
     centreX: number,
     centreY: number,
     point?: Readonly<SizedPoint>,
-    fitTarget?: PolarFitTarget
+    fitTarget?: PolarFitTarget,
+    fit?: LabelFitDescriptor
 ): PointLabelDatum {
-    const { font, boxPadding: padding, fit } = style;
+    const { font, boxPadding: padding } = style;
     const { text, textAlign, textBaseline } = label;
     const anchor = { x: centreX + label.x, y: centreY + label.y, textAlign, textBaseline };
     const glyph = Text.measureBBox(text, anchor.x, anchor.y, { font, textAlign, textBaseline });
@@ -90,7 +91,7 @@ export function polarLabelDatum(
         width: glyph.width + padding.left + padding.right,
         height: glyph.height + padding.top + padding.bottom,
     };
-    const labelFit = fit?.(text);
+    const labelFit = fit ?? style.fit?.(text);
     const fitTo = labelFit && { container: fitTarget?.container, place: fitTarget?.place, anchor, padding };
     const datum: PolarPointLabelDatum = {
         target: label,

@@ -19,6 +19,10 @@ export class ScatterSeries extends BubbleScatterSeries<NormalisedScatterSeriesOw
         return (stylerResult as AgScatterSeriesStylerResult).size;
     }
 
+    protected override getUnsetHighlightOpacity() {
+        return 1;
+    }
+
     getLabelObstacles() {
         return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }

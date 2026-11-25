@@ -44,6 +44,10 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 /** Share of the space left over by the axes that cross-line labels may claim on one dimension. */
 const CROSS_LINE_PADDING_SLACK_RATIO = 0.5;
 
+function crossLinePaddingBudget(slack: number) {
+    return Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+}
+
 /** Scales an opposing pair of paddings down proportionally, so the series area survives any label length. */
 function clampPaddingPair(
     padding: Record<'top' | 'right' | 'bottom' | 'left', number>,
@@ -52,7 +56,7 @@ function clampPaddingPair(
     slack: number
 ) {
     const total = padding[low] + padding[high];
-    const budget = Math.max(slack, 0) * CROSS_LINE_PADDING_SLACK_RATIO;
+    const budget = crossLinePaddingBudget(slack);
     if (total <= budget) return;
 
     const scale = total > 0 ? budget / total : 0;
@@ -490,6 +494,19 @@ export class CartesianChartType implements ChartTypeInstance {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const pluginPadding = this.buildAxisPluginPadding(outerSpace);
         const collectedPadding = { ...pluginPadding };
+        const slackX = axisAreaBound.width - totalWidth;
+        const slackY = axisAreaBound.height - totalHeight;
+        const outerRoom = (side: AgCartesianAxisPosition, opposite: AgCartesianAxisPosition, slack: number) => {
+            const budget = crossLinePaddingBudget(slack);
+            // Halved when the opposite side pads too, so the pair fits `clampPaddingPair` without scaling.
+            return (outerSpace.get(side) ?? 0) + (pluginPadding[opposite] > 0 ? budget / 2 : budget);
+        };
+        const outer = {
+            top: outerRoom('top', 'bottom', slackY),
+            right: outerRoom('right', 'left', slackX),
+            bottom: outerRoom('bottom', 'top', slackY),
+            left: outerRoom('left', 'right', slackX),
+        };
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering
@@ -498,6 +515,22 @@ export class CartesianChartType implements ChartTypeInstance {
             clampPaddingPair(pluginPadding, 'left', 'right', axisAreaBound.width - totalWidth);
             clampPaddingPair(pluginPadding, 'top', 'bottom', axisAreaBound.height - totalHeight);
             axisAreaBound.shrink(pluginPadding);
+        }
+
+        const axisArea = {
+            top: outerSpace.get('top') ?? 0,
+            right: outerSpace.get('right') ?? 0,
+            bottom: outerSpace.get('bottom') ?? 0,
+            left: outerSpace.get('left') ?? 0,
+        };
+        const across = {
+            top: axisArea.top + pluginPadding.top,
+            right: axisArea.right + pluginPadding.right,
+            bottom: axisArea.bottom + pluginPadding.bottom,
+            left: axisArea.left + pluginPadding.left,
+        };
+        for (const axis of this.axes) {
+            axis.labelRoom = { across, outer };
         }
 
         const { scene } = this.ctx;

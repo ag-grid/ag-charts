@@ -43,6 +43,7 @@ import {
     SHADOW,
     collectShapes,
     createEnterpriseChart,
+    createStockThemedChart,
     prepareEnterpriseTestOptions,
     shadowedShapes,
 } from '../../test/utils';
@@ -984,5 +985,33 @@ describe('RadarAreaSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
+    });
+
+    it.each([
+        ['matches the area while markers are off', false],
+        ['is solid while markers are on', true],
+    ])('ag-accessible legend marker %s', async (_name, enabled) => {
+        chart = deproxy(
+            await createStockThemedChart(
+                {
+                    data: [
+                        { k: 'a', v1: 1, v2: 2 },
+                        { k: 'b', v1: 2, v2: 3 },
+                        { k: 'c', v1: 3, v2: 1 },
+                    ],
+                    series: ['v1', 'v2'].map((radiusKey) => ({
+                        type: 'radar-area',
+                        angleKey: 'k',
+                        radiusKey,
+                        marker: { enabled },
+                    })),
+                },
+                'ag-accessible'
+            )
+        );
+
+        const { fill, marker } = getSeriesOptions<{ fill: unknown; marker: { fill: unknown } }>(chart, 1);
+        expect(fill).toMatchObject({ type: 'pattern' });
+        expect(marker.fill).toEqual(enabled ? expect.stringMatching(/^#[0-9a-f]{6}$/) : fill);
     });
 });

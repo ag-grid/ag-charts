@@ -67,7 +67,22 @@ export interface AxisA11YTickData {
     readonly depth: number | undefined;
     readonly groupPercentage: number | undefined;
     readonly ariaLabel: string;
-    readonly focusBounds: BBox; // Relative to `getCanvasBounds()`
+    readonly focusBounds: BBox; // Relative to `getCanvasBounds()`, before `focusRotation` is applied.
+    /** Set for a label drawn off the right angles: a clockwise rotation in radians about a point in the `focusBounds` frame. */
+    readonly focusRotation?: AxisA11YFocusRotation;
+}
+
+export interface AxisA11YFocusRotation {
+    readonly angle: number;
+    readonly originX: number;
+    readonly originY: number;
+}
+
+export interface CrossLineLabelRoom {
+    /** The axis area plus the padding cross-line labels hold on each side, which labels running across it may use. */
+    readonly across: Readonly<Record<AgCartesianAxisPosition, number>>;
+    /** The axis area plus the padding budget a label padding the chart can claim on that side. */
+    readonly outer: Readonly<Record<AgCartesianAxisPosition, number>>;
 }
 
 export interface AxisContext {
@@ -92,6 +107,8 @@ export interface AxisContext {
     readonly gridLength: number;
     readonly gridPadding: number;
     readonly range: readonly [number, number];
+    /** How far past each side of the series area a cross-line label may reach. */
+    readonly labelRoom: CrossLineLabelRoom | undefined;
     /** False while the chart hides its series area because the axes overflow it. */
     readonly seriesAreaVisible: boolean;
     /** False on axes the user cannot interact with, such as those of the navigator mini chart. */

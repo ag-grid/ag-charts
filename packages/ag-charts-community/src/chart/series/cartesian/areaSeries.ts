@@ -23,6 +23,7 @@ import {
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     Group,
+    HIDDEN_MARKER_STYLE,
     Path,
     PointerEvents,
     SeriesContentZIndexMap,
@@ -1114,10 +1115,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelTextMeasurer: labelContext.labelTextMeasurer,
             labelFit: labelContext.labelFit,
             labelFitOverflow: labelContext.labelFitOverflow,
+            labelInsideMarkerFit: labelContext.labelInsideMarkerFit,
             labelStyled: labelContext.labelStyled,
             labelInsideOffset: labelContext.labelInsideOffset,
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
+            labelMarkerShape: labelContext.labelMarkerShape,
             labelRegion: labelContext.labelRegion,
             normalizedTo,
             canIncrementallyUpdate,
@@ -1194,6 +1197,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         scratch.crossFilterSelected = ctx.crossFilterSelectedValues?.[datumIndex];
 
         // Marker data (using ctx.nodes to match base interface)
+        let markerDatum: MarkerSelectionDatum | undefined;
         if (scratch.validPoint) {
             const existingNode: typeof dst =
                 dst === undefined && ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length
@@ -1212,8 +1216,9 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
 
                 moveNodePoints(existingNode, scratch.x, scratch.y, ctx.markerSize);
+                markerDatum = existingNode;
             } else {
-                ctx.nodes.push({
+                markerDatum = {
                     series: this,
                     datum: scratch.datum,
                     datumIndex,
@@ -1229,7 +1234,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     stroke: ctx.markerStroke,
                     strokeWidth: ctx.markerStrokeWidth,
                     crossFilterSelected: scratch.crossFilterSelected,
-                });
+                };
+                ctx.nodes.push(markerDatum);
             }
             if (dst === undefined) {
                 ctx.nodeIndex++;
@@ -1267,6 +1273,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 label: this.measureLabel(ctx, labelText),
                 fit: placedLabelFit(labelText, this.options.label, ctx),
                 anchor: ctx.labelAnchor,
+                markerShape: ctx.labelMarkerShape,
+                markerDatum,
                 insideOffset: ctx.labelInsideOffset,
                 insideSize: ctx.labelInsideSize,
                 region: ctx.labelRegion,
@@ -1661,6 +1669,16 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     protected override get labelProperty() {
         return this.options.label;
+    }
+
+    protected override get labelMarker() {
+        return this.options.marker;
+    }
+
+    protected override labelMarkerStyle(datum: LabelSelectionDatum) {
+        const style = datum.markerDatum?.style;
+        // Labels keep the configured marker while it is hidden until selected.
+        return style === HIDDEN_MARKER_STYLE ? undefined : style;
     }
 
     protected override writeLabelPoint(datum: LabelSelectionDatum, x: number, y: number): LabelSelectionDatum {

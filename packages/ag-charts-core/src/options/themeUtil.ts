@@ -359,6 +359,13 @@ export const FILL_PATTERN_KEYED_DEFAULTS = (
     },
 });
 
+/** A solid fill's defaults: the colour a pattern takes for its stroke, which is the palette colour for a plain fill. */
+export const fillSolidDefaults = (pattern: { stroke: unknown }) => ({
+    type: 'solid',
+    fill: pattern.stroke,
+    fillOpacity: 1,
+});
+
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {
     type: 'image',
     backgroundFill: { $palette: 'fillFallback' },
@@ -692,11 +699,27 @@ export const FONT_THEME_DEFAULTS = {
     fontWeight: { $ref: 'fontWeight' },
 } as const;
 
-/** A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone. */
-function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: Operation) {
+/**
+ * A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone.
+ * `fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
+ */
+function shadowFillTheme(
+    fallbackFill: Operation | string,
+    fallbackFillOpacity: Operation,
+    fallbackFillOpacitySet?: Operation
+) {
     return {
         fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
         fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
+        fillOpacitySet: {
+            $isUserOption: [
+                './fillOpacity',
+                true,
+                fallbackFillOpacitySet == null
+                    ? undefined
+                    : { $isUserOption: [['./color', './fill'], undefined, fallbackFillOpacitySet] },
+            ],
+        },
     } as const satisfies Record<string, Operation>;
 }
 
@@ -705,7 +728,11 @@ function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: 
  * `seriesShadowPath`, the theme values included.
  */
 export function inheritedShadowFillTheme(seriesShadowPath: string) {
-    return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
+    return shadowFillTheme(
+        { $path: `${seriesShadowPath}/fill` },
+        { $path: `${seriesShadowPath}/fillOpacity` },
+        { $path: `${seriesShadowPath}/fillOpacitySet` }
+    );
 }
 
 /** The `glow` of a part of a series, every field taken from the `glow` of the series at `seriesGlowPath`. */
@@ -925,18 +952,20 @@ export function fillThemeTemplate(gradient: unknown, defaultFill: unknown = { $p
             ['gradient', gradient],
             ['image', FILL_IMAGE_DEFAULTS],
             ['pattern', FILL_PATTERN_DEFAULTS],
+            ['solid', fillSolidDefaults(FILL_PATTERN_DEFAULTS)],
         ],
     };
 }
 
 /** Per-item {@link fillThemeTemplate} for an `$applyCycle` over palette `fills`, where `$1` is the cycled colour. */
-export function cycledFillThemeTemplate(gradient: unknown, pattern: unknown = FILL_PATTERN_DEFAULTS) {
+export function cycledFillThemeTemplate(gradient: unknown, pattern: { stroke: unknown } = FILL_PATTERN_DEFAULTS) {
     return {
         $applySwitch: [
             { $path: ['/type', undefined, { $value: '$1' }] },
             { $value: '$1' },
             ['gradient', gradient],
             ['pattern', pattern],
+            ['solid', fillSolidDefaults(pattern)],
             ['image', FILL_IMAGE_DEFAULTS],
         ],
     };

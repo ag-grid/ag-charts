@@ -2,18 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { type LabelMeasureContext, measurePlacedLabel } from './labelMeasure';
 
-vi.mock('../rendering/canvasUtil', () => ({
-    createCanvasContext: () => ({
-        font: '',
-        measureText: (text: string) => ({
-            width: [...text].length * 10,
-            fontBoundingBoxAscent: 16,
-            fontBoundingBoxDescent: 4,
-            emHeightAscent: 16,
-            emHeightDescent: 4,
-        }),
-    }),
-}));
+vi.mock('../rendering/canvasUtil', async (importOriginal) =>
+    (await import('../test/fixedWidthCanvas')).fixedWidthCanvasUtil(importOriginal)
+);
 
 describe('measurePlacedLabel', () => {
     const ctx: LabelMeasureContext = {

@@ -754,6 +754,7 @@ export class SeriesAreaManager extends BaseManager {
             this.focus.pendingViewportFocus = undefined;
             this.pickViewportFocus(pendingViewportFocus);
         }
+        this.chart.ctx.eventsHub.emit('series:focus-enter', null);
     }
 
     private onBlur(event: FocusEvent) {
@@ -762,6 +763,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.dismissedTooltip = undefined;
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
+            this.chart.ctx.eventsHub.emit('series:focus-leave', null);
         }
         this.getFocusIndicator()?.onBlur();
     }
