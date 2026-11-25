@@ -639,6 +639,26 @@ describe('Rect', () => {
             expect(rect.distanceSquared(1, 1)).toBeGreaterThan(0);
         });
 
+        it('hit tests a rounded rect drawn by its stroke alone by the clipped area it paints', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect({
+                x: 0,
+                y: 0,
+                width: 40,
+                height: 200,
+                cornerRadius: 10,
+                stroke: 'blue',
+                strokeWidth: 30,
+                clipBBox: new BBox(0, 0, 40, 20),
+            });
+
+            rect.preRender(renderContext(ctx));
+            expect(rect.isPointInPath(20, 10)).toBe(true);
+            expect(rect.distanceSquared(20, 10)).toBe(0);
+            expect(rect.isPointInPath(1, 1)).toBe(false);
+            expect(rect.isPointInPath(20, 100)).toBe(false);
+        });
+
         it('paints a stroke when the stroke width goes from zero to positive and back', () => {
             const ctx = canvasCtx.getRenderContext2D();
             const options = { x: 20, y: 20, width: 40, height: 30, fill: 'rgb(255, 0, 0)', stroke: 'rgb(0, 0, 255)' };

@@ -81,6 +81,7 @@ import {
     getSwapChainText,
     hoverAction,
     mixinReversedAxesCases,
+    pixelMatches,
     prepareTestOptions,
     pressKey,
     repeat,
@@ -5466,7 +5467,7 @@ describe('BarSeries dense bars on a time axis', () => {
 
     it('renders with no gap columns between neighbouring bars', async () => {
         const BAR_COLOUR = [37, 99, 235, 255];
-        const isBar = (pixel: number[]) => pixel.every((value, index) => value === BAR_COLOUR[index]);
+        const isBar = (pixel: number[]) => pixelMatches(pixel, BAR_COLOUR);
         const HALF_HOUR = 30 * 60 * 1000;
         const options: AgCartesianChartOptions = {
             data: Array.from({ length: 336 }, (_, index) => ({
@@ -5488,5 +5489,85 @@ describe('BarSeries dense bars on a time axis', () => {
         const barSpan = row.slice(row.findIndex(isBar), row.findLastIndex(isBar) + 1);
         expect(barSpan.length).toBeGreaterThan(seriesRect!.width);
         expect(barSpan.filter((pixel) => !isBar(pixel))).toHaveLength(0);
+    });
+});
+
+describe('BarSeries stacked stroke wider than the visible segment', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const STROKE = [255, 0, 0, 255];
+
+    it.each([
+        { name: 'wider than the segment', strokeWidth: 30 },
+        { name: 'wider than the bar', strokeWidth: 1000 },
+    ])('fills only the visible rounded segment with a stroke $name', async ({ strokeWidth }) => {
+        chart = await createChart({
+            data: [
+                { q: 'Q1', a: 42, b: 3 },
+                { q: 'Q2', a: 35, b: 4 },
+            ],
+            series: [
+                { type: 'bar', xKey: 'q', yKey: 'a', stacked: true, fill: 'blue', strokeWidth: 0 },
+                {
+                    type: 'bar',
+                    xKey: 'q',
+                    yKey: 'b',
+                    stacked: true,
+                    fill: 'green',
+                    stroke: 'red',
+                    strokeWidth,
+                    cornerRadius: 10,
+                },
+            ],
+            axes: { x: { type: 'category' }, y: { type: 'number', max: 90 } },
+            animation: { enabled: false },
+        });
+
+        const { seriesRect } = deproxy(chart);
+        const { nodeData } = getBarSeriesContextNodeData(chart, 1);
+        expect(nodeData).toHaveLength(2);
+        for (const { clipBBox } of nodeData) {
+            const { x, y, width, height } = clipBBox!;
+            const left = seriesRect!.x + x;
+            const top = seriesRect!.y + y;
+            expect(pixelMatches(chartPixelAt(chart, left + width / 2, top + height / 2), STROKE)).toBe(true);
+            expect(pixelMatches(chartPixelAt(chart, left + width / 2, top + height + 3), STROKE)).toBe(false);
+            expect(pixelMatches(chartPixelAt(chart, left + 1, top + 1), STROKE)).toBe(false);
+        }
+    });
+
+    it('draws only the visible part of each segment when its stroke is wider than the segment or the bar', async () => {
+        const groups = [30, 100, 120].map((strokeWidth) =>
+            [
+                { yKey: 'hardware', fill: 'steelblue' },
+                { yKey: 'services', fill: 'orange', stroke: 'red', strokeWidth },
+                { yKey: 'software', fill: 'seagreen' },
+            ].map((series) => ({
+                type: 'bar' as const,
+                xKey: 'quarter',
+                stacked: true,
+                stackGroup: `${strokeWidth}`,
+                ...series,
+            }))
+        );
+        chart = await createChart({
+            data: [
+                { quarter: 'Q2', hardware: 35, software: 31, services: 9 },
+                { quarter: 'Q3', hardware: 29, software: 33, services: 2 },
+            ],
+            series: groups.flat(),
+            legend: { enabled: false },
+            axes: { x: { type: 'category' }, y: { type: 'number', max: 90 } },
+            animation: { enabled: false },
+        });
+
+        await compareImageSnapshot(chart, ctx);
     });
 });

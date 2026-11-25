@@ -417,6 +417,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             this.effectiveStrokeWidth = 0;
             this.lastUpdatePathStrokeWidth = 0;
             this.microPixelEffectOpacity = 0;
+            this.borderClipPath = undefined;
             return;
         }
 
@@ -465,6 +466,13 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         }
 
         if (strokeWidth > 0) {
+            let visibleW = w;
+            let visibleH = h;
+            if (clipBBox != null) {
+                visibleW = Math.min(x + w, clipBBox.x + clipBBox.width) - Math.max(x, clipBBox.x);
+                visibleH = Math.min(y + h, clipBBox.y + clipBBox.height) - Math.max(y, clipBBox.y);
+            }
+
             if (w < pixelSize) {
                 // Too narrow, draw a vertical stroke
                 const lx = x + pixelSize / 2;
@@ -479,7 +487,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 borderPath.lineTo(x + w, ly);
                 strokeWidth = pixelSize;
                 this.borderClipPath = undefined;
-            } else if (strokeWidth < w && strokeWidth < h) {
+            } else if (strokeWidth < visibleW && strokeWidth < visibleH) {
                 const halfStrokeWidth = strokeWidth / 2;
                 x += halfStrokeWidth;
                 y += halfStrokeWidth;
@@ -510,8 +518,11 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
                 this.borderClipPath.clear();
-                this.borderClipPath.rect(x, y, w, h);
-                borderPath.rect(x, y, w, h);
+                if (visibleW > 0 && visibleH > 0) {
+                    const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };
+                    clippedRoundRect(this.borderClipPath, x, y, w, h, cornerRadii, clipBBox);
+                    clippedRoundRect(borderPath, x, y, w, h, cornerRadii, clipBBox);
+                }
             }
         } else {
             const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };
@@ -546,7 +557,23 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         if (this.squareCorners) {
             return this.getBBox().containsPoint(x, y);
         }
-        return super.isPointInPath(x, y);
+        const hitPath = this.hitPath();
+        return hitPath.closedPath && hitPath.isPointInPath(x, y);
+    }
+
+    protected override distanceSquaredTransformedPoint(x: number, y: number): number {
+        const hitPath = this.hitPath();
+        if (hitPath.closedPath && hitPath.isPointInPath(x, y)) {
+            return 0;
+        }
+        return hitPath.distanceSquared(x, y);
+    }
+
+    /** A rect drawn by its stroke alone has an empty fill path, so it is hit where its stroke paints. */
+    private hitPath(): ExtendedPath2D {
+        this.updatePathIfDirty();
+        const { path, borderClipPath } = this;
+        return borderClipPath != null && path.isEmpty() ? borderClipPath : path;
     }
 
     get midPoint(): { x: number; y: number } {
