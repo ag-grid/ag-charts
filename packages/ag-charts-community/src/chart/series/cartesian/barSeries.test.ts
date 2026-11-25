@@ -5493,7 +5493,7 @@ describe('BarSeries dense bars on a time axis', () => {
 });
 
 describe('BarSeries stacked stroke wider than the visible segment', () => {
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     let chart: AgChartInstance | undefined;
 
@@ -5541,5 +5541,33 @@ describe('BarSeries stacked stroke wider than the visible segment', () => {
             expect(pixelMatches(chartPixelAt(chart, left + width / 2, top + height + 3), STROKE)).toBe(false);
             expect(pixelMatches(chartPixelAt(chart, left + 1, top + 1), STROKE)).toBe(false);
         }
+    });
+
+    it('draws only the visible part of each segment when its stroke is wider than the segment or the bar', async () => {
+        const groups = [30, 100, 120].map((strokeWidth) =>
+            [
+                { yKey: 'hardware', fill: 'steelblue' },
+                { yKey: 'services', fill: 'orange', stroke: 'red', strokeWidth },
+                { yKey: 'software', fill: 'seagreen' },
+            ].map((series) => ({
+                type: 'bar' as const,
+                xKey: 'quarter',
+                stacked: true,
+                stackGroup: `${strokeWidth}`,
+                ...series,
+            }))
+        );
+        chart = await createChart({
+            data: [
+                { quarter: 'Q2', hardware: 35, software: 31, services: 9 },
+                { quarter: 'Q3', hardware: 29, software: 33, services: 2 },
+            ],
+            series: groups.flat(),
+            legend: { enabled: false },
+            axes: { x: { type: 'category' }, y: { type: 'number', max: 90 } },
+            animation: { enabled: false },
+        });
+
+        await compareImageSnapshot(chart, ctx);
     });
 });
