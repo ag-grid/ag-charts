@@ -822,6 +822,15 @@ describe('itemPadding', () => {
             highlight: { highlight: { highlightedItem: { strokeWidth }, unhighlightedItem: { strokeWidth } } },
             selection: { selection: { enabled: true, selectedItem: { strokeWidth }, unselectedItem: { strokeWidth } } },
         });
+        // A hierarchy styles a hovered node's branch apart from the rest of the chart.
+        const hierarchyStateStrokes = (strokeWidth: number) => ({
+            highlight: {
+                highlightedItem: { strokeWidth },
+                highlightedBranch: { strokeWidth },
+                unhighlightedItem: { strokeWidth },
+                unhighlightedBranch: { strokeWidth },
+            },
+        });
         const barAt =
             (placement: 'inside-center' | 'inside-end', orientation?: 'vertical' | 'vertical-reversed') =>
             (state: object): AgChartOptions =>
@@ -897,6 +906,15 @@ describe('itemPadding', () => {
                 name: 'donut',
                 options: fromCase('donut', { strokes: ['black'], strokeWidth: 1 }),
                 states: { highlight: stateStrokes(depth).highlight },
+            },
+            {
+                name: 'sunburst',
+                options: fromCase('sunburst', {
+                    strokes: ['black'],
+                    strokeWidth: 1,
+                    label: { ...FITTED, formatter: () => LONG_TEXT },
+                }),
+                states: { highlight: hierarchyStateStrokes(depth) },
             },
             // A marker's stroke is centred on its outline, so twice the width reaches as deep.
             {

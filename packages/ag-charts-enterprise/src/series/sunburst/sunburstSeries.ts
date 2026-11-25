@@ -13,6 +13,7 @@ import {
     type FitRegion,
     type FittedLabelStack,
     Group,
+    type ItemLabelSource,
     type LabelStackBlock,
     type NormalisedSunburstInnerLabelOptions,
     type NormalisedSunburstSeriesOwnOptions,
@@ -43,10 +44,13 @@ import {
     isFullSweep,
     isGradientFill,
     itemContentInset,
+    itemLabelInsets,
+    itemLabelRoom,
     itemStrokeDepth,
     measureLabelText,
     mergeDefaults,
     readDatumKey,
+    refitItemLabelNode,
     sectorEdgeInset,
     setSectorGlowEnds,
     withoutCasts,
@@ -97,6 +101,8 @@ interface LabelLayout {
     width: number;
     height: number;
     boxPadding: Required<PaddingOptions>;
+    /** The box the label was fitted to, kept while a state restyles the sectors' strokes. */
+    itemRoom?: ItemLabelSource;
 }
 
 /** The annular sector a node's labels are fitted to, centred on the series and held `padding` clear of its edges. */
@@ -912,6 +918,7 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<SunburstNode>[]) {
+        const restyled = this.restylesItemStrokes();
         this.rootNode?.walk((node) => {
             node.label = undefined;
             node.secondaryLabel = undefined;
@@ -920,7 +927,12 @@ export class SunburstSeries extends HierarchySeries<
         for (const placedLabel of placed as PlacedLabel<unknown>[]) {
             if (placedLabel.stack == null) continue;
             const { labelPlacement } = placedLabel.candidate as SunburstLabelCandidate;
-            this.writeSectorLabels(placedLabel.datum as SunburstPlacedLabelDatum, labelPlacement, placedLabel.stack);
+            this.writeSectorLabels(
+                placedLabel.datum as SunburstPlacedLabelDatum,
+                labelPlacement,
+                placedLabel.stack,
+                restyled
+            );
         }
         this.updateLabelNodes();
     }
@@ -928,10 +940,15 @@ export class SunburstSeries extends HierarchySeries<
     private writeSectorLabels(
         { node, tags, stack: labelStack }: SunburstPlacedLabelDatum,
         labelPlacement: LabelPlacement,
-        stack: FittedLabelStack
+        stack: FittedLabelStack,
+        restyled: boolean
     ) {
         const { ring } = node;
         if (ring == null) return;
+        const { padding, strokes, strokeWidth } = this.options;
+        const insets = restyled
+            ? itemLabelInsets(padding, cycledValue(strokes, node.path?.[0] ?? 0), strokeWidth)
+            : undefined;
         const { theta } = ring;
         const { width: labelWidth, height: labelHeight } = stack;
 
@@ -969,6 +986,11 @@ export class SunburstSeries extends HierarchySeries<
                 width: fitted.width,
                 height: fitted.height + box.top + box.bottom,
                 boxPadding: box,
+                // Each block keeps the box its fitted text took, which stays inside the sector as its edges move.
+                itemRoom:
+                    insets == null || blockFit == null
+                        ? undefined
+                        : itemLabelRoom(insets, blockFit.text, blockFit.policy, fitted.width, fitted.height),
             };
             if (primary) {
                 node.label = layout;
@@ -1038,6 +1060,12 @@ export class SunburstSeries extends HierarchySeries<
             text.setBoxing(style);
 
             placeLabelText(text, label, primary, contentHeight);
+            text.x = 0;
+            text.y = 0;
+            if (label.itemRoom != null) {
+                const drawn = this.getItemStyle(node, highlighted);
+                refitItemLabelNode(text, label.itemRoom, drawn.stroke, drawn.strokeWidth, style, 'free');
+            }
             text.visible = true;
         };
         for (const text of this.labelSelection.selectByClass(TransformableText)) {
