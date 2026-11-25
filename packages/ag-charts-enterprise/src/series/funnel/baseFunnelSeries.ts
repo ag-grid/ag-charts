@@ -672,6 +672,7 @@ export abstract class BaseFunnelSeries<
         };
 
         const measured = measureLabelText(text, label);
+        const itemInset = this.labelItemInset(datumIndex);
         const candidates = labelContext.placements.flatMap((placement, index) =>
             buildBarLabelCandidates<AgFunnelSeriesLabelFormatterParams, FunnelLabelPlacement>({
                 ...labelContext.axes[index],
@@ -687,7 +688,7 @@ export abstract class BaseFunnelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
-                itemPadding: this.labelItemInset(datumIndex),
+                itemPadding: itemInset,
                 text,
             })
         );
