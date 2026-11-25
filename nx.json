@@ -197,7 +197,7 @@
       }
     },
     "lint": {
-      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*"],
+      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*", "^production"],
       "outputs": [],
       "cache": true
     },
@@ -262,11 +262,6 @@
     "pack": {
       "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "cache": true
-    },
-    "nx:noop": {
-      "cache": true,
-      "inputs": [],
-      "outputs": []
     },
     "nx:run-script": {
       "cache": true,
