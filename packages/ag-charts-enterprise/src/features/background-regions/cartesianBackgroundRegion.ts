@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type AnchorDirection,
     type BBox,
     type Bounds4,
     Group,
@@ -29,8 +30,6 @@ import {
     turnedRoom,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
-type AnchorDirection = 1 | 0 | -1;
 
 interface Anchor {
     regionH: AnchorDirection;

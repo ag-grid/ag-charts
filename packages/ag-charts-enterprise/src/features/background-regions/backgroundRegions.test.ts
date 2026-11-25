@@ -23,7 +23,7 @@ import type {
     AgSeriesLabelCollideWithOptions,
 } from 'ag-charts-types';
 
-import { getBackgroundRegionLabelBox } from '../../test/featureAccessors';
+import { getBackgroundRegionBox, getBackgroundRegionLabelBox } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
 
@@ -877,13 +877,13 @@ describe('Background Region label fitting', () => {
         expectWarningsCalls().toEqual([]);
 
         const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
-        const { labelNode, regionGroup } = regions.regions[0].instance;
+        const { labelNode } = regions.regions[0].instance;
         return {
             text: labelNode.text as string,
             fontSize: labelNode.fontSize as number,
             width: labelNode.getBBox().width as number,
             box: getBackgroundRegionLabelBox(chart)!,
-            regionBox: Transformable.toCanvas(regionGroup),
+            regionBox: getBackgroundRegionBox(chart),
         };
     }
 
