@@ -1100,6 +1100,7 @@ export abstract class Series<
             hasItemStylers ||
             (castSwapped && !redrawsHoveredOnly) ||
             (!stateUnchanged &&
+                !this.drawsSameWhenEnteredOrLeft(previousHighlightState, currentHighlightState) &&
                 (this.hasSeriesGlow() ||
                     hasStateStyle(highlight?.highlightedSeries) ||
                     hasStateStyle(highlight?.unhighlightedItem) ||
@@ -1113,6 +1114,44 @@ export abstract class Series<
             this.addHighlightedIndices(indices, currentHighlightedDatum);
             this.highlightRedraw = indices;
         }
+    }
+
+    /** The opacity an item draws at where no state sets one; `undefined` where that varies, so `opacity: 1` is a change. */
+    protected getUnsetHighlightOpacity(): number | undefined {
+        return undefined;
+    }
+
+    /**
+     * Whether a hover entering or leaving this series (`None` against `OtherSeries`) changes nothing it draws, its glow
+     * included. Fail safe: anything not proven the same draws differently.
+     */
+    private drawsSameWhenEnteredOrLeft(previous: HighlightState, current: HighlightState): boolean {
+        const isUnlit = (state: HighlightState) =>
+            state === HighlightState.None || state === HighlightState.OtherSeries;
+        if (!isUnlit(previous) || !isUnlit(current)) return false;
+        if (this.hasItemStylers() || this.getItemShadowBucket() != null) return false;
+        if (this.getChartHighlightOptions()?.mode === 'shared') return false;
+
+        const bucket: object | undefined = this.options.highlight?.unhighlightedSeries;
+        const unsetOpacity = this.getUnsetHighlightOpacity();
+        for (const key in bucket) {
+            if (key === 'glow') continue;
+            if (
+                key === 'opacity' &&
+                unsetOpacity != null &&
+                (bucket as { opacity?: number }).opacity === unsetOpacity
+            ) {
+                continue;
+            }
+            return false;
+        }
+
+        // Casts that match share one object.
+        return this.getSeriesGlows().every(
+            (seriesGlow) =>
+                this.getCascadedGlow(seriesGlow, HighlightState.None) ===
+                this.getCascadedGlow(seriesGlow, HighlightState.OtherSeries)
+        );
     }
 
     /** What the next update redraws in place: every item (`true`), or only the items at these indices. */

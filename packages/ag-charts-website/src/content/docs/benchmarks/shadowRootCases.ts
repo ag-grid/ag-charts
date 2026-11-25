@@ -6,7 +6,14 @@ import type {
 } from 'ag-charts-enterprise';
 
 import type { BenchmarkConfig } from './benchmarkHarness';
-import { ChartRef, isReleaseBelow, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
+import {
+    ChartRef,
+    hover as hoverAt,
+    isReleaseBelow,
+    performDatumHighlight,
+    performInitialLoad,
+    waitForAsyncEventTriggeredUpdate,
+} from './benchmarkUtils';
 
 // Shared by the shadow-root examples. The vanilla build loads it as a classic script beside main.js, so it takes the library
 // and the page's `data.ts` from the caller, and its top-level names must not clash with those of any other file of the page.
@@ -24,6 +31,7 @@ const SHADOW_ROOT_MIN_VERSION = '15.0.0';
 /** The `glow.gap` of a gap scenario: left unset, or set to a number of pixels. */
 type Gap = number | 'unset';
 const GAPS: Gap[] = ['unset', 0, 5];
+const SERIES_POINTS = 5000;
 
 type Scenario =
     | 'bars'
@@ -36,7 +44,8 @@ type Scenario =
     | 'item-shadow-scatter'
     | 'item-shadow-heatmap'
     | 'glow-gap-bar'
-    | 'glow-gap-scatter';
+    | 'glow-gap-scatter'
+    | 'glow-gap-scatter-series';
 /** The functions of `shadowRootData.ts`, which each page loads as its `data.ts`. */
 export interface ShadowRootData {
     getRows(pointCount: number, seriesCount: number, categorical: boolean): Record<string, number | string>[];
@@ -58,7 +67,8 @@ export type ShadowRootCaseId =
     | 'item-shadow-heatmap'
     | 'item-shadow-scatter'
     | 'glow-gap-bar'
-    | 'glow-gap-scatter';
+    | 'glow-gap-scatter'
+    | 'glow-gap-scatter-series';
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant.
 // `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
@@ -96,6 +106,32 @@ function buildShadowRootOptions(
             height: 600,
             data: getRows(5000, 10, false),
             axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+                glow: gapGlow,
+            })),
+        };
+    }
+
+    if (scenario === 'glow-gap-scatter-series') {
+        // The axes are fixed to the data, so that the pixel of each point of the first series is known to the hover.
+        const data = getRows(SERIES_POINTS, 10, false);
+        const ys = data.flatMap((row) =>
+            Object.keys(row)
+                .filter((key) => key !== 'x')
+                .map((key) => Number(row[key]))
+        );
+        return {
+            width: 1400,
+            height: 600,
+            data,
+            axes: {
+                x: { type: 'number', min: 0, max: SERIES_POINTS - 1, nice: false },
+                y: { type: 'number', min: Math.min(...ys), max: Math.max(...ys), nice: false },
+            },
             series: Array.from({ length: 10 }, (_, i) => ({
                 type: 'scatter' as const,
                 xKey: 'x',
@@ -256,6 +292,27 @@ export function getShadowRootConfig(
     const create: Operation = (chartOptions) => performInitialLoad(chartOptions, chartRef, createChart);
     const hover: Operation = () => performDatumHighlight(chartRef.current!, container, 10);
 
+    // Hovers consecutive points of the first series, so that each move is between items of one series.
+    const seriesHover: Operation = async (chartOptions) => {
+        const rows = chartOptions.data ?? [];
+        const yAxis = chartOptions.axes?.y as { min: number; max: number };
+        const seriesArea = container.querySelector('.ag-charts-series-area') as HTMLElement;
+        const { width, height } = seriesArea.getBoundingClientRect();
+        const middle = Math.floor(rows.length / 2);
+
+        const start = performance.now();
+        for (let i = 0; i < 10; i++) {
+            const row = rows[middle + i * 10];
+            const x = (Number(row.x) / (rows.length - 1)) * width;
+            const y = (1 - (Number(row.y0) - yAxis.min) / (yAxis.max - yAxis.min)) * height;
+            hoverAt(container, x, y);
+            await waitForAsyncEventTriggeredUpdate(chartRef.current!);
+        }
+
+        seriesArea.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+        return performance.now() - start;
+    };
+
     // Redraws the whole chart, from data that is new to it.
     const redraw: Operation = async (chartOptions) => {
         const data = (chartOptions.data ?? []).map((row) => ({ ...row }));
@@ -385,6 +442,11 @@ export function getShadowRootConfig(
             id: 'glow-gap-scatter',
             label: '10 scatter series x 5,000 points, glow.gap',
             variants: gapVariantsOf('glow-gap-scatter', { 'Chart Create': create, 'Hover x10': hover }),
+        }),
+        'glow-gap-scatter-series': () => ({
+            id: 'glow-gap-scatter-series',
+            label: '10 scatter series x 5,000 points, glow.gap, moves within one series',
+            variants: gapVariantsOf('glow-gap-scatter-series', { 'Hover x10 (one series)': seriesHover }),
         }),
     };
 
