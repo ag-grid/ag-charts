@@ -115,4 +115,30 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
             });
         });
     });
+
+    describe('cast by the item itself, with no root or group to batch it', () => {
+        const setShadow = { ...SHADOW, fillOpacity: 1, fillOpacitySet: true as const };
+        const shadowAlpha = (mixin: Partial<Rect>) => draw('self', item(mixin)).pixelAt(...SHADOW_PROBE)[3];
+
+        it('should cast a set shadow with no spread as set, whatever the fillOpacity of the item', () => {
+            expect(shadowAlpha({ fillShadow: setShadow })).toBe(255);
+            expect(shadowAlpha({ fillShadow: setShadow, fillOpacity: 0.5 })).toBe(255);
+            expect(shadowAlpha({ fillShadow: setShadow, fill: TRANSLUCENT_BLUE })).toBe(255);
+        });
+
+        it('should fade a set shadow with the opacity of the item', () => {
+            expect(shadowAlpha({ fillShadow: setShadow, fillOpacity: 0.5, opacity: 0.5 })).toBeCloseTo(128, -1);
+        });
+
+        it('should cast a set shadow of a gradient with an opaque stop as set', () => {
+            expect(shadowAlpha({ fillShadow: setShadow, fill: FADING })).toBe(255);
+        });
+
+        it('should cast a shadow with no set fillOpacity at its fillOpacity times that of the item', () => {
+            const shadow = { ...SHADOW, fillOpacity: 0.5 };
+
+            expect(shadowAlpha({ fillShadow: shadow })).toBeCloseTo(128, -1);
+            expect(shadowAlpha({ fillShadow: shadow, fillOpacity: 0.5 })).toBeCloseTo(64, -1);
+        });
+    });
 });

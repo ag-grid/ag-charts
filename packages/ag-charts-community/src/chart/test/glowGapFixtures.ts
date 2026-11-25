@@ -17,6 +17,9 @@ export const GLOW_RIGHT_EDGE = 230;
 export type GlowRoute = 'root' | 'group' | 'cutout';
 export const GLOW_ROUTES: readonly GlowRoute[] = ['root', 'group', 'cutout'];
 
+/** A route for a shadow: {@link GlowRoute}, or `self`, where no root or group batches it and the item casts its own. */
+export type ShadowRoute = GlowRoute | 'self';
+
 /** A glow of red with no blur, so that a pixel is in it or out of it, and no offset: it is cast around the item. */
 export const redGlow = (gap?: number): NormalisedDropShadowOptions => ({
     enabled: true,
@@ -54,8 +57,8 @@ export function useGlowScenes() {
         for (const scene of scenes.splice(0)) scene.destroy();
     });
 
-    return (route: GlowRoute, ...items: Shape[]) => {
-        const parent = new Group({ name: 'items', batchShadows: 'shared' });
+    return (route: ShadowRoute, ...items: Shape[]) => {
+        const parent = new Group({ name: 'items', batchShadows: route === 'self' ? false : 'shared' });
         for (const item of items) {
             if (route === 'cutout') item.drawingMode = 'cutout';
             parent.appendChild(item);

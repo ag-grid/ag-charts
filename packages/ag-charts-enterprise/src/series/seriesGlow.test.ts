@@ -10,6 +10,7 @@ import {
     canvasImage,
     deproxy,
     differingBytes,
+    dominantRedStrength,
     endHover,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
@@ -884,17 +885,7 @@ describe('the strength of the glow of translucent flow links', () => {
                 },
             ],
         } as AgChartOptions);
-        // The glow is the colour that most of the glow pixels have, as the edge of it is antialiased.
-        const { canvas } = deproxy(chart).ctx.scene;
-        const { data } = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
-        const greens = new Map<number, number>();
-        for (let i = 0; i < data.length; i += 4) {
-            if (data[i] === 255 && data[i + 1] === data[i + 2] && data[i + 1] < 255) {
-                greens.set(data[i + 1], (greens.get(data[i + 1]) ?? 0) + 1);
-            }
-        }
-        const [[green]] = [...greens].sort(([, a], [, b]) => b - a);
-        return 1 - green / 255;
+        return dominantRedStrength(canvasImage(chart).data);
     };
 
     it.each(['sankey', 'chord'] as const)(

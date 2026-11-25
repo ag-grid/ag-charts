@@ -1,12 +1,14 @@
 import { expect } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
-import { getSeriesNodeData } from './seriesAccessors';
+import { getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
-import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
+import { type ChartOrProxy, countChartPixels, deproxy, type setupMockCanvas, waitForChartStability } from './utils';
 
 /** An opaque, unblurred glow, so that the shape of the cast can be read off the render. */
 export const HARD_GLOW: AgGlowOptions = { enabled: true, fillOpacity: 1, blur: 0 };
@@ -110,6 +112,35 @@ export function canvasImage(chartOrProxy: ChartOrProxy<any>): { data: Uint8Clamp
     const { canvas } = deproxy(chartOrProxy).ctx.scene;
     const { data } = canvas.context.getImageData(0, 0, canvas.width, canvas.height);
     return { data: new Uint8ClampedArray(data) };
+}
+
+/** The RGBA of the pixel at `x`, `y` of the mock canvas, as it is drawn now. */
+export function snapshotPixel(canvas: Pick<ReturnType<typeof setupMockCanvas>, 'snapshot'>, x: number, y: number) {
+    const { data, width } = canvas.snapshot();
+    const i = (Math.round(y) * width + Math.round(x)) * 4;
+    return Array.from(data.slice(i, i + 4));
+}
+
+/** The strength of a red cast with no blur, read off its pixel over a white chart: the green channel is 255 * (1 - strength). */
+export const strengthOfRed = (pixel: ArrayLike<number>) => 1 - pixel[1] / 255;
+
+/** The strength that most of the red pixels with equal green and blue in RGBA `data` are cast at, as the edge of a cast is antialiased. */
+export function dominantRedStrength(data: ArrayLike<number>) {
+    const greens = new Map<number, number>();
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i] === 255 && data[i + 1] === data[i + 2] && data[i + 1] < 255) {
+            greens.set(data[i + 1], (greens.get(data[i + 1]) ?? 0) + 1);
+        }
+    }
+    const [[green]] = [...greens].sort(([, a], [, b]) => b - a);
+    return strengthOfRed([255, green, green]);
+}
+
+/** The visible items of the first datum selection of a chart, in canvas coordinates. */
+export function visibleItems(chartOrProxy: ChartOrProxy<any>) {
+    return getSeriesSelectionNodes<Node>(deproxy(chartOrProxy), 'datumSelection')
+        .filter((n) => n.visible)
+        .map((n) => Transformable.toCanvas(n));
 }
 
 /** Raises the highlight on a datum, as the pointer would. */

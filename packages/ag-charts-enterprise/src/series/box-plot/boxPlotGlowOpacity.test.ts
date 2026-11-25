@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
-import { deproxy, hoverDatum, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { deproxy, dominantRedStrength, hoverDatum, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { BOX_PLOT } from '../../test/glowSeriesCases';
 import { createEnterpriseChart } from '../../test/utils';
@@ -42,14 +42,7 @@ describe('the glow of a dimmed box plot item', () => {
 
         const { canvas } = deproxy(chart).ctx.scene;
         const { data } = canvas.context.getImageData(canvas.width / 2, 0, canvas.width / 2, canvas.height);
-        const greens = new Map<number, number>();
-        for (let i = 0; i < data.length; i += 4) {
-            if (data[i] === 255 && data[i + 1] === data[i + 2] && data[i + 1] < 255) {
-                greens.set(data[i + 1], (greens.get(data[i + 1]) ?? 0) + 1);
-            }
-        }
-        const [[green]] = [...greens].sort(([, a], [, b]) => b - a);
-        return 1 - green / 255;
+        return dominantRedStrength(data);
     };
 
     it.each([

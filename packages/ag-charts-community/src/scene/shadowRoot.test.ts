@@ -400,15 +400,17 @@ describe('Shadow root', () => {
             // The uniform strength is read from the casters of the slot that the key casts, and a caster with a glow alone
             // has no shadow to read it from, so the casters draw their silhouettes solid only if the glow slot is read.
             const GLOW = { ...BLUE, glow: true as const, fillOpacity: 1, spread: 8 };
-            const scene = draw(true, () => [
+            const casters = () => [
                 group('shared', [
-                    square(100, 40, { fillGlow: GLOW, fillOpacity: 0.5 }),
-                    square(150, 40, { fillGlow: GLOW, fillOpacity: 0.5 }),
+                    square(100, 40, { fillGlow: GLOW, opacity: 0.5 }),
+                    square(150, 40, { fillGlow: GLOW, opacity: 0.5 }),
                 ]),
-            ]);
+            ];
+            const scene = draw(true, casters);
 
-            // Within the spread of both squares at 155 and of one of them at 120. Casters at half strength cast once, at half.
-            expect(at(scene, 120, 36)[3]).toBeGreaterThan(0);
+            // Within the spread of both squares at 155 and of one of them at 120: a cast twice would be 0.75, not 0.5.
+            const [, , , alpha] = at(scene, 120, 36);
+            expect(Math.abs(alpha - 128)).toBeLessThanOrEqual(2);
             expect(at(scene, 155, 36)).toEqual(at(scene, 120, 36));
         });
 

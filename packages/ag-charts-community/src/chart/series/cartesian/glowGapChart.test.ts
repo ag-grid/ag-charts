@@ -1,10 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { snapshotPixel, visibleItems } from '../../test/glowRender';
 import {
     type Chart,
     createChart,
@@ -20,11 +18,10 @@ import {
 // and ends 10px further out.
 const glow = (gap?: number) => ({ blur: 0, spread: 10, fill: 'red', fillOpacity: 1, gap });
 
-// The item is half-opaque blue on a white chart, and a glow with a `fillOpacity` of 1 is cast as set, not at the strength of
-// its item, so it is solid red beside it. Where the glow is beneath the item, the item is purple over it, with less green
-// than the lavender of the item over white.
+// The item is half-opaque blue on a white chart, and a glow with a `fillOpacity` of 1 is solid red beside it. Where the glow is
+// beneath the item, the item is purple over it, with less green than the lavender of the item over white.
 const WHITE = [255, 255, 255, 255];
-/** The glow beside the item: red at the strength that it is set to, whatever the `fillOpacity` of the item. */
+/** The glow beside the item: red at the strength that it is set to. */
 const GLOW_RED = [255, 0, 0, 255];
 const TRANSLUCENT_ITEM = { fill: 'blue', fillOpacity: 0.5, strokeWidth: 0 };
 const LAVENDER_GREEN = 128;
@@ -57,16 +54,9 @@ describe('glow gap in a chart', () => {
         return created;
     };
 
-    const pixelAt = (x: number, y: number) => {
-        const { data, width } = canvas.snapshot();
-        const i = (Math.round(y) * width + Math.round(x)) * 4;
-        return Array.from(data.slice(i, i + 4));
-    };
+    const pixelAt = (x: number, y: number) => snapshotPixel(canvas, x, y);
 
-    const firstItem = () => {
-        const [node] = getSeriesSelectionNodes<Node>(chart!, 'datumSelection').filter((n) => n.visible);
-        return Transformable.toCanvas(node);
-    };
+    const firstItem = () => visibleItems(chart!)[0];
 
     /** The pixel `distance` to the right of the first item, along the line across its middle, which is inside it if negative. */
     const rightOfFirstItem = () => {
