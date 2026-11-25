@@ -160,6 +160,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
     protected node?: AnnotationScene;
 
+    /**
+     * Set by the text input's Settings transition so that its `onExit` keeps the annotation selected under the dialog.
+     * Relies on a transition's action running before the exit of the state it leaves, and `onExit` clears it.
+     */
+    private keepsSelectionOnTextInputExit = false;
+
     override inheritedProperties() {
         return ANNOTATIONS_MAIN_STATE_MACHINE_INHERITED_PROPERTIES;
     }
@@ -276,11 +282,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             ctx.update();
         };
 
+        /** Returns whether the annotation was kept, which it is not when its text is empty. */
         const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: BBox }) => {
             const { datum } = this;
             if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 if (!isTextType(datum)) {
-                    return;
+                    return false;
                 }
 
                 const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
@@ -288,9 +295,11 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 ctx.update();
                 ctx.recordAction(`Change ${datum.type} annotation text`);
+                return true;
             } else {
                 ctx.delete(this.active!);
                 ctx.recordAction(`Delete ${datum?.type} annotation`);
+                return false;
             }
         };
 
@@ -472,7 +481,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 toolbarPressSettings: {
                     guard: guardActiveHasSettings,
-                    action: (sourceEvent: Event) => {
+                    action: ({ sourceEvent }: AnnotationStateEvents['toolbarPressSettings']) => {
                         ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
                 },
@@ -603,14 +612,30 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     action: actionCancel,
                 },
 
+                // Saves the text and opens the dialog on the same annotation, as pressing it outside editing does.
+                toolbarPressSettings: {
+                    guard: guardActiveHasSettings,
+                    target: States.Idle,
+                    action: ({ sourceEvent, ...saved }: AnnotationStateEvents['toolbarPressSettings']) => {
+                        // Saving empty text deletes the annotation, leaving nothing to open the dialog on, so the
+                        // exit deselects as it does for every other way out.
+                        if (!actionSaveText(saved) || this.active == null) return;
+                        this.keepsSelectionOnTextInputExit = true;
+                        ctx.showAnnotationSettings(this.active, sourceEvent);
+                    },
+                },
+
                 onExit: () => {
                     ctx.stopInteracting();
                     ctx.hideTextInput();
 
                     const wasActive = this.active;
-                    this.hovered = undefined;
-                    this.updateActive(undefined);
-                    ctx.select(this.active, wasActive);
+                    if (!this.keepsSelectionOnTextInputExit) {
+                        this.hovered = undefined;
+                        this.updateActive(undefined);
+                        ctx.select(this.active, wasActive);
+                    }
+                    this.keepsSelectionOnTextInputExit = false;
 
                     if (wasActive == null) return;
 
