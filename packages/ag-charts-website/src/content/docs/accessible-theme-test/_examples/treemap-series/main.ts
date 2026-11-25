@@ -1,0 +1,39 @@
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    TreemapSeriesModule,
+} from 'ag-charts-enterprise';
+
+import { data } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    TreemapSeriesModule,
+    ContextMenuModule,
+]);
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    theme: 'ag-accessible',
+    data,
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'title',
+        },
+    ],
+    title: {
+        text: 'UK Government Budget',
+    },
+    subtitle: {
+        text: '2024',
+    },
+};
+
+AgCharts.create(options);
