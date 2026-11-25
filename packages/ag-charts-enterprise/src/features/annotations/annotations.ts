@@ -40,6 +40,7 @@ import type {
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
+import { AnnotationsDOMProxy, type AnnotationsDOMProxyItem } from './annotationsDOMProxy';
 import { AnnotationOptions, LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type {
@@ -57,7 +58,8 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
-import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { applyAnnotationOptions, isWriteable, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { describeAnnotation, describeAnnotationAxis } from './utils/describe';
 import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
@@ -140,6 +142,20 @@ export class Annotations extends AbstractModuleInstance {
     );
     private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
+    private readonly domProxy = new AnnotationsDOMProxy(this.ctx, {
+        onFocus: (id) => this.onKeyboardFocus(id),
+        onBlur: () => this.onKeyboardBlur(),
+        onActivate: (id) => this.openOptionsWithKeyboard(id),
+        onMoveKeyDown: (sourceEvent) => this.onMoveKeyDown(sourceEvent),
+        onMoveKeyUp: (sourceEvent) => this.onKeyUp({ sourceEvent }),
+        onMoveEnd: () => this.endMove(),
+        onMoveBlur: () => this.onMoveBlur(),
+    });
+
+    /** The id of the annotation that the arrow keys move after the Move Annotation button is pressed, if any. */
+    private movingId?: string;
+    /** The annotation whose list item, keyboard-opened toolbar or mover the keyboard is on, if any. */
+    private keyboardFocusId?: string;
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
@@ -182,6 +198,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.xAxis?.button?.destroy();
                 this.yAxis?.button?.destroy();
                 this.textInput.destroy();
+                this.domProxy.destroy();
             }
         );
     }
@@ -330,7 +347,7 @@ export class Annotations extends AbstractModuleInstance {
                     selectedNode.toggleActive(true);
                     selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
-                        optionsToolbar.updateButtons(this.annotationData.at(index!)!);
+                        optionsToolbar.updateButtons(this.annotationData.at(index!)!, this.state.isKeyboardSelected());
                         this.postUpdateFns.push(() => {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
@@ -637,6 +654,8 @@ export class Annotations extends AbstractModuleInstance {
                 this.delete();
                 this.reset();
             }),
+            optionsToolbar.events.on('pressed-move', () => this.startMove()),
+            optionsToolbar.events.on('pressed-escape', ({ sourceEvent }) => this.onOptionsEscape(sourceEvent)),
             optionsToolbar.events.on('pressed-settings', ({ sourceEvent }) => {
                 this.state.transition('toolbarPressSettings', {
                     sourceEvent,
@@ -918,7 +937,11 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onPreRender() {
-        if (!(this.opts.enabled ?? true)) return;
+        if (!(this.opts.enabled ?? true)) {
+            this.domProxy.clear();
+            this.reconcileKeyboardFocus();
+            return;
+        }
         this.updateAnnotations();
         this.settingsDialog.refreshCoordinates();
         this.state.transition('render');
@@ -1080,11 +1103,13 @@ export class Annotations extends AbstractModuleInstance {
             });
 
         this.updateLastPriceLine(context, showAnnotations);
+        this.updateDOMProxy(context, seriesRect, showAnnotations);
 
         for (const fn of this.postUpdateFns) {
             fn();
         }
         this.postUpdateFns = [];
+        this.reconcileKeyboardFocus();
     }
 
     private updateLastPriceLine(context: AnnotationContext, showAnnotations: boolean) {
@@ -1187,6 +1212,8 @@ export class Annotations extends AbstractModuleInstance {
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
 
+        this.keyboardFocusId = undefined;
+
         // The states finish an endpoint from the last hover, so it is refreshed to the click's own point and modifiers.
         if (!state.isIdle()) this.onHover(event);
 
@@ -1260,6 +1287,8 @@ export class Annotations extends AbstractModuleInstance {
 
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
+
+        this.keyboardFocusId = undefined;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -1357,27 +1386,10 @@ export class Annotations extends AbstractModuleInstance {
         const { shiftKey, ctrlKey, metaKey } = sourceEvent;
         this.trackMagnetModifier(sourceEvent);
         const ctrlMeta = ctrlKey || metaKey;
-        const ctrlShift = ctrlKey || shiftKey;
 
         state.transition('keyDown', { shiftKey, context });
 
-        const translation = { x: 0, y: 0 };
-
-        const xStep = Math.max(context?.xAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
-        const yStep = Math.max(context?.yAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
         switch (sourceEvent.key) {
-            case 'ArrowDown':
-                translation.y = yStep;
-                break;
-            case 'ArrowUp':
-                translation.y = -yStep;
-                break;
-            case 'ArrowLeft':
-                translation.x = -xStep;
-                break;
-            case 'ArrowRight':
-                translation.x = xStep;
-                break;
             case 'Escape':
                 this.onCancel();
                 return;
@@ -1387,6 +1399,7 @@ export class Annotations extends AbstractModuleInstance {
                 return;
         }
 
+        const translation = getKeyboardTranslation(sourceEvent, context);
         if (translation.x !== 0 || translation.y !== 0) {
             this.markSettingsChanged();
             state.transition('translate', { translation });
@@ -1414,7 +1427,7 @@ export class Annotations extends AbstractModuleInstance {
         }
     }
 
-    private onKeyUp(event: KeyboardWidgetEvent<'keyup'>) {
+    private onKeyUp(event: Pick<KeyboardWidgetEvent<'keyup'>, 'sourceEvent'>) {
         const { shiftKey } = event.sourceEvent;
         this.trackMagnetModifier(event.sourceEvent);
         const context = this.getAnnotationContext();
@@ -1424,6 +1437,192 @@ export class Annotations extends AbstractModuleInstance {
 
         this.state.transition('keyUp', { shiftKey, context });
         this.state.transition('translateEnd');
+    }
+
+    private updateDOMProxy(context: AnnotationContext, seriesRect: BBox, showAnnotations: boolean) {
+        const { domProxy, optionsToolbar, movingId } = this;
+        if (!showAnnotations) {
+            domProxy.clear();
+            return;
+        }
+
+        const domainBBox = getDomainBBox(context);
+        const active = this.state.getActive();
+        const items: AnnotationsDOMProxyItem[] = [];
+        this.annotations.each((node, datum, index) => {
+            if (!node.visible) return;
+            // A pointer cannot select a read-only or ephemeral annotation, so the keyboard does not list it.
+            if (datum.readOnly === true || isEphemeralType(datum)) return;
+
+            // Pointer users cannot reach an annotation outside the domain, so neither does the keyboard. The
+            // intersection is inclusive, as a horizontal or vertical line has no height or width.
+            const bbox = node.getFocusBBox();
+            if (bbox.intersection(domainBBox) == null) return;
+
+            items.push({
+                id: datum.id,
+                label: describeAnnotation(datum, context),
+                bbox,
+                expanded: index === active && movingId == null,
+            });
+        });
+
+        domProxy.setHasPopup(optionsToolbar.isEnabled());
+        domProxy.update(items, seriesRect);
+    }
+
+    /** Keeps the keyboard on a listed annotation's control, and on one that can still move for the mover. */
+    private reconcileKeyboardFocus() {
+        const { keyboardFocusId: id, domProxy } = this;
+        if (id == null) return;
+
+        const datum = domProxy.isListed(id) ? this.annotationData.find((d) => d.id === id) : undefined;
+        const moving = this.movingId === id;
+        if (datum != null && (!moving || isWriteable(datum))) return;
+
+        this.keyboardFocusId = undefined;
+        // The mover had the focus, which hiding it loses.
+        const focusLost = moving || this.ctx.agDocument.hasNoFocus();
+        if (moving) this.stopMove();
+        this.cancel();
+        this.reset();
+        if (!focusLost) return;
+
+        if (datum == null) {
+            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
+        } else {
+            domProxy.focus(id);
+        }
+    }
+
+    private findIndexById(id: string) {
+        return this.annotationData.findIndex((datum) => datum.id === id);
+    }
+
+    /** Pans an annotation that the keyboard focuses into view, as keyboard navigation of the series does. */
+    private onKeyboardFocus(id: string) {
+        this.keyboardFocusId = id;
+        const context = this.getAnnotationContext();
+        const node = this.annotations.at(this.findIndexById(id));
+        if (context == null || node == null) return;
+
+        const target = node.getFocusBBox().intersection(getDomainBBox(context));
+        if (target == null) return;
+
+        const { seriesRect } = context;
+        const { x, y } = target.computeCenter();
+        if (!seriesRect.containsPoint(x, y)) {
+            this.ctx.zoomManager?.panToBBox(seriesRect, target);
+        }
+    }
+
+    /** Forgets the annotation once the focus leaves its controls, so that a later update leaves the focus alone. */
+    private onKeyboardBlur() {
+        // Chrome also blurs a removed or hidden item, so let `reconcileKeyboardFocus()` move the focus on first.
+        queueMicrotask(() => {
+            if (this.domProxy.containsFocus() || this.optionsToolbar.containsFocus()) return;
+            this.keyboardFocusId = undefined;
+        });
+    }
+
+    private openOptionsWithKeyboard(id: string) {
+        const index = this.findIndexById(id);
+        if (index < 0) return;
+
+        if (!this.state.isIdle()) {
+            this.cancel();
+            this.reset();
+        }
+
+        const wasActive = this.state.getActive() === index;
+        this.keyboardFocusId = id;
+        this.state.transition('selectWithKeyboard', index);
+
+        if (!this.optionsToolbar.isEnabled()) return;
+
+        if (wasActive) {
+            this.showOptionsToolbar(index);
+        }
+        this.postUpdateFns.push(() => this.optionsToolbar.focusFirstButton());
+        this.update();
+    }
+
+    private showOptionsToolbar(index: number) {
+        const datum = this.annotationData.at(index);
+        const node = this.annotations.at(index) as AnnotationSceneUnion | undefined;
+        if (datum == null || node == null) return;
+
+        this.optionsToolbar.updateButtons(datum, this.state.isKeyboardSelected());
+        this.optionsToolbar.show();
+        this.optionsToolbar.setAnchorScene(node);
+    }
+
+    /** Escape closes a toolbar opened from the keyboard and returns focus to the annotation's list item. */
+    private onOptionsEscape(sourceEvent: KeyboardEvent) {
+        // TODO: the design wants this for a toolbar opened by a pointer click too, which hands the annotation over
+        // to the keyboard. Decide whether to support that before extending it.
+        if (!this.state.isKeyboardSelected()) return;
+
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum == null) return;
+
+        sourceEvent.preventDefault();
+        this.cancel();
+        this.reset();
+        this.domProxy.focus(datum.id);
+    }
+
+    private startMove() {
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum == null || !isWriteable(datum)) return;
+
+        this.movingId = datum.id;
+        this.keyboardFocusId = datum.id;
+        this.optionsToolbar.hide();
+        this.domProxy.startMove(datum.id);
+        this.update();
+    }
+
+    private onMoveKeyDown(sourceEvent: KeyboardEvent) {
+        const context = this.getAnnotationContext();
+        const active = this.state.getActive();
+        if (context == null || active == null) return;
+
+        const translation = getKeyboardTranslation(sourceEvent, context);
+        this.state.transition('translate', { translation });
+
+        const datum = this.annotationData.at(active);
+        const change = datum && describeAnnotationAxis(datum, context, translation.x === 0 ? 'y' : 'x');
+        if (change != null) {
+            this.domProxy.announceMove(change);
+        }
+    }
+
+    private stopMove() {
+        this.movingId = undefined;
+        this.domProxy.stopMove();
+        this.state.transition('translateEnd');
+    }
+
+    /** Escape ends the move, keeping it, and returns focus to the Move button of the toolbar. */
+    private endMove() {
+        const active = this.state.getActive();
+        this.stopMove();
+        if (active == null) return;
+
+        this.showOptionsToolbar(active);
+        this.optionsToolbar.focusButton(AnnotationOptions.Move);
+        this.update();
+    }
+
+    /** Leaving the annotation while it moves, such as with Tab, keeps the move and deselects the annotation. */
+    private onMoveBlur() {
+        this.keyboardFocusId = undefined;
+        this.stopMove();
+        this.cancel();
+        this.reset();
     }
 
     private clear() {
@@ -1539,4 +1738,35 @@ export class Annotations extends AbstractModuleInstance {
     private update(type = ChartUpdateType.PRE_SCENE_RENDER) {
         this.ctx.eventsHub.emit('chart:request-update', { type });
     }
+}
+
+function getKeyboardTranslation(sourceEvent: KeyboardEvent, context: AnnotationContext): Point {
+    const { ctrlKey, shiftKey } = sourceEvent;
+    const ctrlShift = ctrlKey || shiftKey;
+    const xStep = Math.max(context.xAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
+    const yStep = Math.max(context.yAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
+    switch (sourceEvent.key) {
+        case 'ArrowDown':
+            return { x: 0, y: yStep };
+        case 'ArrowUp':
+            return { x: 0, y: -yStep };
+        case 'ArrowLeft':
+            return { x: -xStep, y: 0 };
+        case 'ArrowRight':
+            return { x: xStep, y: 0 };
+        default:
+            return { x: 0, y: 0 };
+    }
+}
+
+/** The canvas area that the axis domains span, which extends past the series area while the chart is zoomed. */
+function getDomainBBox({ seriesRect, xAxis, yAxis }: AnnotationContext) {
+    const [x1, x2] = xAxis.scale.range;
+    const [y1, y2] = yAxis.scale.range;
+    return new BBox(
+        seriesRect.x + Math.min(x1, x2),
+        seriesRect.y + Math.min(y1, y2),
+        Math.abs(x2 - x1),
+        Math.abs(y2 - y1)
+    );
 }
