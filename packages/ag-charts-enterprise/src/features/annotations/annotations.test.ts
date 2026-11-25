@@ -1639,7 +1639,6 @@ describe('Annotations', () => {
             return { x: point.x + 5, y: point.y - 5 };
         };
 
-        const SETTINGS_ACTIVE = 'ag-charts-toolbar__button--active';
         const tabNames = () =>
             Array.from(chartBody().querySelectorAll('.ag-charts-dialog__tab-button'), (button) => button.textContent);
         const activePanel = () => chartBody().querySelector<HTMLElement>('.ag-charts-dialog__tab-panel--active')!;
@@ -1808,19 +1807,24 @@ describe('Annotations', () => {
         });
 
         it('saves the text being edited in place and opens the dialog from the options toolbar', async () => {
-            const edited = families.slice(0, 2);
+            // Every text type, which share one in-place editor but differ in where their anchor is.
+            const edited = families.slice(0, 4);
             await prepareChart({ annotations: edited.map(({ annotation }) => annotation) });
 
-            for (const [index, { at, tabs }] of edited.entries()) {
-                const { type } = families[index].annotation;
+            async function editInPlace(at: [string, number], value: string) {
                 const point = pointOn(...at);
                 await clickAt(point);
                 await clickAt(point); // starts editing the text in place
                 const textArea = chartBody().querySelector<HTMLElement>('.ag-charts-text-input__textarea')!;
-                expect(textArea, type).not.toBeNull();
-                textArea.innerText = `Typed ${type}`;
+                expect(textArea).not.toBeNull();
+                textArea.innerText = value;
                 textArea.dispatchEvent(new Event('input'));
                 await waitForChartStability(chart);
+            }
+
+            for (const [index, { annotation, at, tabs }] of edited.entries()) {
+                const { type } = annotation;
+                await editInPlace(at, `Typed ${type}`);
 
                 await press('button[title="Settings"]');
 
@@ -1829,12 +1833,28 @@ describe('Annotations', () => {
                 expect(activePanel().querySelector('textarea')!.value, type).toBe(`Typed ${type}`);
                 expect(chart.getState().annotations?.[index], type).toMatchObject({ type, text: `Typed ${type}` });
                 expect(
-                    chartBody().querySelector('button[title="Settings"]')?.classList.contains(SETTINGS_ACTIVE),
+                    chartBody()
+                        .querySelector('button[title="Settings"]')
+                        ?.classList.contains('ag-charts-toolbar__button--active'),
                     type
                 ).toBe(true);
                 if (index < edited.length - 1) await press('.ag-charts-dialog__close-button');
             }
+            await compare();
 
+            // Emptied text deletes the annotation as leaving the editor would, so no dialog opens on whichever
+            // annotation then takes its index, and nothing is left selected.
+            await press('.ag-charts-dialog__close-button');
+            await editInPlace(edited[0].at, '');
+            await press('button[title="Settings"]');
+
+            expect(chartBody().querySelector('.ag-charts-dialog')).toBeNull();
+            expect(chartBody().querySelector('.ag-charts-text-input__textarea')).toBeNull();
+            expect(chart.getState().annotations?.map((annotation) => annotation.type)).toEqual([
+                'comment',
+                'note',
+                'callout',
+            ]);
             await compare();
         });
 

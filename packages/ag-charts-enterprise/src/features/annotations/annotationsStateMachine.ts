@@ -160,7 +160,10 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
     protected node?: AnnotationScene;
 
-    /** Set while the text input closes for a press of Settings, so the annotation stays selected under the dialog. */
+    /**
+     * Set by the text input's Settings transition so that its `onExit` keeps the annotation selected under the dialog.
+     * Relies on a transition's action running before the exit of the state it leaves, and `onExit` clears it.
+     */
     private keepsSelectionOnTextInputExit = false;
 
     override inheritedProperties() {
@@ -279,11 +282,12 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             ctx.update();
         };
 
+        /** Returns whether the annotation was kept, which it is not when its text is empty. */
         const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: BBox }) => {
             const { datum } = this;
             if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 if (!isTextType(datum)) {
-                    return;
+                    return false;
                 }
 
                 const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
@@ -291,9 +295,11 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 ctx.update();
                 ctx.recordAction(`Change ${datum.type} annotation text`);
+                return true;
             } else {
                 ctx.delete(this.active!);
                 ctx.recordAction(`Delete ${datum?.type} annotation`);
+                return false;
             }
         };
 
@@ -618,9 +624,9 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                         textInputValue?: string;
                         bbox?: BBox;
                     }) => {
-                        actionSaveText(saved);
-                        // Saving empty text deletes the annotation, which leaves nothing to open the dialog on.
-                        if (this.active == null) return;
+                        // Saving empty text deletes the annotation, leaving nothing to open the dialog on, so the
+                        // exit deselects as it does for every other way out.
+                        if (!actionSaveText(saved) || this.active == null) return;
                         this.keepsSelectionOnTextInputExit = true;
                         ctx.showAnnotationSettings(this.active, sourceEvent);
                     },
