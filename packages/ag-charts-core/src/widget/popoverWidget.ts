@@ -1,3 +1,4 @@
+import type { BaseAttributeTypeMap } from '../dom/attributeUtil';
 import { getDocument } from '../dom/globalsProxy';
 import { ContainerWidget } from './containerWidget';
 import { Opener } from './opener';
@@ -5,6 +6,7 @@ import { Widget } from './widget';
 
 export interface PopoverPanelOptions {
     ariaLabel?: string;
+    role?: BaseAttributeTypeMap['role'];
     class?: string;
     minWidth?: number;
 }
@@ -57,6 +59,10 @@ export class PopoverWidget extends Widget<HTMLElement> {
 
         if (options.ariaLabel != null) {
             panel.setAriaLabel(options.ariaLabel);
+        }
+
+        if (options.role != null) {
+            panel.setAriaRole(options.role);
         }
 
         if (options.class != null) {
