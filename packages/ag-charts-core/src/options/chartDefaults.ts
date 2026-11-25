@@ -104,6 +104,7 @@ import {
     required,
     strictUnion,
     string,
+    themeComputed,
     typeUnion,
     undocumented,
     undocumentedDefs,
@@ -745,8 +746,23 @@ function glowItemHighlightDefs<I extends object>(itemHighlightOptionsDef: I) {
     return { highlightedItem: { ...unhighlightedItem, shadow: highlightedItemShadowOptionsDefs }, unhighlightedItem };
 }
 
-/** One entry for each part of the series with the most parts that glow, the three of a waterfall. */
-const HOVER_GLOW_PART_DEFAULTS_DEFS = { part0: boolean, part1: boolean, part2: boolean };
+/** One entry for each part of the series with the most parts that glow, the three of a waterfall; only the theme sets it. */
+const HOVER_GLOW_PART_DEFAULTS_DEFS = themeComputed(
+    HOVER_GLOW_PART_DEFAULTS,
+    attachDescription(
+        (value: unknown, context: ValidatorContext) =>
+            typeof value === 'object' &&
+            value != null &&
+            Object.keys(value).every((part) => {
+                const glows = (value as Record<string, unknown>)[part];
+                return (
+                    ['part0', 'part1', 'part2'].includes(part) &&
+                    (typeof glows === 'boolean' || themeOperator(glows, context))
+                );
+            }),
+        'an object with a boolean for each of part0, part1 and part2 that the series has'
+    )
+);
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {

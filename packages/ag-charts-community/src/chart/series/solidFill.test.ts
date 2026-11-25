@@ -89,10 +89,9 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
         ],
         legend: { item: { marker: { disabledStyle: { ...fill('grey', 0.5) } } } },
         initialState: { active: { activeItem: { type: 'series-node', seriesId: 'b', itemId: 1 } } },
-        // This test compares fills, not glow strength, so the default hover glow is off.
         theme: {
             overrides: {
-                bar: { series: { highlight: { highlightedItem: { ...fill('red', 0.5), glow: { enabled: false } } } } },
+                bar: { series: { highlight: { highlightedItem: fill('red', 0.5) } } },
             },
         },
     }),

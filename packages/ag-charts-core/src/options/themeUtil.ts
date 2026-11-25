@@ -859,9 +859,10 @@ export function withFollowedGlowThemeDefaults<T extends object>(
 
 /**
  * The undocumented `highlight` key that holds, for each part of a series with a `glow` on several parts, keyed by its
- * position among the parts, whether the part's hovered item glows unless its `glow` sets otherwise.
+ * position among the parts, whether the part's hovered item glows unless its `glow` sets otherwise. Only the theme
+ * computes it: the leading underscore marks it as internal, and a value from the user is dropped as an unknown option.
  */
-export const HOVER_GLOW_PART_DEFAULTS = 'hoverGlowDefaults';
+export const HOVER_GLOW_PART_DEFAULTS = '_hoverGlowDefaults';
 
 export const hoverGlowPartKey = (index: number) => `part${index}`;
 
