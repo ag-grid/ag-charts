@@ -282,8 +282,5 @@
   "defaultProject": "all",
   "defaultBase": "latest",
   "cacheDirectory": ".nx/cache",
-  "affected": {
-    "legacy": true
-  },
   "analytics": false
 }
