@@ -804,6 +804,8 @@ const collideWithOptionsDef: OptionsDefs<AgSeriesLabelCollideWithOptions> = {
     labels: boolean,
     seriesArea: boolean,
     axisLabels: boolean,
+    crossLineLabels: boolean,
+    regionLabels: boolean,
 };
 
 export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {

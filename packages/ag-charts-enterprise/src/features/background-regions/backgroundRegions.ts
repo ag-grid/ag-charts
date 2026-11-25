@@ -4,6 +4,7 @@ import {
     CleanupRegistry,
     type DynamicContext,
     Group,
+    type LabelObstacle,
     type ModuleInstance,
     type NormalisedSeriesAreaBackgroundRegion,
     type ResolvedContribution,
@@ -23,6 +24,10 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
     readonly underlay = new Group({ name: 'BackgroundRegions-Region' });
     readonly overlay = new Group({ name: 'BackgroundRegions-Label' });
 
+    readonly id = 'backgroundRegions';
+    readonly usesPlacedLabels = false;
+    nodeDataVersion = 0;
+
     private regions: Region[] = [];
     private lastRegionOptions: NormalisedSeriesAreaBackgroundRegion[] | undefined;
     private readonly cleanup = new CleanupRegistry();
@@ -33,12 +38,14 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
     ) {
         this.cleanup.register(
             ctx.seriesArea.attach(this),
+            () => ctx.labelManager.unregisterSource(this.id, this),
             () => this.detachRegions(),
             ctx.chartState.observe((get) => {
                 const regions = readContributedValue(contributions, 'chart', get('options'));
                 this.applyRegionOptions(regions as NormalisedSeriesAreaBackgroundRegion[] | undefined);
             })
         );
+        ctx.labelManager.registerSource(this);
     }
 
     destroy() {
@@ -57,6 +64,19 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
             instance.update(index);
             index++;
         }
+        this.nodeDataVersion++;
+    }
+
+    getLabelObstacles(seriesRect: BBox): LabelObstacle[] {
+        const obstacles: LabelObstacle[] = [];
+        for (const { instance } of this.regions) {
+            const box = instance.getLabelBox();
+            if (box == null) continue;
+            const { width, height } = box;
+            const local = { x: box.x - seriesRect.x, y: box.y - seriesRect.y, width, height };
+            obstacles.push({ kind: 'rect', box: local, category: 'regionLabel' });
+        }
+        return obstacles;
     }
 
     private applyRegionOptions(options: NormalisedSeriesAreaBackgroundRegion[] | undefined) {

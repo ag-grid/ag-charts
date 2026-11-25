@@ -112,10 +112,6 @@ function bandRoom(
     return availableExtent(anchorAlong(rangeDir, start, size, paddingDiff), labelDir, pad, start, start + size);
 }
 
-export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
-    reserveSpace: boolean;
-};
-
 type NodeData = [number, number];
 /** `rotated` is the band or series-area bound the text was fitted to, if any. */
 type FittedLabel = { text: string; fontSize: number; rotated?: TurnedBounds };
@@ -123,7 +119,7 @@ type FitCache = FittedLabel & { measurer: TextMeasurer; key: string };
 
 const DEFAULT_RANGE_FILL = '#c16068';
 
-export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOptions> {
+export class CartesianCrossLine implements CrossLine<NormalisedAxisCrossLineLabelOptions> {
     static readonly className = 'CrossLine';
     readonly internalId = createId(this);
 
@@ -138,7 +134,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     strokeWidth?: number;
     strokeOpacity?: number;
     lineDash?: number[];
-    label!: CartesianCrossLineLabelOptions;
+    label!: NormalisedAxisCrossLineLabelOptions;
     listeners?: AgCrossLineListeners<unknown>;
 
     scale?: Scale<any, number> = undefined; // TODO: this type does not match the interface
@@ -197,7 +193,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.strokeOpacity = strokeOpacity;
         this.lineDash = lineDash;
         this.listeners = listeners;
-        this.label = { reserveSpace: false, ...options.label };
+        this.label = { ...options.label };
         this.fitted = undefined;
         this.heldFitted = undefined;
         this.anchors = undefined;
@@ -366,7 +362,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     getLabelDatum(seriesRect: BBox): PointLabelDatum | undefined {
         if (this.labelHeld || !this.labelGroup.visible) return;
 
-        const { collision, reserveSpace } = this.label;
+        const { collision } = this.label;
         const keep = this.keepsLabel;
         // Not themed, as the cross-line theme also reaches polar axes; outer labels sit outside the series area.
         const seriesArea = collision?.collideWith?.seriesArea === false;
@@ -412,7 +408,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             placement: undefined,
             alwaysShow: keep ? undefined : false,
             neverDrop: keep,
-            obstacle: keep ? reserveSpace : true,
+            obstacleCategory: 'crossLineLabel',
             avoid,
             threshold: collision?.threshold,
             positionedCandidates,
