@@ -139,7 +139,11 @@ export class AxisInteraction extends AbstractModuleInstance {
         const tickData = axisCtx.getA11YTickData();
         return (
             tickData.length !== axis.a11yTickData.length ||
-            tickData.some((tick, i) => !boxesEqual(tick.focusBounds, axis.a11yTickData[i].focusBounds))
+            tickData.some(
+                (tick, i) =>
+                    !boxesEqual(tick.focusBounds, axis.a11yTickData[i].focusBounds) ||
+                    tick.focusRotation?.angle !== axis.a11yTickData[i].focusRotation?.angle
+            )
         );
     }
 
@@ -624,9 +628,14 @@ export class AxisInteraction extends AbstractModuleInstance {
             return b;
         });
         for (const button of tickButtonList.iterateChildren()) {
-            const tickData = axis.a11yTickData[button.index];
-            button.setTextContent(tickData.ariaLabel);
-            button.setBounds(tickData.focusBounds);
+            const { ariaLabel, focusBounds, focusRotation } = axis.a11yTickData[button.index];
+            button.setTextContent(ariaLabel);
+            button.setBounds(focusBounds);
+            button.setRotation(
+                focusRotation?.angle,
+                (focusRotation?.originX ?? 0) - focusBounds.x,
+                (focusRotation?.originY ?? 0) - focusBounds.y
+            );
         }
     }
 
