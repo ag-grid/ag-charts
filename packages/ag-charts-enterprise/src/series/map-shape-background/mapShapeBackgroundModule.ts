@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_HIERARCHY_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    fillSolidDefaults,
     seriesSelectionTheme,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -38,6 +39,7 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
                     ['gradient', FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS],
                     ['image', FILL_IMAGE_DEFAULTS],
                     ['pattern', FILL_PATTERN_HIERARCHY_DEFAULTS],
+                    ['solid', fillSolidDefaults(FILL_PATTERN_HIERARCHY_DEFAULTS)],
                 ],
             }),
             fillOpacity: 1,
