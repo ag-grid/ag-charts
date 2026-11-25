@@ -431,7 +431,7 @@ export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
 
 /** `itemPadding` for every series that draws labels inside its items, and only those. */
 export const itemPaddingOptionsDef: OptionsDefs<ItemPaddingOptions> = {
-    itemPadding: positiveNumber,
+    itemPadding: number,
 };
 
 export const barHighlightOptionsDef: OptionsDefs<AgBarHighlightStyleOptions> = {

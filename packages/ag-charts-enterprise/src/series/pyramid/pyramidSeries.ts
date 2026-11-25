@@ -36,6 +36,8 @@ import {
     cycledValue,
     fontWithSize,
     isArray,
+    itemContentInset,
+    itemStrokeDepth,
     measureLabelText,
     measureTextSegments,
     mergeDefaults,
@@ -609,6 +611,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (!label.enabled) return labelDatum;
 
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        // A stage is a path, so its stroke is centred on the outline.
+        const itemInset = itemContentInset(
+            itemPadding,
+            itemStrokeDepth(cycledValue(strokes, datumIndex), strokeWidth, true)
+        );
         const measured = measureLabelText(text, label);
         const spanOf = (size: { width: number; height: number }) => (trapezoid.vertical ? size.height : size.width);
         const buildCandidates = (index: number, rect: BoxBounds) =>
@@ -625,7 +633,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
-                itemPadding: this.options.itemPadding,
+                itemPadding: itemInset,
                 shapeAt: (anchor) => trapezoidFitRegion(trapezoid, trapezoid.vertical ? anchor.y : anchor.x),
                 text,
             });

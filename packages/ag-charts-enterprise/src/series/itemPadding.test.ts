@@ -753,6 +753,98 @@ describe('itemPadding', () => {
         });
     });
 
+    describe('stroke', () => {
+        // `depth` is how far the stroke reaches inside the item's geometric edge.
+        const STROKED: { name: string; options: (padding: number, depth: number) => AgChartOptions }[] = [
+            {
+                name: 'bar',
+                options: (padding, depth) =>
+                    cartesian(
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            stroke: 'black',
+                            strokeWidth: depth,
+                            itemPadding: padding,
+                            label: { ...FITTED, formatter: () => LONG_TEXT },
+                        },
+                        // Narrow bars, so the labels fill the room they are given.
+                        Array.from({ length: 8 }, (_, i) => ({ x: `Q${i + 1}`, y: 40 + 10 * (i % 3) }))
+                    ),
+            },
+            {
+                name: 'sunburst',
+                options: (padding, depth) =>
+                    sunburstChart(hierarchy, { strokes: ['black'], strokeWidth: depth, padding }),
+            },
+            {
+                // A marker's stroke is centred on its outline, so only half of it lies inside.
+                name: 'scatter',
+                options: (padding, depth) =>
+                    cartesian(
+                        {
+                            type: 'scatter',
+                            xKey: 'x',
+                            yKey: 'y',
+                            labelKey: 'name',
+                            size: 80,
+                            stroke: 'black',
+                            strokeWidth: 2 * depth,
+                            itemPadding: padding,
+                            label: markerLabel,
+                        },
+                        markerData
+                    ),
+            },
+        ];
+        const MERGES = [
+            { merge: 'flush with a stroke deeper than the padding', padding: 3, depth: 10, inset: 10 },
+            { merge: 'the padding clear of a shallower stroke', padding: 10, depth: 4, inset: 10 },
+            { merge: 'into the stroke by a negative padding', padding: -4, depth: 10, inset: 6 },
+            { merge: 'at the edge for a negative padding past the stroke', padding: -20, depth: 10, inset: 0 },
+        ];
+
+        describe.each(STROKED)('$name', ({ options }) => {
+            it.each(MERGES)('holds labels $merge', async ({ padding, depth, inset }) => {
+                await render(options(padding, depth));
+                expect(drawnLabels(chart!).length).toBeGreaterThan(0);
+                expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), inset)).toEqual([]);
+                await compareImageSnapshot(chart!, ctx);
+            });
+        });
+
+        it('moves a label placed outside a marker clear of its stroke', async () => {
+            const scatter = (strokeWidth: number): AgChartOptions => ({
+                ...cartesian(
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'name',
+                        size: 30,
+                        stroke: 'black',
+                        strokeWidth,
+                        label: { placement: 'top' },
+                    },
+                    markerData
+                ),
+                // Room above every marker, so no label has to give way to the edge.
+                axes: { y: { type: 'number', position: 'left', max: 100 }, x: { type: 'number', position: 'bottom' } },
+            });
+            const bottoms = (target: ChartOrProxy) =>
+                drawnLabels(target).map((label) => {
+                    const { y, height } = label.getTextMeasureBBox();
+                    return Transformable.toCanvasPoint(label, 0, y + height).canvasY;
+                });
+            const unstroked = bottoms(await render(scatter(0)));
+            const stroked = bottoms(await render(scatter(16)));
+            expect(stroked.length).toBe(markerData.length);
+            expect(stroked.map((bottom, i) => unstroked[i] - bottom)).toEqual(markerData.map(() => 8));
+            await compareImageSnapshot(chart!, ctx);
+        });
+    });
+
     describe('image snapshots', () => {
         it.each(['bar', 'pyramid', 'pie', 'scatter', 'heatmap', 'sunburst', 'treemap', 'map-shape'])(
             'draws %s labels held 6px clear of their items',

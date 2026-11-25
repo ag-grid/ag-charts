@@ -42,6 +42,8 @@ import {
     insetItemSpan,
     isPlainObject,
     isPlainResult,
+    itemContentInset,
+    itemStrokeDepth,
     joinFormatted,
     measureLabelText,
     mergeDefaults,
@@ -569,7 +571,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         if (!dataModel || !processedData) return undefined;
 
-        const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.options;
+        const { xKey, xName, yKey, yName, colorKey, colorName, stroke, strokeWidth } = this.options;
+        const itemPadding = itemContentInset(this.options.itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
         const { textAlign, verticalAlign } = this.options.label;
 
         const xScale = xAxis.scale;

@@ -24,6 +24,7 @@ import {
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     lineDashOptionsDef,
+    number,
     positiveNumber,
     ratio,
     required,
@@ -84,7 +85,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     },
     tile: {
         gap: positiveNumber,
-        padding: positiveNumber,
+        padding: number,
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
         glow: glowOptionsDefs,

@@ -38,11 +38,14 @@ import {
     clamp,
     configureColorScale,
     dateToNumber,
+    drawnStrokeWidth,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
     insideMarkerPolicy,
+    itemContentInset,
     itemLabelClearance,
+    itemStrokeDepth,
     lineHeightAtSize,
     markerLabelRect,
     markerShapeAnalysis,
@@ -242,6 +245,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     markerSize?: number;
     /** Marker shape, styled when a `marker.itemStyler` resolves one; labels avoid its outline. */
     markerShape?: AgMarkerShape;
+    markerStrokeWidth?: number;
     markerRestyled?: boolean;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
@@ -308,6 +312,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelPlacement: LabelPlacement;
     readonly labelAnchor: Point;
     readonly labelMarkerShape: AgMarkerShape | undefined;
+    readonly labelMarkerStrokeWidth: number;
     readonly labelInsideOffset: Point | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
     readonly labelTextDomain: any[];
@@ -772,6 +777,7 @@ export abstract class BubbleScatterSeries<
             labelPlacement: placements[0],
             labelAnchor: Marker.anchor(marker.shape),
             labelMarkerShape: marker.shape,
+            labelMarkerStrokeWidth: drawnStrokeWidth(marker.stroke, marker.strokeWidth),
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
             // Truncation container applies only when `inside` is the sole placement; a mixed list
             // measures full text so directional fallbacks aren't constrained to the marker.
@@ -787,7 +793,10 @@ export abstract class BubbleScatterSeries<
                           base: labelFit,
                           threshold: label.collision.threshold ?? 0,
                           masked: true,
-                          clearance: itemLabelClearance(itemPadding, labelPadding),
+                          clearance: itemLabelClearance(
+                              itemContentInset(itemPadding, itemStrokeDepth(marker.stroke, marker.strokeWidth, true)),
+                              labelPadding
+                          ),
                       }
                     : undefined,
             // Keeps the label on a marker too small to hold even an ellipsis.
@@ -1075,6 +1084,7 @@ export abstract class BubbleScatterSeries<
             fit: undefined,
             anchor: ctx.labelAnchor,
             markerShape: ctx.labelMarkerShape,
+            markerStrokeWidth: ctx.labelMarkerStrokeWidth,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
             region: ctx.plotRegion,
@@ -1114,6 +1124,7 @@ export abstract class BubbleScatterSeries<
         // Back to the series marker: a styler stamps its own on afterwards, and a removed one must not linger.
         mutableNode.anchor = ctx.labelAnchor;
         mutableNode.markerShape = ctx.labelMarkerShape;
+        mutableNode.markerStrokeWidth = ctx.labelMarkerStrokeWidth;
         mutableNode.markerSize = undefined;
         mutableNode.markerRestyled = undefined;
         mutableNode.insideOffset = ctx.labelInsideOffset;

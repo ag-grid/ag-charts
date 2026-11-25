@@ -6,12 +6,40 @@ import {
     insetItemRegion,
     insetItemSector,
     insetItemSpan,
+    itemContentInset,
     itemEdgeInset,
     itemLabelClearance,
+    itemStrokeDepth,
 } from './itemPadding';
 
 describe('itemPadding', () => {
     const rect = { x: 10, y: 20, width: 40, height: 200 };
+
+    describe('itemStrokeDepth', () => {
+        it.each([
+            { stroke: 'red', strokeWidth: 4, centred: false, expected: 4 },
+            { stroke: 'red', strokeWidth: 4, centred: true, expected: 2 },
+            { stroke: undefined, strokeWidth: 4, centred: false, expected: 0 },
+            { stroke: '', strokeWidth: 4, centred: true, expected: 0 },
+            { stroke: 'red', strokeWidth: 0, centred: false, expected: 0 },
+            { stroke: 'red', strokeWidth: undefined, centred: false, expected: 0 },
+        ])('reaches $expected in for stroke $stroke at $strokeWidth (centred $centred)', (c) => {
+            expect(itemStrokeDepth(c.stroke, c.strokeWidth, c.centred)).toBe(c.expected);
+        });
+    });
+
+    describe('itemContentInset', () => {
+        it.each([
+            { padding: 3, depth: 5, expected: 5 },
+            { padding: 5, depth: 3, expected: 5 },
+            { padding: -2, depth: 5, expected: 3 },
+            { padding: -8, depth: 5, expected: 0 },
+            { padding: 2, depth: 0, expected: 2 },
+            { padding: -2, depth: 0, expected: 0 },
+        ])('holds a label $expected in at padding $padding over a stroke $depth deep', (c) => {
+            expect(itemContentInset(c.padding, c.depth)).toBe(c.expected);
+        });
+    });
 
     describe('itemEdgeInset', () => {
         it.each([

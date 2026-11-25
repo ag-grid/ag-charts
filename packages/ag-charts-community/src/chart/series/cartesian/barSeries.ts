@@ -48,6 +48,8 @@ import {
     fontWithSize,
     isContinuous,
     isFiniteNumber,
+    itemContentInset,
+    itemStrokeDepth,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -799,7 +801,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             bboxBottom: yScale.convert(0n),
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
-            itemPadding: this.options.itemPadding,
+            itemPadding: itemContentInset(
+                this.options.itemPadding,
+                itemStrokeDepth(this.options.stroke, this.options.strokeWidth, false)
+            ),
             crisp:
                 dataAggregationFilter == null &&
                 (this.options.crisp ??

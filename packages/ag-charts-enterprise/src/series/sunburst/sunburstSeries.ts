@@ -42,6 +42,8 @@ import {
     insetItemSector,
     isFullSweep,
     isGradientFill,
+    itemContentInset,
+    itemStrokeDepth,
     measureLabelText,
     mergeDefaults,
     readDatumKey,
@@ -520,6 +522,8 @@ export class SunburstSeries extends HierarchySeries<
             innerRadiusSize,
             innerCircle,
             padding,
+            strokes,
+            strokeWidth,
         } = this.options;
 
         this.contentGroup.translationX = width / 2;
@@ -644,6 +648,8 @@ export class SunburstSeries extends HierarchySeries<
 
             const innerRadius = hole + depth * radiusScale + innerArcGap(depth, 0);
             const outerRadius = hole + (depth + 1) * radiusScale - outerArcGap(depth, 0);
+            // A sector is drawn inset by half its stroke, so the whole stroke lies inside these edges.
+            const stroke = cycledValue(strokes, node.path?.[0] ?? 0);
             node.ring = insetItemSector(
                 {
                     startAngle,
@@ -659,7 +665,7 @@ export class SunburstSeries extends HierarchySeries<
                     wedge: depth === 0 && hole === 0,
                     centreCircle: depth === 0 && hole === 0 && parent?.sumSize === sumSize,
                 },
-                padding
+                itemContentInset(padding, itemStrokeDepth(stroke, strokeWidth, false))
             );
         });
 

@@ -79,6 +79,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     label?: AgMapShapeSeriesLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
     /**
      * Distance between the shape edges and the text.
+     * A negative value moves the text into the stroke, but never past the edge.
      *
      * Default: `2`
      */

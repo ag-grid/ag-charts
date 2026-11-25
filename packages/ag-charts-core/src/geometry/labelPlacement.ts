@@ -269,6 +269,8 @@ export interface PointLabelDatum {
     readonly markerRestyled?: boolean;
     /** Shape of the marker drawn at {@link point}, whose outline labels avoid; collides as a circle when unset. */
     readonly markerShape?: AgMarkerShape;
+    /** Width of the resting stroke centred on the marker's outline, which labels outside the marker clear. */
+    readonly markerStrokeWidth?: number;
     /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
     readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
@@ -658,6 +660,11 @@ export function applyStyledMarker(
     return datum.markerSize !== previousSize || datum.markerShape !== previousShape;
 }
 
+/** How far a drawn marker's stroke reaches past its outline. */
+function markerStrokeOutset(d: PointLabelDatum): number {
+    return markerSizeOf(d) > 0 ? (d.markerStrokeWidth ?? 0) / 2 : 0;
+}
+
 /** A styled shape the label may trace: none for a marker that is not drawn or a name with no built-in shape. */
 function tracedShape(shape: AgMarkerShape | undefined, size: number): AgMarkerShape | undefined {
     const drawn = size > 0;
@@ -670,8 +677,9 @@ function tracedShape(shape: AgMarkerShape | undefined, size: number): AgMarkerSh
  * configured size, so nothing has to overwrite that baked value and no stale gap can outlive a styler.
  */
 function labelGapOf(d: PointLabelDatum): number {
-    if (d.markerSize == null) return d.gap ?? d.point.size / 2;
-    return d.markerSize > 0 ? d.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
+    const outset = markerStrokeOutset(d);
+    if (d.markerSize == null) return (d.gap ?? d.point.size / 2) + outset;
+    return d.markerSize > 0 ? d.markerSize / 2 + outset : DEFAULT_MARKERLESS_LABEL_GAP;
 }
 
 // Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
@@ -1493,9 +1501,10 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let circleCount = 0;
     for (const [seriesId, { datums }] of data) {
         for (const d of datums) {
-            const size = markerSizeOf(d);
-            if (size <= 0) continue;
+            if (markerSizeOf(d) <= 0) continue;
             markerCentreOf(d);
+            // The obstacle covers the drawn stroke too.
+            const size = markerSizeOf(d) + 2 * markerStrokeOutset(d);
             if (markerCentre.outline == null) {
                 insertCircleObstacle(circleCount++, size, seriesId);
             } else {
@@ -3531,7 +3540,7 @@ function placeAvoidingLabel(
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
-    candidateOwnMarkerR = markerSizeOf(d) / 2;
+    candidateOwnMarkerR = markerSizeOf(d) / 2 + markerStrokeOutset(d);
     // Bar labels carry their own bar rect here so an inside label excludes its own shape; marker series
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;

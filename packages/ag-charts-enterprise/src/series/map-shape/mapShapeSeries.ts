@@ -37,7 +37,9 @@ import {
     hasRealChars,
     insetItemRegion,
     isArray,
+    itemContentInset,
     itemLabelClearance,
+    itemStrokeDepth,
     keptCharacters,
     lineHeightAtSize,
     measureLabelText,
@@ -166,7 +168,7 @@ const CENTRING_STEPS = 3;
 interface LabelFitting {
     fit: LabelFit;
     font: FontOptions;
-    /** Series `padding` plus the drawn label box, kept clear of the shape edge on each side. */
+    /** The shape's content inset plus the drawn label box, kept clear of the shape edge on each side. */
     inset: ItemLabelClearance;
 }
 
@@ -369,8 +371,9 @@ export class MapShapeSeries
     ): LabelLayout | undefined {
         if (labelValue == null || geometry == null) return;
 
-        const { labelKey, padding, label } = this.options;
+        const { labelKey, label } = this.options;
         if (labelKey == null || !label.enabled) return;
+        const padding = this.labelItemInset();
 
         const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
             labelValue,
@@ -505,7 +508,7 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
-        const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), options.padding);
+        const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), this.labelItemInset());
         if (!this.visible) {
             return { itemId: seriesId, nodeData: [], labelData: [], labelTargets: [], labelFitting };
         }
@@ -781,6 +784,12 @@ export class MapShapeSeries
     }
 
     /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
+    /** How far a label is held in from its shape's edge; a shape's stroke is centred on its outline. */
+    private labelItemInset() {
+        const { padding, stroke, strokeWidth } = this.options;
+        return itemContentInset(padding, itemStrokeDepth(stroke, strokeWidth, true));
+    }
+
     private getLabelLayoutFont(): FontOptions {
         const { label } = this.options;
         if (label.itemStyler == null) return label;

@@ -43,6 +43,7 @@ import {
     type Writeable,
     applyStyledMarker,
     cachedTextMeasurer,
+    drawnStrokeWidth,
     extent,
     findMinMax,
     isContinuous,
@@ -188,6 +189,7 @@ interface RangeAreaSeriesNodeDatumContext
     readonly labelMarkerSize: Record<AgRangeAreaSeriesItemType, number>;
     readonly labelAnchor: Record<AgRangeAreaSeriesItemType, Point | undefined>;
     readonly labelMarkerShape: Record<AgRangeAreaSeriesItemType, AgMarkerShape | undefined>;
+    readonly labelMarkerStrokeWidth: Record<AgRangeAreaSeriesItemType, number>;
     readonly labelRegion: BoxBounds | undefined;
 
     // Property caches
@@ -534,6 +536,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             labelMarkerSize: { low: markerSizeOf('low'), high: markerSizeOf('high') },
             labelAnchor: { low: Marker.anchor(item.low.marker.shape), high: Marker.anchor(item.high.marker.shape) },
             labelMarkerShape: { low: item.low.marker.shape, high: item.high.marker.shape },
+            labelMarkerStrokeWidth: {
+                low: drawnStrokeWidth(item.low.marker.stroke, item.low.marker.strokeWidth),
+                high: drawnStrokeWidth(item.high.marker.stroke, item.high.marker.strokeWidth),
+            },
             labelRegion: label.enabled ? this.resolveLabelPlotRegion(label.collision) : undefined,
             animationEnabled,
             canIncrementallyUpdate,
@@ -1036,6 +1042,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             text: measuredLabel.text,
             anchor: ctx.labelAnchor[itemType],
             markerShape: ctx.labelMarkerShape[itemType],
+            markerStrokeWidth: ctx.labelMarkerStrokeWidth[itemType],
             markerDatum,
             region: ctx.labelRegion,
             placements: ctx.labelPlacements[valueSide],

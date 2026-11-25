@@ -46,6 +46,8 @@ import {
     isDate,
     isNumber,
     isNumericValue,
+    itemContentInset,
+    itemStrokeDepth,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -561,7 +563,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             yName,
             label,
             labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
-            itemPadding: this.options.itemPadding,
+            itemPadding: itemContentInset(
+                this.options.itemPadding,
+                itemStrokeDepth(this.options.stroke, this.options.strokeWidth, false)
+            ),
 
             // Animation flag
             animationEnabled: !this.ctx.animationManager.isSkipped(),

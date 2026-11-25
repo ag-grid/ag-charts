@@ -17,7 +17,9 @@ import {
     PointerEvents,
     applyStyledMarker,
     cachedTextMeasurer,
+    drawnStrokeWidth,
     insideMarkerPolicy,
+    itemContentInset,
     itemLabelClearance,
     lineHeightAtSize,
     markerShapeAnalysis,
@@ -59,6 +61,8 @@ export interface PlacedLabelContext extends LabelMeasureContext {
     readonly labelAnchor: Point | undefined;
     /** Marker shape, so labels avoid each marker's outline rather than its nominal circle. */
     readonly labelMarkerShape: AgMarkerShape | undefined;
+    /** Width of the marker's resting stroke, which labels outside the marker clear. */
+    readonly labelMarkerStrokeWidth: number;
     /** The series area a directional label must stay inside, unless it may overflow it. */
     readonly labelRegion: BoxBounds | undefined;
 }
@@ -77,6 +81,7 @@ const DISABLED_LABEL_CONTEXT: MarkerLabelContext = {
     labelInsideSize: undefined,
     labelAnchor: undefined,
     labelMarkerShape: undefined,
+    labelMarkerStrokeWidth: 0,
     labelRegion: undefined,
 };
 
@@ -134,12 +139,15 @@ export abstract class PlacedLabelCartesianSeries<
      * OPTIMIZATION: a disabled label reaches no consumer, so none of its geometry is resolved.
      */
     protected resolveLabelContext(
-        shape: AgMarkerShape | undefined,
+        marker: { readonly shape?: AgMarkerShape; readonly stroke?: unknown; readonly strokeWidth?: number },
         markerSize: number,
         itemPadding: number
     ): MarkerLabelContext {
         const label = this.labelProperty;
         if (!label.enabled) return DISABLED_LABEL_CONTEXT;
+
+        const { shape } = marker;
+        const markerStrokeWidth = markerSize > 0 ? drawnStrokeWidth(marker.stroke, marker.strokeWidth) : 0;
 
         const { collision } = label;
         const {
@@ -154,7 +162,7 @@ export abstract class PlacedLabelCartesianSeries<
                   base: insideFit,
                   threshold: collision.threshold ?? 0,
                   masked: false,
-                  clearance: itemLabelClearance(itemPadding, labelPadding),
+                  clearance: itemLabelClearance(itemContentInset(itemPadding, markerStrokeWidth / 2), labelPadding),
               }
             : undefined;
         return {
@@ -172,6 +180,7 @@ export abstract class PlacedLabelCartesianSeries<
             labelInsideSize,
             labelAnchor: Marker.anchor(shape),
             labelMarkerShape: shape,
+            labelMarkerStrokeWidth: markerStrokeWidth,
             // Inside-only labels ride with their marker, so only directional placements can spill out.
             labelRegion: insideOnly ? undefined : this.resolveLabelPlotRegion(collision),
         };

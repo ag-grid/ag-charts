@@ -47,6 +47,8 @@ import {
     insetItemRect,
     insideBarContainer,
     isContinuous,
+    itemContentInset,
+    itemStrokeDepth,
     labelBoxCentreOffset,
     measureLabelText,
     mergeDefaults,
@@ -435,6 +437,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     // Picked datumIndex is the bucket's midpoint (not an extrema); the helper re-derives
     // the bucket from its xValue, which still falls within the bucket's x-range.
+    private labelItemInset() {
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        return itemContentInset(itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
+    }
+
     protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
         return new _ModuleSupport.BucketLookupManager({
             series: this,
@@ -954,7 +961,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // `spacing` gap on both value ends.
         const barRegion =
             isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insetItemRect(rect, this.options.itemPadding, label.spacing, label.spacing, !barAlongX)
+                ? insetItemRect(rect, this.labelItemInset(), label.spacing, label.spacing, !barAlongX)
                 : undefined;
         // Bind to the bar only when `inside` is the sole placement; a cascade's non-inside fallback
         // can still place a label that fails the inside fit.
@@ -1179,7 +1186,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     plotRegion,
                     fitted: ctx.labelFit != null,
                     text,
-                    itemPadding: this.options.itemPadding,
+                    itemPadding: this.labelItemInset(),
                 });
             };
             bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));

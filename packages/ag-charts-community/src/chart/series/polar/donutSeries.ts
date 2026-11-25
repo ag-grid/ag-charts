@@ -60,6 +60,8 @@ import {
     isFullSweep,
     isGradientFill,
     isStringFillArray,
+    itemContentInset,
+    itemStrokeDepth,
     jsonDiff,
     mergeDefaults,
     modulus,
@@ -1282,13 +1284,21 @@ export class DonutSeries extends PolarSeries<
         return stroke == null ? 0 : strokeWidth / 2;
     }
 
-    /** The wedge a sector label is fitted to and shown in: the sector held `itemPadding` clear of its edges. */
+    /** How far a sector label is held in from its sector's edges; the sector is drawn inset by half its stroke. */
+    private sectorLabelInset({ sectorFormat }: PieDonutNodeDatum) {
+        return itemContentInset(
+            this.options.itemPadding,
+            itemStrokeDepth(sectorFormat.stroke, sectorFormat.strokeWidth, false)
+        );
+    }
+
+    /** The wedge a sector label is fitted to and shown in. */
     private sectorLabelBounds(datum: PieDonutNodeDatum, innerRadius: number) {
         const { startAngle, endAngle, outerRadius } = datum;
         const radialEdgeInset = this.getSideInset(datum, 0);
         return insetItemSector(
             { startAngle, endAngle, innerRadius, outerRadius, radialEdgeInset },
-            this.options.itemPadding
+            this.sectorLabelInset(datum)
         );
     }
 
@@ -2286,7 +2296,6 @@ export class DonutSeries extends PolarSeries<
         sectorLabels.clear();
         if (!sectorLabel.enabled) return;
 
-        const { itemPadding } = this.options;
         const { positionOffset, positionRatio } = sectorLabel;
         const policy = resolveAlwaysLabelFit(sectorLabel);
         const boxedPolicy = { ...policy, boxed: true };
@@ -2311,7 +2320,7 @@ export class DonutSeries extends PolarSeries<
             let fitTarget: PolarFitTarget;
             if (centred) {
                 // A centred single-sector label fits the square inscribed in the pie, like the inner label.
-                const holeExtent = insetItemSpan(2 * outerRadius, itemPadding) * Math.SQRT1_2;
+                const holeExtent = insetItemSpan(2 * outerRadius, this.sectorLabelInset(datum)) * Math.SQRT1_2;
                 fitTarget = { container: { width: holeExtent, height: holeExtent } };
             } else {
                 const sector = this.sectorLabelBounds(datum, innerRadius);

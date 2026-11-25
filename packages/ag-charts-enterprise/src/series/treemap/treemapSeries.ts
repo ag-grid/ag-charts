@@ -51,6 +51,8 @@ import {
     isErased,
     isGradientFill,
     isNumberEqual,
+    itemContentInset,
+    itemStrokeDepth,
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
@@ -1052,7 +1054,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const blocks = labelPairBlocks(primary, secondary);
         const tags = pairTags(primary, secondary);
 
-        const room = insetItemRect(bbox, tile.padding);
+        const stroke = tile.stroke ?? cycledValue(this.options.strokes, node.path?.[0] ?? 0);
+        const room = insetItemRect(
+            bbox,
+            itemContentInset(tile.padding, itemStrokeDepth(stroke, tile.strokeWidth, false))
+        );
         const alwaysShow = blocks.some(({ fit }) => fit.fitOverflow != null);
         const { threshold } = (primary == null ? tile.secondaryLabel : tile.label).collision ?? {};
         return this.placedLabelDatum(node, lead, room, tags, alwaysShow, threshold, {

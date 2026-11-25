@@ -120,6 +120,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     gap?: PixelSize;
     /**
      * Minimum distance between text and the edges of the sectors.
+     * A negative value moves the text into the stroke, but never past the edge.
      *
      * Default: `2`
      */

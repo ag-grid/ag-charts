@@ -5,7 +5,15 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, NormalisedFunnelSeriesOwnOptions, RequireOptional, Selection } from 'ag-charts-core';
-import { ChartAxisDirection, Rect, mergeDefaults, withoutCasts } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    Rect,
+    cycledValue,
+    itemContentInset,
+    itemStrokeDepth,
+    mergeDefaults,
+    withoutCasts,
+} from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -99,8 +107,9 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         };
     }
 
-    protected override labelItemPadding() {
-        return this.options.itemPadding;
+    protected override labelItemInset(datumIndex: number) {
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        return itemContentInset(itemPadding, itemStrokeDepth(cycledValue(strokes, datumIndex), strokeWidth, false));
     }
 
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {

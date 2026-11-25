@@ -138,8 +138,6 @@ export interface FunnelLabelContext {
     plotRegion?: BoxBounds;
     labelFit?: LabelFit;
     boxPadding: Required<PaddingOptions>;
-    /** The `itemPadding` inside labels keep from their stage's edges. */
-    itemPadding: number;
     yDomain: any[];
 }
 
@@ -588,8 +586,8 @@ export abstract class BaseFunnelSeries<
         insideCrossRegion?: BoxBounds;
     };
 
-    /** The `itemPadding` inside labels keep from their item's edges; `0` where a series has no inside labels. */
-    protected labelItemPadding(): number {
+    /** How far inside labels keep from a stage's edges; `0` where a series has no inside labels. */
+    protected labelItemInset(_datumIndex: number): number {
         return 0;
     }
 
@@ -623,7 +621,6 @@ export abstract class BaseFunnelSeries<
             plotRegion: this.resolveLabelPlotRegion(label.collision),
             labelFit,
             boxPadding,
-            itemPadding: this.labelItemPadding(),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -690,7 +687,7 @@ export abstract class BaseFunnelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
-                itemPadding: labelContext.itemPadding,
+                itemPadding: this.labelItemInset(datumIndex),
                 text,
             })
         );

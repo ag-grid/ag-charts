@@ -19,7 +19,7 @@ import {
     labelFitOptionsDefs,
     lineDashOptionsDef,
     multiSeriesGlowHighlightOptionsDef,
-    positiveNumber,
+    number,
     required,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -33,7 +33,7 @@ import {
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
-    padding: positiveNumber,
+    padding: number,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle & AgItemShadowStyle>({
         ...itemStylerCastDefs,
         ...fillOptionsDef,

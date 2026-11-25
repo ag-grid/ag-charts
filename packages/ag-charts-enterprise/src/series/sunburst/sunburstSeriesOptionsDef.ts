@@ -24,6 +24,7 @@ import {
     glowOptionsDefs,
     itemStylerCastDefs,
     labelBoxOptionsDef,
+    number,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -47,7 +48,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     cornerRadius: positiveNumber,
     shadow: shadowOptionsDefs,
     glow: glowOptionsDefs,
-    padding: positiveNumber,
+    padding: number,
     innerRadiusRatio: ratio,
     innerRadiusSize: positiveNumberNonZero,
     innerCircle: {

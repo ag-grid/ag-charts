@@ -143,6 +143,7 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     secondaryLabel?: AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext>;
     /**
      * Distance between the tile edges and the text.
+     * A negative value moves the text into the stroke, but never past the edge.
      *
      * Default: `2`
      */

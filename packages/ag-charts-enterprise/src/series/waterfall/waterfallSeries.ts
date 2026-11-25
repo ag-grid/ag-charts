@@ -45,6 +45,8 @@ import {
     firstCandidate,
     fontWithSize,
     isContinuous,
+    itemContentInset,
+    itemStrokeDepth,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -670,7 +672,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const isPositive = (value ?? 0) >= 0;
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-        const { strokeWidth, label } = this.getItemConfig(seriesItemType);
+        const { stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
+        const itemInset = itemContentInset(this.options.itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
 
         const currY = Math.round(yScale.convert(cumulativeValue));
         const trailY = Math.round(yScale.convert(trailingValue));
@@ -765,7 +768,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                           !barAlongX,
                           label.spacing,
                           expandPlacementLabelBoxExtent(label),
-                          this.options.itemPadding
+                          itemInset
                       )
                     : undefined;
             // The engine refits per orientation since a rotated label measures against the bar's other axis (see barSeries).
@@ -793,7 +796,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     plotRegion,
                     fitted: labelFit != null,
                     text: fittedLabelText,
-                    itemPadding: this.options.itemPadding,
+                    itemPadding: itemInset,
                 });
                 // The first candidate is baked as a backward-safe default until the engine writes the chosen one back.
                 const { anchor, region, placement: granular } = candidates[0];

@@ -5,6 +5,33 @@ import type { BoxBounds } from './boxBounds';
 import { type FitRegion, insetFitRegion } from './fitRegion';
 
 // Every in-item label takes its room from these helpers, so `itemPadding` shrinks the room the same way everywhere.
+// Their `itemPadding` parameters take the inset {@link itemContentInset} merges from the option and the stroke.
+
+/** The width of the stroke an item draws: `0` with no stroke colour. */
+export function drawnStrokeWidth(stroke: unknown, strokeWidth: number | undefined): number {
+    if (stroke == null || stroke === '' || strokeWidth == null || Number.isNaN(strokeWidth) || strokeWidth <= 0) {
+        return 0;
+    }
+    return strokeWidth;
+}
+
+/**
+ * How far an item's drawn stroke reaches in from its geometric edge: all of it for a stroke drawn inside the
+ * edge (rects, tiles and sectors), half of it for one centred on the edge (markers and map shapes).
+ */
+export function itemStrokeDepth(stroke: unknown, strokeWidth: number | undefined, centred: boolean): number {
+    const width = drawnStrokeWidth(stroke, strokeWidth);
+    return centred ? width / 2 : width;
+}
+
+/**
+ * How far an in-item label is held in from its item's geometric edge. A positive `padding` is measured from the
+ * edge and never puts the label over the stroke; a negative one moves the label that far into the stroke, but
+ * never past the edge.
+ */
+export function itemContentInset(padding: number, strokeDepth: number): number {
+    return padding >= 0 ? Math.max(strokeDepth, padding) : Math.max(0, strokeDepth + padding);
+}
 
 /**
  * How far an item edge holds a label off: the larger of `itemPadding` and any gap the edge already reserves,

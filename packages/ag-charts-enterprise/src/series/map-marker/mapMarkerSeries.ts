@@ -28,13 +28,16 @@ import {
     applyStyledMarker,
     configureColorScale,
     datumKeyReader,
+    drawnStrokeWidth,
     findDiscreteColorBinLabel,
     fitLabelText,
     fitLabelTextOrOverflow,
     formatValue,
     insideMarkerPolicy,
     isSupportedMarkerShape,
+    itemContentInset,
     itemLabelClearance,
+    itemStrokeDepth,
     markerShapeAnalysis,
     measureLabelText,
     mergeDefaults,
@@ -440,6 +443,7 @@ export class MapMarkerSeries
             label: { width, height, text: fittedText },
             anchor,
             markerShape: shape,
+            markerStrokeWidth: drawnStrokeWidth(this.options.stroke, this.options.strokeWidth),
             placement,
             // The text is fitted to the shape's inscribed rect, so it is drawn centred on that rect.
             insideOffset: insideAnalysis?.rect.offset,
@@ -452,7 +456,7 @@ export class MapMarkerSeries
 
     // Only an `inside`-only label is bound to its marker, so directional fallbacks stay full-size.
     private resolveLabelInsideMarkerFit(labelStyle: NormalisedChartLabelStyleOptions) {
-        const { label, itemPadding } = this.options;
+        const { label, itemPadding, stroke, strokeWidth } = this.options;
         const placements = toArray(label.placement);
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const base = insideOnly ? resolveLabelFit(label, false, true) : undefined;
@@ -463,7 +467,10 @@ export class MapMarkerSeries
                       base,
                       threshold: label.collision.threshold ?? 0,
                       masked: false,
-                      clearance: itemLabelClearance(itemPadding, expandLabelBoxExtent(labelStyle)),
+                      clearance: itemLabelClearance(
+                          itemContentInset(itemPadding, itemStrokeDepth(stroke, strokeWidth, true)),
+                          expandLabelBoxExtent(labelStyle)
+                      ),
                   };
         if (base != null) this.labelInsideMarkerPolicy.policy = { ...base };
     }
