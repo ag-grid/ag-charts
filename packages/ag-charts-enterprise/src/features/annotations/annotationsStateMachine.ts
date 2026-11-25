@@ -481,7 +481,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 toolbarPressSettings: {
                     guard: guardActiveHasSettings,
-                    action: ({ sourceEvent }: { sourceEvent: Event }) => {
+                    action: ({ sourceEvent }: AnnotationStateEvents['toolbarPressSettings']) => {
                         ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
                 },
@@ -616,14 +616,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 toolbarPressSettings: {
                     guard: guardActiveHasSettings,
                     target: States.Idle,
-                    action: ({
-                        sourceEvent,
-                        ...saved
-                    }: {
-                        sourceEvent: Event;
-                        textInputValue?: string;
-                        bbox?: BBox;
-                    }) => {
+                    action: ({ sourceEvent, ...saved }: AnnotationStateEvents['toolbarPressSettings']) => {
                         // Saving empty text deletes the annotation, leaving nothing to open the dialog on, so the
                         // exit deselects as it does for every other way out.
                         if (!actionSaveText(saved) || this.active == null) return;

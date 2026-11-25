@@ -1807,7 +1807,7 @@ describe('Annotations', () => {
         });
 
         it('saves the text being edited in place and opens the dialog from the options toolbar', async () => {
-            // Every text type, which share one in-place editor but differ in where their anchor is.
+            // Every text type, as each shares the in-place editor but anchors differently.
             const edited = families.slice(0, 4);
             await prepareChart({ annotations: edited.map(({ annotation }) => annotation) });
 
