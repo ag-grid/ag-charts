@@ -1890,6 +1890,23 @@ describe('CartesianAxis', () => {
             await compare('cartesian-axis-label-shifts-edge-label');
         });
 
+        it('shifts the last label inward rather than hiding both end labels when it stays clear of its neighbour', async () => {
+            chart = await createChart({
+                data: [0, 100].map((x) => ({ x, y: x })),
+                axes: {
+                    x: { type: 'number', position: 'bottom', interval: { step: 25 }, label: { fontSize: 30 } },
+                    y: { type: 'number', position: 'right' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            expect(nodes.map(getLabelText)).toEqual(['0', '25', '50', '75', '100']);
+            const last = Transformable.toCanvas(nodes.at(-1)!);
+            const seriesRect = deproxy(chart).seriesRect!;
+            expect(last.x + last.width / 2).toBeLessThan(seriesRect.x + seriesRect.width);
+        });
+
         it('truncates colliding labels at the last rotation before removing any', async () => {
             const departments = Array.from({ length: 12 }, (_, i) => `Department ${i + 1}`);
             chart = await createChart({
@@ -4842,7 +4859,7 @@ describe('CartesianAxis', () => {
             it.each([
                 { name: 'alone', data: stable },
                 { name: 'with a data update', data: moved },
-            ])('hides the edge label that the padding no longer fits ($name)', async ({ data }) => {
+            ])('moves the edge label that the padding no longer fits ($name)', async ({ data }) => {
                 const axes = {
                     ...numberAxes,
                     x: { ...numberAxes.x, label: { fontSize: 40 } },
@@ -4850,14 +4867,14 @@ describe('CartesianAxis', () => {
                 const roomOnRight = { left: 0, right: 80, top: 20, bottom: 20 };
                 const roomOnLeft = { left: 80, right: 0, top: 20, bottom: 20 };
                 chart = await create({ axes, data: stable, padding: roomOnRight });
-                const labelled = () =>
-                    getAxisTickLayout(chart, 'bottom').labels.filter((label) => label.text !== '').length;
-                const before = labelled();
+                const lastLabel = () =>
+                    getAxisTickLayout(chart, 'bottom').labels.findLast((label) => label.text !== '');
+                const before = lastLabel();
 
                 await update({ padding: roomOnLeft, data });
 
                 await expectMatchesFresh({ axes, data, padding: roomOnLeft });
-                expect(labelled()).toBeLessThan(before);
+                expect(lastLabel()).not.toEqual(before);
             });
         });
     });

@@ -32,6 +32,7 @@ import {
     lineHeightAtSize,
     resolveEdgeLabelOverflow,
     resolveTextAlign,
+    tickLabelSpacing,
 } from 'ag-charts-core';
 import type {
     AgAxisTitleOrientation,
@@ -479,21 +480,40 @@ export abstract class CartesianAxis<
                 return { leading: leading + bandEdgeOffset, trailing: trailing + bandEdgeOffset };
             };
             const padding = this.chartLayout?.padding;
-            const lastTick = tickData.ticks.at(-1);
-            const firstTick = tickData.ticks[0];
+            const { ticks } = tickData;
+            const lastTick = ticks.at(-1);
+            const firstTick = ticks[0];
+            const start = range[0] - (padding?.left ?? 0);
+            const end = range[1] + (padding?.right ?? 0);
+            const extentOf = (tick: TickDatum) => {
+                const { leading, trailing } = labelEdges(tick.textMetrics.width);
+                const anchor = tick.translation + (tick.labelShift ?? 0);
+                return [anchor + leading, anchor + trailing];
+            };
+            // An overflowing end label slides back inside while it stays clear of its neighbour, rather than being hidden.
+            const slides = Math.abs(Math.cos(tickGenerationResult.rotation)) > 1 - 1e-6;
+            const spacing = tickLabelSpacing(label.collision.threshold, false);
+            const slideInside = (tick: TickDatum | undefined, neighbour: TickDatum | undefined) => {
+                if (!slides || tick?.tickLabel == null) return;
+                const [min, max] = extentOf(tick);
+                const shift = Math.max(0, start - min) - Math.max(0, max - end);
+                if (shift === 0) return;
+                if (neighbour?.tickLabel != null) {
+                    const [otherMin, otherMax] = extentOf(neighbour);
+                    if (otherMin < max + shift + spacing && otherMax > min + shift - spacing) return;
+                }
+                tick.labelShift = (tick.labelShift ?? 0) + shift;
+            };
+            slideInside(lastTick, ticks.at(-2));
+            // The leading edge can only overflow once the override pushes the label past the start
+            // of the range, so the centre-anchored case has nothing to check.
+            if (alignmentOverride != null) slideInside(firstTick, ticks[1]);
             const { hideFirst, hideLast } = resolveEdgeLabelOverflow({
-                // The leading edge can only overflow once the override pushes the label past the start
-                // of the range, so the centre-anchored case has nothing to check.
                 firstStart:
-                    alignmentOverride != null && firstTick?.tickLabel != null
-                        ? firstTick.translation + labelEdges(firstTick.textMetrics.width).leading
-                        : undefined,
-                lastEnd:
-                    lastTick?.tickLabel == null
-                        ? undefined
-                        : lastTick.translation + labelEdges(lastTick.textMetrics.width).trailing,
-                start: range[0] - (padding?.left ?? 0),
-                end: range[1] + (padding?.right ?? 0),
+                    alignmentOverride != null && firstTick?.tickLabel != null ? extentOf(firstTick)[0] : undefined,
+                lastEnd: lastTick?.tickLabel == null ? undefined : extentOf(lastTick)[1],
+                start,
+                end,
                 pairEnds: visibleRange[0] === 0 && visibleRange[1] === 1,
             });
             if (hideFirst) {
