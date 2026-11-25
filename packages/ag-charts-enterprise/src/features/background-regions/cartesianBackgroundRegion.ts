@@ -162,24 +162,34 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         const { padding, rotation = 0, xOffset = 0, yOffset = 0 } = label;
         const { spacing, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets(label);
+        const boxed = this.labelNode.hasBoxing();
         const anchor = this.getAnchor();
         const sideH = anchor.regionH !== 0 && anchor.labelH === -anchor.regionH;
         const sideV = anchor.regionV !== 0 && anchor.labelV === -anchor.regionV;
-        const room = sideH || sideV ? unzoomedBounds : bounds;
-        const roomX = sideH
-            ? Infinity
-            : anchorRoom(anchor.regionH, anchor.labelH, spacing, room.x1, Vec4.width(room), xPaddingDiff);
-        const roomY = sideV
-            ? Infinity
-            : anchorRoom(anchor.regionV, anchor.labelV, spacing, room.y1, Vec4.height(room), yPaddingDiff);
+        // A boxed label is drawn with its box on the anchor, so its room is measured from there.
+        const axisRoom = (
+            rangeDir: AnchorDirection,
+            labelDir: AnchorDirection,
+            start: number,
+            size: number,
+            diff: number
+        ) => anchorRoom(rangeDir, labelDir, spacing, start, size, boxed ? 0 : diff);
+        const xRoomOf = (room: Bounds4) =>
+            axisRoom(anchor.regionH, anchor.labelH, room.x1, Vec4.width(room), xPaddingDiff);
+        const yRoomOf = (room: Bounds4) =>
+            axisRoom(anchor.regionV, anchor.labelV, room.y1, Vec4.height(room), yPaddingDiff);
+        // Side labels hold the zoomed-out bound through zoom, capped by what is left in view.
+        const side = sideH || sideV;
+        const visibleX = xRoomOf(bounds);
+        const visibleY = yRoomOf(bounds);
+        let roomX = side ? Math.min(xRoomOf(unzoomedBounds), visibleX) : visibleX;
+        let roomY = side ? Math.min(yRoomOf(unzoomedBounds), visibleY) : visibleY;
+        if (sideH || xOffset !== 0) roomX = Infinity;
+        if (sideV || yOffset !== 0) roomY = Infinity;
+        if (roomX === Infinity && roomY === Infinity) return fit;
 
-        const insets = this.labelNode.hasBoxing() ? resolvePadding(padding) : undefined;
-        const turned = turnedRoom(roomX, roomY, rotation, insets);
-        const rotated = freeTurnedRoom(
-            turned,
-            fit.maxWidth != null || xOffset !== 0,
-            fit.maxHeight != null || yOffset !== 0
-        );
+        const turned = turnedRoom(roomX, roomY, rotation, boxed ? resolvePadding(padding) : undefined);
+        const rotated = freeTurnedRoom(turned, fit.maxWidth != null, fit.maxHeight != null);
         return rotated == null ? fit : { ...fit, rotated };
     }
 
