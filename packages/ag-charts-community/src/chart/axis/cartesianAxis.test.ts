@@ -1933,6 +1933,40 @@ describe('CartesianAxis', () => {
             await compare('cartesian-axis-label-truncates-before-removing');
         });
 
+        it('truncates only the labels that collide when clearing their neighbours', async () => {
+            const labels = [
+                'A',
+                'B',
+                'Accountancy',
+                'Administration',
+                'C',
+                'D',
+                'Engineering',
+                'E',
+                'F',
+                'G',
+                'H',
+                'I',
+            ];
+            chart = await createChart({
+                data: labels.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { rotation: [0] } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            const texts = nodes.map(getLabelText);
+            expect(texts.map((text) => text.endsWith('…'))).toEqual(labels.map((_, i) => i === 2 || i === 3));
+            expect(texts.filter((_, i) => i !== 2 && i !== 3)).toEqual(labels.filter((_, i) => i !== 2 && i !== 3));
+            const boxes = nodes.map(getLocalBox);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        });
+
         it('still turns to a later rotation when labels are always shown', async () => {
             const departments = Array.from({ length: 12 }, (_, i) => `Department ${i + 1}`);
             chart = await createChart({

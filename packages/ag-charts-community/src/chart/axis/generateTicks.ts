@@ -174,15 +174,46 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
             return { ...fitted, labelShift };
         });
     };
-    // A label clears the next one along once its text is shorter than their distance apart, seen along the text.
+    const labelBoxes = (ticks: TickDatum[], rotationIndex: number) => {
+        const { rotation, labelRotation, textAlign, textBaseline } = labelFrame(rotationIndex);
+        // Where the band flush will leave each label, rather than where the anchor sits now: rotated
+        // labels of differing size flush by differing amounts, along their own text direction.
+        // The flush is measured off the label nodes, so it needs the rendered rotation - not
+        // `labelRotation`, whose `defaultRotation` is only the frame `createLabelData` compares in.
+        const bandOffsets = labelBandOffsets?.(ticks, configuredRotation + rotation, textAlign, computedBaseline);
+        return createLabelData(
+            ticks,
+            labelOffset,
+            labelAnchorOffset,
+            labelRotation,
+            labelPadding,
+            textBaseline,
+            textAlign,
+            bandOffsets
+        );
+    };
+    // A label clears a colliding neighbour once its text is shorter than their distance apart, seen along the text.
     const clearNeighbours = (ticks: TickDatum[]) => {
         const { rotation } = labelFrame(lastRotationIndex);
         const drawn = configuredRotation + rotation;
         const alongText = Math.abs(options.isVertical ? Math.sin(drawn) : Math.cos(drawn));
-        const maxWidth = minTickGap(ticks) * alongText - spacingAt(rotation) - labelPadding.left - labelPadding.right;
-        if (Number.isNaN(maxWidth) || maxWidth <= 0) return;
+        const spacing = spacingAt(rotation);
+        const maxWidthApart = (a: TickDatum, b: TickDatum) =>
+            Math.abs(b.translation - a.translation) * alongText - spacing - labelPadding.left - labelPadding.right;
+        const labelled = ticks.filter((tick) => tick.tickLabel != null && tick.tickLabel !== '');
+        const boxes = labelBoxes(ticks, lastRotationIndex);
+        const maxWidths = new Map<TickDatum, number>();
+        for (let i = 1; i < labelled.length; i++) {
+            if (countAxisLabelOverlaps([boxes[i - 1], boxes[i]], spacing, 1) === 0) continue;
+            const maxWidth = maxWidthApart(labelled[i - 1], labelled[i]);
+            if (Number.isNaN(maxWidth) || maxWidth <= 0) return;
+            for (const tick of [labelled[i - 1], labelled[i]]) {
+                maxWidths.set(tick, Math.min(maxWidths.get(tick) ?? Infinity, maxWidth));
+            }
+        }
         const cleared: TickDatum[] = [];
         for (let tick of ticks) {
+            const maxWidth = maxWidths.get(tick) ?? Infinity;
             if (!tick.isPrimary && tick.tickLabel != null && tick.textMetrics.width > maxWidth) {
                 const minChars = Math.min(MIN_TRUNCATED_CHARS, keptChars(tick.fitSource ?? tick.tickLabel));
                 tick = fitTickAtRotation(options, tick, rotations[lastRotationIndex], Infinity, undefined, maxWidth);
@@ -219,25 +250,12 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         }
         return fit;
     };
-    const countLabelOverlaps = (ticks: TickDatum[], rotationIndex: number, limit: number, spacing?: number) => {
-        const { rotation, labelRotation, textAlign, textBaseline } = labelFrame(rotationIndex);
-        // Where the band flush will leave each label, rather than where the anchor sits now: rotated
-        // labels of differing size flush by differing amounts, along their own text direction.
-        // The flush is measured off the label nodes, so it needs the rendered rotation - not
-        // `labelRotation`, whose `defaultRotation` is only the frame `createLabelData` compares in.
-        const bandOffsets = labelBandOffsets?.(ticks, configuredRotation + rotation, textAlign, computedBaseline);
-        const labelData = createLabelData(
-            ticks,
-            labelOffset,
-            labelAnchorOffset,
-            labelRotation,
-            labelPadding,
-            textBaseline,
-            textAlign,
-            bandOffsets
+    const countLabelOverlaps = (ticks: TickDatum[], rotationIndex: number, limit: number, spacing?: number) =>
+        countAxisLabelOverlaps(
+            labelBoxes(ticks, rotationIndex),
+            spacing ?? spacingAt(labelFrame(rotationIndex).rotation),
+            limit
         );
-        return countAxisLabelOverlaps(labelData, spacing ?? spacingAt(rotation), limit);
-    };
     const countOverlaps = (candidate: TickData, rotationIndex: number, limit: number) => {
         const { tickData } = fitAt(candidate, rotationIndex);
         const { rotation, labelRotation } = labelFrame(rotationIndex);
@@ -776,14 +794,6 @@ function showEveryNthLabel(ticks: TickDatum[], stride: number) {
         if (!isStridedLabel(tick)) return tick;
         return labelIndex++ % stride === 0 ? tick : { ...tick, tickLabel: undefined };
     });
-}
-
-function minTickGap(ticks: TickDatum[]) {
-    let gap = Infinity;
-    for (let i = 1; i < ticks.length; i++) {
-        gap = Math.min(gap, Math.abs(ticks[i].translation - ticks[i - 1].translation));
-    }
-    return gap;
 }
 
 function textAlignShift(width: number, textAlign: ResolvedTextAlign) {
