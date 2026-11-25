@@ -57,8 +57,7 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
 // Lines
-export interface AgLineAnnotationStyles
-    extends Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+export interface AgLineAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
     /** Configuration for the line text. */
@@ -122,8 +121,7 @@ export interface AgShapeAnnotationStyles extends Writeable, Visible, FillOptions
 }
 
 // Measurers
-export interface AgMeasurerAnnotationStyles
-    extends StrokeOptions, LineOptions, Extendable, Writeable, Visible, SelectionAxes {
+export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Writeable, Visible {
     /** Configuration for the background fill. */
     background?: FillOptions;
     /** Configuration for the drag handles. */
@@ -134,7 +132,7 @@ export interface AgMeasurerAnnotationStyles
     text?: AgLineAnnotationTextStyles;
 }
 
-export interface AgQuickMeasurerAnnotationStyles extends Visible, SelectionAxes {
+export interface AgQuickMeasurerAnnotationStyles extends Visible {
     /** Configuration for the annotation when measuring up the y-axis. */
     up?: AgQuickMeasurerAnnotationDirectionStyles;
     /** Configuration for the annotation when measuring down the y-axis. */
@@ -167,6 +165,16 @@ export interface AgAnnotationMagnet extends Toggleable {
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
+    /**
+     * Configuration for the axis labels shown at the points of an annotation, on both axes. Each annotation shows
+     * them while it is selected, unless `visible` is set. Horizontal and vertical lines have their own axis labels,
+     * which this does not apply to.
+     */
+    axisLabel?: AgAnnotationSelectionAxisLabel;
+    /** Configuration for the labels and shading shown on the x axis, which overrides `axisLabel` for it. */
+    xAxis?: AgAnnotationAxisOptions;
+    /** Configuration for the labels and shading shown on the y axis, which overrides `axisLabel` for it. */
+    yAxis?: AgAnnotationAxisOptions;
     /** Configuration for snapping annotation points to the values of the nearest datum. */
     magnet?: AgAnnotationMagnet;
     /** Configuration for the toolbar for creating annotations. */
@@ -206,7 +214,7 @@ export type AgAnnotation =
 // ********************/
 
 export interface AgLineAnnotation
-    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the trend line annotation.*/
     type: 'line';
     /** Configuration for the drag handles. */
@@ -273,8 +281,7 @@ export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciA
 // * Channel Annotations *
 // ***********************/
 /** Configuration for channel annotation styling. */
-export interface AgChannelAnnotationStyles
-    extends Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+export interface AgChannelAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the channel text. */
@@ -346,7 +353,7 @@ export interface AgTextAnnotation extends AgTextAnnotationStyles, AgAnnotationPo
 // ********************/
 
 export interface AgArrowAnnotation
-    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
@@ -420,8 +427,7 @@ export interface AgQuickDatePriceRangeAnnotation extends AgMeasurerAnnotation {
     down?: AgMeasurerAnnotationDirection;
 }
 
-export interface AgMeasurerAnnotation
-    extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
@@ -458,7 +464,8 @@ export interface AgChannelAnnotationBackground extends FillOptions {}
 /** Configuration for note annotation background. */
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
 
-export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOptions, LineDashOptions, TextOptions {
+/** The styles of an axis label, which the axis labels of lines and of selected annotations share. */
+export interface AgAnnotationAxisLabelStyles extends FillOptions, StrokeOptions, LineDashOptions, TextOptions {
     /** Apply rounded corners to the axis label container. */
     cornerRadius?: PixelSize;
     /**
@@ -472,26 +479,31 @@ export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOp
     padding?: Padding;
 }
 
-/** Configuration for the shading drawn over an axis between the points of the selected annotation. */
-export interface AgAnnotationAxisShading extends Toggleable, FillOptions {}
+export interface AgAnnotationAxisLabel extends Toggleable, AgAnnotationAxisLabelStyles {}
 
-/** Axis labels and shading shown for the points of an annotation while it is selected. */
-interface SelectionAxes {
-    /**
-     * Configuration for the axis labels shown at each of the annotation's points, on both axes, while the annotation is
-     * selected. Unlike the axis label of a horizontal or vertical line, these are not shown when the annotation is not
-     * selected.
-     *
-     * The labels are filled with the annotation's line colour unless `fill` is set.
-     */
-    axisLabel?: AgAnnotationAxisLabel;
-    /**
-     * Configuration for the shading drawn over each axis, between the annotation's outermost points, while the
-     * annotation is selected. It covers the axis ticks and tick labels but not the axis title.
-     *
-     * The shading is filled with the annotation's background, such as a channel's, unless `fill` is set. An annotation
-     * with no background shades with its line colour.
-     */
+/**
+ * When the axis labels or shading of an annotation are shown: `'selected'` while it is selected or being drawn,
+ * `'always'` whether or not it is selected, or `'never'`.
+ */
+export type AgAnnotationAxisVisibility = 'always' | 'never' | 'selected';
+
+/** Configuration for the axis labels shown at the points of annotations. */
+export interface AgAnnotationSelectionAxisLabel extends AgAnnotationAxisLabelStyles {
+    /** When the axis labels are shown. Default: `'selected'` */
+    visible?: AgAnnotationAxisVisibility;
+}
+
+/** Configuration for the shading drawn over an axis between the points of annotations. */
+export interface AgAnnotationAxisShading extends FillOptions {
+    /** When the shading is shown. Default: `'selected'` */
+    visible?: AgAnnotationAxisVisibility;
+}
+
+/** Configuration for the labels and shading that annotations show on one axis. */
+export interface AgAnnotationAxisOptions {
+    /** Configuration for the axis labels. Overrides the `axisLabel` set for all annotations. */
+    axisLabel?: AgAnnotationSelectionAxisLabel;
+    /** Configuration for the shading. */
     axisShading?: AgAnnotationAxisShading;
 }
 

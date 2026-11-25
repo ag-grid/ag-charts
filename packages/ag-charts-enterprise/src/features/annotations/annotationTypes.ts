@@ -2,6 +2,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import type { BBox, Logger, Point } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import type { SelectionAxesStyles } from './annotationFields';
 import type { PointType } from './utils/scale';
 
 export type Constructor<T = object> = new (...args: any[]) => T;
@@ -119,6 +120,8 @@ export interface AnnotationContext {
     seriesRect: BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
+    /** The labels and shading that annotations show on the axes, from the `annotations` options. */
+    selectionAxes: SelectionAxesStyles;
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
     /**

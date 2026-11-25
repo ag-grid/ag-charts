@@ -22,7 +22,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { BandScale, Group, type Node, Text } from 'ag-charts-core';
-import type { AgAnnotationValue, AgHorizontalLineAnnotation } from 'ag-charts-types';
+import type { AgAnnotationValue, AgAnnotationsOptions, AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
     findSceneNodes,
@@ -2446,9 +2446,14 @@ describe('Annotations', () => {
             value: new Date(Date.UTC(2024, 0, 1 + offset)).toISOString().slice(0, 10),
         });
 
-        const withAxes = (xPosition: 'top' | 'bottom' = 'bottom', yPosition: 'left' | 'right' = 'left') =>
+        const withAxes = (
+            xPosition: 'top' | 'bottom' = 'bottom',
+            yPosition: 'left' | 'right' = 'left',
+            annotations: AgAnnotationsOptions = {}
+        ) =>
             ({
                 ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, ...annotations },
                 data: [
                     { x: new Date('2024-01-01'), y: 0 },
                     { x: new Date('2024-04-10'), y: 100 },
@@ -2502,12 +2507,12 @@ describe('Annotations', () => {
         it('draws the shading beneath a cross-line axis label and the selection labels above it', async () => {
             await prepareChart(
                 {
-                    annotations: [
-                        { type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } },
-                        { ...LINE, axisShading: { fillOpacity: 0.5 } },
-                    ],
+                    annotations: [{ type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } }, LINE],
                 },
-                withAxes()
+                withAxes('bottom', 'left', {
+                    xAxis: { axisShading: { fillOpacity: 0.5 } },
+                    yAxis: { axisShading: { fillOpacity: 0.5 } },
+                })
             );
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
@@ -2521,16 +2526,6 @@ describe('Annotations', () => {
             {
                 name: 'a line with a white stroke',
                 annotation: { ...LINE, stroke: '#ffffff' },
-                body: LINE_BODY,
-            },
-            {
-                name: 'a line with the fills set on its axis label and shading',
-                annotation: {
-                    ...LINE,
-                    stroke: RED,
-                    axisLabel: { fill: GREEN },
-                    axisShading: { fill: BLUE, fillOpacity: 0.5 },
-                },
                 body: LINE_BODY,
             },
             {
@@ -2585,16 +2580,69 @@ describe('Annotations', () => {
             await compare();
         });
 
-        it('lets the theme switch off the labels and shading of a selected parallel channel', async () => {
-            const off = { axisLabel: { enabled: false }, axisShading: { enabled: false } };
+        // The options of an axis override the labels set for both, and the fills are the options' own.
+        it('takes the fills of the axis labels and shading from the annotations options, by axis', async () => {
             await prepareChart(
-                { annotations: [PARALLEL_CHANNEL] },
-                { ...withAxes(), theme: { overrides: { common: { annotations: { 'parallel-channel': off } } } } }
+                { annotations: [LINE] },
+                withAxes('bottom', 'left', {
+                    axisLabel: { fill: GREEN, color: 'black' },
+                    xAxis: { axisLabel: { fill: RED }, axisShading: { fill: BLUE, fillOpacity: 0.5 } },
+                    yAxis: { axisShading: { fill: RED, fillOpacity: 0.5 } },
+                })
             );
 
-            await clickDatum(CHANNEL_BODY.x, CHANNEL_BODY.y);
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
 
             await compare();
+        });
+
+        // Whether the labels and shading show depends on `visible`, which each axis can set for itself.
+        it('shows the axis labels and shading as `visible` sets, whether or not the annotation is selected', async () => {
+            const cases: Array<{ annotations: AgAnnotationsOptions; select: boolean }> = [
+                // Unselected labels on the y axis only, and no shading.
+                {
+                    annotations: {
+                        axisLabel: { visible: 'always' },
+                        xAxis: { axisLabel: { visible: 'never' }, axisShading: { visible: 'never' } },
+                        yAxis: { axisShading: { visible: 'never' } },
+                    },
+                    select: false,
+                },
+                // Unselected shading with no labels.
+                {
+                    annotations: {
+                        axisLabel: { visible: 'never' },
+                        xAxis: { axisShading: { visible: 'always' } },
+                        yAxis: { axisShading: { visible: 'always' } },
+                    },
+                    select: false,
+                },
+                // Nothing, though the annotation is selected.
+                {
+                    annotations: {
+                        axisLabel: { visible: 'never' },
+                        xAxis: { axisShading: { visible: 'never' } },
+                        yAxis: { axisShading: { visible: 'never' } },
+                    },
+                    select: true,
+                },
+            ];
+
+            await prepareChart({ annotations: [LINE] }, withAxes('bottom', 'left', cases[0].annotations));
+            await compare();
+
+            // The mock canvas is bound to the first chart, so the others are updates of it.
+            for (const { annotations, select } of cases.slice(1)) {
+                await chart.update(
+                    prepareEnterpriseTestOptions({
+                        ...withAxes('bottom', 'left', annotations),
+                        initialState: undefined,
+                    }) as never
+                );
+                if (select) await clickDatum(LINE_BODY.x, LINE_BODY.y);
+                await waitForChartStability(chart);
+                await compare();
+            }
         });
 
         it('draws one label and no shading along an axis where the handles share a position', async () => {
@@ -2658,17 +2706,6 @@ describe('Annotations', () => {
             await prepareChart({ annotations: [{ type: 'horizontal-line', value: 60 }] }, withAxes());
 
             await clickDatum(50, 60);
-
-            await compare();
-        });
-
-        it.each([
-            ['labels only', { axisShading: { enabled: false } }],
-            ['shading only', { axisLabel: { enabled: false } }],
-        ])('draws the shading and the labels independently of each other: %s', async (_, styles) => {
-            await prepareChart({ annotations: [{ ...LINE, ...styles }] }, withAxes());
-
-            await clickDatum(LINE_BODY.x, LINE_BODY.y);
 
             await compare();
         });

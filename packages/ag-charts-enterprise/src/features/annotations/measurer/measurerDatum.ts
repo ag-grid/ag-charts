@@ -5,13 +5,11 @@ import {
     type HandleDatum,
     type LineStyleFields,
     type LineTextDatum,
-    type SelectionAxesFields,
     type StrokeFields,
     createBackgroundDatum,
     createFontFields,
     createHandleDatum,
     createLineTextDatum,
-    createSelectionAxesFields,
     defineAnnotationDatum,
 } from '../annotationDatum';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -26,7 +24,7 @@ export interface MeasurerDirectionDatum extends FillFields, StrokeFields {
     statistics: MeasurerStatisticsDatum;
 }
 
-export interface MeasurerTypeDatum extends StartEndDatum, StrokeFields, LineStyleFields, SelectionAxesFields {
+export interface MeasurerTypeDatum extends StartEndDatum, StrokeFields, LineStyleFields {
     background: BackgroundDatum;
     statistics: MeasurerStatisticsDatum;
     text: LineTextDatum;
@@ -67,7 +65,6 @@ function createDirectionDatum(): MeasurerDirectionDatum {
 function createMeasurerTypeDatum(): Omit<MeasurerTypeDatum, 'type'> {
     return {
         ...createStartEndDatum(),
-        ...createSelectionAxesFields(),
         background: createBackgroundDatum(),
         statistics: createStatisticsDatum(),
         text: createLineTextDatum(),

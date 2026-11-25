@@ -65,6 +65,7 @@ import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
+import { resolveSelectionAxes } from './utils/selectionAxes';
 import { isEphemeralType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
@@ -159,6 +160,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
+    private selectionAxes = resolveSelectionAxes(undefined);
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
@@ -187,6 +189,7 @@ export class Annotations extends AbstractModuleInstance {
                 const enabled = opts?.enabled ?? false;
 
                 const { toolbar, optionsToolbar, axesButtons, magnet } = opts ?? {};
+                this.selectionAxes = resolveSelectionAxes(opts);
                 this.applyMagnetOptions({ ...DEFAULT_MAGNET, ...magnet });
                 this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
                 this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
@@ -1171,6 +1174,7 @@ export class Annotations extends AbstractModuleInstance {
             logger: ctx.logger,
             localeManager: ctx.localeManager,
             seriesRect,
+            selectionAxes: this.selectionAxes,
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
             magnet: this.magnetOffset,

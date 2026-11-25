@@ -83,7 +83,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     public getAnnotationTypeStyles(
         type: keyof Omit<
             AgAnnotationsThemeableOptions,
-            'axesButtons' | 'enabled' | 'optionsToolbar' | 'toolbar' | 'snap'
+            'axesButtons' | 'axisLabel' | 'enabled' | 'optionsToolbar' | 'toolbar' | 'snap' | 'xAxis' | 'yAxis'
         >
     ) {
         return this.styles?.[type];

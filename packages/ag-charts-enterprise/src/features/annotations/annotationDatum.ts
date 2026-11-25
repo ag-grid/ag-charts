@@ -1,7 +1,14 @@
-import type { FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
+import type { Formatter, TextAlign } from 'ag-charts-community';
 import { FONT_SIZE, generateUUID, isObject } from 'ag-charts-core';
-import type { AgLineDashName, Padding, PixelSize } from 'ag-charts-types';
 
+import type {
+    AxisLabelDatum,
+    AxisLabelFormatterParams,
+    FillFields,
+    FontFields,
+    LineStyleFields,
+    StrokeFields,
+} from './annotationFields';
 import type {
     AnnotationOptionsColorPickerType,
     AnnotationType,
@@ -11,34 +18,22 @@ import type {
     LineTextPosition,
 } from './annotationTypes';
 
+export type {
+    AxisLabelDatum,
+    AxisLabelFormatterParams,
+    FillFields,
+    FontFields,
+    LineStyleFields,
+    SelectionAxesStyles,
+    SelectionAxisLabelStyles,
+    SelectionAxisShadingStyles,
+    SelectionAxisStyles,
+    StrokeFields,
+} from './annotationFields';
+
 /****************
  * Field groups *
  ****************/
-
-export interface FillFields {
-    fill?: string;
-    fillOpacity?: number;
-}
-
-export interface StrokeFields {
-    stroke?: string;
-    strokeOpacity?: number;
-    strokeWidth?: number;
-}
-
-export interface LineStyleFields {
-    lineDash?: PixelSize[] | AgLineDashName;
-    lineDashOffset?: number;
-}
-
-export interface FontFields {
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
-    fontSize: number;
-    fontFamily: string;
-    lineHeight?: number;
-    color?: string;
-}
 
 export interface LabelFields {
     padding?: number;
@@ -51,10 +46,6 @@ export interface ExtendableFields {
     extendEnd?: boolean;
 }
 
-export interface AxisLabelFormatterParams {
-    readonly value: any;
-}
-
 /*****************
  * Nested datums *
  *****************/
@@ -65,30 +56,6 @@ export interface BackgroundDatum extends FillFields {}
 
 export interface ChannelMiddleDatum extends StrokeFields, LineStyleFields {
     visible?: boolean;
-}
-
-export interface AxisLabelDatum extends StrokeFields, LineStyleFields, FillFields, FontFields {
-    enabled?: boolean;
-    cornerRadius: number;
-    textAlign: TextAlign;
-    formatter?: Formatter<AxisLabelFormatterParams>;
-    padding?: Padding;
-}
-
-export interface AxisShadingDatum extends FillFields {
-    enabled?: boolean;
-}
-
-/** The axis labels and shading shown while an annotation with two or more points is selected. */
-export interface SelectionAxesFields {
-    axisLabel: AxisLabelDatum;
-    axisShading: AxisShadingDatum;
-}
-
-/** Whether a datum carries the selection axes, which only the annotations with two or more points do. */
-export function hasSelectionAxes<T extends object>(datum: T): datum is T & SelectionAxesFields {
-    const { axisLabel, axisShading } = datum as Partial<SelectionAxesFields>;
-    return isObject(axisLabel) && isObject(axisShading);
 }
 
 export interface LineTextDatum extends FontFields {
@@ -183,10 +150,6 @@ export function createChannelMiddleDatum(): ChannelMiddleDatum {
 
 export function createAxisLabelDatum(): AxisLabelDatum {
     return { ...createFontFields(), cornerRadius: 2, textAlign: 'center' };
-}
-
-export function createSelectionAxesFields(): SelectionAxesFields {
-    return { axisLabel: createAxisLabelDatum(), axisShading: {} };
 }
 
 export function createLineTextDatum(): LineTextDatum {

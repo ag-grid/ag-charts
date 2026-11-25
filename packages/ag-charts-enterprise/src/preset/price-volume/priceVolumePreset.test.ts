@@ -957,43 +957,36 @@ describe('priceVolumePreset', () => {
         });
     });
 
-    describe('selected annotation axes (AG-12118)', () => {
+    describe('annotation axes (AG-12118)', () => {
         const data = getStockData().slice(0, 40);
         const [start, end] = [
-            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 140 },
-            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 150 },
+            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 130 },
+            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 138 },
         ];
 
-        // The labels and shading take the annotation's own colours, so the theme sets only the white text and the shading
-        // at the opacity of the annotation's background, or of its own when it has no background.
-        it.each<AgAnnotation>([
-            { type: 'line', start, end },
-            { type: 'arrow', start, end },
-            { type: 'parallel-channel', start, end, height: 5 },
-            { type: 'disjoint-channel', start, end, startHeight: 4, endHeight: 8 },
-            { type: 'fibonacci-retracement', start, end },
-            { type: 'date-price-range', start, end },
-        ])('themes the axis labels and shading of a $type without fixing their colour', async (annotation) => {
+        // The theme sets white text on the annotation colour for the labels, and the annotation colour at 0.2 opacity for
+        // the shading.
+        it('themes the axis labels and shading of annotations that are not selected', async () => {
             chart = AgCharts.createFinancialChart(
-                prepareFinancialTestOptions({ data, initialState: { annotations: [annotation] } })
+                prepareFinancialTestOptions({
+                    data,
+                    theme: {
+                        overrides: {
+                            common: {
+                                annotations: {
+                                    axisLabel: { visible: 'always' },
+                                    xAxis: { axisShading: { visible: 'always' } },
+                                    yAxis: { axisShading: { visible: 'always' } },
+                                },
+                            },
+                        },
+                    },
+                    initialState: { annotations: [{ type: 'line', start, end } as AgAnnotation] },
+                })
             );
             await waitForChartStability(chart);
 
-            const state = chart.getState().annotations![0] as AgAnnotation & {
-                stroke?: string;
-                background?: { fillOpacity?: number };
-                axisLabel?: { fill?: string };
-                axisShading?: { fill?: string; fillOpacity?: number };
-            };
-            expect(state).toMatchObject({
-                axisLabel: { enabled: true, color: 'white' },
-                axisShading: { enabled: true },
-            });
-            expect(state.axisLabel?.fill).toBeUndefined();
-            expect(state.axisShading?.fill).toBeUndefined();
-            expect(state.axisShading?.fillOpacity ?? state.background?.fillOpacity).toBe(0.2);
-            // The annotation's colour, which they follow, is the theme's annotation colour and not the default foreground.
-            expect(state.stroke).not.toBe('#181d1f');
+            await compare();
         });
     });
 

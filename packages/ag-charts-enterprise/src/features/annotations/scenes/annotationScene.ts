@@ -2,10 +2,9 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Group, Transformable, ZIndexMap, isObject } from 'ag-charts-core';
 import type { Node, Point } from 'ag-charts-core';
 
-import type { SelectionAxesFields } from '../annotationDatum';
 import type { AnnotationContext } from '../annotationTypes';
 import { Handle } from './handle';
-import { SelectionAxesScene } from './selectionAxesScene';
+import { SelectionAxesScene, isAlways } from './selectionAxesScene';
 
 export abstract class AnnotationScene<D = unknown> extends Group<D> {
     static isCheck(value: unknown, type: string) {
@@ -40,10 +39,11 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
         }
     }
 
-    /** The datum is `undefined` for an annotation that has no selection axes, such as a text annotation. */
-    public updateSelectionAxes(datum: SelectionAxesFields | undefined, context: AnnotationContext) {
+    /** The datum is `undefined` for an annotation that has no selection axes, such as a horizontal line. */
+    public updateSelectionAxes(datum: unknown, context: AnnotationContext) {
         // Runs for every annotation on every pre-render, so the common unselected case returns first.
-        if (!this.selected || !this.visible || !this.axesVisible || datum == null) {
+        const { x, y } = context.selectionAxes;
+        if (!this.visible || !this.axesVisible || datum == null || !(this.selected || isAlways(x) || isAlways(y))) {
             this.selectionAxes?.hide();
             return;
         }
@@ -54,7 +54,8 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
         }
         this.selectionAxes.update({
             points: this.getSelectionPoints(datum, context),
-            styles: datum,
+            styles: context.selectionAxes,
+            selected: this.selected,
             seriesRect: context.seriesRect,
             xAxis: context.xAxis,
             yAxis: context.yAxis,

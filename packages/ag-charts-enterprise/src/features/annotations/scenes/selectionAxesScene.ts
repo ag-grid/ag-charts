@@ -1,7 +1,7 @@
 import { type BBox, ChartAxisDirection, Rect } from 'ag-charts-core';
 import type { Point } from 'ag-charts-core';
 
-import type { AxisLabelDatum, SelectionAxesFields } from '../annotationDatum';
+import type { SelectionAxesStyles, SelectionAxisStyles } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
 import { getGroupingValue } from '../utils/scale';
 import { invert } from '../utils/values';
@@ -12,7 +12,8 @@ type AxisPosition = NonNullable<AnnotationAxisContext['position']>;
 interface UpdateOpts {
     /** Where the annotation's handles are, relative to the series area. */
     points: Point[];
-    styles: SelectionAxesFields;
+    styles: SelectionAxisStyles;
+    selected: boolean;
     seriesRect: BBox;
     context: AnnotationAxisContext;
 }
@@ -29,6 +30,15 @@ function getAxisEdge({ x, y, width, height }: BBox, isX: boolean, position: Axis
     const outward = position === 'top' || position === 'left' ? -1 : 1;
     const [start, size] = isX ? [y, height] : [x, width];
     return { isX, origin: outward > 0 ? start + size : start, outward };
+}
+
+/** Whether the labels or shading of an axis show whether or not the annotation is selected. */
+export function isAlways({ axisLabel, axisShading }: SelectionAxisStyles) {
+    return axisLabel.visible === 'always' || axisShading.visible === 'always';
+}
+
+function isShown(visible: SelectionAxisStyles['axisLabel']['visible'], selected: boolean) {
+    return visible === 'always' || (visible === 'selected' && selected);
 }
 
 /**
@@ -48,7 +58,7 @@ class AxisSelectionOverlay {
         this.shading.visible = false;
     }
 
-    update({ points, styles, seriesRect, context }: UpdateOpts) {
+    update({ points, styles, selected, seriesRect, context }: UpdateOpts) {
         this.attach(context);
 
         const isX = context.direction === ChartAxisDirection.X;
@@ -66,19 +76,20 @@ class AxisSelectionOverlay {
         const positions = [...byPixel.values()];
         const inRange = positions.filter((p) => context.inRange(p));
 
-        this.updateLabels(inRange, styles.axisLabel, seriesRect, context, edge);
-        this.updateShading(positions, length, styles, seriesRect, context, edge);
+        this.updateLabels(inRange, styles.axisLabel, selected, seriesRect, context, edge);
+        this.updateShading(positions, length, styles.axisShading, selected, seriesRect, context, edge);
     }
 
     private updateLabels(
         positions: number[],
-        axisLabel: AxisLabelDatum,
+        axisLabel: SelectionAxisStyles['axisLabel'],
+        selected: boolean,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin }: AxisEdge
     ) {
         const { labels } = this;
-        const enabled = axisLabel.enabled ?? true;
+        const enabled = isShown(axisLabel.visible, selected);
 
         // Labels are pooled: a spare one is hidden rather than removed, and there are at most a handful per axis.
         while (labels.length < positions.length) {
@@ -107,7 +118,8 @@ class AxisSelectionOverlay {
     private updateShading(
         positions: number[],
         length: number,
-        { axisShading }: SelectionAxesFields,
+        axisShading: SelectionAxisStyles['axisShading'],
+        selected: boolean,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin, outward }: AxisEdge
@@ -116,7 +128,7 @@ class AxisSelectionOverlay {
 
         const start = Math.max(0, Math.min(...positions));
         const end = Math.min(length, Math.max(...positions));
-        shading.visible = (axisShading.enabled ?? true) && positions.length >= 2 && end > start;
+        shading.visible = isShown(axisShading.visible, selected) && positions.length >= 2 && end > start;
         if (!shading.visible) return;
 
         // A fixed depth, the axis's ticks and tick labels, so that it does not change with the labels' values.
@@ -174,10 +186,16 @@ export class SelectionAxesScene {
     private readonly x = new AxisSelectionOverlay();
     private readonly y = new AxisSelectionOverlay();
 
-    update(opts: Omit<UpdateOpts, 'context'> & { xAxis: AnnotationAxisContext; yAxis: AnnotationAxisContext }) {
-        const { xAxis, yAxis, ...rest } = opts;
-        this.x.update({ ...rest, context: xAxis });
-        this.y.update({ ...rest, context: yAxis });
+    update(
+        opts: Omit<UpdateOpts, 'context' | 'styles'> & {
+            styles: SelectionAxesStyles;
+            xAxis: AnnotationAxisContext;
+            yAxis: AnnotationAxisContext;
+        }
+    ) {
+        const { xAxis, yAxis, styles, ...rest } = opts;
+        this.x.update({ ...rest, styles: styles.x, context: xAxis });
+        this.y.update({ ...rest, styles: styles.y, context: yAxis });
     }
 
     hide() {

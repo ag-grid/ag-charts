@@ -1,5 +1,6 @@
 import {
     type AgAnnotationAxisLabel,
+    type AgAnnotationAxisLabelStyles,
     type AgAnnotationHandleStyles,
     type AgAnnotationMagnet,
     type AgAnnotationOptionsToolbar,
@@ -51,13 +52,14 @@ const font: WithThemeParams<TextOptions> = {
     fontFamily: { $ref: 'fontFamily' },
 };
 
-const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
+const axisLabelStyles: WithThemeParams<AgAnnotationAxisLabelStyles> = {
     ...font,
-    enabled: true,
     fill: { $ref: 'foregroundColor' },
     fontSize: { $ref: 'fontSize' },
     lineHeight: themeLineHeight('lineHeight'),
 };
+
+const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = { ...axisLabelStyles, enabled: true };
 
 const text = {
     ...font,
@@ -97,16 +99,14 @@ export const QUICK_MEASURER_DIVIDER_THEME = { stroke: '#fff', strokeWidth: 1, st
 
 const background = { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.075 } as const;
 
-// The labels and shading do not follow the annotation's colours, as the axis labels of a horizontal or vertical line.
-export const selectionAxes = (label: WithThemeParams<AgAnnotationAxisLabel>) =>
-    ({
-        axisLabel: { ...label },
-        axisShading: { enabled: true, fill: { $ref: 'foregroundColor' }, fillOpacity: background.fillOpacity },
-    }) as const;
+const axisShading = {
+    visible: 'selected',
+    fill: { $ref: 'foregroundColor' },
+    fillOpacity: background.fillOpacity,
+} as const;
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'foregroundColor' },
     handle: { ...handle },
@@ -121,7 +121,6 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
 
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel),
     background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
@@ -222,7 +221,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -242,14 +240,12 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Channels
     'disjoint-channel': {
         ...stroke,
-        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...channelText },
     },
     'parallel-channel': {
         ...stroke,
-        ...selectionAxes(axisLabel),
         middle: {
             lineDash: [6, 5],
             strokeWidth: 1,
@@ -302,7 +298,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -326,7 +321,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...measurer,
     },
     'quick-date-price-range': {
-        ...selectionAxes(axisLabel),
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },
@@ -359,6 +353,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
     },
 
+    // The labels and shading of an annotation's points do not follow its colours, as a horizontal or vertical line's
+    // axis label does not. The labels are those of a horizontal or vertical line, except for when they show.
+    axisLabel: { ...axisLabelStyles, visible: 'selected' },
+    xAxis: { axisShading: { ...axisShading } },
+    yAxis: { axisShading: { ...axisShading } },
     axesButtons: {},
     magnet: { ...MAGNET_THEME },
     // Toolbars

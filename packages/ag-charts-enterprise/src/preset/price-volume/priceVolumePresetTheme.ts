@@ -15,7 +15,6 @@ import {
     MAGNET_THEME,
     MEASURER_STATISTICS_THEME,
     QUICK_MEASURER_DIVIDER_THEME,
-    selectionAxes,
 } from '../../features/annotations/annotationsTheme';
 
 const stroke: WithThemeParams<StrokeOptions> = {
@@ -44,9 +43,10 @@ const font: WithThemeParams<TextOptions> = {
 
 const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as const;
 
+const axisShading = { ...background } as const;
+
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'annotationColor' },
     handle: { ...handle },
@@ -61,7 +61,6 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
 
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel),
     background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
@@ -72,7 +71,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Lines
     line: {
         ...stroke,
-        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -92,14 +90,12 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Channels
     'disjoint-channel': {
         ...stroke,
-        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
     },
     'parallel-channel': {
         ...stroke,
-        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...lineText },
@@ -148,7 +144,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Shapes
     arrow: {
         ...stroke,
-        ...selectionAxes(axisLabel),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -172,7 +167,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...measurer,
     },
     'quick-date-price-range': {
-        ...selectionAxes(axisLabel),
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },
@@ -204,6 +198,11 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             },
         },
     },
+    // The labels and shading that annotations show at their points use the annotation colour, as the axis labels of
+    // the lines do.
+    axisLabel: { color: 'white', fill: { $ref: 'annotationColor' } },
+    xAxis: { axisShading: { ...axisShading } },
+    yAxis: { axisShading: { ...axisShading } },
     axesButtons: {
         enabled: true,
     },

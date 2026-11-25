@@ -237,6 +237,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private static readonly ANNOTATIONS_OPTIONS_KEYS = [
         'axesButtons',
+        'axisLabel',
         'data',
         'enabled',
         'lastPriceLine',
@@ -244,7 +245,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         'optionsToolbar',
         'snap',
         'toolbar',
+        'xAxis',
         'xKey',
+        'yAxis',
         'volumeKey',
     ];
 
