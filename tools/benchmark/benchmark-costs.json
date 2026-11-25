@@ -44,11 +44,10 @@
         "resize": 44,
         "series-labels-collision": 40,
         "shadow-glow-heatmap": 51,
-        "shadow-root": 288,
+        "shadow-root": 348,
         "shadow-root-glow-gap": 550,
         "shadow-root-series-glow": 486,
         "simple-chart": 48,
-        "simple-sparkline": 444,
-        "theme-defaults": 60
+        "simple-sparkline": 444
     }
 }

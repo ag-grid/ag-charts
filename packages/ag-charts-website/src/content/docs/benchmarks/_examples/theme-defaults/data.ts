@@ -1,1 +1,0 @@
-../../shadowRootData.ts

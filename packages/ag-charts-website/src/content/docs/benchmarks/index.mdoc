@@ -154,6 +154,7 @@ Exercise:
 - Initial load and redraw time of series whose shadows overlap: grouped bars with a shadow `spread`, overlapping areas with marker shadows, and 20 lines of 1,000 markers with shadows.
 - Hover redraw time where the highlighted marker casts a `glow` of its own, above the series, while the other markers keep their shadows.
 - Each is timed with the shadows (and, for the hover case, the glow) off and on.
+- Hover redraw time of bar, scatter and heatmap charts that set none of `highlight`, `glow` or `shadow`, so that the theme defaults decide how the hovered item is drawn.
 
 {% chartExampleRunner title="Shadow Layering" name="shadow-root" type="generated" initialLoadDeferred=true /%}
 
@@ -179,15 +180,6 @@ Exercise:
 - 100 items are timed with no `itemStyler`, with the same `shadow` and `glow` for every item, and with a different `blur` for each item, which costs a blur for each item and so takes far longer.
 
 {% chartExampleRunner title="Item Styler Shadow and Glow" name="item-styler-shadow-glow" type="generated" initialLoadDeferred=true /%}
-
-## Theme Defaults Test
-
-Exercise:
-
-- Hover redraw time of bar, scatter and heatmap charts that set none of `highlight`, `glow` or `shadow`, so that the theme defaults decide how the hovered item and the rest of the chart are drawn.
-- The charts are 4 bar series of 20 categories, 10 scatter series of 5,000 points, and a heatmap of 100 x 100 cells.
-
-{% chartExampleRunner title="Theme Defaults" name="theme-defaults" type="generated" initialLoadDeferred=true /%}
 
 ## Data Selection at Scale
 
