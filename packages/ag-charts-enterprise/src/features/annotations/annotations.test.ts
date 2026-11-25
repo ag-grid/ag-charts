@@ -716,6 +716,16 @@ describe('Annotations', () => {
             height: 400,
         };
 
+        // A horizontal bar series swaps its axes, so the `y` of a point is the category axis.
+        const HORIZONTAL_BAR_OPTIONS: AgCartesianChartOptions = {
+            ...BAR_SERIES_OPTIONS,
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+            axes: {
+                x: { type: 'category', position: 'left' },
+                y: { type: 'number', position: 'bottom' },
+            },
+        };
+
         it('should render vertical line annotations at extreme groupPercentage values', async () => {
             await prepareChart(
                 {
@@ -844,7 +854,6 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // A horizontal bar series swaps its axes, so the `y` of a point is the category axis.
         it('should render and round-trip category `y` values on a horizontal bar chart', async () => {
             const annotations = [
                 { type: 'line', start: { x: 5, y: 'Q1' }, end: { x: 5, y: 'Q3' } },
@@ -857,17 +866,7 @@ describe('Annotations', () => {
                 { type: 'horizontal-line', value: 'Q4' },
             ] as AgAnnotation[];
 
-            await prepareChart(
-                { annotations },
-                {
-                    ...BAR_SERIES_OPTIONS,
-                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
-                    axes: {
-                        x: { type: 'category', position: 'left' },
-                        y: { type: 'number', position: 'bottom' },
-                    },
-                }
-            );
+            await prepareChart({ annotations }, HORIZONTAL_BAR_OPTIONS);
             expectWarningsCalls().toHaveLength(0);
             await compare();
 
@@ -879,22 +878,8 @@ describe('Annotations', () => {
             expectWarningsCalls().toHaveLength(0);
             expect(chart.getState().annotations).toEqual(state);
         });
-    });
 
-    describe('channels on a category y-axis (AG-19435)', () => {
-        const HORIZONTAL_BAR_OPTIONS: AgCartesianChartOptions = {
-            data: ['Q1', 'Q2', 'Q3', 'Q4'].map((category, i) => ({ category, value: 20 * (i + 1) })),
-            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
-            axes: {
-                x: { type: 'category', position: 'left' },
-                y: { type: 'number', position: 'bottom' },
-            },
-            annotations: { enabled: true, toolbar: { enabled: false } },
-            width: 800,
-            height: 400,
-        };
-
-        it('does not draw or select parallel and disjoint channels, and keeps them in the state', async () => {
+        it('does not draw or select parallel and disjoint channels on a category y-axis, and keeps them in the state', async () => {
             const annotations = [
                 { type: 'line', start: { x: 10, y: 'Q1' }, end: { x: 60, y: 'Q1' } },
                 { type: 'parallel-channel', start: { x: 10, y: 'Q2' }, end: { x: 60, y: 'Q2' }, height: 1 },
