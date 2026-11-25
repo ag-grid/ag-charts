@@ -405,6 +405,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const current = { color, opacity, isMultiColor };
         const colorEl = new InputButtonWidget({ label: altTextT }, 'ag-charts-dialog__color-picker-button');
         colorEl.setAriaLabel(altTextT);
+        const paintSwatch = (swatchColor?: string, swatchOpacity?: number, multi?: boolean) => {
+            const hasColor = !multi && swatchColor != null && swatchColor !== '';
+            colorEl.setCSSVariable('--color', hasColor ? toColorWithOpacity(swatchColor, swatchOpacity) : null);
+            colorEl.toggleClass(MULTI_COLOR_CLASS, !!multi);
+        };
         colorEl.setTabIndex(0);
         colorEl.setTitle(altTextT);
         colorEl.addListener('mousedown', ({ sourceEvent }) => {
@@ -453,12 +458,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     }
                     if (cancelled) {
                         // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
-                        const { color: c, opacity: o, isMultiColor: m } = opening;
-                        colorEl.setCSSVariable(
-                            '--color',
-                            !m && c != null && c !== '' ? toColorWithOpacity(c, o) : null
-                        );
-                        colorEl.toggleClass(MULTI_COLOR_CLASS, !!m);
+                        paintSwatch(opening.color, opening.opacity, opening.isMultiColor);
                     }
                     onChangeHide(cancelled);
                 },
@@ -468,11 +468,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             opened = true;
         });
 
-        if (isMultiColor) {
-            colorEl.addClass(MULTI_COLOR_CLASS);
-        } else if (color != null && color !== '') {
-            colorEl.setCSSVariable('--color', toColorWithOpacity(color, opacity));
-        }
+        paintSwatch(color, opacity, isMultiColor);
 
         group.addChild(colorEl);
 

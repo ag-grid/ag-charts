@@ -1911,6 +1911,11 @@ describe('Annotations', () => {
             await waitForChartStability(chart);
         }
 
+        async function openLineSettings() {
+            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
+            await press('button[title="Settings"]');
+        }
+
         it('applies and cancels from the options toolbar', async () => {
             await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 4 }]);
             const swatchBefore = (await press(LINE), toolbarSwatch());
@@ -2107,8 +2112,7 @@ describe('Annotations', () => {
         });
 
         it('applies the dialog before an action of its own, so the action is recorded rather than lost', async () => {
-            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
-            await press('button[title="Settings"]');
+            await openLineSettings();
             await changeStrokeWidth('8');
 
             // The delete is recorded, not lost to the dialog closing.
@@ -2124,8 +2128,7 @@ describe('Annotations', () => {
         });
 
         it('applies the dialog before an undo, which then undoes only the dialog changes', async () => {
-            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
-            await press('button[title="Settings"]');
+            await openLineSettings();
             await changeStrokeWidth('8');
 
             await pressKey(chart, 'z', { ctrlKey: true });
@@ -2142,8 +2145,7 @@ describe('Annotations', () => {
         ] as const)(
             'treats moving the annotation with the dialog open as one of its changes: %s',
             async (_name, button, expected) => {
-                await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
-                await press('button[title="Settings"]');
+                await openLineSettings();
                 expect(isDisabled(DIALOG_APPLY)).toBe(true);
 
                 await pressKey(chart, 'ArrowUp');
@@ -2158,8 +2160,7 @@ describe('Annotations', () => {
         );
 
         it('keeps a colour picked in the dialog when the picker is clicked away from', async () => {
-            await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
-            await press('button[title="Settings"]');
+            await openLineSettings();
             await press('.ag-charts-dialog__color-picker-button');
             await pickColor('#00ff00');
 
