@@ -7,11 +7,14 @@ import {
     canvasImage,
     chartPixelAt,
     compareImageSnapshot,
+    countChartPixels,
     deproxy,
     differingBytes,
     expectSamePixels,
+    expectWarningMessages,
     getSeriesAt,
     getSeriesNodeData,
+    hoverAction,
     hoverDatum,
     hoverNode,
     prepareProcessedOptions,
@@ -25,8 +28,10 @@ import {
 import { HOVER_GLOW_PART_DEFAULTS, Transformable } from 'ag-charts-core';
 
 import { setupEnterpriseModules } from '../setup';
+import { getFlowLinkData, getFlowNodeData, getOrganizationCards } from '../test/enterpriseSeriesAccessors';
 import { RANGE, nodeNamed } from '../test/glowSeriesCases';
 import {
+    FLOW_DATA,
     HIERARCHY_SHADOW_DATA,
     OHLC_DATA,
     WATERFALL_DATA,
@@ -36,6 +41,8 @@ import {
     prepareEnterpriseTestOptions,
 } from '../test/utils';
 import { ukData } from './map-test/ukData';
+import { ukRoadData } from './map-test/ukRoadData';
+import ukRoadTopology from './map-test/ukRoadTopology.json';
 import ukTopology from './map-test/ukTopology.json';
 
 setupEnterpriseModules();
@@ -448,12 +455,45 @@ describe('highlight and glow defaults (Defaults sheet)', () => {
 });
 
 describe('series that are not on the Defaults sheet', () => {
-    it.each(['linear-gauge', 'radial-gauge'])('%s keeps its selection defaults', (type) => {
-        const { selection } = resolve('ag-default', { series: type, options: { value: 5 } });
+    // What each of these resolves to for `highlight`, `selection`, `glow` and `bringToFront`, as it did before the defaults changed.
+    const SELECTION = {
+        enabled: false,
+        containment: 'any',
+        selectedItem: { strokeWidth: 2 },
+        unselectedItem: { opacity: 0.6 },
+        unselectedSeries: { opacity: 0.2 },
+    };
+    const GAUGE = { highlight: { enabled: true, highlightedItem: {}, unhighlightedItem: {} }, selection: SELECTION };
+    const OFF_SHEET = [
+        { type: 'linear-gauge', options: { value: 5 }, expected: GAUGE },
+        { type: 'radial-gauge', options: { value: 5 }, expected: GAUGE },
+        { type: 'map-shape-background', options: {}, expected: { selection: SELECTION }, over: 'map-shape' },
+        { type: 'map-line-background', options: {}, expected: {}, over: 'map-line' },
+    ];
 
-        expect(selection.unselectedItem.opacity).toBe(0.6);
-        expect(selection.unselectedSeries.opacity).toBe(0.2);
-        expect(selection.selectedItem.opacity).toBeUndefined();
+    describe.each(['ag-default', 'ag-default-dark'] as const)('%s theme', (theme) => {
+        it.each(OFF_SHEET)('$type resolves as it did', ({ type, options, expected, over }) => {
+            const resolved = (series: object[]) => {
+                const { processedOptions } = prepareProcessedOptions({
+                    theme,
+                    data: DATA,
+                    ...(type.startsWith('map') ? { topology: ukTopology } : {}),
+                    series,
+                });
+                const [first] = (processedOptions as any).series;
+                return Object.fromEntries(
+                    ['highlight', 'selection', 'glow', 'bringToFront']
+                        .filter((key) => key in first)
+                        .map((key) => [key, first[key]])
+                );
+            };
+
+            expect(resolved([{ type, ...options }])).toEqual(expected);
+            if (over != null) {
+                const foreground = { type: over, data: ukData, idKey: 'name' };
+                expect(resolved([{ type, ...options }, foreground])).toEqual(expected);
+            }
+        });
     });
 });
 
@@ -952,6 +992,47 @@ describe('selected item opacity', () => {
     );
 });
 
+describe('selected item opacity under hover', () => {
+    useChart();
+
+    const PIE_DATA = [
+        { x: 'A', y: 5 },
+        { x: 'B', y: 4 },
+        { x: 'C', y: 3 },
+    ];
+
+    // Each slice fills with a colour that reads pure only at opacity 1, over the white chart.
+    const PIE = {
+        type: 'pie',
+        angleKey: 'y',
+        legendItemKey: 'x',
+        fills: ['#0000ff', '#ff0000', '#00ff00'],
+        strokeWidth: 0,
+    };
+    const BLUE = [0, 0, 255, 255];
+    const GREEN = [0, 255, 0, 255];
+
+    it('keeps a selected slice at full opacity while another slice is hovered', async () => {
+        await create({
+            data: PIE_DATA,
+            selection: { enabled: true },
+            series: [
+                { ...PIE, highlight: { highlightedItem: { glow: { enabled: false } } }, selection: { enabled: true } },
+            ],
+        });
+        const { series } = deproxy(chart!);
+        chart!.setSelection([{ seriesId: series[0].id, itemId: series[0].data!.getItemIdFromIndex(0) }]);
+        await waitForChartStability(chart!);
+        const selectedAtRest = countChartPixels(chart!, BLUE);
+        expect(selectedAtRest, 'the selected slice is drawn').toBeGreaterThan(0);
+
+        await hoverDatum(chart!, 0, 1);
+
+        expect(countChartPixels(chart!, BLUE), 'the selected slice').toBe(selectedAtRest);
+        expect(countChartPixels(chart!, GREEN), 'the other unselected slice dims').toBe(0);
+    });
+});
+
 describe('hover breaking changes', () => {
     useChart();
 
@@ -967,7 +1048,7 @@ describe('hover breaking changes', () => {
             ],
         });
 
-        it('draws no outline on a hovered item', async () => {
+        it('draws no outline or glow on a hovered item', async () => {
             await create(options());
             const unhovered = canvasImage(chart!);
             await hoverDatum(chart!, 0, 1);
@@ -1046,6 +1127,160 @@ describe('hover breaking changes', () => {
     });
 });
 
+/** The box of the pixels that differ from the first (background) pixel of the canvas `image`, which is `width` pixels wide. */
+function inkBox({ data }: { data: Uint8ClampedArray }, width: number) {
+    const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+    for (let i = 0; i < data.length; i += 4) {
+        if ([1, 2, 3].every((c) => data[i + c] === data[c]) && data[i] === data[0]) continue;
+        const x = (i / 4) % width;
+        const y = Math.floor(i / 4 / width);
+        box.left = Math.min(box.left, x);
+        box.top = Math.min(box.top, y);
+        box.right = Math.max(box.right, x);
+        box.bottom = Math.max(box.bottom, y);
+    }
+    return box;
+}
+
+/** How many pixels of `after` differ from `before` inside and outside of `box`. */
+function changedPixels(
+    after: { data: Uint8ClampedArray },
+    before: { data: Uint8ClampedArray },
+    width: number,
+    box: ReturnType<typeof inkBox>
+) {
+    let inside = 0;
+    let outside = 0;
+    for (let i = 0; i < after.data.length; i += 4) {
+        if ([0, 1, 2, 3].every((c) => after.data[i + c] === before.data[i + c])) continue;
+        const x = (i / 4) % width;
+        const y = Math.floor(i / 4 / width);
+        const within = x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
+        if (within) inside++;
+        else outside++;
+    }
+    return { inside, outside };
+}
+
+describe('series with no hover glow', () => {
+    useChart();
+
+    const FLOW = { fromKey: 'from', toKey: 'to', sizeKey: 'size' };
+    const NO_GLOW = { highlightedItem: { glow: { enabled: false } } };
+    const GLOW = { highlightedItem: { glow: { enabled: true } } };
+
+    // A series that glows on hover draws the same with its glow turned off, and differently with it turned on.
+    describe.each([
+        ['sankey nodes', 'sankey', getFlowNodeData],
+        ['sankey links', 'sankey', getFlowLinkData],
+        ['chord nodes', 'chord', getFlowNodeData],
+        ['chord links', 'chord', getFlowLinkData],
+    ] as const)('%s', (_name, type, datumOf) => {
+        it('draws no glow on a hovered item', async () => {
+            const hovered = async (highlight?: object) => {
+                await create({ data: FLOW_DATA, series: [{ type, ...FLOW, highlight }] });
+                await hoverNode(chart!, datumOf(chart!)[0]);
+                return canvasImage(chart!);
+            };
+
+            const byDefault = await hovered();
+            expectSamePixels(byDefault, await hovered(NO_GLOW));
+            expect(differingBytes(byDefault, await hovered(GLOW)), 'a glow that is set draws').toBeGreaterThan(0);
+        });
+    });
+
+    // The hover redraws the line over itself, so it may change the line's own pixels, but a glow would reach past them.
+    it('map-line: draws nothing around a hovered line', async () => {
+        await create({
+            topology: ukRoadTopology,
+            data: ukRoadData.slice(0, 1),
+            series: [{ type: 'map-line', idKey: 'name' }],
+        });
+        const unhovered = canvasImage(chart!);
+        const { width } = deproxy(chart!).ctx.scene.canvas;
+        const ink = inkBox(unhovered, width);
+
+        await hoverDatum(chart!, 0, 0);
+
+        const { inside, outside } = changedPixels(canvasImage(chart!), unhovered, width, ink);
+        expect(inside + outside, 'the hover changes the chart').toBeGreaterThan(0);
+        expect(outside, 'nothing is drawn around the line').toBe(0);
+    });
+
+    // The hover outlines the card, and a glow would reach past the outline.
+    it('organization: draws nothing on a hovered card beyond its outline', async () => {
+        await create({
+            data: [{ id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', parentId: null }],
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' } },
+                },
+            ],
+        });
+        const unhovered = canvasImage(chart!);
+        const [{ node }] = getOrganizationCards(chart!);
+        const card = Transformable.toCanvas(node);
+        const { x, y } = card.computeCenter();
+
+        await hoverAction(x, y)(chart!);
+        await waitForChartStability(chart!);
+
+        const { width } = deproxy(chart!).ctx.scene.canvas;
+        const OUTLINE = 4;
+        const { inside, outside } = changedPixels(canvasImage(chart!), unhovered, width, {
+            left: card.x - OUTLINE,
+            top: card.y - OUTLINE,
+            right: card.x + card.width + OUTLINE,
+            bottom: card.y + card.height + OUTLINE,
+        });
+
+        expect(inside, 'the hover outlines the card').toBeGreaterThan(0);
+        expect(outside, 'nothing is drawn around the card').toBe(0);
+    });
+});
+
+describe('a user-set hover glow default', () => {
+    useChart();
+
+    const FLOW = { fromKey: 'from', toKey: 'to', sizeKey: 'size' };
+    const DEFAULTS = { part0: true, part1: true };
+
+    const hovered = async (options: object = {}) => {
+        await create({ data: FLOW_DATA, series: [{ type: 'sankey', ...FLOW, ...options }] });
+        await hoverNode(chart!, getFlowNodeData(chart!)[0]);
+        return canvasImage(chart!);
+    };
+
+    it.each(['_hoverGlowDefaults', 'hoverGlowDefaults'])(
+        '%s in series options warns and has no effect',
+        async (key) => {
+            const byDefault = await hovered();
+
+            expectSamePixels(await hovered({ highlight: { [key]: DEFAULTS } }), byDefault);
+            expectWarningMessages([`AG Charts - Unknown option \`series[0].highlight.${key}\`, ignoring.`]);
+        }
+    );
+
+    it.each(['_hoverGlowDefaults', 'hoverGlowDefaults'])(
+        '%s in a theme override warns and has no effect',
+        async (key) => {
+            const byDefault = await hovered();
+            const theme = { overrides: { sankey: { series: { highlight: { [key]: DEFAULTS } } } } };
+
+            await create({ theme, data: FLOW_DATA, series: [{ type: 'sankey', ...FLOW }] });
+            await hoverNode(chart!, getFlowNodeData(chart!)[0]);
+
+            expectSamePixels(canvasImage(chart!), byDefault);
+            expectWarningMessages([
+                `AG Charts - Unknown option \`theme.overrides.sankey.series.highlight.${key}\`, ignoring.`,
+            ]);
+        }
+    );
+});
+
 // The look of 14.3.0, set as options. The baselines of these tests are drawn by the base, so a head that draws them
 // differently has changed what the opt-out restores.
 describe('opting out of the defaults', () => {
@@ -1086,6 +1321,59 @@ describe('opting out of the defaults', () => {
         const [first] = deproxy(chart!).series;
         chart!.setSelection([{ seriesId: first.id, itemId: first.data!.getItemIdFromIndex(1) }]);
         await waitForChartStability(chart!);
+        await compareImageSnapshot(chart!, ctx);
+    });
+
+    it('renders a hovered cone-funnel stage with its outline', async () => {
+        await create(
+            {
+                data: [
+                    { stage: 'Visits', value: 100 },
+                    { stage: 'Sign-ups', value: 60 },
+                    { stage: 'Paid', value: 20 },
+                ],
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        highlight: { highlightedItem: { stroke: 'rgba(0, 0, 0, 0.4)', strokeWidth: 2 } },
+                    },
+                ],
+            },
+            {}
+        );
+        await hoverDatum(chart!, 0, 1);
+        await compareImageSnapshot(chart!, ctx);
+    });
+
+    // The dim of the tiles and branches that hovering a leaf leaves, in the options of 14.3.0.
+    const HIERARCHY_OPT_OUT = {
+        highlightedItem: { glow: { enabled: false } },
+        unhighlightedItem: { fillOpacity: 0.6, strokeOpacity: 0.6 },
+        unhighlightedBranch: { opacity: 1, fillOpacity: 0.2, strokeOpacity: 0.2 },
+    };
+
+    it.each([
+        ['sunburst', { highlight: HIERARCHY_OPT_OUT }],
+        [
+            'treemap',
+            {
+                tile: { highlight: HIERARCHY_OPT_OUT },
+                group: {
+                    highlight: {
+                        highlightedItem: { glow: { enabled: false } },
+                        unhighlightedItem: { opacity: 0.2, fillOpacity: 0.2, strokeOpacity: 0.2 },
+                    },
+                },
+            },
+        ],
+    ])('renders a hovered %s leaf with the dim it had', async (type, options) => {
+        await create(
+            { data: HIERARCHY_SHADOW_DATA, series: [{ type, labelKey: 'name', sizeKey: 'size', ...options }] },
+            {}
+        );
+        await hoverNode(chart!, nodeNamed('A1')(chart!));
         await compareImageSnapshot(chart!, ctx);
     });
 });
