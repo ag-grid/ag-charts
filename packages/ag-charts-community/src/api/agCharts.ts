@@ -342,8 +342,7 @@ class AgChartsInternal {
             apiStartTime,
         } = opts;
         let { optionsArgumentIssue: argumentIssue } = opts;
-        // The mode is fixed when the proxy first builds a chart, and every `ChartOptions` after that carries it,
-        // including the one a chart-type change rebuilds from, so no later update or theme can switch it.
+        // Every `ChartOptions` after the first carries the pinned mode, so no later update or theme can switch it.
         const pinnedInjectStyles = proxy?.injectStyles;
         const optionsMetadata =
             pinnedInjectStyles == null
@@ -461,8 +460,7 @@ class AgChartsInternal {
         // A pooled chart keeps its own Logger, so adopt it to keep console output and `warnOnce` dedup unified.
         chartOptions.adopt(chart.ctx);
 
-        // An update asking for another mode has no effect. One that only omits the option resolves to the default, so
-        // is silent unless the mode is `false`, which only a chart option or theme can have set.
+        // Another mode has no effect and warns, unless the update only omits the option (which resolves to `true`).
         if (
             pinnedInjectStyles != null &&
             chartOptions.requestedInjectStyles !== pinnedInjectStyles &&
@@ -646,9 +644,7 @@ class AgChartsInternal {
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    // A chart's context binds its module scope at construction, so pooled charts are keyed by module set too.
-    // So are they by mode: a chart's `injectStyles` is fixed at construction, so a static chart is never reused as an
-    // injecting one.
+    // A chart's module scope and `injectStyles` mode are fixed at construction, so pooled charts are keyed by both.
     private static getPool(
         optionMetadata: ChartInternalOptionMetadata,
         moduleScope: ModuleScope,

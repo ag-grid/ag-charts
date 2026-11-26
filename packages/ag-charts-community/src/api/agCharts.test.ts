@@ -1,6 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type ModuleDefinition, ModuleRegistry, enterpriseRegistry, getDocument } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry, SizeMonitor, enterpriseRegistry, getDocument } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -213,6 +213,8 @@ describe('AgCharts', () => {
     describe('injectStyles', () => {
         const CHANGED = (mode: boolean) =>
             `AG Charts - injectStyles cannot be changed after the chart is created; it stays ${mode}.`;
+        const MISSING_ENTERPRISE =
+            'AG Charts - injectStyles is false, but the AG Charts stylesheet is not loaded. Add ag-charts-enterprise/css/ag-charts-enterprise.css to the page.';
         const GOOGLE_FONTS =
             "AG Charts - loadGoogleFonts has no effect when injectStyles is false. Load the fonts from the page's own stylesheet.";
 
@@ -262,7 +264,7 @@ describe('AgCharts', () => {
         afterEach(() => {
             computedStyleSpy?.mockRestore();
             // Only the warnings these tests assert on are expected; the console mock fails the test on any other.
-            const expected = new Set([CHANGED(true), CHANGED(false), GOOGLE_FONTS]);
+            const expected = new Set([CHANGED(true), CHANGED(false), GOOGLE_FONTS, MISSING_ENTERPRISE]);
             const unexpected = (console.warn as Mock).mock.calls.filter(([message]) => !expected.has(message));
             (console.warn as Mock).mockClear();
             expect(unexpected).toEqual([]);
@@ -410,6 +412,39 @@ describe('AgCharts', () => {
                 expectNoPoolActivityLogs();
                 expect(modeOf(sparkline)).toBe(false);
                 expect(warnCount(CHANGED(false))).toBe(1);
+            });
+        });
+
+        describe('a stylesheet check for a sparkline attached after its updates settled', () => {
+            afterEach(() => {
+                vi.restoreAllMocks();
+            });
+
+            // The enterprise marker is checked by no other test in this file, so the document has no earlier check.
+            it('warns once for a fixed-size chart with no stylesheet', async () => {
+                computedStyleSpy?.mockRestore();
+                enterpriseRegistry.styles = '.enterprise {}';
+                const sizeCallbacks: Array<(size: { width: number; height: number }) => void> = [];
+                vi.spyOn(SizeMonitor.prototype, 'observe').mockImplementation((_el, callback) => {
+                    sizeCallbacks.push(callback as (typeof sizeCallbacks)[number]);
+                });
+                const detached = document.createElement('div');
+                const sparkline = AgCharts.__createSparkline(
+                    sparklineOptions({ injectStyles: false, container: detached })
+                );
+                chart = sparkline as AgChartInstance<any>;
+                await sparkline.waitForUpdate();
+                expect(warnCount(MISSING_ENTERPRISE)).toBe(0);
+
+                // Nothing updates the chart after this attach: its size is fixed, so `parentResize` returns early.
+                document.body.append(detached);
+                for (const onSize of sizeCallbacks) onSize({ width: 200, height: 50 });
+                await sparkline.waitForUpdate();
+                await waitForChartStability(chart);
+
+                expect(warnCount(MISSING_ENTERPRISE)).toBe(1);
+                detached.remove();
+                enterpriseRegistry.styles = undefined;
             });
         });
 

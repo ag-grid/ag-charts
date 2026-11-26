@@ -191,10 +191,7 @@ export interface ChartInternalOptionMetadata {
     presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'quadrant' | 'volume-profile';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
-    /**
-     * The `injectStyles` mode the chart's proxy pinned on creation, carried into every later `ChartOptions` so that a
-     * chart rebuilt on a chart-type change keeps it. Unset until the proxy exists.
-     */
+    /** The mode the proxy pinned on creation, so a chart rebuilt on a chart-type change keeps it. */
     injectStyles?: boolean;
     withDragInterpretation?: boolean;
     /** Modules registered for this chart only, additive over the global registry. */

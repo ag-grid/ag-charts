@@ -1910,7 +1910,7 @@ describe('DOMManager', () => {
                     ...zeroPaddingComputedStyle(),
                     getPropertyValue: (name: string) => markers[name] ?? '',
                 }));
-                const create = (connected = true) => {
+                const create = (connected = true, mode?: 'minimal') => {
                     const container = rootDocument.createElement('div');
                     if (connected) rootDocument.body.append(container);
                     const dm = new DOMManager(
@@ -1920,14 +1920,14 @@ describe('DOMManager', () => {
                         container,
                         undefined,
                         skipCss,
-                        undefined,
+                        mode,
                         undefined,
                         { logger, version: TEST_VERSION }
                     );
                     return { dm, container };
                 };
                 const settle = () => hub.emit('update:settled', {} as never);
-                return { rootDocument, markers, warn, getComputedStyle, create, settle };
+                return { rootDocument, markers, warn, getComputedStyle, create, settle, hub };
             };
 
             afterEach(() => {
@@ -2036,6 +2036,69 @@ describe('DOMManager', () => {
 
                 expect(warn).toHaveBeenCalledTimes(1);
                 expect(rootDocument.querySelectorAll('style')).toHaveLength(0);
+            });
+
+            // Wherever the check first sees a connected container, a missing stylesheet ends in one warning. Some of these
+            // charts get no further update on their own (fixed-size sparklines), so the check asks for the re-check.
+            describe.each<[string, (s: ReturnType<typeof setup>) => void | Promise<void>]>([
+                [
+                    'the flush',
+                    ({ rootDocument, create }) => {
+                        const { dm, container } = create(false);
+                        rootDocument.body.append(container);
+                        dm.setDeferring(false);
+                        vi.runAllTimers();
+                    },
+                ],
+                [
+                    'the attach observer',
+                    async ({ rootDocument, create }) => {
+                        const { container } = create(false);
+                        rootDocument.body.append(container);
+                        await Promise.resolve();
+                    },
+                ],
+                [
+                    'the container size callback',
+                    ({ rootDocument, create }) => {
+                        let onSize: ((size: { width: number; height: number }) => void) | undefined;
+                        vi.spyOn(SizeMonitor.prototype, 'observe').mockImplementation((_el, callback) => {
+                            onSize = callback as typeof onSize;
+                        });
+                        const { dm, container } = create(false, 'minimal');
+                        flushManager(dm);
+                        rootDocument.body.append(container);
+                        onSize?.({ width: 300, height: 300 });
+                    },
+                ],
+                [
+                    'a move into a connected container',
+                    ({ rootDocument, create }) => {
+                        const { dm } = create(false);
+                        const next = rootDocument.createElement('div');
+                        rootDocument.body.append(next);
+                        dm.setContainer(next);
+                        dm.updateContainer();
+                    },
+                ],
+            ])('when it first sees a connected container in %s', (_name, reach) => {
+                beforeEach(() => vi.useFakeTimers());
+                afterEach(() => vi.useRealTimers());
+
+                it('requests the re-check and warns once', async () => {
+                    const context = setup({});
+                    const refresh = vi.fn();
+                    context.hub.on('chart:request-refresh', refresh);
+
+                    await reach(context);
+                    expect(context.warn).not.toHaveBeenCalled();
+                    expect(refresh).toHaveBeenCalledTimes(1);
+
+                    context.settle();
+                    context.settle();
+                    expect(context.warn).toHaveBeenCalledTimes(1);
+                    expect(context.rootDocument.querySelectorAll('style')).toHaveLength(0);
+                });
             });
 
             it('hands the root to another chart when the chart waiting on it is destroyed', () => {

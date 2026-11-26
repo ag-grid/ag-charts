@@ -93,11 +93,7 @@ function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (inters
 // Static mode registers a watched colour once per window, however many charts or moves ask for it.
 const registeredColorProperties = new WeakMap<Window, Set<string>>();
 
-/**
- * Registers `property` as a typed `<color>` on `window`, so that a change to it transitions and the sensor sees it,
- * without the `@property` `<style>` that a policy forbidding injected styles would block. Does nothing where
- * `CSS.registerProperty` is missing (jsdom, SSR).
- */
+/** Registers `property` as a typed `<color>` on `window` in place of an `@property` `<style>`; no-op without the API. */
 function registerColorProperty(window: Window, property: string, logger: Logger) {
     const css = (window as { CSS?: { registerProperty?: (definition: PropertyDefinition) => void } }).CSS;
     if (typeof css?.registerProperty !== 'function') return;
@@ -122,8 +118,7 @@ function registerColorProperty(window: Window, property: string, logger: Logger)
 
 type StylesheetCheck = { phase: 'pending'; owner: DOMManager } | { phase: 'settled' };
 const staleStylesheetWarnings = new WeakSet<Node>();
-// Per root (the owning `Document` or `ShadowRoot`) and per marker, so that a page of charts is checked, and warned
-// about, once.
+// Per root (`Document` or `ShadowRoot`) and marker, so a page of charts is checked and warned about once.
 const stylesheetChecks = new WeakMap<Node, Map<string, StylesheetCheck>>();
 
 type LiveDOMElement = {
@@ -271,10 +266,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         private readonly skipCss?: boolean,
         readonly mode: 'normal' | 'minimal' = 'normal',
         readonly cssVariables?: Record<string, string>,
-        /**
-         * Set for `injectStyles: false`: the chart never creates a `<style>` element, and `styleNonce` and
-         * `styleContainer` are ignored. The page supplies the stylesheet, which is checked for once attached.
-         */
+        /** Set for `injectStyles: false`: no `<style>` is ever created, and `styleNonce` and `styleContainer` are ignored. */
         private readonly staticStyles?: { logger: Logger; version: string }
     ) {
         super();
@@ -1267,11 +1259,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
     }
 
-    /**
-     * Static mode only. Checks once per root, once the wrapper is in a connected tree, that the stylesheet the page
-     * was meant to link is present, and again after the next update settles in case it was still loading. It never
-     * switches injection on: a missing stylesheet is only reported.
-     */
+    /** Static mode: warns once per root if the page's stylesheet is missing; never injects it. Re-checks on `update:settled`. */
     private checkStylesheet() {
         const { staticStyles, container } = this;
         if (staticStyles == null || this.skipCss || container?.isConnected !== true) return;
@@ -1309,10 +1297,16 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             }
         });
         this.cleanup.register(stopWaiting);
+        // A chart attached after its updates settled gets no further update, so ask for the one that re-checks.
+        this.eventsHub.emit('chart:request-refresh', null);
     }
 
     /** One `getComputedStyle` read: whether the marker is set, and the version warning when the stylesheet is stale. */
-    private readStylesheetMarkers(root: Node, marker: string, { logger, version }: { logger: Logger; version: string }): boolean {
+    private readStylesheetMarkers(
+        root: Node,
+        marker: string,
+        { logger, version }: { logger: Logger; version: string }
+    ): boolean {
         const computed = this.agDocument.getComputedStyle(this.element);
         if (computed.getPropertyValue(marker).trim() === '') return false;
 
