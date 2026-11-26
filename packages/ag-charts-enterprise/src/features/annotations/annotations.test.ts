@@ -2895,8 +2895,8 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The depth is that of the axis's ticks and tick labels, or of the axis labels if they are deeper, and it only
-        // grows while the annotation is selected. Following the labels as drawn made it flicker as a handle was dragged.
+        // The depth is that of the axis's ticks and tick labels, or of the axis labels if they are deeper. It and the
+        // width of the labels only grow while the annotation is selected, as following the text made them flicker.
         it('shades the axes to a depth that covers the axis labels, and does not shrink as a handle is dragged', async () => {
             const { axes, ...options } = withAxes();
             await prepareChart(
@@ -2921,20 +2921,27 @@ describe('Annotations', () => {
                 visibleAxisLabels().map(
                     (group) => [...(group as Group).children()].find((c) => c instanceof Rect) as any
                 );
+            const { x: left, y: top, width, height } = getSeriesRect(chart);
+            const yLabelWidths = () =>
+                rects()
+                    .filter((r) => r.x + r.width / 2 < left)
+                    .map((r) => r.width as number);
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
             expect(shading()).toHaveLength(2);
             await compare();
 
             // Dragging the end handle from 75 labels it with values of many digits, such as 43.2171.
-            const { x: left, y: top, width, height } = getSeriesRect(chart);
             const end = { x: left + width * 0.8, y: top + height * 0.25 };
             await mouseDownAction(end.x, end.y)(chart);
             const depths = [yDepth()];
+            const labelWidths = [yLabelWidths()];
             for (const dy of [7, 33, 61, 12, 90]) {
                 await hoverAction(end.x, end.y + dy)(chart);
                 await waitForChartStability(chart);
                 depths.push(yDepth());
+
+                labelWidths.push(yLabelWidths());
 
                 // The labels of the y axis lie left of the series area, and fit within its shading.
                 for (const rect of rects().filter((r) => r.x + r.width / 2 < left)) {
@@ -2945,6 +2952,13 @@ describe('Annotations', () => {
 
             expect(depths.every((depth, i) => i === 0 || depth >= depths[i - 1])).toBe(true);
             expect(depths.at(-1)).toBeGreaterThan(depths[0]);
+
+            // Each label is no narrower than it was, and the one that is dragged is wider for its longer text.
+            expect(labelWidths.every((widths) => widths.length === 2)).toBe(true);
+            for (const [i, widths] of labelWidths.entries()) {
+                expect(i === 0 || widths.every((w, j) => w >= labelWidths[i - 1][j])).toBe(true);
+            }
+            expect(Math.max(...labelWidths.at(-1)!)).toBeGreaterThan(Math.max(...labelWidths[0]));
             await compare();
         });
 

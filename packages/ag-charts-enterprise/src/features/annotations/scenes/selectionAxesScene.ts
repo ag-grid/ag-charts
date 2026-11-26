@@ -145,7 +145,10 @@ class AxisSelectionOverlay {
         for (const [index, label] of labels.entries()) {
             const p = positions[index];
             label.visible = enabled && p != null;
-            if (!label.visible) continue;
+            if (!label.visible) {
+                label.resetWidth();
+                continue;
+            }
 
             label.update({
                 x: isX ? seriesRect.x + p : origin,
@@ -153,6 +156,7 @@ class AxisSelectionOverlay {
                 value: getGroupingValue(invert(p, context)),
                 styles: axisLabel,
                 context,
+                holdWidth: true,
             });
         }
     }
@@ -194,6 +198,7 @@ class AxisSelectionOverlay {
         this.shading.visible = false;
         for (const label of this.labels) {
             label.visible = false;
+            label.resetWidth();
         }
     }
 

@@ -19,6 +19,8 @@ type UpdateOpts = {
     value: any;
     styles: AxisLabelDatum;
     context: AnnotationAxisContext;
+    /** Keeps the container as wide as it has been, rather than resizing it to fit each text. */
+    holdWidth?: boolean;
 };
 
 export class AxisLabelScene extends Group {
@@ -26,6 +28,7 @@ export class AxisLabelScene extends Group {
 
     private readonly label = new Text({ zIndex: 1 });
     private readonly rect = new Rect();
+    private width = 0;
 
     constructor() {
         super({ name: 'AnnotationAxisLabelGroup' });
@@ -45,6 +48,10 @@ export class AxisLabelScene extends Group {
         this.updateLabel(opts);
         this.updateRect(opts);
         this.updatePosition(opts);
+    }
+
+    resetWidth() {
+        this.width = 0;
     }
 
     /** How far the label's container reaches from the axis edge it was placed against, across the axis. */
@@ -91,11 +98,17 @@ export class AxisLabelScene extends Group {
         rect.cornerRadius = cornerRadius ?? 0;
     }
 
-    private updatePosition({ x, y, context, styles: { padding } }: UpdateOpts) {
+    private updatePosition({ x, y, context, holdWidth, styles: { padding } }: UpdateOpts) {
         const { label, rect } = this;
 
         const labelBBox = label.getBBox()?.clone();
         const { top, right, bottom, left } = normaliseAxisLabelPadding(padding);
+
+        // Text of a different width would otherwise resize the container as a handle is dragged, which flickers.
+        if (holdWidth) {
+            this.width = Math.max(this.width, labelBBox.width + left + right);
+            labelBBox.width = this.width - left - right;
+        }
 
         const { xTranslation, yTranslation } = calculateLabelTranslation({
             yDirection: true,
