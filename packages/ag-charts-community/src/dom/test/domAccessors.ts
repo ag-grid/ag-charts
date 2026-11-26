@@ -10,6 +10,7 @@ interface DOMManagerInternals {
     sizeMonitor: SizeMonitor;
     deferredProxies: Map<string, unknown>;
     updateContainerSize(): void;
+    flushDeferredProxies(): void;
 }
 
 interface DOMManagerStatics {
@@ -71,4 +72,9 @@ export function zeroPaddingComputedStyle(): CSSStyleDeclaration {
         paddingTop: '0px',
         paddingBottom: '0px',
     } as unknown as CSSStyleDeclaration;
+}
+
+/** Runs the flush a deferred-proxy timer would, which places the styles of a container attached since creation. */
+export function flushManager(dm: DOMManager): void {
+    internalsOf(dm).flushDeferredProxies();
 }

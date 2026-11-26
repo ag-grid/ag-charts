@@ -191,6 +191,11 @@ export interface ChartInternalOptionMetadata {
     presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'quadrant' | 'volume-profile';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
+    /**
+     * The `injectStyles` mode the chart's proxy pinned on creation, carried into every later `ChartOptions` so that a
+     * chart rebuilt on a chart-type change keeps it. Unset until the proxy exists.
+     */
+    injectStyles?: boolean;
     withDragInterpretation?: boolean;
     /** Modules registered for this chart only, additive over the global registry. */
     modules?: AgChartModule[];
@@ -338,6 +343,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     /** The subscriber this pass reported through: the chart's own, or a provisional stand-in. */
     validations: ChartValidations;
+
+    /** What the options resolve to: the chart option, else the theme's, else `true`. */
+    get requestedInjectStyles(): boolean {
+        return (this.processedOptions as { injectStyles?: boolean }).injectStyles !== false;
+    }
+
+    /** The mode a chart built from these options uses: the proxy's pinned one, else the one the options resolve to. */
+    get injectStyles(): boolean {
+        return this.optionMetadata.injectStyles ?? this.requestedInjectStyles;
+    }
 
     private static readonly debug = Debug.create(true, 'opts');
 

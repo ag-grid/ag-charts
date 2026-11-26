@@ -3,6 +3,7 @@ import type { AgBasePresetOptions } from 'ag-charts-types';
 
 export const basePresetOptionsDefs: OptionsDefs<AgBasePresetOptions> = {
     border: defined,
+    injectStyles: boolean,
     keyboard: defined,
     loadGoogleFonts: boolean,
     styleNonce: string,

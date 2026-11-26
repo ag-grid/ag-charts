@@ -87,6 +87,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
     releaseChart?: () => void;
     licenseManager?: LicenseManager;
+    /** The `injectStyles` mode of the first chart, kept for the life of the proxy; see `ChartInternalOptionMetadata`. */
+    injectStyles?: boolean;
 
     constructor(
         chart: Chart,
@@ -323,7 +325,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
 
         const specialOverrides = { ...chart.chartOptions.specialOverrides };
-        const optionsMetadata = { ...chart.chartOptions.optionMetadata };
+        const optionsMetadata = {
+            ...chart.chartOptions.optionMetadata,
+            // The detached clone renders in the mode of the chart it copies.
+            injectStyles: chart.ctx.domManager.injectStyles,
+        };
 
         const data = await this.chart?.ctx.dataService.getData();
 

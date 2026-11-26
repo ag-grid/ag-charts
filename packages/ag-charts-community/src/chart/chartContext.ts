@@ -53,6 +53,8 @@ export interface ChartContextVars {
     agDocument: AgDocument;
     styleContainer?: HTMLElement;
     styleNonce?: string;
+    /** `false` for static mode: no `<style>` element is ever created. */
+    injectStyles?: boolean;
     skipCss?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
@@ -85,7 +87,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         vars.styleContainer,
         vars.skipCss,
         vars.domMode,
-        vars.cssVariables
+        vars.cssVariables,
+        vars.injectStyles === false ? { logger: vars.logger } : undefined
     );
     const canvasElement = domManager.addChild(
         'canvas',

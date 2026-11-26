@@ -647,6 +647,7 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
         },
     },
     styleNonce: string,
+    injectStyles: boolean,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
     ...undocumentedDefs({

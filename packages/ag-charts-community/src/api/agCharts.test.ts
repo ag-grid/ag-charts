@@ -1,7 +1,13 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ModuleDefinition, ModuleRegistry, getDocument } from 'ag-charts-core';
-import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgChartTheme,
+    AgLineSeriesOptions,
+    AgSparklineOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
@@ -199,6 +205,210 @@ describe('AgCharts', () => {
                     expectNoPoolActivityLogs();
                 });
             }
+        });
+    });
+
+    // `injectStyles` is read when the proxy first builds a chart, and pinned for the life of the proxy.
+    describe('injectStyles', () => {
+        const CHANGED = (mode: boolean) =>
+            `AG Charts - injectStyles cannot be changed after the chart is created; it stays ${mode}.`;
+        const GOOGLE_FONTS =
+            "AG Charts - loadGoogleFonts has no effect when injectStyles is false. Load the fonts from the page's own stylesheet.";
+
+        const barOptions = (extra: Partial<AgChartOptions> = {}): AgChartOptions =>
+            prepareTestOptions(
+                {
+                    data: [{ x: 'A', y: 1, v: 3 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    ...extra,
+                } as AgChartOptions,
+                container
+            );
+        const pieOptions = (extra: Partial<AgChartOptions> = {}): AgChartOptions =>
+            prepareTestOptions(
+                { data: [{ x: 'A', v: 3 }], series: [{ type: 'pie', angleKey: 'v' }], ...extra } as AgChartOptions,
+                container
+            );
+        const styleCount = () => document.querySelectorAll('style').length;
+        const modeOf = (instance: AgChartInstance<any>) => deproxy(instance).ctx.domManager.injectStyles;
+        const warnCount = (text: string) =>
+            (console.warn as Mock).mock.calls.filter(([message]) => message === text).length;
+        const sparklineOptions = (extra: Record<string, unknown> = {}): AgSparklineOptions => {
+            const options = prepareTestOptions<AgSparklineOptions>(
+                { type: 'line', width: 200, height: 50, data: [0.1, 0.2, 0.3] },
+                container
+            );
+            return Object.assign(options, extra);
+        };
+        // jsdom loads no stylesheet, so without this a static chart reports the stylesheet it needs as missing.
+        let computedStyleSpy: Mock | undefined;
+        beforeEach(() => {
+            const real = window.getComputedStyle.bind(window);
+            computedStyleSpy = vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+                const style = real(el, pseudo);
+                return new Proxy(style, {
+                    get(target, prop) {
+                        if (prop === 'getPropertyValue') {
+                            return (name: string) =>
+                                name === '--ag-charts-css-loaded' ? '1' : target.getPropertyValue(name);
+                        }
+                        const value = Reflect.get(target, prop);
+                        return typeof value === 'function' ? value.bind(target) : value;
+                    },
+                });
+            }) as unknown as Mock;
+        });
+        afterEach(() => {
+            computedStyleSpy?.mockRestore();
+            // Only the warnings these tests assert on are expected; the console mock fails the test on any other.
+            const expected = new Set([CHANGED(true), CHANGED(false), GOOGLE_FONTS]);
+            const unexpected = (console.warn as Mock).mock.calls.filter(([message]) => !expected.has(message));
+            (console.warn as Mock).mockClear();
+            expect(unexpected).toEqual([]);
+        });
+
+        // The pool's debug log carries the chart itself, which a failed assertion would try to print in full.
+        const poolEvents = () =>
+            (console.log as Mock).mock.calls
+                .map(([message]) => String(message))
+                .filter((message) => message.startsWith('Pool['))
+                .map((message) => message.replace(/ \(.*$/, ''));
+
+        it.each([
+            { injectStyles: undefined, mode: true },
+            { injectStyles: true, mode: true },
+            { injectStyles: false, mode: false },
+        ])('resolves $injectStyles to $mode', async ({ injectStyles, mode }) => {
+            const before = styleCount();
+
+            chart = await createChart(barOptions({ injectStyles }));
+
+            expect(modeOf(chart)).toBe(mode);
+            // Injecting adds to the document's `<head>` or the chart's own DOM; static adds nothing anywhere.
+            expect(styleCount() === before).toBe(!mode);
+        });
+
+        it('resolves the mode from the theme when the option is unset', async () => {
+            const options = barOptions();
+            const theme = options.theme as AgChartTheme;
+            theme.overrides = { ...theme.overrides, common: { injectStyles: false } };
+
+            chart = await createChart(options);
+
+            expect(modeOf(chart)).toBe(false);
+        });
+
+        it('keeps the mode when an update changes the chart type', async () => {
+            chart = await createChart(barOptions({ injectStyles: false }));
+            const before = styleCount();
+            const first = deproxy(chart);
+
+            // Omitting the option resolves to `true`, which the pin overrides, silently.
+            await chart.update(pieOptions());
+
+            expect(deproxy(chart)).not.toBe(first);
+            expect(modeOf(chart)).toBe(false);
+            expect(styleCount()).toBe(before);
+            expect(warnCount(CHANGED(false))).toBe(0);
+        });
+
+        it('keeps a static mode when the update asks for the other one, warning once', async () => {
+            chart = await createChart(barOptions({ injectStyles: false }));
+            const before = styleCount();
+
+            await chart.update(pieOptions({ injectStyles: true }));
+            await chart.update(pieOptions({ injectStyles: true }));
+            await chart.updateDelta({ injectStyles: true });
+
+            expect(modeOf(chart)).toBe(false);
+            expect(styleCount()).toBe(before);
+            expect(warnCount(CHANGED(false))).toBe(1);
+        });
+
+        it('keeps an injecting mode when the update asks for static, warning once', async () => {
+            chart = await createChart(barOptions());
+
+            await chart.update(pieOptions({ injectStyles: false }));
+            await chart.updateDelta({ injectStyles: false });
+
+            expect(modeOf(chart)).toBe(true);
+            expect(warnCount(CHANGED(true))).toBe(1);
+        });
+
+        it('is silent when an update repeats the pinned value', async () => {
+            chart = await createChart(barOptions({ injectStyles: false }));
+
+            await chart.update(barOptions({ injectStyles: false }));
+            await chart.updateDelta({ injectStyles: false });
+
+            expect(warnCount(CHANGED(false))).toBe(0);
+            expect(warnCount(CHANGED(true))).toBe(0);
+        });
+
+        it('warns once that loadGoogleFonts has no effect, and loads no fonts', async () => {
+            const options = barOptions({ injectStyles: false, loadGoogleFonts: true });
+            const theme = options.theme as AgChartTheme;
+            theme.params = { ...theme.params, fontFamily: { googleFont: 'Roboto' } };
+            chart = await createChart(options);
+            await chart.update(options);
+
+            expect(warnCount(GOOGLE_FONTS)).toBe(1);
+            expect(
+                Array.from(document.querySelectorAll('style')).some((el) => el.textContent?.includes('@import'))
+            ).toBe(false);
+        });
+
+        describe('for pooled sparklines', () => {
+            it('does not reuse a pooled chart across modes', async () => {
+                // Park a chart in the injecting pool, which a static chart must not take.
+                AgCharts.__createSparkline(sparklineOptions()).destroy();
+                resetMockConsole();
+
+                const sparkline = AgCharts.__createSparkline(sparklineOptions({ injectStyles: false }));
+                chart = sparkline as AgChartInstance<any>;
+                await sparkline.waitForUpdate();
+
+                expect(modeOf(sparkline)).toBe(false);
+                const events = poolEvents();
+                expect(events).not.toContain('Pool[name=sparkline]: Re-used instance');
+                expect(events.filter((event) => event.startsWith('Pool[name=sparkline|static]: '))).toEqual([
+                    expect.stringMatching(/: (Created|Re-used) instance$/),
+                ]);
+            });
+
+            it('releases and re-obtains when the theme sets another mode on create', async () => {
+                AgCharts.__createSparkline(sparklineOptions()).destroy();
+                resetMockConsole();
+                const options = sparklineOptions();
+                const theme = options.theme as AgChartTheme;
+                theme.overrides = { ...theme.overrides, common: { injectStyles: false } };
+
+                const sparkline = AgCharts.__createSparkline(options);
+                chart = sparkline as AgChartInstance<any>;
+                await sparkline.waitForUpdate();
+
+                expect(modeOf(sparkline)).toBe(false);
+                // The injecting chart taken from its pool for the raw option went back, and a static one was used.
+                const events = poolEvents();
+                expect(events).toContain('Pool[name=sparkline]: Returned instance to free pool');
+                expect(events).toContainEqual(
+                    expect.stringMatching(/^Pool\[name=sparkline\|static\]: (Created|Re-used) instance$/)
+                );
+            });
+
+            it('never releases or re-obtains on update, whatever the value', async () => {
+                const sparkline = AgCharts.__createSparkline(sparklineOptions({ injectStyles: false }));
+                chart = sparkline as AgChartInstance<any>;
+                await sparkline.waitForUpdate();
+                resetMockConsole();
+
+                await sparkline.update(sparklineOptions({ injectStyles: true }));
+                await sparkline.updateDelta({ injectStyles: true });
+
+                expectNoPoolActivityLogs();
+                expect(modeOf(sparkline)).toBe(false);
+                expect(warnCount(CHANGED(false))).toBe(1);
+            });
         });
     });
 

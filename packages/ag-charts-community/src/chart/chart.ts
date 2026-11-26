@@ -368,6 +368,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
             container,
             styleContainer,
             styleNonce: options.processedOptions.styleNonce,
+            injectStyles: options.injectStyles,
             skipCss,
             agDocument,
             domMode: options.optionMetadata.domMode,

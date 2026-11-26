@@ -74,6 +74,7 @@ const commonSparklineOptionsDef: OptionsDefs<
     locale: defined,
     data: defined,
     styleNonce: string,
+    injectStyles: boolean,
 
     axis: typeUnion<AgSparklineAxisOptions & { type: NonNullable<AgSparklineAxisOptions['type']> }>(
         {
