@@ -988,19 +988,36 @@ describe('SankeySeries', () => {
         });
     });
 
-    it.each(['ag-accessible', 'ag-accessible-dark'] as const)(
-        'should colour nodes from the patterned %s palette',
-        async (theme) => {
-            chart = deproxy(await createStockThemedChart(GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options, theme));
+    describe('patterned palette', () => {
+        const sankeyOptions = GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options as AgChartOptions;
 
-            const { fills, defaultPatternFills } = getSeriesOptions<{
-                fills: Array<{ type?: string; fill?: string }>;
-                defaultPatternFills: string[];
-            }>(chart);
-            expect(fills[1]).toMatchObject({ type: 'pattern' });
-            expect(defaultPatternFills).toContain(fills[1].fill);
-        }
-    );
+        const MIXED_PALETTE_THEME: AgChartOptions['theme'] = {
+            palette: {
+                fills: [
+                    'green',
+                    { type: 'pattern', pattern: 'forward-slanted-lines', fill: 'red', stroke: 'blue' },
+                    // Without a fill or stroke, these take the default pattern colour for their palette index.
+                    { type: 'pattern', pattern: 'polka-dots' },
+                    { type: 'pattern', pattern: 'backward-slanted-lines' },
+                ],
+            },
+        };
+
+        it.each([
+            ['a colour mixed with patterns', MIXED_PALETTE_THEME],
+            ['ag-accessible', 'ag-accessible'],
+            ['ag-accessible-dark', 'ag-accessible-dark'],
+        ] as const)('should colour every node and link from the palette of %s', async (_name, theme) => {
+            // `createEnterpriseChart` replaces a named theme with the test theme, so use the stock-theme helper.
+            chart = deproxy(
+                typeof theme === 'string'
+                    ? await createStockThemedChart(sankeyOptions, theme)
+                    : await createEnterpriseChart({ ...sankeyOptions, theme })
+            );
+
+            await compare();
+        });
+    });
 
     it('AG-15669 - should correctly invoke itemStyler and apply result to node', async () => {
         const options = {
