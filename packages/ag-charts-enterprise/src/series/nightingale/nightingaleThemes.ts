@@ -1,9 +1,9 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
-    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    NEUTRAL_GLOW_THEME_DEFAULTS,
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
     SERIES_GLOW_BUCKETS,
@@ -29,7 +29,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         shadow: SHADOW_THEME_DEFAULTS,
-        glow: GLOW_THEME_DEFAULTS,
+        glow: NEUTRAL_GLOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

@@ -4,9 +4,9 @@ import {
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
-    GLOW_THEME_DEFAULTS,
     ITEM_PADDING_DEFAULT,
     LABEL_BOXING_DEFAULTS,
+    NEUTRAL_GLOW_THEME_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -82,18 +82,11 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         },
         gap: 2,
         padding: ITEM_PADDING_DEFAULT,
-        glow: GLOW_THEME_DEFAULTS,
+        glow: NEUTRAL_GLOW_THEME_DEFAULTS,
         highlight: withFollowedGlowThemeDefaults(
             {
                 enabled: { $circular: { $path: '/highlight/enabled' } },
-                unhighlightedItem: {
-                    fillOpacity: 0.6,
-                    strokeOpacity: 0.6,
-                },
-                unhighlightedBranch: {
-                    fillOpacity: 0.2,
-                    strokeOpacity: 0.2,
-                },
+                unhighlightedBranch: { opacity: 0.5 },
             },
             BRANCH_GLOW_BUCKETS,
             '/series/$index/glow'

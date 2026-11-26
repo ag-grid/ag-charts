@@ -7,12 +7,12 @@ import {
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
-    SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
-    SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    seriesSelectionTheme,
+    singleSeriesHighlightStyle,
     themeLineHeight,
     undocumentedThemeOptions,
     withGlowThemeDefaults,
@@ -38,8 +38,9 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS, {
+            highlight: withGlowThemeDefaults(singleSeriesHighlightStyle(0.3), ITEM_GLOW_BUCKETS, {
                 glow: ['/series/$index/node/glow', '/series/$index/link/glow'],
+                glowOnHover: false,
             }),
             tooltip: SERIES_TOOLTIP_THEME,
             label: {
@@ -72,7 +73,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 glow: GLOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
-                selection: SERIES_SELECTION_THEME,
+                selection: seriesSelectionTheme(0.6, 0.2),
                 fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
                 fillImageDefaults: FILL_IMAGE_DEFAULTS,

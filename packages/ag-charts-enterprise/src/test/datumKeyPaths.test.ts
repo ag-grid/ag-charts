@@ -491,7 +491,8 @@ const SERIES_CASES = SERIES.map((keyPathCase): KeyPathCase => ({
     ...keyPathCase,
 }));
 
-const highlight = { highlightedItem: { fill: 'red' }, unhighlightedSeries: { opacity: 0.2 } };
+// The glow is off so the comparison covers the key path only, not the halo drawn around the hovered slice.
+const highlight = { highlightedItem: { fill: 'red', glow: { enabled: false } }, unhighlightedSeries: { opacity: 0.2 } };
 
 const FEATURE_CASES: KeyPathCase[] = [
     {

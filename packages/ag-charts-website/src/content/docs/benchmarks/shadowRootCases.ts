@@ -45,7 +45,10 @@ type Scenario =
     | 'item-shadow-heatmap'
     | 'glow-gap-bar'
     | 'glow-gap-scatter'
-    | 'glow-gap-scatter-series';
+    | 'glow-gap-scatter-series'
+    | 'theme-bar'
+    | 'theme-scatter'
+    | 'theme-heatmap';
 /** The functions of `shadowRootData.ts`, which each page loads as its `data.ts`. */
 export interface ShadowRootData {
     getRows(pointCount: number, seriesCount: number, categorical: boolean): Record<string, number | string>[];
@@ -68,7 +71,8 @@ export type ShadowRootCaseId =
     | 'item-shadow-scatter'
     | 'glow-gap-bar'
     | 'glow-gap-scatter'
-    | 'glow-gap-scatter-series';
+    | 'glow-gap-scatter-series'
+    | 'theme-defaults';
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant.
 // `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
@@ -78,6 +82,7 @@ export type ShadowRootCaseId =
 // the option itself. A hovered heatmap with the option set unbatches every cell, so it is measured at 100 x 100 cells.
 // `glow-gap-bar` and `glow-gap-scatter` set the series-level `glow`, which every highlight state inherits, and vary its `gap`
 // (unset, 0 or 5) instead of switching it on and off.
+// `theme-bar`, `theme-scatter` and `theme-heatmap` set none of `highlight`, `glow` or `shadow`, so hovering measures the theme defaults.
 function buildShadowRootOptions(
     { getRows, getHeatmapRows }: ShadowRootData,
     scenario: Scenario,
@@ -139,6 +144,40 @@ function buildShadowRootOptions(
                 size: 6,
                 glow: gapGlow,
             })),
+        };
+    }
+
+    if (scenario === 'theme-bar') {
+        return {
+            data: getRows(20, 4, true),
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: Array.from({ length: 4 }, (_, i) => ({ type: 'bar' as const, xKey: 'x', yKey: `y${i}` })),
+        };
+    }
+
+    if (scenario === 'theme-scatter') {
+        return {
+            width: 1400,
+            height: 600,
+            data: getRows(5000, 10, false),
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: Array.from({ length: 10 }, (_, i) => ({
+                type: 'scatter' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                size: 6,
+            })),
+        };
+    }
+
+    if (scenario === 'theme-heatmap') {
+        return {
+            width: 1400,
+            height: 600,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            data: getHeatmapRows(100, 100),
+            series: [{ type: 'heatmap' as const, xKey: 'x', yKey: 'y', colorKey: 'level' }],
         };
     }
 
@@ -378,6 +417,19 @@ export function getShadowRootConfig(
         return variants;
     };
 
+    /** The variants of the theme defaults case: a hover on each chart, none of which sets an option that the theme defaults. */
+    const themeVariants = (): Variants =>
+        (
+            [
+                ['Bar', 'theme-bar'],
+                ['Scatter', 'theme-scatter'],
+                ['Heatmap', 'theme-heatmap'],
+            ] as const
+        ).map(([chart, scenario]) => ({
+            params: { Operation: 'Hover x10', Chart: chart },
+            run: async () => hover(await prepare(scenario, false)),
+        }));
+
     const cases: Record<ShadowRootCaseId, () => TestCase> = {
         'bars-spread': () => ({
             id: 'bars-spread',
@@ -447,6 +499,11 @@ export function getShadowRootConfig(
             id: 'glow-gap-scatter-series',
             label: '10 scatter series x 5,000 points, glow.gap, moves within one series',
             variants: gapVariantsOf('glow-gap-scatter-series', { 'Hover x10 (one series)': seriesHover }),
+        }),
+        'theme-defaults': () => ({
+            id: 'theme-defaults',
+            label: 'Theme defaults',
+            variants: themeVariants(),
         }),
     };
 

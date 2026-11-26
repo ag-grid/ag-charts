@@ -50,11 +50,19 @@ export interface AgSunburstSeriesHighlightOptions {
     enabled?: boolean;
     /** Style for nodes within the hovered branch. */
     highlightedBranch?: AgSunburstSeriesHighlightStyle;
-    /** Style for the directly hovered node. */
+    /**
+     * Style for the directly hovered node.
+     *
+     * Default: `{ glow: { enabled: true } }`
+     */
     highlightedItem?: AgSunburstSeriesHighlightStyle;
     /** Style for other nodes within the hovered branch. */
     unhighlightedItem?: AgSunburstSeriesHighlightStyle;
-    /** Style for nodes outside of the hovered branch. */
+    /**
+     * Style for nodes outside of the hovered branch.
+     *
+     * Default: `{ opacity: 0.5 }`
+     */
     unhighlightedBranch?: AgSunburstSeriesHighlightStyle;
 }
 

@@ -72,7 +72,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
             enabled: { $path: ['/highlight/enabled', true] },
             ...withGlowThemeDefaults(
                 {
-                    unhighlightedItem: { opacity: 0.4 },
+                    unhighlightedItem: { opacity: 1 },
                 },
                 ITEM_GLOW_BUCKETS
             ),

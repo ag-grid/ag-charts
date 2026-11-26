@@ -277,10 +277,25 @@ export class MapShapeSeries
         return [MapZIndexMap.ShapeLine, zIndex];
     }
 
+    private highlightFront: boolean | undefined;
+
+    // A `bringToFront` update leaves the series index alone while nothing is hovered, so force the z-index to follow it.
+    override setSeriesIndex(index: number, forceUpdate = false): boolean {
+        return super.setSeriesIndex(index, forceUpdate || this.highlightFront !== this.highlightBringsToFront());
+    }
+
+    private highlightBringsToFront() {
+        return this.options.highlight?.bringToFront !== false;
+    }
+
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, zIndex];
+        // Above the series' own shapes, but under later series and the markers, unless it is to come to the front.
+        this.highlightFront = this.highlightBringsToFront();
+        this.highlightGroup.zIndex = this.highlightFront
+            ? [MapZIndexMap.ShapeLineHighlight, zIndex]
+            : [MapZIndexMap.ShapeLine, zIndex, 1];
 
         return true;
     }

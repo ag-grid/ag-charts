@@ -125,7 +125,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             enabled: { $path: ['/highlight/enabled', true] },
             ...withGlowThemeDefaults(
                 {
-                    unhighlightedItem: { opacity: 0.6 },
+                    unhighlightedItem: { opacity: 1 },
                 },
                 ITEM_GLOW_BUCKETS
             ),

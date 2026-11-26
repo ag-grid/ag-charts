@@ -6,9 +6,9 @@ import {
     ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
-    MULTI_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     SERIES_GLOW_BUCKETS,
-    SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
@@ -68,8 +68,10 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             },
             tooltip: SERIES_TOOLTIP_THEME,
-            highlight: applyMapPalette(withGlowThemeDefaults(MULTI_SERIES_HIGHLIGHT_STYLE, SERIES_GLOW_BUCKETS)),
-            selection: SERIES_SELECTION_THEME,
+            highlight: applyMapPalette(
+                withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS)
+            ),
+            selection: MARKER_SERIES_SELECTION_THEME,
         },
         tooltip: {
             range: 'exact',

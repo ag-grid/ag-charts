@@ -2,10 +2,10 @@ import { type AgMapShapeSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    GLOW_THEME_DEFAULTS,
     ITEM_PADDING_DEFAULT,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    NEUTRAL_GLOW_THEME_DEFAULTS,
     SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -43,7 +43,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             fill: applyMapPalette(fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS)),
             stroke: { $ref: 'chartBackgroundColor' },
             shadow: SHADOW_THEME_DEFAULTS,
-            glow: GLOW_THEME_DEFAULTS,
+            glow: NEUTRAL_GLOW_THEME_DEFAULTS,
             colorScale: MAP_COLOR_SCALE_THEME,
             fillOpacity: 1,
             strokeWidth: 1,
@@ -62,7 +62,16 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 fontWeight: seriesLabelFontWeightOr('bold'),
             },
             tooltip: SERIES_TOOLTIP_THEME,
-            highlight: applyMapPalette(withGlowThemeDefaults(MULTI_SERIES_HIGHLIGHT_STYLE, SERIES_GLOW_BUCKETS)),
+            highlight: applyMapPalette(
+                withGlowThemeDefaults(
+                    {
+                        enabled: MULTI_SERIES_HIGHLIGHT_STYLE.enabled,
+                        unhighlightedSeries: MULTI_SERIES_HIGHLIGHT_STYLE.unhighlightedSeries,
+                        bringToFront: false,
+                    },
+                    SERIES_GLOW_BUCKETS
+                )
+            ),
             selection: SERIES_SELECTION_THEME,
         },
         tooltip: {
