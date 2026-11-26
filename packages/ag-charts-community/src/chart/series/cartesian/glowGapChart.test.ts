@@ -154,7 +154,7 @@ describe('glow gap in a chart', () => {
                 fill: 'blue',
                 fillOpacity: 1,
                 stroke: 'darkslategray',
-                glow: { blur: 0, spread: SPREAD, fill: 'red', fillOpacity: 1 },
+                glow: { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 },
                 ...stroke,
             });
 
@@ -190,6 +190,7 @@ describe('glow gap in a chart', () => {
             const pixel = rightOfFirstItem()(strokeWidth / 2 + GAP + 1);
 
             expect(pixel[0]).toBe(255);
+            // The default glow is red at an opacity of 0.6, which takes most of the green out of the white beneath it.
             expect(pixel[1]).toBeLessThanOrEqual(160);
         });
     });
