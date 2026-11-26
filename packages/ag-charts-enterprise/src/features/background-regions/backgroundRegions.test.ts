@@ -1365,6 +1365,18 @@ describe('Background Region label placement', () => {
         expect(box).toBeUndefined();
     });
 
+    it('falls back from a placement its text does not fit when alwaysShow is false', async () => {
+        const label: RegionLabel = {
+            placement: ['inside-top', 'top'],
+            collision: { alwaysShow: false },
+            truncate: false,
+        };
+        const { box, region } = await renderPlaced(placementOptions(label, { yRange: { start: 48, end: 52 } }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(region.y + EPSILON);
+    });
+
     it('never hides a region label by default, even where no placement fits', async () => {
         const { box } = await renderPlaced(placementOptions({ fontSize: 100 }, { yRange: undefined }));
 

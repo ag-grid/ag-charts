@@ -9,6 +9,7 @@ import {
     type LabelFit,
     type NormalisedSeriesAreaBackgroundRegion,
     type NormalisedSeriesAreaBackgroundRegionRange,
+    type NormalisedTextOrSegments,
     type PointLabelDatum,
     type PositionedLabelCandidate,
     RANGE_LABEL_ANCHORS,
@@ -123,11 +124,15 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const anchors = this.resolvedAnchors;
         const sole = anchors.length === 1;
         const positionedCandidates: PositionedLabelCandidate[] = [];
+        let text: NormalisedTextOrSegments | undefined;
         this.candidateIndices.clear();
         for (let index = 0; index < anchors.length; index++) {
-            const footprint = this.footprintAt(index);
-            if (footprint == null) continue;
+            const fitted = this.footprintAt(index);
+            if (fitted == null) continue;
+            const { footprint } = fitted;
             const { width, height } = footprint;
+            // The drawn placement may have no text to fit, while a fallback does.
+            text ??= fitted.text;
             const box = { x: footprint.x - seriesRect.x, y: footprint.y - seriesRect.y, width, height };
             // Already the rotated footprint, so it carries no rotation for the engine to inflate it by again.
             const candidate: PositionedLabelCandidate = {
@@ -141,10 +146,14 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         }
 
         const [first] = positionedCandidates;
-        if (first == null) return;
+        if (first == null || text == null) return;
         return {
             point: { x: 0, y: 0, size: 0 },
-            label: { text: this.labelNode.text ?? '', width: first.box.width, height: first.box.height },
+            label: {
+                text: this.drawnText() ?? text,
+                width: first.box.width,
+                height: first.box.height,
+            },
             anchor: undefined,
             placement: undefined,
             alwaysShow: keep ? undefined : false,
@@ -185,17 +194,18 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
     }
 
     /** The label is laid out at another placement to measure it there, as its text is fitted to each one's room. */
-    private footprintAt(index: number): BBox | undefined {
+    private footprintAt(index: number): { footprint: BBox; text: NormalisedTextOrSegments } | undefined {
         const { chosen, labelNode } = this;
         if (index !== chosen) this.layoutLabel(index);
-        const footprint = this.hasLabelText() ? Transformable.toCanvas(labelNode) : undefined;
+        const text = this.drawnText();
+        const fitted = text == null ? undefined : { footprint: Transformable.toCanvas(labelNode), text };
         if (index !== chosen) this.layoutLabel(chosen);
-        return footprint;
+        return fitted;
     }
 
-    private hasLabelText() {
+    private drawnText(): NormalisedTextOrSegments | undefined {
         const { text } = this.labelNode;
-        return text != null && text !== '';
+        return text === '' ? undefined : text;
     }
 
     private get resolvedAnchors(): RangeLabelAnchor[] {
@@ -207,17 +217,12 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         return this.anchors;
     }
 
-    /** `placement` wins over the deprecated `position`; `top` is the default. */
     private resolveAnchors(rtl: boolean): RangeLabelAnchor[] {
-        const { placement, position } = this.opts.label ?? {};
+        const placement = this.opts.label?.placement ?? [];
         const anchors: RangeLabelAnchor[] = [];
-        if (placement != null) {
-            for (const entry of typeof placement === 'string' ? [placement] : placement) {
-                const anchor = resolveRangeLabelPlacement(entry, rtl);
-                if (anchor != null) anchors.push(anchor);
-            }
-        } else if (position != null) {
-            anchors.push(RANGE_LABEL_ANCHORS[position]);
+        for (const entry of typeof placement === 'string' ? [placement] : placement) {
+            const anchor = resolveRangeLabelPlacement(entry, rtl);
+            if (anchor != null) anchors.push(anchor);
         }
         if (anchors.length === 0) anchors.push(RANGE_LABEL_ANCHORS.top);
         return anchors;
@@ -379,7 +384,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
     getLabelBox(): BBox | undefined {
         const { labelGroup, labelNode } = this;
-        if (!labelGroup.visible || !labelNode.visible || !this.hasLabelText()) return;
+        if (!labelGroup.visible || !labelNode.visible || this.drawnText() == null) return;
         return Transformable.toCanvas(labelNode);
     }
 

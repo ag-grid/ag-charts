@@ -47,7 +47,10 @@ export interface PlacedLabelSource<TLabel = unknown> extends LabelSource {
     getLabelDefaults?(): SeriesLabelDefaults | undefined;
     getLabelCandidateStyler?(): CandidateStyleResolver | undefined;
     getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
-    /** Returns `true` when the placement invalidates the layout it was solved in. */
+    /**
+     * Returns `true` when the placement invalidates the layout it was solved in. Labels arrive out of
+     * `getLabelData` order (single-placement kept labels solve first), so match them by `datum`.
+     */
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[], seriesRect: BBox): boolean | void;
     /** Freezes what the re-layout for an invalidating placement must not decide again. */
     holdLabelPlacements?(hold: boolean): void;

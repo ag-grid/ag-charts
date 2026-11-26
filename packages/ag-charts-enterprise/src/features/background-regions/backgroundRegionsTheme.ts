@@ -6,8 +6,7 @@ export const backgroundRegionStyle = {
     stroke: { $ref: 'backgroundColor' },
     strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
     label: {
-        // A user `position` would otherwise always lose to the default `placement`.
-        placement: { $if: [{ $isUserOption: './position' }, undefined, ['top', 'bottom']] },
+        placement: { $isUserOption: ['./position', { $path: './position' }, ['top', 'bottom']] },
         wrapping: 'on-space',
         truncate: true,
         ...FONT_THEME_DEFAULTS,
