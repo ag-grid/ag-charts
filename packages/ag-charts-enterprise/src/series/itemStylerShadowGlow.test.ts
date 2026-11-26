@@ -45,6 +45,9 @@ const FLOW_DATA = [
     { from: 'B', to: 'D', size: 7 },
 ];
 
+/** What a glow with no fields of its own casts on a hierarchy tile: flush, with no blur, in the neutral colour (Defaults sheet). */
+const TILE_THEME_GLOW = { ...THEME_GLOW, fillOpacity: 1, blur: 0, spread: 1, gap: 0 };
+
 const hierarchyRoot = (chart: AgChartInstance): HierarchyNode => {
     const root = getHierarchyRootNode(chart);
     if (root == null) throw new Error('the hierarchy series has no root node');
@@ -86,6 +89,8 @@ interface Case {
     oneSlot: boolean;
     /** Whether the series has a series-level `glow` option; the hierarchy series take a glow from their highlight styles only. */
     seriesGlow: boolean;
+    /** What a glow with no fields of its own casts for this series. */
+    themeGlow: typeof THEME_GLOW;
 }
 
 const visible = (shapes: Iterable<Shape>, kind: abstract new (...args: never[]) => Shape) =>
@@ -109,6 +114,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: THEME_GLOW,
         isFirst: (params) => params.datum.from === 'A' && params.datum.to === 'C',
         hover: (chart) => getFlowLinkData(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -133,6 +139,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: TILE_THEME_GLOW,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -153,6 +160,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: TILE_THEME_GLOW,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -246,7 +254,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
                 // Option normalisation strips every field of an option object that has `enabled: false`.
                 const { inPlace } = await create({ glow: { ...SERIES_GLOW, enabled: false }, first: { glow: {} } });
 
-                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(THEME_GLOW));
+                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(testCase.themeGlow));
                 for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
             }
         );
@@ -254,7 +262,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         it('keeps the theme glow for the fields that a partial glow leaves unset, with no series glow', async () => {
             const { inPlace } = await create({ first: { glow: { blur: 7 } } });
 
-            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...testCase.themeGlow, blur: 7 }));
             for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
         });
 
@@ -500,7 +508,9 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
             expect(others.length).toBeGreaterThan(1);
             for (const itemParams of others) {
-                expect(itemParams.glow).toEqual(testCase.seriesGlow ? SERIES_GLOW : undefined);
+                expect(itemParams.glow).toEqual(
+                    testCase.seriesGlow ? { ...SERIES_GLOW, gap: testCase.themeGlow.gap } : undefined
+                );
                 expect(itemParams.glow).toBe(others[0].glow);
             }
         });
@@ -740,7 +750,7 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 
-        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...TILE_THEME_GLOW, blur: 7 }));
         expect(tile?.fillGlow?.fill).not.toBe(HIGHLIGHT_GLOW.fill);
     });
 

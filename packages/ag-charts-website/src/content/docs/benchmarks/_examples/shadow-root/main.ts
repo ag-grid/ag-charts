@@ -41,6 +41,7 @@ function getBenchmarkConfig() {
             'item-shadow-bar',
             'item-shadow-heatmap',
             'item-shadow-scatter',
+            'theme-defaults',
         ],
         chart,
         (opts) => AgCharts.create(opts),

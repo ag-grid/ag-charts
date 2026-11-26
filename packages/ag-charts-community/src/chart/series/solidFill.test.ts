@@ -89,7 +89,11 @@ const EQUIVALENT_CHARTS: Record<string, (fill: Fill) => AgChartOptions> = {
         ],
         legend: { item: { marker: { disabledStyle: { ...fill('grey', 0.5) } } } },
         initialState: { active: { activeItem: { type: 'series-node', seriesId: 'b', itemId: 1 } } },
-        theme: { overrides: { bar: { series: { highlight: { highlightedItem: { ...fill('red', 0.5) } } } } } },
+        theme: {
+            overrides: {
+                bar: { series: { highlight: { highlightedItem: fill('red', 0.5) } } },
+            },
+        },
     }),
     'a theme palette': (fill) => ({
         data: DATA,

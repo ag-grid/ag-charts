@@ -36,6 +36,12 @@ export class AgDocument {
         return this.cachedWindow ?? this.fallbackWindow;
     }
 
+    /** Whether nothing has the focus, such as after the focused element was removed. */
+    hasNoFocus(): boolean {
+        const { activeElement, body } = this.document;
+        return activeElement == null || activeElement === body;
+    }
+
     getContainer(): HTMLElement | undefined {
         return this.container;
     }

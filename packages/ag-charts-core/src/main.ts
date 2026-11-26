@@ -136,6 +136,7 @@ export * from './geometry/distance';
 export * from './geometry/fill';
 export * from './geometry/fitRegion';
 export * from './geometry/labelPlacement';
+export * from './geometry/labelRoom';
 export * from './geometry/labelStack';
 export * from './geometry/lineInterpolation';
 export * from './geometry/markerLabelRect';
