@@ -80,6 +80,20 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
             expect(glowAlpha({ fillGlow: glow, fillOpacity: 0.5 })).toBe(glowAlpha({ fillGlow: glow }));
         });
 
+        it('should cast a glow with no spread around an object fill with alpha as around the same string fill', () => {
+            // With no spread the glow is cast at its own alpha only when the fill is not uniformly opaque.
+            const undilated = { ...GLOW, fill: 'rgb(0, 255, 0)', blur: 8, spread: 0 };
+
+            for (const fillOpacity of [1, 0.4]) {
+                const glow = { ...undilated, fillOpacity };
+                const opaque = glowAlpha({ fillGlow: glow });
+
+                expect(opaque).toBeGreaterThan(0);
+                expect(glowAlpha({ fillGlow: glow, fill: TRANSLUCENT_BLUE })).toBe(opaque);
+                expect(glowAlpha({ fillGlow: glow, fill: TRANSLUCENT_SOLID })).toBe(opaque);
+            }
+        });
+
         it('should fade a glow with the opacity of the item', () => {
             const glow = { ...GLOW, fill: 'rgb(0, 255, 0)', fillOpacity: 1 };
 
