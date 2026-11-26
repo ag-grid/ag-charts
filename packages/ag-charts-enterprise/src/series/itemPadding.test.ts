@@ -359,6 +359,7 @@ const CASES: ItemPaddingCase[] = [
 ];
 
 const paddedOptions = (c: ItemPaddingCase, padding: number) => c.options((c.paddingOption ?? itemPadding)(padding));
+const caseNamed = (name: string) => CASES.find((c) => c.name === name)!;
 
 function isDrawn(node: Node): boolean {
     for (const n of [node, ...node.traverseUp()]) {
@@ -503,6 +504,12 @@ describe('itemPadding', () => {
         chart?.destroy();
         chart = await createEnterpriseChart(options);
         return chart;
+    };
+
+    // A label takes no pointer events, so acting at its centre picks the item it sits in.
+    const actAtLabel = async (label: Text, act: typeof hoverAction | typeof clickAction = hoverAction) => {
+        const { x, y, width, height } = Transformable.toCanvas(label);
+        await act(x + width / 2, y + height / 2)(chart!);
     };
 
     describe.each(CASES)('$name', (c) => {
@@ -850,12 +857,12 @@ describe('itemPadding', () => {
                 );
         // Many stages, so each is short enough for its label to fill the room it is given.
         const stage = (name: string, strokeWidth: number) => (state: object) => ({
-            ...CASES.find((c) => c.name === name)!.options({ strokes: ['black'], strokeWidth, ...state }),
+            ...caseNamed(name).options({ strokes: ['black'], strokeWidth, ...state }),
             data: Array.from({ length: 8 }, (_, i) => ({ stage: `Stage ${i + 1}`, value: 1000 - 100 * i })),
         });
         // A shared case drawn with a thin resting stroke, so each state's deeper stroke is what moves its edges.
         const fromCase = (name: string, resting: Record<string, unknown>) => (state: object) =>
-            CASES.find((c) => c.name === name)!.options({ ...resting, ...state });
+            caseNamed(name).options({ ...resting, ...state });
         // A square marker is its own bounding box, so the label clearance measured to it is exact.
         const squareMarker = { shape: 'square', stroke: 'black', strokeWidth: 2 };
         const longMarkerLabel = { ...markerLabel, formatter: () => LONG_TEXT };
@@ -1016,9 +1023,7 @@ describe('itemPadding', () => {
             await render(options);
             expect(labelsTooCloseToTheirItem(chart!, items(chart!), depth)).not.toEqual([]);
 
-            // A label sits inside its item and takes no pointer events, so its centre picks the item.
-            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
-            await act(x + width / 2, y + height / 2)(chart!);
+            await actAtLabel(drawnLabels(chart!)[0], act);
 
             expect(drawnLabels(chart!).length).toBeGreaterThan(0);
             expect(labelsTooCloseToTheirItem(chart!, items(chart!), depth)).toEqual([]);
@@ -1070,7 +1075,7 @@ describe('itemPadding', () => {
             },
             {
                 name: 'pyramid',
-                options: CASES.find((c) => c.name === 'pyramid')!.options({
+                options: caseNamed('pyramid').options({
                     strokes: ['black'],
                     strokeWidth: 2,
                     label: { ...FITTED, formatter: ({ datum }: { datum: { stage: string } }) => datum.stage },
@@ -1107,8 +1112,7 @@ describe('itemPadding', () => {
                 const target = drawnLabels(chart!).find((label) => label.text === kept);
                 expect(target).toBeDefined();
 
-                const { x, y, width, height } = Transformable.toCanvas(target!);
-                await hoverAction(x + width / 2, y + height / 2)(chart!);
+                await actAtLabel(target!);
 
                 // Kept whole, not hidden or truncated by a room narrower than its shape leaves it.
                 expect(drawnLabels(chart!).map((label) => label.text)).toContain(kept);
@@ -1138,8 +1142,7 @@ describe('itemPadding', () => {
             const resting = secondarySizes();
             expect(resting.length).toBeGreaterThan(0);
 
-            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
-            await hoverAction(x + width / 2, y + height / 2)(chart!);
+            await actAtLabel(drawnLabels(chart!)[0]);
 
             // Shrunk with the label above it, not squeezed into the height it took beside it at rest.
             expect(secondarySizes()).toHaveLength(resting.length);
@@ -1159,8 +1162,7 @@ describe('itemPadding', () => {
             );
             expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).not.toEqual([]);
 
-            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
-            await hoverAction(x + width / 2, y + height / 2)(chart!);
+            await actAtLabel(drawnLabels(chart!)[0]);
 
             expect(drawnLabels(chart!).length).toBeGreaterThan(0);
             expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
@@ -1179,8 +1181,7 @@ describe('itemPadding', () => {
             const resting = drawnLabels(chart!).length;
             expect(resting).toBeGreaterThan(0);
 
-            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
-            await hoverAction(x + width / 2, y + height / 2)(chart!);
+            await actAtLabel(drawnLabels(chart!)[0]);
 
             expect(drawnLabels(chart!)).toHaveLength(resting);
             expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), 2)).toEqual([]);
@@ -1206,8 +1207,7 @@ describe('itemPadding', () => {
             const resting = tops();
             expect(resting.length).toBe(narrowBarData.length);
 
-            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
-            await hoverAction(x + width / 2, y + height / 2)(chart!);
+            await actAtLabel(drawnLabels(chart!)[0]);
 
             expect(tops()).toEqual(resting);
             await compareImageSnapshot(chart!, ctx);
@@ -1267,8 +1267,7 @@ describe('itemPadding', () => {
         it.each(['bar', 'pyramid', 'pie', 'scatter', 'heatmap', 'sunburst', 'treemap', 'map-shape'])(
             'draws %s labels held 6px clear of their items',
             async (name) => {
-                const c = CASES.find((entry) => entry.name === name)!;
-                await render(paddedOptions(c, 6));
+                await render(paddedOptions(caseNamed(name), 6));
                 await compareImageSnapshot(chart!, ctx);
             }
         );
