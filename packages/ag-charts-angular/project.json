@@ -23,6 +23,7 @@
         "{projectRoot}/tests/**",
         "{projectRoot}/vitest.config.ts",
         "{workspaceRoot}/packages/ag-charts-types/src/**",
+        "^production",
         "!{projectRoot}/dist"
       ],
       "cache": true,

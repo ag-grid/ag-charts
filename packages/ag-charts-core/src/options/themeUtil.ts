@@ -728,7 +728,7 @@ export const FONT_THEME_DEFAULTS = {
 
 /**
  * A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone.
- * `fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
+ * `_fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
  */
 function shadowFillTheme(
     fallbackFill: Operation | string,
@@ -738,7 +738,7 @@ function shadowFillTheme(
     return {
         fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
         fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
-        fillOpacitySet: {
+        _fillOpacitySet: {
             $isUserOption: [
                 './fillOpacity',
                 true,
@@ -758,7 +758,7 @@ export function inheritedShadowFillTheme(seriesShadowPath: string) {
     return shadowFillTheme(
         { $path: `${seriesShadowPath}/fill` },
         { $path: `${seriesShadowPath}/fillOpacity` },
-        { $path: `${seriesShadowPath}/fillOpacitySet` }
+        { $path: `${seriesShadowPath}/_fillOpacitySet` }
     );
 }
 
