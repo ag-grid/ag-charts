@@ -543,7 +543,8 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
-                // Minimal mode has no attach observers, so its styles are placed here; the size is already known.
+                // Places the styles on attach if no attach observer got there first, always the case in minimal mode.
+                // This callback delivers the size, so no re-read is needed.
                 this.updateStylesLocation(false);
                 this.containerSize = size;
                 this.updateContainerSize();

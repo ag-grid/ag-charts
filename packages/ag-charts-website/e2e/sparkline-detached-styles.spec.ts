@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
@@ -20,15 +20,23 @@ test.describe('sparkline detached styles', () => {
     const cellStyles = (page: Page) => page.locator(`#cells ${ANY_STYLE}`).count();
     const headStyles = (page: Page) => page.locator(`head ${COMMUNITY_STYLE}`).count();
 
-    async function click(page: Page, name: string) {
+    // A sparkline turns visible in the same size callback that places its styles.
+    const visibleSparklines = (host: Locator) =>
+        host.evaluate(
+            (el) =>
+                Array.from((el.shadowRoot ?? el).querySelectorAll('canvas')).filter(
+                    (canvas) => getComputedStyle(canvas).visibility === 'visible'
+                ).length
+        );
+
+    async function click(page: Page, name: string, host = page.locator('#cells')) {
         await page.getByText(name).click();
-        await page.waitForTimeout(500);
+        await expect.poll(() => visibleSparklines(host)).toBe(SPARKLINE_COUNT);
     }
 
     test('new sparklines in detached cells write no stylesheet copies', async ({ page }) => {
         await click(page, 'Create Detached');
 
-        await expect(page.locator('#cells canvas')).toHaveCount(SPARKLINE_COUNT);
         expect(await copiesAdded(page)).toBe(0);
         expect(await cellStyles(page)).toBe(0);
         expect(await headStyles(page)).toBe(1);
@@ -40,7 +48,6 @@ test.describe('sparkline detached styles', () => {
 
         await click(page, 'Re-render Pooled');
 
-        await expect(page.locator('#cells canvas')).toHaveCount(SPARKLINE_COUNT);
         expect(await copiesAdded(page)).toBe(before);
         expect(await cellStyles(page)).toBe(0);
         expect(await headStyles(page)).toBe(1);
@@ -51,10 +58,9 @@ test.describe('sparkline detached styles', () => {
         await click(page, 'Create Detached');
         const headBefore = await page.locator(`head ${ANY_STYLE}`).count();
 
-        await click(page, 'Create In Shadow Root');
-
         const shadow = page.locator('#shadowHost');
-        await expect(shadow.locator('canvas')).toHaveCount(SPARKLINE_COUNT);
+        await click(page, 'Create In Shadow Root', shadow);
+
         expect(
             await shadow.evaluate((host, sel) => host.shadowRoot!.querySelectorAll(sel).length, COMMUNITY_STYLE)
         ).toBe(SPARKLINE_COUNT);

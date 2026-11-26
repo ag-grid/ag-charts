@@ -615,19 +615,25 @@ describe('DOMManager', () => {
             return dm;
         };
 
-        it('inserts no style copy for a detached minimal chart, and places the styles in the head once attached', () => {
+        it('inserts no style copy for a detached minimal chart, and places the styles in the head once sized', () => {
             const fireResize = captureResizeCallback();
             const container = doc.createElement('div');
             const inserted = trackInsertedStyles(container);
+            const visibility = () => dm.getParent('canvas-center').style.visibility;
 
             const dm = createMinimal(container);
             expect(inserted()).toBe(0);
             expect(styleCount(container)).toBe(0);
 
+            // Attached but not yet sized, as in a hidden cell: unstyled, so it must stay hidden.
             doc.body.append(container);
+            expect(styleCount(doc.head)).toBe(0);
+            expect(visibility()).toBe('hidden');
+
             fireResize(container);
 
             expect(dm.containerSize).toMatchObject({ width: 200, height: 30 });
+            expect(visibility()).toBe('');
             expect(idsIn(doc.head)).toEqual(IDS);
             expect(inserted()).toBe(0);
             expect(styleCount(container)).toBe(0);
@@ -688,18 +694,37 @@ describe('DOMManager', () => {
                 return { container, dm };
             };
 
-            it('drops the in-tree copy when moved into an attached light-DOM container', () => {
+            it.each([
+                {
+                    name: 'drops the in-tree copy when moved into an attached light-DOM container',
+                    mount: () => {
+                        const target = doc.createElement('div');
+                        doc.body.append(target);
+                        return { target, root: target, host: target };
+                    },
+                    inTree: [],
+                    inHead: ['ag-charts-community'],
+                },
+                {
+                    name: 'keeps the in-tree copy when moved into an attached container inside a shadow root',
+                    mount: () => {
+                        const { component, shadow, container } = buildShadowTree();
+                        return { target: container, root: shadow, host: component };
+                    },
+                    inTree: ['ag-charts-community'],
+                    inHead: [],
+                },
+            ])('$name', ({ mount, inTree, inHead }) => {
                 const { dm } = create();
-                const target = doc.createElement('div');
-                doc.body.append(target);
+                const { target, root, host } = mount();
 
                 dm.setContainer(target);
                 dm.updateContainer();
 
-                expect(styleCount(target)).toBe(0);
-                expect(idsIn(doc.head)).toEqual(['ag-charts-community']);
+                expect(idsIn(root)).toEqual(inTree);
+                expect(idsIn(doc.head)).toEqual(inHead);
                 dm.destroy();
-                target.remove();
+                host.remove();
             });
         });
     });
