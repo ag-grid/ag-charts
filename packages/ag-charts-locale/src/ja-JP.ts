@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaAnnounceSelectedItem: '選択済み',
     ariaAnnounceUnselectedItem: '未選択',
     ariaAnnounceChart: 'チャート, ${seriesCount}[number]シリーズ',
+    ariaAnnounceChartWithCaption: 'チャート, ${caption}, ${seriesCount}[number]シリーズ',
     ariaAnnounceFlowProportionLink: 'リンク ${index} / ${count}、${from} から ${to} へ、${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'ノード ${index} / ${count}、${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaDescriptionToggleNode: 'Space または Enter キーを押してこのノードを展開または折りたたみます',
     ariaAnnounceGaugeChart: 'ゲージチャート、${caption}',
     ariaAnnounceHierarchyChart: '階層チャート, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: '階層チャート',
     ariaAnnounceHierarchyDatum: 'レベル ${level}[number]、${count}[number] の子供、${description}',
     ariaAnnounceHoverDatum: '${datum}にフォーカスしています',
     ariaAnnounceStandaloneChart: 'チャート, ${caption}',

@@ -1442,6 +1442,11 @@ export function getSwapChainText() {
     return label!.textContent;
 }
 
+/** The chart's accessible name, which labels the proxy element standing in for the canvas. */
+export function getChartAriaLabel(chart: ChartOrProxy) {
+    return deproxy(chart).getModuleContext().domManager.getParent('canvas-proxy').getAttribute('aria-label');
+}
+
 // The series-area widget handles keyboard navigation.
 export async function pressKey(chart: ChartOrProxy, key: string, modifiers: KeyboardEventInit = {}) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');

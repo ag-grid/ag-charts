@@ -21,6 +21,7 @@ import {
     delay,
     deproxy,
     expectWarningsCalls,
+    getChartAriaLabel,
     iconSvg,
     preloadImages,
     prepareTestOptions,
@@ -1130,6 +1131,47 @@ describe('Caption', () => {
                 await clickCaption(chart.subtitle);
                 expect(click).toHaveBeenCalledTimes(1);
             });
+        });
+    });
+    describe('chart accessible name', () => {
+        let instance: ChartOrProxy | undefined;
+
+        afterEach(() => {
+            instance?.destroy();
+            instance = undefined;
+        });
+
+        const pieChartOptions: AgChartOptions = {
+            data: [
+                { fruit: 'Apples', count: 3 },
+                { fruit: 'Pears', count: 2 },
+            ],
+            series: [{ type: 'pie', angleKey: 'count', legendItemKey: 'fruit' }],
+        };
+
+        it.each([
+            ['a cartesian chart without captions', titleChartOptions, 'chart, 1 series'],
+            [
+                'a cartesian chart with a title',
+                { ...titleChartOptions, title: { text: 'Q3 revenue' } },
+                'chart, Q3 revenue, 1 series',
+            ],
+            [
+                'a cartesian chart with every caption',
+                {
+                    ...titleChartOptions,
+                    title: { text: 'Q3 revenue' },
+                    subtitle: { text: 'Europe' },
+                    footnote: { text: 'Unaudited' },
+                },
+                'chart, Q3 revenue. Europe. Unaudited, 1 series',
+            ],
+            ['a pie chart without captions', pieChartOptions, 'chart, 1 series'],
+            ['a pie chart with a title', { ...pieChartOptions, title: { text: 'Fruit' } }, 'chart, Fruit, 1 series'],
+        ])('names %s', async (_name, options, expected) => {
+            instance = await createChart(options);
+
+            expect(getChartAriaLabel(instance)).toBe(expected);
         });
     });
 });

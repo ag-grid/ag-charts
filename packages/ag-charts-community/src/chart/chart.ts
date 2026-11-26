@@ -62,6 +62,7 @@ import type { SeriesGrouping } from '../module/seriesGrouping';
 import { migrateLineStyle } from './annotation/annotationManager';
 import { Background } from './background/background';
 import { ChartBorder } from './background/chartBorder';
+import { seriesCountChartAriaLabel } from './chartAriaLabel';
 import { ChartAxes } from './chartAxes';
 import type { ChartCaption } from './chartCaption';
 import { ChartCaptions } from './chartCaptions';
@@ -641,13 +642,14 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     private getAriaLabel(): string {
-        return this.series[0]?.getChartAriaLabel(this.getCaptionText(), this.series) ?? this.getDefaultAriaLabel();
+        const caption = this.getCaptionText();
+        return this.series[0]?.getChartAriaLabel(caption, this.series) ?? this.getDefaultAriaLabel(caption);
     }
 
-    private getDefaultAriaLabel(): string {
+    private getDefaultAriaLabel(caption: string): string {
         return (
             this.chartType.getDefaultAriaLabel?.() ??
-            this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length })
+            seriesCountChartAriaLabel(this.ctx.localeManager, caption, this.series.length)
         );
     }
 

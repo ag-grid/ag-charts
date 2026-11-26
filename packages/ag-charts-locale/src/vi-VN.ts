@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaAnnounceSelectedItem: 'đã chọn',
     ariaAnnounceUnselectedItem: 'chưa chọn',
     ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] chuỗi',
+    ariaAnnounceChartWithCaption: 'biểu đồ, ${caption}, ${seriesCount}[number] chuỗi',
     ariaAnnounceFlowProportionLink: 'liên kết ${index} của ${count}, từ ${from} đến ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nút ${index} của ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaDescriptionToggleNode: 'Nhấn Space hoặc Enter để mở rộng hoặc thu gọn nút này',
     ariaAnnounceGaugeChart: 'biểu đồ đồng hồ đo, ${caption}',
     ariaAnnounceHierarchyChart: 'biểu đồ phân cấp, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'biểu đồ phân cấp',
     ariaAnnounceHierarchyDatum: 'cấp độ ${level}[number], ${count}[number] con, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'biểu đồ, ${caption}',

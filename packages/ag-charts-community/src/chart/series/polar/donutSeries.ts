@@ -97,6 +97,7 @@ import type {
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
+import { seriesCountChartAriaLabel } from '../../chartAriaLabel';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -2843,8 +2844,8 @@ export class DonutSeries extends PolarSeries<
         return `${datumIndex}`;
     }
 
-    override getChartAriaLabel(_caption: string, series: readonly UnknownSeries[]) {
-        return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: series.length });
+    override getChartAriaLabel(caption: string, series: readonly UnknownSeries[]) {
+        return seriesCountChartAriaLabel(this.ctx.localeManager, caption, series.length);
     }
 
     protected override hasItemStylers(): boolean {

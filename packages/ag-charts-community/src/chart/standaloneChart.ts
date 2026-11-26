@@ -1,6 +1,7 @@
 import type { AxisID, BBox } from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 
+import { seriesCountChartAriaLabel } from './chartAriaLabel';
 import type { ChartTypeHost, ChartTypeInstance } from './chartTypeEnv';
 import type { LayoutContext } from './layout/layoutManager';
 
@@ -62,8 +63,11 @@ export class StandaloneChartType implements ChartTypeInstance {
     }
 
     getDefaultAriaLabel(): string {
-        if (this.host.series.length === 0) return '';
-        return this.host.ctx.localeManager.t('ariaAnnounceStandaloneChart', { caption: this.host.getCaptionText() });
+        const { series, ctx } = this.host;
+        if (series.length === 0) return '';
+        const caption = this.host.getCaptionText();
+        if (caption === '') return seriesCountChartAriaLabel(ctx.localeManager, caption, series.length);
+        return ctx.localeManager.t('ariaAnnounceStandaloneChart', { caption });
     }
 
     private async layoutSeriesGroups(seriesRect: BBox) {

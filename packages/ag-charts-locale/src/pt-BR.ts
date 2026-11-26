@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     ariaAnnounceSelectedItem: 'selecionado',
     ariaAnnounceUnselectedItem: 'não selecionado',
     ariaAnnounceChart: 'gráfico, ${seriesCount}[number] séries',
+    ariaAnnounceChartWithCaption: 'gráfico, ${caption}, ${seriesCount}[number] séries',
     ariaAnnounceFlowProportionLink: 'link ${index} de ${count}, de ${from} para ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nó ${index} de ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     ariaDescriptionToggleNode: 'Pressione Space ou Enter para expandir ou recolher este nó',
     ariaAnnounceGaugeChart: 'gráfico de medidor, ${caption}',
     ariaAnnounceHierarchyChart: 'gráfico de hierarquia, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'gráfico de hierarquia',
     ariaAnnounceHierarchyDatum: 'nível ${level}[number], ${count}[number] filhos, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'gráfico, ${caption}',

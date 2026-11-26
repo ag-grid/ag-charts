@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceSelectedItem: 'избрано',
     ariaAnnounceUnselectedItem: 'неизбрано',
     ariaAnnounceChart: 'диаграма, ${seriesCount}[number] серии',
+    ariaAnnounceChartWithCaption: 'диаграма, ${caption}, ${seriesCount}[number] серии',
     ariaAnnounceFlowProportionLink: 'връзка ${index} от ${count}, от ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'възел ${index} от ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaDescriptionToggleNode: 'Натиснете Space или Enter, за да разгънете или свиете този възел',
     ariaAnnounceGaugeChart: 'графика тип манометър, ${caption}',
     ariaAnnounceHierarchyChart: 'йерархична диаграма, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'йерархична диаграма',
     ariaAnnounceHierarchyDatum: 'ниво ${level}[number], ${count}[number] деца, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'графика, ${caption}',

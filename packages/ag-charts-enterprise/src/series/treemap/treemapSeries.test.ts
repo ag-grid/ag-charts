@@ -28,6 +28,7 @@ import {
     expectSceneTrajectory,
     expectWarningMessages,
     expectWarningsCalls,
+    getChartAriaLabel,
     getSeriesAt,
     getSeriesOptions,
     getSeriesRect,
@@ -2383,6 +2384,22 @@ describe('TreemapSeries', () => {
                 before,
                 prepareEnterpriseTestOptions(treemapOptions(reversed(ORG_DATA)))
             );
+        });
+    });
+
+    describe('chart accessible name', () => {
+        const options: AgChartOptions = {
+            data: [{ name: 'Group A', children: [{ name: 'X', value: 5 }] }],
+            series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value' }],
+        };
+
+        it.each([
+            ['without captions', options, 'hierarchy chart'],
+            ['with a title', { ...options, title: { text: 'Budget' } }, 'hierarchy chart, Budget'],
+        ])('names a treemap %s', async (_name, chartOptions, expected) => {
+            chart = await createEnterpriseChart(chartOptions);
+
+            expect(getChartAriaLabel(chart)).toBe(expected);
         });
     });
 });
