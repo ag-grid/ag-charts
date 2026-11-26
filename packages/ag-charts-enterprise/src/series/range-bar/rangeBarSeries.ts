@@ -1544,7 +1544,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         alwaysShow,
                         avoid,
                         threshold,
-                        true,
                         configuredFit,
                         labelDatum,
                         labelDatum.datumIndex

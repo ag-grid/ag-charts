@@ -821,7 +821,6 @@ export class SankeySeries extends FlowProportionSeries<
                         },
                     ],
                     ownBox: nodeDatum,
-                    ownBoxLabelsCollide: true,
                     entityIndex: nodeDatum.datumIndex,
                     target,
                 });

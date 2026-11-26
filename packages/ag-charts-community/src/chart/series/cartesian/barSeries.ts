@@ -2051,7 +2051,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         alwaysShow,
                         avoid,
                         threshold,
-                        false,
                         fitFor(nodeLabel.text),
                         // `datum`/`datumIndex` are written at node-data time, so a candidate resolved
                         // from here shows the styler this datum's values.

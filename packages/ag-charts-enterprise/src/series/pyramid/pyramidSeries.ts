@@ -764,7 +764,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     alwaysShow,
                     avoid,
                     threshold,
-                    true,
                     fitFor(labelDatum.text),
                     labelDatum
                 )

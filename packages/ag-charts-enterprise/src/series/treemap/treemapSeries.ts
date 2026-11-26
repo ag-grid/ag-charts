@@ -99,7 +99,9 @@ interface GroupTitle {
     text: string;
     fontSize: number;
     labelHeight: number;
+    /** The glyph's band; the header drawn around it adds {@link box}. */
     bandHeight: number;
+    box: Required<PaddingOptions>;
 }
 
 type TreemapLabelOptions = NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
@@ -248,12 +250,18 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const cached = node.groupTitle;
         if (cached?.width === bbox.width && cached.height === bbox.height) return cached.title;
 
-        const title = this.fitGroupTitle(labelValue, bbox, padding);
+        const box = this.styledLabel(node, this.groupLabelOptions(), TextNodeTag.Primary).box;
+        const title = this.fitGroupTitle(labelValue, bbox, padding, box);
         node.groupTitle = { width: bbox.width, height: bbox.height, title };
         return title;
     }
 
-    private fitGroupTitle(labelValue: string, bbox: BBox, padding: number): GroupTitle | undefined {
+    private fitGroupTitle(
+        labelValue: string,
+        bbox: BBox,
+        padding: number,
+        box: Required<PaddingOptions>
+    ): GroupTitle | undefined {
         const heightRatioThreshold = 3;
         const label = this.groupLabelOptions();
         const { fontSize, maxHeight = Infinity } = label;
@@ -261,11 +269,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const heightCap = bbox.height / heightRatioThreshold;
         if (floorFontSize > bbox.width / heightRatioThreshold || floorFontSize > heightCap) return;
 
-        const width = Math.min(bbox.width - 2 * padding, label.maxWidth ?? Infinity);
+        const width = Math.min(bbox.width - 2 * padding - box.left - box.right, label.maxWidth ?? Infinity);
         // One line at the floor size always fits, however small the one-third cap.
         const floorLineHeight = drawnLineHeight(fontWithSize(label, floorFontSize));
-        const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
-        const { policy, fitOverflow } = labelFitDescriptor(labelValue, label, width);
+        const height = Math.min(maxHeight, Math.max(heightCap - boxHeightOf(box), floorLineHeight));
+        const { policy, fitOverflow } = labelFitDescriptor(labelValue, label, width, box);
         const bounded = { ...policy, maxWidth: width, maxHeight: height };
         const fitAt = (size: number, fit: LabelFit) => {
             const font = fontWithSize(label, size);
@@ -289,7 +297,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             label
         );
         const bandHeight = Math.max(labelHeight, Math.min(Math.max(natural.height, fontSize), height));
-        return { ...fitted, bandHeight };
+        return { ...fitted, bandHeight, box };
     }
 
     /** Group headers are a single line that truncates unless the user configures their fit. */
@@ -311,7 +319,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             label: { spacing },
         } = this.options.group;
         const title = this.groupTitle(node, bbox);
-        const titleHeight = title == null ? 0 : title.bandHeight + spacing;
+        const titleHeight = title == null ? 0 : title.bandHeight + boxHeightOf(title.box) + spacing;
 
         return {
             top: padding + titleHeight,
@@ -1070,7 +1078,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const room = insetItemRect(bbox, insets.inset);
         const alwaysShow = blocks.some(({ fit }) => fit.fitOverflow != null);
         const { threshold } = (primary == null ? tile.secondaryLabel : tile.label).collision ?? {};
-        const datum = this.placedLabelDatum(node, lead, room, tags, alwaysShow, threshold, {
+        // A stack measures its own drawn boxes, so its room is not inset by them.
+        const datum = this.placedLabelDatum(node, lead, room, NO_PADDING, tags, alwaysShow, threshold, {
             blocks,
             spacing: tile.label.spacing,
         });
@@ -1084,11 +1093,13 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         if (title == null) return;
         const { padding } = this.options.group;
         const label = this.groupLabelOptions();
+        const { box } = title;
+        const boxWidth = box.left + box.right;
         const room = {
             x: bbox.x + padding,
             y: bbox.y + padding,
-            width: Math.max(0, Math.min(bbox.width - 2 * padding, label.maxWidth ?? Infinity)),
-            height: title.bandHeight,
+            width: Math.max(0, Math.min(bbox.width - 2 * padding, (label.maxWidth ?? Infinity) + boxWidth)),
+            height: title.bandHeight + boxHeightOf(box),
         };
         // The series sized the title to its band, so the engine only places it.
         const sized = {
@@ -1097,20 +1108,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             lineHeight: lineHeightAtSize(label, title.fontSize),
             minimumFontSize: title.fontSize,
         };
-        const fit = labelFitDescriptor(
-            title.text,
-            sized,
-            room.width,
-            this.styledLabel(node, label, TextNodeTag.Primary).box
-        );
+        const fit = labelFitDescriptor(title.text, sized, Math.max(0, room.width - boxWidth), box);
         const { alwaysShow = false, threshold } = label.collision ?? {};
-        return this.placedLabelDatum(node, fit, room, [TextNodeTag.Primary], alwaysShow, threshold);
+        return this.placedLabelDatum(node, fit, room, box, [TextNodeTag.Primary], alwaysShow, threshold);
     }
 
     private placedLabelDatum(
         node: TreemapNode,
         fit: LabelFitDescriptor,
         room: BoxBounds,
+        box: Required<PaddingOptions>,
         tags: TextNodeTag[],
         alwaysShow: boolean,
         threshold: number | undefined,
@@ -1119,9 +1126,14 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const isLeaf = node.children.length === 0;
         const { textAlign, verticalAlign } = isLeaf ? this.options.tile.label : this.options.group.label;
         const resolvedAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
+        // The glyph hangs off an anchor inset by its drawn box, so the box stays within the room.
+        const container = {
+            width: Math.max(0, room.width - box.left - box.right),
+            height: Math.max(0, room.height - boxHeightOf(box)),
+        };
         const anchor: OrientationAnchor = {
-            x: room.x + room.width * (textAlignFactors[resolvedAlign] ?? 0.5),
-            y: room.y + room.height * (verticalAlignFactors[verticalAlign] ?? 0.5),
+            x: room.x + box.left + container.width * (textAlignFactors[resolvedAlign] ?? 0.5),
+            y: room.y + box.top + container.height * (verticalAlignFactors[verticalAlign] ?? 0.5),
             textAlign: resolvedAlign,
             textBaseline: verticalAlign,
         };
@@ -1130,8 +1142,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             box: { x: anchor.x - width / 2, y: anchor.y - height / 2, width, height },
             region: room,
             anchor,
-            // A stack measures its own drawn boxes, and a group title's band is sized to its glyph alone.
-            fitTo: { container: room, anchor, padding: NO_PADDING },
+            fitTo: { container, anchor, padding: box },
         };
         return {
             point: { x: 0, y: 0, size: 0 },

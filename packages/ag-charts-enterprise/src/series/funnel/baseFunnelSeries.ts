@@ -880,7 +880,6 @@ export abstract class BaseFunnelSeries<
                     alwaysShow,
                     avoid,
                     threshold,
-                    true,
                     fitFor(labelDatum.text),
                     labelDatum,
                     labelDatum.datumIndex
