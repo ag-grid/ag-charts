@@ -48,7 +48,6 @@ import {
     isNumber,
     isNumericValue,
     itemContentInset,
-    itemLabelInsets,
     itemStrokeDepth,
     maxValue,
     measureLabelText,
@@ -1023,9 +1022,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         isHighlight: boolean,
         activeHighlight: HighlightNodeDatum | undefined
     ): NormalisedHistogramSeriesStyle | undefined {
-        if (isHighlight) return this.highlightDatumAt(datum.datumIndex)?.style;
-        const highlightState = this.getHighlightState(activeHighlight, false, datum.datumIndex);
-        return datum.style ?? this.contextNodeData?.styles[highlightState];
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum, this.contextNodeData?.styles);
     }
 
     protected override updateDatumStyles(opts: {
@@ -1246,8 +1243,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {
         const { itemPadding, stroke, strokeWidth } = this.options;
-        const insets = this.restylesItemStrokes() ? itemLabelInsets(itemPadding, stroke, strokeWidth) : undefined;
-        applyBarLabelOrientation(placed, insets && (() => insets));
+        applyBarLabelOrientation(placed, this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

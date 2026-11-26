@@ -1126,9 +1126,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         isHighlight: boolean,
         activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
     ): Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash> | undefined {
-        if (isHighlight) return this.highlightDatumAt(datum.datumIndex)?.style;
-        const highlightState = this.getHighlightState(activeHighlight, false, datum.datumIndex);
-        return datum.style ?? this.contextNodeData?.styles[datum.itemType][highlightState];
+        const resting = this.contextNodeData?.styles[datum.itemType];
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum, resting);
     }
 
     protected override updateDatumStyles({

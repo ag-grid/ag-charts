@@ -8,6 +8,7 @@ import {
     type ItemLabelFit,
     type ItemLabelRefit,
     type ItemLabelSource,
+    drawnItemInset,
     itemContentInset,
     itemStrokeDepth,
     refitItemLabelRoom,
@@ -85,6 +86,39 @@ export function placedItemLabelRoom(
     return room;
 }
 
+/**
+ * Keeps `target`'s room for the label the engine placed while `insets` says its item's states restroke it, and drops
+ * it otherwise. Only such a series keeps rooms, so other labels never grow the property.
+ */
+export function keepPlacedItemLabelRoom(
+    target: { itemRoom?: ItemLabelSource },
+    insets: ItemLabelInsets | undefined,
+    fit: LabelFitDescriptor | undefined,
+    candidate: PositionedLabelCandidate | undefined,
+    rotationDeg: number,
+    spacing: number
+): void {
+    if (insets == null && target.itemRoom == null) return;
+    target.itemRoom =
+        insets == null || fit == null
+            ? undefined
+            : placedItemLabelRoom(target.itemRoom, insets, fit, candidate, rotationDeg, spacing);
+}
+
+/** The style each layer last drew its items with, by datum index, which their labels re-fit to. */
+export class DrawnItemStyles<TStyle extends { stroke?: unknown; strokeWidth?: number }> {
+    private readonly layers = [new Map<number, TStyle>(), new Map<number, TStyle>()] as const;
+
+    /** The styles the main layer, or the highlight layer, last drew. */
+    layer(isHighlight: boolean): Map<number, TStyle> {
+        return this.layers[isHighlight ? 1 : 0];
+    }
+
+    get(isHighlight: boolean, datumIndex: number): TStyle | undefined {
+        return this.layer(isHighlight).get(datumIndex);
+    }
+}
+
 /** Fits a label as the engine fitted it to its candidate's shape and container, each held `delta` further in. */
 function refitToShape(
     fit: Pick<LabelFitDescriptor, 'text' | 'policy' | 'fitOverflow'>,
@@ -160,6 +194,18 @@ export type ItemLabelLayout = 'aligned' | 'free' | 'turned';
 const itemLabelRefit: ItemLabelRefit = { width: 0, height: 0, shiftX: 0, shiftY: 0 };
 /** The last fit each shaped re-fit gave, so a label re-fits only when its item's drawn stroke changes depth. */
 const shapedRefits = new WeakMap<object, { inset: number; fit: ItemLabelFit | undefined }>();
+/** The last fit each rect room gave, kept on the same terms as {@link shapedRefits}. */
+const rectRefits = new WeakMap<
+    ItemLabelSource,
+    {
+        text: NormalisedTextOrSegments;
+        fit: LabelFit;
+        font: FontOptions;
+        width: number;
+        height: number;
+        fitted: { text: NormalisedTextOrSegments; fontSize: number };
+    }
+>();
 const turnedLabelRoom = { width: 0, height: 0 };
 
 /**
@@ -176,8 +222,7 @@ export function refitItemLabelNode(
 ): void {
     if (!refitItemLabelRoom(room, stroke, strokeWidth, itemLabelRefit)) return;
     if (room.refit != null) {
-        const inset = itemContentInset(room.padding, itemStrokeDepth(stroke, strokeWidth, room.centred));
-        refitShapedItemLabelNode(textNode, room, room.refit, inset, font);
+        refitShapedItemLabelNode(textNode, room, room.refit, drawnItemInset(room, stroke, strokeWidth), font);
         return;
     }
     const turned = layout === 'turned';
@@ -188,12 +233,7 @@ export function refitItemLabelNode(
         glyphRoom = turnedLabelRoom;
     }
     const before = layout === 'aligned' ? undefined : textNode.getTextMeasureBBox();
-    const fit = {
-        ...room.fit,
-        maxWidth: Math.min(room.fit.maxWidth ?? Infinity, glyphRoom.width),
-        maxHeight: Math.min(room.fit.maxHeight ?? Infinity, glyphRoom.height),
-    };
-    const { text, fontSize = font.fontSize } = fitLabelTextOrOverflowAutoSize(room.text, fit, undefined, font);
+    const { text, fontSize } = rectRefit(room, glyphRoom, font);
     textNode.text = text;
     textNode.fontSize = fontSize;
     textNode.lineHeight = lineHeightAtSize(font, fontSize);
@@ -209,6 +249,41 @@ export function refitItemLabelNode(
     }
     textNode.x += shiftX;
     textNode.y += shiftY;
+}
+
+/** `room`'s label fitted to `glyphRoom`, from the last fit when nothing it was fitted from has changed. */
+function rectRefit(room: ItemLabelSource, glyphRoom: { width: number; height: number }, font: FontOptions) {
+    const { width, height } = glyphRoom;
+    let last = rectRefits.get(room);
+    if (
+        last?.text !== room.text ||
+        last.fit !== room.fit ||
+        last.width !== width ||
+        last.height !== height ||
+        !sameFont(last.font, font)
+    ) {
+        const fit = {
+            ...room.fit,
+            maxWidth: Math.min(room.fit.maxWidth ?? Infinity, width),
+            maxHeight: Math.min(room.fit.maxHeight ?? Infinity, height),
+        };
+        const { text, fontSize = font.fontSize } = fitLabelTextOrOverflowAutoSize(room.text, fit, undefined, font);
+        const { fontStyle, fontWeight, fontFamily, lineHeight } = font;
+        const fontKey = { fontSize: font.fontSize, fontStyle, fontWeight, fontFamily, lineHeight };
+        last = { text: room.text, fit: room.fit, font: fontKey, width, height, fitted: { text, fontSize } };
+        rectRefits.set(room, last);
+    }
+    return last.fitted;
+}
+
+function sameFont(a: FontOptions, b: FontOptions): boolean {
+    return (
+        a.fontSize === b.fontSize &&
+        a.fontFamily === b.fontFamily &&
+        a.fontStyle === b.fontStyle &&
+        a.fontWeight === b.fontWeight &&
+        a.lineHeight === b.lineHeight
+    );
 }
 
 /**

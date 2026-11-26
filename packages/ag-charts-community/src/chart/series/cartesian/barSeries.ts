@@ -51,7 +51,6 @@ import {
     isContinuous,
     isFiniteNumber,
     itemContentInset,
-    itemLabelInsets,
     itemStrokeDepth,
     maxValue,
     measureLabelText,
@@ -2001,9 +2000,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         isHighlight: boolean,
         activeHighlight: HighlightNodeDatum | undefined
     ): NormalisedBarSeriesStyle | undefined {
-        if (isHighlight) return this.highlightDatumAt(datum.datumIndex)?.style;
-        const highlightState = this.getHighlightState(activeHighlight, false, datum.datumIndex);
-        return datum.style ?? this.contextNodeData?.styles[highlightState ?? HighlightState.None];
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum, this.contextNodeData?.styles);
     }
 
     getLabelObstacles() {
@@ -2105,8 +2102,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
         const { itemPadding, stroke, strokeWidth } = this.options;
-        const insets = this.restylesItemStrokes() ? itemLabelInsets(itemPadding, stroke, strokeWidth) : undefined;
-        applyBarLabelOrientation(placed, insets && (() => insets));
+        applyBarLabelOrientation(placed, this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

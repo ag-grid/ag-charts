@@ -8,7 +8,7 @@ import type { Point } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { toDegrees, toRadians } from './angle';
 import type { BoxBounds } from './boxBounds';
-import { type ItemLabelInsets, placedItemLabelRoom } from './itemLabelRefit';
+import { type ItemLabelInsets, keepPlacedItemLabelRoom } from './itemLabelRefit';
 import type { ItemLabelSource } from './itemPadding';
 import {
     type LabelAvoidance,
@@ -347,25 +347,20 @@ export function buildBarPositionedLabelDatum(
  */
 export function applyBarLabelOrientation<TStyleDatum = object>(
     placed: readonly PlacedLabel<unknown>[],
-    insetsOf?: (datum: BarPlacedLabelDatum<TStyleDatum>) => ItemLabelInsets | undefined
+    insets?: ItemLabelInsets | ((datum: BarPlacedLabelDatum<TStyleDatum>) => ItemLabelInsets | undefined)
 ): void {
     for (const { datum, rotation, offsetX, offsetY, candidate, text, fontSize } of placed) {
         const { target, fit } = datum as BarPlacedLabelDatum;
-        // Only a series whose states restroke its items keeps rooms, so other labels never grow the property.
-        if (insetsOf != null || target.itemRoom != null) {
-            const insets = fit == null ? undefined : insetsOf?.(datum as BarPlacedLabelDatum<TStyleDatum>);
-            target.itemRoom =
-                insets == null || fit == null
-                    ? undefined
-                    : placedItemLabelRoom(
-                          target.itemRoom,
-                          insets,
-                          fit,
-                          candidate,
-                          rotation ?? 0,
-                          (candidate as BarPositionedCandidate | undefined)?.endSpacing ?? 0
-                      );
-        }
+        const itemInsets =
+            typeof insets === 'function' ? fit && insets(datum as BarPlacedLabelDatum<TStyleDatum>) : insets;
+        keepPlacedItemLabelRoom(
+            target,
+            itemInsets ?? undefined,
+            fit,
+            candidate,
+            rotation ?? 0,
+            (candidate as BarPositionedCandidate | undefined)?.endSpacing ?? 0
+        );
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
         target.offsetY = offsetY ?? 0;

@@ -4,6 +4,7 @@ import {
     type CallbackParamRules,
     type ChartAnimationPhase,
     ColorScale,
+    DrawnItemStyles,
     type DynamicContext,
     type Feature,
     type FeatureCollection,
@@ -171,10 +172,7 @@ export class MapMarkerSeries
     private labelInsideMarkerFit: InsideMarkerFit | undefined;
     private labelItemInsets: ItemLabelInsets | undefined;
     /** The style each layer last drew its markers in, by datum index, while a state restyles their strokes. */
-    private readonly drawnItemStyles = [
-        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
-        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
-    ] as const;
+    private readonly drawnItemStyles = new DrawnItemStyles<NormalisedMapMarkerSeriesStyle>();
     private readonly labelInsideMarkerPolicy: InsideMarkerPolicyScratch = {
         policy: {},
         region: new InsetMaskFitRegion(),
@@ -827,7 +825,7 @@ export class MapMarkerSeries
     }) {
         const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         labelSelection.each((label, placedLabel) => {
             const { x, y, width, height, text, datum: labelDatum } = placedLabel;
             type P = AgMapMarkerSeriesLabelFormatterParams;
@@ -1045,7 +1043,7 @@ export class MapMarkerSeries
         const { shape: seriesShape, itemStyler } = this.options;
         const itemStyled = itemStyler != null;
         let labelMarkersChanged = false;
-        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         drawnStyles.clear();
         const restyled = this.labelItemInsets != null;
 

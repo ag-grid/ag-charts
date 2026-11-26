@@ -27,6 +27,7 @@ import type {
 } from 'ag-charts-core';
 import {
     ColorScale,
+    DrawnItemStyles,
     Group,
     PointerEvents,
     Selection,
@@ -510,10 +511,7 @@ export class MapShapeSeries
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     private appliedPlacedLabels: PlacedLabel<unknown>[] | undefined = undefined;
     /** The style each layer last drew its shapes in, by datum index, while a state restyles their strokes. */
-    private readonly drawnItemStyles = [
-        new Map<number, MapShapeNodeDatum['style']>(),
-        new Map<number, MapShapeNodeDatum['style']>(),
-    ] as const;
+    private readonly drawnItemStyles = new DrawnItemStyles<MapShapeNodeDatum['style']>();
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, options, scale, previousLabelLayouts } = this;
         const { label, legendItemName, colorKey } = options;
@@ -887,7 +885,7 @@ export class MapShapeSeries
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const { shadow, glow } = this.options;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         drawnStyles.clear();
         const restyled = this.contextNodeData?.labelFitting.itemInsets != null;
 
@@ -951,7 +949,7 @@ export class MapShapeSeries
     }) {
         const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         labelSelection.each((label, labelDatum) => {
             const { x, y, text, fontSize, lineHeight, datumIndex } = labelDatum;
             type P = AgMapShapeSeriesLabelFormatterParams;

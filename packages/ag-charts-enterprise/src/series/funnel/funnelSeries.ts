@@ -5,16 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, NormalisedFunnelSeriesOwnOptions, RequireOptional, Selection } from 'ag-charts-core';
-import {
-    ChartAxisDirection,
-    Rect,
-    cycledValue,
-    itemContentInset,
-    itemLabelInsets,
-    itemStrokeDepth,
-    mergeDefaults,
-    withoutCasts,
-} from 'ag-charts-core';
+import { ChartAxisDirection, Rect, cycledValue, itemLabelInsets, mergeDefaults, withoutCasts } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -108,11 +99,6 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         };
     }
 
-    protected override labelItemInset(datumIndex: number) {
-        const { itemPadding, strokes, strokeWidth } = this.options;
-        return itemContentInset(itemPadding, itemStrokeDepth(cycledValue(strokes, datumIndex), strokeWidth, false));
-    }
-
     protected override labelItemInsets(datumIndex: number) {
         const { itemPadding, strokes, strokeWidth } = this.options;
         return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth);
@@ -182,7 +168,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
         const fillBBox = this.getShapeFillBBox();
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const drawnStyles = this.drawnItemStyles[isHighlight ? 1 : 0];
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         if (isHighlight) drawnStyles.clear();
 
         datumSelection.each((rect, datum) => {

@@ -25,7 +25,6 @@ import {
     insideMarkerPolicy,
     itemContentInset,
     itemLabelClearance,
-    itemLabelInsets,
     lineHeightAtSize,
     markerShapeAnalysis,
     measurePlacedLabel,
@@ -169,9 +168,8 @@ export abstract class PlacedLabelCartesianSeries<
 
     /** The insets labels inside markers keep at rest, when a state can draw the markers with another stroke. */
     private labelItemInsets(): ItemLabelInsets | undefined {
-        if (!this.restylesItemStrokes()) return undefined;
         const { stroke, strokeWidth } = this.labelMarker;
-        return itemLabelInsets(this.labelItemPadding, stroke, strokeWidth, true);
+        return this.restyledItemLabelInsets(this.labelItemPadding, stroke, strokeWidth, true);
     }
 
     /** The style the marker under `datum`'s label is drawn with, as `updateDatumNodes` resolves it. */
@@ -180,9 +178,8 @@ export abstract class PlacedLabelCartesianSeries<
         isHighlight: boolean,
         activeHighlight: HighlightNodeDatum | undefined
     ): NormalisedSeriesMarkerStyle | undefined {
-        const marker = isHighlight ? this.highlightDatumAt(datum.datumIndex) : datum.markerDatum;
-        const state = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
-        return marker?.style ?? this.restingMarkerStyles()?.[state];
+        const resting = this.restingMarkerStyles();
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum.markerDatum, resting);
     }
     protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
     /** The series' typed label options; bridges the concrete series onto the shared base generic. */

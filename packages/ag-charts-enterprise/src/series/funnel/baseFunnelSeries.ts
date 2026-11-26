@@ -28,6 +28,7 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    DrawnItemStyles,
     Group,
     PointerEvents,
     Selection,
@@ -587,24 +588,16 @@ export abstract class BaseFunnelSeries<
         insideCrossRegion?: BoxBounds;
     };
 
-    /** How far inside labels keep from a stage's edges; `0` where a series has no inside labels. */
-    protected labelItemInset(_datumIndex: number): number {
-        return 0;
-    }
-
     /** How a stage holds its inside labels in, for a state's stroke to re-fit them; `undefined` where a series has none. */
     protected labelItemInsets(_datumIndex: number): ItemLabelInsets | undefined {
         return undefined;
     }
 
     /** The style each layer last drew its stages in, by datum index. */
-    protected readonly drawnItemStyles = [
-        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
-        new Map<number, { stroke?: unknown; strokeWidth?: number }>(),
-    ] as const;
+    protected readonly drawnItemStyles = new DrawnItemStyles<{ stroke?: unknown; strokeWidth?: number }>();
 
     drawnItemStroke(datum: FunnelNodeLabelDatum, isHighlight: boolean) {
-        return this.drawnItemStyles[isHighlight ? 1 : 0].get(datum.datumIndex);
+        return this.drawnItemStyles.get(isHighlight, datum.datumIndex);
     }
 
     /** The placement-style overrides for a resolved placement; `undefined` where a series has none. */
@@ -688,7 +681,7 @@ export abstract class BaseFunnelSeries<
         };
 
         const measured = measureLabelText(text, label);
-        const itemInset = this.labelItemInset(datumIndex);
+        const itemInset = this.labelItemInsets(datumIndex)?.inset ?? 0;
         const candidates = labelContext.placements.flatMap((placement, index) =>
             buildBarLabelCandidates<AgFunnelSeriesLabelFormatterParams, FunnelLabelPlacement>({
                 ...labelContext.axes[index],
@@ -749,6 +742,8 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
+        // Only new node data changes which stages exist; a highlight change redraws just the stages it restyles.
+        if (nodeRefresh) this.drawnItemStyles.layer(false).clear();
         super.updateNodes(seriesHighlighted, nodeRefresh);
 
         const { connectorSelection } = this;

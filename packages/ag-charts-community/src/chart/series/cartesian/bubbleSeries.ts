@@ -48,7 +48,6 @@ import {
     insideMarkerPolicy,
     itemContentInset,
     itemLabelClearance,
-    itemLabelInsets,
     itemStrokeDepth,
     lineHeightAtSize,
     markerLabelRect,
@@ -1532,9 +1531,8 @@ export abstract class BubbleScatterSeries<
 
     /** The insets labels inside markers keep at rest, when a state can draw the markers with another stroke. */
     private labelItemInsets(): ItemLabelInsets | undefined {
-        if (!this.restylesItemStrokes()) return undefined;
         const { marker } = this;
-        return itemLabelInsets(this.options.itemPadding, marker.stroke, marker.strokeWidth, true);
+        return this.restyledItemLabelInsets(this.options.itemPadding, marker.stroke, marker.strokeWidth, true);
     }
 
     /** The style the marker under `datum`'s label is drawn with, as `updateDatumNodes` resolves it. */
@@ -1543,9 +1541,8 @@ export abstract class BubbleScatterSeries<
         isHighlight: boolean,
         activeHighlight: HighlightNodeDatum | undefined
     ): NormalisedSeriesMarkerStyle | undefined {
-        const marker = isHighlight ? this.highlightDatumAt(datum.datumIndex) : datum.itemDatum;
-        const state = this.getHighlightState(activeHighlight, isHighlight, datum.datumIndex);
-        return marker?.style ?? this.contextNodeData?.styles[state];
+        const resting = this.contextNodeData?.styles;
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum.itemDatum, resting);
     }
 
     protected override updateLabelSelection(opts: {

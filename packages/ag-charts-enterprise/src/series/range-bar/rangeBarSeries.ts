@@ -48,7 +48,6 @@ import {
     insideBarContainer,
     isContinuous,
     itemContentInset,
-    itemLabelInsets,
     itemStrokeDepth,
     labelBoxCentreOffset,
     measureLabelText,
@@ -1563,8 +1562,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {
         const { itemPadding, stroke, strokeWidth } = this.options;
-        const insets = this.restylesItemStrokes() ? itemLabelInsets(itemPadding, stroke, strokeWidth) : undefined;
-        applyBarLabelOrientation(placed, insets && (() => insets));
+        applyBarLabelOrientation(placed, this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth));
         // yLow and yHigh route independently, so only the colliding end is hidden.
         applyPlacedBarLabelVisibility(
             this.contextNodeData?.labelData,
