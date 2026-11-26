@@ -339,6 +339,26 @@ describe('AgCharts', () => {
             expect(warnCount(CHANGED(true))).toBe(1);
         });
 
+        it('warns once for updateDelta() alone asking a static chart for injection', async () => {
+            chart = await createChart(barOptions({ injectStyles: false }));
+
+            await chart.updateDelta({ injectStyles: true });
+            await chart.updateDelta({ injectStyles: true });
+
+            expect(modeOf(chart)).toBe(false);
+            expect(warnCount(CHANGED(false))).toBe(1);
+        });
+
+        it('warns once for updateDelta() alone asking an injecting chart for static', async () => {
+            chart = await createChart(barOptions());
+
+            await chart.updateDelta({ injectStyles: false });
+            await chart.updateDelta({ injectStyles: false });
+
+            expect(modeOf(chart)).toBe(true);
+            expect(warnCount(CHANGED(true))).toBe(1);
+        });
+
         it('is silent when an update repeats the pinned value', async () => {
             chart = await createChart(barOptions({ injectStyles: false }));
 

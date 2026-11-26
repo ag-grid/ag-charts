@@ -1908,9 +1908,9 @@ describe('DOMManager', () => {
                     ...zeroPaddingComputedStyle(),
                     getPropertyValue: (name: string) => markers[name] ?? '',
                 }));
-                const create = (connected = true, mode?: 'minimal') => {
+                const create = (connected = true, mode?: 'minimal', parent?: ParentNode) => {
                     const container = rootDocument.createElement('div');
-                    if (connected) rootDocument.body.append(container);
+                    if (connected) (parent ?? rootDocument.body).append(container);
                     const dm = new DOMManager(
                         hub,
                         undefined,
@@ -2014,6 +2014,34 @@ describe('DOMManager', () => {
                 settle();
                 expect(warn).not.toHaveBeenCalled();
                 expect(getComputedStyle).not.toHaveBeenCalled();
+            });
+
+            it('checks each shadow root of one document on its own, and a root once', () => {
+                const { rootDocument, warn, create, settle } = setup({});
+                const shadowRoot = () => {
+                    const host = rootDocument.createElement('div');
+                    rootDocument.body.append(host);
+                    const shadow = host.attachShadow({ mode: 'open' });
+                    const outer = rootDocument.createElement('div');
+                    shadow.append(outer);
+                    return outer;
+                };
+                const first = shadowRoot();
+                const second = shadowRoot();
+
+                create(true, undefined, first);
+                create(true, undefined, first);
+                settle();
+                expect(warn).toHaveBeenCalledTimes(1);
+
+                create(true, undefined, second);
+                settle();
+                expect(warn).toHaveBeenCalledTimes(2);
+
+                // The document itself is a third root, with its own check.
+                create();
+                settle();
+                expect(warn).toHaveBeenCalledTimes(3);
             });
 
             it('never checks a container that is not connected', () => {
