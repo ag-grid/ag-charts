@@ -14,6 +14,11 @@ import {
 /** Slack for the float error of placing an aligned cell in device pixels, against the whole pixels of a region. */
 const REGION_EPSILON = 1e-6;
 
+/** Whether two stored numbers differ, where a NaN written over a NaN is no change. */
+function differs(a: number, b: number) {
+    return a !== b && !(Number.isNaN(a) && Number.isNaN(b));
+}
+
 /**
  * OPTIMIZATION: paints every plain heatmap cell in one pass from typed arrays, instead of walking one `Rect` per cell.
  * A cell paints with the same `fillStyle` and `fillRect` calls as a square-cornered, unstroked, unshadowed `Rect`.
@@ -50,6 +55,8 @@ export class HeatmapCellBatch extends Node {
     private regionMaxX = -Infinity;
     private regionMaxY = -Infinity;
     private regionUnknown = false;
+    /** Whether anything the batch paints changed since its last paint. */
+    private changed = false;
 
     /** Whether cells snap to the device pixel grid, as a crisp `Rect` does. */
     get crisp() {
@@ -59,6 +66,7 @@ export class HeatmapCellBatch extends Node {
         if (crisp === this._crisp) return;
         this._crisp = crisp;
         this.alignmentStale = true;
+        this.changed = true;
     }
 
     /** The datum behind each cell, which only the serialised form reads. */
@@ -93,6 +101,7 @@ export class HeatmapCellBatch extends Node {
         this.strokes.length = count;
         // Cells past the old count were not realigned along the way, so what they hold can't be trusted.
         if (count > this.count) this.alignmentStale = true;
+        if (count !== this.count) this.changed = true;
         // A resize starts a full rewrite, which no region bounds, so `set` need not track one.
         this.regionUnknown = true;
         this.count = count;
@@ -110,10 +119,20 @@ export class HeatmapCellBatch extends Node {
         stroke: string | undefined
     ) {
         const moved =
-            x !== this.xs[index] ||
-            y !== this.ys[index] ||
-            width !== this.widths[index] ||
-            height !== this.heights[index];
+            differs(x, this.xs[index]) ||
+            differs(y, this.ys[index]) ||
+            differs(width, this.widths[index]) ||
+            differs(height, this.heights[index]);
+        if (
+            !moved &&
+            fill === this.fills[index] &&
+            !differs(opacity, this.opacities[index]) &&
+            !differs(strokeOpacity, this.strokeOpacities[index]) &&
+            stroke === this.strokes[index]
+        ) {
+            return;
+        }
+        this.changed = true;
         // What the cell painted before is repainted too, so it joins the region ahead of the write.
         if (moved) this.includeInRegion(index);
         this.xs[index] = x;
@@ -201,9 +220,21 @@ export class HeatmapCellBatch extends Node {
         this.microPixelOpacities[index] = microPixelOpacity;
     }
 
-    /** One dirty notification for any number of `set` calls; the layer repaints whole. */
-    commit() {
-        this.markDirty();
+    /**
+     * One dirty notification for any number of `set` calls, and none when they changed nothing.
+     * `region` repaints only the cells written since the last paint, rather than the whole layer.
+     */
+    commit(region = false) {
+        if (!this.changed) {
+            // Nothing is pending, so a later transaction's region need not stay unbounded by this pass's `resize`.
+            this.resetRegion();
+            return;
+        }
+        if (region) {
+            this.markDirtyRegion();
+        } else {
+            this.markDirty();
+        }
     }
 
     readCell(index: number) {
@@ -244,6 +275,7 @@ export class HeatmapCellBatch extends Node {
             this.paint(renderCtx);
             // Whatever was written has now been painted, whether over the region alone or over the whole layer.
             this.resetRegion();
+            this.changed = false;
         }
         super.render(renderCtx);
     }

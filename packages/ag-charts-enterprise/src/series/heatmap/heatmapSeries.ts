@@ -47,7 +47,6 @@ import {
     resetRememberedResults,
     resolveLabelAvoidance,
     resolveTextAlign,
-    upsertNodeDatum,
     withoutCasts,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
@@ -441,21 +440,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return;
         }
 
-        for (const [datumIndex, datum] of ctx.rawData.entries()) {
-            const nodeDatum = upsertNodeDatum(
-                ctx,
-                { datumIndex, datum },
-                (c, p) => this.createNodeDatum(c, p.datumIndex, p.datum),
-                (c, n, p) => this.updateNodeDatum(c, n, p.datumIndex, p.datum)
-            );
+        const { rawData, nodes } = ctx;
+        let nodeIndex = 0;
+        for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
+            const datum = rawData[datumIndex];
+            // OPTIMIZATION: heatmap never animates, so a full pass rewrites the previous pass's datums in place.
+            const nodeDatum = nodes[nodeIndex] ?? this.createSkeletonNodeDatum(ctx, datumIndex, datum);
+            if (!this.updateNodeDatum(ctx, nodeDatum, datumIndex, datum)) continue;
+            nodes[nodeIndex++] = nodeDatum;
 
-            if (nodeDatum) {
-                const labelDatum = this.createLabelDatum(ctx, datumIndex, datum, nodeDatum);
-                if (labelDatum) {
-                    ctx.labels.push(labelDatum);
-                }
+            const labelDatum = this.createLabelDatum(ctx, datumIndex, datum, nodeDatum);
+            if (labelDatum) {
+                ctx.labels.push(labelDatum);
             }
         }
+        ctx.nodeIndex = nodeIndex;
     }
 
     /** The remembered styler results go with every full reset, so drifting results cannot fill the memo for good. */
@@ -591,7 +590,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
-        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null;
 
         return {
             xAxis,
@@ -698,14 +697,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     /**
-     * Updates an existing HeatmapNodeDatum in-place.
+     * Updates an existing HeatmapNodeDatum in-place, or returns `false` and leaves it untouched for a row with no cell.
      */
     private updateNodeDatum(
         ctx: HeatmapSeriesNodeDatumContext,
         node: HeatmapNodeDatum,
         datumIndex: number,
         datum: unknown
-    ): void {
+    ): boolean {
         const { xScale, yScale, xOffset, yOffset, width, height, xKey, yKey, colorValues } = ctx;
         const mutableNode = node as Mutable<HeatmapNodeDatum>;
 
@@ -714,12 +713,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const x = xScale.convert(xDatum) + xOffset;
         const y = yScale.convert(yDatum) + yOffset;
 
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+
         const incremental = this.touchedDatumIndices != null;
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
-            // The cell keeps its style, which a full pass has not counted yet.
-            if (!incremental && !isBatchableStyle(node.style)) this.unbatchableCells++;
-            return;
-        }
 
         const colorValue = colorValues?.[datumIndex];
 
@@ -747,30 +743,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
         mutableNode.style = style;
         if (!isBatchableStyle(style)) this.unbatchableCells++;
-    }
-
-    /**
-     * Creates a HeatmapNodeDatum for a single data point.
-     * Returns undefined for invalid data points (e.g., null/undefined keys when not allowed).
-     */
-    private createNodeDatum(
-        ctx: HeatmapSeriesNodeDatumContext,
-        datumIndex: number,
-        datum: unknown
-    ): HeatmapNodeDatum | undefined {
-        const { xScale, yScale, xOffset, yOffset } = ctx;
-        const xDatum = ctx.xValues[datumIndex];
-        const yDatum = ctx.yValues[datumIndex];
-        const x = xScale.convert(xDatum) + xOffset;
-        const y = yScale.convert(yDatum) + yOffset;
-
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
-            return undefined;
-        }
-
-        const node = this.createSkeletonNodeDatum(ctx, datumIndex, datum);
-        this.updateNodeDatum(ctx, node, datumIndex, datum);
-        return node;
+        return true;
     }
 
     private createLabelDatum(
@@ -1118,19 +1091,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const crispChanged = cellBatch.crisp !== crisp;
         cellBatch.crisp = crisp;
         cellBatch.datums = nodeData;
-        if (touchedDatumIndices != null && !this.restyledEveryCell && cellBatch.size === nodeData.length) {
+        const incremental =
+            touchedDatumIndices != null && !this.restyledEveryCell && cellBatch.size === nodeData.length;
+        if (incremental) {
             // OPTIMIZATION: only the updated cells differ from what the batch already holds.
             for (const datumIndex of touchedDatumIndices) writeCell(datumIndex);
-            if (crisp && !crispChanged && this.chart?.isMiniChart !== true) {
-                // OPTIMIZATION: the layer repaints only where those cells are. The mini chart's always repaints whole.
-                cellBatch.markDirtyRegion();
-                return;
-            }
         } else {
             cellBatch.resize(nodeData.length);
             for (let index = 0; index < nodeData.length; index++) writeCell(index);
         }
-        cellBatch.commit();
+        // OPTIMIZATION: the layer repaints only where the updated cells are. The mini chart's always repaints whole.
+        cellBatch.commit(incremental && crisp && !crispChanged && this.chart?.isMiniChart !== true);
     }
 
     protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {

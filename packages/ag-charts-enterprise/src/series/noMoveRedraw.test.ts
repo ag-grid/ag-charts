@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgChartInstance } from 'ag-charts-community';
 import {
@@ -10,6 +10,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../test/utils';
+import { HeatmapCellBatch } from './heatmap/heatmapCellBatch';
 
 type Row = Record<string, number | string>;
 
@@ -19,6 +20,10 @@ interface RectCase {
     makeRows: (count: number, shift: number) => Row[];
     /** Mutates a charted field of one row in place. */
     mutate(row: Row): void;
+    /** Whether the cells are painted by one `HeatmapCellBatch` rather than a `Rect` each. */
+    batched?: boolean;
+    /** Rects outside the series that every layout marks dirty, such as a gradient legend's. */
+    rectsDirtyOutsideSeries?: number;
 }
 
 const rangeRows = (count: number, shift: number): Row[] =>
@@ -69,6 +74,8 @@ const CASES: RectCase[] = [
         }),
         makeRows: heatmapRows,
         mutate: (row) => (row.level = (row.level as number) + 3),
+        batched: true,
+        rectsDirtyOutsideSeries: 1,
     },
 ];
 
@@ -131,12 +138,25 @@ describe('rect series redraw where nothing moves', () => {
         });
     }
 
-    // The heatmap is left out: one of its rects is still marked dirty on identical data.
-    for (const rectCase of CASES.filter(({ name }) => name !== 'heatmap')) {
-        it(`leaves the ${rectCase.name} rects clean for identical data`, async () => {
-            const c = await create(rectCase);
+    for (const rectCase of CASES) {
+        it(`leaves the ${rectCase.name} cells clean for identical data`, async () => {
+            const batchRender = vi.spyOn(HeatmapCellBatch.prototype, 'render');
+            try {
+                const c = await create(rectCase);
+                expect(batchRender.mock.calls.length > 0).toBe(rectCase.batched ?? false);
+                batchRender.mockClear();
 
-            expect(await countRectsMarkedDirty(c, () => c.updateDelta({ data: rectCase.makeRows(COUNT, 0) }))).toBe(0);
+                const dirtyRects = await countRectsMarkedDirty(c, () =>
+                    c.updateDelta({ data: rectCase.makeRows(COUNT, 0) })
+                );
+
+                expect({ dirtyRects, batchRenders: batchRender.mock.calls.length }).toEqual({
+                    dirtyRects: rectCase.rectsDirtyOutsideSeries ?? 0,
+                    batchRenders: 0,
+                });
+            } finally {
+                batchRender.mockRestore();
+            }
         });
     }
 });
