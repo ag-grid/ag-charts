@@ -190,14 +190,17 @@ test('slack message names only the first few excluded examples', () => {
     );
 });
 
-test('slack message cuts the full timing attachment to whole rows inside its code block', () => {
-    const rankedByTime = Array.from({ length: 2000 }, (_, i) => ranked(variant('wide', i), i % 50));
+test('slack message cuts the full timing attachment to whole rows from the middle of its table', () => {
+    // Ranked best to worst, so the biggest regressions are the last rows
+    const rankedByTime = Array.from({ length: 2000 }, (_, i) => ranked(`wide ${i} / ${'x'.repeat(60)}`, i - 1000));
     const message = format(comparison({ rankedByTime }));
     assertSectionsFit(message);
     const { text } = message.attachments[0];
     assert.ok(text.length <= SLACK_ATTACHMENT_TEXT_LIMIT, `${text.length} chars`);
     assert.match(text, /^```\nTest +%/);
-    assert.match(text, /\n…and \d+ more rows\n```$/);
+    assert.match(text, /\n…and \d+ more rows\n/);
+    assert.match(text, /\nwide 0 \/.*-1000%/);
+    assert.match(text, /\nwide 1999 \/.*\+999% .*\n```$/);
 });
 
 test('fitItems leaves a list that fits unchanged', () => {
@@ -209,6 +212,11 @@ test('fitItems drops whole items from the end and counts them before the tail', 
     const text = fitItems(items, 25, { head: '```\n', tail: '\n```' });
     assert.equal(text, '```\nrow-1\n…and 3 more\n```');
     assert.equal(fitItems(items, 20, { separator: ' | ', more: (n) => `+${n}` }), 'row-1 | row-2 | +2');
+});
+
+test('fitItems can drop items from the middle, keeping both ends', () => {
+    const items = ['row-1', 'row-2', 'row-3', 'row-4', 'row-5', 'row-6'];
+    assert.equal(fitItems(items, 30, { dropFrom: 'middle' }), 'row-1\nrow-2\n…and 3 more\nrow-6');
 });
 
 test('fitItems never exceeds the limit, even when the head alone is too long', () => {

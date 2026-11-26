@@ -115,9 +115,9 @@ const SLACK_SECTION_TEXT_LIMIT = 3000;
 const SLACK_ATTACHMENT_TEXT_LIMIT = 35000;
 
 /**
- * Join `items` between `head` and `tail`, dropping whole items from the end until the result is at most `limit`
- * characters long. Dropped items are counted in a final `more(n)` item, so a code block keeps its closing fence and
- * a reader can see the list was cut.
+ * Join `items` between `head` and `tail`, dropping whole items until the result is at most `limit` characters long.
+ * Dropped items are counted in a `more(n)` item where they were, so a code block keeps its closing fence and a reader
+ * can see the list was cut.
  *
  * @param {string[]} items
  * @param {number} limit
@@ -126,11 +126,22 @@ const SLACK_ATTACHMENT_TEXT_LIMIT = 35000;
  * @param {string} [opts.tail=''] - Text after the last item.
  * @param {string} [opts.separator='\n'] - Text between items.
  * @param {(n: number) => string} [opts.more] - The item that stands in for `n` dropped items.
+ * @param {'end' | 'middle'} [opts.dropFrom='end'] - `middle` keeps both ends of a ranked table: best and worst rows.
  */
-function fitItems(items, limit, { head = '', tail = '', separator = '\n', more = (n) => `…and ${n} more` } = {}) {
+function fitItems(
+    items,
+    limit,
+    { head = '', tail = '', separator = '\n', more = (n) => `…and ${n} more`, dropFrom = 'end' } = {}
+) {
     const render = (count) => {
-        const kept = items.slice(0, count);
-        if (count < items.length) kept.push(more(items.length - count));
+        const dropped = items.length - count;
+        let kept = items;
+        if (dropped > 0 && dropFrom === 'middle') {
+            const start = Math.ceil(count / 2);
+            kept = [...items.slice(0, start), more(dropped), ...items.slice(start + dropped)];
+        } else if (dropped > 0) {
+            kept = [...items.slice(0, count), more(dropped)];
+        }
         return head + kept.join(separator) + tail;
     };
     let count = items.length;

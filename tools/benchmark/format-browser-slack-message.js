@@ -62,12 +62,16 @@ const section = (items, separator = '\n') => ({
     text: { type: 'mrkdwn', text: fitItems(items, SLACK_SECTION_TEXT_LIMIT, { separator }) },
 });
 
-/** `table` (as `formatTable` returns it) in a code block after `heading`, dropping rows to fit in `limit`. */
+/**
+ * `table` (as `formatTable` returns it) in a code block after `heading`, dropping rows from the middle to fit in
+ * `limit`, so the header, the biggest improvements and the biggest regressions stay.
+ */
 const codeBlock = (table, limit, heading = '') =>
     fitItems(table.trimEnd().split('\n'), limit, {
         head: `${heading}\`\`\`\n`,
         tail: '\n```',
         more: (n) => `…and ${n} more rows`,
+        dropFrom: 'middle',
     });
 
 const tableSection = (heading, table) => ({
