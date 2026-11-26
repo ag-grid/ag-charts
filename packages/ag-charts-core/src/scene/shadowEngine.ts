@@ -39,8 +39,8 @@ export const SHADOW_SHRINK_AFTER = 30;
 const MAX_CACHED_CASTS = 4;
 
 /**
- * The most pixels that the kept shadows of a scene hold between them: about 32 MB (8.39M), enough for the cast of a 1600 x 900 chart
- * at 2x (5.76M). The kept parts of overlay glows are given the same room, beside it.
+ * The most pixels that the kept shadows of a scene hold between them: about 32 MB (8.39M), which holds the shadows of a 1600 x 900
+ * chart at 2x. The kept parts of overlay glows are given the same room, beside it.
  */
 const MAX_CACHED_AREA = MAX_MASK_AREA / 2;
 

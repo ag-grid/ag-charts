@@ -895,6 +895,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
+    /** Public only so that tests can count the walks of the root, which they can reach no other way. */
     gatherShadowChildren(collector: ShadowCollector): void {
         this.sortChildrenIfDirty();
 

@@ -32,6 +32,8 @@ const SHADOW_ROOT_MIN_VERSION = '15.0.0';
 type Gap = number | 'unset';
 const GAPS: Gap[] = ['unset', 0, 5];
 const SERIES_POINTS = 5000;
+/** Where the centre of the first of four grouped bars is in its category, as a fraction of the category's width. */
+const FIRST_OF_FOUR_BARS = 0.255;
 
 type Scenario =
     | 'bars'
@@ -58,6 +60,7 @@ export interface ShadowRootData {
 }
 type TestCase = BenchmarkConfig['testCases'][number];
 type Variants = TestCase['variants'];
+type Rows = NonNullable<AgCartesianChartOptions['data']>;
 type Operation = (chartOptions: AgCartesianChartOptions) => Promise<number>;
 
 export type ShadowRootCaseId =
@@ -78,9 +81,7 @@ export type ShadowRootCaseId =
     | 'theme-defaults';
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant.
-// `bars-large` is `bars` at 1600 x 900, whose shadows reach 5.3M device px at 2x. That is over the 4.2M that a scene kept before, so a
-// root that can't keep them casts every frame. `bars-large-undimmed` also keeps the other bars from dimming, so a hover within a
-// series restyles nothing that casts a shadow, and its frames after the first two are clean.
+// `bars-large` is `bars` at 1600 x 900, whose shadows reach 5.3M device px at 2x. `bars-large-undimmed` stops the other bars from dimming.
 // `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
 // `series-highlight` sets only `highlightedSeries.glow`, so the glow is cast only while a legend item is hovered.
@@ -356,26 +357,48 @@ export function getShadowRootConfig(
     const create: Operation = (chartOptions) => performInitialLoad(chartOptions, chartRef, createChart);
     const hover: Operation = () => performDatumHighlight(chartRef.current!, container, 10);
 
-    // Hovers consecutive points of the first series, so that each move is between items of one series.
-    const seriesHover: Operation = async (chartOptions) => {
-        const rows = chartOptions.data ?? [];
+    // Hovers ten items of the first series in turn, at the pixel that `pointAt` gives for the i-th, so that each move is within one series.
+    const hoverFirstSeries =
+        (
+            pointAt: (
+                i: number,
+                rows: Rows,
+                width: number,
+                height: number,
+                options: AgCartesianChartOptions
+            ) => [number, number]
+        ): Operation =>
+        async (chartOptions) => {
+            const rows = chartOptions.data ?? [];
+            const seriesArea = container.querySelector('.ag-charts-series-area') as HTMLElement;
+            const { width, height } = seriesArea.getBoundingClientRect();
+
+            const start = performance.now();
+            for (let i = 0; i < 10; i++) {
+                const [x, y] = pointAt(i, rows, width, height, chartOptions);
+                hoverAt(container, x, y);
+                await waitForAsyncEventTriggeredUpdate(chartRef.current!);
+            }
+
+            seriesArea.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+            return performance.now() - start;
+        };
+
+    // The points of the first series are on the line, at the pixel of their value.
+    const seriesHover = hoverFirstSeries((i, rows, width, height, chartOptions) => {
         const yAxis = chartOptions.axes?.y as { min: number; max: number };
-        const seriesArea = container.querySelector('.ag-charts-series-area') as HTMLElement;
-        const { width, height } = seriesArea.getBoundingClientRect();
-        const middle = Math.floor(rows.length / 2);
+        const row = rows[Math.floor(rows.length / 2) + i * 10];
+        return [
+            (Number(row.x) / (rows.length - 1)) * width,
+            (1 - (Number(row.y0) - yAxis.min) / (yAxis.max - yAxis.min)) * height,
+        ];
+    });
 
-        const start = performance.now();
-        for (let i = 0; i < 10; i++) {
-            const row = rows[middle + i * 10];
-            const x = (Number(row.x) / (rows.length - 1)) * width;
-            const y = (1 - (Number(row.y0) - yAxis.min) / (yAxis.max - yAxis.min)) * height;
-            hoverAt(container, x, y);
-            await waitForAsyncEventTriggeredUpdate(chartRef.current!);
-        }
-
-        seriesArea.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
-        return performance.now() - start;
-    };
+    // The bars of the first series of four, in the middle categories, at a pixel just above the axis, which every bar reaches.
+    const barHover = hoverFirstSeries((i, rows, width, height) => [
+        ((rows.length / 4 + i + FIRST_OF_FOUR_BARS) / rows.length) * width,
+        height - 3,
+    ]);
 
     // Redraws the whole chart, from data that is new to it.
     const redraw: Operation = async (chartOptions) => {
@@ -455,7 +478,7 @@ export function getShadowRootConfig(
             run: async () => hover(await prepare(scenario, false)),
         }));
 
-    /** The variants of `bars-large`: a hover with the default highlight, and with the other bars not dimmed. */
+    /** The variants of `bars-large`: hovers within the first series, with the default highlight, and with the other bars not dimmed. */
     const largeBarVariants = () => {
         const variants: Variants = [];
         for (const shadowOn of [false, true]) {
@@ -466,7 +489,7 @@ export function getShadowRootConfig(
                 variants.push({
                     params: { Operation: 'Hover x10', Shadow: shadowOn ? 'On' : 'Off', Highlight: highlight },
                     available: shadowsSupported || !shadowOn,
-                    run: async () => hover(await prepare(scenario, shadowOn)),
+                    run: async () => barHover(await prepare(scenario, shadowOn)),
                 });
             }
         }

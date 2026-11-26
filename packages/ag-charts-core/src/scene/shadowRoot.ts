@@ -54,6 +54,18 @@ function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame<ShadowSourc
     return true;
 }
 
+const shadowIds = new WeakMap<NormalisedDropShadowOptions, string>();
+
+/** The {@link shadowKeyId} of a shadow, which is built once, as the shadows of a chart are the same objects from one frame to the next. */
+function getShadowId(shadow: NormalisedDropShadowOptions): string {
+    let id = shadowIds.get(shadow);
+    if (id == null) {
+        id = shadowKeyId(shadow);
+        shadowIds.set(shadow, id);
+    }
+    return id;
+}
+
 /** Groups the casters of one slot into keys by their shadow options and clips, in the order of their first caster. */
 class SlotKeys {
     readonly keys: RootShadowKey[] = [];
@@ -96,14 +108,14 @@ class SlotKeys {
         clips: readonly ShadowRegion[],
         owner: object | undefined
     ) {
-        const candidates = this.byShadow.get(shadowKeyId(shadow));
+        const candidates = this.byShadow.get(getShadowId(shadow));
         return candidates?.find(
             (k) => k.owner === owner && joinsShadowKey(k, caster, shadow, undefined, 'root', clips)
         );
     }
 
     private index(key: RootShadowKey) {
-        const id = shadowKeyId(key.shadow);
+        const id = getShadowId(key.shadow);
         const candidates = this.byShadow.get(id);
         if (candidates == null) this.byShadow.set(id, [key]);
         else candidates.push(key);
