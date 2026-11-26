@@ -475,7 +475,7 @@ describe('label minimumFontSize', () => {
         it('keeps the fitted size on the highlighted bubble label', async () => {
             await render(bubbleChart({ minimumFontSize: 4 }));
             const placed = fontSizes();
-            const [datum] = getSeriesContextNodeData(chart).labelData;
+            const datum = getSeriesContextNodeData(chart).labelData.at(-1);
             deproxy(chart).ctx.highlightManager.updateHighlight(getSeriesAt(chart).id, datum);
             await waitForChartStability(chart);
             const highlighted = drawnLabels(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).map(

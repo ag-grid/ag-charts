@@ -4,11 +4,13 @@ import {
     type CallbackParamRules,
     type ChartAnimationPhase,
     ColorScale,
+    DrawnItemStyles,
     type DynamicContext,
     type Feature,
     type FeatureCollection,
     type Geometry,
     Group,
+    InsetMaskFitRegion,
     type LabelFit,
     LinearScale,
     type NormalisedChartLabelStyleOptions,
@@ -27,18 +29,34 @@ import {
     applyStyledMarker,
     configureColorScale,
     datumKeyReader,
+    drawnStrokeWidth,
     findDiscreteColorBinLabel,
     fitLabelText,
+    fitLabelTextOrOverflow,
     formatValue,
+    insideMarkerLabelRoom,
+    insideMarkerPolicy,
     isSupportedMarkerShape,
+    itemLabelClearance,
+    itemLabelInsets,
+    markerShapeAnalysis,
     measureLabelText,
     mergeDefaults,
+    refitItemLabelNode,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
     withoutCasts,
 } from 'ag-charts-core';
-import type { BBox } from 'ag-charts-core';
+import type {
+    BBox,
+    InsideMarkerFit,
+    InsideMarkerPolicyScratch,
+    ItemLabelInsets,
+    ItemLabelSource,
+    MarkerShapeAnalysis,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgMapMarkerSeriesItemStylerParams,
@@ -73,6 +91,7 @@ const {
 export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
+    readonly itemRoom?: ItemLabelSource;
 }
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -149,6 +168,15 @@ export class MapMarkerSeries
 
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
+    /** How an `inside`-only label is fitted to its marker this pass, as scatter fits its own. */
+    private labelInsideMarkerFit: InsideMarkerFit | undefined;
+    private labelItemInsets: ItemLabelInsets | undefined;
+    /** The style each layer last drew its markers in, by datum index, while a state restyles their strokes. */
+    private readonly drawnItemStyles = new DrawnItemStyles<NormalisedMapMarkerSeriesStyle>();
+    private readonly labelInsideMarkerPolicy: InsideMarkerPolicyScratch = {
+        policy: {},
+        region: new InsetMaskFitRegion(),
+    };
 
     private readonly markerGroup = this.contentGroup.appendChild(
         new Group({ name: 'markerGroup', batchShadows: 'shared' })
@@ -394,7 +422,29 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, labelFit, labelStyle);
+        const insideMarkerFit = this.labelInsideMarkerFit;
+        let insideAnalysis: MarkerShapeAnalysis | undefined;
+        let fittedText: NormalisedTextOrSegments;
+        let itemRoom: ItemLabelSource | undefined;
+        if (insideMarkerFit == null) {
+            fittedText = fitLabelText(labelText, labelFit, labelStyle);
+        } else {
+            insideAnalysis = markerShapeAnalysis(shape);
+            const policy = insideMarkerPolicy(
+                insideMarkerFit,
+                insideAnalysis,
+                point.size,
+                this.labelInsideMarkerPolicy
+            );
+            // Like scatter, an `alwaysShow` label keeps its text on a marker too small to hold even an ellipsis.
+            const overflow = label.collision.alwaysShow ? insideMarkerFit.base : undefined;
+            fittedText = fitLabelTextOrOverflow(labelText, policy, overflow, labelStyle);
+            const insets = this.labelItemInsets;
+            if (insets != null) {
+                const { base } = insideMarkerFit;
+                itemRoom = insideMarkerLabelRoom(insets, base, policy, labelText, labelStyle);
+            }
+        }
         const text = measureLabelText(fittedText, labelStyle);
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
         const box = expandLabelBoxExtent(labelStyle);
@@ -407,12 +457,36 @@ export class MapMarkerSeries
             label: { width, height, text: fittedText },
             anchor,
             markerShape: shape,
+            markerStrokeWidth: drawnStrokeWidth(this.options.stroke, this.options.strokeWidth),
             placement,
+            // The text is fitted to the shape's inscribed rect, so it is drawn centred on that rect.
+            insideOffset: insideAnalysis?.rect.offset,
             // An inside label rides with its marker, so only directional placements can spill out.
             region: placement === 'inside' ? undefined : labelRegion,
             datumIndex,
             datumId: createDatumId(index, idValue, lonValue, latValue),
+            itemRoom,
         };
+    }
+
+    // Only an `inside`-only label is bound to its marker, so directional fallbacks stay full-size.
+    private resolveLabelInsideMarkerFit(labelStyle: NormalisedChartLabelStyleOptions) {
+        const { label, itemPadding, stroke, strokeWidth } = this.options;
+        const placements = toArray(label.placement);
+        const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+        const base = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        const insets = itemLabelInsets(itemPadding, stroke, strokeWidth, true);
+        this.labelItemInsets = base != null && this.restylesItemStrokes() ? insets : undefined;
+        this.labelInsideMarkerFit =
+            base == null
+                ? undefined
+                : {
+                      base,
+                      threshold: label.collision.threshold ?? 0,
+                      masked: false,
+                      clearance: itemLabelClearance(insets.inset, expandLabelBoxExtent(labelStyle)),
+                  };
+        if (base != null) this.labelInsideMarkerPolicy.policy = { ...base };
     }
 
     private resolveColumn<T>(
@@ -610,6 +684,7 @@ export class MapMarkerSeries
         );
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
         const labelRegion = this.resolveLabelPlotRegion(label.collision);
+        this.resolveLabelInsideMarkerFit(labelStyle);
 
         const projectedGeometries = this.prepareProjectedGeometries(
             columns.idValues,
@@ -750,6 +825,7 @@ export class MapMarkerSeries
     }) {
         const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         labelSelection.each((label, placedLabel) => {
             const { x, y, width, height, text, datum: labelDatum } = placedLabel;
             type P = AgMapMarkerSeriesLabelFormatterParams;
@@ -778,6 +854,11 @@ export class MapMarkerSeries
             label.lineHeight = lineHeight;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            if (labelDatum?.itemRoom != null) {
+                const drawn = drawnStyles.get(labelDatum.datumIndex);
+                if (drawn != null)
+                    refitItemLabelNode(label, labelDatum.itemRoom, drawn.stroke, drawn.strokeWidth, style);
+            }
             const datumIndex = labelDatum?.datumIndex;
             label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
@@ -962,10 +1043,14 @@ export class MapMarkerSeries
         const { shape: seriesShape, itemStyler } = this.options;
         const itemStyled = itemStyler != null;
         let labelMarkersChanged = false;
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
+        drawnStyles.clear();
+        const restyled = this.labelItemInsets != null;
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point, label } = markerDatum;
             const style = this.getMarkerItemStyle(markerDatum, isHighlight);
+            if (restyled) drawnStyles.set(markerDatum.datumIndex, style);
             if (stampLabels && label != null) {
                 labelMarkersChanged = applyStyledMarker(label, style, seriesShape, itemStyled) || labelMarkersChanged;
             }

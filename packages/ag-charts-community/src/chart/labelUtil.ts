@@ -12,6 +12,7 @@ import type {
     FitRegion,
     FontOptions,
     IsAny,
+    ItemLabelSource,
     LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
@@ -39,17 +40,19 @@ import {
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
     getMinOuterRectSize,
-    insetFitRegion,
+    insetItemRect,
+    insetItemRegion,
     insideBarContainer,
-    insideBarRegion,
     insideBarValueInsets,
     isRotatable,
+    itemLabelClearance,
     labelBoxCentreOffset,
     lineHeightAtSize,
     markerLabelRect,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
+    refitItemLabelNode,
     resolveLabelAvoidance,
     resolveLabelFitDescriptors,
     rotatedLabelInset,
@@ -98,6 +101,12 @@ interface SeriesLike {
     ): HighlightState;
     getSelectionStateString(datumIndex: DatumIndex | undefined): SelectionState | undefined;
     getCandidateStateString(datumIndex: DatumIndex | undefined): SelectionState | undefined;
+    /** The stroke the item behind a label is drawn with in its current state, for labels that keep an {@link ItemLabelSource}. */
+    drawnItemStroke?(
+        datum: SeriesNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): { stroke?: unknown; strokeWidth?: number } | undefined;
 }
 
 type Bounds = {
@@ -148,6 +157,8 @@ type LabelDatum = Point & {
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
     offsetX?: number;
     offsetY?: number;
+    /** Kept by an upright inside label fitted to its item, so a state drawing another stroke re-fits it. */
+    itemRoom?: ItemLabelSource;
 };
 
 /**
@@ -613,6 +624,14 @@ export function updateLabelNode<TParams>(
             textNode.fontSize = labelDatum.fittedFontSize;
             textNode.lineHeight = lineHeightAtSize(style, labelDatum.fittedFontSize);
         }
+        if (labelDatum.itemRoom != null) {
+            const { datum } = textNode;
+            const drawn = datum == null ? undefined : series.drawnItemStroke?.(datum, isHighlight, activeHighlight);
+            if (drawn != null) {
+                const layout = (labelDatum.rotation ?? 0) === 0 ? 'aligned' : 'turned';
+                refitItemLabelNode(textNode, labelDatum.itemRoom, drawn.stroke, drawn.strokeWidth, style, layout);
+            }
+        }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {
             const rotation = labelDatum.rotation ?? 0;
@@ -717,10 +736,11 @@ export function insideBarLabelBounds(
     isUpward: boolean,
     isVertical: boolean,
     spacing: number,
-    box: Required<PaddingOptions>
+    box: Required<PaddingOptions>,
+    itemPadding: number
 ): { region: BoxBounds; container: { width: number; height: number } } {
     const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-    const region = insideBarRegion(rect, insets.min, insets.max, isVertical);
+    const region = insetItemRect(rect, itemPadding, insets.min, insets.max, isVertical);
     return { region, container: insideBarContainer(region, box) };
 }
 
@@ -864,6 +884,8 @@ export interface BarPositionedCandidate<
 > extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
     readonly placement: TPlacement;
+    /** The gap the anchored end keeps from the bar end, any error-bar overhang included. */
+    readonly endSpacing: number;
     /**
      * Inputs {@link createBarPositionedCandidateResolver} rebuilds this candidate from under the style its
      * `itemStyler` resolves there, once the cascade reaches it.
@@ -890,6 +912,7 @@ interface BarCandidateSpec {
     readonly text?: NormalisedTextOrSegments;
     readonly fitted?: boolean;
     readonly shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
+    readonly itemPadding: number;
 }
 
 /**
@@ -905,17 +928,6 @@ export interface BarCandidateDeferred<TPlacement extends string = BarLabelPlacem
     readonly region: BoxBounds | undefined;
     /** Drawn-box extent of the configured style at this placement, used when nothing restyles it. */
     readonly placementBox: Required<PaddingOptions>;
-}
-
-/**
- * The room a shape offers, held clear of its edge by the box drawn around the glyph. A region is anchored
- * on its own centre line, so each axis pays the larger of its two paddings.
- */
-function insetShapeRegion(shape: FitRegion | undefined, boxPadding: Required<PaddingOptions>) {
-    if (shape == null) return undefined;
-    const dx = Math.max(boxPadding.left, boxPadding.right);
-    const dy = Math.max(boxPadding.top, boxPadding.bottom);
-    return dx === 0 && dy === 0 ? shape : insetFitRegion(shape, dx, dy);
 }
 
 /** Where a block of text hangs off its anchor, read from the baseline the anchor draws it on. */
@@ -982,6 +994,8 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     shapeAt?: (anchor: OrientationAnchor) => FitRegion | undefined;
     /** Source text, re-measured under a candidate's styled font; unset leaves every candidate unstyled. */
     text?: NormalisedTextOrSegments;
+    /** Least distance an inside label's drawn box keeps from every edge of its bar; see `itemPadding`. */
+    itemPadding: number;
 }): BarPositionedCandidate<TPlacement>[] {
     const {
         isUpward,
@@ -999,6 +1013,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         hideable = false,
         plotRegion,
         text,
+        itemPadding,
     } = args;
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
@@ -1040,7 +1055,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
             isVertical,
             barPlacementSpacing(spacing, placement, endOverhang)
         );
-        let insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
+        let insideRegion = isInside ? insetItemRect(rect, itemPadding, insets.min, insets.max, isVertical) : undefined;
         if (insideRegion != null && insideCrossRegion != null) {
             insideRegion = isVertical
                 ? { ...insideRegion, x: insideCrossRegion.x, width: insideCrossRegion.width }
@@ -1091,7 +1106,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
     style: CandidateLabelStyle | undefined,
     deferred: BarCandidateDeferred<TPlacement> | undefined
 ): BarPositionedCandidate<TPlacement> {
-    const { text, shapeAt } = spec;
+    const { text, shapeAt, itemPadding } = spec;
     const isInside = placement.startsWith('inside');
     const boxPadding = style?.boxPadding ?? placementBox;
     const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
@@ -1100,11 +1115,12 @@ function positionBarLabelCandidate<TPlacement extends string>(
     const width = labelWidth + boxPadding.left + boxPadding.right;
     const height = labelHeight + boxPadding.top + boxPadding.bottom;
     const rotationDeg = orientationAngles[orientation];
+    const endSpacing = barPlacementSpacing(spec.spacing, placement, spec.endOverhang);
     const anchor = adjustLabelPlacement({
         isUpward: spec.isUpward,
         isVertical: spec.isVertical,
         placement,
-        spacing: barPlacementSpacing(spec.spacing, placement, spec.endOverhang),
+        spacing: endSpacing,
         boxPadding,
         rect: spec.rect,
         rotation: toRadians(rotationDeg),
@@ -1113,6 +1129,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         crossReversed: spec.crossReversed ?? false,
     });
     const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
+    const shape = spec.fitted && isInside ? shapeAt?.(anchor) : undefined;
     const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
     return {
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
@@ -1122,6 +1139,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         rotation: rotationDeg === 0 ? undefined : rotationDeg,
         anchor,
         placement: reportedPlacement,
+        endSpacing,
         size: style == null ? undefined : { width, height },
         hidden: style?.hidden,
         // An outside candidate floats, so it offers no container and only the label's own
@@ -1129,10 +1147,9 @@ function positionBarLabelCandidate<TPlacement extends string>(
         fitTo: spec.fitted
             ? {
                   container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
-                  // The container is deflated by the box drawn around the glyph, and the shape has
-                  // to be held clear of its edge by the same amount, or a line wrapped to the full
-                  // width of a taper draws its padding and border outside the mark.
-                  shape: isInside ? insetShapeRegion(shapeAt?.(anchor), boxPadding) : undefined,
+                  // The shape is held clear by the drawn box and `itemPadding`, as the container is, or a
+                  // line wrapped to the full width of a taper draws its box outside the mark.
+                  shape: shape && insetItemRegion(shape, itemLabelClearance(itemPadding, boxPadding)),
                   shapeAlign: regionAlignOf(anchor.textBaseline),
                   anchor,
                   padding: boxPadding,

@@ -9,6 +9,7 @@ import type {
     DistantObject,
     DomainWithMetadata,
     DynamicContext,
+    ItemLabelInsets,
     Node,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
@@ -56,11 +57,13 @@ import {
     isGradientFill,
     isPatternFill,
     isSupportedMarkerShape,
+    itemLabelInsets,
     jsonDiff,
     mergeDefaults,
     mergeGlow,
     nearestSquared,
     resolveLabelAvoidance,
+    restylesStroke,
     without,
 } from 'ag-charts-core';
 import type {
@@ -1915,6 +1918,26 @@ export abstract class Series<
             if (size != null) return true;
         }
         return false;
+    }
+
+    /** Whether state can draw an item with a stroke other than its resting one: a styler, selection or a highlight stroke. */
+    protected restylesItemStrokes(): boolean {
+        if (this.hasItemStylers()) return true;
+        if (!this.isHighlightEnabled()) return false;
+        for (const state of highlightStates) {
+            if (restylesStroke(this.getHighlightStyle(false, undefined, state))) return true;
+        }
+        return false;
+    }
+
+    /** The insets an in-item label keeps against its item's resting stroke, while a state can restroke the item. */
+    protected restyledItemLabelInsets(
+        padding: number,
+        stroke: unknown,
+        strokeWidth: number | undefined,
+        centred = false
+    ): ItemLabelInsets | undefined {
+        return this.restylesItemStrokes() ? itemLabelInsets(padding, stroke, strokeWidth, centred) : undefined;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {

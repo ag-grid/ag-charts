@@ -131,6 +131,13 @@ describe('sectorLabelRoom', () => {
         expect(room.area).toBeGreaterThanOrEqual(block.width * block.height);
     });
 
+    it('measures the wedge to its own arcs, leaving any clearance to the sector it is given', () => {
+        // The one band 49.5 tall between radii 50 and 100 spans 50.25 to 99.75 along the bisector.
+        expect(
+            sectorLabelRoom(anchorAt(75, -Math.PI / 2), sector(-Math.PI / 2, Math.PI / 12, 50, 100), 49.5).area
+        ).toBeGreaterThan(0);
+    });
+
     it('holds fewer lines, and so less text, as the lines grow taller', () => {
         const room = sectorLabelRoom(anchor, s, 14);
         expect(room.capacityAt(28)).toBeLessThan(room.capacityAt(14));
@@ -480,7 +487,7 @@ describe('sectorLabelPlacer', () => {
             node.x = placed.x;
             node.y = placed.y;
             node.setFont(fontWithSize(font, placed.fontSize));
-            return node.getLineBoxes();
+            return node.getDrawnBoxes();
         };
         let fastPath = 0;
         let hiddenByGate = 0;
@@ -514,7 +521,7 @@ describe('sectorLabelPlacer', () => {
             };
             const placeDrawn = (drawnAsFitted: boolean) =>
                 sectorLabelPlacer(anchor, wedge, padding, boxing, 0, 0, drawnAsFitted)(fit);
-            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const layouts = vi.spyOn(Text.prototype, 'getDrawnBoxes');
             const fast = placeDrawn(true);
             const fastLayouts = layouts.mock.calls.length;
             const full = placeDrawn(false);

@@ -10,6 +10,7 @@ import {
     errorBarOptionsDefs,
     errorBarPlacedSeriesLabelOptionsDefs,
     errorBarThemeableOptionsDefs,
+    itemPaddingOptionsDef,
     markerHighlightOptionsDef,
     markerOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
@@ -27,6 +28,7 @@ import type {
 } from 'ag-charts-types';
 
 export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     title: string,
     showInMiniChart: boolean,
     label: errorBarPlacedSeriesLabelOptionsDefs,

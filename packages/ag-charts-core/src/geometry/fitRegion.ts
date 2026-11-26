@@ -312,24 +312,26 @@ export class InsetMaskFitRegion implements FitRegion {
     private scale = 0;
     private anchorX = 0;
     private anchorY = 0;
-    private inset = 0;
+    private insetX = 0;
+    private insetY = 0;
 
-    set(mask: FitRegionMask, scale: number, anchorX: number, anchorY: number, inset: number): this {
+    set(mask: FitRegionMask, scale: number, anchorX: number, anchorY: number, insetX: number, insetY: number): this {
         this.mask = mask;
         this.scale = scale;
         this.anchorX = anchorX;
         this.anchorY = anchorY;
-        this.inset = inset;
+        this.insetX = insetX;
+        this.insetY = insetY;
         const rowTop = mask.top * scale;
-        this.extentAbove = Math.max(0, anchorY - rowTop - inset);
-        this.extentBelow = Math.max(0, rowTop + mask.rows.length * (mask.rowHeight * scale) - anchorY - inset);
+        this.extentAbove = Math.max(0, anchorY - rowTop - insetY);
+        this.extentBelow = Math.max(0, rowTop + mask.rows.length * (mask.rowHeight * scale) - anchorY - insetY);
         return this;
     }
 
     spanAt(top: number, bottom: number): readonly [number, number] {
-        const { mask, scale, anchorX, anchorY, inset } = this;
-        const [left, right] = maskSpanAt(mask, scale, anchorX, anchorY, top - inset, bottom + inset);
+        const { mask, scale, anchorX, anchorY, insetX, insetY } = this;
+        const [left, right] = maskSpanAt(mask, scale, anchorX, anchorY, top - insetY, bottom + insetY);
         const mid = (left + right) / 2;
-        return [Math.min(left + inset, mid), Math.max(right - inset, mid)];
+        return [Math.min(left + insetX, mid), Math.max(right - insetX, mid)];
     }
 }

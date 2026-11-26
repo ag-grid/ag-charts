@@ -3,6 +3,7 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     GLOW_THEME_DEFAULTS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
@@ -40,6 +41,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
         ...MAP_THEME_DEFAULTS,
         series: {
             ...COMMON_SERIES_THEME_DEFAULTS,
+            ...ITEM_PADDING_THEME_DEFAULTS,
             ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
             shape: { $mapPalette: 'markerShape' },
             size: 7,

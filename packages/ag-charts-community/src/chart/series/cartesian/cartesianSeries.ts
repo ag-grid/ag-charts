@@ -47,7 +47,7 @@ import { getPickedFocusBBox } from '../../keyboardUtil';
 import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
 import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } from '../pickTypes';
 import type { SeriesDirectionKeysMapping } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import { HighlightState, type SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
@@ -1693,6 +1693,29 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.highlightLabelGroup.batchedUpdate(() => {
             this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
         });
+    }
+
+    /**
+     * The style the item at `datumIndex` was drawn with on a layer: its highlight copy's on the highlight layer, else
+     * `item`'s, else what `resting` holds for the state it is drawn in.
+     */
+    protected drawnItemStyle<TStyle>(
+        datumIndex: number,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined,
+        item: { readonly style?: TStyle } | undefined,
+        resting: { readonly [state in HighlightState]?: TStyle } | undefined
+    ): TStyle | DatumOf<TTypes>['style'] | undefined {
+        const drawn = isHighlight ? this.highlightDatumAt(datumIndex)?.style : item?.style;
+        return drawn ?? resting?.[this.getHighlightState(activeHighlight, isHighlight, datumIndex)];
+    }
+
+    /** The datum of the copy the highlight layer draws for `datumIndex`, when it draws one. */
+    protected highlightDatumAt(datumIndex: number): DatumOf<TTypes> | undefined {
+        for (const { node, datum } of this.highlightSelection) {
+            if (!this.highlightSelection.isGarbage(node) && datum.datumIndex === datumIndex) return datum;
+        }
+        return undefined;
     }
 
     // Re-renders both label selections after the placement engine has written back the chosen

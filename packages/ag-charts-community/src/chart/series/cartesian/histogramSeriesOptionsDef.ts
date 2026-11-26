@@ -9,6 +9,7 @@ import {
     constant,
     fillOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -48,6 +49,7 @@ const histogramItemStyler = callbackDefs<AgHistogramSeriesStyle & AgItemShadowSt
 });
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     styler: histogramStyler,

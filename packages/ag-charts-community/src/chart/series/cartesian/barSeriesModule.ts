@@ -6,6 +6,7 @@ import {
     type DynamicContext,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     GLOW_THEME_DEFAULTS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -34,6 +35,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         direction: 'vertical',
         fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
         fillOpacity: 1,

@@ -10,6 +10,7 @@ import {
     type CallbackParamRules,
     type ChartAnimationPhase,
     type DomainWithMetadata,
+    DrawnItemStyles,
     type DynamicContext,
     Group,
     type LabelFit,
@@ -36,6 +37,7 @@ import {
     cycledValue,
     fontWithSize,
     isArray,
+    itemLabelInsets,
     measureLabelText,
     measureTextSegments,
     mergeDefaults,
@@ -609,6 +611,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (!label.enabled) return labelDatum;
 
+        const itemInset = this.labelItemInsets(datumIndex).inset;
         const measured = measureLabelText(text, label);
         const spanOf = (size: { width: number; height: number }) => (trapezoid.vertical ? size.height : size.width);
         const buildCandidates = (index: number, rect: BoxBounds) =>
@@ -625,6 +628,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
+                itemPadding: itemInset,
                 shapeAt: (anchor) => trapezoidFitRegion(trapezoid, trapezoid.vertical ? anchor.y : anchor.x),
                 text,
             });
@@ -760,7 +764,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     alwaysShow,
                     avoid,
                     threshold,
-                    true,
                     fitFor(labelDatum.text),
                     labelDatum
                 )
@@ -775,7 +778,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<PyramidNodeLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
+        applyBarLabelOrientation<PyramidNodeLabelDatum>(
+            placed,
+            this.restylesItemStrokes()
+                ? ({ styleDatum }) => styleDatum && this.labelItemInsets(styleDatum.datumIndex)
+                : undefined
+        );
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);
         this.refreshPlacedLabelNodes();
     }
@@ -846,7 +854,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum) ?? [];
         this.highlightLabelSelection = highlightLabelSelection.update(highlightLabelData);
-        this.updateValueLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
@@ -854,6 +861,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateValueLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.animationState.transition('update');
     }
@@ -863,6 +871,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData);
+    }
+
+    /** The style each layer last drew its stages in, by datum index; the highlighted datum is shared by both layers. */
+    private readonly drawnItemStyles = new DrawnItemStyles<NormalisedPyramidSeriesStyle>();
+
+    drawnItemStroke(datum: PyramidNodeLabelDatum, isHighlight: boolean) {
+        return this.drawnItemStyles.get(isHighlight, datum.datumIndex);
+    }
+
+    /** How a stage holds its inside labels in; a stage is a path, so its stroke is centred on the outline. */
+    private labelItemInsets(datumIndex: number) {
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth, true);
     }
 
     protected getItemStyle(
@@ -934,8 +955,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
+        drawnStyles.clear();
         datumSelection.each((_, nodeDatum) => {
             nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+            drawnStyles.set(nodeDatum.datumIndex, nodeDatum.style);
         });
     }
 

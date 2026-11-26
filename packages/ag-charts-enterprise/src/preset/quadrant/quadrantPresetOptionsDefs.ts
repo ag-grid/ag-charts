@@ -100,6 +100,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     fillOpacity: defined,
     highlight: defined,
     id: string,
+    itemPadding: defined,
     itemStyler: defined,
     lineDash: defined,
     lineDashOffset: defined,

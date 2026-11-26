@@ -3,6 +3,7 @@ import type {
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
+    ItemLabelSource,
     LabelFit,
     Mutable,
     NormalisedBarSeriesOptions,
@@ -46,8 +47,11 @@ import {
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     fontWithSize,
+    insideAnchorSpacing,
     isContinuous,
     isFiniteNumber,
+    itemContentInset,
+    itemStrokeDepth,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -69,6 +73,7 @@ import type {
     PaddingOptions,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { ChartAxis } from '../../chartAxis';
@@ -151,6 +156,8 @@ interface BarNodeLabelDatum {
     fittedText?: NormalisedTextOrSegments;
     /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
     fittedFontSize?: number;
+    /** The room an inside label was fitted into, for a state drawing another stroke to re-fit it. */
+    itemRoom?: ItemLabelSource;
     // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
     x: number;
     y: number;
@@ -223,6 +230,7 @@ interface BarSeriesNodeDatumContext {
     readonly boxPadding: Required<PaddingOptions>;
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
+    readonly itemPadding: number;
     readonly crisp: boolean;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -798,6 +806,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             bboxBottom: yScale.convert(0n),
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
+            itemPadding: itemContentInset(
+                this.options.itemPadding,
+                itemStrokeDepth(this.options.stroke, this.options.strokeWidth, false)
+            ),
             crisp:
                 dataAggregationFilter == null &&
                 (this.options.crisp ??
@@ -1168,6 +1180,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 plotRegion: ctx.plotRegion,
                 fitted: ctx.labelFit != null,
                 text: nodeLabelText,
+                itemPadding: ctx.itemPadding,
             });
             if (candidates.length === 0) {
                 // Every placement points into a stacked neighbour, so there is nowhere left to put a
@@ -1223,7 +1236,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                           isUpward,
                           !ctx.barAlongX,
                           spacing,
-                          ctx.labelBoxExtent
+                          ctx.labelBoxExtent,
+                          ctx.itemPadding
                       )
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar region
@@ -1242,7 +1256,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isUpward,
                 isVertical: !ctx.barAlongX,
                 placement,
-                spacing,
+                spacing: insideAnchorSpacing(placement ?? 'inside-center', spacing, ctx.itemPadding),
                 boxPadding: ctx.boxPadding,
                 rect,
                 rotation,
@@ -1981,6 +1995,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         opts.datumSelection.each(updateDatumNode);
     }
 
+    drawnItemStroke(
+        datum: BarNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): NormalisedBarSeriesStyle | undefined {
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum, this.contextNodeData?.styles);
+    }
+
     getLabelObstacles() {
         const nodeData = this.contextNodeData?.nodeData;
         const obstacles = barLabelObstaclesFor(
@@ -2029,7 +2051,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         alwaysShow,
                         avoid,
                         threshold,
-                        false,
                         fitFor(nodeLabel.text),
                         // `datum`/`datumIndex` are written at node-data time, so a candidate resolved
                         // from here shows the styler this datum's values.
@@ -2079,7 +2100,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        applyBarLabelOrientation(placed, this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

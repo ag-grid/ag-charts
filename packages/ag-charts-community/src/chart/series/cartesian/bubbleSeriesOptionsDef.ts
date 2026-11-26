@@ -10,6 +10,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     enterprise,
+    itemPaddingOptionsDef,
     markerHighlightOptionsDef,
     markerOptionsDefs,
     multiSeriesGlowHighlightOptionsDef,
@@ -31,6 +32,7 @@ import type {
 } from 'ag-charts-types';
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     title: string,
     sizeDomain: and(arrayOf(numericValue), arrayLength(2, 2)),
     minSize: positiveNumber,

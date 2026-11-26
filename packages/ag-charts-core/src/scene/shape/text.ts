@@ -399,6 +399,11 @@ export class Text<D = unknown> extends Shape<D> {
         });
     }
 
+    /** The boxes the label paints: its whole background when boxed, else {@link getLineBoxes}. */
+    getDrawnBoxes(): BBox[] {
+        return this.boxing == null ? this.getLineBoxes() : [this.getBBox()];
+    }
+
     getPlainText() {
         return toPlainText(this.text);
     }

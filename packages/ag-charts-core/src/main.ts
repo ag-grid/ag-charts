@@ -136,6 +136,8 @@ export * from './geometry/crossLineLabelTranslation';
 export * from './geometry/distance';
 export * from './geometry/fill';
 export * from './geometry/fitRegion';
+export * from './geometry/itemLabelRefit';
+export * from './geometry/itemPadding';
 export * from './geometry/labelPlacement';
 export * from './geometry/labelRoom';
 export * from './geometry/labelStack';

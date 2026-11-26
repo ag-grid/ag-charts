@@ -5,7 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, NormalisedFunnelSeriesOwnOptions, RequireOptional, Selection } from 'ag-charts-core';
-import { ChartAxisDirection, Rect, mergeDefaults, withoutCasts } from 'ag-charts-core';
+import { ChartAxisDirection, Rect, cycledValue, itemLabelInsets, mergeDefaults, withoutCasts } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -99,6 +99,11 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         };
     }
 
+    protected override labelItemInsets(datumIndex: number) {
+        const { itemPadding, strokes, strokeWidth } = this.options;
+        return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth);
+    }
+
     protected override labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
         const { label } = this.options;
         return placement == null ? undefined : pickPlacementStyle(label, toResolvedFunnelPlacement(placement));
@@ -163,9 +168,12 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
         const fillBBox = this.getShapeFillBBox();
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
+        if (isHighlight) drawnStyles.clear();
 
         datumSelection.each((rect, datum) => {
             const style = this.getItemStyle(datum, isHighlight);
+            drawnStyles.set(datum.datumIndex, style);
             rect.setStyleProperties(style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

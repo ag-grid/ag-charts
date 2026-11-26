@@ -17,6 +17,7 @@ import {
     fillOptionsDef,
     glowHighlightOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -76,6 +77,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
 };
 
 export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     item: {

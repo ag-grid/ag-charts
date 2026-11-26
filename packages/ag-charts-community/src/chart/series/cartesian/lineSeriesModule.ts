@@ -4,6 +4,7 @@ import {
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     GLOW_THEME_DEFAULTS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -34,6 +35,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 const themeTemplate: ExtensibleSeriesTheme<'line'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         stroke: SAFE_STROKE_FILL_OPERATION,
         strokeWidth: 2,
         ...STROKE_STYLE_THEME_DEFAULTS,

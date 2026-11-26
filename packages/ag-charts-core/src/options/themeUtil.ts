@@ -698,6 +698,12 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
     lineDashOffset: 0,
 };
 
+/** Default distance an in-item label keeps from its item's edges, whatever option a series reads it from. */
+export const ITEM_PADDING_DEFAULT = 2;
+
+/** `itemPadding` theme default, spread by every series that draws labels inside its items. */
+export const ITEM_PADDING_THEME_DEFAULTS = { itemPadding: ITEM_PADDING_DEFAULT };
+
 /** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
 export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
 

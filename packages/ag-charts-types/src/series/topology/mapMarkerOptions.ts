@@ -21,6 +21,7 @@ import type {
 import type {
     AgColorScale,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -112,6 +113,7 @@ export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault>
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
         AgMapMarkerSeriesStyle,
+        ItemPaddingOptions,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /**
      * Determines the smallest size a marker can be in pixels when `sizeKey` is present. Defaults to `size` when not set.

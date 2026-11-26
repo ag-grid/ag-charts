@@ -17,6 +17,7 @@ import {
     fillOptionsDef,
     glowHighlightOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -37,6 +38,7 @@ import {
 import { funnelPlacementDef } from '../funnel/funnelSeriesOptionsDef';
 
 export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     direction: union('horizontal', 'vertical'),
     aspectRatio: positiveNumber,
     spacing: positiveNumber,

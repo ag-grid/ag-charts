@@ -517,7 +517,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         const { marker } = this.options;
         const markerSize = marker.enabled ? marker.size : 0;
-        const labelContext = this.resolveLabelContext(marker.shape, markerSize);
+        const labelContext = this.resolveLabelContext(marker, markerSize, this.options.itemPadding);
 
         this.nodeDatumContext = {
             xAxis,
@@ -552,6 +552,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
             labelMarkerShape: labelContext.labelMarkerShape,
+            labelMarkerStrokeWidth: labelContext.labelMarkerStrokeWidth,
             labelRegion: labelContext.labelRegion,
             emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -646,6 +647,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 // Back to the series marker: a styler stamps its own on afterwards, and a removed one must not linger.
                 existingNode.anchor = ctx.labelAnchor;
                 existingNode.markerShape = ctx.labelMarkerShape;
+                existingNode.markerStrokeWidth = ctx.labelMarkerStrokeWidth;
                 existingNode.markerSize = undefined;
                 existingNode.markerRestyled = undefined;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
@@ -670,6 +672,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     insideOffset: ctx.labelInsideOffset,
                     insideSize: ctx.labelInsideSize,
                     markerShape: ctx.labelMarkerShape,
+                    markerStrokeWidth: ctx.labelMarkerStrokeWidth,
                     region: ctx.labelRegion,
                     placement: 'top',
                     gap,
@@ -762,6 +765,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
             markerShape: ctx.labelMarkerShape,
+            markerStrokeWidth: ctx.labelMarkerStrokeWidth,
             region: ctx.labelRegion,
             placement: 'top',
             crossFilterSelected: undefined,
@@ -1111,7 +1115,15 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {
-        return { ...datum, point: { ...datum.point, x, y } };
+        return { ...datum, point: { ...datum.point, x, y }, markerDatum: datum.markerDatum ?? datum };
+    }
+
+    protected override get labelItemPadding() {
+        return this.options.itemPadding;
+    }
+
+    protected override restingMarkerStyles() {
+        return this.contextNodeData?.styles;
     }
 
     protected override readLabelPoint(datum: LineNodeDatum): Point {

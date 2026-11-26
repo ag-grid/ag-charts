@@ -7,6 +7,7 @@ import {
     FILL_PATTERN_KEYED_DEFAULTS,
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -224,6 +225,7 @@ const seriesLabelTheme = {
 export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         direction: 'vertical',
         label: seriesLabelTheme,
         item: {

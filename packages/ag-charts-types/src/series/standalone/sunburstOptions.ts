@@ -126,7 +126,12 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
      * __Note:__ A sector that is narrower than its share of the gap is not drawn.
      */
     gap?: PixelSize;
-    /** Minimum distance between text and the edges of the sectors. */
+    /**
+     * Minimum distance between text and the edges of the sectors.
+     * A negative value moves the text into the stroke, but never past the edge.
+     *
+     * Default: `3`
+     */
     padding?: PixelSize;
     /** The colours to cycle through for the fills of the sectors. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];

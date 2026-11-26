@@ -18,6 +18,7 @@ import {
     type DynamicContext,
     type FontOptions,
     type InternalAgColorType,
+    type ItemLabelSource,
     type LabelObstacle,
     type Mutable,
     type NormalisedHeatmapSeriesOwnOptions,
@@ -39,9 +40,13 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    insetItemSpan,
     isPlainObject,
     isPlainResult,
+    itemContentInset,
+    itemStrokeDepth,
     joinFormatted,
+    keepPlacedItemLabelRoom,
     measureLabelText,
     mergeDefaults,
     resetRememberedResults,
@@ -98,6 +103,7 @@ interface HeatmapLabelDatum extends Point {
     offsetX?: number;
     offsetY?: number;
     hidden?: boolean;
+    itemRoom?: ItemLabelSource;
     fontStyle: FontStyle | undefined;
     fontFamily: string;
     fontWeight: FontWeight | undefined;
@@ -110,6 +116,8 @@ interface HeatmapLabelDatum extends Point {
     xSpan: number;
     ySpan: number;
     style: NormalisedHeatmapSeriesStyle;
+    /** The cell the label sits in, whose style each restyle replaces. */
+    readonly cell: HeatmapNodeDatum;
 }
 
 interface HeatmapLabelCandidate extends PositionedLabelCandidate {
@@ -568,7 +576,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         if (!dataModel || !processedData) return undefined;
 
-        const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.options;
+        const { xKey, xName, yKey, yName, colorKey, colorName, stroke, strokeWidth } = this.options;
+        const itemPadding = itemContentInset(this.options.itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
         const { textAlign, verticalAlign } = this.options.label;
 
         const xScale = xAxis.scale;
@@ -815,8 +824,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = label;
         const anchorX = nodeDatum.point.x;
         const anchorY = nodeDatum.point.y;
-        const xSpan = width - 2 * itemPadding;
-        const ySpan = height - 2 * itemPadding;
+        const xSpan = insetItemSpan(width, itemPadding);
+        const ySpan = insetItemSpan(height, itemPadding);
 
         return {
             anchorX,
@@ -836,6 +845,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             x: anchorX + textAlignFactor * xSpan,
             y: anchorY + verticalAlignFactor * ySpan,
             style: nodeDatum.style,
+            cell: nodeDatum,
         };
     }
 
@@ -1150,6 +1160,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return labelSelection.update(data);
     }
 
+    /** The style the cell under `datum`'s label was drawn with on that layer. */
+    drawnItemStroke(datum: HeatmapLabelDatum, isHighlight: boolean): HeatmapCellStyle | undefined {
+        return isHighlight ? this.highlightDatumAt(datum.datumIndex)?.style : datum.cell.style;
+    }
+
     protected updateLabelNodes(opts: {
         labelSelection: Selection<HeatmapLabelDatum, Text<HeatmapLabelDatum>>;
         isHighlight?: boolean;
@@ -1201,8 +1216,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const region = {
                 x: anchorX - xSpan / 2,
                 y: anchorY - ySpan / 2,
-                width: Math.max(0, xSpan),
-                height: Math.max(0, ySpan),
+                width: xSpan,
+                height: ySpan,
             };
             const glyph = measureLabelText(text, label);
             const candidate = this.labelCandidate(
@@ -1266,9 +1281,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             labelDatum.hidden = true;
         }
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        const insets = this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth);
         for (const { datum, candidate, text, fontSize, offsetX, offsetY } of placed as PlacedLabel<unknown>[]) {
-            const { target } = datum as HeatmapPlacedLabelDatum;
+            const { target, fit } = datum as HeatmapPlacedLabelDatum;
             const { anchor } = candidate as HeatmapLabelCandidate;
+            keepPlacedItemLabelRoom(target, insets, fit, candidate, 0, 0);
             target.hidden = false;
             target.x = anchor.x;
             target.y = anchor.y;

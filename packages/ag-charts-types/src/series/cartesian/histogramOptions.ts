@@ -34,6 +34,7 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type {
     AgBaseCartesianSeriesAxisOptions,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -129,7 +130,10 @@ export interface AgHistogramSeriesStylerParams<TDatum = DatumDefault, TContext =
         ResolvedLineDash {}
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>, AgHistogramSeriesStyle {
+    extends
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>,
+        AgHistogramSeriesStyle,
+        ItemPaddingOptions {
     /** A callback function for adjusting the styles of the whole series based on the highlight or selection state. */
     styler?: Styler<AgHistogramSeriesStylerParams<TDatum, TContext>, AgHistogramSeriesStyle>;
     /** A callback function for adjusting the styles of each bin individually, based on its range, frequency and aggregated value. */

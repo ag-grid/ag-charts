@@ -24,6 +24,7 @@ import type {
 import type {
     AgColorType,
     FillOptions,
+    ItemPaddingOptions,
     LineDashOptions,
     ResolvedLineDash,
     StrokeOptions,
@@ -106,7 +107,7 @@ export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = Con
 }
 
 export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, LineDashOptions {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, LineDashOptions, ItemPaddingOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside the sectors. */

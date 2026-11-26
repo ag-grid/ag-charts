@@ -355,6 +355,31 @@ describe('series label fit', () => {
             expect(someTruncated(sectorTexts())).toBe(true);
         });
 
+        it(`keeps no less of a ${type} sector label the wedge truncates as its item padding shrinks`, async () => {
+            const kept: number[] = [];
+            for (const itemPadding of [0, 1, 2, 3]) {
+                await render({
+                    data: sectorLabelData,
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type,
+                            angleKey: 'value',
+                            sectorLabelKey: 'label',
+                            itemPadding,
+                            ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                            sectorLabel: { enabled: true, wrapping: 'on-space', truncate: true, fontSize: 40 },
+                        },
+                    ],
+                });
+                kept.push(String(sectorTexts().at(-1)).replaceAll(ELLIPSIS, '').replaceAll(/\s/g, '').length);
+                chart.destroy();
+            }
+            // Less padding leaves more room, and at each of these the smallest wedge holds "Another fairly l…".
+            expect(kept).toEqual(kept.toSorted((x, y) => y - x));
+            expect(Math.min(...kept)).toBeGreaterThanOrEqual('Anotherfairlyl'.length);
+        });
+
         it(`bounds ${type} sector labels by an explicit maxWidth`, async () => {
             await renderAndSnapshot({
                 data: sectorLabelData,
@@ -853,6 +878,8 @@ describe('series label fit', () => {
                     minSize: 60,
                     maxSize: 260,
                     shape: 'heart',
+                    // Without padding, so the smallest heart's inscribed rect stays tall enough to truncate into.
+                    itemPadding: 0,
                     label: { enabled: true, placement: 'inside', truncate: true, formatter: (p: any) => p.datum.label },
                 },
             ],

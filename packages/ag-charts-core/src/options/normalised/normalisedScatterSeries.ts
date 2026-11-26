@@ -52,6 +52,7 @@ type BubbleScatterRequiredKeys =
     | 'lineDash'
     | 'lineDashOffset'
     | 'label'
+    | 'itemPadding'
     | 'maxRenderedItems'
     | 'shadow';
 

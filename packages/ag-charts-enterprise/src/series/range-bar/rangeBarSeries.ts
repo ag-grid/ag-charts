@@ -44,9 +44,11 @@ import {
     buildBarPositionedLabelDatum,
     findMinMax,
     fontWithSize,
+    insetItemRect,
     insideBarContainer,
-    insideBarRegion,
     isContinuous,
+    itemContentInset,
+    itemStrokeDepth,
     labelBoxCentreOffset,
     measureLabelText,
     mergeDefaults,
@@ -431,6 +433,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 filters.map((f) => f.maxRange)
             );
         }
+    }
+
+    private labelItemInset() {
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        return itemContentInset(itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
     }
 
     // Picked datumIndex is the bucket's midpoint (not an extrema); the helper re-derives
@@ -954,7 +961,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // `spacing` gap on both value ends.
         const barRegion =
             isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insideBarRegion(rect, label.spacing, label.spacing, !barAlongX)
+                ? insetItemRect(rect, this.labelItemInset(), label.spacing, label.spacing, !barAlongX)
                 : undefined;
         // Bind to the bar only when `inside` is the sole placement; a cascade's non-inside fallback
         // can still place a label that fails the inside fit.
@@ -1179,6 +1186,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     plotRegion,
                     fitted: ctx.labelFit != null,
                     text,
+                    itemPadding: this.labelItemInset(),
                 });
             };
             bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));
@@ -1363,6 +1371,22 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         } satisfies CallbackParamRules<AgRangeBarSeriesItemStylerParams>;
     }
 
+    drawnItemStroke(
+        datum: RangeBarNodeLabelDatum,
+        isHighlight: boolean,
+        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
+    ): NormalisedRangeBarSeriesStyle {
+        const { datumIndex } = datum;
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        return this.getItemStyle(
+            datumIndex,
+            isHighlight,
+            highlightState,
+            this.getDataSelectionState(datumIndex),
+            this.getDataCandidacyState(datumIndex)
+        );
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<RangeBarNodeDatum, Rect<RangeBarNodeDatum>>;
         isHighlight: boolean;
@@ -1520,7 +1544,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         alwaysShow,
                         avoid,
                         threshold,
-                        true,
                         configuredFit,
                         labelDatum,
                         labelDatum.datumIndex
@@ -1537,7 +1560,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        applyBarLabelOrientation(placed, this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth));
         // yLow and yHigh route independently, so only the colliding end is hidden.
         applyPlacedBarLabelVisibility(
             this.contextNodeData?.labelData,

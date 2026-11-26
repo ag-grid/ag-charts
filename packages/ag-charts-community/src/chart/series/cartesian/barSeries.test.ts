@@ -2351,18 +2351,19 @@ describe('BarSeries', () => {
         });
 
         // Aggregated stack segments get nested boxes, so the label overhanging its short segment crosses its sibling's top.
+        // The columns are narrower than their labels, which would otherwise give way to their neighbours' labels.
         it('keeps an aggregated stacked label inside the segment that crosses its sibling bar', async () => {
             const rows = HIGH_VOLUME_COUNT;
             const label = {
                 placement: ['inside-center', 'outside-end'] as AgBarSeriesLabelPlacement[],
-                collision: { threshold: -3, collideWith: { labels: false } },
+                collision: { threshold: -3, collideWith: { labels: true } },
             };
             chart = await createChart({
                 data: Array.from({ length: rows }, (_, i) => ({ x: i, low: 50 + (i % 7) * 10, high: 2 + (i % 5) })),
                 axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
                 series: [
-                    { type: 'bar', xKey: 'x', yKey: 'low', stacked: true, label },
-                    { type: 'bar', xKey: 'x', yKey: 'high', stacked: true, label },
+                    { type: 'bar', xKey: 'x', yKey: 'low', stacked: true, itemPadding: 0, label },
+                    { type: 'bar', xKey: 'x', yKey: 'high', stacked: true, itemPadding: 0, label },
                 ],
             });
 

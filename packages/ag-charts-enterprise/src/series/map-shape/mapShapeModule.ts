@@ -2,6 +2,7 @@ import { type AgMapShapeSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
+    ITEM_PADDING_DEFAULT,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     NEUTRAL_GLOW_THEME_DEFAULTS,
@@ -47,7 +48,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             fillOpacity: 1,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
-            padding: 2,
+            padding: ITEM_PADDING_DEFAULT,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 // The shape always bounds the label, so the shared opt-in triggers do not apply: wrapping is

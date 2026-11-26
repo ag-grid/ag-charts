@@ -269,6 +269,8 @@ export interface PointLabelDatum {
     readonly markerRestyled?: boolean;
     /** Shape of the marker drawn at {@link point}, whose outline labels avoid; collides as a circle when unset. */
     readonly markerShape?: AgMarkerShape;
+    /** Width of the resting stroke centred on the marker's outline, which labels outside the marker clear. */
+    readonly markerStrokeWidth?: number;
     /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
     readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
@@ -365,20 +367,12 @@ export interface PointLabelDatum {
      * bar-family labels, whose rect-relative candidates the compass-vector engine can't express.
      */
     readonly positionedCandidates?: readonly PositionedLabelCandidate[];
-    /** The label's own bar rect; obstacles intersecting it don't collide, except other datums' shapes. */
+    /** The label's own bar rect; what is drawn under the label there doesn't collide, except other datums' shapes. */
     readonly ownBox?: BoxBounds;
     /** The label's datum: its own shape is the `shape` obstacle with this `entityIndex` and its series' `sourceId`. */
     readonly entityIndex?: number;
     /** The stack the label's bar belongs to: `shape` obstacles with the same `stackId` count as its own. */
     readonly stackId?: number;
-    /**
-     * Keep `category: 'label'` obstacles that overlap this label's own box as real obstacles rather
-     * than excluding them with the own-box gate. Range-bar sets this because both its labels share the
-     * one bar rect, so a sibling label sitting inside that rect must still be avoided (letting the
-     * placement cascade advance one label outside). Its own bar and marker stay excluded. Unset
-     * preserves the default exclude-all-categories behaviour for stacked/grouped bars.
-     */
-    readonly ownBoxLabelsCollide?: boolean;
     /** Labels fitted as one box on the positioned path; {@link fit} must describe the first block. */
     readonly stack?: LabelStack;
 }
@@ -665,6 +659,11 @@ export function applyStyledMarker(
     return datum.markerSize !== previousSize || datum.markerShape !== previousShape;
 }
 
+/** How far a drawn marker's stroke reaches past its outline. */
+function markerStrokeOutset(d: PointLabelDatum): number {
+    return markerSizeOf(d) > 0 ? (d.markerStrokeWidth ?? 0) / 2 : 0;
+}
+
 /** A styled shape the label may trace: none for a marker that is not drawn or a name with no built-in shape. */
 function tracedShape(shape: AgMarkerShape | undefined, size: number): AgMarkerShape | undefined {
     const drawn = size > 0;
@@ -677,8 +676,9 @@ function tracedShape(shape: AgMarkerShape | undefined, size: number): AgMarkerSh
  * configured size, so nothing has to overwrite that baked value and no stale gap can outlive a styler.
  */
 function labelGapOf(d: PointLabelDatum): number {
-    if (d.markerSize == null) return d.gap ?? d.point.size / 2;
-    return d.markerSize > 0 ? d.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
+    const outset = markerStrokeOutset(d);
+    if (d.markerSize == null) return (d.gap ?? d.point.size / 2) + outset;
+    return d.markerSize > 0 ? d.markerSize / 2 + outset : DEFAULT_MARKERLESS_LABEL_GAP;
 }
 
 // Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
@@ -858,9 +858,6 @@ let solvePaintOrder: ReadonlyMap<string, number> | undefined;
 let candidatePaintRank: number | undefined;
 // The pixel ratio the solve's markers render at, which a custom marker shape is traced at.
 let solvePixelRatio = 1;
-// When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
-// own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
-let candidateOwnBoxLabelsCollide = false;
 // The candidate datum's label group: placed labels in the same group are never obstacles to it.
 let candidateLabelGroup: string | undefined;
 // The candidate datum gives way only to outranking obstacles.
@@ -1144,10 +1141,10 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     if (isForeignShape(o, category)) {
         if (foreignShapeHidden(o)) return true;
     } else if (
-        // Excludes all but overlays; `ownBoxLabelsCollide` keeps range-bar's sibling labels.
+        // The own box excuses what is drawn under the label, never another label or an overlay.
         candidateOwnBox != null &&
+        category !== 'label' &&
         !isOverlayCategory(category) &&
-        !(candidateOwnBoxLabelsCollide && category === 'label') &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
         return true;
@@ -1500,9 +1497,10 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let circleCount = 0;
     for (const [seriesId, { datums }] of data) {
         for (const d of datums) {
-            const size = markerSizeOf(d);
-            if (size <= 0) continue;
+            if (markerSizeOf(d) <= 0) continue;
             markerCentreOf(d);
+            // The obstacle covers the drawn stroke too.
+            const size = markerSizeOf(d) + 2 * markerStrokeOutset(d);
             if (markerCentre.outline == null) {
                 insertCircleObstacle(circleCount++, size, seriesId);
             } else {
@@ -2944,7 +2942,8 @@ function anchorPinY(anchor: OrientationAnchor): number {
 /**
  * {@link shrinkCompassCandidate} for the positioned-candidate path, where the box hangs off `fitTo.anchor`
  * rather than off a placement vector. Skips a rotated candidate: its anchor pins the glyph box, whose axes
- * a rotation does not share with the footprint the obstacles were measured against.
+ * a rotation does not share with the footprint the obstacles were measured against. A stack re-fits as one
+ * to the reduced room, so its blocks shrink together and an optional one drops before the label is hidden.
  */
 function shrinkPositionedCandidate(
     d: PointLabelDatum,
@@ -2956,15 +2955,17 @@ function shrinkPositionedCandidate(
 ): boolean {
     const fit = d.fit;
     const fitTo = c.fitTo;
-    if (fit == null || fitTo == null || d.stack != null || (c.rotation ?? 0) % 360 !== 0) return false;
-    const lineHeight = drawnLineHeight(fitTo.font ?? fit.font);
+    if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
+    const { stack } = d;
+    // A stack steps down its font sizes as the room shrinks, so any retreat changes its fit.
+    const floorY = stack == null ? drawnLineHeight(fitTo.font ?? fit.font) : 0;
     if (
         !measureShrinkReduction(
             anchorPinX(fitTo.anchor),
             anchorPinY(fitTo.anchor),
             inflate,
             0,
-            lineHeight,
+            floorY,
             Infinity,
             Infinity,
             region,
@@ -2974,8 +2975,14 @@ function shrinkPositionedCandidate(
     ) {
         return false;
     }
-    const styledFont = fitTo.font;
     const { width, height } = shrinkReduction;
+    if (stack != null) {
+        if (!fitShrunkStack(stack, fitTo, fit.font, width, height)) return false;
+        resizeCandidateBox(c, candidateLabel.width, candidateLabel.height);
+        slideShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
+        return shrunkCandidateIsClear(region, inflate);
+    }
+    const styledFont = fitTo.font;
     // Truncated at the floor size, never above it: a label only gives up text once it can shrink no further.
     const font = styledFont ?? fit.font;
     const floor =
@@ -3539,11 +3546,10 @@ function placeAvoidingLabel(
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
-    candidateOwnMarkerR = markerSizeOf(d) / 2;
+    candidateOwnMarkerR = markerSizeOf(d) / 2 + markerStrokeOutset(d);
     // Bar labels carry their own bar rect here so an inside label excludes its own shape; marker series
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;
-    candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
     candidateEntityIndex = d.entityIndex;
     candidateStackId = d.stackId;
@@ -3611,7 +3617,6 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerR = -1;
     candidateContainSlack = -containmentThreshold(threshold);
     candidateOwnBox = d.ownBox;
-    candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
     candidateEntityIndex = d.entityIndex;
     candidateStackId = d.stackId;
@@ -3688,7 +3693,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
             placedDY = placedFitPoint.y - c.fitTo.anchor.y;
         } else if (d.stack != null && fit != null && c.fitTo != null) {
             // A stack steps through its own sizes, so a trial size has nothing to add.
-            if (trial || !fitStackToCandidate(d.stack, c.fitTo, threshold)) continue;
+            if (trial || !fitStackToCandidate(d.stack, c.fitTo, spillContainer(c.fitTo.container, threshold))) continue;
             ({ text, dropped, shrink } = fittedLabel);
             overflowing = candidateStack!.overflows;
             writeCandidateLabel(c.fitTo.padding, fit.font);
@@ -4045,9 +4050,32 @@ function leadCharacter(text: string): string | undefined {
     return graphemeSegments(text.trimStart())[0];
 }
 
+/** Fits a stack into {@link candidateStack} and {@link candidateLabel}, within the room the obstacles leave. */
+function fitShrunkStack(
+    stack: LabelStack,
+    fitTo: CandidateFitTarget,
+    font: FontOptions,
+    width: number,
+    height: number
+): boolean {
+    const container = spillContainer(fitTo.container, candidateThreshold);
+    if (container == null) return false;
+    // As for a single label, only the reduced axis is bound to what the stack occupies now.
+    shrunkContainer.width = reduceAxis(container.width, candidateLabel.glyphWidth, width);
+    shrunkContainer.height = reduceAxis(container.height, candidateLabel.glyphHeight, height);
+    // An overrunning stack is no answer to its obstacles.
+    if (!fitStackToCandidate(stack, fitTo, shrunkContainer) || candidateStack!.overflows) return false;
+    writeCandidateLabel(fitTo.padding, font);
+    return true;
+}
+
 /** Fits a stack into {@link candidateStack}. */
-function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, threshold: number): boolean {
-    const fitted = fitLabelStack(stack, spillContainer(fitTo.container, threshold), fitTo.shape, fitTo.shapeAlign);
+function fitStackToCandidate(
+    stack: LabelStack,
+    fitTo: CandidateFitTarget,
+    container: { width: number; height: number } | undefined
+): boolean {
+    const fitted = fitLabelStack(stack, container, fitTo.shape, fitTo.shapeAlign);
     if (fitted == null) return false;
     const first = fitted.blocks.find((block) => block != null);
     candidateStack = fitted;

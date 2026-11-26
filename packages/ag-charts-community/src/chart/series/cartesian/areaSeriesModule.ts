@@ -6,6 +6,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     GLOW_THEME_DEFAULTS,
+    ITEM_PADDING_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -36,6 +37,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 const themeTemplate: ExtensibleSeriesTheme<'area'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
+        ...ITEM_PADDING_THEME_DEFAULTS,
         nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
         stroke: { $palette: 'stroke' },

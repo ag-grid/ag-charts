@@ -3,11 +3,13 @@ import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 import { toArray } from '../data/arrays';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
-import { type LabelFit } from '../text/textWrapper';
+import type { LabelFit } from '../text/textWrapper';
 import type { Point } from '../types/scene';
 import type { FontOptions } from '../types/text';
 import { toDegrees, toRadians } from './angle';
 import type { BoxBounds } from './boxBounds';
+import { type ItemLabelInsets, keepPlacedItemLabelRoom } from './itemLabelRefit';
+import type { ItemLabelSource } from './itemPadding';
 import {
     type LabelAvoidance,
     type LabelFitDescriptor,
@@ -58,34 +60,6 @@ export function insideBarValueInsets(
     const startAtMin = isVertical ? !isUpward : isUpward;
     const anchoredAtMin = anchor === 'start' ? startAtMin : !startAtMin;
     return anchoredAtMin ? { min: spacing, max: 0 } : { min: 0, max: spacing };
-}
-
-/**
- * Inside-label containment region: the bar rect inset by the {@link insideBarValueInsets} `spacing`
- * reservation on the value axis — the gap the label keeps from the end(s) it is anchored against. The
- * engine flushes and contains labels against this region, so the gap survives orientation/placement
- * resolution, not just the anchor. Collision clearance is not part of it; only a negative
- * `collision.threshold` reaches it, as spill.
- */
-export function insideBarRegion(
-    rect: BoxBounds,
-    valueMinInset: number,
-    valueMaxInset: number,
-    isVertical: boolean
-): BoxBounds {
-    return isVertical
-        ? {
-              x: rect.x,
-              y: rect.y + valueMinInset,
-              width: rect.width,
-              height: rect.height - valueMinInset - valueMaxInset,
-          }
-        : {
-              x: rect.x + valueMinInset,
-              y: rect.y,
-              width: rect.width - valueMinInset - valueMaxInset,
-              height: rect.height,
-          };
 }
 
 /** Text container for a label inside its bar region: the region shrunk by the box drawn around the text. */
@@ -230,6 +204,8 @@ export interface BarLabelTarget {
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
     placement?: string;
+    /** The room an upright inside label was fitted into, kept so a state drawing another stroke re-fits it. */
+    itemRoom?: ItemLabelSource;
 }
 
 /**
@@ -240,6 +216,7 @@ export interface BarLabelTarget {
 interface BarPositionedCandidate extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
     readonly placement: string;
+    readonly endSpacing: number;
 }
 
 /**
@@ -334,7 +311,6 @@ export function buildBarPositionedLabelDatum(
     alwaysShow: boolean,
     avoid: LabelAvoidance,
     threshold: number,
-    ownBoxLabelsCollide = false,
     fit?: LabelFitDescriptor,
     styleDatum?: object,
     entityIndex?: number,
@@ -354,7 +330,6 @@ export function buildBarPositionedLabelDatum(
         threshold,
         positionedCandidates: candidates,
         ownBox,
-        ownBoxLabelsCollide,
         entityIndex,
         stackId,
         target,
@@ -368,9 +343,22 @@ export function buildBarPositionedLabelDatum(
  * and keep the first-orientation rotation baked at node-data time. Every datum here was produced by
  * {@link buildBarLabelDatum}, so it carries `target`.
  */
-export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]): void {
+export function applyBarLabelOrientation<TStyleDatum = object>(
+    placed: readonly PlacedLabel<unknown>[],
+    insets?: ItemLabelInsets | ((datum: BarPlacedLabelDatum<TStyleDatum>) => ItemLabelInsets | undefined)
+): void {
     for (const { datum, rotation, offsetX, offsetY, candidate, text, fontSize } of placed) {
         const { target, fit } = datum as BarPlacedLabelDatum;
+        const itemInsets =
+            typeof insets === 'function' ? fit && insets(datum as BarPlacedLabelDatum<TStyleDatum>) : insets;
+        keepPlacedItemLabelRoom(
+            target,
+            itemInsets,
+            fit,
+            candidate,
+            rotation ?? 0,
+            (candidate as BarPositionedCandidate | undefined)?.endSpacing ?? 0
+        );
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
         target.offsetY = offsetY ?? 0;

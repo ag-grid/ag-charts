@@ -11,6 +11,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     FillStrokeMorph,
+    ItemLabelInsets,
     LabelFit,
     Normalised,
     NormalisedBaseFunnelSeriesOwnOptions,
@@ -27,6 +28,7 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    DrawnItemStyles,
     Group,
     PointerEvents,
     Selection,
@@ -586,6 +588,18 @@ export abstract class BaseFunnelSeries<
         insideCrossRegion?: BoxBounds;
     };
 
+    /** How a stage holds its inside labels in, for a state's stroke to re-fit them; `undefined` where a series has none. */
+    protected labelItemInsets(_datumIndex: number): ItemLabelInsets | undefined {
+        return undefined;
+    }
+
+    /** The style each layer last drew its stages in, by datum index. */
+    protected readonly drawnItemStyles = new DrawnItemStyles<{ stroke?: unknown; strokeWidth?: number }>();
+
+    drawnItemStroke(datum: FunnelNodeLabelDatum, isHighlight: boolean) {
+        return this.drawnItemStyles.get(isHighlight, datum.datumIndex);
+    }
+
     /** The placement-style overrides for a resolved placement; `undefined` where a series has none. */
     protected labelPlacementStyle(
         _placement: FunnelLabelPlacement | undefined
@@ -667,6 +681,7 @@ export abstract class BaseFunnelSeries<
         };
 
         const measured = measureLabelText(text, label);
+        const itemInset = this.labelItemInsets(datumIndex)?.inset ?? 0;
         const candidates = labelContext.placements.flatMap((placement, index) =>
             buildBarLabelCandidates<AgFunnelSeriesLabelFormatterParams, FunnelLabelPlacement>({
                 ...labelContext.axes[index],
@@ -682,6 +697,7 @@ export abstract class BaseFunnelSeries<
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
+                itemPadding: itemInset,
                 text,
             })
         );
@@ -726,6 +742,8 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
+        // Only new node data changes which stages exist; a highlight change redraws just the stages it restyles.
+        if (nodeRefresh) this.drawnItemStyles.layer(false).clear();
         super.updateNodes(seriesHighlighted, nodeRefresh);
 
         const { connectorSelection } = this;
@@ -862,7 +880,6 @@ export abstract class BaseFunnelSeries<
                     alwaysShow,
                     avoid,
                     threshold,
-                    true,
                     fitFor(labelDatum.text),
                     labelDatum,
                     labelDatum.datumIndex
@@ -878,7 +895,12 @@ export abstract class BaseFunnelSeries<
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<FunnelNodeLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
+        applyBarLabelOrientation<FunnelNodeLabelDatum>(
+            placed,
+            this.restylesItemStrokes()
+                ? ({ styleDatum }) => styleDatum && this.labelItemInsets(styleDatum.datumIndex)
+                : undefined
+        );
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);
         this.refreshPlacedLabelNodes();
     }

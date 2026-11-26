@@ -92,6 +92,46 @@ In this example:
     - This is affected by [Placement](#placement) and other [Collision Avoidance](#collision-avoidance) options.
     - Resize the example to see the fallback orientations in action.
 
+## Item Padding
+
+A label placed inside its item, such as a bar, a heatmap cell, a sector or a marker, is held clear of the item's edges by `itemPadding`. Sunburst series use `padding`, treemap series use `tile.padding` and map-shape series use `padding` in the same way.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            // ...
+            stroke: 'black',
+            strokeWidth: 5,
+            itemPadding: 3,
+        },
+    ],
+}
+```
+
+The padding is measured from the item's edge, and the item's stroke is taken into account:
+
+- A positive padding is the least distance between the label and the edge. The label never sits on the stroke, so where the stroke is deeper than the padding, the label is held flush with the inside of the stroke.
+- A negative padding moves the label into the stroke by that distance, but never past the item's edge.
+
+| Stroke depth | Padding | Label inset from the edge | Result                        |
+| ------------ | ------- | ------------------------- | ----------------------------- |
+| 5px          | 3       | 5px                       | Flush with the stroke.        |
+| 3px          | 5       | 5px                       | 2px clear of the stroke.      |
+| 5px          | -2      | 3px                       | 2px into the stroke.          |
+| 5px          | -8      | 0px                       | Held at the edge of the item. |
+
+The stroke depth is how far the stroke reaches inside the item:
+
+- Bars, heatmap cells, treemap tiles, and sunburst, pie and donut sectors draw their whole stroke inside the item, so the depth is the full `strokeWidth`.
+- Markers, map shapes and pyramid stages draw their stroke centred on the outline, so the depth is half the `strokeWidth`.
+- An item drawn without a stroke has no depth.
+
+When highlighting or selecting an item draws it with a different `strokeWidth`, the labels placed inside the item are fitted again to the stroke being drawn. This applies to bars, histogram bins, waterfall and range-bar items, funnel and pyramid stages, heatmap cells, treemap tiles, sunburst, pie and donut sectors, map shapes, and markers with `'inside'` labels. The labels stay where they were placed, and no other label moves.
+
+Labels placed outside a marker, such as `'top'`, are placed clear of the marker's stroke as well as the marker itself.
+
 ## Collision Avoidance
 
 {% note %}

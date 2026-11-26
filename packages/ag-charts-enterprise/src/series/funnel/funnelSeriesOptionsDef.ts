@@ -18,6 +18,7 @@ import {
     fillOptionsDef,
     glowHighlightOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
@@ -51,6 +52,7 @@ export const funnelPlacementDef = unionOrArray(
 );
 
 export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(colorOrRef),

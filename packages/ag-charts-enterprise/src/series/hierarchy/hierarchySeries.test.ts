@@ -58,6 +58,10 @@ class ExampleHierarchySeries extends HierarchySeries<
         return false;
     }
 
+    override itemHighlight(): never {
+        throw new Error('Method not implemented.');
+    }
+
     override getItemStyle(_datum: Partial<HierarchyNode>, _isLeaf: boolean, _isHighlight: boolean) {
         return {};
     }

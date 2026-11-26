@@ -6,6 +6,9 @@ import type {
     FeatureCollection,
     FontOptions,
     Geometry,
+    ItemLabelClearance,
+    ItemLabelInsets,
+    ItemLabelSource,
     LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
@@ -24,6 +27,7 @@ import type {
 } from 'ag-charts-core';
 import {
     ColorScale,
+    DrawnItemStyles,
     Group,
     PointerEvents,
     Selection,
@@ -34,13 +38,17 @@ import {
     fitLabelTextToRegionAutoSize,
     formatValue,
     hasRealChars,
-    insetFitRegion,
+    insetItemRegion,
     isArray,
+    itemLabelClearance,
+    itemLabelInsets,
+    itemLabelRoom,
     keptCharacters,
     lineHeightAtSize,
     measureLabelText,
     measureTextSegments,
     mergeDefaults,
+    refitItemLabelNode,
     resolveLabelFit,
     toPlainText,
     withFitRegion,
@@ -88,6 +96,7 @@ export interface MapShapeNodeLabelDatum {
     readonly datumIndex: number;
     readonly idValue: string;
     readonly datumId: string | number | boolean;
+    readonly itemRoom?: ItemLabelSource;
 }
 
 export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -164,8 +173,10 @@ const CENTRING_STEPS = 3;
 interface LabelFitting {
     fit: LabelFit;
     font: FontOptions;
-    /** Series `padding` plus the drawn label box, kept clear of the shape edge on each side. */
-    inset: { x: number; y: number };
+    /** The shape's content inset plus the drawn label box, kept clear of the shape edge on each side. */
+    inset: ItemLabelClearance;
+    /** Set when a state restyles the shapes' strokes, so their labels re-fit to the stroke drawn. */
+    itemInsets: ItemLabelInsets | undefined;
 }
 
 // The shape always bounds the label, so overflow control is always on: a label that does not fit is hidden
@@ -173,19 +184,17 @@ interface LabelFitting {
 function resolveLabelFitting(
     label: NormalisedMapShapeSeriesLabelOptions,
     layoutFont: FontOptions,
-    padding: number
+    insets: ItemLabelInsets,
+    restyled: boolean
 ): LabelFitting {
     const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = label;
     const { fontFamily, fontStyle, fontWeight, fontSize, lineHeight } = layoutFont;
     const fit = resolveLabelFit({ maxWidth, maxHeight, wrapping, truncate, minimumFontSize }, true);
-    const box = expandLabelBoxExtent(label);
     return {
         fit: { ...fit, boxed: labelHasBox(label) },
         font: { fontFamily, fontStyle, fontWeight, fontSize, lineHeight },
-        inset: {
-            x: padding + Math.max(box.left, box.right),
-            y: padding + Math.max(box.top, box.bottom),
-        },
+        inset: itemLabelClearance(insets.inset, expandLabelBoxExtent(label)),
+        itemInsets: restyled ? insets : undefined,
     };
 }
 export class MapShapeSeries
@@ -386,8 +395,9 @@ export class MapShapeSeries
     ): LabelLayout | undefined {
         if (labelValue == null || geometry == null) return;
 
-        const { labelKey, padding, label } = this.options;
+        const { labelKey, label } = this.options;
         if (labelKey == null || !label.enabled) return;
+        const padding = this.labelItemInsets().inset;
 
         const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
             labelValue,
@@ -451,7 +461,7 @@ export class MapShapeSeries
 
         const fitAt = (fixedX: number, fixedY: number) => {
             const [x, y] = scale.convert(fixedScale.invert([fixedX, fixedY]));
-            const region = insetFitRegion(polygonFitRegion(polygon, x, y), inset.x, inset.y);
+            const region = insetItemRegion(polygonFitRegion(polygon, x, y), inset);
             const fitted = fitLabelTextToRegionAutoSize(labelText, withFitRegion(fit, region), font);
             const kept = keptCharacters(fitted.text);
             return { fixedX, fixedY, x: x + fitted.offsetX, y: y + fitted.offsetY, fitted, kept };
@@ -515,6 +525,8 @@ export class MapShapeSeries
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     private appliedPlacedLabels: PlacedLabel<unknown>[] | undefined = undefined;
+    /** The style each layer last drew its shapes in, by datum index, while a state restyles their strokes. */
+    private readonly drawnItemStyles = new DrawnItemStyles<MapShapeNodeDatum['style']>();
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, options, scale, previousLabelLayouts } = this;
         const { label, legendItemName, colorKey } = options;
@@ -522,7 +534,12 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
-        const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), options.padding);
+        const labelFitting = resolveLabelFitting(
+            label,
+            this.getLabelLayoutFont(),
+            this.labelItemInsets(),
+            this.restylesItemStrokes()
+        );
         if (!this.visible) {
             return { itemId: seriesId, nodeData: [], labelData: [], labelTargets: [], labelFitting };
         }
@@ -650,17 +667,27 @@ export class MapShapeSeries
         if (contextNodeData == null) return;
         if (placed !== this.appliedPlacedLabels) {
             this.appliedPlacedLabels = placed;
-            contextNodeData.labelData = this.toLabelData(placed, contextNodeData.labelFitting.font);
+            contextNodeData.labelData = this.toLabelData(placed, contextNodeData.labelFitting);
         }
         this.updateLabels();
     }
 
-    private toLabelData(placed: PlacedLabel<unknown>[], font: FontOptions): MapShapeNodeLabelDatum[] {
+    private toLabelData(placed: PlacedLabel<unknown>[], fitting: LabelFitting): MapShapeNodeLabelDatum[] {
+        const { font, fit, itemInsets } = fitting;
+        const boxPadding = expandLabelBoxExtent(this.options.label);
         return placed.map((label) => {
             const { text, fontSize, offsetX = 0, offsetY = 0 } = label;
             const { point, target } = placedLabelDatum(label);
             const { datumIndex, idValue } = target;
+            let itemRoom: ItemLabelSource | undefined;
+            if (itemInsets != null) {
+                const labelText = target.layout.labelText;
+                itemRoom = itemLabelRoom(itemInsets, labelText, fit, 0, 0);
+                const descriptor = { text: labelText, policy: fit, font, boxPadding, boundByRegion: false };
+                itemRoom.refit = (inset) => this.placeLabel(target, descriptor, itemLabelClearance(inset, boxPadding));
+            }
             return {
+                itemRoom,
                 x: point.x + offsetX,
                 y: point.y + offsetY,
                 text,
@@ -697,14 +724,15 @@ export class MapShapeSeries
         this.updateDatumStyles({ datumSelection, isHighlight: false });
         this.updateDatumNodes({ datumSelection, drawingMode: 'overlay', isHighlight: false });
 
-        this.updateLabels();
-
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode, isHighlight: true });
+
+        // After both layers, so each label re-fits to the stroke its own layer drew.
+        this.updateLabels();
     }
 
     private updateLabels() {
@@ -797,6 +825,12 @@ export class MapShapeSeries
         return style;
     }
 
+    /** How far a label is held in from its shape's edge; a shape's stroke is centred on its outline. */
+    private labelItemInsets() {
+        const { padding, stroke, strokeWidth } = this.options;
+        return itemLabelInsets(padding, stroke, strokeWidth, true);
+    }
+
     /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
     private getLabelLayoutFont(): FontOptions {
         const { label } = this.options;
@@ -866,6 +900,9 @@ export class MapShapeSeries
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const { shadow, glow } = this.options;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
+        drawnStyles.clear();
+        const restyled = this.contextNodeData?.labelFitting.itemInsets != null;
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { projectedGeometry } = nodeDatum;
@@ -880,6 +917,7 @@ export class MapShapeSeries
 
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
+            if (restyled) drawnStyles.set(nodeDatum.datumIndex, nodeDatum.style);
 
             const castState = this.getItemCastState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
             geoGeometry.fillShadow = this.resolveItemShadow(
@@ -926,6 +964,7 @@ export class MapShapeSeries
     }) {
         const { options } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const drawnStyles = this.drawnItemStyles.layer(isHighlight);
         labelSelection.each((label, labelDatum) => {
             const { x, y, text, fontSize, lineHeight, datumIndex } = labelDatum;
             type P = AgMapShapeSeriesLabelFormatterParams;
@@ -954,6 +993,11 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            if (labelDatum.itemRoom != null) {
+                const drawn = drawnStyles.get(datumIndex);
+                if (drawn != null)
+                    refitItemLabelNode(label, labelDatum.itemRoom, drawn.stroke, drawn.strokeWidth, style);
+            }
             label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });

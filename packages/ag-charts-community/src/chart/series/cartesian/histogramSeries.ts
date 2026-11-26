@@ -42,10 +42,13 @@ import {
     deepClone,
     findMinMax,
     fontWithSize,
+    insideAnchorSpacing,
     isBigInt,
     isDate,
     isNumber,
     isNumericValue,
+    itemContentInset,
+    itemStrokeDepth,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -65,6 +68,7 @@ import type {
     AgNumericValue,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { ChartAxis } from '../../chartAxis';
@@ -230,6 +234,7 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
     // Histogram-specific property lookups
     readonly label: NormalisedHistogramSeriesOptions['label'];
     readonly labelFit: LabelFit | undefined;
+    readonly itemPadding: number;
 }
 
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
@@ -560,6 +565,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             yName,
             label,
             labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            itemPadding: itemContentInset(
+                this.options.itemPadding,
+                itemStrokeDepth(this.options.stroke, this.options.strokeWidth, false)
+            ),
 
             // Animation flag
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -589,7 +598,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         h: number,
         isUpward: boolean
     ): HistogramNodeDatum['label'] {
-        const { label, labelFit, yKey, xKey, xName, yName } = ctx;
+        const { label, labelFit, yKey, xKey, xName, yName, itemPadding } = ctx;
         const { total, datum } = bin;
 
         // Number() coercion: a bigint `0n` total is an empty bin too, but `0n === 0` is false.
@@ -611,7 +620,15 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // Region reserves the anchored-side spacing gap (nothing when centred); container is region minus
         // the drawn box. Outside labels float free of the bar (no container/region).
         const bounds = insideOnly
-            ? insideBarLabelBounds(rect, placement, isUpward, true, label.spacing, expandPlacementLabelBoxExtent(label))
+            ? insideBarLabelBounds(
+                  rect,
+                  placement,
+                  isUpward,
+                  true,
+                  label.spacing,
+                  expandPlacementLabelBoxExtent(label),
+                  itemPadding
+              )
             : undefined;
         const labelParams = { ...this.binParams(bin), value: total, xKey, yKey, xName, yName };
         const sourceText = this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
@@ -647,6 +664,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 plotRegion,
                 fitted: labelFit != null,
                 text: sourceText,
+                itemPadding,
             });
             // The engine picks the first candidate that fits; the first is baked as a backward-safe default
             // until the engine writes the chosen one back.
@@ -683,7 +701,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isUpward,
             isVertical: true,
             placement,
-            spacing: label.spacing,
+            spacing: insideAnchorSpacing(placement, label.spacing, itemPadding),
             boxPadding: resolvePlacementLabelBoxExtent(label, placementStyle),
             rect,
             rotation,
@@ -999,6 +1017,14 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return style;
     }
 
+    drawnItemStroke(
+        datum: HistogramNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: HighlightNodeDatum | undefined
+    ): NormalisedHistogramSeriesStyle | undefined {
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum, this.contextNodeData?.styles);
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
         isHighlight: boolean;
@@ -1165,7 +1191,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         alwaysShow,
                         avoid,
                         threshold,
-                        false,
                         fitFor(nodeLabel.text),
                         node,
                         node.datumIndex
@@ -1216,7 +1241,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const { itemPadding, stroke, strokeWidth } = this.options;
+        applyBarLabelOrientation(placed, this.restyledItemLabelInsets(itemPadding, stroke, strokeWidth));
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

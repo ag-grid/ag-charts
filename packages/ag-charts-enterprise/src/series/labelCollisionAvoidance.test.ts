@@ -1043,10 +1043,11 @@ describe('label collision avoidance', () => {
             expect(invertedHigh).toHaveLength(1);
         });
 
-        // A label sits `gap + spacing` from its anchor, `gap` being the marker radius, so it never
+        // A label sits `gap + spacing` from its anchor, `gap` reaching the outside of the marker's stroke, so it never
         // lands on its own marker.
-        it('offsets an outside label from its marker by the marker radius plus label.spacing', async () => {
+        it('offsets an outside label from its marker by the marker radius, half its stroke and label.spacing', async () => {
             const markerSize = 20;
+            const strokeWidth = 4;
             const spacing = 12;
             await placedLabels({
                 data: [{ x: 'A', low: 20, high: 80 }],
@@ -1059,13 +1060,13 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        marker: { enabled: true, size: markerSize },
+                        marker: { enabled: true, size: markerSize, strokeWidth },
                         label: { enabled: true, placement: 'outside', spacing },
                     },
                 ],
             });
             expect(topLabelAnchorGap({ placedLabelData: getPlacedLabelData(chart) })).toBeCloseTo(
-                markerSize / 2 + spacing,
+                markerSize / 2 + strokeWidth / 2 + spacing,
                 5
             );
         });

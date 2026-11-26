@@ -106,6 +106,7 @@ export type NormalisedMapLineSeriesOwnOptions = Normalised<
 export type NormalisedMapMarkerSeriesOwnOptions = Normalised<
     AgMapMarkerSeriesOptions,
     | 'topologyIdKey'
+    | 'itemPadding'
     | 'shape'
     | 'size'
     | 'maxSize'

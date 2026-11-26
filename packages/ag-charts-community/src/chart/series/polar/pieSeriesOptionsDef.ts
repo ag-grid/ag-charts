@@ -13,6 +13,7 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     glowOptionsDefs,
+    itemPaddingOptionsDef,
     itemStylerCastDefs,
     labelAutoFontSizeOptionsDefs,
     labelBoxOptionsDef,
@@ -54,6 +55,7 @@ const selection: OptionsDefs<AgSelectionOptions<AgSelectionStyleOptions>> = {
 
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
+    ...itemPaddingOptionsDef,
     radiusMin: positiveNumber,
     radiusMax: positiveNumber,
     rotation: number,

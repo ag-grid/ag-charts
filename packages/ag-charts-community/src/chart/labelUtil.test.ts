@@ -124,6 +124,7 @@ describe('buildBarLabelCandidates', () => {
             textWidth: 30,
             textHeight: 10,
             rect,
+            itemPadding: 0,
             ...overrides,
         });
 
@@ -185,6 +186,31 @@ describe('buildBarLabelCandidates', () => {
         });
         expect(inside.fitTo?.shape?.spanAt(0, 10)).toEqual([-44, 44]);
         expect(inside.fitTo?.shape?.extentAbove).toBe(44);
+    });
+
+    it('holds a candidate shape itemPadding clear of the item beyond the drawn box', () => {
+        const shape = { spanAt: () => [-50, 50] as const, extentAbove: 50, extentBelow: 50 };
+        const label = makeLabel({ fill: 'red', padding: 6 });
+        const [inside] = build(['inside-center'], ['horizontal'], label, {
+            fitted: true,
+            itemPadding: 3,
+            shapeAt: () => shape,
+        });
+        expect(inside.fitTo?.shape?.spanAt(0, 10)).toEqual([-41, 41]);
+        expect(inside.fitTo?.shape?.extentAbove).toBe(41);
+    });
+
+    it.each([
+        { placement: 'inside-center' as const, itemPadding: 6, expected: { width: 88, height: 28 } },
+        // The anchored end keeps the larger of `spacing` (5) and `itemPadding`.
+        { placement: 'inside-start' as const, itemPadding: 2, expected: { width: 93, height: 36 } },
+        { placement: 'inside-start' as const, itemPadding: 8, expected: { width: 84, height: 24 } },
+    ])('fits a $placement label to the bar held itemPadding $itemPadding clear of its edges', (c) => {
+        const [inside] = build([c.placement], ['horizontal'], makeLabel(), {
+            fitted: true,
+            itemPadding: c.itemPadding,
+        });
+        expect(inside.fitTo?.container).toEqual(c.expected);
     });
 
     it('leaves a candidate shape as it is for a label with no box to draw', () => {

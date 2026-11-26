@@ -141,7 +141,12 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     label?: AgTreemapSeriesTileLabelOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a tile. */
     secondaryLabel?: AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext>;
-    /** Distance between the tile edges and the text. */
+    /**
+     * Distance between the tile edges and the text.
+     * A negative value moves the text into the stroke, but never past the edge.
+     *
+     * Default: `3`
+     */
     padding?: PixelSize;
     /** Gap between adjacent tile. */
     gap?: PixelSize;

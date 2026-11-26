@@ -67,6 +67,8 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     // it is unrelated to the data selection API in the options contract. Use with extreme caution.
     readonly crossFilterSelected: boolean | undefined;
     style?: NormalisedSeriesMarkerStyle;
+    /** The marker a placed label copied off this datum is drawn at, whose restyled stroke it re-fits to. */
+    readonly markerDatum?: LineNodeDatum;
 }
 
 export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {

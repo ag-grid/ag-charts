@@ -1249,6 +1249,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -1382,6 +1383,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -1515,6 +1517,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -1648,6 +1651,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -1774,6 +1778,7 @@ describe('ChartOptions', () => {
                   "interpolation": {
                     "type": "linear",
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -1912,6 +1917,7 @@ describe('ChartOptions', () => {
                   "interpolation": {
                     "type": "linear",
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2068,6 +2074,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2201,6 +2208,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2334,6 +2342,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2467,6 +2476,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2593,6 +2603,7 @@ describe('ChartOptions', () => {
                   "interpolation": {
                     "type": "linear",
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2731,6 +2742,7 @@ describe('ChartOptions', () => {
                   "interpolation": {
                     "type": "linear",
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -2887,6 +2899,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -3020,6 +3033,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -3153,6 +3167,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -3286,6 +3301,7 @@ describe('ChartOptions', () => {
                       "opacity": 0.5,
                     },
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -3412,6 +3428,7 @@ describe('ChartOptions', () => {
                   "interpolation": {
                     "type": "linear",
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,
@@ -3550,6 +3567,7 @@ describe('ChartOptions', () => {
                   "interpolation": {
                     "type": "linear",
                   },
+                  "itemPadding": 2,
                   "label": {
                     "border": {
                       "enabled": false,

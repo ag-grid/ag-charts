@@ -43,7 +43,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable, deepClone } from 'ag-charts-core';
+import { Transformable, deepClone, toPlainText } from 'ag-charts-core';
 import type { BBox, Rect } from 'ag-charts-core';
 
 import {
@@ -1805,47 +1805,102 @@ describe('TreemapSeries', () => {
         });
     });
 
-    it('AG-8290 label boxing', async () => {
-        const options: AgChartOptions = {
-            ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
-            series: [
-                {
-                    type: 'treemap',
-                    labelKey: 'name',
-                    secondaryLabelKey: 'change',
-                    sizeName: 'Valuation',
-                    sizeKey: 'valuation',
-                    group: {
-                        label: {
-                            fontSize: 18,
-                            spacing: 2,
-                            fill: 'pink',
-                            border: { stroke: 'black', strokeWidth: 1 },
-                        },
-                    },
-                    tile: {
-                        label: {
-                            fontSize: 24,
-                            minimumFontSize: 9,
-                            spacing: 8,
-                            fill: 'pink',
-                            border: { stroke: 'black', strokeWidth: 1 },
-                            // Lets each box's padding and border overhang its tile rather than crowd out the text.
-                            collision: { threshold: -10 },
-                        },
-                        secondaryLabel: {
-                            formatter: (params) => `£${params.value.toFixed(1)}bn`,
-                            fill: 'lime',
-                            color: 'blue',
-                            border: { stroke: 'olive', strokeWidth: 3 },
-                        },
+    const boxedLabelOptions = (): AgChartOptions => ({
+        ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+        series: [
+            {
+                type: 'treemap',
+                labelKey: 'name',
+                secondaryLabelKey: 'change',
+                sizeName: 'Valuation',
+                sizeKey: 'valuation',
+                group: {
+                    label: {
+                        fontSize: 18,
+                        spacing: 2,
+                        fill: 'pink',
+                        border: { stroke: 'black', strokeWidth: 1 },
                     },
                 },
-            ],
-        };
+                tile: {
+                    label: {
+                        fontSize: 24,
+                        minimumFontSize: 9,
+                        spacing: 8,
+                        fill: 'pink',
+                        border: { stroke: 'black', strokeWidth: 1 },
+                        // Lets each box's padding and border overhang its tile rather than crowd out the text.
+                        collision: { threshold: -10 },
+                    },
+                    secondaryLabel: {
+                        formatter: (params) => `£${params.value.toFixed(1)}bn`,
+                        fill: 'lime',
+                        color: 'blue',
+                        border: { stroke: 'olive', strokeWidth: 3 },
+                    },
+                },
+            },
+        ],
+    });
 
-        chart = await createEnterpriseChart(options);
+    it('AG-8290 label boxing', async () => {
+        chart = await createEnterpriseChart(boxedLabelOptions());
         await compare();
+    });
+
+    describe('boxed labels', () => {
+        // A text's bbox carries its box padding; half of each border's stroke falls outside it.
+        const drawnLabels = () =>
+            getSeriesLabelTexts(chart)
+                .filter((text) => text.visible && (text.text ?? '') !== '')
+                .map((text) => {
+                    const node = text.closestDatum() as HierarchyNode;
+                    const isGroup = node.children.length > 0;
+                    const halfStroke = text.tag === 1 ? 1.5 : 0.5;
+                    // The tile labels' collision threshold of -10 tolerates that much overlap.
+                    const tolerance = isGroup ? 0 : 10;
+                    return {
+                        text: toPlainText(text.text),
+                        node,
+                        isGroup,
+                        box: text.getBBox().clone().grow(halfStroke),
+                        tolerance,
+                    };
+                });
+        const EPSILON = 1e-6;
+
+        it('keeps each boxed group label within its group and above its tiles', async () => {
+            chart = deproxy(await createEnterpriseChart(boxedLabelOptions()));
+            const groupLabels = drawnLabels().filter(({ isGroup }) => isGroup);
+            expect(groupLabels.length).toBeGreaterThan(0);
+            const strays = groupLabels.filter(({ node, box }) => {
+                const { bbox, padding } = getTreemapNodeLayout(node);
+                return (
+                    box.x < bbox!.x - EPSILON ||
+                    box.y < bbox!.y - EPSILON ||
+                    box.x + box.width > bbox!.x + bbox!.width + EPSILON ||
+                    box.y + box.height > bbox!.y + padding!.top + EPSILON
+                );
+            });
+            expect(strays.map(({ text }) => text)).toEqual([]);
+        });
+
+        it('keeps boxed labels from overlapping one another past their collision threshold', async () => {
+            chart = deproxy(await createEnterpriseChart(boxedLabelOptions()));
+            const labels = drawnLabels();
+            const overlaps: string[] = [];
+            for (const [i, a] of labels.entries()) {
+                for (const b of labels.slice(i + 1)) {
+                    const tolerance = Math.max(a.tolerance, b.tolerance) + EPSILON;
+                    const overlapX =
+                        Math.min(a.box.x + a.box.width, b.box.x + b.box.width) - Math.max(a.box.x, b.box.x);
+                    const overlapY =
+                        Math.min(a.box.y + a.box.height, b.box.y + b.box.height) - Math.max(a.box.y, b.box.y);
+                    if (overlapX > tolerance && overlapY > tolerance) overlaps.push(`${a.text} / ${b.text}`);
+                }
+            }
+            expect(overlaps).toEqual([]);
+        });
     });
 
     describe('shadow', () => {

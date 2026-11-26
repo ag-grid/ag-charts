@@ -16,6 +16,7 @@ import {
     type DomainWithMetadata,
     type DynamicContext,
     type FillStrokeMorph,
+    type ItemLabelInsets,
     type LabelAvoidance,
     type Mutable,
     type Normalised,
@@ -44,7 +45,11 @@ import {
     easeOut,
     firstCandidate,
     fontWithSize,
+    insideAnchorSpacing,
     isContinuous,
+    itemContentInset,
+    itemLabelInsets,
+    itemStrokeDepth,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -670,7 +675,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const isPositive = (value ?? 0) >= 0;
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-        const { strokeWidth, label } = this.getItemConfig(seriesItemType);
+        const { stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
+        const itemInset = itemContentInset(this.options.itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
 
         const currY = Math.round(yScale.convert(cumulativeValue));
         const trailY = Math.round(yScale.convert(trailingValue));
@@ -764,7 +770,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                           isUpward,
                           !barAlongX,
                           label.spacing,
-                          expandPlacementLabelBoxExtent(label)
+                          expandPlacementLabelBoxExtent(label),
+                          itemInset
                       )
                     : undefined;
             // The engine refits per orientation since a rotated label measures against the bar's other axis (see barSeries).
@@ -792,6 +799,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     plotRegion,
                     fitted: labelFit != null,
                     text: fittedLabelText,
+                    itemPadding: itemInset,
                 });
                 // The first candidate is baked as a backward-safe default until the engine writes the chosen one back.
                 const { anchor, region, placement: granular } = candidates[0];
@@ -818,7 +826,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     isUpward,
                     isVertical: !barAlongX,
                     placement,
-                    spacing: label.spacing,
+                    spacing: insideAnchorSpacing(placement ?? 'inside-center', label.spacing, itemInset),
                     boxPadding,
                     rect,
                     rotation: labelRotation,
@@ -1113,6 +1121,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } satisfies CallbackParamRules<AgWaterfallSeriesItemStylerParams>;
     }
 
+    drawnItemStroke(
+        datum: WaterfallNodeDatum,
+        isHighlight: boolean,
+        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
+    ): Normalised<AgWaterfallSeriesStyle, never, NormalisedLineDash> | undefined {
+        const resting = this.contextNodeData?.styles[datum.itemType];
+        return this.drawnItemStyle(datum.datumIndex, isHighlight, activeHighlight, datum, resting);
+    }
+
     protected override updateDatumStyles({
         datumSelection,
         isHighlight,
@@ -1293,7 +1310,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         label.collision.alwaysShow,
                         avoid,
                         threshold,
-                        false,
                         configuredFit,
                         node,
                         node.datumIndex
@@ -1335,7 +1351,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
-        applyBarLabelOrientation(placed);
+        const insetsByType = new Map<AgWaterfallSeriesItemType, ItemLabelInsets>();
+        const insetsOf = (datum: BarPlacedLabelDatum<WaterfallNodeDatum>) => {
+            const itemType = datum.styleDatum?.itemType;
+            if (itemType == null) return undefined;
+            let insets = insetsByType.get(itemType);
+            if (insets == null) {
+                const { stroke, strokeWidth } = this.getItemConfig(itemType);
+                insets = itemLabelInsets(this.options.itemPadding, stroke, strokeWidth);
+                insetsByType.set(itemType, insets);
+            }
+            return insets;
+        };
+        applyBarLabelOrientation(placed, this.restylesItemStrokes() ? insetsOf : undefined);
         applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }

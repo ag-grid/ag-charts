@@ -1175,4 +1175,27 @@ describe('MapMarkerSeries', () => {
             expect(drawn).toHaveLength(placed.length);
         });
     });
+
+    describe('inside labels', () => {
+        it('draws an always-shown inside label on a marker too small to hold it', async () => {
+            chart = await createEnterpriseChart({
+                ...SIMPLIFIED_EXAMPLE,
+                animation: { enabled: false },
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        labelKey: 'name',
+                        size: 2,
+                        label: { enabled: true, placement: 'inside', collision: { alwaysShow: true } },
+                    },
+                ],
+            });
+
+            const drawn = getSeriesLabelTexts(chart, 1).filter((text) => text.visible);
+            expect(drawn).toHaveLength(ukData.length);
+            expect(drawn.map((text) => text.text)).toEqual(expect.arrayContaining(ukData.map(({ name }) => name)));
+        });
+    });
 });

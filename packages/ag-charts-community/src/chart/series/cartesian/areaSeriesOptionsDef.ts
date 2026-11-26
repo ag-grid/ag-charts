@@ -7,6 +7,7 @@ import {
     constant,
     fillOptionsDef,
     interpolationOptionsDefs,
+    itemPaddingOptionsDef,
     lineDashOptionsDef,
     markerHighlightOptionsDef,
     markerOptionsDefs,
@@ -34,6 +35,7 @@ const areaStyler = callbackDefs<AgAreaSeriesStylerResult>({
 });
 
 export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOptions> = {
+    ...itemPaddingOptionsDef,
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,

@@ -1333,8 +1333,8 @@ describe('label collision avoidance', () => {
                             yKey: 'y',
                             sizeKey: 'size',
                             labelKey: 'l',
-                            minSize: 64,
-                            maxSize: 64,
+                            minSize: 72,
+                            maxSize: 72,
                             itemStyler,
                             label: { enabled: true, placement: 'inside', truncate: true },
                         },
@@ -1400,12 +1400,12 @@ describe('label collision avoidance', () => {
                 chart = await createChart({ legend: { enabled: false }, series: [series(marker)] } as any);
                 return placedBoxes();
             };
-            const drawn = await placed(by === 'size' ? { shape: 'circle', size: 60 } : { shape: 'heart', size: 60 });
+            const drawn = await placed(by === 'size' ? { shape: 'circle', size: 80 } : { shape: 'heart', size: 80 });
             expect(drawn.length).toBeGreaterThan(0);
             const restyled =
                 by === 'size'
-                    ? { shape: 'circle', size: 20, itemStyler: () => ({ size: 60 }) }
-                    : { shape: 'circle', size: 60, itemStyler: () => ({ shape: 'heart' }) };
+                    ? { shape: 'circle', size: 20, itemStyler: () => ({ size: 80 }) }
+                    : { shape: 'circle', size: 80, itemStyler: () => ({ shape: 'heart' }) };
             expect(await placed(restyled)).toEqual(drawn);
         });
 

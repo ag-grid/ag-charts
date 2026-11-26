@@ -34,6 +34,7 @@ import type {
     AgBaseCartesianSeriesAxisOptions,
     AgColorScale,
     FillOptions,
+    ItemPaddingOptions,
     ResolvedLineDash,
     StrokeOptions,
 } from './commonOptions';
@@ -91,7 +92,7 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
 }
 
 export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgSeriesMarkerStyle {
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgSeriesMarkerStyle, ItemPaddingOptions {
     /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance.
      *
      * Default: `2000`

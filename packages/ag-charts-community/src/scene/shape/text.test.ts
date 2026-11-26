@@ -379,6 +379,16 @@ describe('Text', () => {
             node.setScene(mockScene);
             expect(node.getLineBoxes()).toEqual([node.getBBox()]);
         });
+
+        it('gives the line boxes as the drawn boxes of a label without a background', () => {
+            const node = textNode();
+            expect(node.getDrawnBoxes()).toEqual(node.getLineBoxes());
+        });
+
+        it('gives the whole background block as the drawn box of a boxed label, which narrower lines do not fill', () => {
+            const node = textNode({ padding: 4 });
+            expect(node.getDrawnBoxes()).toEqual([node.getBBox()]);
+        });
     });
 
     describe('should return an empty string if text overflows when it is not permitted', () => {
