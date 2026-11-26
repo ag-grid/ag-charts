@@ -1278,6 +1278,44 @@ describe('SunburstSeries', () => {
             }));
             expect(shifts).toEqual(shifts.map(({ key }) => ({ key, dx: expect.closeTo(0), dy: expect.closeTo(0) })));
         });
+
+        it('holds a thin-wedge perpendicular label stack against the padded outer arc', async () => {
+            const padding = 3;
+            chart = await createEnterpriseChart({
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'capacity',
+                        fills: [{ type: 'gradient' }],
+                        padding,
+                    },
+                ],
+            } as AgChartOptions);
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const groups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const gaps: Array<{ name?: string; gap: number }> = [];
+            for (const group of groups) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const texts = Selection.selectByClass(group, TransformableText).filter((text) => text.visible);
+                // Skips the depth-0 wedges; every outer-ring sector here is too thin for its stack at the ring middle.
+                if (sector.innerRadius <= 0 || texts.length === 0) continue;
+                if (!labelPlacementOf(sector, texts[0].rotation).startsWith('perpendicular')) continue;
+                const centre = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY);
+                const farthest = Math.max(
+                    ...texts
+                        .flatMap(canvasCorners)
+                        .map(({ canvasX, canvasY }) => Math.hypot(canvasX - centre.canvasX, canvasY - centre.canvasY))
+                );
+                gaps.push({
+                    name: group.datum?.datum?.name,
+                    gap: sector.outerRadius - sector.outerEdgeInset - farthest,
+                });
+            }
+            expect(gaps.length).toBeGreaterThan(0);
+            expect(gaps).toEqual(gaps.map(({ name }) => ({ name, gap: expect.closeTo(padding) })));
+        });
     });
 
     describe('block-leading image segments (treemap parity)', () => {

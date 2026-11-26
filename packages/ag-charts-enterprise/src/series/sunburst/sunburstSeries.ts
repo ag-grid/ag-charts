@@ -33,7 +33,6 @@ import {
     Selection,
     Text,
     TransformableText,
-    clamp,
     cycledValue,
     datumKeyReader,
     drawnLineHeight,
@@ -204,7 +203,9 @@ function sectorLabelRadius(
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
             if (wedge) return (minimumRadius + maximumRadius) * 0.5;
             const middle = (innerRadius + outerRadius) * 0.5;
-            return minimumRadius > maximumRadius ? middle : clamp(minimumRadius, middle, maximumRadius);
+            if (minimumRadius > maximumRadius) return middle;
+            // A sector too thin at its middle holds the label against the outer arc.
+            return minimumRadius > middle ? maximumRadius : Math.min(middle, maximumRadius);
         }
     }
 }
