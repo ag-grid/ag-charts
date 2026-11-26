@@ -9,11 +9,11 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     NEAREST_NODE_TOOLTIP_THEME,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
-    SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -72,7 +72,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
                 glow: '/series/$index/marker/glow',
             }
         ),
-        selection: SERIES_SELECTION_THEME,
+        selection: MARKER_SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };

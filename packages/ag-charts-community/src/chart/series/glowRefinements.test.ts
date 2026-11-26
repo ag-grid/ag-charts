@@ -25,7 +25,6 @@ const RED = [255, 0, 0, 255];
 const BLUE = [0, 0, 255, 255];
 const GREEN = [0, 128, 0, 255];
 const WHITE = [255, 255, 255, 255];
-const DIMMED_BLUE = [102, 102, 255, 255];
 const GREY_FILL = '#808080';
 const GLOW_FILLS: Record<string, string> = { A: '#ff0000', B: '#008000', C: '#0000ff' };
 
@@ -385,11 +384,10 @@ describe('glow refinements', () => {
                         const edge = hovered === 0 ? hoveredBar.x + hoveredBar.width - 3 : hoveredBar.x + 3;
 
                         await hoverDatum(chart, 0, hovered);
-                        // Covered by the glow, which is translucent over a bar that is dimmed: red shows where the bar was blue.
+                        // Covered by the glow, which is translucent over the bar: red shows where the bar was blue.
                         expect(pixel(edge, bottom)[0]).toBeGreaterThan(100);
-                        // The bar beside it glows, so it is clear of its own glow, dimmed as the other items are, and the hovered bar
-                        // is its own colour beyond the glow.
-                        expect(pixel(beside.x + beside.width / 2, bottom)).toEqual(DIMMED_BLUE);
+                        // The bar beside it glows, so it is clear of its own glow, and the hovered bar is its own colour beyond the glow.
+                        expect(pixel(beside.x + beside.width / 2, bottom)).toEqual(BLUE);
                         expect(pixel(hoveredBar.x + hoveredBar.width / 2, bottom)).toEqual(BLUE);
                     }
                 );
@@ -453,7 +451,7 @@ describe('glow refinements', () => {
             }
         );
 
-        it('does not cut the invisible stroke of a glowing item out of its glow', async () => {
+        it('starts the glow a gap from the outline of an invisible stroke, and from the stroke where it is visible', async () => {
             const createBar = (strokeOpacity: number, placement: (glow: AgGlowOptions) => object) =>
                 create({
                     ...HEADROOM,
@@ -474,7 +472,7 @@ describe('glow refinements', () => {
 
             for (const [name, placement] of PLACEMENTS) {
                 // The bounds of the bar take in its stroke, which is centred on the edge of the bar, so 4px in from them is within
-                // the 10px of stroke outside the bar, where the glow, which reaches 20px from the bar, is to be seen if the stroke is not.
+                // the 10px of stroke outside the bar, which the glow is cut out of, as the gap is measured from the outline.
                 const probe = () => {
                     const { x, y, height } = barBounds();
                     return pixel(x + 4, y + height / 2);
@@ -483,7 +481,7 @@ describe('glow refinements', () => {
                 expect(probe(), `${name}, a visible stroke is painted over the glow`).toEqual([0, 0, 0, 255]);
 
                 await createBar(0, placement);
-                expect(probe(), `${name}, an invisible stroke is not cut out of it`).toEqual(RED);
+                expect(probe(), `${name}, an invisible stroke is cut out of it`).toEqual(WHITE);
             }
         });
 
@@ -780,6 +778,10 @@ describe('glow refinements', () => {
         ];
         const GLOWING = { ...SERIES, glow: hard({ spread: 12 }) };
 
+        // A hovered item glows by default, so a chart that casts no glow turns that off.
+        const NO_HOVER_GLOW = { highlight: { highlightedItem: { glow: { enabled: false } } } };
+        const NONE = { ...SERIES, ...NO_HOVER_GLOW };
+
         const render = async (series: object) => {
             await create({ data: DATA, series: [series] });
             return canvasImage(chart);
@@ -800,13 +802,13 @@ describe('glow refinements', () => {
                 },
             ],
         ])('renders with %s as with no glow, beside a shadow', async (_name, glow) => {
-            const unset = await render(SERIES);
-            expectSamePixels(await render({ ...SERIES, ...glow }), unset);
+            const unset = await render(NONE);
+            expectSamePixels(await render({ ...NONE, ...glow }), unset);
 
             // While an item is hovered too.
             await hoverDatum(chart);
             const hovered = canvasImage(chart);
-            await render(SERIES);
+            await render(NONE);
             await hoverDatum(chart);
             expectSamePixels(hovered, canvasImage(chart));
         });
@@ -818,7 +820,7 @@ describe('glow refinements', () => {
                     ...SERIES,
                     shadow: undefined,
                     itemStyler: () => ({}),
-                    highlight: { bringToFront: false },
+                    highlight: { bringToFront: false, ...NO_HOVER_GLOW.highlight },
                 };
                 await create({ data: DATA, series: [series] });
                 await hoverDatum(chart, 0, 0);

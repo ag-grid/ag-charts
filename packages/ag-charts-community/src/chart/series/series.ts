@@ -37,6 +37,7 @@ import {
     GLOW_THEME_DEFAULTS,
     Group,
     HIDDEN_MARKER_STYLE,
+    HOVER_GLOW_PART_DEFAULTS,
     LRUCache,
     PointerEvents,
     SERIES_GLOW_OVERLAY_Z_INDEX,
@@ -51,6 +52,7 @@ import {
     createId,
     datumKeyName,
     glowToShadow,
+    hoverGlowPartKey,
     isGradientFill,
     isPatternFill,
     isSupportedMarkerShape,
@@ -197,6 +199,8 @@ export interface SeriesDataEvent {
 const MARKERLESS_NODE_PICK_RANGE = 10;
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
+
+const HOVER_GLOW = { glow: { enabled: true } };
 
 /** What `resolveInPlaceCopy` returns, in place of a `HighlightState`, for the in-place copy of the hovered item. */
 const HOVERED_IN_PLACE = -1;
@@ -1285,6 +1289,20 @@ export abstract class Series<
         return stylerShadow;
     }
 
+    /**
+     * The glow that the hovered item of a part casts unless its own `glow` or the highlight sets otherwise. A series
+     * with a `glow` on several parts has no one theme default for them, so the theme lists one per part.
+     */
+    private getHoverGlowDefault(seriesGlow: DeepPartial<AgGlowOptions> | undefined, highlightState: HighlightState) {
+        if (highlightState !== HighlightState.Item || seriesGlow == null) return;
+        const defaults = (
+            this.options.highlight as { [HOVER_GLOW_PART_DEFAULTS]?: Record<string, boolean> } | undefined
+        )?.[HOVER_GLOW_PART_DEFAULTS];
+        return defaults?.[hoverGlowPartKey(this.getSeriesGlows().indexOf(seriesGlow))] === true
+            ? HOVER_GLOW
+            : undefined;
+    }
+
     private resolveGlowCascade(seriesGlow: DeepPartial<AgGlowOptions> | undefined, highlightState: HighlightState) {
         const cascades = (this.glowCascades ??= []);
         let cascade: (typeof cascades)[number] | undefined;
@@ -1300,7 +1318,11 @@ export abstract class Series<
             cascades.push(cascade);
         }
         if (cascade.byState[highlightState] === undefined) {
-            const merged = mergeGlow({ glow: this.getHighlightGlow(highlightState) }, { glow: seriesGlow });
+            const merged = mergeGlow(
+                { glow: this.getHighlightGlow(highlightState) },
+                this.getHoverGlowDefault(seriesGlow, highlightState),
+                { glow: seriesGlow }
+            );
             const cast = glowToShadow(merged) ?? null;
             // A state that casts what another does shares its object, so that an item moving between them is not made dirty.
             const glow =

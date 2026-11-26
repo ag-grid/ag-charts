@@ -116,16 +116,16 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
     });
 
     describe('with no fillOpacity set, on bars at a fillOpacity of 0.5', () => {
-        it('should cast a glow at its default of 0.4, whatever the fillOpacity of the bars', async () => {
-            expect(strengthOfRed(await castBeside({ ...CASTS.glow(), fillOpacity: 0.5 }))).toBeCloseTo(0.4, 1);
-            expect(strengthOfRed(await castBeside({ ...CASTS.glow(), fillOpacity: 1 }))).toBeCloseTo(0.4, 1);
+        it('should cast a glow at its default of 0.6, whatever the fillOpacity of the bars', async () => {
+            expect(strengthOfRed(await castBeside({ ...CASTS.glow(), fillOpacity: 0.5 }))).toBeCloseTo(0.6, 1);
+            expect(strengthOfRed(await castBeside({ ...CASTS.glow(), fillOpacity: 1 }))).toBeCloseTo(0.6, 1);
         });
 
-        it('should cast a glow with no fill in the colour of the bar, at 0.4', async () => {
+        it('should cast a glow with no fill in the colour of the bar, at 0.6', async () => {
             const [r, g, b] = await castBeside({ glow: { enabled: true, spread: 10, blur: 0 }, fillOpacity: 0.5 });
 
-            // Blue at 0.4 over white leaves 60% of red and green, and all of the blue.
-            expect([r, g, b]).toEqual([153, 153, 255]);
+            // Blue at 0.6 over white leaves 40% of red and green, and all of the blue.
+            expect([r, g, b]).toEqual([102, 102, 255]);
         });
 
         it('should cast a shadow at the 0.5 of the theme times the fillOpacity of the bars', async () => {
@@ -167,17 +167,17 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         });
 
         it('should halve a glow at its default, and a shadow at the fillOpacity of the item as well', async () => {
-            expect(strengthOfRed(await castBeside({ ...CASTS.glow(), fillOpacity: 0.5 }, {}, 0.5))).toBeCloseTo(0.2, 1);
+            expect(strengthOfRed(await castBeside({ ...CASTS.glow(), fillOpacity: 0.5 }, {}, 0.5))).toBeCloseTo(0.3, 1);
             expect(strengthOfRed(await castBeside({ shadow: SHADOW, fillOpacity: 0.5 }, {}, 0.5))).toBeCloseTo(0.25, 1);
         });
     });
 
     describe('from an itemStyler', () => {
-        it('should cast a glow as set with a fillOpacity, and at 0.4 without, on bars at 0.5', async () => {
+        it('should cast a glow as set with a fillOpacity, and at 0.6 without, on bars at 0.5', async () => {
             const styled = (glow: object) => ({ fillOpacity: 0.5, itemStyler: () => ({ glow }) });
 
             expect(await castBeside(styled({ ...GLOW, fillOpacity: 1 }))).toEqual(FULL_RED);
-            expect(strengthOfRed(await castBeside(styled(GLOW)))).toBeCloseTo(0.4, 1);
+            expect(strengthOfRed(await castBeside(styled(GLOW)))).toBeCloseTo(0.6, 1);
         });
 
         it('should cast a shadow as set with a fillOpacity, and at the fillOpacity of the bars with only a fill', async () => {

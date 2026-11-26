@@ -105,7 +105,7 @@ export function expectParamsInState(byState: Map<string, any[]>, state: string, 
 }
 
 /** What a glow with no fields of its own casts, from the glow theme defaults. */
-export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
+export const THEME_GLOW = { enabled: true, fillOpacity: 0.6, blur: 1, spread: 2, gap: 1 };
 
 /** What a shadow with no fields of its own casts: black, at the theme's opacity (0.5, or 1 in the dark theme). */
 export const themeShadow = (opacity: number) => ({
