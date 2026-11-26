@@ -73,6 +73,7 @@
     "@playwright/test": "^1.59.1",
     "ag-charts-test": "14.3.0-beta.20261122",
     "algoliasearch": "^5.60.0",
+    "pngjs": "3.4.0",
     "puppeteer-core": "25.16.0"
   }
 }
