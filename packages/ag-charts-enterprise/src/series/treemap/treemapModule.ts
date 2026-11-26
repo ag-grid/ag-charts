@@ -5,7 +5,6 @@ import {
     FONT_SIZE_RATIO,
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
-    ITEM_PADDING_DEFAULT,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -127,7 +126,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 cornerRadius: 0,
                 shadow: SHADOW_THEME_DEFAULTS,
                 glow: NEUTRAL_GLOW_THEME_DEFAULTS,
-                padding: ITEM_PADDING_DEFAULT,
+                padding: 3,
                 gap: 1,
                 highlight: withFollowedGlowThemeDefaults(
                     {

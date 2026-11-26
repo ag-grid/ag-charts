@@ -4,7 +4,6 @@ import {
     BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
-    ITEM_PADDING_DEFAULT,
     LABEL_BOXING_DEFAULTS,
     NEUTRAL_GLOW_THEME_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -81,7 +80,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             },
         },
         gap: 2,
-        padding: ITEM_PADDING_DEFAULT,
+        padding: 3,
         glow: NEUTRAL_GLOW_THEME_DEFAULTS,
         highlight: withFollowedGlowThemeDefaults(
             {

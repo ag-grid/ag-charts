@@ -145,7 +145,7 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
      * Distance between the tile edges and the text.
      * A negative value moves the text into the stroke, but never past the edge.
      *
-     * Default: `2`
+     * Default: `3`
      */
     padding?: PixelSize;
     /** Gap between adjacent tile. */
