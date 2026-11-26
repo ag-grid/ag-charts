@@ -35,6 +35,8 @@ const SERIES_POINTS = 5000;
 
 type Scenario =
     | 'bars'
+    | 'bars-large'
+    | 'bars-large-undimmed'
     | 'areas'
     | 'highlight'
     | 'many-markers'
@@ -60,6 +62,7 @@ type Operation = (chartOptions: AgCartesianChartOptions) => Promise<number>;
 
 export type ShadowRootCaseId =
     | 'bars-spread'
+    | 'bars-large'
     | 'areas-markers'
     | 'highlight'
     | 'many-markers'
@@ -75,6 +78,9 @@ export type ShadowRootCaseId =
     | 'theme-defaults';
 
 // Each scenario overlaps the shadows of its series, with the shadow off in the first variant.
+// `bars-large` is `bars` at 1600 x 900, whose shadows reach 5.3M device px at 2x. That is over the 4.2M that a scene kept before, so a
+// root that can't keep them casts every frame. `bars-large-undimmed` also keeps the other bars from dimming, so a hover within a
+// series restyles nothing that casts a shadow, and its frames after the first two are clean.
 // `many-markers`, `series-glow` and `series-highlight` are 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 // `series-glow` sets the series-level `marker.glow`, which every highlight state inherits, so a hover recasts every series.
 // `series-highlight` sets only `highlightedSeries.glow`, so the glow is cast only while a legend item is hovered.
@@ -190,6 +196,25 @@ function buildShadowRootOptions(
                 xKey: 'x',
                 yKey: `y${i}`,
                 shadow: shadow(SPREAD_SHADOW),
+            })),
+        };
+    }
+
+    if (scenario === 'bars-large' || scenario === 'bars-large-undimmed') {
+        const undimmed = scenario === 'bars-large-undimmed';
+        return {
+            width: 1600,
+            height: 900,
+            data: getRows(20, 4, true),
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: Array.from({ length: 4 }, (_, i) => ({
+                type: 'bar' as const,
+                xKey: 'x',
+                yKey: `y${i}`,
+                shadow: shadow(SPREAD_SHADOW),
+                ...(undimmed
+                    ? { highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } } }
+                    : undefined),
             })),
         };
     }
@@ -430,11 +455,34 @@ export function getShadowRootConfig(
             run: async () => hover(await prepare(scenario, false)),
         }));
 
+    /** The variants of `bars-large`: a hover with the default highlight, and with the other bars not dimmed. */
+    const largeBarVariants = () => {
+        const variants: Variants = [];
+        for (const shadowOn of [false, true]) {
+            for (const [highlight, scenario] of [
+                ['Default', 'bars-large'],
+                ['No dimming', 'bars-large-undimmed'],
+            ] as const) {
+                variants.push({
+                    params: { Operation: 'Hover x10', Shadow: shadowOn ? 'On' : 'Off', Highlight: highlight },
+                    available: shadowsSupported || !shadowOn,
+                    run: async () => hover(await prepare(scenario, shadowOn)),
+                });
+            }
+        }
+        return variants;
+    };
+
     const cases: Record<ShadowRootCaseId, () => TestCase> = {
         'bars-spread': () => ({
             id: 'bars-spread',
             label: 'Bars, shadow spread 14',
             variants: variantsOf('bars', { 'Chart Create': create, 'Chart Redraw': redraw }),
+        }),
+        'bars-large': () => ({
+            id: 'bars-large',
+            label: '4 bar series x 20 categories at 1600 x 900, shadow spread 14',
+            variants: largeBarVariants(),
         }),
         'areas-markers': () => ({
             id: 'areas-markers',

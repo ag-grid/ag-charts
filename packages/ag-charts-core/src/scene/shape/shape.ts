@@ -960,11 +960,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     /**
      * Draws the silhouette that casts a shape's shadow into a shadow batch's mask when it has a `spread`, or when the batch
-     * casts all its casters at one strength: what {@link castSpreadShadow} blits for the shape without the blur. That is the fill, the dilated stroke and the dilated
-     * extras, drawn solid at a single strength. Only that strength follows the paint: the fill's strongest alpha, else the
-     * stroke's, else the extras'. An opaque shape is drawn straight into the mask, where its parts can only cover each
-     * other fully. A translucent one is drawn opaque off to the side and added once at its strength, so that where its
-     * parts overlap they don't darken the shadow.
+     * casts all its casters at one strength: what {@link castSpreadShadow} blits for the shape without the blur. That is
+     * the fill, the dilated stroke and the dilated extras, drawn solid at a single strength. Only that strength follows
+     * the paint: the fill's strongest alpha, else the stroke's, else the extras'. An opaque shape is drawn straight into
+     * the mask, where its parts can only cover each other fully. A translucent one is drawn opaque off to the side and
+     * added once at its strength, so that where its parts overlap they don't darken the shadow.
      */
     private renderSpreadMask(
         slot: ShadowSlot,

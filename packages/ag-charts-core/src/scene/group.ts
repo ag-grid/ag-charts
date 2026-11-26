@@ -166,7 +166,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      * On a shadow root, the groups whose shadows its last cast drew, which draw without them. Each maps to whether the cover
      * includes the group's cutouts, which it does only for a group inside a layer of its own.
      */
-    private sharedShadowCover: ReadonlyMap<object, ShadowCover> | undefined = undefined;
+    private sharedShadowCover: ReadonlyMap<Group, ShadowCover> | undefined = undefined;
 
     /** On a shadow root, the level its overlay casts the glows of the `shared` groups at: before the first child at or above it. */
     private readonly glowOverlayZIndex: ZIndex | undefined;
@@ -175,7 +175,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     private glowOverlayUser: object | undefined = undefined;
 
     /** On a shadow root, the groups whose glows the overlay of this render casts, or undefined if it casts none. */
-    private glowOverlayFrames: readonly CollectedFrame[] | undefined = undefined;
+    private glowOverlayFrames: readonly CollectedFrame<Group>[] | undefined = undefined;
 
     /** The children that cast a batched shadow, counted by {@link preRender}, or -1 until then. */
     private shadowCasterCount = -1;
@@ -615,6 +615,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         // A group that isn't drawn holds no shadows, as a hidden series would otherwise keep them until it is shown.
         if ((this.batchShadows !== false || this.shadowRoot) && !this.getVisibility()) {
             releaseShadowRoot(this.scene, this);
+            this.sharedShadowCover = undefined;
             this.releaseGlowOverlay(this.scene);
         }
 
@@ -804,14 +805,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** Fails open: if the root can't cast, nothing of it is drawn and every group casts its own shadows. */
-    private castSharedShadows(renderCtx: RenderContext): ReadonlyMap<object, ShadowCover> | undefined {
+    private castSharedShadows(renderCtx: RenderContext): ReadonlyMap<Group, ShadowCover> | undefined {
         const { ctx } = renderCtx;
         try {
-            let frames: readonly CollectedFrame[] = [];
+            let frames: readonly CollectedFrame<Group>[] = [];
             const overlay = this.getSharedGlowCasterCount() > 0;
             // Nothing is gathered unless something casts through the root: a cut of the overlay alone casts nothing.
             if (this.getSharedCasterCount() > 0) {
-                const collector = new ShadowCollector(ctx, ctx.globalAlpha, overlay);
+                const collector = new ShadowCollector<Group>(ctx, ctx.globalAlpha, overlay);
                 this.gatherShadowChildren(collector);
                 frames = collector.frames;
             }
@@ -830,16 +831,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** Records the cover of the root's cast, and repaints the groups, and the layers of them, that it changed for. */
-    private coverSharedShadows(cover: ReadonlyMap<object, ShadowCover> | undefined) {
+    private coverSharedShadows(cover: ReadonlyMap<Group, ShadowCover> | undefined) {
         const previous = this.sharedShadowCover;
         this.sharedShadowCover = cover;
         if (cover === previous) return;
 
         for (const [group, layered] of cover ?? []) {
-            if (previous?.get(group) !== layered) (group as Group).invalidateUpTo(this);
+            if (previous?.get(group) !== layered) group.invalidateUpTo(this);
         }
         for (const group of previous?.keys() ?? []) {
-            if (cover?.has(group) !== true) (group as Group).invalidateUpTo(this);
+            if (cover?.has(group) !== true) group.invalidateUpTo(this);
         }
     }
 
@@ -1125,6 +1126,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     /** The children that are groups, in the order that they are drawn, which is cached until the group is next marked dirty. */
     private getChildGroups(): readonly Group[] {
+        // The count includes this group, so a group with no child groups counts 1.
         this.childGroups ??= this.childNodeCounts.groups === 1 ? NO_GROUPS : this.collectChildGroups();
         return this.childGroups;
     }
