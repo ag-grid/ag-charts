@@ -1,37 +1,9 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { describe, expect, it } from 'vitest';
 
-import {
-    type AxeAllowlistEntry,
-    findNewViolations,
-    findStaleEntries,
-    formatNewViolations,
-    parseAxeAllowlist,
-} from './axe-allowlist';
-import type { AxeExampleResult, AxePassResult, CompactViolation } from './axe-report';
-
-function violation(id: string, targets: string[] = ['#node-0']): CompactViolation {
-    return {
-        id,
-        impact: 'serious',
-        help: `${id} help`,
-        helpUrl: `https://example.com/${id}`,
-        nodes: targets.map((target) => ({ target: [target], html: `<div>`, inChart: true })),
-    };
-}
-
-function passResult(pass: AxePassResult['pass'], ids: CompactViolation[] | string): AxePassResult {
-    return typeof ids === 'string' ? { pass, error: ids } : { pass, violations: ids };
-}
-
-function result(page: string, load: AxePassResult, focus: AxePassResult): AxeExampleResult {
-    return { page, example: 'simple', framework: 'vanilla', url: `https://example.com/${page}`, passes: [load, focus] };
-}
-
-function entry(rule: string, example: string): AxeAllowlistEntry {
-    return { rule, example, reason: `${rule} is accepted` };
-}
+import { loadAxeAllowlist } from '../../e2e/a11y/axe-allowlist';
+import { findNewViolations, findStaleEntries, formatNewViolations, parseAxeAllowlist } from './axe-allowlist';
+import type { CompactViolation } from './axe-report';
+import { allow, cleanExample, passResult, scanned, violation } from './axe-test-fixtures';
 
 function group(rule: string, examples: string[], reason = 'Accepted for now') {
     return { rule, reason, examples };
@@ -109,14 +81,12 @@ describe('parseAxeAllowlist', () => {
 });
 
 describe('committed allowlist (e2e/a11y/axe-allowlist.json)', () => {
-    const raw = JSON.parse(readFileSync(resolve(__dirname, '../../e2e/a11y/axe-allowlist.json'), 'utf-8'));
-
-    it('is valid', () => {
-        expect(() => parseAxeAllowlist(raw)).not.toThrow();
+    it('loads and validates through the loader the spec and reporter use', () => {
+        expect(() => loadAxeAllowlist()).not.toThrow();
     });
 
     it('lists the 48 accepted (rule, example) pairs from the baseline, per rule', () => {
-        const entries = parseAxeAllowlist(raw);
+        const entries = loadAxeAllowlist();
         const perRule: Record<string, number> = {};
         for (const { rule } of entries) perRule[rule] = (perRule[rule] ?? 0) + 1;
 
@@ -131,14 +101,14 @@ describe('committed allowlist (e2e/a11y/axe-allowlist.json)', () => {
     });
 
     it('names each example explicitly as <page>/<example>, with no wildcards and a reason per rule', () => {
-        for (const { rule, example, reason } of parseAxeAllowlist(raw)) {
+        for (const { rule, example, reason } of loadAxeAllowlist()) {
             expect(example, rule).toMatch(/^[a-z0-9-]+\/[a-z0-9-]+$/);
             expect(reason.trim(), `${rule} ${example}`).not.toBe('');
         }
     });
 
     it('covers the region rule on every example the CI scan covers for it, including the kitchen sink and sync pages', () => {
-        const entries = parseAxeAllowlist(raw);
+        const entries = loadAxeAllowlist();
         const region = entries.filter((e) => e.rule === 'region').map((e) => e.example);
         expect(region).toEqual(expect.arrayContaining(['accessibility-e2e/axe-kitchen-sink', 'sync/basic-sync']));
         expect(entries.filter((e) => e.rule === 'landmark-one-main')).toEqual([
@@ -148,94 +118,75 @@ describe('committed allowlist (e2e/a11y/axe-allowlist.json)', () => {
 });
 
 describe('findNewViolations', () => {
-    const allowlist = [entry('region', 'bar-series/simple')];
+    const allowlist = [allow('region', 'bar-series/simple')];
 
-    it('returns nothing when every violation is allowlisted', () => {
-        const res = result(
+    it('returns nothing when the pair is allowlisted, in either pass and however many nodes', () => {
+        const res = scanned(
             'bar-series',
             passResult('load', [violation('region')]),
-            passResult('focus', [violation('region')])
+            passResult('focus', [violation('region', Array(50).fill(true))])
         );
         expect(findNewViolations(res, allowlist)).toEqual([]);
     });
 
     it('returns nothing when the example has no violations', () => {
-        const res = result('bar-series', passResult('load', []), passResult('focus', []));
+        const res = scanned('bar-series', passResult('load', []), passResult('focus', []));
         expect(findNewViolations(res, [])).toEqual([]);
     });
 
     it('returns a violation whose rule is not allowlisted for the example, with pass, node count and first target', () => {
-        const res = result(
+        const res = scanned(
             'bar-series',
-            passResult('load', [violation('region'), violation('color-contrast', ['#a', '#b', '#c'])]),
+            passResult('load', [violation('region'), violation('color-contrast', [true, true, true])]),
             passResult('focus', [])
         );
         expect(findNewViolations(res, allowlist)).toEqual([
-            { rule: 'color-contrast', example: 'bar-series/simple', pass: 'load', nodeCount: 3, firstTarget: '#a' },
+            {
+                rule: 'color-contrast',
+                example: 'bar-series/simple',
+                pass: 'load',
+                nodeCount: 3,
+                firstTarget: '#node-0',
+            },
         ]);
     });
 
-    it('does not carry an allowlist entry across examples', () => {
-        const res = result('line-series', passResult('load', [violation('region')]), passResult('focus', []));
+    it.each([
+        ['example', 'line-series', 'region'],
+        ['rule', 'bar-series', 'landmark-one-main'],
+    ])('does not carry an allowlist entry across a different %s', (_what, page, rule) => {
+        const res = scanned(page, passResult('load', [violation(rule)]), passResult('focus', []));
         expect(findNewViolations(res, allowlist)).toEqual([
-            expect.objectContaining({ rule: 'region', example: 'line-series/simple', pass: 'load' }),
+            expect.objectContaining({ rule, example: `${page}/simple`, pass: 'load' }),
         ]);
-    });
-
-    it('does not carry an allowlist entry across rules on the same example', () => {
-        const res = result('bar-series', passResult('load', [violation('landmark-one-main')]), passResult('focus', []));
-        expect(findNewViolations(res, allowlist)).toEqual([expect.objectContaining({ rule: 'landmark-one-main' })]);
-    });
-
-    it('covers both passes with one entry', () => {
-        const res = result(
-            'bar-series',
-            passResult('load', [violation('region')]),
-            passResult('focus', [violation('region', ['#x', '#y'])])
-        );
-        expect(findNewViolations(res, allowlist)).toEqual([]);
     });
 
     it('reports a new violation that appears only in the focus pass', () => {
-        const res = result('bar-series', passResult('load', []), passResult('focus', [violation('aria-valid-attr')]));
+        const res = scanned('bar-series', passResult('load', []), passResult('focus', [violation('aria-valid-attr')]));
         expect(findNewViolations(res, allowlist)).toEqual([
             expect.objectContaining({ rule: 'aria-valid-attr', pass: 'focus' }),
         ]);
     });
 
     it('reports a new violation in each pass separately', () => {
-        const res = result('bar-series', passResult('load', [violation('x')]), passResult('focus', [violation('x')]));
+        const res = scanned('bar-series', passResult('load', [violation('x')]), passResult('focus', [violation('x')]));
         expect(findNewViolations(res, allowlist).map((v) => v.pass)).toEqual(['load', 'focus']);
     });
 
-    it('does not fail when an allowlisted pair has more nodes than before', () => {
-        const res = result(
-            'bar-series',
-            passResult('load', [
-                violation(
-                    'region',
-                    Array.from({ length: 50 }, (_, i) => `#n${i}`)
-                ),
-            ]),
-            passResult('focus', [])
-        );
-        expect(findNewViolations(res, allowlist)).toEqual([]);
-    });
-
     it('fails open on scan errors: errored passes contribute nothing, and the other pass is still checked', () => {
-        const errored = result(
+        const errored = scanned(
             'bar-series',
             passResult('load', 'Timed out'),
             passResult('focus', 'Skipped: load pass failed')
         );
         expect(findNewViolations(errored, [])).toEqual([]);
 
-        const partial = result('bar-series', passResult('load', [violation('x')]), passResult('focus', 'Timed out'));
+        const partial = scanned('bar-series', passResult('load', [violation('x')]), passResult('focus', 'Timed out'));
         expect(findNewViolations(partial, [])).toEqual([expect.objectContaining({ rule: 'x', pass: 'load' })]);
     });
 
     it('ignores violations on a pass that also carries an error', () => {
-        const res = result(
+        const res = scanned(
             'bar-series',
             { pass: 'load', error: 'Timed out', violations: [violation('x')] },
             passResult('focus', [])
@@ -244,7 +195,7 @@ describe('findNewViolations', () => {
     });
 
     it('uses an empty first target when a violation has no nodes', () => {
-        const res = result('bar-series', passResult('load', [violation('x', [])]), passResult('focus', []));
+        const res = scanned('bar-series', passResult('load', [violation('x', [])]), passResult('focus', []));
         expect(findNewViolations(res, [])).toEqual([expect.objectContaining({ nodeCount: 0, firstTarget: '' })]);
     });
 
@@ -253,7 +204,7 @@ describe('findNewViolations', () => {
             ...violation('x'),
             nodes: [{ target: ['iframe', '#inner'], html: '<div>', inChart: true }],
         };
-        const res = result('bar-series', passResult('load', [nested]), passResult('focus', []));
+        const res = scanned('bar-series', passResult('load', [nested]), passResult('focus', []));
         expect(findNewViolations(res, [])[0].firstTarget).toBe('iframe #inner');
     });
 });
@@ -280,50 +231,48 @@ describe('formatNewViolations', () => {
 });
 
 describe('findStaleEntries', () => {
-    const clean = (page: string) => result(page, passResult('load', []), passResult('focus', []));
-
     it('reports an entry whose example scanned cleanly and whose rule fired in neither pass', () => {
-        const allowlist = [entry('region', 'bar-series/simple')];
-        expect(findStaleEntries([clean('bar-series')], allowlist)).toEqual(allowlist);
+        const allowlist = [allow('region', 'bar-series/simple')];
+        expect(findStaleEntries([cleanExample('bar-series')], allowlist)).toEqual(allowlist);
     });
 
     it('does not report an entry whose rule fired in both passes', () => {
-        const res = result(
+        const res = scanned(
             'bar-series',
             passResult('load', [violation('region')]),
             passResult('focus', [violation('region')])
         );
-        expect(findStaleEntries([res], [entry('region', 'bar-series/simple')])).toEqual([]);
+        expect(findStaleEntries([res], [allow('region', 'bar-series/simple')])).toEqual([]);
     });
 
     it.each([
         ['load', passResult('load', [violation('region')]), passResult('focus', [])],
         ['focus', passResult('load', []), passResult('focus', [violation('region')])],
     ])('does not report an entry whose rule fired only in the %s pass', (_pass, load, focus) => {
-        expect(findStaleEntries([result('bar-series', load, focus)], [entry('region', 'bar-series/simple')])).toEqual(
+        expect(findStaleEntries([scanned('bar-series', load, focus)], [allow('region', 'bar-series/simple')])).toEqual(
             []
         );
     });
 
     it('reports only the rule that stopped firing when another rule on the example still fires', () => {
-        const res = result(
+        const res = scanned(
             'bar-series',
             passResult('load', [violation('region')]),
             passResult('focus', [violation('region')])
         );
-        const allowlist = [entry('region', 'bar-series/simple'), entry('landmark-one-main', 'bar-series/simple')];
+        const allowlist = [allow('region', 'bar-series/simple'), allow('landmark-one-main', 'bar-series/simple')];
         expect(findStaleEntries([res], allowlist)).toEqual([allowlist[1]]);
     });
 
     it('does not count a rule that fired on a different example as firing on this one', () => {
-        const fires = result('line-series', passResult('load', [violation('region')]), passResult('focus', []));
-        const allowlist = [entry('region', 'bar-series/simple')];
-        expect(findStaleEntries([fires, clean('bar-series')], allowlist)).toEqual(allowlist);
+        const fires = scanned('line-series', passResult('load', [violation('region')]), passResult('focus', []));
+        const allowlist = [allow('region', 'bar-series/simple')];
+        expect(findStaleEntries([fires, cleanExample('bar-series')], allowlist)).toEqual(allowlist);
     });
 
     it('does not report entries for examples that were not scanned in this run', () => {
-        expect(findStaleEntries([clean('bar-series')], [entry('region', 'line-series/simple')])).toEqual([]);
-        expect(findStaleEntries([], [entry('region', 'line-series/simple')])).toEqual([]);
+        expect(findStaleEntries([cleanExample('bar-series')], [allow('region', 'line-series/simple')])).toEqual([]);
+        expect(findStaleEntries([], [allow('region', 'line-series/simple')])).toEqual([]);
     });
 
     it.each([
@@ -331,22 +280,22 @@ describe('findStaleEntries', () => {
         ['the focus pass errored', passResult('load', []), passResult('focus', 'Timed out')],
         ['both passes errored', passResult('load', 'Timed out'), passResult('focus', 'Skipped: load pass failed')],
     ])('treats entries as unverified, not stale, when %s', (_label, load, focus) => {
-        expect(findStaleEntries([result('bar-series', load, focus)], [entry('region', 'bar-series/simple')])).toEqual(
+        expect(findStaleEntries([scanned('bar-series', load, focus)], [allow('region', 'bar-series/simple')])).toEqual(
             []
         );
     });
 
     it('does not report an example that ran only one pass', () => {
-        const partial: AxeExampleResult = { ...clean('bar-series'), passes: [passResult('load', [])] };
-        expect(findStaleEntries([partial], [entry('region', 'bar-series/simple')])).toEqual([]);
+        const partial: AxeExampleResult = { ...cleanExample('bar-series'), passes: [passResult('load', [])] };
+        expect(findStaleEntries([partial], [allow('region', 'bar-series/simple')])).toEqual([]);
     });
 
     it('checks each scanned example independently', () => {
         const results = [
-            clean('bar-series'),
-            result('pie-series', passResult('load', 'Timed out'), passResult('focus', [])),
+            cleanExample('bar-series'),
+            scanned('pie-series', passResult('load', 'Timed out'), passResult('focus', [])),
         ];
-        const allowlist = [entry('region', 'bar-series/simple'), entry('region', 'pie-series/simple')];
+        const allowlist = [allow('region', 'bar-series/simple'), allow('region', 'pie-series/simple')];
         expect(findStaleEntries(results, allowlist)).toEqual([allowlist[0]]);
     });
 });
