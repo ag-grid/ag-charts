@@ -31,9 +31,14 @@ const INSIDE = ringOf(0, RADIUS - 3);
 const OUTSIDE = ringOf(RADIUS + 2, RADIUS + 15);
 const EVERYWHERE = ringOf(0, Infinity);
 
-/** A circle 60 across at the centre of the scene, whose edge is anti-aliased, with the glow `gap`. No scene glow has no `gap` today. */
-const circle = (fill: Shape['fill'], gap?: number) => {
-    const marker = Object.assign(new Marker(), { fill, stroke: undefined, strokeWidth: 0, fillGlow: redGlow(gap) });
+/**
+ * A circle 60 across at the centre of the scene, whose edge is anti-aliased, with a glow that has no `gap`.
+ *
+ * Since the theme gives every series glow a `gap`, no series reaches the cut for a glow without one from options today.
+ * The engine and the shape keep the cut for any glow that ends up with no `gap`, so it is tested here, at the scene level.
+ */
+const circle = (fill: Shape['fill']) => {
+    const marker = Object.assign(new Marker(), { fill, stroke: undefined, strokeWidth: 0, fillGlow: redGlow() });
     marker.setVisibilityAndPosition(true, 'circle', 60, GLOW_CENTRE);
     return marker;
 };
