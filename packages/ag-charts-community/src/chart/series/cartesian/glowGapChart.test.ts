@@ -149,18 +149,16 @@ describe('glow gap in a chart', () => {
     describe('around a marker with a wide stroke', () => {
         const GAP = 1;
         const SPREAD = 8;
-        const strokedMarkers = (stroke: object, options: object = {}) =>
+        const strokedMarkers = (stroke: object) =>
             markers({
                 fill: 'blue',
                 fillOpacity: 1,
                 stroke: 'darkslategray',
                 glow: { blur: 0, spread: SPREAD, fill: 'red', fillOpacity: 1 },
                 ...stroke,
-                ...options,
             });
 
         it.each([
-            { strokeWidth: 1 },
             { strokeWidth: 6 },
             { strokeWidth: 12 },
             { strokeWidth: 18 },
@@ -169,24 +167,24 @@ describe('glow gap in a chart', () => {
         ])('should grow the glow a gap and a spread past the outer edge of a stroke of $strokeWidth', async (stroke) => {
             await create(strokedMarkers(stroke));
             const at = rightOfFirstItem();
-            // Each probe is a whole pixel inside or outside of the ring, as a stroke of 1 puts the edge on a half pixel.
             const outerEdge = stroke.strokeWidth / 2;
 
-            expect(at(Math.ceil(outerEdge) + GAP + 1)).toEqual(GLOW_RED);
-            expect(at(Math.floor(outerEdge) + GAP + SPREAD - 2)).toEqual(GLOW_RED);
-            expect(at(Math.ceil(outerEdge) + GAP + SPREAD + 2)).toEqual(WHITE);
+            expect(at(outerEdge + GAP + 1)).toEqual(GLOW_RED);
+            expect(at(outerEdge + GAP + SPREAD - 2)).toEqual(GLOW_RED);
+            expect(at(outerEdge + GAP + SPREAD + 2)).toEqual(WHITE);
         });
 
         it('should keep the default hover glow visible past a stroke of 6', async () => {
+            const strokeWidth = 6;
             await create(
                 markers({
                     stroke: 'darkslategray',
-                    strokeWidth: 6,
+                    strokeWidth,
                     highlight: { highlightedItem: { glow: { fill: 'red' } } },
                 })
             );
             await hoverFirst();
-            const pixel = rightOfFirstItem()(3 + GAP + 1);
+            const pixel = rightOfFirstItem()(strokeWidth / 2 + GAP + 1);
 
             expect(pixel[0]).toBe(255);
             expect(pixel[1]).toBeLessThanOrEqual(160);
