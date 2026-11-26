@@ -2731,7 +2731,7 @@ describe('Annotations', () => {
                 .map((group) => String([...(group as Group).children()].find((child) => child instanceof Text)?.text))
                 .filter((text) => /^\d+$/.test(text));
             expect(visibleAxisLabels()).toHaveLength(12);
-            expect(yTexts.sort()).toEqual(['15', '20', '30', '45', '60', '75']);
+            expect([...yTexts].sort((a, b) => Number(a) - Number(b))).toEqual(['15', '20', '30', '45', '60', '75']);
 
             await compare();
         });

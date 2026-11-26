@@ -23,7 +23,6 @@ import {
 import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
-    AgAnnotation,
     AgAnnotationsToolbarButton,
     AgCartesianChartOptions,
     AgChartInstance,
@@ -981,7 +980,7 @@ describe('priceVolumePreset', () => {
                             },
                         },
                     },
-                    initialState: { annotations: [{ type: 'line', start, end } as AgAnnotation] },
+                    initialState: { annotations: [{ type: 'line', start, end }] },
                 })
             );
             await waitForChartStability(chart);
