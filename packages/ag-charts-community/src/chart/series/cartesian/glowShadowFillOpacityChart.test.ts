@@ -260,11 +260,11 @@ describe('glow and shadow strength under the fillOpacity of the item, in a chart
         it.each([
             ['returns the glow', (p: { glow?: object }) => ({ glow: p.glow })],
             ['spreads the glow', (p: { glow?: object }) => ({ glow: { ...p.glow } })],
-        ])('should cast a glow at its default of 0.4 where the styler %s', async (_name, itemStyler) => {
+        ])('should cast a glow at its default of 0.6 where the styler %s', async (_name, itemStyler) => {
             const series = { glow: { ...GLOW, fillOpacity: undefined }, fillOpacity: 0.5 };
             const unstyled = await castBeside(series);
 
-            expect(strengthOfRed(unstyled)).toBeCloseTo(0.4, 1);
+            expect(strengthOfRed(unstyled)).toBeCloseTo(0.6, 1);
             expect(await castBeside({ ...series, itemStyler })).toEqual(unstyled);
         });
     });
