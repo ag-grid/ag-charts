@@ -635,7 +635,7 @@ function fitSectorLabelToWedge(
         let placed = first.placed;
         // Re-placing trades one shape of room for another, so the passes are candidates rather than
         // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
-        let best = undefined as PlacedSectorLabel | undefined;
+        let best: PlacedSectorLabel | undefined;
         let bestKept = 0;
         let bestWidth = 0;
         let laid: PlacedSectorLabel | undefined;
