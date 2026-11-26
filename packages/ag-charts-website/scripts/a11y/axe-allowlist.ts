@@ -30,11 +30,7 @@ function nonEmptyString(value: unknown): value is string {
     return typeof value === 'string' && value.trim() !== '';
 }
 
-/**
- * Validates the committed allowlist file and flattens it to one entry per (rule, example) pair. The file is a
- * `groups` list, one group per rule, each naming its examples explicitly (no wildcards) with a single reason.
- * Throws with every problem listed: an invalid allowlist is a committed config error, so the run fails closed.
- */
+/** Validates the grouped allowlist file and flattens it to one entry per pair; throws listing every problem. */
 export function parseAxeAllowlist(raw: unknown): AxeAllowlistEntry[] {
     const problems: string[] = [];
     const entries: AxeAllowlistEntry[] = [];
@@ -86,12 +82,11 @@ export function isAxeViolationAllowed(allowlist: readonly AxeAllowlistEntry[], r
     return allowlist.some((entry) => entry.rule === rule && entry.example === example);
 }
 
-/**
- * The violations in `result` that the allowlist does not cover. Passes that errored are skipped, as scan
- * errors never fail the run (they are listed in the report instead). The match is on rule and example only,
- * so more nodes under an allowlisted pair do not fail.
- */
-export function findNewViolations(result: AxeExampleResult, allowlist: readonly AxeAllowlistEntry[]): NewAxeViolation[] {
+/** The violations in `result` that the allowlist does not cover; errored passes are skipped. */
+export function findNewViolations(
+    result: AxeExampleResult,
+    allowlist: readonly AxeAllowlistEntry[]
+): NewAxeViolation[] {
     const example = axeExampleKey(result);
     const found: NewAxeViolation[] = [];
     for (const pass of result.passes) {
@@ -126,15 +121,14 @@ export function findStaleEntries(
             for (const violation of pass.violations ?? []) fired.add(entryKey(violation.id, example));
         }
     }
-    return allowlist.filter(
-        (entry) => verified.has(entry.example) && !fired.has(entryKey(entry.rule, entry.example))
-    );
+    return allowlist.filter((entry) => verified.has(entry.example) && !fired.has(entryKey(entry.rule, entry.example)));
 }
 
 /** The failure message for the spec: each new violation's rule, pass, node count and first target. */
 export function formatNewViolations(violations: readonly NewAxeViolation[]) {
     const lines = violations.map(
-        (v) => `- ${v.rule} (${v.pass} pass): ${v.nodeCount} node${v.nodeCount === 1 ? '' : 's'}, first ${v.firstTarget}`
+        (v) =>
+            `- ${v.rule} (${v.pass} pass): ${v.nodeCount} node${v.nodeCount === 1 ? '' : 's'}, first ${v.firstTarget}`
     );
     return [
         `${violations.length} axe violation${violations.length === 1 ? '' : 's'} not in the allowlist on ${violations[0]?.example}:`,

@@ -28,23 +28,17 @@
         {
             "rule": "label-content-name-mismatch",
             "reason": "Fires only on the financial charts showcase; the cause has not been investigated yet.",
-            "examples": [
-                "financial-charts/financial-charts-showcase"
-            ]
+            "examples": ["financial-charts/financial-charts-showcase"]
         },
         {
             "rule": "landmark-one-main",
             "reason": "Fires only on sync/basic-sync, which hosts two charts in a bare wrapper div with no main landmark; the cause has not been investigated further.",
-            "examples": [
-                "sync/basic-sync"
-            ]
+            "examples": ["sync/basic-sync"]
         },
         {
             "rule": "page-has-heading-one",
             "reason": "Fires only on sync/basic-sync, which hosts two charts in a bare wrapper div with no h1; the cause has not been investigated further.",
-            "examples": [
-                "sync/basic-sync"
-            ]
+            "examples": ["sync/basic-sync"]
         },
         {
             "rule": "region",

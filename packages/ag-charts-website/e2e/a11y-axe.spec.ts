@@ -10,7 +10,8 @@
  *   failed) never fails the test and is listed under "Scan errors" in the report. Allowlist entries for an
  *   example with any scan error are unverified, never reported as stale.
  * - Stale entries (the example scanned cleanly and the rule fired in neither pass) are reported, not failed.
- * - An invalid allowlist (missing rule, example or reason, or a duplicate pair) fails every test.
+ * - An invalid allowlist (missing rule, example or reason, or a duplicate pair) throws when this file loads,
+ *   so the run fails before any test starts.
  * - `a11y-all` (`AG_A11Y_ALL_EXAMPLES`) stays report-only: the allowlist only covers the default CI set, so
  *   the full sweep attaches and reports, marking each violation as new or allowlisted, but never asserts.
  *
@@ -30,7 +31,7 @@ import { SELECTORS, gotoExample, waitForAllChartUpdates } from './util';
 
 const PASS_DEADLINE_MS = 35_000;
 
-// Loaded once at module level so an invalid allowlist fails every test (fail closed).
+// Loaded at module level so an invalid allowlist fails the run before any test starts (fail closed).
 const allowlist = loadAxeAllowlist();
 const enforce = !isA11yAllExamples();
 

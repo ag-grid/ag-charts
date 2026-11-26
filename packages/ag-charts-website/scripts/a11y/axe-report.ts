@@ -75,6 +75,8 @@ export interface AxeGroupedReport {
     rules: AxeRuleGroup[];
     /** Allowlist entries whose example scanned cleanly but did not fire the rule. */
     staleAllowlistEntries: AxeAllowlistEntry[];
+    /** Whether the spec failed on new violations in this run; false for the `a11y-all` sweep, which only reports. */
+    enforced: boolean;
 }
 
 const IMPACT_ORDER: Record<AxeImpact, number> = { critical: 0, serious: 1, moderate: 2, minor: 3 };
@@ -85,7 +87,8 @@ function impactRank(impact: AxeImpact | null) {
 
 export function groupAxeResults(
     entries: AxeExampleResult[],
-    allowlist: readonly AxeAllowlistEntry[] = []
+    allowlist: readonly AxeAllowlistEntry[] = [],
+    enforced = true
 ): AxeGroupedReport {
     const rules = new Map<string, AxeRuleGroup & { exampleKeys: Set<string>; newExampleKeys: Set<string> }>();
     const scanErrors: AxeScanError[] = [];
@@ -162,6 +165,7 @@ export function groupAxeResults(
         scanErrors,
         rules: grouped,
         staleAllowlistEntries: findStaleEntries(entries, allowlist),
+        enforced,
     };
 }
 
@@ -217,7 +221,7 @@ pre { white-space: pre-wrap; background: #f5f5f5; padding: 0.25rem; }
 </head>
 <body>
 <h1>AG Charts axe accessibility report</h1>
-<p>${report.examplesScanned} examples scanned, ${report.rules.length} rules violated, ${report.scanErrors.length} scan errors, ${report.staleAllowlistEntries.length} stale allowlist entries (axe ${escapeHtml(report.axeVersion ?? 'unknown')}). ${GATE_DESCRIPTION}</p>
+<p>${report.examplesScanned} examples scanned, ${report.rules.length} rules violated, ${report.scanErrors.length} scan errors, ${report.staleAllowlistEntries.length} stale allowlist entries (axe ${escapeHtml(report.axeVersion ?? 'unknown')}). ${describeGate(report)}</p>
 <table>
 <thead><tr><th>Rule</th><th>Impact</th><th>Examples</th><th>New examples</th><th>Nodes</th><th>In chart / outside</th></tr></thead>
 <tbody>${rows}</tbody>
@@ -233,9 +237,14 @@ ${report.rules.map(renderRule).join('\n')}
 `;
 }
 
-/** Describes the gate that the spec enforces; shown at the top of both reports. */
-const GATE_DESCRIPTION =
+const ENFORCED_DESCRIPTION =
     'A violation on an example that the allowlist (e2e/a11y/axe-allowlist.json) does not cover for that rule fails CI; scan errors do not.';
+const REPORT_ONLY_DESCRIPTION =
+    'Report-only sweep: violations are marked new or allowlisted against e2e/a11y/axe-allowlist.json but do not fail CI.';
+
+function describeGate(report: AxeGroupedReport) {
+    return report.enforced ? ENFORCED_DESCRIPTION : REPORT_ONLY_DESCRIPTION;
+}
 
 function escapeMarkdownCell(value: unknown) {
     return String(value)
@@ -250,7 +259,7 @@ export function renderAxeReportMarkdown(report: AxeGroupedReport) {
         '',
         `${report.examplesScanned} examples scanned, ${report.rules.length} rules violated, ${report.scanErrors.length} scan errors (axe ${escapeMarkdownCell(report.axeVersion ?? 'unknown')}), ${report.staleAllowlistEntries.length} stale allowlist entries.`,
         '',
-        GATE_DESCRIPTION,
+        describeGate(report),
     ];
     if (report.rules.length > 0) {
         lines.push(

@@ -9,6 +9,7 @@ import {
     renderAxeReportMarkdown,
 } from '../../scripts/a11y/axe-report';
 import { loadAxeAllowlist } from './axe-allowlist';
+import { isA11yAllExamples } from './axe-examples';
 
 const REPORT_DIR = resolve(__dirname, '../../../../reports/a11y');
 
@@ -25,7 +26,7 @@ export default class AxeReporter implements Reporter {
     onEnd() {
         if (this.results.size === 0) return;
 
-        const report = groupAxeResults(Array.from(this.results.values()), loadAxeAllowlist());
+        const report = groupAxeResults(Array.from(this.results.values()), loadAxeAllowlist(), !isA11yAllExamples());
         mkdirSync(REPORT_DIR, { recursive: true });
         writeFileSync(join(REPORT_DIR, 'axe-report.json'), JSON.stringify(report, null, 2));
         writeFileSync(join(REPORT_DIR, 'axe-report.html'), renderAxeReportHtml(report));
