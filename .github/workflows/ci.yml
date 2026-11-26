@@ -217,10 +217,8 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
+                  nx_cache_scheme: merged
                   free_disk_space: false
-                  # Above a clean baseline on disk (~1.7GB restored from latest), so PR runs reuse it
-                  # instead of always resetting. It compresses to ~100MB when stored.
-                  tidy_nx_cache_pr_threshold_mb: 2560
                   # PRs restore from the entry latest saved; saving their own would use ~260MB of the
                   # shared 10GB quota each time the lockfile changes.
                   save_yarn_cache: ${{ github.event_name == 'push' }}
@@ -427,6 +425,12 @@ jobs:
                       packages/ag-charts-demos/seeds/*/*/dist/
                       !packages/*/dist/**/*.map
 
+            - name: Upload Nx cache part
+              if: ${{ !cancelled() }}
+              uses: ./external/ag-shared/github/actions/nx-cache-part
+              with:
+                  name: init
+
     lint:
         runs-on: ubuntu-24.04
         name: Lint & Format Check
@@ -451,6 +455,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
                   free_disk_space: false
 
@@ -503,6 +508,12 @@ jobs:
               if: github.event_name != 'workflow_dispatch' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
 
+            - name: Upload Nx cache part
+              if: ${{ !cancelled() }}
+              uses: ./external/ag-shared/github/actions/nx-cache-part
+              with:
+                  name: lint
+
     generate:
         runs-on: ubuntu-24.04
         name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})
@@ -534,6 +545,7 @@ jobs:
               with:
                   yarn_postinstall: no-install
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
@@ -545,6 +557,12 @@ jobs:
                   if [ -n "$projects" ]; then
                     yarn nx run-many -t generate -c production -p ${projects}
                   fi
+
+            - name: Upload Nx cache part
+              if: ${{ !cancelled() }}
+              uses: ./external/ag-shared/github/actions/nx-cache-part
+              with:
+                  name: generate-${{ matrix.shard }}
 
     build:
         runs-on: ubuntu-24.04
@@ -571,6 +589,7 @@ jobs:
               with:
                   yarn_postinstall: no-install
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
@@ -623,6 +642,12 @@ jobs:
                   # manifest names no source maps, so none are staged or published.
                   path: dist/pr-preview
 
+            - name: Upload Nx cache part
+              if: ${{ !cancelled() }}
+              uses: ./external/ag-shared/github/actions/nx-cache-part
+              with:
+                  name: build
+
     validate:
         runs-on: ubuntu-24.04
         name: Validate Examples
@@ -647,6 +672,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
                   free_disk_space: false
 
@@ -656,6 +682,50 @@ jobs:
               id: validate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples,validate-generated-examples --exclude all
+
+            - name: Upload Nx cache part
+              if: ${{ !cancelled() }}
+              uses: ./external/ag-shared/github/actions/nx-cache-part
+              with:
+                  name: validate
+
+    # Merges the Nx cache parts the jobs above uploaded into one cache for this PR or branch, so
+    # parallel jobs never save over each other. Runs when they fail too: Nx caches only successful
+    # tasks. Jobs that upload no part: website build (its build target is not cached), the e2e jobs
+    # (they restore init's outputs, not the Nx cache), Framework Package Tests (--configuration=update)
+    # and Bundle Tests (one target per matrix entry, told apart only by env).
+    nx-cache:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 20
+        name: Nx Cache
+        needs: [detect-changes, init, lint, generate, build, validate, test]
+        if: ${{ !cancelled() && needs.init.result != 'skipped' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 1
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+                  free_disk_space: false
+                  # Merging needs only the nx binary, so skip the repo postinstall (plugin builds).
+                  yarn_postinstall: no-install
+                  nx_cache_scheme: merged
+                  # Parts leave base entries out, so this saves only the PR's own.
+                  nx_cache_merge_base: 'false'
+
+            - name: Save Nx cache
+              uses: ./external/ag-shared/github/actions/nx-cache-save
+              with:
+                  # Uncompressed; ag-studio's 4 GB default stores about 1.1 GB per save. Every push to
+                  # latest saves a new entry, so keep each one small against the 10 GB Actions cache budget.
+                  max_size_mb: '2048'
 
     pr_preview:
         runs-on: ubuntu-24.04
@@ -884,6 +954,7 @@ jobs:
               with:
                   yarn_postinstall: no-install
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
@@ -945,6 +1016,7 @@ jobs:
               with:
                   yarn_postinstall: no-install
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
@@ -966,6 +1038,12 @@ jobs:
               if: matrix.shard == 0
               id: pack-verify
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t pack:verify
+
+            - name: Upload Nx cache part
+              if: ${{ !cancelled() }}
+              uses: ./external/ag-shared/github/actions/nx-cache-part
+              with:
+                  name: test-${{ matrix.shard }}
 
             - name: Snapshot Branch
               uses: ./.github/actions/snapshot-branch
@@ -1791,6 +1869,7 @@ jobs:
               with:
                   yarn_postinstall: no-install
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
@@ -1870,6 +1949,7 @@ jobs:
               with:
                   yarn_postinstall: no-install
                   cache_mode: ro
+                  nx_cache_scheme: merged
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
 
@@ -1933,6 +2013,9 @@ jobs:
 
             - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
+                  # Only the test reports: the run's other artifacts include the Nx cache parts and
+                  # the website build.
+                  pattern: test-results-*
                   path: test-results/
 
             - name: Snapshot Notify
