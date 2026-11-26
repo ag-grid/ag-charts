@@ -17,19 +17,13 @@ import type { Node, RenderContext } from 'ag-charts-core';
 
 import { expectSamePixels } from '../chart/test/expectSamePixels';
 import { setupMockCanvas } from '../util/test/mockCanvas';
-import { BLACK, type Pixel, box, isHalf, isHalfRed, redHalfShadow } from '../util/test/shadowPixels';
+import { BLACK, type Pixel, box, isHalf, isHalfRed, maxAlpha, redHalfShadow } from '../util/test/shadowPixels';
 
 const WIDTH = 400;
 const HEIGHT = 220;
 
 const RED_HALF = redHalfShadow(60);
 const UNUSABLE = { ...RED_HALF, blur: Number.NaN };
-
-const maxByte = ({ data }: { data: ArrayLike<number> }) => {
-    let max = 0;
-    for (let i = 0; i < data.length; i++) max = Math.max(max, data[i]);
-    return max;
-};
 
 const square = (x: number, y: number, mixin: Partial<Rect> = {}) => box(x, y, 60, 60, mixin);
 
@@ -1340,7 +1334,7 @@ describe('Shadow root', () => {
             const { root, scene } = large(WITHIN);
             scene.render();
             const direct = imageOf(scene);
-            expect(maxByte(direct)).toBeGreaterThan(0);
+            expect(maxAlpha(direct.data)).toBeGreaterThan(0);
 
             // The first redraw keeps the shadows, as the second cast of a root does.
             const [, ...kept] = clean(scene, root, 4);

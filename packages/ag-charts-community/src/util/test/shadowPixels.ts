@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { type MockInstance, afterEach, vi } from 'vitest';
 
 import { Rect, Shape } from 'ag-charts-core';
 import type { AgDropShadowOptions } from 'ag-charts-types';
@@ -56,17 +56,38 @@ const ROOT_FAILURE = 'Error during the shadow root pass';
  * as it does when the root can't cast. Only a key of the root reads the strength of its casters when there is no spread.
  * The root warns of the failure, which {@link expectRootFailures} checks and clears.
  */
-export const withoutRoot = () =>
+const withoutRoot = () =>
     vi.spyOn(Shape.prototype, 'getSpreadMaskStrength').mockImplementation(() => {
         throw new Error('The root cannot cast');
     });
 
 /** Checks that every warning so far was of the root failing, as {@link withoutRoot} makes it, and that there was one. */
-export function expectRootFailures() {
+function expectRootFailures() {
     const onlyRootFailures = {
         asymmetricMatch: (calls: unknown[][]) =>
             calls.length > 0 && calls.every(([message]) => String(message).includes(ROOT_FAILURE)),
         toString: () => `at least one warning, and every one of them "${ROOT_FAILURE}"`,
     };
     expectWarningsCalls().toEqual(onlyRootFailures);
+}
+
+/**
+ * Registers an `afterEach` that checks every warning of the test was of the root failing, and that there was one, and
+ * returns the function that arms the failure. Only the spy is restored: restoring every mock would disarm the console
+ * check that `setupMockConsole` makes after each test. Call it from the body of a `describe`.
+ */
+export function useFailedRootCast() {
+    let rootSpy: MockInstance | undefined;
+
+    afterEach(() => {
+        if (rootSpy == null) return;
+
+        expectRootFailures();
+        rootSpy.mockRestore();
+        rootSpy = undefined;
+    });
+
+    return () => {
+        rootSpy = withoutRoot();
+    };
 }

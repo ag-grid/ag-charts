@@ -1,15 +1,14 @@
-import { type MockInstance, afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgDropShadowOptions } from 'ag-charts-community';
 import {
     deproxy,
-    expectRootFailures,
     expectSamePixels,
-    withoutRoot as failRootCast,
     getSeriesNodeData,
     getSeriesSelectionNodes,
     setupMockCanvas,
     setupMockConsole,
+    useFailedRootCast,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { type Shape, Transformable } from 'ag-charts-core';
@@ -60,17 +59,11 @@ describe('series that cast their shadows through the shadow root', () => {
     setupMockCanvas();
 
     let chart: AgChartInstance | undefined;
-    let rootSpy: MockInstance | undefined;
+    const withoutRoot = useFailedRootCast();
 
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        if (rootSpy != null) {
-            // Only the spy: restoring every mock would disarm the console check that setupMockConsole makes after each test.
-            expectRootFailures();
-            rootSpy.mockRestore();
-            rootSpy = undefined;
-        }
     });
 
     const create = async (options: AgChartOptions) => {
@@ -83,11 +76,6 @@ describe('series that cast their shadows through the shadow root', () => {
     const pixels = () => {
         const { canvas } = deproxy(chart!).ctx.scene;
         return Array.from(canvas.context.getImageData(0, 0, canvas.width, canvas.height).data as ArrayLike<number>);
-    };
-
-    /** Makes the root's cast fail, so that every group batches its own shadows, as it does without a root. */
-    const withoutRoot = () => {
-        rootSpy = failRootCast();
     };
 
     /** How the group of a series that is named, which holds the shapes that it casts shadows from, batches them. */

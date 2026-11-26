@@ -1,16 +1,12 @@
-import { type MockInstance, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
+import { BarShape, Transformable, shadowPass } from 'ag-charts-core';
 import type { Node, Shape } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import {
-    expectRootFailures,
-    withoutRoot as failRootCast,
-    isHalfBlack,
-    shadowAt,
-} from '../../../util/test/shadowPixels';
+import { isHalfBlack, shadowAt, useFailedRootCast } from '../../../util/test/shadowPixels';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { expectSamePixels } from '../../test/expectSamePixels';
 import { getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
@@ -19,6 +15,8 @@ import {
     createChart,
     deproxy,
     getSeriesDataNodeGroup,
+    prepareTestOptions,
+    resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -37,7 +35,7 @@ describe('cartesian series shadow root', () => {
     setupMockCanvas();
 
     let chart: Chart | undefined;
-    let rootSpy: MockInstance | undefined;
+    const withoutRoot = useFailedRootCast();
 
     beforeEach(() => {
         chart = undefined;
@@ -46,12 +44,6 @@ describe('cartesian series shadow root', () => {
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        if (rootSpy != null) {
-            // Only the spy is restored: restoring every mock would disarm the console check that setupMockConsole makes.
-            expectRootFailures();
-            rootSpy.mockRestore();
-            rootSpy = undefined;
-        }
     });
 
     const create = async (options: AgChartOptions) => {
@@ -91,11 +83,6 @@ describe('cartesian series shadow root', () => {
     /** The canvas position of the centre of each item of a series, in the order that they are drawn. */
     const itemCentres = (seriesIndex: number) =>
         itemBoxes(seriesIndex).map(({ x, y, width, height }) => ({ x: x + width / 2, y: y + height / 2 }));
-
-    /** Makes the root's cast fail, so that every group batches its own shadows, as it does without a root. */
-    const withoutRoot = () => {
-        rootSpy = failRootCast();
-    };
 
     /** Raises the highlight on the first item of a series, as the pointer would, which dims the other series. */
     const hoverSeries = async (seriesIndex: number) => {
@@ -652,6 +639,66 @@ describe('cartesian series shadow root', () => {
 
             expect(hasColour(through)).toBe(true);
             expectSamePixels(through, local, 1);
+        });
+    });
+
+    describe('a bar chart over what a scene kept before', () => {
+        // 1600 x 900 at 2x: 5.76M px, over the 4.19M that a scene kept before and within the 8.39M that it keeps.
+        setupMockCanvas({ width: 3200, height: 1800 });
+
+        const SHADOW = { enabled: true, fill: '#000', fillOpacity: 0.5, xOffset: 4, yOffset: 4, blur: 8, spread: 14 };
+        const NOT_DIMMED = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
+
+        const large = async (shadow: AgDropShadowOptions | undefined) => {
+            const prepared = prepareTestOptions<AgCartesianChartOptions>({
+                animation: { enabled: false },
+                legend: { enabled: false },
+                data: Array.from({ length: 20 }, (_, i) => ({
+                    x: `C${i}`,
+                    ...Object.fromEntries([0, 1, 2, 3].map((s) => [`y${s}`, 20 + ((i * 7 + s * 13) % 30)])),
+                })),
+                axes: { x: { type: 'category' }, y: { type: 'number' } },
+                series: [0, 1, 2, 3].map((s) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: `y${s}`,
+                    shadow,
+                    highlight: NOT_DIMMED,
+                })),
+            });
+            // Bespoke: the size and the pixel ratio come from the container, as the shared factory fixes a size.
+            chart?.destroy();
+            chart = deproxy(AgCharts.create({ ...prepared, width: undefined, height: undefined }));
+            await resizeChartContainer(chart, { width: 1600, height: 900, pixelRatio: 2 });
+            expect(scene().pixelRatio).toBe(2);
+            expect(scene().width).toBe(1600);
+        };
+
+        /** Renders the chart again with nothing changed in a series that is marked dirty, and returns how many bars drew a mask. */
+        const redraw = () => {
+            let masked = 0;
+            const render = BarShape.prototype.isolatedRender;
+            vi.spyOn(BarShape.prototype, 'isolatedRender').mockImplementation(function (this: BarShape, ...args) {
+                if (shadowPass.state === 'mask') masked++;
+                return render.apply(this, args);
+            });
+            getSeriesDataNodeGroup(chart!, 0).markDirty();
+            scene().render();
+            vi.mocked(BarShape.prototype.isolatedRender).mockRestore();
+            return masked;
+        };
+
+        it('should draw no masks on a clean frame once the shadows are kept, and the pixels of a direct cast', async () => {
+            await large(SHADOW);
+            const direct = canvasImage();
+            expect(hasColour(direct)).toBe(true);
+
+            // The first redraw keeps the shadows, as the second cast of a root does.
+            const frames = [redraw(), redraw(), redraw()];
+
+            expect(frames[0]).toBeGreaterThan(0);
+            expect(frames.slice(1)).toEqual([0, 0]);
+            expectSamePixels(canvasImage(), direct);
         });
     });
 });

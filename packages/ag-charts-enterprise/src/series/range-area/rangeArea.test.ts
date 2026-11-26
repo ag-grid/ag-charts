@@ -1,4 +1,4 @@
-import { type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -30,7 +30,6 @@ import {
     expectMonotonic,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
-    expectRootFailures,
     expectSceneTrajectory,
     expectWarningsCalls,
     getSeriesAt,
@@ -47,9 +46,9 @@ import {
     shadowAt,
     spyOnAnimationFrames,
     testLegendItemName,
+    useFailedRootCast,
     waitForChartStability,
     withUndocumentedOptions,
-    withoutRoot,
 } from 'ag-charts-community-test';
 import { type Shape, Transformable } from 'ag-charts-core';
 
@@ -1863,27 +1862,13 @@ describe('RangeAreaSeries', () => {
             return count;
         };
 
-        let rootSpy: MockInstance | undefined;
-
-        /** Makes the root's cast fail, so that each series casts its own. */
-        const failRootCast = () => {
-            rootSpy = withoutRoot();
-        };
+        const failRootCast = useFailedRootCast();
 
         /** Creates the chart with the root unable to cast, if `rootCasts` is false, so that each series casts its own. */
         const render = async (series: AgRangeAreaSeriesOptions[], rootCasts: boolean) => {
             if (!rootCasts) failRootCast();
             chart = await createEnterpriseChart(options(series));
         };
-
-        afterEach(() => {
-            if (rootSpy == null) return;
-
-            // Only the spy is restored: restoring every mock would disarm the console check that setupMockConsole makes.
-            expectRootFailures();
-            rootSpy.mockRestore();
-            rootSpy = undefined;
-        });
 
         it('should not draw the shadow of a later range-area over an earlier one', async () => {
             // The shadow of the later area falls up, onto the part of the earlier area that shows above it.
