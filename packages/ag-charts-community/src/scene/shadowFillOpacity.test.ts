@@ -29,6 +29,9 @@ const SHADOW_PROBE = [CENTRE_X + 60, CENTRE_Y] as const;
 /** Every route that casts a shadow, including the item casting its own. */
 const SHADOW_ROUTES: readonly ShadowRoute[] = [...GLOW_ROUTES, 'self'];
 
+/** The same colour and alpha as `TRANSLUCENT_BLUE`, as an object fill. */
+const TRANSLUCENT_SOLID = { type: 'solid' as const, fill: 'rgb(0, 0, 255)', fillOpacity: 0.5 };
+
 /** A tile that is too small to draw, which a shape replaces with its plain fill. */
 const TINY_PATTERN = {
     type: 'pattern' as const,
@@ -65,6 +68,7 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
 
             expect(glowAlpha({ fillGlow: glow })).toBe(255);
             expect(glowAlpha({ fillGlow: glow, fillOpacity: 0.5 })).toBe(255);
+            expect(glowAlpha({ fillGlow: glow, fill: TRANSLUCENT_SOLID })).toBe(255);
         });
 
         it('should cast a glow in the colour of its item at its own fillOpacity, whatever the alpha of the fill', () => {
@@ -72,6 +76,7 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
 
             expect(glowAlpha({ fillGlow: glow, fillOpacity: 0.5 })).toBeCloseTo(102, -1);
             expect(glowAlpha({ fillGlow: glow, fill: TRANSLUCENT_BLUE })).toBeCloseTo(102, -1);
+            expect(glowAlpha({ fillGlow: glow, fill: TRANSLUCENT_SOLID })).toBeCloseTo(102, -1);
             expect(glowAlpha({ fillGlow: glow, fillOpacity: 0.5 })).toBe(glowAlpha({ fillGlow: glow }));
         });
 
@@ -101,6 +106,7 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
             expect(shadowAlpha({ fillShadow: setShadow })).toBe(255);
             expect(shadowAlpha({ fillShadow: setShadow, fillOpacity: 0.5 })).toBe(255);
             expect(shadowAlpha({ fillShadow: setShadow, fill: TRANSLUCENT_BLUE })).toBe(255);
+            expect(shadowAlpha({ fillShadow: setShadow, fill: TRANSLUCENT_SOLID })).toBe(255);
             expect(shadowAlpha({ fillShadow: setShadow, fillOpacity: 0.5, opacity: 0.5 })).toBeCloseTo(128, -1);
         });
 
@@ -109,6 +115,9 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
 
             expect(shadowAlpha({ fillShadow: shadow })).toBeCloseTo(128, -1);
             expect(shadowAlpha({ fillShadow: shadow, fillOpacity: 0.5 })).toBeCloseTo(64, -1);
+            expect(shadowAlpha({ fillShadow: shadow, fill: TRANSLUCENT_SOLID })).toBe(
+                shadowAlpha({ fillShadow: shadow, fill: TRANSLUCENT_BLUE })
+            );
         });
 
         describe('over a fill whose alpha varies across the item', () => {

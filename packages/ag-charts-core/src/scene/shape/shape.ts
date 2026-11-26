@@ -375,9 +375,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private _opaquePaintSource?: Gradient | Pattern | Image;
     private _opaquePaint = true;
 
-    /** Whether the fill paints every pixel of the shape at alpha 1 before `fillOpacity`: a gradient or pattern, or an image, can't. */
+    /**
+     * Whether the fill paints every pixel of the shape at alpha 1 before `fillOpacity`: a gradient or pattern, or an image, can't.
+     * A solid object fill counts by the alpha it resolves to, as a plain colour does.
+     */
     private hasOpaquePaint(fill: ShapeColor): boolean {
         if (typeof fill === 'string') return this.getFillAlpha(fill) >= 1;
+        if (this.fillSolid != null) return this.getFillAlpha(this.fillSolid) >= 1;
 
         const paint = this.fillGradient ?? this.fillPattern ?? this.fillImage;
         if (paint == null) return true;
