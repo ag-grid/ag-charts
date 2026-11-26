@@ -1139,6 +1139,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return false;
     }
 
+    /** Whether a glow's `spread` grows from the outer edge of the item's stroke, as its `gap` does, rather than from its path. */
+    protected glowGrowsFromStrokeEdge(): boolean {
+        return false;
+    }
+
+    /** How much further a dilation of the fill alone grows, to reach as far past the stroke's outer edge as the `gap` cut does. */
+    private getGlowStrokeGrowth(slot: ShadowSlot): number {
+        if (slot !== 'glow' || !this.glowGrowsFromStrokeEdge() || !this.hasStrokeOutline()) return 0;
+        const shadow = this.getSlot(slot);
+        if (shadow == null || !dilatesShadow(shadow) || this.getShadowMode(slot) !== 'fill') return 0;
+        return this.__strokeWidth / 2;
+    }
+
     /** Whether the item has a stroke whose outline, with its own join, miter limit and cap, a glow's `gap` is kept clear of. */
     private hasStrokeOutline(): boolean {
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
@@ -1163,6 +1176,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         footprint: boolean = false,
         painted: boolean = false
     ) {
+        if (!footprint) spread += this.getGlowStrokeGrowth(slot);
         const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
         try {
             const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
@@ -1299,7 +1313,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private getShadowStrokeReach(slot: ShadowSlot, spread: number): number {
         const fillOnly = this.getShadowMode(slot) === 'fill';
         const gapped = this.getSlot(slot)?.gap != null;
-        const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
+        const halfStroke = (fillOnly ? this.getGlowStrokeGrowth(slot) : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A glow's gap dilates the fill of a stroked item with the join of its stroke.
         const ownJoin = !fillOnly || (gapped && this.hasStrokeOutline());
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).

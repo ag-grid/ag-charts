@@ -67,6 +67,10 @@ class InternalMarker<D = any> extends Path<D> {
         super.onChangeDetection(property);
     }
 
+    protected override glowGrowsFromStrokeEdge(): boolean {
+        return true;
+    }
+
     /**
      * Half the widest stroke the marker is drawn with, so `'exact'` hit testing includes the stroke
      * (AG-8173). Set by `Series.applyMarkerStyle`; not change-detected, as it is never rendered.
