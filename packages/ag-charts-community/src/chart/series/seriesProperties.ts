@@ -174,13 +174,17 @@ export function getSelectionStyle<TStyle extends object>(
 
 /**
  * Whether a highlight/selection bucket carries any overrides of how an item is drawn in place; an absent bucket
- * carries none. A `glow` that is off is no such override.
+ * carries none. A `glow` that is off and an `opacity` of 1 (what an unset opacity draws) are no such override.
  */
 export function hasStateStyle(bucket: object | undefined): boolean {
     if (bucket == null) return false;
 
     for (const key in bucket) {
-        if (key !== 'glow' || (bucket as { glow?: { enabled?: boolean } }).glow?.enabled === true) return true;
+        if (key === 'glow') {
+            if ((bucket as { glow?: { enabled?: boolean } }).glow?.enabled === true) return true;
+        } else if (key !== 'opacity' || (bucket as { opacity?: number }).opacity !== 1) {
+            return true;
+        }
     }
     return false;
 }

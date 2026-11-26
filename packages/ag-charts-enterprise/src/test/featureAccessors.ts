@@ -471,3 +471,17 @@ export function getAxesGridLinesVisible(chartOrProxy: ChartOrProxy<any>): boolea
         return gridLineGroup.visible;
     });
 }
+
+// `BackgroundRegions.regions` is private.
+interface BackgroundRegionsHost {
+    regions: { instance: _ModuleSupport.BackgroundRegion }[];
+}
+
+/** The drawn label box of the background region at `index`, `undefined` when it shows no label. */
+export function getBackgroundRegionLabelBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox | undefined {
+    const host = deproxy(chartOrProxy).modulesManager.getModule<BackgroundRegionsHost>('background-regions');
+    assertPresent(host, 'background regions module');
+    const region = host.regions[index];
+    assertPresent(region, `background region ${index}`);
+    return region.instance.getLabelBox();
+}

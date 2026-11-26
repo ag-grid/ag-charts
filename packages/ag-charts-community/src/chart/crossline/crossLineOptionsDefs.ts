@@ -1,12 +1,10 @@
 import {
     type OptionsDefs,
-    boolean,
     collisionOptionsDef,
     commonCrossLineLabelOptionsDefs,
     labelAutoFontSizeOptionsDefs,
     labelFitOptionsDefs,
     number,
-    undocumentedDefs,
     unionOrArray,
 } from 'ag-charts-core';
 import type { AgCartesianCrossLineLabelOptions, AgCartesianCrossLineLabelPlacement } from 'ag-charts-types';
@@ -59,7 +57,4 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
     collision: collisionOptionsDef,
     ...labelFitOptionsDefs,
     ...labelAutoFontSizeOptionsDefs,
-    ...undocumentedDefs({
-        reserveSpace: boolean,
-    }),
 };

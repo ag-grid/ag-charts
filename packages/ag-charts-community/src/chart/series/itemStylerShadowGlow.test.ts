@@ -527,14 +527,16 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
                 expectParamsInState(byState, 'unhighlighted-item', { shadow: SERIES_SHADOW, glow: UNHIGHLIGHT_GLOW });
             });
 
-            it('leaves the shadow and glow unset where nothing in the cascade sets them', async () => {
+            it('leaves the shadow and glow unset where nothing in the cascade sets them, but for the hovered item glow', async () => {
                 const byState = await paramsByState({});
 
                 expect([...byState.keys()]).toContain('highlighted-item');
-                for (const itemParams of [...byState.values()].flat()) {
-                    expect(itemParams.shadow).toBeUndefined();
-                    expect(itemParams.glow).toBeUndefined();
-                }
+                expectParamsInState(byState, 'highlighted-item', { glow: THEME_GLOW });
+                for (const itemParams of [...byState.values()].flat()) expect(itemParams.shadow).toBeUndefined();
+                const others = [...byState]
+                    .filter(([state]) => state !== 'highlighted-item')
+                    .flatMap(([, params]) => params);
+                for (const itemParams of others) expect(itemParams.glow).toBeUndefined();
             });
 
             it('leaves the glow unset in a state that casts none, with the glow set in another', async () => {

@@ -111,7 +111,7 @@ test.describe('annotation action buttons (showActionButtons)', () => {
     });
 
     test.describe('settings dialog', () => {
-        const dialog = (page: Page) => page.getByRole('dialog');
+        const dialog = (page: Page) => page.getByRole('dialog', { name: 'Annotation Settings' });
 
         test('shows Cancel and Apply, with Apply disabled until a setting changes', async ({ page }) => {
             await openSettings(page, url);

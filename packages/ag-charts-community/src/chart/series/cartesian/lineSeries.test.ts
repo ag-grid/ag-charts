@@ -3054,14 +3054,14 @@ describe('LineSeries', () => {
                 await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
-                // The default theme sets unhighlightedSeries.opacity = 0.2.
-                // With the fix, animation targets 0.2; with the bug, it targeted 1.
+                // The default theme sets unhighlightedSeries.opacity = 0.3.
+                // With the fix, animation targets 0.3; with the bug, it targeted 1.
                 const [path] = getSeriesPaths(chart, 0);
                 if (ratio === 1) {
-                    expect(path.opacity).toBeCloseTo(0.2, 1);
+                    expect(path.opacity).toBeCloseTo(0.3, 1);
                 } else if (ratio === 0.5) {
                     expect(path.opacity).toBeGreaterThanOrEqual(0);
-                    expect(path.opacity).toBeLessThanOrEqual(0.2);
+                    expect(path.opacity).toBeLessThanOrEqual(0.3);
                 } else if (ratio === 0) {
                     expect(path.opacity).toBeLessThan(0.1);
                 }

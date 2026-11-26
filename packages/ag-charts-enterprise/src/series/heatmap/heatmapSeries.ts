@@ -1511,9 +1511,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         );
     }
 
+    /** Whether a highlight restyles the cells, or moves them between the batch and in-place casts of `canBatchCells`. */
     private hasHighlightStateStyle(): boolean {
         const { highlight } = this.options;
-        return this.isHighlightEnabled() && hasStateStyle(highlight?.unhighlightedItem);
+        return (
+            this.isHighlightEnabled() &&
+            (hasStateStyle(highlight?.unhighlightedItem) || this.hasInPlaceGlow() || this.getItemShadowBucket() != null)
+        );
     }
 }
 

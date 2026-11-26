@@ -201,8 +201,10 @@ export function describeGlowSeries(
         );
 
         it.each(hoverSteps)('renders the glow of $bucket, and renders it disabled as it renders none', async (step) => {
-            const glowOf = (glow: object) => ({ [step.bucket]: { glow } });
-            const plain = await renderState(step, {}, undefined, true);
+            // The hovered item glows by default, which the other buckets' glow is compared against with it off.
+            const noHoverGlow = { highlightedItem: { glow: { enabled: false } } };
+            const glowOf = (glow: object) => ({ ...noHoverGlow, [step.bucket]: { glow } });
+            const plain = await renderState(step, {}, noHoverGlow, true);
             const glowing = await renderState(step, {}, glowOf(HIGHLIGHT_GLOW), true);
             expect(differingBytes(glowing, plain)).toBeGreaterThan(0);
             expectSamePixels(await renderState(step, {}, glowOf({ ...HIGHLIGHT_GLOW, enabled: false }), true), plain);
@@ -266,8 +268,8 @@ export interface GlowOptionsEntry {
     testCase: GlowSeriesCase;
     options: object;
     /**
-     * How much of the render, as {@link byteDifference}, a gap of 0 and no gap may differ by: the anti-aliased edges that the cut
-     * leaves, which a pixel-aligned edge (a bar, a treemap tile) has none of. Each budget is set just above what the entry measures,
+     * How much of the render, as {@link byteDifference}, the default gap and a gap of 1 may differ by: the anti-aliased edges that the
+     * cut leaves, which a pixel-aligned edge (a bar, a treemap tile) has none of. Each budget is set just above what the entry measures,
      * and the cell fails unless a glow with a `fillOpacity` of 0.4 instead of 0.5 differs by more.
      */
     edgeBudget?: { series: number; hovered: number };
@@ -348,19 +350,18 @@ export function describeGlowOptions(entries: GlowOptionsEntry[], { create, chart
 
                     const budget = hovered ? edgeBudget.hovered : edgeBudget.series;
 
-                    it('renders a gap of 0 as it renders no gap, on an opaque item', async () => {
-                        const gapOfZero = await draw(glow(0), true);
-                        expect(differingBytes(gapOfZero, await draw({}, true))).toBeGreaterThan(0);
-                        expect(byteDifference(gapOfZero, await draw(glow(), true))).toBeLessThanOrEqual(budget);
+                    it('renders the default gap as a gap of 1, on an opaque item', async () => {
+                        const byDefault = await draw(glow(), true);
+                        expect(differingBytes(byDefault, await draw({}, true))).toBeGreaterThan(0);
+                        expect(byteDifference(byDefault, await draw(glow(1), true))).toBeLessThanOrEqual(budget);
 
-                        const fainter = { glow: { ...SERIES_GLOW, gap: 0, fillOpacity: 0.4 } };
-                        expect(byteDifference(gapOfZero, await draw(fainter, true))).toBeGreaterThan(budget);
+                        const fainter = { glow: { ...SERIES_GLOW, gap: 1, fillOpacity: 0.4 } };
+                        expect(byteDifference(byDefault, await draw(fainter, true))).toBeGreaterThan(budget);
                     });
 
-                    it('renders a gap above 0 differently from none', async () => {
-                        const none = await draw(glow(), true);
-                        expect(byteDifference(await draw(glow(4), true), none)).toBeGreaterThan(budget);
-                        expect(byteDifference(await draw(glow(12), true), none)).toBeGreaterThan(budget);
+                    it.each([0, 4, 12])('renders a gap of %s differently from the default', async (gap) => {
+                        const byDefault = await draw(glow(), true);
+                        expect(byteDifference(await draw(glow(gap), true), byDefault)).toBeGreaterThan(budget);
                     });
                 });
             });
