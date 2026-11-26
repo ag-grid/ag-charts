@@ -23,6 +23,7 @@ import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ChartRegistry } from '../module/moduleContext';
+import { VERSION } from '../version';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';
@@ -88,7 +89,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         vars.skipCss,
         vars.domMode,
         vars.cssVariables,
-        vars.injectStyles === false ? { logger: vars.logger } : undefined
+        vars.injectStyles === false ? { logger: vars.logger, version: VERSION } : undefined
     );
     const canvasElement = domManager.addChild(
         'canvas',

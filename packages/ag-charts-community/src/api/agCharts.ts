@@ -436,10 +436,11 @@ class AgChartsInternal {
             throw e;
         }
 
+        // Only a create can disagree: an update's options carry the pinned mode.
+        const stylesModeChanged = chart != null && chart.ctx.domManager.injectStyles !== chartOptions.injectStyles;
         if (
             chart == null ||
-            // Only a create can disagree: an update's options carry the pinned mode.
-            chart.ctx.domManager.injectStyles !== chartOptions.injectStyles ||
+            stylesModeChanged ||
             detectChartType(chartOptions.processedOptions, chartOptions.moduleRegistry) !==
                 detectChartType(chart.chartOptions.processedOptions, chart.chartOptions.moduleRegistry)
         ) {

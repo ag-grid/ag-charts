@@ -32,7 +32,6 @@ import type { AgChartAllThemeParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../core/eventsHub';
 import STYLES from '../styles.css';
-import { VERSION } from '../version';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
@@ -276,7 +275,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
          * Set for `injectStyles: false`: the chart never creates a `<style>` element, and `styleNonce` and
          * `styleContainer` are ignored. The page supplies the stylesheet, which is checked for once attached.
          */
-        private readonly staticStyles?: { logger: Logger }
+        private readonly staticStyles?: { logger: Logger; version: string }
     ) {
         super();
 
@@ -1287,7 +1286,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
         if (checks.has(marker)) return;
 
-        if (this.readStylesheetMarkers(root, marker, staticStyles.logger)) {
+        if (this.readStylesheetMarkers(root, marker, staticStyles)) {
             checks.set(marker, { phase: 'settled' });
             return;
         }
@@ -1300,7 +1299,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             if (this.destroyed || checks.get(marker)?.phase !== 'pending') return;
 
             checks.set(marker, { phase: 'settled' });
-            if (container.isConnected && !this.readStylesheetMarkers(root, marker, staticStyles.logger)) {
+            if (container.isConnected && !this.readStylesheetMarkers(root, marker, staticStyles)) {
                 const file =
                     marker === CSS_LOADED_MARKER
                         ? 'ag-charts-community/css/ag-charts-community.css'
@@ -1314,7 +1313,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
     }
 
     /** One `getComputedStyle` read: whether the marker is set, and the version warning when the stylesheet is stale. */
-    private readStylesheetMarkers(root: Node, marker: string, logger: Logger): boolean {
+    private readStylesheetMarkers(root: Node, marker: string, { logger, version }: { logger: Logger; version: string }): boolean {
         const computed = this.agDocument.getComputedStyle(this.element);
         if (computed.getPropertyValue(marker).trim() === '') return false;
 
@@ -1322,10 +1321,10 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             .getPropertyValue(CSS_VERSION_MARKER)
             .trim()
             .replace(/^(["'])(.*)\1$/, '$2');
-        if (cssVersion !== '' && cssVersion !== VERSION && !staleStylesheetWarnings.has(root)) {
+        if (cssVersion !== '' && cssVersion !== version && !staleStylesheetWarnings.has(root)) {
             staleStylesheetWarnings.add(root);
             logger.warn(
-                `the loaded AG Charts stylesheet is version ${cssVersion}, but AG Charts is version ${VERSION}. Load the stylesheet that matches this version.`
+                `the loaded AG Charts stylesheet is version ${cssVersion}, but AG Charts is version ${version}. Load the stylesheet that matches this version.`
             );
         }
         return true;

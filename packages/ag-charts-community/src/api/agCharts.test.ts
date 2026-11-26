@@ -243,8 +243,8 @@ describe('AgCharts', () => {
         // jsdom loads no stylesheet, so without this a static chart reports the stylesheet it needs as missing.
         let computedStyleSpy: Mock | undefined;
         beforeEach(() => {
-            const real = window.getComputedStyle.bind(window);
-            computedStyleSpy = vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+            const real = globalThis.getComputedStyle.bind(globalThis);
+            computedStyleSpy = vi.spyOn(globalThis, 'getComputedStyle').mockImplementation((el, pseudo) => {
                 const style = real(el, pseudo);
                 return new Proxy(style, {
                     get(target, prop) {

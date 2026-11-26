@@ -1738,7 +1738,7 @@ describe('DOMManager', () => {
                         undefined,
                         mode,
                         undefined,
-                        injectStyles === false ? { logger } : undefined
+                        injectStyles === false ? { logger, version: VERSION } : undefined
                     );
                     dm.updateCSSVariableWatchers({ 'var(--static-color)': 'red' });
                     return dm;
@@ -1776,7 +1776,7 @@ describe('DOMManager', () => {
                     undefined,
                     undefined,
                     undefined,
-                    { logger }
+                    { logger, version: VERSION }
                 );
                 return { dm, warn };
             };
@@ -1910,7 +1910,7 @@ describe('DOMManager', () => {
                         ({
                             ...zeroPaddingComputedStyle(),
                             getPropertyValue: (name: string) => markers[name] ?? '',
-                        }) as CSSStyleDeclaration
+                        })
                 );
                 const create = (connected = true) => {
                     const container = rootDocument.createElement('div');
@@ -1924,7 +1924,7 @@ describe('DOMManager', () => {
                         skipCss,
                         undefined,
                         undefined,
-                        { logger }
+                        { logger, version: VERSION }
                     );
                     return { dm, container };
                 };
@@ -1952,7 +1952,7 @@ describe('DOMManager', () => {
                 );
                 // The check and its re-check, whatever the number of charts.
                 const wrapperReads = getComputedStyle.mock.calls.filter(([el]) =>
-                    (el as Element).classList.contains('ag-charts-wrapper')
+                    (el).classList.contains('ag-charts-wrapper')
                 );
                 expect(wrapperReads).toHaveLength(2);
             });
