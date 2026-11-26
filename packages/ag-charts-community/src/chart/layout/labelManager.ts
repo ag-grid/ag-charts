@@ -110,6 +110,7 @@ export class LabelManager {
     private lastPlacedLabels?: Map<string, PlacedLabel[]>;
     private lastSources?: LabelSource[];
     private readonly sources = new Map<string, LabelSource>();
+    private rankedSources: LabelSource[] = [];
     private holdingPlacements = false;
     private avoidsAxisLabels = false;
 
@@ -117,12 +118,18 @@ export class LabelManager {
 
     registerSource(source: LabelSource) {
         this.sources.set(source.id, source);
+        this.rankSources();
     }
 
     /** A source may only drop its own entry: a mini-chart axis shares its id with the live main-chart one. */
     unregisterSource(id: string, source?: LabelSource) {
         if (source != null && this.sources.get(id) !== source) return;
         this.sources.delete(id);
+        this.rankSources();
+    }
+
+    private rankSources() {
+        this.rankedSources = Array.from(this.sources.values()).toSorted(bySolveRank);
     }
 
     /** Returns whether the chart must lay out again for a placement that invalidated its layout. */
@@ -142,10 +149,7 @@ export class LabelManager {
             width: seriesRect.width + left + Math.max(padding.right, seriesAreaPadding.right),
             height: seriesRect.height + top + Math.max(padding.bottom, seriesAreaPadding.bottom),
         };
-        const allSources: LabelSource[] = [
-            ...Array.from(this.sources.values()).toSorted(bySolveRank),
-            ...visibleSources,
-        ];
+        const allSources: LabelSource[] = [...this.rankedSources, ...visibleSources];
         const placedLabelSources = allSources.filter(placesLabels);
 
         // Nothing places labels, so gathering obstacles and running placement would be wasted work.

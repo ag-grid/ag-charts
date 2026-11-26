@@ -46,8 +46,7 @@ class RegionLabelSource {
 
     getLabelData(seriesRect: BBox): PointLabelDatum[] {
         this.datums.clear();
-        const { width, height } = this.owner.containerSize;
-        const container = { x: 0, y: 0, width, height };
+        const container = this.owner.canvasBox();
         for (const instance of this.owner.instances()) {
             if (instance.keepsLabel !== this.keep) continue;
             const datum = instance.getLabelDatum(seriesRect, container);
@@ -116,8 +115,9 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
         this.nodeDataVersion++;
     }
 
-    get containerSize() {
-        return this.ctx.scene;
+    canvasBox() {
+        const { width, height } = this.ctx.scene;
+        return { x: 0, y: 0, width, height };
     }
 
     *instances() {
