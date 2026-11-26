@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { BBox, ChartUpdateType, Line, LinearScale, OrdinalTimeScale, getDocument } from 'ag-charts-core';
+import {
+    BBox,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Line,
+    LinearScale,
+    OrdinalTimeScale,
+    getDocument,
+} from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance, AgNumericValue } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -35,6 +43,7 @@ import {
     resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisA11YTickData,
     spyOnAxisTickLayout,
     waitForChartStability,
 } from './utils';
@@ -358,6 +367,23 @@ describe('axis test accessors', () => {
             expect(left).toHaveBeenCalled();
             expect(bottom.mock.contexts.every((axis) => axis === findAxis(chart, 'bottom'))).toBe(true);
             expect(left.mock.contexts.every((axis) => axis === findAxis(chart, 'left'))).toBe(true);
+        });
+    });
+
+    describe('spyOnAxisA11YTickData', () => {
+        it('records the tick measurements of the axis at the position, and not of another', async () => {
+            chart = await createChart(options);
+            const bottom = spyOnAxisA11YTickData(chart, 'bottom');
+            const left = spyOnAxisA11YTickData(chart, 'left');
+
+            const bottomTicks = deproxy(chart)
+                .ctx.axisManager.getAxisContext(ChartAxisDirection.X)[0]
+                .getA11YTickData();
+
+            expect(bottom).toHaveBeenCalledTimes(1);
+            expect(bottom.mock.results[0].value).toBe(bottomTicks);
+            expect(bottomTicks).toHaveLength(3);
+            expect(left).not.toHaveBeenCalled();
         });
     });
 

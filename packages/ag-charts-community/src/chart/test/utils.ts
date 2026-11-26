@@ -524,6 +524,7 @@ interface AxisLayoutInternals {
     unzoomedTickLayoutCache?: { domain: unknown[] };
     tickLayoutCache?: { domain: unknown[] };
     calculateTickLayout(...args: unknown[]): unknown;
+    getA11YTickData(): unknown[];
 }
 
 interface AxisLineNode {
@@ -604,6 +605,11 @@ export function getAxisLabelDatums(chartOrProxy: ChartOrProxy<any>, position: st
 /** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
 export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
     return vi.spyOn(findAxisInternals(chartOrProxy, position), 'calculateTickLayout');
+}
+
+/** Counts the keyboard-navigation tick measurements of the axis at `position` from now on. */
+export function spyOnAxisA11YTickData(chartOrProxy: ChartOrProxy<any>, position: string) {
+    return vi.spyOn(findAxisInternals(chartOrProxy, position), 'getA11YTickData');
 }
 
 /**
