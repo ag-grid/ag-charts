@@ -25,7 +25,6 @@ test.describe('sparkline detached styles', () => {
         await page.waitForTimeout(500);
     }
 
-    // Fails if the `mode === 'minimal'` early return in DOMManager.addStyles is removed.
     test('new sparklines in detached cells write no stylesheet copies', async ({ page }) => {
         await click(page, 'Create Detached');
 
@@ -35,7 +34,6 @@ test.describe('sparkline detached styles', () => {
         expect(await headStyles(page)).toBe(1);
     });
 
-    // Fails if the `mode === 'minimal'` early return in DOMManager.addStyles is removed.
     test('pooled sparklines moved to detached cells keep no stylesheet copies', async ({ page }) => {
         await click(page, 'Create Detached');
         const before = await copiesAdded(page);
