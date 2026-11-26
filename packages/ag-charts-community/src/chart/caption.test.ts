@@ -1166,6 +1166,24 @@ describe('Caption', () => {
                 },
                 'chart, Q3 revenue. Europe. Unaudited, 1 series',
             ],
+            [
+                'a cartesian chart with a segmented title',
+                { ...titleChartOptions, title: { text: [{ text: 'Q3 ' }, { text: 'revenue', fontWeight: 'bold' }] } },
+                'chart, Q3 revenue, 1 series',
+            ],
+            [
+                'a cartesian chart with an image in its title',
+                {
+                    ...titleChartOptions,
+                    title: {
+                        text: [
+                            { type: 'image', url: iconSvg('#1f77b4', 'square'), width: 20, height: 20, alt: 'Acme' },
+                            { text: ' revenue' },
+                        ],
+                    },
+                },
+                'chart, Acme revenue, 1 series',
+            ],
             ['a pie chart without captions', pieChartOptions, 'chart, 1 series'],
             ['a pie chart with a title', { ...pieChartOptions, title: { text: 'Fruit' } }, 'chart, Fruit, 1 series'],
         ])('names %s', async (_name, options, expected) => {

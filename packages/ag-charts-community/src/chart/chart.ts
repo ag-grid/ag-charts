@@ -636,8 +636,9 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
 
     getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]
-            .filter((caption) => caption.enabled && caption.text != null && caption.text !== '')
-            .map((caption) => caption.text)
+            .filter((caption) => caption.enabled)
+            .map((caption) => toPlainText(caption.text))
+            .filter((text) => text !== '')
             .join('. ');
     }
 
