@@ -14,7 +14,7 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 
-const SPARKLINE_COUNT = 20;
+const SPARKLINE_COUNT = 30;
 const STYLE_SELECTOR = 'style[data-ag-charts]';
 
 const options: AgSparklineOptions = {

@@ -3,7 +3,7 @@ import { type Page } from '@playwright/test';
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
-const SPARKLINE_COUNT = 20;
+const SPARKLINE_COUNT = 30;
 const ANY_STYLE = 'style[data-ag-charts]';
 const COMMUNITY_STYLE = 'style[data-ag-charts="ag-charts-community"]';
 

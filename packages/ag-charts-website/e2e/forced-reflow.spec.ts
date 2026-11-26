@@ -107,6 +107,12 @@ test.describe('forced reflow detection', () => {
             additionalAllowlist: sparklineAllowlist,
         });
         expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
+
+        assertAllowlistBounds(filtered, {
+            applyPendingResize: SPARKLINE_COUNT,
+            updateBaseFont: 1,
+            drawImage: 0,
+        });
     });
 
     test('sparkline data update should not cause forced reflows', async ({ page }) => {

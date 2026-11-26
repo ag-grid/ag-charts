@@ -595,6 +595,7 @@ describe('DOMManager', () => {
 
         // jsdom has no ResizeObserver, so capture the callback the size monitor registers.
         const captureResizeCallback = () => {
+            expect(doc.isReady(), 'size monitor observes immediately').toBe(true);
             let callback: ResizeObserverCallback | undefined;
             const observer: ResizeObserver = { observe() {}, unobserve() {}, disconnect() {} };
             vi.spyOn(doc, 'createResizeObserver').mockImplementation((cb) => {
@@ -616,7 +617,6 @@ describe('DOMManager', () => {
 
         it('inserts no style copy for a detached minimal chart, and places the styles in the head once attached', () => {
             const fireResize = captureResizeCallback();
-            expect(doc.isReady()).toBe(true);
             const container = doc.createElement('div');
             const inserted = trackInsertedStyles(container);
 
@@ -637,7 +637,6 @@ describe('DOMManager', () => {
 
         it('inserts no style copy when a minimal chart moves into a detached container that is then attached', () => {
             const fireResize = captureResizeCallback();
-            expect(doc.isReady()).toBe(true);
             const container = doc.createElement('div');
             doc.body.append(container);
             const dm = createMinimal(container);
@@ -663,7 +662,6 @@ describe('DOMManager', () => {
 
         it('places the styles in the shadow root when a detached minimal chart is attached into one', () => {
             const fireResize = captureResizeCallback();
-            expect(doc.isReady()).toBe(true);
             const container = doc.createElement('div');
             const dm = createMinimal(container);
 
