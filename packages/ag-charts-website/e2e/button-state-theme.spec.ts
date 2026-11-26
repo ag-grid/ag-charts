@@ -205,6 +205,21 @@ test.describe('shared toolbar button state', () => {
         await expect(toolbar).toHaveScreenshot('button-state-locked-annotation-toolbar.png', {
             animations: 'disabled',
         });
+
+        // Sweeping the keyboard focus right to left, the button just left lowers at once, or it covers the focus ring.
+        const unlock = page.getByTitle('Unlock');
+        await unlock.focus();
+        await page.keyboard.press('ArrowRight');
+        await expect(page.getByTitle('Delete')).toBeFocused();
+        await page.waitForTimeout(TRANSITION_SETTLE_MS);
+        await finishTransitions(page);
+        frozen = freezeTransitions(page, '[title="Delete"]', MID_TRANSITION_MS);
+        await page.keyboard.press('ArrowLeft');
+        await frozen;
+        await expect(unlock).toBeFocused();
+        await expect(toolbar).toHaveScreenshot('button-state-keyboard-sweep-annotation-toolbar.png', {
+            animations: 'allow',
+        });
     });
 
     test('zoom buttons keep a complete border as they are enabled and as the pointer sweeps along them', async ({
