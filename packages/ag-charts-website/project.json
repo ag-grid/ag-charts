@@ -158,6 +158,13 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint:eslint", "lint:spell", "lint:styles", "format:mdoc:check"],
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/eslint*",
+        "^production",
+        "{workspaceRoot}/cspell.json"
+      ],
       "configurations": {
         "fix": {}
       }
