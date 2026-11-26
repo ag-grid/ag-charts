@@ -23,7 +23,8 @@ type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
 
 const LINK = [255, 0, 0, 255];
 const GLOW = [0, 255, 0, 255];
-const NODE_GLOW = { enabled: true, fill: '#00ff00', fillOpacity: 1, spread: 12, blur: 0 };
+// A gap of 0, as the glow was drawn before the theme gap of 1, which this test of what the glow covers is not about.
+const NODE_GLOW = { enabled: true, fill: '#00ff00', fillOpacity: 1, spread: 12, blur: 0, gap: 0 };
 
 describe('a highlight glow of a series with links and nodes', () => {
     setupMockConsole();

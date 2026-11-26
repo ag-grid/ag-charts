@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
+const { SLACK_ATTACHMENT_TEXT_LIMIT, SLACK_SECTION_TEXT_LIMIT, fitItems } = require('./format-utils');
+
 const {
     COMPARE,
     EXCLUDED_ENTRY,
@@ -153,4 +155,70 @@ test('compare output with a base-only example feeds the slack message end to end
             assert.equal(notesOf(format(json)), '1 new (head only: fresh / t)');
         }
     );
+});
+
+/** Slack rejects the whole post (`invalid_blocks`) when any section's text is longer than this. */
+const assertSectionsFit = (message) => {
+    for (const block of message.blocks.filter(({ type }) => type === 'section')) {
+        assert.ok(block.text.text.length <= SLACK_SECTION_TEXT_LIMIT, `${block.text.text.length} chars`);
+    }
+};
+
+const variant = (example, i) =>
+    `${example} / 1000 bar items / Operation=Chart Create, Styler=Styler, no shadow or glow, series shadow and glow set ${i}`;
+
+test('slack message counts many new head-only examples per benchmark so the notes fit in a section', () => {
+    // As on 25 Nov: a version gate added 52 long variant names and Slack refused the post
+    const newHeadOnly = [
+        ...Array.from({ length: 24 }, (_, i) => ({ ...newRow(variant('item-styler', i)), exampleName: 'item-styler' })),
+        ...Array.from({ length: 13 }, (_, i) => newRow(variant('shadow-root', i))),
+        ...Array.from({ length: 15 }, (_, i) => newRow(variant(`gap-${i % 5}`, i))),
+    ];
+    const message = format(comparison({ newHeadOnly }));
+    assertSectionsFit(message);
+    assert.equal(
+        notesOf(message),
+        '52 new (head only: item-styler ×24, shadow-root ×13, gap-0 ×3, gap-1 ×3, gap-2 ×3, +2 more)'
+    );
+});
+
+test('slack message names only the first few excluded examples', () => {
+    const excluded = Array.from({ length: 8 }, (_, i) => `hung-${i}: head r1 timeout`);
+    assert.equal(
+        notesOf(format(comparison({ excluded }))),
+        '8 excluded (failed or timed out: hung-0, hung-1, hung-2, hung-3, hung-4, +3 more)'
+    );
+});
+
+test('slack message cuts the full timing attachment to whole rows from the middle of its table', () => {
+    // Ranked best to worst, so the biggest regressions are the last rows
+    const rankedByTime = Array.from({ length: 2000 }, (_, i) => ranked(`wide ${i} / ${'x'.repeat(60)}`, i - 1000));
+    const message = format(comparison({ rankedByTime }));
+    assertSectionsFit(message);
+    const { text } = message.attachments[0];
+    assert.ok(text.length <= SLACK_ATTACHMENT_TEXT_LIMIT, `${text.length} chars`);
+    assert.match(text, /^```\nTest +%/);
+    assert.match(text, /\n…and \d+ more rows\n/);
+    assert.match(text, /\nwide 0 \/.*-1000%/);
+    assert.match(text, /\nwide 1999 \/.*\+999% .*\n```$/);
+});
+
+test('fitItems leaves a list that fits unchanged', () => {
+    assert.equal(fitItems(['a', 'b'], 10, { head: '<', tail: '>' }), '<a\nb>');
+});
+
+test('fitItems drops whole items from the end and counts them before the tail', () => {
+    const items = ['row-1', 'row-2', 'row-3', 'row-4'];
+    const text = fitItems(items, 25, { head: '```\n', tail: '\n```' });
+    assert.equal(text, '```\nrow-1\n…and 3 more\n```');
+    assert.equal(fitItems(items, 20, { separator: ' | ', more: (n) => `+${n}` }), 'row-1 | row-2 | +2');
+});
+
+test('fitItems can drop items from the middle, keeping both ends', () => {
+    const items = ['row-1', 'row-2', 'row-3', 'row-4', 'row-5', 'row-6'];
+    assert.equal(fitItems(items, 30, { dropFrom: 'middle' }), 'row-1\nrow-2\n…and 3 more\nrow-6');
+});
+
+test('fitItems never exceeds the limit, even when the head alone is too long', () => {
+    assert.equal(fitItems(['a'], 5, { head: 'heading' }), 'headi');
 });

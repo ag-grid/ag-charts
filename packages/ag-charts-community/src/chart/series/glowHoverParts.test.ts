@@ -36,7 +36,12 @@ interface Config {
 
 const CONFIGS: Config[] = [
     { name: 'the default theme', glow: SERIES_GLOW },
-    { name: 'unhighlightedSeries.opacity: 1', glow: SERIES_GLOW, highlight: { unhighlightedSeries: { opacity: 1 } } },
+    // Needs two cast strengths: one part of all casters is recast whole on a move.
+    {
+        name: 'unhighlightedItem.opacity: 0.6 and unhighlightedSeries.opacity: 1',
+        glow: SERIES_GLOW,
+        highlight: { unhighlightedItem: { opacity: 0.6 }, unhighlightedSeries: { opacity: 1 } },
+    },
     { name: 'a glow with a gap', glow: { ...SERIES_GLOW, gap: 5 } },
 ];
 

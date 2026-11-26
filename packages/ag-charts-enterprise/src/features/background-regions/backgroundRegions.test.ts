@@ -7,6 +7,7 @@ import {
     deproxy,
     expectWarningsCalls,
     getCrossLineLabelNode,
+    getSeriesRect,
     getSeriesSelectionNodes,
     prepareProcessedOptions,
     setupMockCanvas,
@@ -23,7 +24,7 @@ import type {
     AgSeriesLabelCollideWithOptions,
 } from 'ag-charts-types';
 
-import { getBackgroundRegionLabelBox } from '../../test/featureAccessors';
+import { getBackgroundRegionBox, getBackgroundRegionLabelBox } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
 
@@ -548,6 +549,33 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         assertions,
     },
 
+    PANNED_SIDE_LABEL_SLIVER: {
+        options: {
+            ...NUMERIC,
+            zoom: { enabled: true, axes: 'x' },
+            initialState: { zoom: { ratioX: { start: 0.58, end: 0.78 } } },
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 40, end: 60 },
+                        yRange: { start: 20, end: 80 },
+                        label: { position: 'top', text: 'A region label that is too long', fontSize: 16 },
+                    },
+                    {
+                        fill: 'lightblue',
+                        fillOpacity: 0.8,
+                        xRange: { start: 60, end: 80 },
+                        yRange: { start: 20, end: 70 },
+                        label: { position: 'top', text: 'Neighbour', fontSize: 16 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
     LABEL_OFFSET_INSIDE: {
         options: {
             ...NUMERIC,
@@ -639,7 +667,10 @@ const labelPositions = [
 
 const LONG_LABEL = 'A region label that is too long';
 
-function fitLabelOptions(label: NonNullable<AgSeriesAreaBackgroundRegion['label']>): AgCartesianChartOptions {
+function fitLabelOptions(
+    label: NonNullable<AgSeriesAreaBackgroundRegion['label']>,
+    region?: Pick<AgSeriesAreaBackgroundRegion, 'xRange' | 'yRange'>
+): AgCartesianChartOptions {
     return {
         ...NUMERIC,
         seriesArea: {
@@ -649,6 +680,7 @@ function fitLabelOptions(label: NonNullable<AgSeriesAreaBackgroundRegion['label'
                     fillOpacity: 0.8,
                     xRange: { start: 20, end: 80 },
                     yRange: { start: 20, end: 80 },
+                    ...region,
                     label: { text: LONG_LABEL, fontSize: 20, position: 'inside-top', ...label },
                 },
             ],
@@ -684,6 +716,28 @@ EXAMPLES.LABEL_FIT_MODES = {
             ],
         },
         theme: { overrides: { scatter: { seriesArea: { backgroundRegions: { label: { maxWidth: 120 } } } } } },
+    },
+    assertions,
+};
+
+const narrowRegion = (x: number, y: number, label: NonNullable<AgSeriesAreaBackgroundRegion['label']>) => ({
+    ...fitRegion(x, y, label),
+    xRange: { start: x, end: x + 15 },
+});
+
+EXAMPLES.LABEL_REGION_BOUNDS = {
+    options: {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: [
+                narrowRegion(5, 55, {}),
+                narrowRegion(40, 55, { position: 'bottom' }),
+                narrowRegion(75, 55, { position: 'inside-left', rotation: 270, fontSize: 20 }),
+                narrowRegion(5, 0, { maxWidth: 200 }),
+                narrowRegion(40, 0, { position: 'inside', xOffset: 4 }),
+                narrowRegion(75, 0, { fill: 'white', border: { enabled: true, stroke: 'black' } }),
+            ],
+        },
     },
     assertions,
 };
@@ -831,9 +885,22 @@ describe('Background Region label fitting', () => {
 
     async function renderLabel(
         label: NonNullable<AgSeriesAreaBackgroundRegion['label']>,
-        theme?: AgCartesianChartOptions['theme']
+        {
+            theme,
+            region,
+            zoom,
+        }: {
+            theme?: AgCartesianChartOptions['theme'];
+            region?: Pick<AgSeriesAreaBackgroundRegion, 'xRange' | 'yRange'>;
+            zoom?: { start: number; end: number };
+        } = {}
     ) {
-        const options = { ...fitLabelOptions(label), theme };
+        chart?.destroy();
+        const options: AgCartesianChartOptions = { ...fitLabelOptions(label, region), theme };
+        if (zoom) {
+            options.zoom = { enabled: true, axes: 'xy' };
+            options.initialState = { zoom: { ratioX: zoom, ratioY: zoom } };
+        }
 
         chart = await createEnterpriseChart(options);
         expectWarningsCalls().toEqual([]);
@@ -844,16 +911,13 @@ describe('Background Region label fitting', () => {
             text: labelNode.text as string,
             fontSize: labelNode.fontSize as number,
             width: labelNode.getBBox().width as number,
+            box: getBackgroundRegionLabelBox(chart)!,
+            regionBox: getBackgroundRegionBox(chart),
         };
     }
 
-    it('renders an overlong label unchanged when no fit option is set', async () => {
+    it('renders a label that fits its region unchanged', async () => {
         expect(await renderLabel({})).toMatchObject({ text: LONG_LABEL, fontSize: 20 });
-    });
-
-    it('does not derive a bound from the region', async () => {
-        const label = await renderLabel({ wrapping: 'always', truncate: true, minimumFontSize: 8 });
-        expect(label).toMatchObject({ text: LONG_LABEL, fontSize: 20 });
     });
 
     it('wraps onto multiple lines within maxWidth', async () => {
@@ -888,7 +952,7 @@ describe('Background Region label fitting', () => {
 
     it('fits a label bounded through a theme override', async () => {
         const theme = { overrides: { scatter: { seriesArea: { backgroundRegions: { label: { maxWidth: 120 } } } } } };
-        const { text, width } = await renderLabel({}, theme);
+        const { text, width } = await renderLabel({}, { theme });
         expect(text.split('\n').length).toBeGreaterThan(1);
         expect(width).toBeLessThanOrEqual(120);
     });
@@ -897,6 +961,182 @@ describe('Background Region label fitting', () => {
         const { text } = await renderLabel({ maxWidth: 120, truncate: false, position: 'inside-left', rotation: 270 });
         expect(text.split('\n').length).toBeGreaterThan(1);
         expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+    });
+
+    const NARROW = { xRange: { start: 45, end: 55 }, yRange: { start: 20, end: 80 } };
+    const SMALL = { xRange: { start: 45, end: 55 }, yRange: { start: 42, end: 58 } };
+    const MEDIUM = { xRange: { start: 40, end: 60 }, yRange: { start: 20, end: 80 } };
+    const SHORT = { xRange: { start: 20, end: 80 }, yRange: { start: 46, end: 54 } };
+
+    it('wraps a label onto lines and truncates it to the region by default', async () => {
+        const { text, box, regionBox: region } = await renderLabel({}, { region: SMALL });
+
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(text.endsWith('…')).toBe(true);
+        expect(box.width).toBeLessThanOrEqual(region.width);
+        expect(box.height).toBeLessThanOrEqual(region.height);
+    });
+
+    it.each(['inside', 'inside-top-left', 'inside-right', 'inside-bottom'] as const)(
+        'holds an inside label at %s within the region',
+        async (position) => {
+            const { box, regionBox: region } = await renderLabel({ position }, { region: SMALL });
+
+            const epsilon = 1e-6;
+            expect(box.x).toBeGreaterThanOrEqual(region.x - epsilon);
+            expect(box.y).toBeGreaterThanOrEqual(region.y - epsilon);
+            expect(box.x + box.width).toBeLessThanOrEqual(region.x + region.width + epsilon);
+            expect(box.y + box.height).toBeLessThanOrEqual(region.y + region.height + epsilon);
+        }
+    );
+
+    it.each(['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'] as const)(
+        'bounds a label at %s by the region width only',
+        async (position) => {
+            const { text, box, regionBox: region } = await renderLabel({ position }, { region: SMALL });
+
+            expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+            expect(box.width).toBeLessThanOrEqual(region.width);
+            expect(box.height).toBeGreaterThan(region.height);
+        }
+    );
+
+    it.each(['left', 'right', 'left-top', 'left-bottom', 'right-top', 'right-bottom'] as const)(
+        'bounds a label at %s by the region height only',
+        async (position) => {
+            const unrotated = await renderLabel({ position }, { region: SMALL });
+            expect(unrotated.text).toBe(LONG_LABEL);
+            expect(unrotated.box.width).toBeGreaterThan(unrotated.regionBox.width);
+
+            const rotated = await renderLabel({ position, rotation: 270 }, { region: SHORT });
+            expect(rotated.text).not.toBe(LONG_LABEL);
+            expect(rotated.box.height).toBeLessThanOrEqual(rotated.regionBox.height);
+        }
+    );
+
+    it('bounds a rotated inside label along its turned footprint', async () => {
+        const {
+            text,
+            box,
+            regionBox: region,
+        } = await renderLabel({ position: 'inside', rotation: 45 }, { region: NARROW });
+
+        expect(text).not.toBe(LONG_LABEL);
+        expect(box.width).toBeLessThanOrEqual(region.width);
+    });
+
+    it('anchors a rotated label by its turned footprint', async () => {
+        const { box, regionBox: region } = await renderLabel(
+            { position: 'inside-left', rotation: 270 },
+            { region: MEDIUM }
+        );
+
+        expect(box.x).toBeCloseTo(region.x, 0);
+        expect(box.x + box.width).toBeLessThan(region.x + region.width);
+    });
+
+    it('replaces the region width with a larger maxWidth', async () => {
+        const { text, box, regionBox: region } = await renderLabel({ maxWidth: 1000 }, { region: NARROW });
+
+        expect(text).toBe(LONG_LABEL);
+        expect(box.width).toBeGreaterThan(region.width);
+    });
+
+    it('replaces the region height with a larger maxHeight', async () => {
+        const bounded = await renderLabel({}, { region: SMALL });
+        const { text, box, regionBox: region } = await renderLabel({ maxHeight: 1000 }, { region: SMALL });
+
+        expect(text.split('\n').length).toBeGreaterThan(bounded.text.split('\n').length);
+        expect(box.height).toBeGreaterThan(region.height);
+    });
+
+    it('frees the width bound for a label with an xOffset', async () => {
+        const { text, box, regionBox: region } = await renderLabel({ xOffset: 1 }, { region: NARROW });
+
+        expect(text).toBe(LONG_LABEL);
+        expect(box.width).toBeGreaterThan(region.width);
+    });
+
+    it('frees the height bound for a label with a yOffset', async () => {
+        const { text, box, regionBox: region } = await renderLabel({ yOffset: 1 }, { region: SMALL });
+
+        expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+        expect(box.height).toBeGreaterThan(region.height);
+    });
+
+    it('reduces the bound by the spacing along the direction the label grows', async () => {
+        const label: NonNullable<AgSeriesAreaBackgroundRegion['label']> & { spacing: number } = {
+            position: 'inside-top-left',
+            wrapping: 'never',
+            spacing: 20,
+        };
+        const { box, regionBox: region } = await renderLabel(label, { region: NARROW });
+
+        expect(box.x).toBeGreaterThanOrEqual(region.x + 20);
+        expect(box.x + box.width).toBeLessThanOrEqual(region.x + region.width);
+    });
+
+    it('rewraps an inside label to the visible region under zoom', async () => {
+        const unzoomed = await renderLabel({ position: 'inside' }, { region: NARROW });
+        const zoomed = await renderLabel({ position: 'inside' }, { region: NARROW, zoom: { start: 0.4, end: 0.6 } });
+
+        expect(zoomed.text.split('\n').length).toBeLessThan(unzoomed.text.split('\n').length);
+    });
+
+    it('keeps a side label at its zoomed-out bound under zoom', async () => {
+        const unzoomed = await renderLabel({ position: 'top' }, { region: MEDIUM });
+        const zoomed = await renderLabel({ position: 'top' }, { region: MEDIUM, zoom: { start: 0.4, end: 0.6 } });
+
+        expect(unzoomed.text).not.toBe(LONG_LABEL);
+        expect(zoomed.text).toBe(unzoomed.text);
+    });
+
+    it.each([
+        ['inside-left', 0],
+        ['inside-top', 0],
+        ['inside-bottom-right', 0],
+        ['inside-left', 90],
+    ] as const)(
+        'holds a boxed label with asymmetric padding at %s rotated %d within the region',
+        async (position, rotation) => {
+            const padding = { left: 0, right: 40, top: 0, bottom: 20 };
+            const { box, regionBox: region } = await renderLabel(
+                { position, rotation, fill: 'white', padding },
+                { region: SMALL }
+            );
+
+            const epsilon = 1e-6;
+            expect(box.x).toBeGreaterThanOrEqual(region.x - epsilon);
+            expect(box.y).toBeGreaterThanOrEqual(region.y - epsilon);
+            expect(box.x + box.width).toBeLessThanOrEqual(region.x + region.width + epsilon);
+            expect(box.y + box.height).toBeLessThanOrEqual(region.y + region.height + epsilon);
+        }
+    );
+
+    it('frees only the screen axis an offset moves a rotated label along', async () => {
+        const region = { xRange: { start: 20, end: 80 }, yRange: { start: 40, end: 60 } };
+        const { box, regionBox } = await renderLabel({ position: 'inside', rotation: 90, xOffset: 1 }, { region });
+
+        expect(box.height).toBeLessThanOrEqual(regionBox.height);
+    });
+
+    it('caps a side label at the visible part of a region panned mostly out of view', async () => {
+        const region = { xRange: { start: 40, end: 60 }, yRange: { start: 20, end: 80 } };
+        const { box, regionBox } = await renderLabel({ position: 'top' }, { region, zoom: { start: 0.58, end: 0.78 } });
+
+        const seriesRect = getSeriesRect(chart);
+        const visibleLeft = Math.max(regionBox.x, seriesRect.x);
+        const visibleWidth = regionBox.x + regionBox.width - visibleLeft;
+        expect(box.width).toBeLessThanOrEqual(visibleWidth);
+    });
+
+    it('keeps the lead character of a label its region has no room for', async () => {
+        const { text } = await renderLabel(
+            {},
+            { region: { xRange: { start: 50, end: 50.5 }, yRange: { start: 50, end: 51 } } }
+        );
+
+        expect(text.startsWith('A')).toBe(true);
     });
 
     it('rejects a minimumFontSize above fontSize', async () => {

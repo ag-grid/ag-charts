@@ -1681,16 +1681,31 @@ describe('HeatmapSeries', () => {
             expect(after).toEqual(await freshCellFills(rawOptions({ colorScale })));
         });
 
-        it.each([
-            { name: 'an explicit unhighlightedItem', highlight: { unhighlightedItem: { opacity: 0.4 } }, dimmed: 0.4 },
-            { name: 'the theme highlight', highlight: undefined, dimmed: 0.6 },
-        ])('dims the cells on hover with $name and restores them afterwards', async ({ highlight, dimmed }) => {
-            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
+        it('dims the cells on hover with an explicit unhighlightedItem and restores them afterwards', async () => {
+            const dimmed = 0.4;
+            chart = deproxy(
+                await createEnterpriseChart(
+                    rawOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: dimmed } } })
+                )
+            );
             const fills = cellFills(chart);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
 
             await hoverDatumByIndex(chart, 0, 0);
             expect(cellOpacities(chart)).toEqual([dimmed, dimmed, dimmed, dimmed]);
+            expect(cellFills(chart)).toEqual(fills);
+
+            await hoverAway();
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+            expect(cellFills(chart)).toEqual(fills);
+        });
+
+        it('does not dim the cells on hover with the theme highlight, which sets no unhighlightedItem opacity', async () => {
+            chart = deproxy(await createEnterpriseChart(rawOptions(NO_TOOLTIP)));
+            const fills = cellFills(chart);
+
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
             expect(cellFills(chart)).toEqual(fills);
 
             await hoverAway();
@@ -2454,7 +2469,11 @@ describe('HeatmapSeries', () => {
         });
 
         it('paints cells that a highlight strokes through their path and back to a direct fill once it ends', async () => {
-            const highlight = { unhighlightedItem: { stroke: 'black', strokeWidth: 3 } };
+            // The default hover glow draws the hovered cell on the highlight layer, which this test is not about.
+            const highlight = {
+                highlightedItem: { glow: { enabled: false } },
+                unhighlightedItem: { stroke: 'black', strokeWidth: 3 },
+            };
             const others = await nonCellRects(highlight);
             chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
             const fills = cellFills(chart);
@@ -2787,7 +2806,9 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds only the updated cells while a hover is held across transactions', async () => {
-            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, NO_TOOLTIP)));
+            // The theme does not dim, so the hover is made visible with an explicit unhighlightedItem opacity.
+            const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.6 } } };
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
             await hoverDatumByIndex(chart, 0, 0);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.6));
 
@@ -2796,7 +2817,7 @@ describe('HeatmapSeries', () => {
             await transactIncrementally([UPDATED('2:2', 5)]);
 
             const reference = deproxy(
-                await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP))
+                await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), series))
             );
             await hoverDatumByIndex(reference, 0, 0);
             const expected = cells(reference);
@@ -3523,6 +3544,20 @@ describe('HeatmapSeries', () => {
                 expect(isBatched(chart)).toBe(true);
                 expect(rectCellCount(chart)).toBe(0);
                 expect(cellShapes(chart)).toHaveLength(GRID.length);
+            });
+
+            // Nothing in the pixels tells this apart, as the series glow repaints the cells on a hover anyway. What it decides is
+            // whether the cells are restyled on each hover, which is when they may leave the batch, or return to it.
+            it.each([
+                ['no glow is set', {}, false],
+                [
+                    'the series glow stays on and the other items do not glow',
+                    { glow: { enabled: true }, highlight: { unhighlightedItem: { glow: { enabled: false } } } },
+                    true,
+                ],
+            ])('restyles the cells on a hover only when %s', async (_name, series, restyles) => {
+                await create(series);
+                expect((heatmap(chart) as unknown as { hasItemStylers(): boolean }).hasItemStylers()).toBe(restyles);
             });
 
             it.each(Object.keys(ineligible))('paints every cell as a Rect for %s', async (name) => {

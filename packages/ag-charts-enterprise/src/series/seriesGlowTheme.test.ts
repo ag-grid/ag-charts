@@ -164,6 +164,17 @@ describe('series glow theme', () => {
         chart.destroy();
     });
 
+    it('bar does not glow the hovered item by default once highlightedSeries.glow.enabled is false', async () => {
+        const chart: any = await create(
+            { type: 'bar', xKey: 'x', yKey: 'high', highlight: { highlightedSeries: { glow: { enabled: false } } } },
+            OHLC_DATA
+        );
+        const { highlight } = getSeriesOptions<any>(chart);
+        expect(highlight.highlightedSeries.glow.enabled).toBe(false);
+        expect(highlight.highlightedItem.glow?.enabled ?? false).toBe(false);
+        chart.destroy();
+    });
+
     it('turns the buckets off when nothing glows', async () => {
         const base = { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' };
         const chart: any = await create(base, FLOW_DATA);
