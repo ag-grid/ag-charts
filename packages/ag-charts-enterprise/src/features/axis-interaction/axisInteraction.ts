@@ -89,9 +89,8 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private seriesRect: BBox | undefined;
 
-    // Rewriting the tick buttons dirties the document, which the next canvas text render then pays to restyle. During a
-    // burst of refreshes (e.g. wheel zoom) they are rewritten on the first refresh and then only while one holds
-    // focus, when it gains focus, and when the burst ends or has run for `maxWait`.
+    // Each tick-button rewrite makes the next canvas text render restyle the document, so a burst of refreshes
+    // rewrites them only at its start, on focus, and when it pauses or reaches `maxWait`.
     private ticksStale = false;
     private inRefreshBurst = false;
     private readonly endRefreshBurst = debounce(
