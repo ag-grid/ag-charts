@@ -437,7 +437,7 @@ export class MapMarkerSeries
                 this.labelInsideMarkerPolicy
             );
             // Like scatter, an `alwaysShow` label keeps its text on a marker too small to hold even an ellipsis.
-            const overflow = label.collision.alwaysShow ? labelFit : undefined;
+            const overflow = label.collision.alwaysShow ? insideMarkerFit.base : undefined;
             fittedText = fitLabelTextOrOverflow(labelText, policy, overflow, labelStyle);
             const insets = this.labelItemInsets;
             if (insets != null) {
