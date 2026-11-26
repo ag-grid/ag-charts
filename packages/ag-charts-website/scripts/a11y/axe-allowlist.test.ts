@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { loadAxeAllowlist } from '../../e2e/a11y/axe-allowlist';
 import { findNewViolations, findStaleEntries, formatNewViolations, parseAxeAllowlist } from './axe-allowlist';
-import type { CompactViolation } from './axe-report';
+import type { AxeExampleResult, CompactViolation } from './axe-report';
 import { allow, cleanExample, passResult, scanned, violation } from './axe-test-fixtures';
 
 function group(rule: string, examples: string[], reason = 'Accepted for now') {
