@@ -140,6 +140,7 @@ export * from './geometry/labelRoom';
 export * from './geometry/labelStack';
 export * from './geometry/lineInterpolation';
 export * from './geometry/markerLabelRect';
+export * from './geometry/rangeLabelPlacement';
 export * from './geometry/markerOutline';
 export * from './geometry/panToBBox';
 export * from './geometry/placement';

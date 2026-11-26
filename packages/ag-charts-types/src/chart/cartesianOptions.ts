@@ -789,8 +789,20 @@ export interface AgSeriesAreaBackgroundRegionLabel
     extends Omit<AgChartLabelStyleOptions, 'fontFamily'>, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
     /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
-    /** The position of the Background Region label. */
+    /**
+     * The position of the Background Region label.
+     *
+     * @deprecated Use `placement` instead.
+     */
     position?: AgSeriesAreaBackgroundRegionLabelPosition;
+    /**
+     * Where to place the label. An array is tried in order, and the first placement that fits is used.
+     *
+     * Default: `['top', 'bottom']`
+     */
+    placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
+    /** Configuration for how the Background Region label behaves when it collides with other chart elements. */
+    collision?: AgChartLabelCollisionOptions;
     /** The rotation of the Background Region label in degrees. */
     rotation?: Degree;
     /** The text to show in the label. */

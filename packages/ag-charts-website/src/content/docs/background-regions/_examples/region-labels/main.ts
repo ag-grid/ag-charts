@@ -1,7 +1,7 @@
 import {
     AgCartesianChartOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgCharts,
-    AgSeriesAreaBackgroundRegionLabelPosition,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
                 yRange: { start: 20, end: 50 },
                 label: {
                     text: 'Drought Risk',
-                    position: 'top',
+                    placement: 'top',
                 },
             },
         ],
@@ -53,8 +53,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setLabelPosition(position: AgSeriesAreaBackgroundRegionLabelPosition) {
-    options.seriesArea!.backgroundRegions![0].label!.position = position;
+function setLabelPlacement(placement: AgCartesianCrossLineLabelPlacement) {
+    options.seriesArea!.backgroundRegions![0].label!.placement = placement;
 
     chart.update(options);
 }

@@ -133,7 +133,7 @@ export interface AgQuadrantRegionsOptions {
 
 export interface AgQuadrantRegionsLabelOptions extends Omit<
     AgSeriesAreaBackgroundRegionLabel,
-    'position' | 'text' | 'xOffset' | 'yOffset'
+    'position' | 'placement' | 'collision' | 'text' | 'xOffset' | 'yOffset'
 > {
     /** The placement of the label within its region, resolved relative to the region so that a single value places all
      * four region labels symmetrically.

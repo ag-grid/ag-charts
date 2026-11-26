@@ -4,9 +4,10 @@ import {
     CleanupRegistry,
     type DynamicContext,
     Group,
-    type LabelObstacle,
     type ModuleInstance,
     type NormalisedSeriesAreaBackgroundRegion,
+    type PlacedLabel,
+    type PointLabelDatum,
     type ResolvedContribution,
     jsonDiff,
     readContributedValue,
@@ -16,17 +17,63 @@ import type { BBox } from 'ag-charts-core';
 import { CartesianBackgroundRegion } from './cartesianBackgroundRegion';
 
 interface Region {
-    readonly instance: _ModuleSupport.BackgroundRegion;
+    readonly instance: CartesianBackgroundRegion;
     readonly options: NormalisedSeriesAreaBackgroundRegion;
+}
+
+/** The region labels kept or dropped alike, which solve as one group; kept ones resolve before series labels. */
+class RegionLabelSource {
+    // Solved ahead of cross line labels, so where both could move, the cross line label gives way.
+    readonly solveRank = -1;
+    private readonly datums = new Map<CartesianBackgroundRegion, PointLabelDatum>();
+
+    constructor(
+        readonly id: string,
+        private readonly owner: BackgroundRegions,
+        private readonly keep: boolean
+    ) {}
+
+    get usesPlacedLabels(): boolean {
+        for (const instance of this.owner.instances()) {
+            if (instance.hasLabel && instance.keepsLabel === this.keep) return true;
+        }
+        return false;
+    }
+
+    get nodeDataVersion(): number {
+        return this.owner.nodeDataVersion;
+    }
+
+    getLabelData(seriesRect: BBox): PointLabelDatum[] {
+        this.datums.clear();
+        const { width, height } = this.owner.containerSize;
+        const container = { x: 0, y: 0, width, height };
+        for (const instance of this.owner.instances()) {
+            if (instance.keepsLabel !== this.keep) continue;
+            const datum = instance.getLabelDatum(seriesRect, container);
+            if (datum != null) this.datums.set(instance, datum);
+        }
+        return Array.from(this.datums.values());
+    }
+
+    updatePlacedLabelData(labels: PlacedLabel[]): void {
+        const placed = new Map(labels.map((label) => [label.datum, label]));
+        for (const [instance, datum] of this.datums) {
+            const label = placed.get(datum);
+            instance.applyLabelPlacement(label == null, label?.candidate);
+        }
+    }
 }
 
 export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesAreaContent {
     readonly underlay = new Group({ name: 'BackgroundRegions-Region' });
     readonly overlay = new Group({ name: 'BackgroundRegions-Label' });
 
-    readonly id = 'backgroundRegions:labels';
-    readonly usesPlacedLabels = false;
     nodeDataVersion = 0;
+    private readonly labelSources = [
+        new RegionLabelSource('backgroundRegions:labels', this, true),
+        new RegionLabelSource('backgroundRegions:labels:drop', this, false),
+    ];
 
     private regions: Region[] = [];
     private lastRegionOptions: NormalisedSeriesAreaBackgroundRegion[] | undefined;
@@ -38,14 +85,16 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
     ) {
         this.cleanup.register(
             ctx.seriesArea.attach(this),
-            () => ctx.labelManager.unregisterSource(this.id, this),
+            () => {
+                for (const source of this.labelSources) ctx.labelManager.unregisterSource(source.id, source);
+            },
             () => this.detachRegions(),
             ctx.chartState.observe((get) => {
                 const regions = readContributedValue(contributions, 'chart', get('options'));
                 this.applyRegionOptions(regions as NormalisedSeriesAreaBackgroundRegion[] | undefined);
             })
         );
-        ctx.labelManager.registerSource(this);
+        for (const source of this.labelSources) ctx.labelManager.registerSource(source);
     }
 
     destroy() {
@@ -67,16 +116,12 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
         this.nodeDataVersion++;
     }
 
-    getLabelObstacles(seriesRect: BBox): LabelObstacle[] {
-        const obstacles: LabelObstacle[] = [];
-        for (const { instance } of this.regions) {
-            const box = instance.getLabelBox();
-            if (box == null) continue;
-            const { width, height } = box;
-            const local = { x: box.x - seriesRect.x, y: box.y - seriesRect.y, width, height };
-            obstacles.push({ kind: 'rect', box: local, category: 'regionLabel' });
-        }
-        return obstacles;
+    get containerSize() {
+        return this.ctx.scene;
+    }
+
+    *instances() {
+        for (const { instance } of this.regions) yield instance;
     }
 
     private applyRegionOptions(options: NormalisedSeriesAreaBackgroundRegion[] | undefined) {
@@ -87,7 +132,7 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
 
         this.regions =
             options?.map((regionOptions) => {
-                const instance = new CartesianBackgroundRegion(this.ctx.logger);
+                const instance = new CartesianBackgroundRegion(this.ctx);
                 instance.setOptions(regionOptions);
                 this.underlay.appendChild(instance.regionGroup);
                 this.overlay.appendChild(instance.labelGroup);

@@ -27,7 +27,7 @@ const options: AgCartesianChartOptions = {
                 yRange: { start: 27500, end: 63000 },
                 label: {
                     text: 'Retail',
-                    position: 'top-left',
+                    placement: 'top-left',
                     yOffset: -4,
                     color: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#5090dc' },
                     fontSize: 13,
@@ -51,7 +51,7 @@ const options: AgCartesianChartOptions = {
                 yRange: { start: 76500, end: 129500 },
                 label: {
                     text: 'Mid-Market',
-                    position: 'top-left',
+                    placement: 'top-left',
                     yOffset: -4,
                     color: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#ffa03a' },
                     fontSize: 13,
@@ -75,7 +75,7 @@ const options: AgCartesianChartOptions = {
                 yRange: { start: 170500, end: 233000 },
                 label: {
                     text: 'Enterprise',
-                    position: 'top-left',
+                    placement: 'top-left',
                     yOffset: -4,
                     color: { ref: 'foregroundColor', mix: 0.35, ontoColor: '#459d55' },
                     fontSize: 13,

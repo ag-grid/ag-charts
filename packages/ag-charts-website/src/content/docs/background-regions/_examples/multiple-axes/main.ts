@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
                 yRange: { axis: 'rainfall', start: 100 },
                 label: {
                     text: 'Heavy Rainfall',
-                    position: 'inside-top-left',
+                    placement: 'inside-top-left',
                 },
             },
         ],

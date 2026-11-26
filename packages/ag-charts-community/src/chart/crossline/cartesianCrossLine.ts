@@ -42,15 +42,17 @@ import type {
     NormalisedAxisCrossLineOptions,
     PointLabelDatum,
     PositionedLabelCandidate,
+    RangeLabelAnchor,
     Scale,
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import { rangeAlignment } from '../rangeAlignment';
-import { type Anchor, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
+import { resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 type PaddingSide = 'left' | 'right' | 'top' | 'bottom';
+type Anchor = RangeLabelAnchor;
 
 /** Mirrors an anchor across the cross line. Guards match `labelPaddingSide`, so the result cannot pad. */
 function realignAnchor(anchor: Anchor, horizontal: boolean): Anchor {

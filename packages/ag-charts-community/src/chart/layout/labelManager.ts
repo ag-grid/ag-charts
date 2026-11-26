@@ -34,6 +34,8 @@ export interface LabelSource {
     getLabelObstacles?(seriesRect: BBox): LabelObstacle[] | undefined;
     /** Its obstacles are axis labels, which only opted-in labels avoid, so other solves skip the source. */
     readonly axisLabelObstacles?: boolean;
+    /** Registered sources solve in ascending rank, so a lower rank's movable labels claim a placement first; `0` when unset. */
+    readonly solveRank?: number;
 }
 
 /**
@@ -54,6 +56,16 @@ export interface PlacedLabelSource<TLabel = unknown> extends LabelSource {
 function placesLabels(source: LabelSource): source is PlacedLabelSource {
     return source.usesPlacedLabels;
 }
+
+function bySolveRank(a: LabelSource, b: LabelSource) {
+    return (a.solveRank ?? 0) - (b.solveRank ?? 0);
+}
+
+function isImmovable(d: PointLabelDatum) {
+    return d.neverDrop === true && d.positionedCandidates?.length === 1;
+}
+
+const IMMOVABLE_SUFFIX = ':immovable';
 
 function seriesLabels(source: PlacedLabelSource, datums: PointLabelDatum[]): SeriesLabels {
     return {
@@ -130,7 +142,10 @@ export class LabelManager {
             width: seriesRect.width + left + Math.max(padding.right, seriesAreaPadding.right),
             height: seriesRect.height + top + Math.max(padding.bottom, seriesAreaPadding.bottom),
         };
-        const allSources: LabelSource[] = [...this.sources.values(), ...visibleSources];
+        const allSources: LabelSource[] = [
+            ...Array.from(this.sources.values()).toSorted(bySolveRank),
+            ...visibleSources,
+        ];
         const placedLabelSources = allSources.filter(placesLabels);
 
         // Nothing places labels, so gathering obstacles and running placement would be wasted work.
@@ -207,18 +222,25 @@ export class LabelManager {
         // Placement is greedy in iteration order, so the map must be rebuilt in source order rather
         // than mutated: a re-shown series has to reclaim its original slot, not land at the end.
         const previous = this.labelData;
-        this.labelData = new Map();
+        // A registered source's kept label with one placement cannot move, so it is solved before any label that can.
+        const immovable = new Map<string, SeriesLabels>();
+        const rest = new Map<string, SeriesLabels>();
         for (const source of placedLabelSources) {
             const labelData = source.getLabelData(seriesRect);
-            if (labelData.every(isPointLabelDatum)) {
-                this.labelData.set(source.id, seriesLabels(source, labelData));
-            } else {
+            if (!labelData.every(isPointLabelDatum)) {
                 const carried = previous.get(source.id);
                 if (carried != null) {
-                    this.labelData.set(source.id, carried);
+                    rest.set(source.id, carried);
                 }
+            } else if (this.sources.get(source.id) === source && labelData.some(isImmovable)) {
+                immovable.set(source.id + IMMOVABLE_SUFFIX, seriesLabels(source, labelData.filter(isImmovable)));
+                const movable = labelData.filter((d) => !isImmovable(d));
+                rest.set(source.id, seriesLabels(source, movable));
+            } else {
+                rest.set(source.id, seriesLabels(source, labelData));
             }
         }
+        this.labelData = new Map([...immovable, ...rest]);
 
         const avoidsAxisLabels = labelsAvoidAxisLabels(this.labelData);
         this.avoidsAxisLabels = avoidsAxisLabels;
@@ -238,6 +260,14 @@ export class LabelManager {
             return obstacles;
         }
 
-        return placeLabels(this.labelData, bounds, 5, gatherObstacles, paintOrder, pixelRatio);
+        const placed = placeLabels(this.labelData, bounds, 5, gatherObstacles, paintOrder, pixelRatio);
+        for (const immovableId of immovable.keys()) {
+            const labels = placed.get(immovableId);
+            placed.delete(immovableId);
+            if (labels == null) continue;
+            const id = immovableId.slice(0, -IMMOVABLE_SUFFIX.length);
+            placed.set(id, [...labels, ...(placed.get(id) ?? [])]);
+        }
+        return placed;
     }
 }

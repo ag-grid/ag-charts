@@ -72,10 +72,13 @@ function createRegionLabel(
     shared: AgQuadrantRegionsLabelOptions | undefined,
     label: AgQuadrantRegionLabelOptions | undefined
 ): QuadrantRegionLabel {
-    const position = label?.position ?? shared?.position ?? DEFAULT_LABEL_POSITION;
-    const { spacing = DEFAULT_LABEL_SPACING, ...style } = mergeDefaults(label, shared) ?? {};
+    const {
+        position = DEFAULT_LABEL_POSITION,
+        spacing = DEFAULT_LABEL_SPACING,
+        ...style
+    } = mergeDefaults(label, shared) ?? {};
 
-    return { ...style, position: LABEL_POSITIONS[position][region], spacing };
+    return { ...style, placement: LABEL_POSITIONS[position][region], spacing };
 }
 
 function getRegionMetaForValues(
