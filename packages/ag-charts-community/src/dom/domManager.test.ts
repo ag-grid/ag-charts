@@ -563,6 +563,162 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('when styles are placed for a detached container', () => {
+        const SELECTOR = 'style[data-ag-charts]';
+        const IDS = ['ag-charts-community', 'ag-charts-enterprise'];
+        const idSelector = (id: string) => `style[data-ag-charts="${id}"]`;
+        const styleCount = (root: ParentNode) => root.querySelectorAll(SELECTOR).length;
+        const idsIn = (root: ParentNode) => IDS.filter((id) => root.querySelector(idSelector(id)) != null);
+
+        beforeEach(() => vi.useFakeTimers());
+        afterEach(() => {
+            vi.useRealTimers();
+            vi.restoreAllMocks();
+        });
+
+        // Counts style elements inserted into the subtree, including those inside an inserted wrapper.
+        const trackInsertedStyles = (root: Node) => {
+            const observer = new MutationObserver(() => {});
+            observer.observe(root, { childList: true, subtree: true });
+            let total = 0;
+            return () => {
+                for (const record of observer.takeRecords()) {
+                    for (const node of Array.from(record.addedNodes)) {
+                        if (node instanceof Element) {
+                            total += Number(node.matches(SELECTOR)) + node.querySelectorAll(SELECTOR).length;
+                        }
+                    }
+                }
+                return total;
+            };
+        };
+
+        // jsdom has no ResizeObserver, so capture the callback the size monitor registers.
+        const captureResizeCallback = () => {
+            let callback: ResizeObserverCallback | undefined;
+            const observer: ResizeObserver = { observe() {}, unobserve() {}, disconnect() {} };
+            vi.spyOn(doc, 'createResizeObserver').mockImplementation((cb) => {
+                callback = cb;
+                return observer;
+            });
+            return (target: HTMLElement) => {
+                expect(callback, 'ResizeObserver callback').toBeDefined();
+                const entry = { target, contentRect: { width: 200, height: 30 } };
+                callback!([entry as unknown as ResizeObserverEntry], observer);
+            };
+        };
+
+        const createMinimal = (container: HTMLElement) => {
+            const dm = new DOMManager(eventsHub, 'detached-styles', doc, container, undefined, undefined, 'minimal');
+            dm.addStyles('ag-charts-enterprise', '.test { width: 100% }');
+            return dm;
+        };
+
+        it('inserts no style copy for a detached minimal chart, and places the styles in the head once attached', () => {
+            const fireResize = captureResizeCallback();
+            expect(doc.isReady()).toBe(true);
+            const container = doc.createElement('div');
+            const inserted = trackInsertedStyles(container);
+
+            const dm = createMinimal(container);
+            expect(inserted()).toBe(0);
+            expect(styleCount(container)).toBe(0);
+
+            doc.body.append(container);
+            fireResize(container);
+
+            expect(dm.containerSize).toMatchObject({ width: 200, height: 30 });
+            expect(idsIn(doc.head)).toEqual(IDS);
+            expect(inserted()).toBe(0);
+            expect(styleCount(container)).toBe(0);
+            dm.destroy();
+            container.remove();
+        });
+
+        it('inserts no style copy when a minimal chart moves into a detached container that is then attached', () => {
+            const fireResize = captureResizeCallback();
+            expect(doc.isReady()).toBe(true);
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = createMinimal(container);
+            expect(idsIn(doc.head)).toEqual(IDS);
+
+            const cell = doc.createElement('div');
+            const inserted = trackInsertedStyles(cell);
+            dm.setContainer(cell);
+            expect(inserted()).toBe(0);
+            expect(styleCount(cell)).toBe(0);
+
+            doc.body.append(cell);
+            fireResize(cell);
+
+            expect(dm.containerSize).toMatchObject({ width: 200, height: 30 });
+            expect(inserted()).toBe(0);
+            expect(styleCount(cell)).toBe(0);
+            expect(idsIn(doc.head)).toEqual(IDS);
+            dm.destroy();
+            container.remove();
+            cell.remove();
+        });
+
+        it('places the styles in the shadow root when a detached minimal chart is attached into one', () => {
+            const fireResize = captureResizeCallback();
+            expect(doc.isReady()).toBe(true);
+            const container = doc.createElement('div');
+            const dm = createMinimal(container);
+
+            const component = doc.createElement('div');
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+            shadow.append(container);
+            expect(styleCount(shadow)).toBe(0);
+
+            fireResize(container);
+
+            expect(dm.containerSize).toMatchObject({ width: 200, height: 30 });
+            expect(idsIn(shadow)).toEqual(IDS);
+            expect(styleCount(doc.head)).toBe(0);
+            dm.destroy();
+            component.remove();
+        });
+
+        describe('for a normal-mode chart created detached', () => {
+            const create = () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'detached-normal', doc, container);
+                expect(idsIn(container)).toEqual(['ag-charts-community']);
+                return { container, dm };
+            };
+
+            it('drops the in-tree copy when moved into an attached light-DOM container', () => {
+                const { dm } = create();
+                const target = doc.createElement('div');
+                doc.body.append(target);
+
+                dm.setContainer(target);
+                dm.updateContainer();
+
+                expect(styleCount(target)).toBe(0);
+                expect(idsIn(doc.head)).toEqual(['ag-charts-community']);
+                dm.destroy();
+                target.remove();
+            });
+
+            it('keeps a single copy when moved into another detached container', () => {
+                const { dm } = create();
+                const target = doc.createElement('div');
+                const inserted = trackInsertedStyles(target);
+
+                dm.setContainer(target);
+                dm.updateContainer();
+
+                expect(inserted()).toBe(1);
+                expect(styleCount(target)).toBe(1);
+                dm.destroy();
+            });
+        });
+    });
+
     describe('getBoundingClientRect() caching', () => {
         it('should return the same object reference on repeated calls', () => {
             const container = doc.createElement('div');

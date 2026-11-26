@@ -95,6 +95,20 @@ test.describe('forced reflow detection', () => {
         });
     });
 
+    test('sparkline creation in detached cells should not cause forced reflows', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-detached-styles', 'vanilla').url);
+        await waitForAllChartUpdates(page);
+
+        const events = await traceAction(page, async () => {
+            await page.getByText('Create Detached').click();
+            await page.waitForTimeout(500);
+        });
+        const filtered = filterAgChartsReflows(analyseForcedReflows(events), {
+            additionalAllowlist: sparklineAllowlist,
+        });
+        expect(filtered.count, formatReflowDiagnostics(filtered)).toBe(0);
+    });
+
     test('sparkline data update should not cause forced reflows', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-reflow', 'vanilla').url);
         await waitForAllChartUpdates(page);
