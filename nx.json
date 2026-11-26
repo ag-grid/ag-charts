@@ -191,10 +191,7 @@
     "lint": {
       "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*"],
       "outputs": [],
-      "cache": true,
-      "options": {
-        "cwd": "{projectRoot}"
-      }
+      "cache": true
     },
     "lint:depcruise": {
       "executor": "nx:run-commands",
