@@ -72,9 +72,7 @@ describe('AgChartsServerSide', () => {
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
-        // A theme shared with a browser chart, which may set `injectStyles: false` for a Content Security Policy. The
-        // render skips CSS entirely, so there is no stylesheet to look for and nothing to warn about; the afterEach
-        // above fails the test on any warning.
+        // A theme shared with a browser chart may set `injectStyles: false`; the afterEach fails on any warning.
         it('should render with injectStyles: false in a shared theme', async () => {
             const renderOptions: AgRenderOptions = {
                 options: {

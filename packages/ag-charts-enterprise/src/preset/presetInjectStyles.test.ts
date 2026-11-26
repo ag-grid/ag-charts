@@ -34,9 +34,7 @@ describe('preset injectStyles', () => {
         expect(container.querySelectorAll('style').length > 0).toBe(injects);
     };
 
-    // A detached container keeps the styles inside this chart's own DOM rather than the shared, per-document
-    // `<head>` stylesheet, so each case only sees the style elements its own chart injected, and is never checked
-    // for the stylesheet a static chart needs.
+    // A detached container keeps each case's styles in its own DOM, and is never checked for a stylesheet.
     const create = async (name: keyof typeof CASES, options: Record<string, unknown>) => {
         const container = document.createElement('div');
         chart = CASES[name]({ container, width: 400, height: 300, ...options });

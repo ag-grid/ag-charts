@@ -924,7 +924,6 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
 
         this.styles.set(id, styles);
 
-        // Static mode never creates a `<style>`, whatever the container, even when the stylesheet turns out missing.
         if (this.staticStyles != null) return;
 
         if (this.container == null) return;
