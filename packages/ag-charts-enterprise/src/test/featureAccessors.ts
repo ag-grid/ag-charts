@@ -1,6 +1,14 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { type ChartOrProxy, deproxy, findAxis, getAxisLayoutState, getSeriesAt } from 'ag-charts-community-test';
-import type { BBox, BoxBounds, DynamicContext, Group, Node, Rect } from 'ag-charts-core';
+import {
+    type BBox,
+    type BoxBounds,
+    type DynamicContext,
+    type Group,
+    type Node,
+    type Rect,
+    Transformable,
+} from 'ag-charts-core';
 
 import type { MiniChart } from '../features/navigator/miniChart';
 import type { Navigator } from '../features/navigator/navigator';
@@ -477,11 +485,20 @@ interface BackgroundRegionsHost {
     regions: { instance: _ModuleSupport.BackgroundRegion }[];
 }
 
-/** The drawn label box of the background region at `index`, `undefined` when it shows no label. */
-export function getBackgroundRegionLabelBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox | undefined {
+function getBackgroundRegion(chartOrProxy: ChartOrProxy<any>, index: number) {
     const host = deproxy(chartOrProxy).modulesManager.getModule<BackgroundRegionsHost>('background-regions');
     assertPresent(host, 'background regions module');
     const region = host.regions[index];
     assertPresent(region, `background region ${index}`);
-    return region.instance.getLabelBox();
+    return region.instance;
+}
+
+/** The drawn label box of the background region at `index`, `undefined` when it shows no label. */
+export function getBackgroundRegionLabelBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox | undefined {
+    return getBackgroundRegion(chartOrProxy, index).getLabelBox();
+}
+
+/** The canvas box of the background region at `index`. */
+export function getBackgroundRegionBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox {
+    return Transformable.toCanvas(getBackgroundRegion(chartOrProxy, index).regionGroup);
 }

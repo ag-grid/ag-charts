@@ -1,8 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type AnchorDirection,
     type BBox,
     type Bounds4,
     Group,
+    type LabelFit,
     type Logger,
     type NormalisedSeriesAreaBackgroundRegion,
     type NormalisedSeriesAreaBackgroundRegionRange,
@@ -12,18 +14,23 @@ import {
     Transformable,
     TransformableText,
     Vec4,
+    anchorRoom,
     bandRangeExpansion,
     clampArray,
     createId,
+    fitKeptLabel,
     fitLabelTextAutoSize,
     fontWithSize,
+    freeTurnedRoom,
+    hasRealChars,
     isValidScaleValue,
     resolveLabelFit,
+    resolvePadding,
     toRadians,
+    turnedRoom,
+    unzoomedPosition,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
-type AnchorDirection = 1 | 0 | -1;
 
 interface Anchor {
     regionH: AnchorDirection;
@@ -96,7 +103,8 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         if (labelBounds == null) return;
 
-        this.updateLabelNode(labelBounds);
+        const unzoomedBounds = this.getSeriesAreaBounds(this.unzoomed(bounds)) ?? labelBounds;
+        this.updateLabelNode(labelBounds, unzoomedBounds);
     }
 
     private updateRegionNode(bounds: Bounds4) {
@@ -114,12 +122,12 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         this.regionNode.strokeWidth = opts.strokeWidth ?? 1;
     }
 
-    private updateLabelNode(bounds: Bounds4) {
-        this.updateLabel();
+    private updateLabelNode(bounds: Bounds4, unzoomedBounds: Bounds4) {
+        this.updateLabel(bounds, unzoomedBounds);
         this.positionLabel(bounds);
     }
 
-    private updateLabel() {
+    private updateLabel(bounds: Bounds4, unzoomedBounds: Bounds4) {
         const {
             labelNode,
             opts: { label },
@@ -128,14 +136,70 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         if (label.text == null || label.text === '') return;
 
-        const { text, fontSize } = fitLabelTextAutoSize(label.text, resolveLabelFit(label), label);
+        labelNode.setBoxing(label);
+        const policy = resolveLabelFit(label);
+        const fit = policy == null ? undefined : this.boundLabel(policy, bounds, unzoomedBounds);
+        const fitted = fitLabelTextAutoSize(label.text, fit, label);
+        const { text, fontSize } =
+            fit != null && hasRealChars(label.text) && !hasRealChars(fitted.text)
+                ? fitKeptLabel(label.text, fit, label)
+                : fitted;
 
         labelNode.fill = label.color;
         labelNode.text = text;
         labelNode.textAlign = 'center';
         labelNode.textBaseline = 'middle';
         labelNode.setFont(fontWithSize(label, fontSize));
-        labelNode.setBoxing(label);
+    }
+
+    /**
+     * The room the region leaves the label at its position, which an explicit bound or offset frees on its axis.
+     * A label on a side of the region is measured zoomed out, so zoom and pan never rewrap it.
+     */
+    private boundLabel(fit: LabelFit, bounds: Bounds4, unzoomedBounds: Bounds4): LabelFit {
+        const { label } = this.opts;
+        if (!label) return fit;
+
+        const { padding, rotation = 0, xOffset = 0, yOffset = 0 } = label;
+        const { spacing, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets(label);
+        const boxed = this.labelNode.hasBoxing();
+        const anchor = this.getAnchor();
+        const sideH = anchor.regionH !== 0 && anchor.labelH === -anchor.regionH;
+        const sideV = anchor.regionV !== 0 && anchor.labelV === -anchor.regionV;
+        // A boxed label is drawn with its box on the anchor, so its room is measured from there.
+        const axisRoom = (
+            rangeDir: AnchorDirection,
+            labelDir: AnchorDirection,
+            start: number,
+            size: number,
+            diff: number
+        ) => anchorRoom(rangeDir, labelDir, spacing, start, size, boxed ? 0 : diff);
+        const xRoomOf = (room: Bounds4) =>
+            axisRoom(anchor.regionH, anchor.labelH, room.x1, Vec4.width(room), xPaddingDiff);
+        const yRoomOf = (room: Bounds4) =>
+            axisRoom(anchor.regionV, anchor.labelV, room.y1, Vec4.height(room), yPaddingDiff);
+        // Side labels hold the zoomed-out bound through zoom, capped by what is left in view.
+        const side = sideH || sideV;
+        const visibleX = xRoomOf(bounds);
+        const visibleY = yRoomOf(bounds);
+        let roomX = side ? Math.min(xRoomOf(unzoomedBounds), visibleX) : visibleX;
+        let roomY = side ? Math.min(yRoomOf(unzoomedBounds), visibleY) : visibleY;
+        if (sideH || xOffset !== 0) roomX = Infinity;
+        if (sideV || yOffset !== 0) roomY = Infinity;
+        if (roomX === Infinity && roomY === Infinity) return fit;
+
+        const turned = turnedRoom(roomX, roomY, rotation, boxed ? resolvePadding(padding) : undefined);
+        const rotated = freeTurnedRoom(turned, fit.maxWidth != null, fit.maxHeight != null);
+        return rotated == null ? fit : { ...fit, rotated };
+    }
+
+    /** Shared by fitting and positioning, so the room is measured from where the label is drawn. */
+    private labelAnchorOffsets({ padding, spacing = 0 }: NonNullable<NormalisedSeriesAreaBackgroundRegion['label']>) {
+        return {
+            spacing,
+            xPaddingDiff: (padding.right ?? 0) - (padding.left ?? 0),
+            yPaddingDiff: (padding.bottom ?? 0) - (padding.top ?? 0),
+        };
     }
 
     private positionLabel(bounds: Bounds4) {
@@ -145,27 +209,30 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         } = this;
         if (!label) return;
 
-        const { padding, rotation, xOffset = 0, yOffset = 0 } = label;
+        const { rotation, xOffset = 0, yOffset = 0 } = label;
+        const { spacing, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets(label);
         const anchor = this.getAnchor();
 
-        const bbox = labelNode.getBBox();
+        const bbox = labelNode.computeBBoxWithoutTransforms();
         if (bbox == null) return;
 
-        const { width, height } = bbox;
-
-        const xPaddingDiff = (padding.right ?? 0) - (padding.left ?? 0);
-        const yPaddingDiff = (padding.bottom ?? 0) - (padding.top ?? 0);
-
-        const halfWidth = width / 2;
-        const halfHeight = height / 2;
+        const radians = toRadians(rotation ?? 0);
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        const halfWidth = (bbox.width * Math.abs(cos) + bbox.height * Math.abs(sin)) / 2;
+        const halfHeight = (bbox.width * Math.abs(sin) + bbox.height * Math.abs(cos)) / 2;
+        // A box grows by its padding before it turns, so its off-centre shift turns with it.
+        const [shiftX, shiftY] = labelNode.hasBoxing()
+            ? [xPaddingDiff * cos - yPaddingDiff * sin, xPaddingDiff * sin + yPaddingDiff * cos]
+            : [xPaddingDiff, yPaddingDiff];
 
         const anchorX = bounds.x1 + (Vec4.width(bounds) * (anchor.regionH + 1)) / 2;
         const anchorY = bounds.y1 + (Vec4.height(bounds) * (anchor.regionV + 1)) / 2;
 
-        const x = anchorX - halfWidth * anchor.labelH - xPaddingDiff / 2 + xOffset;
-        const y = anchorY - halfHeight * anchor.labelV - yPaddingDiff / 2 + yOffset;
+        const x = anchorX - (halfWidth + spacing) * anchor.labelH - shiftX / 2 + xOffset;
+        const y = anchorY - (halfHeight + spacing) * anchor.labelV - shiftY / 2 + yOffset;
 
-        labelNode.rotation = toRadians(rotation ?? 0);
+        labelNode.rotation = radians;
         labelNode.x = x;
         labelNode.y = y;
         labelNode.rotationCenterX = x;
@@ -218,6 +285,19 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         if (Vec4.width(clamped) === 0 || Vec4.height(clamped) === 0) return;
 
         return clamped;
+    }
+
+    /** Zoom stretches each scale's range linearly about its axis range, so this undoes it. */
+    private unzoomed(bounds: Bounds4): Bounds4 {
+        const { xAxis, yAxis } = this;
+        if (!xAxis || !yAxis) return bounds;
+
+        return Vec4.from(
+            unzoomedPosition(bounds.x1, xAxis.scale.range, xAxis.range),
+            unzoomedPosition(bounds.y1, yAxis.scale.range, yAxis.range),
+            unzoomedPosition(bounds.x2, xAxis.scale.range, xAxis.range),
+            unzoomedPosition(bounds.y2, yAxis.scale.range, yAxis.range)
+        );
     }
 
     /**
