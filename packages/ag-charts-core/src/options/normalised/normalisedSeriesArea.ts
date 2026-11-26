@@ -33,5 +33,7 @@ export type NormalisedSeriesAreaBackgroundRegionLabel = Normalised<
     NormalisedChartLabelStyleOptions & {
         fontFamily: string;
         padding: NormalisedPaddingOptions;
+        /** Undocumented: the distance from the region edges the label is aligned to, as for cross line labels. */
+        spacing?: number;
     }
 >;
