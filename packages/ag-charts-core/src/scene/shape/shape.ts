@@ -782,6 +782,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
     }
 
+    /** Whether a solid object fill (`{ type: 'solid' }`) resolves to a colour with alpha below 1. */
+    private solidFillSeeThrough(): boolean {
+        return this.fillSolid != null && this.getFillAlpha(this.fillSolid) < 1;
+    }
+
     /** Whether a glow beneath the shape shows through its fill (a gradient or pattern may fade in part), stroke or `opacity`. */
     paintsSeeThrough(): boolean {
         const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
@@ -791,7 +796,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         return (
             opacity < 1 ||
-            (fillPainted && (fillOpacity < 1 || !this.hasOpaquePaint(this.__fill!))) ||
+            (fillPainted && (fillOpacity < 1 || this.solidFillSeeThrough() || !this.hasOpaquePaint(this.__fill!))) ||
             (strokePainted && (strokeOpacity < 1 || this.getStrokeAlpha(this.__stroke) < 1))
         );
     }

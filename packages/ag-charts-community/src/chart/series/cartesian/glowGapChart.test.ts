@@ -333,6 +333,25 @@ describe('glow gap in a chart', () => {
                 expectSamePixels(bytesOf(around(RING_DISTANCES, ALL_ANGLES)), bytesOf(RING_OF_CIRCLE), PIN_TOLERANCE);
             });
 
+            it('should keep a translucent item with a solid object fill its own colour, and leave the glow beside it as it is', async () => {
+                const series = {
+                    shape: 'circle',
+                    fill: { type: 'solid', fill: 'blue', fillOpacity: 0.4 },
+                    fillOpacity: 1,
+                };
+                const { withGlow, withNoGlow } = await hoveredAndWithNoGlow(
+                    series,
+                    HOVERED_GLOW,
+                    mode,
+                    [-10, -3],
+                    [0, 90, 200]
+                );
+
+                expectSamePixels(bytesOf(withGlow), bytesOf(withNoGlow), 2);
+                await createHovered(hovered(series, HOVERED_GLOW, mode));
+                expectSamePixels(bytesOf(around(RING_DISTANCES, ALL_ANGLES)), bytesOf(RING_OF_CIRCLE), PIN_TOLERANCE);
+            });
+
             it('should keep a gradient that fades to transparent its own colour with no spread, and leave the glow beside it as it is', async () => {
                 const series = { shape: 'square', fill: FADING_FILL, fillOpacity: 1 };
                 const { withGlow, withNoGlow } = await hoveredAndWithNoGlow(
