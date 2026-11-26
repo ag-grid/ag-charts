@@ -683,18 +683,12 @@ export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickR
 /** The `strokeWidth` beside the `lineDash`, by which a stock dash name scales. */
 const SIBLING_STROKE_WIDTH = { $path: './strokeWidth' } as const;
 
-/**
- * The `lineDash` theme default: the `defaultDash`, and the `strokeWidth` that a stock dash name scales by. A `setBase`
- * replaces the `defaultDash` as the dash that a user, theme override or styler value layers over.
- */
+/** The `lineDash` theme default: the `defaultDash`, and the `strokeWidth` that a stock dash name scales by. */
 export function lineDashThemeDefault(
     defaultDash: AgLineDashName | number[] | Operation | undefined,
-    strokeWidth: Operation = SIBLING_STROKE_WIDTH,
-    setBase?: AgLineDashName
+    strokeWidth: Operation = SIBLING_STROKE_WIDTH
 ) {
-    return {
-        $applyLineDash: setBase == null ? [defaultDash, strokeWidth] : [defaultDash, strokeWidth, setBase],
-    } satisfies Operation;
+    return { $applyLineDash: [defaultDash, strokeWidth] } satisfies Operation;
 }
 
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
@@ -709,7 +703,7 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
  * so that no element of the default shows through a shorter array, as it would by index.
  */
 export function solidLayeredLineDashThemeDefault(defaultDash: AgLineDashName | number[] | Operation) {
-    return lineDashThemeDefault(defaultDash, undefined, 'solid');
+    return { $applyLineDash: [defaultDash, SIBLING_STROKE_WIDTH, 'solid'] } satisfies Operation;
 }
 
 /** A series stroke's `lineDash` default: the palette's pattern at the series index. */
