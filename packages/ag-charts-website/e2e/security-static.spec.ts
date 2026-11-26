@@ -5,22 +5,13 @@ import { PNG } from 'pngjs';
 import { expect, test } from './fixture';
 import { SELECTORS, setupIntrinsicAssertions, toPageUrl, waitForAllChartUpdates } from './util';
 
-/**
- * Charts under a real `style-src` policy, on a routed origin of their own.
- *
- * The page is served by `page.route` from a non-localhost origin (as `license-watermark.spec.ts` does, which
- * also makes the licence watermark display) with a real `Content-Security-Policy` header, so the browser
- * enforces the policy as it would for a user. No example harness is involved: no harness `<style>`, and no
- * inline `style="…"` attribute, which `style-src 'self'` would itself block.
- *
- * Each case renders in the modes of `MODES`. `base` (no CSP header, injected styles) is the reference and the
- * only mode with stored baselines; every other mode is compared with it pixel for pixel through `pngjs` and
- * `pixelmatch`, so `-u` can only ever rewrite Base.
- */
+// Charts on a routed non-localhost origin, served with a real `Content-Security-Policy` header. `base` (no
+// header) is the only mode with stored baselines; every other mode is compared with it pixel for pixel.
 
 const ORIGIN = 'http://csp-repro.example';
 const NONCE = 'c5f7a0d3b1e94a62';
 const BRAND_BEFORE = '#d33b2b';
+const BRAND_BEFORE_RGB = [211, 59, 43] as const;
 const BRAND_AFTER = '#2b6cd3';
 const BRAND_AFTER_RGB = [43, 108, 211] as const;
 
@@ -41,6 +32,8 @@ const MODES: Record<ModeName, Mode> = {
     nonce: { csp: policy(`'self' 'nonce-${NONCE}'`), styleNonce: NONCE },
 };
 
+const MODE_NAMES = Object.keys(MODES) as ModeName[];
+
 /** `style-src 'self'` exactly: nothing a chart injects is allowed. */
 const STRICT_CSP = policy(`'self'`);
 
@@ -60,9 +53,8 @@ html, body { margin: 0; padding: 0; background: #fff; }
 // Runs from `script-src 'self'`. The chart options arrive JSON-encoded in the query string; `--brand` is set
 // through CSSOM, which `style-src` does not restrict.
 const PAGE_SCRIPT = `
-const params = new URLSearchParams(location.search);
-document.documentElement.style.setProperty('--brand', params.get('brand') ?? '${BRAND_BEFORE}');
-const encoded = params.get('options');
+document.documentElement.style.setProperty('--brand', '${BRAND_BEFORE}');
+const encoded = new URLSearchParams(location.search).get('options');
 if (encoded != null) {
     agCharts.AgCharts.create({ ...JSON.parse(encoded), container: document.getElementById('myChart') });
 }
@@ -94,6 +86,9 @@ const BAR_DATA = [
     { month: 'May', sales: 800000 },
 ];
 const BAR_SERIES = [{ type: 'bar', xKey: 'month', yKey: 'sales', yName: 'Sales' }];
+const MENU_ICON_URL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5"><path d="M12 17V3m-6 8 6 6 6-6M19 21H5"/></svg>'
+)}`;
 const LINE_DATA = Array.from({ length: 30 }, (_, i) => ({ age: 15 + i, hours: 40 + ((i * 7) % 23) }));
 
 type Theme = 'ag-default' | 'ag-default-dark';
@@ -139,17 +134,25 @@ const ROWS: Row[] = [
         },
         async arrange(page) {
             await expect(page.locator('.ag-charts-toolbar__icon').first()).toBeVisible();
+            // Every toolbar button shares the one `:hover` rule, so hovering one puts the hover colours in the image.
+            await page.locator('.ag-charts-toolbar__button', { hasText: 'Early' }).hover();
             await waitForAllChartUpdates(page);
         },
     },
     {
         name: 'context-menu',
         enterprise: true,
-        options: { data: BAR_DATA, series: BAR_SERIES, zoom: { enabled: true }, contextMenu: { enabled: true } },
+        options: {
+            data: BAR_DATA,
+            series: BAR_SERIES,
+            zoom: { enabled: true },
+            contextMenu: { enabled: true, items: [{ label: 'Export', iconUrl: MENU_ICON_URL }, 'defaults'] },
+        },
         async arrange(page) {
             await page.locator(SELECTORS.canvasCenter).click({ button: 'right' });
             await expect(page.locator('.ag-charts-context-menu')).toBeVisible();
             await expect(page.locator('.ag-charts-context-menu__item').first()).toBeVisible();
+            await expect(page.locator('.ag-charts-context-menu img').first()).toBeVisible();
         },
     },
     {
@@ -170,6 +173,17 @@ const CSS_VARIABLE_OPTIONS = {
     legend: { enabled: false },
     data: BAR_DATA,
     series: [{ type: 'bar', xKey: 'month', yKey: 'sales', fill: 'var(--brand)', stroke: 'var(--brand)' }],
+};
+
+const CSS_VARIABLE_ROW: Row = {
+    name: 'css-variable',
+    enterprise: false,
+    options: CSS_VARIABLE_OPTIONS,
+    async arrange(page) {
+        expect(await firstBarCentre(page, BRAND_BEFORE_RGB), 'first bar in the initial colour').toBeDefined();
+        await setBrand(page, BRAND_AFTER);
+        await expect.poll(() => firstBarCentre(page, BRAND_AFTER_RGB), { message: 'bar repainted' }).toBeDefined();
+    },
 };
 
 function withTheme(options: Record<string, unknown>, theme: Theme, mode: Mode) {
@@ -217,18 +231,18 @@ interface RenderOptions {
     enterprise: boolean;
     /** The chart options; omit to load the page with no chart. */
     options?: Record<string, unknown>;
-    brand?: string;
     csp?: string;
 }
 
-async function render(page: Page, { mode, enterprise, options, brand, csp = mode.csp }: RenderOptions) {
+async function render(page: Page, { mode, enterprise, options, csp = mode.csp }: RenderOptions) {
     const query = new URLSearchParams();
     if (csp != null) query.set('csp', csp);
     if (enterprise) query.set('enterprise', '1');
-    if (brand != null) query.set('brand', brand);
     if (options != null) query.set('options', JSON.stringify(options));
 
-    await page.goto(`${ORIGIN}/?${query.toString()}`);
+    const response = await page.goto(`${ORIGIN}/?${query.toString()}`);
+    // Without this, a route that stopped sending the header would turn every policy mode into Base unnoticed.
+    expect(response?.headers()['content-security-policy'], 'policy enforced on the page').toBe(csp);
     if (options != null) {
         await expect(page.locator(`${CHART} canvas`).first()).toBeVisible();
         await waitForAllChartUpdates(page);
@@ -261,11 +275,7 @@ function decode(buffer: Buffer) {
     return PNG.sync.read(buffer);
 }
 
-/**
- * Fails on any differing pixel. The CSS text is identical in every mode, so any difference is a defect.
- * `includeAA` counts anti-aliased pixels too: pixelmatch would otherwise discount exactly the pixels that
- * a missing font or border moves.
- */
+/** Fails on any differing pixel, anti-aliased ones included: a missing font or border moves exactly those. */
 function expectPixelIdentical(actual: Buffer, reference: Buffer, label: string) {
     const a = decode(reference);
     const b = decode(actual);
@@ -282,11 +292,80 @@ function expectPixelIdentical(actual: Buffer, reference: Buffer, label: string) 
 
 const SCREENSHOT = { animations: 'disabled' } as const;
 
-test.describe('security: routed origin', () => {
-    setupIntrinsicAssertions(test);
+/** Renders the row in Base and in Nonce mode, stores only Base as a baseline and requires Nonce to match it. */
+async function compareModesWithBase(page: Page, row: Row, theme: Theme) {
+    async function capture(modeName: ModeName) {
+        const mode = MODES[modeName];
+        await render(page, { mode, enterprise: row.enterprise, options: withTheme(row.options, theme, mode) });
+        await row.arrange(page);
+        if (row.enterprise) await settleWatermark(page);
 
+        const chart = page.locator(CHART);
+        if (modeName === 'base') {
+            await expect(chart).toHaveScreenshot(`${row.name}-${theme}.png`);
+        } else {
+            await expectNonceOnInjectedStyles(page);
+        }
+        const buffer = await chart.screenshot(SCREENSHOT);
+        expect(await violations(page), `${modeName} CSP violations`).toEqual([]);
+        return buffer;
+    }
+
+    const base = await capture('base');
+    const nonce = await capture('nonce');
+    expectPixelIdentical(nonce, base, `${row.name} (${theme}) in nonce mode`);
+}
+
+async function setBrand(page: Page, value: string) {
+    await page.evaluate((v) => document.documentElement.style.setProperty('--brand', v), value);
+    await waitForAllChartUpdates(page);
+}
+
+/** The centre, in device pixels, of the left-most region of `rgb` on the chart's canvas. */
+async function firstBarCentre(page: Page, rgb: readonly number[]) {
+    return page.evaluate(
+        ({ target, tolerance }) => {
+            const canvas = document.querySelector('canvas')!;
+            const { width, height } = canvas;
+            const { data } = canvas.getContext('2d')!.getImageData(0, 0, width, height);
+            const near = (x: number, y: number) => {
+                const i = (y * width + x) * 4;
+                return target.every((c, k) => Math.abs(data[i + k] - c) <= tolerance);
+            };
+            const columns: number[] = [];
+            for (let x = 0; x < width; x++) {
+                let any = false;
+                for (let y = 0; y < height && !any; y++) any = near(x, y);
+                if (any) columns.push(x);
+                else if (columns.length > 0) break;
+            }
+            if (columns.length === 0) return undefined;
+            const [x0, x1] = [columns[0], columns[columns.length - 1]];
+            let [y0, y1] = [height, -1];
+            for (let y = 0; y < height; y++) {
+                for (let x = x0; x <= x1; x++) {
+                    if (near(x, y)) {
+                        y0 = Math.min(y0, y);
+                        y1 = Math.max(y1, y);
+                    }
+                }
+            }
+            return { x: Math.round((x0 + x1) / 2), y: Math.round((y0 + y1) / 2) };
+        },
+        { target: [...rgb], tolerance: 2 }
+    );
+}
+
+async function pixelAt(page: Page, point: { x: number; y: number }) {
+    return page.evaluate(({ x, y }) => {
+        const canvas = document.querySelector('canvas')!;
+        return Array.from(canvas.getContext('2d')!.getImageData(x, y, 1, 1).data.slice(0, 3));
+    }, point);
+}
+
+/** Registered before any page script, so a violation during the first parse is still seen. */
+function setupRoutedOrigin() {
     test.beforeEach(async ({ page }) => {
-        // Registered before any page script, so a violation during the first parse is still seen.
         await page.addInitScript(() => {
             const seen: string[] = [];
             (window as unknown as { __cspViolations: string[] }).__cspViolations = seen;
@@ -296,43 +375,25 @@ test.describe('security: routed origin', () => {
         });
         await routeOrigin(page);
     });
+}
+
+test.describe('security: routed origin', () => {
+    setupIntrinsicAssertions(test);
+    setupRoutedOrigin();
 
     test.describe('visual cases: nonce matches Base', () => {
         for (const theme of THEMES) {
             for (const row of ROWS) {
                 test(`${row.name} (${theme})`, async ({ page, browserName }) => {
                     test.skip(browserName !== 'chromium', 'Screenshots run in Chromium only');
-
-                    const buffers: Partial<Record<ModeName, Buffer>> = {};
-                    for (const modeName of Object.keys(MODES) as ModeName[]) {
-                        const mode = MODES[modeName];
-                        await render(page, {
-                            mode,
-                            enterprise: row.enterprise,
-                            options: withTheme(row.options, theme, mode),
-                        });
-                        await row.arrange(page);
-                        if (row.enterprise) await settleWatermark(page);
-
-                        const chart = page.locator(CHART);
-                        if (modeName === 'base') {
-                            // The only stored baseline.
-                            await expect(chart).toHaveScreenshot(`${row.name}-${theme}.png`);
-                        } else {
-                            await expectNonceOnInjectedStyles(page);
-                        }
-                        buffers[modeName] = await chart.screenshot(SCREENSHOT);
-                        expect(await violations(page), `${modeName} CSP violations`).toEqual([]);
-                    }
-
-                    expectPixelIdentical(buffers.nonce!, buffers.base!, `${row.name} (${theme}) in nonce mode`);
+                    await compareModesWithBase(page, row, theme);
                 });
             }
         }
     });
 
     test.describe('licence watermark', () => {
-        for (const modeName of Object.keys(MODES) as ModeName[]) {
+        for (const modeName of MODE_NAMES) {
             test(`displays in ${modeName} mode`, async ({ page, browserName }) => {
                 test.skip(browserName !== 'chromium', 'Chromium only: outside it the spec runs the repaint cases');
                 const mode = MODES[modeName];
@@ -372,49 +433,7 @@ test.describe('security: routed origin', () => {
     });
 
     test.describe('CSS-variable colour', () => {
-        /** The centre, in device pixels, of the left-most region of `rgb` on the chart's canvas. */
-        async function firstBarCentre(page: Page, rgb: readonly number[]) {
-            return page.evaluate(
-                ({ target, tolerance }) => {
-                    const canvas = document.querySelector('canvas')!;
-                    const { width, height } = canvas;
-                    const { data } = canvas.getContext('2d')!.getImageData(0, 0, width, height);
-                    const near = (x: number, y: number) => {
-                        const i = (y * width + x) * 4;
-                        return target.every((c, k) => Math.abs(data[i + k] - c) <= tolerance);
-                    };
-                    const columns: number[] = [];
-                    for (let x = 0; x < width; x++) {
-                        let any = false;
-                        for (let y = 0; y < height && !any; y++) any = near(x, y);
-                        if (any) columns.push(x);
-                        else if (columns.length > 0) break;
-                    }
-                    if (columns.length === 0) return undefined;
-                    const [x0, x1] = [columns[0], columns[columns.length - 1]];
-                    let [y0, y1] = [height, -1];
-                    for (let y = 0; y < height; y++) {
-                        for (let x = x0; x <= x1; x++) {
-                            if (near(x, y)) {
-                                y0 = Math.min(y0, y);
-                                y1 = Math.max(y1, y);
-                            }
-                        }
-                    }
-                    return { x: Math.round((x0 + x1) / 2), y: Math.round((y0 + y1) / 2) };
-                },
-                { target: [...rgb], tolerance: 2 }
-            );
-        }
-
-        async function pixelAt(page: Page, point: { x: number; y: number }) {
-            return page.evaluate(({ x, y }) => {
-                const canvas = document.querySelector('canvas')!;
-                return Array.from(canvas.getContext('2d')!.getImageData(x, y, 1, 1).data.slice(0, 3));
-            }, point);
-        }
-
-        for (const modeName of Object.keys(MODES) as ModeName[]) {
+        for (const modeName of MODE_NAMES) {
             // Reads the canvas, not a screenshot, so that it also runs in Firefox and WebKit.
             test(`repaints when --brand changes in ${modeName} mode`, async ({ page }) => {
                 const mode = MODES[modeName];
@@ -424,14 +443,9 @@ test.describe('security: routed origin', () => {
                     options: withTheme(CSS_VARIABLE_OPTIONS, 'ag-default', mode),
                 });
 
-                const before = await firstBarCentre(page, [0xd3, 0x3b, 0x2b]);
+                const before = await firstBarCentre(page, BRAND_BEFORE_RGB);
                 expect(before, 'first bar in the initial colour').toBeDefined();
-
-                await page.evaluate(
-                    (value) => document.documentElement.style.setProperty('--brand', value),
-                    BRAND_AFTER
-                );
-                await waitForAllChartUpdates(page);
+                await setBrand(page, BRAND_AFTER);
 
                 await expect
                     .poll(
@@ -455,31 +469,7 @@ test.describe('security: routed origin', () => {
 
         test('looks the same in nonce mode as in Base', async ({ page, browserName }) => {
             test.skip(browserName !== 'chromium', 'Screenshots run in Chromium only');
-
-            const buffers: Partial<Record<ModeName, Buffer>> = {};
-            for (const modeName of Object.keys(MODES) as ModeName[]) {
-                const mode = MODES[modeName];
-                await render(page, {
-                    mode,
-                    enterprise: false,
-                    options: withTheme(CSS_VARIABLE_OPTIONS, 'ag-default', mode),
-                });
-                const chart = page.locator(CHART);
-                if (modeName === 'base') {
-                    await expect(chart).toHaveScreenshot('css-variable-ag-default.png');
-                }
-                await page.evaluate(
-                    (value) => document.documentElement.style.setProperty('--brand', value),
-                    BRAND_AFTER
-                );
-                await waitForAllChartUpdates(page);
-                await expect
-                    .poll(() => firstBarCentre(page, BRAND_AFTER_RGB), { message: 'bar repainted' })
-                    .toBeDefined();
-                buffers[modeName] = await chart.screenshot(SCREENSHOT);
-                expect(await violations(page)).toEqual([]);
-            }
-            expectPixelIdentical(buffers.nonce!, buffers.base!, 'css-variable colour after change in nonce mode');
+            await compareModesWithBase(page, CSS_VARIABLE_ROW, 'ag-default');
         });
     });
 
@@ -490,7 +480,6 @@ test.describe('security: routed origin', () => {
         }) => {
             test.skip(browserName !== 'chromium', 'Screenshots run in Chromium only');
 
-            // Measured on Playwright 1.65.1 with Chromium 159; this confirms it on the repo's pinned version.
             await page.addInitScript(() => {
                 const added: string[] = [];
                 (window as unknown as { __addedStyles: string[] }).__addedStyles = added;
@@ -524,5 +513,26 @@ test.describe('security: routed origin', () => {
         });
         await expectNonceOnInjectedStyles(page);
         expect(await violations(page)).toEqual([]);
+    });
+});
+
+// Positive control: a blocked `<style>` must reach the listener, or every "no violations" assertion proves nothing.
+test.describe('security: routed origin policy is enforced', () => {
+    setupIntrinsicAssertions(test, {
+        ignoreConsolePatterns: ['violates the following Content Security Policy directive'],
+    });
+    setupRoutedOrigin();
+
+    test('an un-nonced style element is reported as a style-src-elem violation', async ({ page, browserName }) => {
+        test.skip(browserName !== 'chromium', 'The ignored console wording is Chromium-specific');
+        await render(page, { mode: MODES.base, enterprise: false, csp: STRICT_CSP });
+
+        await page.evaluate(() => {
+            const style = document.createElement('style');
+            style.textContent = 'body { margin: 1px; }';
+            document.head.appendChild(style);
+        });
+
+        await expect.poll(() => violations(page)).toEqual([expect.stringContaining('style-src-elem')]);
     });
 });
