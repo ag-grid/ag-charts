@@ -372,6 +372,7 @@ export abstract class Series<
         name: `${this.internalId}-highlight`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
         batchShadows: true,
+        holdsHighlight: true,
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(

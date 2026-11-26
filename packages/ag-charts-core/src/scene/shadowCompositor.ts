@@ -44,7 +44,9 @@ export function renderChildrenWithShadowBatches(
     renderCtx: RenderContext,
     scope: ShadowScope = 'run',
     /** Whether the glows are cast elsewhere, so that the children are drawn without one. */
-    glowsCast = false
+    glowsCast = false,
+    /** Whether the children are the highlight copies of hovered items, see {@link ShadowKey.hovered}. */
+    hovered = false
 ): void {
     const { stats } = renderCtx;
     let run: Run | undefined;
@@ -106,7 +108,7 @@ export function renderChildrenWithShadowBatches(
         run ??= { shadow: undefined, glow: undefined, members: [] };
         if (run.shadow == null && run.glow == null) {
             run.shadow = shadow == null ? undefined : { slot: 'shadow', shadow, clip, casters: [] };
-            run.glow = glow == null ? undefined : { slot: 'glow', shadow: glow, clip, casters: [] };
+            run.glow = glow == null ? undefined : { slot: 'glow', shadow: glow, clip, casters: [], hovered };
         }
         run.shadow?.casters.push(child as ShadowCaster);
         run.glow?.casters.push(child as ShadowCaster);

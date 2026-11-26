@@ -68,8 +68,12 @@ export function useGlowScenes() {
         for (const scene of scenes.splice(0)) scene.destroy();
     });
 
-    return (route: ShadowRoute, ...items: Shape[]) => {
-        const parent = new Group({ name: 'items', batchShadows: route === 'self' ? false : 'shared' });
+    const draw = (route: ShadowRoute, highlight: boolean, items: Shape[]) => {
+        const parent = new Group({
+            name: 'items',
+            batchShadows: route === 'self' ? false : 'shared',
+            holdsHighlight: highlight,
+        });
         for (const item of items) {
             if (route === 'cutout') item.drawingMode = 'cutout';
             parent.appendChild(item);
@@ -90,6 +94,11 @@ export function useGlowScenes() {
             at: (distance: number) => pixelAt(GLOW_RIGHT_EDGE + distance, GLOW_CENTRE.y),
         };
     };
+
+    return Object.assign((route: ShadowRoute, ...items: Shape[]) => draw(route, false, items), {
+        /** Draws the items as the highlight copies of hovered items, in a group that holds them. */
+        hovered: (route: ShadowRoute, ...items: Shape[]) => draw(route, true, items),
+    });
 }
 
 /** A stretch of pixels of one class, going along a column or a row. */
