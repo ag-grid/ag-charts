@@ -84,6 +84,7 @@ export const commonChartOptions = {
     withinStudio: undocumented(boolean),
     loading: boolean,
     validations: validationsOptionsDef,
+    ariaLabel: string,
     container: htmlElement,
     context: () => true,
     theme: defined,
