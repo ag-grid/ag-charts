@@ -1316,6 +1316,41 @@ describe('SunburstSeries', () => {
             expect(gaps.length).toBeGreaterThan(0);
             expect(gaps).toEqual(gaps.map(({ name }) => ({ name, gap: expect.closeTo(padding) })));
         });
+
+        it('centres an unclamped parallel label on the full ring, whatever the padding', async () => {
+            /** Each visible parallel label's distance from the series centre, keyed by datum name. */
+            const parallelRadii = async (padding: number) => {
+                chart = await createEnterpriseChart({
+                    data: [
+                        { name: 'A', children: [{ name: 'A1' }, { name: 'A2' }] },
+                        { name: 'B', children: [{ name: 'B1' }, { name: 'B2' }] },
+                    ],
+                    series: [{ type: 'sunburst', labelKey: 'name', padding }],
+                });
+                const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+                const groups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+                const radii = new Map<string | undefined, number>();
+                for (const group of groups) {
+                    const sector = sectors.find((node) => node.datum === group.datum)!;
+                    const [text] = Selection.selectByClass(group, TransformableText).filter((node) => node.visible);
+                    if (text == null || !labelPlacementOf(sector, text.rotation).startsWith('parallel')) continue;
+                    const centre = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY);
+                    const corners = canvasCorners(text);
+                    const x = corners.reduce((sum, { canvasX }) => sum + canvasX, 0) / corners.length;
+                    const y = corners.reduce((sum, { canvasY }) => sum + canvasY, 0) / corners.length;
+                    radii.set(group.datum?.datum?.name, Math.hypot(x - centre.canvasX, y - centre.canvasY));
+                }
+                chart.destroy();
+                chart = undefined;
+                return radii;
+            };
+            const unpadded = await parallelRadii(0);
+            const padded = await parallelRadii(6);
+            expect(unpadded.size).toBe(6);
+            expect(Object.fromEntries(padded)).toEqual(
+                Object.fromEntries([...unpadded].map(([name, radius]) => [name, expect.closeTo(radius)]))
+            );
+        });
     });
 
     describe('block-leading image segments (treemap parity)', () => {

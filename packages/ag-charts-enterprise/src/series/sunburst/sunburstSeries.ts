@@ -114,6 +114,8 @@ interface SunburstLabelRing {
     endAngle: number;
     innerRadius: number;
     outerRadius: number;
+    /** The outer arc before the item inset, which an unclamped parallel label is centred against. */
+    readonly fullOuterRadius: number;
     readonly sweep: number;
     readonly theta: number;
     readonly radiusScale: number;
@@ -186,13 +188,13 @@ function sectorLabelRadius(
     width: number,
     height: number
 ): number {
-    const { innerRadius, outerRadius, radiusScale, wedge } = ring;
+    const { innerRadius, outerRadius, fullOuterRadius, radiusScale, wedge } = ring;
     switch (labelPlacement) {
         case LabelPlacement.CenterCircle:
             return 0;
         case LabelPlacement.Parallel: {
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-            const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+            const idealRadius = fullOuterRadius - (radiusScale - height) * opticalCentering;
             const minimumRadius = parallelNearSide(ring) + height;
             // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
             const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (width / 2) ** 2));
@@ -712,6 +714,7 @@ export class SunburstSeries extends HierarchySeries<
                     endAngle,
                     innerRadius,
                     outerRadius,
+                    fullOuterRadius: outerRadius,
                     sweep: endAngle - startAngle,
                     theta: angleOffset + (startAngle + endAngle) / 2,
                     radiusScale,
