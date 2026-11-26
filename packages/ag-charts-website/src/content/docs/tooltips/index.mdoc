@@ -28,15 +28,14 @@ In this example:
 
 - The `yName` is used in the tooltip and legend when provided.
 - The default [tooltip mode](#tooltip-modes) is:
-    - `compact` when showing a single series with no `yName`.
-    - `single` when showing more than 3 series, or a single series with `yName`.
-    - `shared` when showing 3 or fewer series.
+    - `single` when showing a series with `yName`.
+    - `compact` when showing a series without `yName`.
 
 The `_Name` keys mirror the data keys and differ between series types. See the series specific [API Reference](/options/#reference-AgChartOptions-series/) for more details.
 
 ## Tooltip Modes
 
-By default a shared tooltip will be used for most charts containing 3 or fewer series. Use the mode option to show a `single`, `shared` or `compact` tooltip.
+By default a `single` tooltip is used for every chart. Use the mode option to show a `single`, `shared` or `compact` tooltip.
 
 {% chartExampleRunner title="Tooltip Mode" name="tooltip-mode" type="generated" /%}
 

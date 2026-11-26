@@ -95,7 +95,7 @@ describe('Glow and shadow strength under the fillOpacity of the item', () => {
 
     describe.each(SHADOW_ROUTES)('shadow cast by the %s', (route) => {
         const shadowAlpha = (mixin: Partial<Rect>) => draw(route, item(mixin)).pixelAt(...SHADOW_PROBE)[3];
-        const setShadow = { ...SHADOW, fillOpacity: 1, fillOpacitySet: true as const };
+        const setShadow = { ...SHADOW, fillOpacity: 1, _fillOpacitySet: true as const };
 
         it('should cast a shadow with a set fillOpacity as set, whatever the fillOpacity of the item', () => {
             expect(shadowAlpha({ fillShadow: setShadow })).toBe(255);
