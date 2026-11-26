@@ -213,6 +213,7 @@ const CASES: ItemPaddingCase[] = [
     },
     {
         name: 'heatmap',
+        defaultPadding: 3,
         options: (padding) =>
             cartesian(
                 {
