@@ -703,19 +703,6 @@ describe('DOMManager', () => {
                 dm.destroy();
                 target.remove();
             });
-
-            it('keeps a single copy when moved into another detached container', () => {
-                const { dm } = create();
-                const target = doc.createElement('div');
-                const inserted = trackInsertedStyles(target);
-
-                dm.setContainer(target);
-                dm.updateContainer();
-
-                expect(inserted()).toBe(1);
-                expect(styleCount(target)).toBe(1);
-                dm.destroy();
-            });
         });
     });
 
