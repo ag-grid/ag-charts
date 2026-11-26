@@ -421,7 +421,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.attachIntersectionObserver?.observe(container);
     }
 
-    private updateStylesLocation() {
+    private updateStylesLocation(refreshSize = true) {
         // Check if we transitioned from disconnected to connected
         if (this.initiallyConnected === true || this.container?.isConnected === false) return;
 
@@ -434,17 +434,17 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
         this.initiallyConnected = true;
         // Remove styles from our DOM tree before re-adding to correct location
-        for (const id of this.rootElements['styles'].children.keys()) {
-            this.removeChild('styles', id);
-        }
+        this.removeInTreeStyles();
         // Re-add styles to correct location (shadow DOM vs head)
         for (const [id, styles] of this.styles) {
             this.addStyles(id, styles);
         }
 
-        // A container observed while detached had no laid-out size, so re-measure on attachment.
         if (this.container != null) {
-            this.sizeMonitor.refresh(this.container);
+            // A container observed while detached had no laid-out size, so re-measure on attachment.
+            if (refreshSize) {
+                this.sizeMonitor.refresh(this.container);
+            }
 
             // A detached container has no computed style, and a watcher only reports changes made after it
             // is in place, so everything resolved while detached is re-resolved once here.
@@ -455,6 +455,12 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             ) {
                 this.eventsHub.emit('chart:request-refresh', null);
             }
+        }
+    }
+
+    private removeInTreeStyles() {
+        for (const id of this.rootElements['styles'].children.keys()) {
+            this.removeChild('styles', id);
         }
     }
 
@@ -514,9 +520,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         // Shadow-DOM containers hold their own styles; drop them before relocating, both to avoid
         // conflicts and to avoid a style recalculation. Styles in the head are shared, so stay.
         if (this.shadowDocumentRoot != null) {
-            for (const id of this.rootElements['styles'].children.keys()) {
-                this.removeChild('styles', id);
-            }
+            this.removeInTreeStyles();
         }
 
         this.container = pendingContainer;
@@ -524,6 +528,9 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.agDocument.setContainer(pendingContainer);
         this.updateShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
+        if (this.initiallyConnected && this.shadowDocumentRoot == null) {
+            this.removeInTreeStyles();
+        }
         this.observeAttachTransition(pendingContainer);
 
         // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
@@ -536,6 +543,8 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
+                // Minimal mode has no attach observers; this is where its styles reach their final location.
+                this.updateStylesLocation(false);
                 this.containerSize = size;
                 this.updateContainerSize();
                 this.invalidateRectCaches();
@@ -899,6 +908,8 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             // User supplied root element, don't use heuristics.
             styleElement = addStyleElement(this.styleContainer);
         } else if (this.initiallyConnected === false) {
+            // Minimal mode places its styles once attached, from the container size callback.
+            if (this.mode === 'minimal') return;
             // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
             // which Document we might be attached to.
             styleElement = this.addChild('styles', id);
