@@ -56,6 +56,7 @@ function createCell() {
     return cell;
 }
 
+/** inScope */
 function createInDetachedCells(cells: HTMLElement) {
     const created: AgChartInstance<AgSparklineOptions>[] = [];
     const newCells: HTMLElement[] = [];
