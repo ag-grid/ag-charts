@@ -38,6 +38,8 @@ interface ItemPaddingCase {
     readonly paddingOption?: PaddingOption;
     /** Reads the padding the series resolved, defaulted or set; `itemPadding` unless given. */
     readonly resolvedPadding?: (options: Record<string, any>) => unknown;
+    /** The padding the series defaults to, 2 unless it kept an older default of its own. */
+    readonly defaultPadding?: number;
     /** The item shapes, for a series that does not draw each item as its own shape node. */
     readonly items?: (chart: ChartOrProxy) => Item[];
 }
@@ -250,12 +252,14 @@ const CASES: ItemPaddingCase[] = [
         name: 'sunburst',
         paddingOption: (padding) => ({ padding }),
         resolvedPadding: (o) => o.padding,
+        defaultPadding: 3,
         options: (padding) => sunburstChart(hierarchy, padding),
     },
     {
         name: 'treemap',
         paddingOption: (padding) => ({ tile: { ...TREEMAP_TILE, padding } }),
         resolvedPadding: (o) => o.tile.padding,
+        defaultPadding: 3,
         options: (padding) => ({
             data: hierarchy,
             width: 400,
@@ -515,10 +519,10 @@ describe('itemPadding', () => {
     describe.each(CASES)('$name', (c) => {
         const itemsOf = (target: ChartOrProxy) => (c.items ?? shapeItems)(target);
 
-        it('defaults to 2', async () => {
+        it(`defaults to ${c.defaultPadding ?? 2}`, async () => {
             await render(c.options());
             const resolvedPadding = c.resolvedPadding ?? ((o) => o.itemPadding);
-            expect(resolvedPadding(getSeriesOptions(chart!))).toBe(2);
+            expect(resolvedPadding(getSeriesOptions(chart!))).toBe(c.defaultPadding ?? 2);
         });
 
         it.each([0, 2, 6])('keeps every label inside its item at least %ipx from its edge', async (padding) => {
