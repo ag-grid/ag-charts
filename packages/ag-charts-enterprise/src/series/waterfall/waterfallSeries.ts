@@ -1310,7 +1310,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         label.collision.alwaysShow,
                         avoid,
                         threshold,
-                        false,
                         configuredFit,
                         node,
                         node.datumIndex

@@ -1191,7 +1191,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         alwaysShow,
                         avoid,
                         threshold,
-                        false,
                         fitFor(nodeLabel.text),
                         node,
                         node.datumIndex

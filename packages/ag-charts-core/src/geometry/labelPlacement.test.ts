@@ -49,6 +49,7 @@ import {
     resolveLabelFit,
     writeLabelBoxCentre,
 } from './labelPlacement';
+import type { LabelStack } from './labelStack';
 import { markerOutline, placeMarkerOutline } from './markerOutline';
 import { SpatialIndex } from './spatialIndex';
 
@@ -1826,7 +1827,6 @@ describe('placeLabels positioned candidates', () => {
             alwaysShow,
             avoid,
             threshold,
-            false,
             undefined,
             undefined,
             0,
@@ -2795,6 +2795,64 @@ describe('placeLabels shape-fitted stacks', () => {
     });
 });
 
+describe('placeLabels own box', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 100 };
+    const room: BoxBounds = { x: 0, y: 0, width: 200, height: 100 };
+    const padding = { top: 0, right: 0, bottom: 0, left: 0 };
+    const anchor: OrientationAnchor = { x: 100, y: 50, textAlign: 'center', textBaseline: 'middle' };
+    const blockFit = (text: string, fontSize: number, minimumFontSize: number) => ({
+        text,
+        policy: { overflowStrategy: 'ellipsis' as const, minimumFontSize },
+        font: { fontSize, fontFamily: 'sans-serif' },
+    });
+    // Spans the room's width from `y` down, as a label of a neighbouring item reaching into this one would.
+    const intruding = (y: number, category: 'label' | 'shape' = 'label'): LabelObstacle => ({
+        kind: 'rect',
+        category,
+        box: { x: 0, y, width: 200, height: 100 - y },
+    });
+    const stackDatum = (blocks: LabelStack['blocks'], spacing = 0): PointLabelDatum => ({
+        point: { x: 0, y: 0, size: 0 },
+        label: { text: blocks[0].fit.text, width: 10, height: 10 },
+        fit: blocks[0].fit,
+        stack: { blocks, spacing },
+        anchor: undefined,
+        placement: undefined,
+        positionedCandidates: [
+            { box: { x: 95, y: 45, width: 10, height: 10 }, region: room, fitTo: { container: room, anchor, padding } },
+        ],
+        ownBox: room,
+    });
+    const placeWith = (datum: PointLabelDatum, obstacle: LabelObstacle) =>
+        placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, [obstacle]).get('s') ?? [];
+
+    it('excuses a shape under the label but not a label reaching into its own box', () => {
+        const datum = stackDatum([{ fit: blockFit('AB', 20, 20) }]);
+        expect(placeWith(datum, intruding(52, 'shape'))).toHaveLength(1);
+        expect(placeWith(datum, intruding(52))).toEqual([]);
+    });
+
+    it('shrinks a stack clear of a label reaching into its own box', () => {
+        const datum = stackDatum([{ fit: blockFit('AB', 20, 8) }]);
+        const [placed] = placeWith(datum, intruding(59));
+        const fontSize = placed?.stack?.blocks[0]?.fontSize ?? 0;
+        expect(fontSize).toBeGreaterThanOrEqual(8);
+        expect(fontSize).toBeLessThan(20);
+        expect(placed.y + placed.height).toBeLessThanOrEqual(59);
+    });
+
+    it('drops the optional block of a stack that cannot shrink clear of a label reaching into its own box', () => {
+        const datum = stackDatum(
+            [{ fit: blockFit('AB', 10, 10) }, { fit: blockFit('CD', 10, 10), optional: true }],
+            10
+        );
+        const [placed] = placeWith(datum, intruding(60));
+        expect(placed?.stack?.blocks[0]?.text).toBe('AB');
+        expect(placed?.stack?.blocks[1]).toBeUndefined();
+        expect(placed.y + placed.height).toBeLessThanOrEqual(60);
+    });
+});
+
 describe('resolveLabelFit', () => {
     it('returns undefined (show) when there is no overflow strategy and no wrapping', () => {
         expect(resolveLabelFit({})).toBeUndefined();
@@ -3102,7 +3160,6 @@ describe('placeLabels per-candidate fit', () => {
                                 true,
                                 {},
                                 0,
-                                false,
                                 { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
                             ),
                         ]),
@@ -3148,7 +3205,6 @@ describe('placeLabels per-candidate fit', () => {
                                 true,
                                 {},
                                 0,
-                                false,
                                 { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
                             ),
                         ]),
@@ -3186,7 +3242,6 @@ describe('placeLabels per-candidate fit', () => {
                                 false,
                                 {},
                                 0,
-                                false,
                                 { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
                             ),
                         ]),
@@ -3226,7 +3281,6 @@ describe('placeLabels per-candidate fit', () => {
                                     true,
                                     {},
                                     0,
-                                    false,
                                     { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font }
                                 ),
                             ]),
@@ -3262,7 +3316,6 @@ describe('placeLabels per-candidate fit', () => {
                 true,
                 {},
                 threshold,
-                false,
                 ownShapeFit
             );
             const placed = placeLabels(
@@ -3305,7 +3358,6 @@ describe('placeLabels per-candidate fit', () => {
                                     false,
                                     {},
                                     0,
-                                    true,
                                     { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
                                 ),
                             ]),
@@ -3830,7 +3882,6 @@ describe('placeLabels collision shrink', () => {
                 false,
                 {},
                 0,
-                false,
                 { text: TEXT, policy: { minimumFontSize: 8 }, font: FONT, boxPadding: NO_PADDING }
             );
             const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
@@ -3901,7 +3952,6 @@ describe('placeLabels positioned shrink ladder', () => {
             alwaysShow,
             {},
             0,
-            false,
             {
                 text: fitText,
                 policy: { minimumFontSize: 6, overflowStrategy },
@@ -4101,18 +4151,10 @@ describe('placeLabels positioned shrink ladder', () => {
 // generic containment/obstacle/flush/least-overflow logic there, so it can be restated directly.
 // Deliberately covers the no-fit case only — a datum without `fit` skips every shrink and re-fit
 // branch, leaving the candidate cascade itself as the thing under test.
-// Only labels meet an own box here (callers assert no shape does); 'another bar overlapping its own' covers shapes.
+// Only labels meet an own box here (callers assert no shape does), and an own box never excuses a label;
+// 'another bar overlapping its own' covers shapes.
 function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
     const category = o.category ?? 'shape';
-    const { ownBox } = d;
-    if (
-        ownBox != null &&
-        category === 'label' &&
-        d.ownBoxLabelsCollide !== true &&
-        boxCollides(o.box, ownBox.x, ownBox.y, ownBox.width, ownBox.height)
-    ) {
-        return true;
-    }
     const enabled = d.avoid?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
@@ -4129,6 +4171,24 @@ function nextDownOracle(value: number): number {
     const bits = new BigInt64Array(new Float64Array([value]).buffer);
     bits[0] += value > 0 ? -1n : 1n;
     return new Float64Array(bits.buffer)[0];
+}
+
+function worstOverlapOracle(
+    obstacles: readonly LabelObstacle[],
+    d: PointLabelDatum,
+    x: number,
+    y: number,
+    w: number,
+    h: number
+): number {
+    let worst = 0;
+    for (const o of obstacles) {
+        if (obstacleExcludedOracle(o, d)) continue;
+        const overlapWidth = Math.min(x + w, o.box.x + o.box.width) - Math.max(x, o.box.x);
+        const overlapHeight = Math.min(y + h, o.box.y + o.box.height) - Math.max(y, o.box.y);
+        if (overlapWidth > 0 && overlapHeight > 0) worst = Math.max(worst, overlapWidth * overlapHeight);
+    }
+    return worst;
 }
 
 function regionOverflowOracle(region: BoxBounds, x: number, y: number, w: number, h: number): number {
@@ -4161,8 +4221,9 @@ function placePositionedLabelsOracle(
             if (d.label.text === '') continue;
             const { width, height } = d.label;
             let winner: { x: number; y: number } | undefined;
-            let best: { x: number; y: number; overflow: number } | undefined;
-            for (const c of d.positionedCandidates ?? []) {
+            let best: { x: number; y: number; tier: number; score: number } | undefined;
+            const candidates = d.positionedCandidates ?? [];
+            for (const c of candidates) {
                 if (c.hidden === true) continue;
                 const region = c.region ?? bounds;
                 let { x, y } = c.box;
@@ -4180,8 +4241,14 @@ function placePositionedLabelsOracle(
                     break;
                 }
                 if (d.neverDrop === true) {
+                    // A contained candidate ranks by how buried it is, above any that overflows its region.
                     const overflow = regionOverflowOracle(region, x, y, cw, ch);
-                    if (best == null || overflow < best.overflow) best = { x, y, overflow };
+                    const colliding = overflow === 0 && candidates.length > 1;
+                    const tier = colliding ? 0 : 1;
+                    const score = colliding ? worstOverlapOracle(obstacles, d, x, y, cw, ch) : overflow;
+                    if (best == null || tier < best.tier || (tier === best.tier && score < best.score)) {
+                        best = { x, y, tier, score };
+                    }
                 }
             }
             const chosen = winner ?? best;
@@ -4241,8 +4308,7 @@ function makePositionedFixture(seriesCount: number, perSeries: number, bounds: B
                     ownBox,
                     alwaysShow,
                     { marker: true, label: true, shape: true },
-                    0,
-                    next() < 0.3
+                    0
                 )
             );
         }
@@ -4327,8 +4393,7 @@ describe('placeLabels slot trade', () => {
                 neverDrop = false,
                 threshold = 0,
                 obstacle,
-                ownBoxLabelsCollide = true,
-            }: { neverDrop?: boolean; threshold?: number; obstacle?: boolean; ownBoxLabelsCollide?: boolean } = {}
+            }: { neverDrop?: boolean; threshold?: number; obstacle?: boolean } = {}
         ): PointLabelDatum => ({
             ...buildBarPositionedLabelDatum(
                 text,
@@ -4339,8 +4404,7 @@ describe('placeLabels slot trade', () => {
                 ownBox,
                 neverDrop,
                 avoid,
-                threshold,
-                ownBoxLabelsCollide
+                threshold
             ),
             obstacle,
         });
@@ -4464,9 +4528,9 @@ describe('placeLabels slot trade', () => {
             ]);
         });
 
-        describe.each([true, false])('with ownBoxLabelsCollide %s', (ownBoxLabelsCollide) => {
+        describe('trading places', () => {
             const bar = (text: string, ownBox: BoxBounds, candidates: PositionedLabelCandidate[]) =>
-                barDatum(text, ownBox, candidates, { ownBoxLabelsCollide });
+                barDatum(text, ownBox, candidates);
             const at = (y: number, region?: BoxBounds): PositionedLabelCandidate => ({
                 box: { x: 10, y, width: 30, height: 16 },
                 region,
@@ -4524,13 +4588,11 @@ describe('placeLabels slot trade', () => {
             });
         });
 
-        // Their labels ignore labels touching their own bar, so only the trade's ordering keeps them apart.
         const looseBar = (text: string, ownBox: BoxBounds, ...xys: number[]) =>
             barDatum(
                 text,
                 ownBox,
-                xys.flatMap((x, i) => (i % 2 === 0 ? [{ box: { x, y: xys[i + 1], width: 30, height: 16 } }] : [])),
-                { ownBoxLabelsCollide: false }
+                xys.flatMap((x, i) => (i % 2 === 0 ? [{ box: { x, y: xys[i + 1], width: 30, height: 16 } }] : []))
             );
         const smallBar = (x: number): BoxBounds => ({ x, y: 300, width: 50, height: 50 });
         const tallBar: BoxBounds = { x: 0, y: 100, width: 50, height: 200 };

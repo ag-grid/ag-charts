@@ -43,7 +43,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable, deepClone } from 'ag-charts-core';
+import { Transformable, deepClone, toPlainText } from 'ag-charts-core';
 import type { BBox, Rect } from 'ag-charts-core';
 
 import {
@@ -1857,7 +1857,15 @@ describe('TreemapSeries', () => {
                     const node = text.closestDatum() as HierarchyNode;
                     const isGroup = node.children.length > 0;
                     const halfStroke = text.tag === 1 ? 1.5 : 0.5;
-                    return { text: text.text, node, isGroup, box: text.getBBox().clone().grow(halfStroke) };
+                    // The tile labels' collision threshold of -10 tolerates that much overlap.
+                    const tolerance = isGroup ? 0 : 10;
+                    return {
+                        text: toPlainText(text.text),
+                        node,
+                        isGroup,
+                        box: text.getBBox().clone().grow(halfStroke),
+                        tolerance,
+                    };
                 });
         const EPSILON = 1e-6;
 
@@ -1875,6 +1883,23 @@ describe('TreemapSeries', () => {
                 );
             });
             expect(strays.map(({ text }) => text)).toEqual([]);
+        });
+
+        it('keeps boxed labels from overlapping one another past their collision threshold', async () => {
+            chart = deproxy(await createEnterpriseChart(boxedLabelOptions()));
+            const labels = drawnLabels();
+            const overlaps: string[] = [];
+            for (const [i, a] of labels.entries()) {
+                for (const b of labels.slice(i + 1)) {
+                    const tolerance = Math.max(a.tolerance, b.tolerance) + EPSILON;
+                    const overlapX =
+                        Math.min(a.box.x + a.box.width, b.box.x + b.box.width) - Math.max(a.box.x, b.box.x);
+                    const overlapY =
+                        Math.min(a.box.y + a.box.height, b.box.y + b.box.height) - Math.max(a.box.y, b.box.y);
+                    if (overlapX > tolerance && overlapY > tolerance) overlaps.push(`${a.text} / ${b.text}`);
+                }
+            }
+            expect(overlaps).toEqual([]);
         });
     });
 
