@@ -17,21 +17,10 @@ import { BBox, Group, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import { getHeatmapCellBatch, getHeatmapNodeDataValues } from '../../test/enterpriseSeriesAccessors';
+import { type GridCell, gridCells } from '../../test/seriesHelpers';
 import { createEnterpriseChart } from '../../test/utils';
 import { HeatmapCellBatch } from './heatmapCellBatch';
 import { HeatmapSeries } from './heatmapSeries';
-
-type GridCell = { id: string; x: string | null; y: string; v: number };
-
-function gridCells(columns: number, rows: number): GridCell[] {
-    const cells: GridCell[] = [];
-    for (let x = 0; x < columns; x++) {
-        for (let y = 0; y < rows; y++) {
-            cells.push({ id: `${x}:${y}`, x: `X${x}`, y: `Y${y}`, v: x * rows + y });
-        }
-    }
-    return cells;
-}
 
 describe('HeatmapSeries partial repaint', () => {
     setupMockConsole();
@@ -194,7 +183,7 @@ describe('HeatmapSeries partial repaint', () => {
     });
 
     it('matches a whole repaint when an itemStyler gives cells a fill opacity', async () => {
-        const itemStyler = ({ datum }: { datum: GridCell }) => ({ fillOpacity: datum.v % 3 === 0 ? 0.35 : 1 });
+        const itemStyler = ({ datum }: { datum: GridCell }) => ({ fillOpacity: Number(datum.v) % 3 === 0 ? 0.35 : 1 });
         await create(GRID, { itemStyler });
 
         await transact(column(3, (y) => 100 + y));

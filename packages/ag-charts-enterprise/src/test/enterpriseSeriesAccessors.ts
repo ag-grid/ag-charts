@@ -377,16 +377,17 @@ export function getHeatmapNodeDataValues(chartOrProxy: ChartOrProxy<any>, index 
 }
 
 /** The heatmap per-cell methods that tests count to tell an incremental update from a rebuild. */
-export type HeatmapCellMethod = 'getItemStyle' | 'updateNodeDatum';
+export type HeatmapCellMethod = 'getItemStyle' | 'updateNodeDatum' | 'createSkeletonNodeDatum';
 
 /** The heatmap prototype as far as `vi.spyOn` needs it. */
 export type HeatmapCellMethods = Record<HeatmapCellMethod, (...args: never[]) => unknown>;
 
-/** The heatmap prototype, typed to expose the non-public per-cell methods `vi.spyOn` rejects; asserts both exist. */
+/** The heatmap prototype, typed to expose the non-public per-cell methods `vi.spyOn` rejects; asserts each exists. */
 export function getHeatmapCellMethods(): HeatmapCellMethods {
     const prototype = new Caster(HeatmapSeries.prototype);
     prototype.accessProperty('getItemStyle').cast(Function);
     prototype.accessProperty('updateNodeDatum').cast(Function);
+    prototype.accessProperty('createSkeletonNodeDatum').cast(Function);
     return prototype.value as unknown as HeatmapCellMethods;
 }
 

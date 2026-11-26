@@ -252,6 +252,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /** Data indices of the cells an in-place transaction updated; every other cell is already up to date. */
     private touchedDatumIndices: number[] | undefined;
+    private spareNodeDatum: HeatmapNodeDatum | undefined;
 
     /** Whether the current pass restyled every cell, which makes the untouched cells' scene nodes stale too. */
     private restyledEveryCell = false;
@@ -445,8 +446,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
             const datum = rawData[datumIndex];
             // OPTIMIZATION: heatmap never animates, so a full pass rewrites the previous pass's datums in place.
-            const nodeDatum = nodes[nodeIndex] ?? this.createSkeletonNodeDatum(ctx, datumIndex, datum);
-            if (!this.updateNodeDatum(ctx, nodeDatum, datumIndex, datum)) continue;
+            const reused = nodes[nodeIndex];
+            const nodeDatum = reused ?? this.spareNodeDatum ?? this.createSkeletonNodeDatum(ctx, datumIndex, datum);
+            if (!this.updateNodeDatum(ctx, nodeDatum, datumIndex, datum)) {
+                // OPTIMIZATION: a row with no cell keeps its new datum for the next row, or the next pass.
+                if (reused == null) this.spareNodeDatum = nodeDatum;
+                continue;
+            }
+            if (nodeDatum === this.spareNodeDatum) this.spareNodeDatum = undefined;
             nodes[nodeIndex++] = nodeDatum;
 
             const labelDatum = this.createLabelDatum(ctx, datumIndex, datum, nodeDatum);

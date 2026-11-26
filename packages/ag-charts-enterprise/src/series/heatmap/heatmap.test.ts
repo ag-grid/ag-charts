@@ -53,6 +53,7 @@ import {
     getSeriesInstance,
     getSeriesLabelTexts,
 } from '../../test/enterpriseSeriesAccessors';
+import { type GridCell, gridCells } from '../../test/seriesHelpers';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -86,18 +87,6 @@ async function hoverDatumByIndex(
     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(series.contentGroup, datum!.point.x, datum!.point.y);
     await hoverAction(x, y)(chart);
     await waitForChartStability(chart, hideDelay);
-}
-
-type GridCell = { id: string; x: string | null; y: string; v: number | null };
-
-function gridCells(columns: number, rows: number): GridCell[] {
-    const cells: GridCell[] = [];
-    for (let x = 0; x < columns; x++) {
-        for (let y = 0; y < rows; y++) {
-            cells.push({ id: `${x}:${y}`, x: `X${x}`, y: `Y${y}`, v: x * rows + y });
-        }
-    }
-    return cells;
 }
 
 const cellShapes = (c: ChartOrProxy<any>) => itemNodes(c);
@@ -3806,6 +3795,18 @@ describe('HeatmapSeries', () => {
 
                 expect(reusedNodes(before)).toBe(GRID.length);
                 expect(cellProps(chart)).toEqual(await freshCellProps(REPLACED, series));
+            });
+
+            it('allocates no node datum to redraw the same data with a trailing row that has no cell', async () => {
+                const data = invalidAt(GRID, GRID.length - 1);
+                await create({}, data);
+                const createSkeletonNodeDatum = vi.spyOn(getHeatmapCellMethods(), 'createSkeletonNodeDatum');
+
+                await updateData(data.map((cell) => ({ ...cell })));
+
+                expect(createSkeletonNodeDatum).not.toHaveBeenCalled();
+                expect(heatmap(chart).getNodeData()).toHaveLength(GRID.length - 1);
+                expectWarningsCalls().toHaveLength(1);
             });
 
             it('passes the new row to the tooltip and seriesNodeClick', async () => {
