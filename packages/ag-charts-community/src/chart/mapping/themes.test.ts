@@ -352,7 +352,7 @@ describe('themes.ts', () => {
         });
 
         it.each(Object.keys(themes) as AgChartThemeName[])('%s defaults palette.lineDashes to solid', (name) => {
-            expect(themes[name]?.().palette.lineDashes).toEqual([[]]);
+            expect(themes[name]?.().palette.lineDashes).toEqual(['solid']);
         });
 
         it.each(['ag-default', 'ag-vivid-dark'] as AgChartThemeName[])(

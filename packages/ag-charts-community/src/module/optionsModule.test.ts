@@ -1806,7 +1806,9 @@ describe('ChartOptions', () => {
                     "padding": 8,
                     "placement": "top",
                   },
-                  "lineDash": [],
+                  "lineDash": [
+                    0,
+                  ],
                   "lineDashOffset": 0,
                   "marker": {
                     "enabled": true,
@@ -1942,7 +1944,9 @@ describe('ChartOptions', () => {
                     "padding": 8,
                     "placement": "top",
                   },
-                  "lineDash": [],
+                  "lineDash": [
+                    0,
+                  ],
                   "lineDashOffset": 0,
                   "marker": {
                     "enabled": true,
@@ -2621,7 +2625,9 @@ describe('ChartOptions', () => {
                     "padding": 8,
                     "placement": "top",
                   },
-                  "lineDash": [],
+                  "lineDash": [
+                    0,
+                  ],
                   "lineDashOffset": 0,
                   "marker": {
                     "enabled": true,
@@ -2757,7 +2763,9 @@ describe('ChartOptions', () => {
                     "padding": 8,
                     "placement": "top",
                   },
-                  "lineDash": [],
+                  "lineDash": [
+                    0,
+                  ],
                   "lineDashOffset": 0,
                   "marker": {
                     "enabled": true,
@@ -3436,7 +3444,9 @@ describe('ChartOptions', () => {
                     "padding": 8,
                     "placement": "top",
                   },
-                  "lineDash": [],
+                  "lineDash": [
+                    0,
+                  ],
                   "lineDashOffset": 0,
                   "marker": {
                     "enabled": true,
@@ -3572,7 +3582,9 @@ describe('ChartOptions', () => {
                     "padding": 8,
                     "placement": "top",
                   },
-                  "lineDash": [],
+                  "lineDash": [
+                    0,
+                  ],
                   "lineDashOffset": 0,
                   "marker": {
                     "enabled": true,

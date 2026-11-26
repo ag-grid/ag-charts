@@ -92,7 +92,7 @@ export interface AgChartThemePalette {
     /**
      * The array of line dash patterns to be used by Line, Area, Range Area, Radar Line and Radar Area Series. Each series without an explicit `lineDash` takes the pattern at its series index, wrapping around when there are more series than patterns. Each pattern takes the same form as a series `lineDash`.
      *
-     * Default: `[[]]`
+     * Default: `['solid']`
      */
     lineDashes?: (PixelSize[] | AgLineDashName)[];
     /** Colours used for positive or upward values, such as rising prices in Financial Charts. */

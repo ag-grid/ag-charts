@@ -369,7 +369,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -507,7 +509,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -645,7 +649,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -1442,7 +1448,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -1909,7 +1917,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -2048,7 +2058,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -2187,7 +2199,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -2326,7 +2340,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -2465,7 +2481,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -2604,7 +2622,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -2743,7 +2763,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -5091,7 +5113,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -5229,7 +5253,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -5367,7 +5393,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -5505,7 +5533,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -5972,7 +6002,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -6121,7 +6153,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -6270,7 +6304,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -6419,7 +6455,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -6568,7 +6606,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -11358,7 +11398,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -11497,7 +11539,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -11636,7 +11680,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -11775,7 +11821,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -11914,7 +11962,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12053,7 +12103,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12192,7 +12244,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12331,7 +12385,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12470,7 +12526,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12609,7 +12667,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12748,7 +12808,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -12887,7 +12949,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -13026,7 +13090,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -13165,7 +13231,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -13304,7 +13372,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -13443,7 +13513,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -13903,7 +13975,9 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -14370,7 +14444,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -14527,7 +14603,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -14684,7 +14762,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -14841,7 +14921,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -14998,7 +15080,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -15155,7 +15239,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -15312,7 +15398,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -17705,7 +17793,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -17853,7 +17943,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -18001,7 +18093,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -18149,7 +18243,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -19585,7 +19681,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -19723,7 +19821,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -21093,7 +21193,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -21248,7 +21350,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -21403,7 +21507,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -21558,7 +21664,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -21713,7 +21821,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -21868,7 +21978,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -25766,7 +25878,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,
@@ -26271,7 +26385,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -26775,7 +26891,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": false,
@@ -27281,7 +27399,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "padding": 8,
         "placement": "top",
       },
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "enabled": true,

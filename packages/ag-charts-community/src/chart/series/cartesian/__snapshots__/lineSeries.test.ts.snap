@@ -9,7 +9,9 @@ exports[`LineSeries > AG-11673 styler > init > callbacks > params 1`] = `
         "name": "sales context",
       },
       "highlightState": "none",
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "fill": "#f3622d",
@@ -40,7 +42,9 @@ exports[`LineSeries > AG-11673 styler > init > callbacks > params 1`] = `
         "name": "expenses context",
       },
       "highlightState": "none",
-      "lineDash": [],
+      "lineDash": [
+        0,
+      ],
       "lineDashOffset": 0,
       "marker": {
         "fill": "#fba71b",
