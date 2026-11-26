@@ -1558,6 +1558,8 @@ describe('DonutSeries', () => {
                             angleKey: 'size',
                             sectorLabelKey: 'name',
                             rotation: 90,
+                            itemPadding: 0,
+                            strokeWidth: 0,
                             sectorLabel: {
                                 fontSize: 12,
                                 wrapping: 'never',

@@ -487,7 +487,7 @@ describe('sectorLabelPlacer', () => {
             node.x = placed.x;
             node.y = placed.y;
             node.setFont(fontWithSize(font, placed.fontSize));
-            return node.getLineBoxes();
+            return node.getDrawnBoxes();
         };
         let fastPath = 0;
         let hiddenByGate = 0;
@@ -521,7 +521,7 @@ describe('sectorLabelPlacer', () => {
             };
             const placeDrawn = (drawnAsFitted: boolean) =>
                 sectorLabelPlacer(anchor, wedge, padding, boxing, 0, 0, drawnAsFitted)(fit);
-            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const layouts = vi.spyOn(Text.prototype, 'getDrawnBoxes');
             const fast = placeDrawn(true);
             const fastLayouts = layouts.mock.calls.length;
             const full = placeDrawn(false);
