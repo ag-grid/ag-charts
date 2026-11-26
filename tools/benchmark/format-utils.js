@@ -105,6 +105,65 @@ function formatTable(data, headers, headerLabels, { maxWidth = 80, truncate = tr
     return table;
 }
 
+/** Slack rejects a section block whose `text` is longer than this (`invalid_blocks`). */
+const SLACK_SECTION_TEXT_LIMIT = 3000;
+
+/**
+ * Slack documents no limit for an attachment's `text`, but truncates a message's `text` past 40,000 characters and
+ * rejects an oversized attachment payload. Stay well inside the former, leaving room for the blocks.
+ */
+const SLACK_ATTACHMENT_TEXT_LIMIT = 35000;
+
+/**
+ * Join `items` between `head` and `tail`, dropping whole items from the end until the result is at most `limit`
+ * characters long. Dropped items are counted in a final `more(n)` item, so a code block keeps its closing fence and
+ * a reader can see the list was cut.
+ *
+ * @param {string[]} items
+ * @param {number} limit
+ * @param {object} [opts]
+ * @param {string} [opts.head=''] - Text before the first item.
+ * @param {string} [opts.tail=''] - Text after the last item.
+ * @param {string} [opts.separator='\n'] - Text between items.
+ * @param {(n: number) => string} [opts.more] - The item that stands in for `n` dropped items.
+ */
+function fitItems(items, limit, { head = '', tail = '', separator = '\n', more = (n) => `…and ${n} more` } = {}) {
+    const render = (count) => {
+        const kept = items.slice(0, count);
+        if (count < items.length) kept.push(more(items.length - count));
+        return head + kept.join(separator) + tail;
+    };
+    let count = items.length;
+    let text = render(count);
+    while (text.length > limit && count > 0) text = render(--count);
+    return text.slice(0, limit);
+}
+
+/**
+ * Name the first `maxNames` entries of `names`, then count the rest, e.g. `a, b, c, +4 more`.
+ *
+ * @param {string[]} names
+ * @param {number} maxNames
+ */
+function listNames(names, maxNames) {
+    const shown = names.slice(0, maxNames);
+    if (names.length > maxNames) shown.push(`+${names.length - maxNames} more`);
+    return shown.join(', ');
+}
+
+/**
+ * Count entries by group, largest group first, e.g. `item-styler-shadow-glow ×24, shadow-root ×13, +1 more`.
+ *
+ * @param {string[]} groups - The group of each entry; repeated groups are counted.
+ * @param {number} maxGroups
+ */
+function countByGroup(groups, maxGroups) {
+    const counts = new Map();
+    for (const group of groups) counts.set(group, (counts.get(group) ?? 0) + 1);
+    const ranked = [...counts].sort((a, b) => b[1] - a[1]).map(([group, n]) => `${group} ×${n}`);
+    return listNames(ranked, maxGroups);
+}
+
 /**
  * Validate that required Slack environment variables are set.
  * @returns {{ channel: string, username: string, icon_url: string }}
@@ -122,7 +181,12 @@ function requireSlackEnv() {
 }
 
 module.exports = {
+    SLACK_ATTACHMENT_TEXT_LIMIT,
+    SLACK_SECTION_TEXT_LIMIT,
+    countByGroup,
+    fitItems,
     formatPercentageChange,
     formatTable,
+    listNames,
     requireSlackEnv,
 };
