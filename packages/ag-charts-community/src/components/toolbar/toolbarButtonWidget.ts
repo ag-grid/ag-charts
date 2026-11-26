@@ -258,8 +258,9 @@ export class ToolbarButtonWidget extends ButtonWidget {
     }
 
     /**
-     * The browser restyles between the old button losing focus and the new one gaining it, so the sibling rules in the
-     * stylesheet cannot see the new focus yet and it would hold the focus ring's stacking order over the new one.
+     * Chrome restyles inside `focus()`, after the old button blurs and before the new one is focused, so the sibling
+     * rules in the stylesheet cannot see the new focus yet. The old button would then keep the focus ring's stacking
+     * order over the new button's ring for the transition, so its drop is made immediate.
      */
     private readonly onBlur = () => {
         this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');

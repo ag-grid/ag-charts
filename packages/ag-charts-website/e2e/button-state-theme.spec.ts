@@ -207,11 +207,11 @@ test.describe('shared toolbar button state', () => {
         });
 
         // Sweeping the keyboard focus right to left, the button just left lowers at once, or it covers the focus ring.
+        // Left to right the later button wins the stacking tie anyway, so that direction cannot show the fault.
         const unlock = page.getByTitle('Unlock');
         await unlock.focus();
         await page.keyboard.press('ArrowRight');
         await expect(page.getByTitle('Delete')).toBeFocused();
-        await page.waitForTimeout(TRANSITION_SETTLE_MS);
         await finishTransitions(page);
         frozen = freezeTransitions(page, '[title="Delete"]', MID_TRANSITION_MS);
         await page.keyboard.press('ArrowLeft');
