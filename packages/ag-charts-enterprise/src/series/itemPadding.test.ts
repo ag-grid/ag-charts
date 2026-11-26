@@ -905,7 +905,7 @@ describe('itemPadding', () => {
             { name: 'pyramid', options: stage('pyramid', 2), states: { highlight: stateStrokes(2 * depth).highlight } },
             {
                 name: 'heatmap',
-                options: fromCase('heatmap', { stroke: 'black', strokeWidth: 1 }),
+                options: fromCase('heatmap', { stroke: 'black', strokeWidth: 1, itemPadding: 2 }),
                 states: stateStrokes(depth),
                 items: heatmapCells,
             },
