@@ -340,6 +340,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     /** The subscriber this pass reported through: the chart's own, or a provisional stand-in. */
     validations: ChartValidations;
+    /** Whether `validations` is a stand-in made here, as opposed to one a chart already owned. */
+    private readonly provisionalValidations: boolean;
 
     /** What the options resolve to: the chart option, else the theme's, else `true`. */
     get requestedInjectStyles(): boolean {
@@ -365,6 +367,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         apiStartTime?: number,
         runtime?: ValidationsRuntime
     ) {
+        this.provisionalValidations = runtime == null;
         runtime ??= createProvisionalRuntime(new Logger());
         this.logger = runtime.logger;
         this.validations = runtime.validations;
@@ -910,8 +913,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adopt(runtime: ValidationsRuntime) {
         this.logger = runtime.logger;
-        // The chart keeps the provisional Logger, so its stand-in subscriber must stop listening or both report.
-        if (this.validations !== runtime.validations) this.validations.destroy();
+        // Only a stand-in is ours to stop: one a chart owned stays with that chart, which may have been released to a pool.
+        if (this.provisionalValidations && this.validations !== runtime.validations) this.validations.destroy();
         runtime.validations.configure(getValidations(this.processedOptions));
     }
 

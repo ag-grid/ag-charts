@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, Logger, SizeMonitor, enterpriseRegistry, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, Logger, enterpriseRegistry, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 import {
     applyContainerSize,
+    captureSizeCallbacks,
     clearInjectedHeadStyles,
     flushManager,
     getManagerElement,
@@ -1645,15 +1646,12 @@ describe('DOMManager', () => {
             'detached then attached': attachedLater(),
             'minimal mode attached before its updates settle': attachedLater('minimal'),
             'minimal mode attached after its updates settled': (create) => {
-                let onSize: ((size: { width: number; height: number }) => void) | undefined;
-                vi.spyOn(SizeMonitor.prototype, 'observe').mockImplementation((_el, callback) => {
-                    onSize = callback as typeof onSize;
-                });
+                const deliverSize = captureSizeCallbacks();
                 const container = doc.createElement('div');
                 const dm = create(doc, container, 'minimal');
                 flushManager(dm);
                 doc.body.append(container);
-                onSize?.({ width: 300, height: 300 });
+                deliverSize({ width: 300, height: 300 });
                 return { parents: [doc.document] };
             },
             'shadow root': (create) => {
@@ -2026,18 +2024,6 @@ describe('DOMManager', () => {
                 expect(getComputedStyle).not.toHaveBeenCalled();
             });
 
-            it('checks a container once it is attached, and never injects when the stylesheet is missing', () => {
-                const { rootDocument, warn, create, settle } = setup({});
-                const { dm, container } = create(false);
-                rootDocument.body.append(container);
-                dm.setDeferring(false);
-                vi.runAllTimers();
-                settle();
-
-                expect(warn).toHaveBeenCalledTimes(1);
-                expect(rootDocument.querySelectorAll('style')).toHaveLength(0);
-            });
-
             // Wherever the check first sees a connected container, a missing stylesheet ends in one warning. Some of these
             // charts get no further update on their own (fixed-size sparklines), so the check asks for the re-check.
             describe.each<[string, (s: ReturnType<typeof setup>) => void | Promise<void>]>([
@@ -2061,14 +2047,11 @@ describe('DOMManager', () => {
                 [
                     'the container size callback',
                     ({ rootDocument, create }) => {
-                        let onSize: ((size: { width: number; height: number }) => void) | undefined;
-                        vi.spyOn(SizeMonitor.prototype, 'observe').mockImplementation((_el, callback) => {
-                            onSize = callback as typeof onSize;
-                        });
+                        const deliverSize = captureSizeCallbacks();
                         const { dm, container } = create(false, 'minimal');
                         flushManager(dm);
                         rootDocument.body.append(container);
-                        onSize?.({ width: 300, height: 300 });
+                        deliverSize({ width: 300, height: 300 });
                     },
                 ],
                 [

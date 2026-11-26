@@ -1,6 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type ModuleDefinition, ModuleRegistry, SizeMonitor, enterpriseRegistry, getDocument } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry, enterpriseRegistry, getDocument } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -26,7 +26,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../chart/test/utils';
-import { getManagerSizeMonitor } from '../dom/test/domAccessors';
+import { captureSizeCallbacks, getManagerSizeMonitor } from '../dom/test/domAccessors';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 import { fakeComputedStyle, invalidOption } from '../module/test/moduleAccessors';
@@ -400,6 +400,28 @@ describe('AgCharts', () => {
                 );
             });
 
+            it('leaves the chart it releases on create able to report validation issues when it is reused', async () => {
+                AgCharts.__createSparkline(sparklineOptions()).destroy();
+                const options = sparklineOptions();
+                const theme = options.theme as AgChartTheme;
+                theme.overrides = { ...theme.overrides, common: { injectStyles: false } };
+                const swapped = AgCharts.__createSparkline(options);
+                await swapped.waitForUpdate();
+                swapped.destroy();
+                resetMockConsole();
+
+                const issueRaised = vi.fn();
+                const reused = AgCharts.__createSparkline(
+                    sparklineOptions({ validations: { issueRaised }, min: 'not a number' })
+                );
+                chart = reused as AgChartInstance<any>;
+                await reused.waitForUpdate();
+
+                expect(poolEvents()).toContain('Pool[name=sparkline]: Re-used instance');
+                expect(issueRaised).toHaveBeenCalled();
+                resetMockConsole();
+            });
+
             it('never releases or re-obtains on update, whatever the value', async () => {
                 const sparkline = AgCharts.__createSparkline(sparklineOptions({ injectStyles: false }));
                 chart = sparkline as AgChartInstance<any>;
@@ -424,10 +446,7 @@ describe('AgCharts', () => {
             it('warns once for a fixed-size chart with no stylesheet', async () => {
                 computedStyleSpy?.mockRestore();
                 enterpriseRegistry.styles = '.enterprise {}';
-                const sizeCallbacks: Array<(size: { width: number; height: number }) => void> = [];
-                vi.spyOn(SizeMonitor.prototype, 'observe').mockImplementation((_el, callback) => {
-                    sizeCallbacks.push(callback as (typeof sizeCallbacks)[number]);
-                });
+                const deliverSize = captureSizeCallbacks();
                 const detached = document.createElement('div');
                 const sparkline = AgCharts.__createSparkline(
                     sparklineOptions({ injectStyles: false, container: detached })
@@ -438,7 +457,7 @@ describe('AgCharts', () => {
 
                 // Nothing updates the chart after this attach: its size is fixed, so `parentResize` returns early.
                 document.body.append(detached);
-                for (const onSize of sizeCallbacks) onSize({ width: 200, height: 50 });
+                deliverSize({ width: 200, height: 50 });
                 await sparkline.waitForUpdate();
                 await waitForChartStability(chart);
 
