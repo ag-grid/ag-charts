@@ -695,6 +695,16 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     return graph.resolveVertexValue(vertex, defaultValueVertex);
 }
 
+/**
+ * The first operand index from which an operator reads its operands as raw values (`getVertexValue`) and grafts the
+ * one it selects when it resolves. The graph keeps those operands as single vertices rather than building their
+ * subgraphs, which would never be resolved.
+ */
+export const RAW_OPERANDS_FROM: Partial<Record<Operation, number>> = {
+    $switch: 2,
+    $applySwitch: 2,
+};
+
 // --- LOCATION ---
 
 export enum LocationOperation {
