@@ -47,6 +47,13 @@ export class AxisLabelScene extends Group {
         this.updatePosition(opts);
     }
 
+    /** How far the label's container reaches from the axis edge it was placed against, across the axis. */
+    getReach(isX: boolean, outward: 1 | -1, origin: number) {
+        const { rect } = this;
+        const [near, size] = isX ? [rect.y, rect.height] : [rect.x, rect.width];
+        return outward > 0 ? near + size - origin : origin - near;
+    }
+
     private updateLabel({ value, styles, context }: UpdateOpts) {
         const {
             fontWeight,

@@ -21,7 +21,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { BandScale, Group, type Node, Text } from 'ag-charts-core';
+import { BandScale, Group, type Node, Rect, Text } from 'ag-charts-core';
 import type { AgAnnotationValue, AgAnnotationsOptions, AgHorizontalLineAnnotation } from 'ag-charts-types';
 
 import {
@@ -2827,17 +2827,12 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The depth is the axis's ticks and tick labels, so it cannot change with the values the labels show, which made
-        // it flicker as a handle was dragged.
-        it('shades the ticks and tick labels to a fixed depth and stops short of the axis titles', async () => {
+        // The depth is that of the axis's ticks and tick labels, or of the axis labels if they are deeper, and it only
+        // grows while the annotation is selected. Following the labels as drawn made it flicker as a handle was dragged.
+        it('shades the axes to a depth that covers the axis labels, and does not shrink as a handle is dragged', async () => {
             const { axes, ...options } = withAxes();
-            const LOW_LINE: AgAnnotation = {
-                type: 'line',
-                start: { x: day(20), y: 5.4321 },
-                end: { x: day(80), y: 17.8765 },
-            };
             await prepareChart(
-                { annotations: [LINE, LOW_LINE] },
+                { annotations: [LINE] },
                 {
                     ...options,
                     axes: {
@@ -2847,20 +2842,41 @@ describe('Annotations', () => {
                 }
             );
 
-            // The depth is across the axis, so it is the shorter side of the shading.
-            const depths = () =>
-                findSceneNodes(chart, (node) => node.name === 'AnnotationSelectionAxisShading' && node.visible)
-                    .map((node) => Math.min((node as any).width, (node as any).height))
-                    .sort((a, b) => a - b);
+            const shading = () =>
+                findSceneNodes(
+                    chart,
+                    (node) => node.name === 'AnnotationSelectionAxisShading' && node.visible
+                ) as any[];
+            // The y axis's shading is the narrower of the two.
+            const yDepth = () => Math.min(...shading().map((node) => node.width));
+            const rects = () =>
+                visibleAxisLabels().map(
+                    (group) => [...(group as Group).children()].find((c) => c instanceof Rect) as any
+                );
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
-            const depth = depths();
-            expect(depth).toHaveLength(2);
+            expect(shading()).toHaveLength(2);
             await compare();
 
-            // The labels of this line have long decimals, where the other's read 25 and 75.
-            await clickDatum(50, 11.65);
-            expect(depths()).toEqual(depth);
+            // Dragging the end handle from 75 labels it with values of many digits, such as 43.2171.
+            const { x: left, y: top, width, height } = getSeriesRect(chart);
+            const end = { x: left + width * 0.8, y: top + height * 0.25 };
+            await mouseDownAction(end.x, end.y)(chart);
+            const depths = [yDepth()];
+            for (const dy of [7, 33, 61, 12, 90]) {
+                await hoverAction(end.x, end.y + dy)(chart);
+                await waitForChartStability(chart);
+                depths.push(yDepth());
+
+                // The labels of the y axis lie left of the series area, and fit within its shading.
+                for (const rect of rects().filter((r) => r.x + r.width / 2 < left)) {
+                    expect(rect.x).toBeGreaterThanOrEqual(Math.min(...shading().map((node) => node.x)) - 0.5);
+                }
+            }
+            await mouseUpAction(end.x, end.y + 90)(chart);
+
+            expect(depths.every((depth, i) => i === 0 || depth >= depths[i - 1])).toBe(true);
+            expect(depths.at(-1)).toBeGreaterThan(depths[0]);
             await compare();
         });
 

@@ -51,6 +51,10 @@ class AxisSelectionOverlay {
     // The axis's `attachLabel` identifies it: an axis that is recreated has a new one, and its layer is a new group.
     private attachedTo?: AnnotationAxisContext['attachLabel'];
     private opacity = 1;
+    // Measures the labels at the ends of the axis, which are not drawn.
+    private probe?: AxisLabelScene;
+    // The deepest the labels have reached while the shading has been shown, which it does not shrink back from.
+    private labelReach = 0;
 
     constructor() {
         // Beneath a cross-line's axis label, which has the default z-index, while the selection's own labels sit above it.
@@ -76,20 +80,58 @@ class AxisSelectionOverlay {
         const positions = [...byPixel.values()];
         const inRange = positions.filter((p) => context.inRange(p));
 
-        this.updateLabels(inRange, styles.axisLabel, selected, seriesRect, context, edge);
-        this.updateShading(positions, length, styles.axisShading, selected, seriesRect, context, edge);
+        const showLabels = isShown(styles.axisLabel.visible, selected);
+        this.updateLabels(inRange, styles.axisLabel, showLabels, seriesRect, context, edge);
+
+        // The shading is as deep as the labels it sits behind. They are wider for values of more digits, so it only
+        // grows, until the shading is hidden, rather than follow them as a handle is dragged.
+        const showShading = isShown(styles.axisShading.visible, selected) && positions.length >= 2;
+        this.labelReach =
+            showLabels && showShading
+                ? Math.max(
+                      this.labelReach,
+                      this.measureLabelReach(inRange.length, styles.axisLabel, seriesRect, context, edge)
+                  )
+                : 0;
+        this.updateShading(positions, length, styles.axisShading, selected, this.labelReach, seriesRect, context, edge);
+    }
+
+    /** How far the axis labels reach from the axis: the deepest of those drawn and of those at either end of the axis. */
+    private measureLabelReach(
+        drawn: number,
+        axisLabel: SelectionAxisStyles['axisLabel'],
+        seriesRect: BBox,
+        context: AnnotationAxisContext,
+        { isX, origin, outward }: AxisEdge
+    ) {
+        const probe = (this.probe ??= new AxisLabelScene());
+        const length = isX ? seriesRect.width : seriesRect.height;
+        let reach = 0;
+        for (const label of this.labels.slice(0, drawn)) {
+            reach = Math.max(reach, label.getReach(isX, outward, origin));
+        }
+        for (const p of [0, length]) {
+            probe.update({
+                x: isX ? seriesRect.x + p : origin,
+                y: isX ? origin : seriesRect.y + p,
+                value: getGroupingValue(invert(p, context)),
+                styles: axisLabel,
+                context,
+            });
+            reach = Math.max(reach, probe.getReach(isX, outward, origin));
+        }
+        return reach;
     }
 
     private updateLabels(
         positions: number[],
         axisLabel: SelectionAxisStyles['axisLabel'],
-        selected: boolean,
+        enabled: boolean,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin }: AxisEdge
     ) {
         const { labels } = this;
-        const enabled = isShown(axisLabel.visible, selected);
 
         // Labels are pooled: a spare one is hidden rather than removed, and there are at most a handful per axis.
         while (labels.length < positions.length) {
@@ -120,6 +162,7 @@ class AxisSelectionOverlay {
         length: number,
         axisShading: SelectionAxisStyles['axisShading'],
         selected: boolean,
+        labelReach: number,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin, outward }: AxisEdge
@@ -131,8 +174,8 @@ class AxisSelectionOverlay {
         shading.visible = isShown(axisShading.visible, selected) && positions.length >= 2 && end > start;
         if (!shading.visible) return;
 
-        // A fixed depth, the axis's ticks and tick labels, so that it does not change with the labels' values.
-        const reach = context.thickness;
+        // The axis's ticks and tick labels, or the labels if they are deeper.
+        const reach = Math.max(context.thickness, labelReach);
         const from = outward > 0 ? origin : origin - reach;
         const along = end - start;
         if (isX) {
@@ -147,6 +190,7 @@ class AxisSelectionOverlay {
     }
 
     hide() {
+        this.labelReach = 0;
         this.shading.visible = false;
         for (const label of this.labels) {
             label.visible = false;
@@ -162,6 +206,7 @@ class AxisSelectionOverlay {
     }
 
     destroy() {
+        this.probe?.destroy();
         this.shading.destroy();
         for (const label of this.labels) {
             label.destroy();
