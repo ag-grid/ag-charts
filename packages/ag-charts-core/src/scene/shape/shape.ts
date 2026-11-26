@@ -631,7 +631,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Whether the slot casts at its own `fillOpacity`, not scaled by the fill's alpha: a glow, or a shadow whose `fillOpacity` is set. */
     private castsAtOwnAlpha(slot: ShadowSlot): boolean {
         const shadow = this.getSlot(slot);
-        return shadow?.glow === true || shadow?.fillOpacitySet === true;
+        return shadow?.glow === true || shadow?._fillOpacitySet === true;
     }
 
     /** Whether the slot casts at its own alpha over a fill that is not uniformly opaque, so its silhouette is cast solid instead. */

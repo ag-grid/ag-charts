@@ -709,7 +709,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     fill: colorOrRef,
     fillOpacity: ratio,
     color: deprecated(colorOrRef, 'Use `fill` instead.'),
-    ...undocumentedDefs({ fillOpacitySet: boolean }),
+    ...undocumentedDefs({ _fillOpacitySet: themeComputed('_fillOpacitySet', boolean) }),
 };
 
 export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {

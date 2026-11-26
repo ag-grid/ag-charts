@@ -211,7 +211,7 @@ describe('HlcSeries', () => {
             );
             const shadowed = shadowedShapes(series.contentGroup);
             expect(shadowed.length).toBeGreaterThan(0);
-            expect(shadowed.map((shape) => shape.fillShadow?.fillOpacitySet === true)).toEqual(
+            expect(shadowed.map((shape) => shape.fillShadow?._fillOpacitySet === true)).toEqual(
                 shadowed.map(() => expected)
             );
         });
