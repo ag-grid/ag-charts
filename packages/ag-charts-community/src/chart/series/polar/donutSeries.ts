@@ -49,6 +49,7 @@ import {
     clockwiseAngles,
     cycledValue,
     datumKeyReader,
+    drawnItemInset,
     extractDomain,
     fitCircleToLabels,
     fitLabelTextAutoSize,
@@ -2471,12 +2472,18 @@ export class DonutSeries extends PolarSeries<
                 text.setAlign(label);
                 text.setBoxing(style);
                 const room = this.sectorLabelRooms.get(datum.datumIndex);
+                let inset: number | undefined;
                 if (room != null) {
-                    refitItemLabelNode(text, room, datum.sectorFormat.stroke, datum.drawnStrokeWidth, style);
+                    const { stroke } = datum.sectorFormat;
+                    refitItemLabelNode(text, room, stroke, datum.drawnStrokeWidth, style);
+                    inset = drawnItemInset(room, stroke, datum.drawnStrokeWidth);
                 }
 
                 // Each line answers for itself, or a boxed label's whole background, held to the wedge it was fitted to.
-                text.visible = areLineBoxesInSector(text.getDrawnBoxes(), this.sectorLabelBounds(datum, innerRadius));
+                text.visible = areLineBoxesInSector(
+                    text.getDrawnBoxes(),
+                    this.sectorLabelBounds(datum, innerRadius, inset)
+                );
             });
 
         updateSelection(this.labelSelection);

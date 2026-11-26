@@ -1380,6 +1380,10 @@ export class SunburstSeries extends HierarchySeries<
         return node;
     }
 
+    protected override itemHighlight() {
+        return this.options.highlight;
+    }
+
     protected override hasItemStylers(): boolean {
         return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }

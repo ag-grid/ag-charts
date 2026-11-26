@@ -1148,6 +1148,45 @@ describe('itemPadding', () => {
             await compareImageSnapshot(chart!, ctx);
         });
 
+        it('re-fits sunburst labels to a stroke only highlightedBranch sets', async () => {
+            // One root, so hovering it puts every sector in the hovered branch.
+            await render(
+                sunburstChart([hierarchy[0]], {
+                    ...withStroke,
+                    label: { ...FITTED, formatter: () => LONG_TEXT },
+                    highlight: { highlightedBranch: { strokeWidth: depth } },
+                })
+            );
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).not.toEqual([]);
+
+            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
+            await hoverAction(x + width / 2, y + height / 2)(chart!);
+
+            expect(drawnLabels(chart!).length).toBeGreaterThan(0);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), depth)).toEqual([]);
+            await compareImageSnapshot(chart!, ctx);
+        });
+
+        it('keeps a donut label a thinner state stroke gives more room', async () => {
+            await render(
+                sectorChart('donut', stageData, {
+                    strokes: ['black'],
+                    strokeWidth: 6,
+                    itemPadding: 2,
+                    highlight: { highlightedItem: { strokeWidth: 1 }, unhighlightedItem: { strokeWidth: 1 } },
+                })
+            );
+            const resting = drawnLabels(chart!).length;
+            expect(resting).toBeGreaterThan(0);
+
+            const { x, y, width, height } = Transformable.toCanvas(drawnLabels(chart!)[0]);
+            await hoverAction(x + width / 2, y + height / 2)(chart!);
+
+            expect(drawnLabels(chart!)).toHaveLength(resting);
+            expect(labelsTooCloseToTheirItem(chart!, shapeItems(chart!), 2)).toEqual([]);
+            await compareImageSnapshot(chart!, ctx);
+        });
+
         it('keeps an end-anchored label past an inner whisker when a state stroke stays shallower than it', async () => {
             const options = cartesian(
                 {

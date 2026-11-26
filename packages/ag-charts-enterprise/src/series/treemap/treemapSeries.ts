@@ -1574,14 +1574,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     /** Tiles are restyled through `tile.highlight` rather than the series' own `highlight`. */
-    protected override restylesItemStrokes(): boolean {
-        if (this.hasItemStylers()) return true;
-        const { enabled, highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch } =
-            this.options.tile.highlight;
-        if (!enabled) return false;
-        return [highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch].some(
-            (style) => style?.strokeWidth != null
-        );
+    protected override itemHighlight() {
+        return this.options.tile.highlight;
     }
 
     protected override hasItemStylers(): boolean {

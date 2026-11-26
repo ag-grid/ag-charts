@@ -28,6 +28,7 @@ import {
     isNumericValue,
     mergeDefaults,
     mergeGlow,
+    restylesStroke,
     toNumber,
     withoutCasts,
 } from 'ag-charts-core';
@@ -789,6 +790,21 @@ export abstract class HierarchySeries<
         isLeaf: boolean,
         isHighlight: boolean
     ): FillOptions & StrokeOptions;
+
+    /** The highlight options the items are restyled through. */
+    protected abstract itemHighlight(): { readonly enabled?: boolean } & HierarchyHighlightBuckets<{
+        stroke?: unknown;
+        strokeWidth?: number;
+    }>;
+
+    /** Reads every bucket, as a hovered node's branch and the rest of the chart are restyled apart. */
+    protected override restylesItemStrokes(): boolean {
+        if (this.hasItemStylers()) return true;
+        const { enabled, highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch } =
+            this.itemHighlight();
+        if (!enabled) return false;
+        return [highlightedItem, highlightedBranch, unhighlightedItem, unhighlightedBranch].some(restylesStroke);
+    }
 
     protected dfsFind(datumIndex: number): TNodeClass | undefined {
         const stack: TNodeClass[] = [];

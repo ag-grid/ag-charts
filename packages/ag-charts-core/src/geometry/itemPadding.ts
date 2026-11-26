@@ -26,6 +26,11 @@ export function itemStrokeDepth(stroke: unknown, strokeWidth: number | undefined
     return centred ? width / 2 : width;
 }
 
+/** Whether a state's `style` can draw an item's stroke other than at rest: it sets the stroke's colour or width. */
+export function restylesStroke(style: { stroke?: unknown; strokeWidth?: number } | undefined): boolean {
+    return style?.stroke != null || style?.strokeWidth != null;
+}
+
 /**
  * How far an in-item label is held in from its item's geometric edge. A positive `padding` is measured from the
  * edge and never puts the label over the stroke; a negative one moves the label that far into the stroke, but
@@ -81,6 +86,11 @@ export interface ItemLabelRefit {
     shiftY: number;
 }
 
+/** How far `room`'s labels are held in from its item's edge when the item is drawn with `stroke`. */
+export function drawnItemInset(room: ItemLabelRoom, stroke: unknown, strokeWidth: number | undefined): number {
+    return itemContentInset(room.padding, itemStrokeDepth(stroke, strokeWidth, room.centred));
+}
+
 /** Writes `room` re-measured for the drawn stroke into `out`; `false`, leaving `out` alone, when no edge moves. */
 export function refitItemLabelRoom(
     room: ItemLabelRoom,
@@ -88,7 +98,7 @@ export function refitItemLabelRoom(
     strokeWidth: number | undefined,
     out: ItemLabelRefit
 ): boolean {
-    const inset = itemContentInset(room.padding, itemStrokeDepth(stroke, strokeWidth, room.centred));
+    const inset = drawnItemInset(room, stroke, strokeWidth);
     const delta = inset - room.inset;
     if (delta === 0) return false;
     const anchored = itemEdgeInset(inset, room.spacing) - itemEdgeInset(room.inset, room.spacing);
