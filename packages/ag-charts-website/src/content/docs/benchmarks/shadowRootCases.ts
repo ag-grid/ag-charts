@@ -8,7 +8,7 @@ import type {
 import type { BenchmarkConfig } from './benchmarkHarness';
 import {
     ChartRef,
-    hover as hoverAt,
+    hover,
     isReleaseBelow,
     performDatumHighlight,
     performInitialLoad,
@@ -355,7 +355,7 @@ export function getShadowRootConfig(
     };
 
     const create: Operation = (chartOptions) => performInitialLoad(chartOptions, chartRef, createChart);
-    const hover: Operation = () => performDatumHighlight(chartRef.current!, container, 10);
+    const hoverItems: Operation = () => performDatumHighlight(chartRef.current!, container, 10);
 
     // Hovers ten items of the first series in turn, at the pixel that `pointAt` gives for the i-th, so that each move is within one series.
     const hoverFirstSeries =
@@ -376,7 +376,7 @@ export function getShadowRootConfig(
             const start = performance.now();
             for (let i = 0; i < 10; i++) {
                 const [x, y] = pointAt(i, rows, width, height, chartOptions);
-                hoverAt(container, x, y);
+                hover(container, x, y);
                 await waitForAsyncEventTriggeredUpdate(chartRef.current!);
             }
 
@@ -475,7 +475,7 @@ export function getShadowRootConfig(
             ] as const
         ).map(([chart, scenario]) => ({
             params: { Operation: 'Hover x10', Chart: chart },
-            run: async () => hover(await prepare(scenario, false)),
+            run: async () => hoverItems(await prepare(scenario, false)),
         }));
 
     /** The variants of `bars-large`: hovers within the first series, with the default highlight, and with the other bars not dimmed. */
@@ -515,7 +515,7 @@ export function getShadowRootConfig(
         highlight: () => ({
             id: 'highlight',
             label: 'Highlighted marker glow',
-            variants: variantsOf('highlight', { 'Hover x10': hover }),
+            variants: variantsOf('highlight', { 'Hover x10': hoverItems }),
         }),
         'many-markers': () => ({
             id: 'many-markers',
@@ -532,7 +532,7 @@ export function getShadowRootConfig(
             label: '20 series x 1,000 points, series marker glow',
             variants: variantsOf(
                 'series-glow',
-                { 'Chart Create': create, 'Chart Redraw': redraw, 'Hover x10': hover },
+                { 'Chart Create': create, 'Chart Redraw': redraw, 'Hover x10': hoverItems },
                 'Glow'
             ),
         }),
@@ -544,27 +544,27 @@ export function getShadowRootConfig(
         'item-shadow-bar': () => ({
             id: 'item-shadow-bar',
             label: '4 bar series x 20 categories, highlightedItem.shadow',
-            variants: variantsOf('item-shadow-bar', { 'Hover x10': hover }, 'Item Shadow'),
+            variants: variantsOf('item-shadow-bar', { 'Hover x10': hoverItems }, 'Item Shadow'),
         }),
         'item-shadow-heatmap': () => ({
             id: 'item-shadow-heatmap',
             label: 'Heatmap of 100 x 100 cells, highlightedItem.shadow',
-            variants: variantsOf('item-shadow-heatmap', { 'Hover x10': hover }, 'Item Shadow'),
+            variants: variantsOf('item-shadow-heatmap', { 'Hover x10': hoverItems }, 'Item Shadow'),
         }),
         'item-shadow-scatter': () => ({
             id: 'item-shadow-scatter',
             label: '10 scatter series x 5,000 points, highlightedItem.shadow',
-            variants: variantsOf('item-shadow-scatter', { 'Hover x10': hover }, 'Item Shadow'),
+            variants: variantsOf('item-shadow-scatter', { 'Hover x10': hoverItems }, 'Item Shadow'),
         }),
         'glow-gap-bar': () => ({
             id: 'glow-gap-bar',
             label: '4 bar series x 20 categories, glow.gap',
-            variants: gapVariantsOf('glow-gap-bar', { 'Chart Create': create, 'Hover x10': hover }),
+            variants: gapVariantsOf('glow-gap-bar', { 'Chart Create': create, 'Hover x10': hoverItems }),
         }),
         'glow-gap-scatter': () => ({
             id: 'glow-gap-scatter',
             label: '10 scatter series x 5,000 points, glow.gap',
-            variants: gapVariantsOf('glow-gap-scatter', { 'Chart Create': create, 'Hover x10': hover }),
+            variants: gapVariantsOf('glow-gap-scatter', { 'Chart Create': create, 'Hover x10': hoverItems }),
         }),
         'glow-gap-scatter-series': () => ({
             id: 'glow-gap-scatter-series',
