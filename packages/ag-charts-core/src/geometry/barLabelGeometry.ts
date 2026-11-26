@@ -355,7 +355,7 @@ export function applyBarLabelOrientation<TStyleDatum = object>(
             typeof insets === 'function' ? fit && insets(datum as BarPlacedLabelDatum<TStyleDatum>) : insets;
         keepPlacedItemLabelRoom(
             target,
-            itemInsets ?? undefined,
+            itemInsets,
             fit,
             candidate,
             rotation ?? 0,

@@ -33,7 +33,7 @@ export function itemLabelInsets(
 }
 
 /** Which way an anchored label's end moves in: `1` from the low side, `-1` from the high side, `0` when centred. */
-export function inwardOf(low: boolean, high: boolean): number {
+function inwardOf(low: boolean, high: boolean): number {
     if (low) return 1;
     return high ? -1 : 0;
 }
@@ -43,7 +43,7 @@ export function inwardOf(low: boolean, high: boolean): number {
  * candidate with no container. A shaped room re-fits to the candidate's shape held further in, as the engine
  * fitted it. `spacing` is the gap an anchored end keeps from its item's edge.
  */
-export function placedItemLabelRoom(
+function placedItemLabelRoom(
     out: ItemLabelSource | undefined,
     insets: ItemLabelInsets,
     fit: LabelFitDescriptor,

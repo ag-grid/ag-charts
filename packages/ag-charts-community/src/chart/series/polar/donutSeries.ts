@@ -354,7 +354,7 @@ export class DonutSeries extends PolarSeries<
     // Built only by the label solve: node data is remapped on every update, so it cannot carry the writeback.
     private labelTargets: { readonly label: PolarLabelDatum }[] = [];
     private readonly sectorLabels = new Map<number, PolarLabelDatum>();
-    /** Each sector label's room, kept while a state restyles the sectors' strokes; `font` measures a fitted box. */
+    /** Each sector label's room, kept while a state can restyle the sectors' strokes. */
     private readonly sectorLabelRooms = new Map<number, ItemLabelSource>();
     private readonly calloutLabels = new Map<number, PolarLabelDatum>();
     private readonly calloutProbeText = new Text();
@@ -1297,7 +1297,6 @@ export class DonutSeries extends PolarSeries<
         return itemLabelInsets(itemPadding, cycledValue(strokes, datumIndex), strokeWidth);
     }
 
-    /** How far a sector label is held in from its sector's edges against its resting stroke, drawn inset by half its width. */
     private sectorLabelInset(datum: PieDonutNodeDatum) {
         return this.sectorLabelInsets(datum).inset;
     }

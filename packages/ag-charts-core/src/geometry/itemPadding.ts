@@ -6,8 +6,7 @@ import type { LabelFit } from '../text/textWrapper';
 import type { BoxBounds } from './boxBounds';
 import { type FitRegion, insetFitRegion } from './fitRegion';
 
-// Every in-item label takes its room from these helpers, so `itemPadding` shrinks the room the same way everywhere.
-// Their `itemPadding` parameters take the inset {@link itemContentInset} merges from the option and the stroke.
+// The `itemPadding` parameters here take the inset {@link itemContentInset} merges from the option and the stroke.
 
 /** The width of the stroke an item draws: `0` with no stroke colour. */
 export function drawnStrokeWidth(stroke: unknown, strokeWidth: number | undefined): number {

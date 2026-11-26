@@ -716,7 +716,7 @@ export class SunburstSeries extends HierarchySeries<
                     radiusScale,
                     radialEdgeInset: sideGap(node, 0),
                     // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
-                    // centre-circle and wedge-from-centre label forms no longer apply to it.
+                    // centre-circle and wedge-from-centre label forms do not apply to it.
                     wedge: depth === 0 && hole === 0,
                     centreCircle: depth === 0 && hole === 0 && parent?.sumSize === sumSize,
                 },

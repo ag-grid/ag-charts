@@ -1450,12 +1450,13 @@ export abstract class BubbleScatterSeries<
         const highlightItem =
             this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
 
+        const insets = highlightItem == null ? undefined : this.labelItemInsets();
         const highlightLabelData =
             highlightItem == null
                 ? []
                 : this.placedLabelData
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
-                      .map((label) => this.placedLabelDatum(label, this.labelItemInsets()));
+                      .map((label) => this.placedLabelDatum(label, insets));
 
         this.highlightLabelSelection =
             this.updateLabelSelection({

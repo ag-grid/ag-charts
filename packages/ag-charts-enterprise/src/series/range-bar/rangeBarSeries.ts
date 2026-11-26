@@ -435,13 +435,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
     }
 
-    // Picked datumIndex is the bucket's midpoint (not an extrema); the helper re-derives
-    // the bucket from its xValue, which still falls within the bucket's x-range.
     private labelItemInset() {
         const { itemPadding, stroke, strokeWidth } = this.options;
         return itemContentInset(itemPadding, itemStrokeDepth(stroke, strokeWidth, false));
     }
 
+    // Picked datumIndex is the bucket's midpoint (not an extrema); the helper re-derives
+    // the bucket from its xValue, which still falls within the bucket's x-range.
     protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
         return new _ModuleSupport.BucketLookupManager({
             series: this,
