@@ -168,6 +168,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (opensWithArrowKey) {
             this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
         }
+        this.addListener('blur', this.onBlur);
     }
 
     public update(options: ToolbarButtonWidgetOptions, interactionOptions: ToolbarButtonInteractionOptions) {
@@ -253,11 +254,22 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const raising = enabled && this.isDisabled();
         if (raising) this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');
         super.setEnabled(enabled);
-        if (raising) {
-            // The transition takes its timing from the style recalculated here, before the override is removed.
-            this.elem.ownerDocument.defaultView?.getComputedStyle(this.elem).getPropertyValue('z-index');
-            this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, null);
-        }
+        if (raising) this.flushZIndexTiming();
+    }
+
+    /**
+     * The browser restyles between the old button losing focus and the new one gaining it, so the sibling rules in the
+     * stylesheet cannot see the new focus yet and it would hold the focus ring's stacking order over the new one.
+     */
+    private readonly onBlur = () => {
+        this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');
+        this.flushZIndexTiming();
+    };
+
+    /** The transition takes its timing from the style recalculated here, before the override is removed. */
+    private flushZIndexTiming() {
+        this.elem.ownerDocument.defaultView?.getComputedStyle(this.elem).getPropertyValue('z-index');
+        this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, null);
     }
 
     /** Reports whether the dialog this button opens is open. Ignored by buttons that do not open a dialog. */
