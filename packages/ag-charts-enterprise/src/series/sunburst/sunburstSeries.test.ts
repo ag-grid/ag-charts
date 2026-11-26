@@ -1,5 +1,5 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -40,6 +40,8 @@ import {
     getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
+    iconSvg,
+    preloadImages,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -1281,27 +1283,17 @@ describe('SunburstSeries', () => {
     describe('block-leading image segments (treemap parity)', () => {
         // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the slice label, text beside it.
-        const iconSvg = (letter: string) =>
-            `data:image/svg+xml;utf8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">` +
-                    `<circle cx="14" cy="14" r="12" fill="#1f77b4"/>` +
-                    `<text x="14" y="19" text-anchor="middle" font-family="Verdana" font-size="13"` +
-                    ` fill="white" font-weight="bold">${letter}</text></svg>`
-            )}`;
         const ICONS: Record<string, string> = {
-            Solar: iconSvg('S'),
-            Earth: iconSvg('E'),
-            Mars: iconSvg('M'),
-            'Gas Giants': iconSvg('G'),
-            Jupiter: iconSvg('J'),
+            Solar: iconSvg('#1f77b4'),
+            Earth: iconSvg('#ff7f0e'),
+            Mars: iconSvg('#2ca02c'),
+            'Gas Giants': iconSvg('#d62728'),
+            Jupiter: iconSvg('#9467bd'),
         };
 
         let preloaded: Record<string, SkiaImage> = {};
         beforeAll(async () => {
-            const entries = await Promise.all(
-                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
-            );
-            preloaded = Object.fromEntries(entries);
+            preloaded = await preloadImages(Object.values(ICONS));
         });
 
         it('renders a block-leading image segment in sunburst labels', async () => {

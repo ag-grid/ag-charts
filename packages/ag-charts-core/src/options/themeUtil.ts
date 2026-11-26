@@ -705,11 +705,27 @@ export const FONT_THEME_DEFAULTS = {
     fontWeight: { $ref: 'fontWeight' },
 } as const;
 
-/** A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone. */
-function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: Operation) {
+/**
+ * A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone.
+ * `fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
+ */
+function shadowFillTheme(
+    fallbackFill: Operation | string,
+    fallbackFillOpacity: Operation,
+    fallbackFillOpacitySet?: Operation
+) {
     return {
         fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
         fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
+        fillOpacitySet: {
+            $isUserOption: [
+                './fillOpacity',
+                true,
+                fallbackFillOpacitySet == null
+                    ? undefined
+                    : { $isUserOption: [['./color', './fill'], undefined, fallbackFillOpacitySet] },
+            ],
+        },
     } as const satisfies Record<string, Operation>;
 }
 
@@ -718,7 +734,11 @@ function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: 
  * `seriesShadowPath`, the theme values included.
  */
 export function inheritedShadowFillTheme(seriesShadowPath: string) {
-    return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
+    return shadowFillTheme(
+        { $path: `${seriesShadowPath}/fill` },
+        { $path: `${seriesShadowPath}/fillOpacity` },
+        { $path: `${seriesShadowPath}/fillOpacitySet` }
+    );
 }
 
 /** The `glow` of a part of a series, every field taken from the `glow` of the series at `seriesGlowPath`. */

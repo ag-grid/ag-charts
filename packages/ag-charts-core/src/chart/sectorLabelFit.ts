@@ -16,7 +16,7 @@ import {
     isPointInSector,
     sectorColumnTest,
 } from '../scene/util/sector';
-import { toTextString } from '../text/textUtil';
+import { lineHeightAtSize, toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type OverflowPlacement,
@@ -24,6 +24,7 @@ import {
     drawnLineHeight,
     findLargestFontSizeDescending,
     fontWithSize,
+    hasRealChars,
     isErased,
     keptContent,
     lostContent,
@@ -357,20 +358,56 @@ const kiteX = new Float64Array(4);
 const kiteY = new Float64Array(4);
 
 /**
- * True when no line of plain text in `font` can pass the gate in `sector`, however it is wrapped or placed: every
- * line box is a line tall (canvas font metrics belong to the font, not the string), less any negative box padding,
- * and a box whose corners pass the wedge test spans a vertical chord that long, which the sector does not have.
+ * True when no line of `text` in `font` can pass the gate in `sector`, however it is wrapped or placed: every line
+ * box is at least the {@link shortestLine} tall, less any negative box padding, and a box whose corners pass the
+ * wedge test spans a vertical chord that long, which the sector does not have.
  */
-function holdsNoLine(sector: SectorBoundaries, font: FontOptions, boxing: TextBoxingProperties) {
+function holdsNoLine(
+    sector: SectorBoundaries,
+    text: NormalisedTextOrSegments,
+    font: FontOptions,
+    boxing: TextBoxingProperties
+) {
     const { lineHeight } = font;
     // A zero or non-finite line height leaves rows a node draws with no height of their own.
     if (lineHeight != null && !(lineHeight > 0 && Number.isFinite(lineHeight))) return false;
+    const line = shortestLine(text, font);
+    if (line == null) return false;
     const boxed = boxing.fill != null || (boxing.border?.enabled === true && boxing.border.stroke != null);
     const boxPadding = resolvePadding(boxed ? boxing.padding : undefined);
-    const shortest = drawnLineHeight(font) + Math.min(0, boxPadding.top) + Math.min(0, boxPadding.bottom);
+    const shortest = line + Math.min(0, boxPadding.top) + Math.min(0, boxPadding.bottom);
     // The margin outweighs any rounding in the corners the gate tests.
     const margin = 1e-6 * (Math.max(0, sector.innerRadius, sector.outerRadius) + shortest);
     return maxVerticalChord(sector) < shortest - margin;
+}
+
+// OPTIMIZATION: the font a segment is measured in, refilled per segment rather than built for each.
+const segmentFont: FontOptions = { fontSize: 0 };
+
+/**
+ * Height of the shortest line that can show any of `text` in `font`, or `undefined` where an image, sized by its own
+ * box, leaves it unproven. Font metrics belong to the font, not the string, and a row of segments is as tall as its
+ * tallest piece, so a row showing a character is no shorter than the line of a segment holding one.
+ */
+function shortestLine(text: NormalisedTextOrSegments, font: FontOptions): number | undefined {
+    if (!isArray(text)) return drawnLineHeight(font);
+    let shortest = Infinity;
+    for (const segment of text) {
+        if (segment.type === 'image') return undefined;
+        if (!hasRealChars(segment.text)) continue;
+        // Defaulted as measureTextSegments defaults them, so the line is the one the node lays out.
+        const { fontSize = font.fontSize, fontStyle = font.fontStyle, fontWeight = font.fontWeight } = segment;
+        const { fontFamily = font.fontFamily, lineHeight = lineHeightAtSize(font, fontSize) } = segment;
+        segmentFont.fontSize = fontSize;
+        segmentFont.fontStyle = fontStyle;
+        segmentFont.fontWeight = fontWeight;
+        segmentFont.fontFamily = fontFamily;
+        segmentFont.lineHeight = lineHeight;
+        const height = drawnLineHeight(segmentFont);
+        if (!(height > 0 && Number.isFinite(height))) return undefined;
+        shortest = Math.min(shortest, height);
+    }
+    return Number.isFinite(shortest) ? shortest : undefined;
 }
 
 /** A probed wedge: the rect and region for a line height and block, and the wraps worked out in it at the floor. */
@@ -514,7 +551,16 @@ function fitSectorLabelToWedge(
 ): PlacedSectorLabel {
     // The series hides any placement a wedge this thin gets, so none is made, unless the node may be drawn in
     // another style than the one this proves against.
-    const holdsNone = (sized: FontOptions) => drawnAsFitted && !isArray(text) && holdsNoLine(sector, sized, boxing);
+    let provedFor: FontOptions | undefined;
+    let proved = false;
+    const holdsNone = (sized: FontOptions) => {
+        if (!drawnAsFitted) return false;
+        if (sized !== provedFor) {
+            provedFor = sized;
+            proved = holdsNoLine(sector, text, sized, boxing);
+        }
+        return proved;
+    };
     const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
     if (floor >= font.fontSize && holdsNone(font)) return NOT_IN_WEDGE.placed;
     const inSector = wedgeTester.reset(sector).contains;

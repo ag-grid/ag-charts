@@ -1,15 +1,20 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { sectorLabelContainer } from '../geometry/barLabelGeometry';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { Text } from '../scene/shape/text';
+import { Text, type TextBoxingProperties } from '../scene/shape/text';
 import { areLineBoxesInSector, isBoxInSector, isPointInSector } from '../scene/util/sector';
-import type { OverflowStrategy } from '../text/textWrapper';
+import { seedRandom } from '../test/random';
+import { stubPath2D } from '../test/stubPath2D';
+import { type OverflowStrategy, fontWithSize } from '../text/textWrapper';
+import type { FontOptions } from '../types/text';
 import { fitSectorLabelRect, sectorLabelPlacer, sectorLabelRoom } from './sectorLabelFit';
 
 vi.mock('../rendering/canvasUtil', async (importOriginal) =>
     (await import('../test/fixedWidthCanvas')).fixedWidthCanvasUtil(importOriginal)
 );
+
+beforeAll(stubPath2D);
 
 const sector = (midAngle: number, halfSpan: number, innerRadius: number, outerRadius: number) => ({
     startAngle: midAngle - halfSpan,
@@ -417,6 +422,122 @@ describe('sectorLabelPlacer', () => {
             expect(placeHanging(c, c.drawnAsFitted)).toEqual({ text: hangText, x: c.x, y: c.y, fontSize: undefined });
         }
     );
+
+    describe('rich text in a wedge too thin for any of its lines', () => {
+        const placeRich = (c: HangCase, text: NormalisedTextOrSegments, drawnAsFitted = true) =>
+            sectorLabelPlacer(
+                anchorAt(c.radius, c.mid),
+                sector(c.mid, c.halfSpan, c.inner, c.outer),
+                NO_PADDING,
+                {},
+                0,
+                0,
+                drawnAsFitted
+            )({ text, policy: { minimumFontSize: c.min }, font: hangFont, boundByRegion: true });
+        const mixed = [
+            { text: 'Category ' },
+            { text: '123', fontSize: 9, fontWeight: 'bold' as const },
+            { text: ' label' },
+        ];
+
+        it.each(linelessWedges)('places nothing, without laying it out, at mid $mid', (c) => {
+            expect(placeRich(c, mixed, false)).toBeDefined();
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            expect(placeRich(c, mixed)).toBeUndefined();
+            expect(layouts).not.toHaveBeenCalled();
+        });
+
+        // The mocked canvas draws every font on a 20px line, so a segment's own `lineHeight` makes the short line.
+        it.each(linelessWedges)('fits in full where one segment draws a line short enough, at mid $mid', (c) => {
+            const short = [...mixed, { text: ' tiny', lineHeight: 0.5 }];
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            expect(placeRich(c, short)).toEqual(placeRich(c, short, false));
+            expect(layouts).toHaveBeenCalled();
+        });
+
+        it.each(linelessWedges)('fits in full where it holds an image, at mid $mid', (c) => {
+            const withImage = [...mixed, image(1)];
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            expect(placeRich(c, withImage)).toEqual(placeRich(c, withImage, false));
+            expect(layouts).toHaveBeenCalled();
+        });
+    });
+
+    // The fast path only drops placements the gate hides, so every label drawn is the one the full fit draws.
+    it('shows every label the full fit shows, placed the same, across random wedges and rich text', () => {
+        const random = seedRandom(18765);
+        const pick = <T>(values: readonly T[]) => values[Math.floor(random() * values.length)];
+        const words = ['Alpha', 'Bravo 12', ' ', 'x', 'Category 123 label', 'One\nTwo', ''];
+        const segment = () => ({
+            text: pick(words),
+            ...(random() < 0.4 && { fontSize: pick([4, 8, 12, 18]) }),
+            ...(random() < 0.4 && { lineHeight: pick([0.5, 2, 6, 14, 30]) }),
+            ...(random() < 0.3 && { fontWeight: 'bold' as const }),
+            ...(random() < 0.2 && { minimumFontSize: pick([2, 6]) }),
+        });
+        const drawnBoxes = (
+            placed: { text: NormalisedTextOrSegments; x: number; y: number; fontSize?: number },
+            font: FontOptions,
+            boxing: TextBoxingProperties
+        ) => {
+            const node = new Text();
+            node.setAlign({ textAlign: 'center', textBaseline: 'middle' });
+            node.setBoxing(boxing);
+            node.text = placed.text;
+            node.x = placed.x;
+            node.y = placed.y;
+            node.setFont(fontWithSize(font, placed.fontSize));
+            return node.getLineBoxes();
+        };
+        let fastPath = 0;
+        let hiddenByGate = 0;
+        for (let i = 0; i < 1500; i += 1) {
+            const mid = random() * 2 * Math.PI;
+            const halfSpan = random() < 0.8 ? 0.0005 + random() * 0.03 : random() * 0.4;
+            const outer = 60 + random() * 260;
+            const inner = random() < 0.5 ? 0 : outer * random() * 0.9;
+            const wedge = sector(mid, halfSpan, inner, outer);
+            const anchor = anchorAt(inner + (outer - inner) * (0.2 + random() * 0.7), mid);
+            const text: NormalisedTextOrSegments =
+                random() < 0.15 ? pick(words) : Array.from({ length: 1 + Math.floor(random() * 3) }, segment);
+            const font: FontOptions = {
+                fontSize: pick([6, 12, 16]),
+                fontFamily: 'sans-serif',
+                ...(random() < 0.3 && { lineHeight: pick([3, 12, 24]) }),
+            };
+            const pad = random() < 0.5 ? 0 : pick([-6, -2, 3]);
+            const extent = Math.max(0, pad);
+            const padding = { top: extent, right: extent, bottom: extent, left: extent };
+            const boxing: TextBoxingProperties = random() < 0.4 ? { fill: 'red', padding: pad } : {};
+            const fit = {
+                text,
+                policy: {
+                    overflowStrategy: pick([undefined, 'ellipsis', 'hide'] as const),
+                    wrapping: pick([undefined, 'never', 'always', 'on-space'] as const),
+                    minimumFontSize: pick([undefined, undefined, 4, 8]),
+                },
+                font,
+                boundByRegion: true,
+            };
+            const placeDrawn = (drawnAsFitted: boolean) =>
+                sectorLabelPlacer(anchor, wedge, padding, boxing, 0, 0, drawnAsFitted)(fit);
+            const layouts = vi.spyOn(Text.prototype, 'getLineBoxes');
+            const fast = placeDrawn(true);
+            const fastLayouts = layouts.mock.calls.length;
+            const full = placeDrawn(false);
+            const rich = Array.isArray(text);
+            if (rich && fastLayouts === 0 && layouts.mock.calls.length > 0) fastPath += 1;
+            layouts.mockRestore();
+            if (fast == null && full != null) {
+                if (rich) hiddenByGate += 1;
+                expect(areLineBoxesInSector(drawnBoxes(full, font, boxing), wedge)).toBe(false);
+            } else {
+                expect(fast).toEqual(full);
+            }
+        }
+        expect(fastPath).toBeGreaterThan(100);
+        expect(hiddenByGate).toBeGreaterThan(100);
+    });
 
     it('places a preserved label that fits whole where a hiding one goes, as it did before overflow', () => {
         // The first pass, against the estimated block, loses text that the re-placed pass fits whole.

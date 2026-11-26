@@ -352,6 +352,8 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
+    /** The category the placed label takes as an obstacle; `label` when unset. */
+    readonly obstacleCategory?: ObstacleCategory;
     /** Placed labels sharing a group never block one another. */
     readonly labelGroup?: string;
     /** Gives way only to placed labels and obstacles that {@link outranks outrank} it. */
@@ -384,12 +386,12 @@ export interface PointLabelDatum {
 }
 
 /** Obstacles drawn over series shapes: a label sitting on its own shape is not excused from them. */
-export type OverlayObstacleCategory = 'errorBar';
+export type OverlayObstacleCategory = 'errorBar' | 'crossLineLabel' | 'regionLabel';
 
 export type ObstacleCategory = 'marker' | 'label' | 'shape' | 'axisLabel' | OverlayObstacleCategory;
 
 function isOverlayCategory(category: ObstacleCategory): category is OverlayObstacleCategory {
-    return category === 'errorBar';
+    return category === 'errorBar' || category === 'crossLineLabel' || category === 'regionLabel';
 }
 
 /** Per-category toggle: `false` disables avoidance of that obstacle category. */
@@ -402,6 +404,8 @@ export interface LabelAvoidance {
     /** Opt-in, unlike the other categories: only `true` makes axis tick labels obstacles. */
     readonly axisLabel?: boolean;
     readonly errorBar?: boolean;
+    readonly crossLineLabel?: boolean;
+    readonly regionLabel?: boolean;
 }
 
 /**
@@ -483,7 +487,8 @@ export function labelsAvoidAxisLabels(labelData: ReadonlyMap<string, SeriesLabel
 
 /** Inverts the user-facing `collideWith` flags, where `true` allows overlap, into what a label avoids. */
 export function resolveLabelAvoidance(collision: NormalisedErrorBarSeriesLabelCollisionOptions): LabelAvoidance {
-    const { markers, labels, shapes, seriesArea, axisLabels, errorBars } = collision.collideWith ?? {};
+    const { markers, labels, shapes, seriesArea, axisLabels, errorBars, crossLineLabels, regionLabels } =
+        collision.collideWith ?? {};
     return {
         marker: markers !== true,
         label: labels !== true,
@@ -491,6 +496,8 @@ export function resolveLabelAvoidance(collision: NormalisedErrorBarSeriesLabelCo
         seriesArea: seriesArea !== true,
         axisLabel: axisLabels !== true,
         errorBar: errorBars !== true,
+        crossLineLabel: crossLineLabels !== true,
+        regionLabel: regionLabels !== true,
     };
 }
 
@@ -1830,14 +1837,14 @@ function labelObstacleBoxInto(out: BoxBounds, placed: PlacedLabel): BoxBounds {
 
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
-    const { labelGroup, outranks } = placed.datum;
+    const { labelGroup, outranks, obstacleCategory = 'label' } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
             kind: 'rect',
             box: { x: 0, y: 0, width: 0, height: 0 },
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
-            category: 'label',
+            category: obstacleCategory,
             labelGroup,
             outranks,
             poolIndex: count,
@@ -1852,6 +1859,7 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
         };
         labelObstaclePool.push(obstacle);
     } else {
+        obstacle.category = obstacleCategory;
         obstacle.labelGroup = labelGroup;
         obstacle.outranks = outranks;
     }

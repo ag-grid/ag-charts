@@ -1223,6 +1223,8 @@ describe('highlight glow', () => {
             describe('parity of the routes that cast a glow', () => {
                 const TRANSLUCENT = { fill: 'rgba(255, 0, 0, 0.5)', fillOpacity: 1, strokeWidth: 0, size: 24 };
                 const TRANSLUCENT_FILL = 'rgba(255, 0, 0, 0.5)';
+                // The glow takes the colour of the item and leaves out its alpha, which is the item's fill alpha.
+                const OPAQUE_FILL = 'rgb(255, 0, 0)';
                 const PARITY_CASES = [
                     ['bar', SERIES[0]],
                     ['marker', SERIES[3]],
@@ -1247,13 +1249,13 @@ describe('highlight glow', () => {
                     describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
                         const spread = glow({ spread: 4, blur: 0 });
 
-                        it('applies the alpha of the colour to both the colour and the strength', async () => {
+                        it('casts the colour of the item at the strength of the glow, whatever the alpha of the colour', async () => {
                             const [red, green, blue, alpha] = await glowPixel(testCase, spread, drawingMode, undefined);
 
-                            // A half of a half, over white: 255 * (1 - 0.25).
+                            // A glow with a `fillOpacity` of 1 is solid red over white, not red at the half of the item's alpha.
                             expect(red).toBe(255);
-                            expect(Math.abs(green - 191)).toBeLessThanOrEqual(2);
-                            expect(Math.abs(blue - 191)).toBeLessThanOrEqual(2);
+                            expect(green).toBeLessThanOrEqual(2);
+                            expect(blue).toBeLessThanOrEqual(2);
                             expect(alpha).toBe(255);
                         });
 
@@ -1263,7 +1265,7 @@ describe('highlight glow', () => {
                                 const inferred = await glowPixel(testCase, spread, drawingMode, canTint);
                                 const explicit = await glowPixel(
                                     testCase,
-                                    { ...spread, fill: TRANSLUCENT_FILL },
+                                    { ...spread, fill: OPAQUE_FILL },
                                     drawingMode,
                                     canTint
                                 );
@@ -1369,7 +1371,7 @@ describe('highlight glow', () => {
                 });
 
                 it.each([undefined, false])(
-                    'fades the glow with the gradient, and does not cast a uniform block, with tinting %s',
+                    'casts the glow at its own strength through the transparent end of the gradient, with tinting %s',
                     async (canTint) => {
                         const [, testCase, options] = PAINTS[0];
                         const sample = async (bucketGlow: object) => {
@@ -1383,10 +1385,12 @@ describe('highlight glow', () => {
                         const none = await sample(NO_GLOW);
 
                         // The gradient is opaque at one end, which hides a glow of its own colour, and transparent at the other,
-                        // where a glow that fades with it adds nothing, but a uniform block would add its full colour.
-                        for (let end = 0; end < 2; end++)
-                            for (let i = 0; i < 4; i++)
-                                expect(Math.abs(cast[end][i] - none[end][i])).toBeLessThanOrEqual(8);
+                        // where the glow shows at its own strength, as it does through any see-through item.
+                        const differences = cast.map((pixel, end) =>
+                            Math.max(...pixel.map((v, i) => Math.abs(v - none[end][i])))
+                        );
+                        expect(Math.min(...differences)).toBeLessThanOrEqual(8);
+                        expect(Math.max(...differences)).toBeGreaterThan(8);
                     }
                 );
             });

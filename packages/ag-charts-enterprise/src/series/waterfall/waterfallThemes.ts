@@ -155,6 +155,8 @@ function itemTheme(
                     shapes: inherited('collision/collideWith/shapes', 5),
                     seriesArea: inherited('collision/collideWith/seriesArea', 5),
                     axisLabels: inherited('collision/collideWith/axisLabels', 5),
+                    crossLineLabels: inherited('collision/collideWith/crossLineLabels', 5),
+                    regionLabels: inherited('collision/collideWith/regionLabels', 5),
                 },
             },
             insideStyle: placementStyle('insideStyle'),
