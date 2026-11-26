@@ -1,6 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type ModuleDefinition, ModuleRegistry, getDocument } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry, enterpriseRegistry, getDocument } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -24,6 +24,7 @@ import {
     resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from '../chart/test/utils';
 import { getManagerSizeMonitor } from '../dom/test/domAccessors';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
@@ -410,6 +411,41 @@ describe('AgCharts', () => {
                 expect(modeOf(sparkline)).toBe(false);
                 expect(warnCount(CHANGED(false))).toBe(1);
             });
+        });
+
+        describe('detached clones', () => {
+            afterEach(() => {
+                enterpriseRegistry.styles = undefined;
+            });
+
+            // The check runs once per root and marker; no other test here checks the enterprise marker, so an
+            // earlier check of the document cannot hide one on the clone.
+            it.each(['getImageDataURL', 'download'] as const)(
+                '%s in static mode neither checks for a stylesheet nor warns',
+                async (method) => {
+                    computedStyleSpy?.mockRestore();
+                    enterpriseRegistry.styles = '.enterprise {}';
+                    const wrapperReads = vi.spyOn(globalThis, 'getComputedStyle');
+                    const detached = document.createElement('div');
+                    chart = AgCharts.create({ ...barOptions({ injectStyles: false }), container: detached });
+                    await waitForChartStability(chart);
+                    expect(detached.isConnected).toBe(false);
+                    const before = styleCount();
+                    // `download()` saves a file through an anchor click, which jsdom does not implement.
+                    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+                    await chart[method]({ width: 200, height: 150 });
+
+                    click.mockRestore();
+                    expect(
+                        wrapperReads.mock.calls.filter(
+                            ([el]) => el instanceof Element && el.classList.contains('ag-charts-wrapper')
+                        )
+                    ).toHaveLength(0);
+                    expect(styleCount()).toBe(before);
+                    wrapperReads.mockRestore();
+                }
+            );
         });
     });
 
