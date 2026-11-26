@@ -100,7 +100,8 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         '*': { frameworks: ['vanilla'] },
         // Each button creates or moves extra sparkline charts, leaving the first chart untouched.
         'sparkline-reflow': { frameworks: ['vanilla'], skipCanvasUpdateCheck: true },
-        'sparkline-detached-styles': { frameworks: ['vanilla'], skipCanvasUpdateCheck: true },
+        // Its buttons leave 61 charts, too many for the tooltip sweep's timeout; sparkline-detached-styles.spec.ts covers it.
+        'sparkline-detached-styles': { frameworks: [] },
     },
     'sync-e2e': {
         '*': { frameworks: ['vanilla'] },
