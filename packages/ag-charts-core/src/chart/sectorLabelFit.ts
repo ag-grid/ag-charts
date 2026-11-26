@@ -49,10 +49,13 @@ export interface SectorLabelRect {
     readonly anchored?: boolean;
 }
 
-/** Size a sector label's text wrapped to, as measured on the node that will draw it; a trial height has no width. */
+/** Size a sector label's text actually wrapped to, as measured on the node that will draw it. */
 export interface BlockSize {
+    /** Absent from a trial block that goes to the wedge's widest band. */
     readonly width?: number;
     readonly height: number;
+    /** A block tried for text that lost content: its width only bounds the band it goes to, so it never anchors. */
+    readonly trial?: boolean;
 }
 
 // A box taller than one line by this ratio is treated as multi-line and fitted to a horizontal band
@@ -95,7 +98,7 @@ export function fitSectorLabelRect(
     if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height };
     }
-    if (block?.width != null && fitsOnAnchor(anchor, sector, block.width, height)) {
+    if (block?.width != null && !block.trial && fitsOnAnchor(anchor, sector, block.width, height)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height, anchored: true };
     }
     if (height > lineHeight * SECTOR_MULTILINE_HEIGHT_RATIO) {
@@ -198,8 +201,6 @@ export interface SectorLabelRoom {
     readonly area: number;
     /** Widest total advance the wedge could hold at `lineHeight`, stacking as many whole lines as it fits. */
     capacityAt(lineHeight: number): number;
-    /** Most whole lines `lineHeight` tall the wedge's bands could stack. */
-    linesAt(lineHeight: number): number;
 }
 
 /**
@@ -210,17 +211,16 @@ export interface SectorLabelRoom {
  */
 export function sectorLabelRoom(anchor: Point, sector: SectorBoundaries, lineHeight: number): SectorLabelRoom {
     if (Math.hypot(anchor.x, anchor.y) < 1e-6) {
-        // No bisector to seed the bands from, so the wedge goes unmeasured: it rejects no font size and offers no band.
-        return { area: Infinity, capacityAt: () => Infinity, linesAt: () => 0 };
+        // No bisector to seed the bands from, so the wedge goes unmeasured and no font size is rejected.
+        return { area: Infinity, capacityAt: () => Infinity };
     }
     const { bands } = sectorBands(anchor, sector, lineHeight);
     const step = (2 * sector.outerRadius) / BAND_STEPS;
     const widest = bands.map((band) => band.width).toSorted((a, b) => b - a);
-    const linesAt = (height: number) => Math.floor((widest.length * step) / height);
     return {
         area: widest.reduce((total, width) => total + width * step, 0),
-        capacityAt: (height: number) => widest.slice(0, linesAt(height)).reduce((total, width) => total + width, 0),
-        linesAt,
+        capacityAt: (height: number) =>
+            widest.slice(0, Math.floor((widest.length * step) / height)).reduce((total, width) => total + width, 0),
     };
 }
 
@@ -452,7 +452,7 @@ function samePlacement(a: PlacedSectorLabel, b: PlacedSectorLabel) {
 
 function sameBlock(a: BlockSize | undefined, b: BlockSize | undefined) {
     if (a == null || b == null) return a === b;
-    return a.width === b.width && a.height === b.height;
+    return a.width === b.width && a.height === b.height && Boolean(a.trial) === Boolean(b.trial);
 }
 
 /** A plain fixed-size label whose padded single line the wedge holds at the anchor, where the full fit settles. */
@@ -587,15 +587,6 @@ function fitSectorLabelToWedge(
         if (blocked?.lineHeight !== lineHeight || !sameBlock(blocked.block, block)) blocked = probe(lineHeight, block);
         return blocked;
     };
-    let measured: SectorLabelRoom | undefined;
-    let measuredLineHeight = Number.NaN;
-    const roomFor = (lineHeight: number) => {
-        if (measured == null || measuredLineHeight !== lineHeight) {
-            measured = sectorLabelRoom(anchor, sector, lineHeight);
-            measuredLineHeight = lineHeight;
-        }
-        return measured;
-    };
     wedgeLabel += 1;
     const padX = Math.max(padding.left, padding.right);
     const padY = Math.max(padding.top, padding.bottom);
@@ -641,55 +632,74 @@ function fitSectorLabelToWedge(
         if (first == null) {
             return { placed: { text: '', x: 0, y: 0 }, inWedge: false };
         }
-        let { placed, rectHeight } = first;
+        let placed = first.placed;
         // Re-placing trades one shape of room for another, so the passes are candidates rather than
         // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
         let best = undefined as PlacedSectorLabel | undefined;
         let bestKept = 0;
+        let bestWidth = 0;
         let laid: PlacedSectorLabel | undefined;
         let laidBoxes: readonly BBox[] = [];
-        const consider = (candidate: PlacedSectorLabel) => {
-            // More clearance often places the same text in the same spot, which lays out as it did before.
-            const boxes = laid != null && samePlacement(laid, candidate) ? laidBoxes : layout(candidate, sized);
-            laid = candidate;
-            laidBoxes = boxes;
-            const inWedge = areLineBoxesInSector(boxes, sector);
-            const kept = inWedge ? keptContent(candidate.text) : 0;
-            // A later pass ties only by placing the same text better, so equal candidates prefer it.
-            if (kept > 0 && kept >= bestKept) {
-                best = candidate;
-                bestKept = kept;
+        const settle = (start: { placed: PlacedSectorLabel; rectHeight: number }) => {
+            let rectHeight: number;
+            ({ placed, rectHeight } = start);
+            for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && showsContent(placed.text); attempt += 1) {
+                // More clearance often places the same text in the same spot, which lays out as it did before.
+                const boxes = laid != null && samePlacement(laid, placed) ? laidBoxes : layout(placed, sized);
+                laid = placed;
+                laidBoxes = boxes;
+                const inWedge = areLineBoxesInSector(boxes, sector);
+                const kept = inWedge ? keptContent(placed.text) : 0;
+                const drawn = BBox.merge(boxes);
+                // A later pass ties only by placing the same text better, so equal candidates prefer it.
+                if (kept > 0 && kept >= bestKept) {
+                    best = placed;
+                    bestKept = kept;
+                    bestWidth = drawn.width;
+                }
+                if (inWedge && block != null && Math.abs(drawn.height - rectHeight) < HEIGHT_CONVERGED) {
+                    break;
+                }
+                const nextInset = inWedge
+                    ? inset
+                    : WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
+                // A block cut to its room fits there by construction, so it may steer the search but not anchor it.
+                const trial = lostContent(text, placed.text);
+                const nextBlock = inWedge ? { width: drawn.width, height: drawn.height, trial } : block;
+                // Nothing the next placement reads has moved, so it would fit the same text in the same place.
+                if (nextInset === inset && sameBlock(nextBlock, block)) {
+                    break;
+                }
+                inset = nextInset;
+                block = nextBlock;
+                const next = place(sized, atFloor, overflow, inset, block);
+                if (next == null) {
+                    break;
+                }
+                ({ placed, rectHeight } = next);
             }
-            return inWedge;
         };
-        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && showsContent(placed.text); attempt += 1) {
-            const inWedge = consider(placed);
-            // A block cut to its room fits there by construction, so it neither settles nor steers the search.
-            const whole = inWedge && !lostContent(text, placed.text);
-            const drawn = BBox.merge(laidBoxes);
-            if (whole && block != null && Math.abs(drawn.height - rectHeight) < HEIGHT_CONVERGED) {
-                break;
-            }
-            const nextInset = inWedge ? inset : WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
-            const nextBlock = whole ? { width: drawn.width, height: drawn.height } : block;
-            // Nothing the next placement reads has moved, so it would fit the same text in the same place.
-            if (nextInset === inset && sameBlock(nextBlock, block)) {
-                break;
-            }
-            inset = nextInset;
-            block = nextBlock;
-            const next = place(sized, atFloor, overflow, inset, block);
-            if (next == null) {
-                break;
-            }
-            ({ placed, rectHeight } = next);
-        }
+        settle(first);
+        // Text lost to the room found so far may fit a taller block, in the nearest band as wide or else the widest;
+        // only a block that keeps more text moves the label.
+        const settled = best;
+        const settledKept = bestKept;
+        const settledLast = placed;
         const lineHeight = drawnLineHeight(sized);
-        const lines = truncated(best ?? placed) ? roomFor(lineHeight).linesAt(lineHeight) : 0;
-        // Text lost to one line's room may fit a taller block centred in the wedge's widest band for it.
+        const tallest = truncated(best ?? placed)
+            ? Math.min(maxVerticalChord(sector), 2 * Math.abs(sector.outerRadius))
+            : 0;
+        const lines = Math.floor(tallest / lineHeight);
         for (let count = 2; count <= lines && truncated(best ?? placed); count += 1) {
-            const next = place(sized, atFloor, overflow, inset, { height: count * lineHeight });
-            if (next != null && showsContent(next.placed.text)) consider(next.placed);
+            for (let pass = 0; pass < 2 && truncated(best ?? placed); pass += 1) {
+                block = { width: pass === 0 ? bestWidth : undefined, height: count * lineHeight, trial: true };
+                const next = place(sized, atFloor, overflow, inset, block);
+                if (next != null) settle(next);
+            }
+        }
+        if (bestKept <= settledKept) {
+            best = settled;
+            placed = settledLast;
         }
         // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
         // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
@@ -709,7 +719,7 @@ function fitSectorLabelToWedge(
     };
     if (floor >= font.fontSize) return placeInWedge(font, true).placed;
     // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
-    const room = roomFor(drawnLineHeight(fontWithSize(font, floor)));
+    const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
     // The floor rung is always placed, so its placement is the fallback rather than placed twice.
     let atFloorPlaced: PlacedSectorLabel | undefined;
     // A smaller size can reflow into a wider block, so the ladder is scanned down rather than bisected.
