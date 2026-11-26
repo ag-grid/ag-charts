@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { AgDocument, EventEmitter, Logger, SizeMonitor, enterpriseRegistry, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../core/eventsHub';
-import { VERSION } from '../version';
 import { DOMManager } from './domManager';
 import {
     applyContainerSize,
@@ -15,6 +14,8 @@ import {
     stubScrollableOverflow,
     zeroPaddingComputedStyle,
 } from './test/domAccessors';
+
+const TEST_VERSION = '14.0.0-test';
 
 describe('DOMManager', () => {
     const doc = new AgDocument(getDocument());
@@ -1738,7 +1739,7 @@ describe('DOMManager', () => {
                         undefined,
                         mode,
                         undefined,
-                        injectStyles === false ? { logger, version: VERSION } : undefined
+                        injectStyles === false ? { logger, version: TEST_VERSION } : undefined
                     );
                     dm.updateCSSVariableWatchers({ 'var(--static-color)': 'red' });
                     return dm;
@@ -1776,7 +1777,7 @@ describe('DOMManager', () => {
                     undefined,
                     undefined,
                     undefined,
-                    { logger, version: VERSION }
+                    { logger, version: TEST_VERSION }
                 );
                 return { dm, warn };
             };
@@ -1905,13 +1906,10 @@ describe('DOMManager', () => {
                 const { rootDocument, agDocument } = newRoot();
                 const hub: EventsHub = new EventEmitter();
                 const { logger, warn } = spyOnLogger();
-                const getComputedStyle = vi.spyOn(doc.window, 'getComputedStyle').mockImplementation(
-                    () =>
-                        ({
-                            ...zeroPaddingComputedStyle(),
-                            getPropertyValue: (name: string) => markers[name] ?? '',
-                        })
-                );
+                const getComputedStyle = vi.spyOn(doc.window, 'getComputedStyle').mockImplementation(() => ({
+                    ...zeroPaddingComputedStyle(),
+                    getPropertyValue: (name: string) => markers[name] ?? '',
+                }));
                 const create = (connected = true) => {
                     const container = rootDocument.createElement('div');
                     if (connected) rootDocument.body.append(container);
@@ -1924,7 +1922,7 @@ describe('DOMManager', () => {
                         skipCss,
                         undefined,
                         undefined,
-                        { logger, version: VERSION }
+                        { logger, version: TEST_VERSION }
                     );
                     return { dm, container };
                 };
@@ -1952,7 +1950,7 @@ describe('DOMManager', () => {
                 );
                 // The check and its re-check, whatever the number of charts.
                 const wrapperReads = getComputedStyle.mock.calls.filter(([el]) =>
-                    (el).classList.contains('ag-charts-wrapper')
+                    el.classList.contains('ag-charts-wrapper')
                 );
                 expect(wrapperReads).toHaveLength(2);
             });
@@ -1998,14 +1996,14 @@ describe('DOMManager', () => {
 
                 expect(warn).toHaveBeenCalledTimes(1);
                 expect(warn).toHaveBeenCalledWith(
-                    `the loaded AG Charts stylesheet is version 1.2.3, but AG Charts is version ${VERSION}. Load the stylesheet that matches this version.`
+                    `the loaded AG Charts stylesheet is version 1.2.3, but AG Charts is version ${TEST_VERSION}. Load the stylesheet that matches this version.`
                 );
             });
 
             it('stays silent for a stylesheet of the same version', () => {
                 const { warn, create, settle } = setup({
                     '--ag-charts-css-loaded': '1',
-                    '--ag-charts-css-version': `"${VERSION}"`,
+                    '--ag-charts-css-version': `"${TEST_VERSION}"`,
                 });
                 create();
                 settle();

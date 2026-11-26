@@ -284,8 +284,9 @@ describe('AgCharts', () => {
             chart = await createChart(barOptions({ injectStyles }));
 
             expect(modeOf(chart)).toBe(mode);
-            // Injecting adds to the document's `<head>` or the chart's own DOM; static adds nothing anywhere.
-            expect(styleCount() === before).toBe(!mode);
+            // Static adds nothing anywhere. Injecting may add nothing too: the document keeps the styles an
+            // earlier chart injected, so only the static side is asserted.
+            if (!mode) expect(styleCount()).toBe(before);
         });
 
         it('resolves the mode from the theme when the option is unset', async () => {
