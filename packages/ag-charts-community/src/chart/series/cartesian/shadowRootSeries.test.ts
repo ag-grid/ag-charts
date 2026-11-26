@@ -1,10 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type MockInstance, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { Group, Transformable } from 'ag-charts-core';
+import { Transformable } from 'ag-charts-core';
 import type { Node, Shape } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
+import {
+    expectRootFailures,
+    withoutRoot as failRootCast,
+    isHalfBlack,
+    shadowAt,
+} from '../../../util/test/shadowPixels';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { expectSamePixels } from '../../test/expectSamePixels';
 import { getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
@@ -18,19 +24,8 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-// A shadow with no blur and an exact offset, so that the alpha of a pixel is the strength of the shadow cast on it.
-const shadowAt = (xOffset: number, yOffset = 0): AgDropShadowOptions => ({
-    enabled: true,
-    fill: 'rgba(0, 0, 0, 0.5)',
-    xOffset,
-    yOffset,
-    blur: 0,
-});
-
 const RED = [255, 0, 0, 255];
 const WHITE = [255, 255, 255, 255];
-
-const isHalfBlack = (pixel: number[]) => pixel.slice(0, 3).every((channel) => Math.abs(channel - 128) <= 2);
 
 const AXES = {
     x: { ...STRIPPED_NUMBER_AXES.x, type: 'number' as const, min: 0, max: 10 },
@@ -42,6 +37,7 @@ describe('cartesian series shadow root', () => {
     setupMockCanvas();
 
     let chart: Chart | undefined;
+    let rootSpy: MockInstance | undefined;
 
     beforeEach(() => {
         chart = undefined;
@@ -50,7 +46,12 @@ describe('cartesian series shadow root', () => {
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        vi.restoreAllMocks();
+        if (rootSpy != null) {
+            // Only the spy is restored: restoring every mock would disarm the console check that setupMockConsole makes.
+            expectRootFailures();
+            rootSpy.mockRestore();
+            rootSpy = undefined;
+        }
     });
 
     const create = async (options: AgChartOptions) => {
@@ -91,9 +92,9 @@ describe('cartesian series shadow root', () => {
     const itemCentres = (seriesIndex: number) =>
         itemBoxes(seriesIndex).map(({ x, y, width, height }) => ({ x: x + width / 2, y: y + height / 2 }));
 
-    /** Gathers nothing for the root to cast, so that every group batches its own shadows, as it does without a root. */
+    /** Makes the root's cast fail, so that every group batches its own shadows, as it does without a root. */
     const withoutRoot = () => {
-        vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+        rootSpy = failRootCast();
     };
 
     /** Raises the highlight on the first item of a series, as the pointer would, which dims the other series. */
@@ -240,14 +241,19 @@ describe('cartesian series shadow root', () => {
         });
 
         it('should not stack the shadow, whatever the number of areas', async () => {
-            const copies = Array.from({ length: 6 }, (_, i) => ({
-                type: 'area' as const,
-                xKey: 'x',
-                yKey: i % 2 === 0 ? 'low' : 'high',
-                fillOpacity: 1,
-                ...(i === 0 ? { marker: { enabled: true } } : {}),
-                shadow: SHADOW,
-            }));
+            const copies = Array.from({ length: 6 }, (_, i) => {
+                // One fill for each key, markers included, as series that share a legend label have.
+                const fill = i % 2 === 0 ? 'red' : 'blue';
+                return {
+                    type: 'area' as const,
+                    xKey: 'x',
+                    yKey: i % 2 === 0 ? 'low' : 'high',
+                    fill,
+                    fillOpacity: 1,
+                    marker: { enabled: i === 0, fill },
+                    shadow: SHADOW,
+                };
+            });
             await create({ ...areas, series: copies } as AgCartesianChartOptions);
 
             expect(isHalfBlack(besideBothAreas())).toBe(true);
@@ -598,7 +604,7 @@ describe('cartesian series shadow root', () => {
                 const [second] = itemCentres(1);
                 const cast = shadow ?? {
                     ...shadowAt(Math.round(first.x - second.x), Math.round(first.y - second.y)),
-                    color: SOLID,
+                    fill: SOLID,
                 };
                 await create(lines(cast));
                 await hoverSeries(2);

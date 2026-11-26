@@ -25,6 +25,12 @@ const HEIGHT = 220;
 const RED_HALF = redHalfShadow(60);
 const UNUSABLE = { ...RED_HALF, blur: Number.NaN };
 
+const maxByte = ({ data }: { data: ArrayLike<number> }) => {
+    let max = 0;
+    for (let i = 0; i < data.length; i++) max = Math.max(max, data[i]);
+    return max;
+};
+
 const square = (x: number, y: number, mixin: Partial<Rect> = {}) => box(x, y, 60, 60, mixin);
 
 const group = (batchShadows: Group['batchShadows'], children: readonly Node[], mixin: Partial<Group> = {}) => {
@@ -1301,6 +1307,88 @@ describe('Shadow root', () => {
         });
     });
 
+    describe('a chart whose shadows are large', () => {
+        // A layer of 12M pixels, which a scratch canvas holds. A scene keeps up to 8.39M pixels of shadows between redraws.
+        const LAYER_WIDTH = 4000;
+        const LAYER_HEIGHT = 3000;
+        // The shadow of a caster is the size of the caster, as it is offset and not blurred: 6.44M pixels is within what a scene
+        // keeps, and 10.08M is over it.
+        const WITHIN = { width: 2800, height: 2300 };
+        const OVER = { width: 3600, height: 2800 };
+
+        setupMockCanvas({ width: LAYER_WIDTH, height: LAYER_HEIGHT });
+
+        const large = (size: { width: number; height: number }, shadowRoot = true) => {
+            const caster = new TestRect();
+            Object.assign(caster, { x: 20, y: 20, ...size, fill: 'black', fillShadow: RED_HALF });
+            const root = new TranslatableGroup({ name: 'root', shadowRoot });
+            root.appendChild(group('shared', [caster]));
+            const scene = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
+            scene.resize(LAYER_WIDTH, LAYER_HEIGHT, 1);
+            scene.setRoot(root);
+            scenes.push(scene);
+            return { caster, root, scene };
+        };
+
+        const imageOf = (scene: Scene) => scene.canvas.context.getImageData(0, 0, LAYER_WIDTH, LAYER_HEIGHT);
+
+        /** Renders `count` frames that change nothing, and returns how many masks each drew. */
+        const clean = (scene: Scene, root: Group, count: number) =>
+            Array.from({ length: count }, () => redraw(scene, root));
+
+        it('should draw no masks on a clean frame after the first, and the pixels of a direct cast', () => {
+            const { root, scene } = large(WITHIN);
+            scene.render();
+            const direct = imageOf(scene);
+            expect(maxByte(direct)).toBeGreaterThan(0);
+
+            // The first redraw keeps the shadows, as the second cast of a root does.
+            const [, ...kept] = clean(scene, root, 4);
+
+            expect(kept).toEqual([0, 0, 0]);
+            expectSamePixels(imageOf(scene), direct);
+        });
+
+        it('should draw the masks again when a caster changes, and keep the new shadows for the frames after', () => {
+            const { caster, root, scene } = large(WITHIN);
+            scene.render();
+            clean(scene, root, 3);
+
+            caster.width -= 10;
+            const [changed, ...after] = clean(scene, root, 3);
+
+            expect(changed).toBeGreaterThan(0);
+            expect(after.at(-1)).toBe(0);
+        });
+
+        it('should draw a mask on every frame when the shadows are over what a scene keeps, as the groups would', () => {
+            const { root, scene } = large(OVER);
+            scene.render();
+            const direct = imageOf(scene);
+
+            expect(clean(scene, root, 4).every((masks) => masks > 0)).toBe(true);
+
+            const local = large(OVER, false);
+            local.scene.render();
+            expectSamePixels(imageOf(scene), direct);
+            expectSamePixels(imageOf(local.scene), direct, 1);
+        });
+
+        it('should keep the shadows again once the chart shrinks to within what a scene keeps', () => {
+            const { caster, root, scene } = large(OVER);
+            scene.render();
+            expect(clean(scene, root, 3).every((masks) => masks > 0)).toBe(true);
+
+            Object.assign(caster, WITHIN);
+            const frames = clean(scene, root, 4);
+
+            expect(frames.at(-1)).toBe(0);
+            const reference = large(WITHIN);
+            reference.scene.render();
+            expectSamePixels(imageOf(scene), imageOf(reference.scene));
+        });
+    });
+
     describe('after the groups cast for themselves', () => {
         it('should cast through the root again, with nothing kept by the groups it covers', () => {
             const before = new Set(canvasCtx.getActiveOffscreenCanvasInstances());
@@ -1497,6 +1585,27 @@ describe('Shadow root', () => {
                     expect(at(scene, 20 + i * 70 + 20, 56)).toEqual([...rgb, 255]);
                 }
                 expect(at(scene, 40, 48)).toEqual([0, 0, 0, 0]);
+            });
+
+            it('should draw the glow around items that repeat a colour, in the colour of each, and make one mask for each colour', () => {
+                const order = [0, 1, 0, 2, 1, 0];
+                const nodes = () =>
+                    order.map((colour, i) =>
+                        group('shared', [
+                            square(10 + i * 62, 60, { fill: COLOURS[colour], width: 40, height: 40, fillShadow: GLOW }),
+                        ])
+                    );
+
+                expect(blitsOf(nodes)).toBe(3);
+                const scene = draw(true, nodes);
+                for (const [i, colour] of order.entries()) {
+                    const [red, green, blue] = [
+                        [255, 0, 0],
+                        [0, 255, 0],
+                        [0, 0, 255],
+                    ][colour];
+                    expect(at(scene, 10 + i * 62 + 20, 56)).toEqual([red, green, blue, 255]);
+                }
             });
 
             it('should cast the glow of a translucent item at its own strength, not that of its alpha', () => {

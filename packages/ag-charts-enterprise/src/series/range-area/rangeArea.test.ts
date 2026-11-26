@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type MockInstance, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -30,6 +30,7 @@ import {
     expectMonotonic,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
+    expectRootFailures,
     expectSceneTrajectory,
     expectWarningsCalls,
     getSeriesAt,
@@ -43,12 +44,14 @@ import {
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
+    shadowAt,
     spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
     withUndocumentedOptions,
+    withoutRoot,
 } from 'ag-charts-community-test';
-import { Group, type Shape, Transformable } from 'ag-charts-core';
+import { type Shape, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -62,15 +65,6 @@ import type { RangeAreaMarkerDatum } from './rangeAreaUtil';
 
 const RED = [255, 0, 0];
 const HALF_BLACK = [128, 128, 128];
-
-// A shadow with no blur, so that the colour of a pixel is the strength of the shadows cast on it.
-const shadowAt = (xOffset: number, yOffset = 0) => ({
-    enabled: true,
-    fill: 'rgba(0, 0, 0, 0.5)',
-    xOffset,
-    yOffset,
-    blur: 0,
-});
 
 // The test data rows are keyed by `month`; the datum type keeps its row opaque.
 type ClickableMarkerDatum = RangeAreaMarkerDatum & { datum: { month: string | Date } };
@@ -1869,14 +1863,26 @@ describe('RangeAreaSeries', () => {
             return count;
         };
 
+        let rootSpy: MockInstance | undefined;
+
+        /** Makes the root's cast fail, so that each series casts its own. */
+        const failRootCast = () => {
+            rootSpy = withoutRoot();
+        };
+
         /** Creates the chart with the root unable to cast, if `rootCasts` is false, so that each series casts its own. */
         const render = async (series: AgRangeAreaSeriesOptions[], rootCasts: boolean) => {
-            if (!rootCasts) vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+            if (!rootCasts) failRootCast();
             chart = await createEnterpriseChart(options(series));
         };
 
         afterEach(() => {
-            vi.restoreAllMocks();
+            if (rootSpy == null) return;
+
+            // Only the spy is restored: restoring every mock would disarm the console check that setupMockConsole makes.
+            expectRootFailures();
+            rootSpy.mockRestore();
+            rootSpy = undefined;
         });
 
         it('should not draw the shadow of a later range-area over an earlier one', async () => {
@@ -2001,7 +2007,7 @@ describe('RangeAreaSeries', () => {
                 const through = pixelAt(chartCanvas, x, y + 20);
 
                 chart = destroyChart(chart);
-                vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+                failRootCast();
                 await dim(SOLID);
                 const local = pixelAt(chartCanvas, x, y + 20);
 

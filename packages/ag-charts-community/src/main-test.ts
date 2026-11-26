@@ -30,6 +30,7 @@ export * from './chart/test/glowRender';
 export * from './chart/test/glowRenderSuite';
 export { byteDifference, differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
 export * from './chart/test/solidFills';
+export { expectRootFailures, isHalfBlack, shadowAt, withoutRoot } from './util/test/shadowPixels';
 export * from './chart/test/prepareOptions';
 export { optionAt } from './module/test/moduleAccessors';
 export * from './chart/test/syncFixtures';

@@ -1,4 +1,9 @@
-import { Rect } from 'ag-charts-core';
+import { vi } from 'vitest';
+
+import { Rect, Shape } from 'ag-charts-core';
+import type { AgDropShadowOptions } from 'ag-charts-types';
+
+import { expectWarningsCalls } from './mockConsole';
 
 export const BLACK = [0, 0, 0, 255];
 
@@ -31,3 +36,37 @@ export const box = (x: number, y: number, width: number, height: number, mixin: 
     Object.assign(node, { x, y, width, height, fill: 'black', stroke: undefined, strokeWidth: 0, ...mixin });
     return node;
 };
+
+/** A shadow of half-opaque black with no blur, so that the colour of a pixel is the strength of the shadows cast on it. */
+export const shadowAt = (xOffset: number, yOffset = 0): AgDropShadowOptions => ({
+    enabled: true,
+    fill: 'rgba(0, 0, 0, 0.5)',
+    xOffset,
+    yOffset,
+    blur: 0,
+});
+
+/** Whether a pixel is black at half strength, as left by one shadow of {@link shadowAt} on white, give or take rounding. */
+export const isHalfBlack = (pixel: Pixel) => pixel.slice(0, 3).every((channel) => Math.abs(channel - 128) <= 2);
+
+const ROOT_FAILURE = 'Error during the shadow root pass';
+
+/**
+ * Makes the cast of the shadow root fail once it has gathered what to cast, so that every group casts its own shadows,
+ * as it does when the root can't cast. Only a key of the root reads the strength of its casters when there is no spread.
+ * The root warns of the failure, which {@link expectRootFailures} checks and clears.
+ */
+export const withoutRoot = () =>
+    vi.spyOn(Shape.prototype, 'getSpreadMaskStrength').mockImplementation(() => {
+        throw new Error('The root cannot cast');
+    });
+
+/** Checks that every warning so far was of the root failing, as {@link withoutRoot} makes it, and that there was one. */
+export function expectRootFailures() {
+    const onlyRootFailures = {
+        asymmetricMatch: (calls: unknown[][]) =>
+            calls.length > 0 && calls.every(([message]) => String(message).includes(ROOT_FAILURE)),
+        toString: () => `at least one warning, and every one of them "${ROOT_FAILURE}"`,
+    };
+    expectWarningsCalls().toEqual(onlyRootFailures);
+}
