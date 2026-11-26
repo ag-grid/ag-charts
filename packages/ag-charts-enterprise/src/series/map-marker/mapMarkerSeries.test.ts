@@ -1195,7 +1195,7 @@ describe('MapMarkerSeries', () => {
 
             const drawn = getSeriesLabelTexts(chart, 1).filter((text) => text.visible);
             expect(drawn).toHaveLength(ukData.length);
-            for (const text of drawn) expect(String(text.text).length).toBeGreaterThan(0);
+            expect(drawn.map((text) => text.text)).toEqual(expect.arrayContaining(ukData.map(({ name }) => name)));
         });
     });
 });
