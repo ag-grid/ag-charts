@@ -1,0 +1,84 @@
+{
+    "//": "Accepted axe-core findings for the CI scan (e2e/a11y-axe.spec.ts). Each group lists every example explicitly: no wildcards. A (rule, example) pair covers both the load and focus passes. Remove an entry once the report lists it as stale; add one only with a reason. See scripts/a11y/axe-allowlist.ts.",
+    "groups": [
+        {
+            "rule": "aria-command-name",
+            "ticket": "AG-19323",
+            "reason": "Chart titles, subtitles and footnotes render as role=button with their text inside a presentational SVG, so axe finds no accessible name. AG-19323 tracks whether this is an axe false positive or needs an aria-label.",
+            "examples": [
+                "accessibility-e2e/axe-kitchen-sink",
+                "annotations/annotations-toolbar",
+                "box-plot-series/simple-box-plot",
+                "candlestick-series/simple-candlestick",
+                "chord-series/simple-chord",
+                "context-menu/context-menu",
+                "financial-charts/financial-charts-showcase",
+                "funnel-series/simple-funnel",
+                "heatmap-series/simple-heatmap",
+                "navigator/navigator",
+                "radar-line-series/simple-radar-line",
+                "range-bar-series/simple-range-bar",
+                "sankey-series/simple-sankey",
+                "sunburst-series/labels",
+                "sync/basic-sync",
+                "treemap-series/labels",
+                "waterfall-series/simple-waterfall"
+            ]
+        },
+        {
+            "rule": "label-content-name-mismatch",
+            "reason": "Fires only on the financial charts showcase; the cause has not been investigated yet.",
+            "examples": [
+                "financial-charts/financial-charts-showcase"
+            ]
+        },
+        {
+            "rule": "landmark-one-main",
+            "reason": "Fires only on sync/basic-sync, which hosts two charts in a bare wrapper div with no main landmark; the cause has not been investigated further.",
+            "examples": [
+                "sync/basic-sync"
+            ]
+        },
+        {
+            "rule": "page-has-heading-one",
+            "reason": "Fires only on sync/basic-sync, which hosts two charts in a bare wrapper div with no h1; the cause has not been investigated further.",
+            "examples": [
+                "sync/basic-sync"
+            ]
+        },
+        {
+            "rule": "region",
+            "reason": "Fires on every scanned example: each is a standalone example page whose chart sits outside any landmark region. It is a page-level finding rather than a chart defect.",
+            "examples": [
+                "accessibility-e2e/axe-kitchen-sink",
+                "annotations/annotations-toolbar",
+                "area-series/simple-area",
+                "bar-series/grouped-category-bar",
+                "box-plot-series/simple-box-plot",
+                "bubble-series/simple-bubble",
+                "candlestick-series/simple-candlestick",
+                "chord-series/simple-chord",
+                "context-menu/context-menu",
+                "financial-charts/financial-charts-showcase",
+                "funnel-series/simple-funnel",
+                "heatmap-series/simple-heatmap",
+                "legend/legend-pagination",
+                "line-series/simple-line",
+                "maps/world-colour-map",
+                "navigator/navigator",
+                "pie-series/simple-pie",
+                "radar-line-series/simple-radar-line",
+                "radial-gauge/fill",
+                "range-bar-series/simple-range-bar",
+                "sankey-series/simple-sankey",
+                "scatter-series/simple-scatter",
+                "sunburst-series/labels",
+                "sync/basic-sync",
+                "tooltips/default-tooltip",
+                "treemap-series/labels",
+                "waterfall-series/simple-waterfall",
+                "zoom/zoom-buttons"
+            ]
+        }
+    ]
+}

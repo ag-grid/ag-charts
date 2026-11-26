@@ -8,6 +8,7 @@ import {
     renderAxeReportHtml,
     renderAxeReportMarkdown,
 } from '../../scripts/a11y/axe-report';
+import { loadAxeAllowlist } from './axe-allowlist';
 
 const REPORT_DIR = resolve(__dirname, '../../../../reports/a11y');
 
@@ -24,7 +25,7 @@ export default class AxeReporter implements Reporter {
     onEnd() {
         if (this.results.size === 0) return;
 
-        const report = groupAxeResults(Array.from(this.results.values()));
+        const report = groupAxeResults(Array.from(this.results.values()), loadAxeAllowlist());
         mkdirSync(REPORT_DIR, { recursive: true });
         writeFileSync(join(REPORT_DIR, 'axe-report.json'), JSON.stringify(report, null, 2));
         writeFileSync(join(REPORT_DIR, 'axe-report.html'), renderAxeReportHtml(report));
@@ -32,7 +33,7 @@ export default class AxeReporter implements Reporter {
 
         // eslint-disable-next-line no-console
         console.log(
-            `axe: ${report.rules.length} rules violated across ${report.examplesScanned} examples (${report.scanErrors.length} scan errors) - ${REPORT_DIR}`
+            `axe: ${report.rules.length} rules violated across ${report.examplesScanned} examples (${report.scanErrors.length} scan errors, ${report.staleAllowlistEntries.length} stale allowlist entries) - ${REPORT_DIR}`
         );
     }
 }

@@ -116,7 +116,7 @@ describe('renderAxeReportMarkdown', () => {
         );
 
         expect(markdown).toContain('1 examples scanned, 1 rules violated, 1 scan errors (axe 4.13.0)');
-        expect(markdown).toContain('| [region](https://example.com/region) | moderate | 1 | 2 | 1 / 1 |');
+        expect(markdown).toContain('| [region](https://example.com/region) | moderate | 1 | 1 | 2 | 1 / 1 |');
         expect(markdown).toContain('- bar-series/simple (focus): Timed out \\| after 35000ms');
     });
 
