@@ -5,7 +5,7 @@ import {
     type LabelFitOptions,
     type LabelStackBlock,
     type NormalisedTextOrSegments,
-    resolveLabelFit,
+    resolveAlwaysLabelFit,
 } from 'ag-charts-core';
 import type { AgChartLabelCollisionOptions, PaddingOptions } from 'ag-charts-types';
 
@@ -30,7 +30,7 @@ export function autoSizedLabelFit(
     boxPadding: Required<PaddingOptions>
 ): LabelFitDescriptor {
     const alwaysShow = label.collision?.alwaysShow === true;
-    const policy: LabelFit = resolveLabelFit(label, !alwaysShow) ?? {};
+    const policy: LabelFit = resolveAlwaysLabelFit(label, !alwaysShow);
     return {
         text,
         policy,

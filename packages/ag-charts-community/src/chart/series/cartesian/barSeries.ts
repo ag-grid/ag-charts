@@ -349,6 +349,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         };
     }
 
+    protected override getUnsetHighlightOpacity() {
+        return 1;
+    }
+
     override connectsToYAxis = true;
 
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();

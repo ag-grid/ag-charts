@@ -6,6 +6,9 @@ import type { FillStrokeMorph, NormalisedDropShadowOptions, NormalisedLineDash }
 
 export type NormalisedSeriesMarkerStyle = Normalised<AgSeriesMarkerStyle, never, FillStrokeMorph & NormalisedLineDash>;
 
+/** The style of a marker hidden until it is selected; shared, so a series can tell it from a styler's result. */
+export const HIDDEN_MARKER_STYLE: NormalisedSeriesMarkerStyle & { size: number } = Object.freeze({ size: 0 });
+
 export type NormalisedSeriesMarkerStylerParams<TDatum, TContext> = Normalised<
     AgSeriesMarkerStylerParams<TDatum, TContext>,
     never,

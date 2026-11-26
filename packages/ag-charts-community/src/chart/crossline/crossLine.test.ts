@@ -17,7 +17,7 @@ import {
     getDocument,
     mapValues,
 } from 'ag-charts-core';
-import { expectWarningsCalls } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
@@ -28,6 +28,7 @@ import type {
     AgCrossLineClickParams,
     AgCrossLineListeners,
     AgNumberAxisOptions,
+    AgSeriesLabelCollideWithOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -56,15 +57,14 @@ import {
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
-import { getCrossLineFittedLabel, getCrossLinesPlugin } from './test/crossLineAccessors';
+import { getCrossLineFittedLabel, getCrossLineLabelNode, getCrossLinesPlugin } from './test/crossLineAccessors';
 import * as examples from './test/examples';
 
 type ViFn = ReturnType<typeof vi.fn>;
 
-// `overflow` and `reserveSpace` are undocumented, so they are cast in rather than typed on the options.
-const undocumentedLabel = (
-    label: AgCartesianCrossLineLabelOptions & { overflow?: CrossLineLabelOverflow; reserveSpace?: boolean }
-) => label as AgCartesianCrossLineLabelOptions;
+// `overflow` is undocumented, so it is cast in rather than typed on the options.
+const undocumentedLabel = (label: AgCartesianCrossLineLabelOptions & { overflow?: CrossLineLabelOverflow }) =>
+    label as AgCartesianCrossLineLabelOptions;
 
 const labelPositions: CrossLineLabelPosition[] = [
     'top',
@@ -455,12 +455,10 @@ function crossLineLabelText(chart: Chart, axisId: string): string {
     return String(crossLineLabelNode(chart, axisId).text ?? '');
 }
 
-/** The label node of the first cross line on the axis. */
 function crossLineLabelNode(chart: Chart, axisId: string): TransformableText {
-    const [crossLine] = crossLineInstancesOf(chart, axisId);
-    // The label group holds the cross line's label and nothing else (`CartesianCrossLine.crossLineLabel`).
-    const [node] = crossLine.labelGroup.children();
-    return node as TransformableText;
+    const node = getCrossLineLabelNode(chart.axes.findById(axisId)!);
+    expect(node).toBeDefined();
+    return node!;
 }
 
 describe('CrossLine', () => {
@@ -1917,7 +1915,7 @@ describe('CrossLine', () => {
                 await createChart(
                     overflowChart(
                         { overflow: 'pad-chart' },
-                        { overflow: 'realign-text' },
+                        { overflow: 'realign-text', label: 'x range underneath' },
                         { overflow: 'pad-chart', label: 'A'.repeat(400) },
                         { overflow: 'realign-text' }
                     )
@@ -1930,8 +1928,8 @@ describe('CrossLine', () => {
     describe('label collision', () => {
         type SmallLabel = Parameters<typeof undocumentedLabel>[0];
 
-        // Two labels above the same x value: a small one, reserved unless overridden, and a large one
-        // that overlaps it and pads the chart further.
+        // Two labels above the same x value: a small one, and a large one that overlaps it and pads the
+        // chart further.
         function collisionChart({
             alwaysShow = false,
             defaultPlacement = false,
@@ -1956,7 +1954,7 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: smallValue,
-                                label: undocumentedLabel({ text: 'A', fontSize: 10, reserveSpace: true, ...small }),
+                                label: undocumentedLabel({ text: 'A', fontSize: 10, ...small }),
                             },
                             {
                                 type: 'line',
@@ -2015,9 +2013,7 @@ describe('CrossLine', () => {
         });
 
         it('hides a label behind another droppable cross line label', async () => {
-            chart = deproxy(
-                await createChart(collisionChart({ small: { reserveSpace: false, collision: { alwaysShow: false } } }))
-            );
+            chart = deproxy(await createChart(collisionChart({ small: { collision: { alwaysShow: false } } })));
 
             expect(labelsShown()).toEqual([true, false]);
         });
@@ -2105,7 +2101,7 @@ describe('CrossLine', () => {
         it('shows a hidden label again once a resize clears what it collided with', async () => {
             const container = getDocument().createElement('div');
             getDocument().body.append(container);
-            const options = prepareTestOptions(collisionChart({ values: [3, 6] }), container);
+            const options = prepareTestOptions(collisionChart({ values: [4, 6] }), container);
             delete options.width;
             delete options.height;
             // Bespoke: custom container, and the size is removed after preparation.
@@ -2130,7 +2126,7 @@ describe('CrossLine', () => {
     describe('label placement', () => {
         type PlacedLabelOptions = Parameters<typeof undocumentedLabel>[0];
 
-        // Blockers reserve their space on a y-axis line, so the label under test must avoid them.
+        // Blockers sit on the same y-axis line, so the label under test must avoid them.
         function placementChart(
             placed: PlacedLabelOptions | undefined,
             blockers: PlacedLabelOptions['placement'][] = []
@@ -2138,7 +2134,7 @@ describe('CrossLine', () => {
             const blockerLines = blockers.map((placement) => ({
                 type: 'line' as const,
                 value: 5,
-                label: undocumentedLabel({ text: 'BLOCKER', fontSize: 20, placement, reserveSpace: true }),
+                label: undocumentedLabel({ text: 'BLOCKER', fontSize: 20, placement }),
             }));
             const placedLine = placed == null ? [] : [{ type: 'line' as const, value: 5, label: placed }];
             return {
@@ -2216,7 +2212,7 @@ describe('CrossLine', () => {
             const blocker = (text: string, fontSize: number, placement: 'inside-left' | 'inside-right') => ({
                 type: 'line' as const,
                 value: 5,
-                label: undocumentedLabel({ text, fontSize, placement, reserveSpace: true }),
+                label: undocumentedLabel({ text, fontSize, placement }),
             });
             const options = placementChart({
                 text: 'PLACED',
@@ -2356,6 +2352,8 @@ describe('CrossLine', () => {
                                     label: {
                                         text: 'A LONG CROSS LINE LABEL',
                                         fontSize: 20,
+                                        wrapping: 'never',
+                                        truncate: false,
                                         placement: ['top', 'right-top'],
                                     },
                                 },
@@ -2420,17 +2418,27 @@ describe('CrossLine', () => {
         });
     });
 
-    describe('AG-8901: label space reservation', () => {
+    describe('series labels avoiding cross line labels', () => {
         // Every datum shares a y value, so the series labels form one row across the cross line's own
-        // position — the arrangement that puts them in the way whenever the label is not reserved.
+        // position, which puts them in the way whenever they may overlap the cross line label.
         function reservationChart(
             label: Partial<AgCartesianCrossLineLabelOptions>,
-            reserveSpace: boolean
+            avoided: boolean,
+            collideWith: AgSeriesLabelCollideWithOptions = { crossLineLabels: !avoided }
         ): AgCartesianChartOptions {
             return {
                 data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
                 series: [
-                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            placement: ['bottom', 'top'],
+                            collision: { collideWith },
+                        },
+                    },
                 ],
                 axes: {
                     x: { type: 'number', position: 'bottom' },
@@ -2441,7 +2449,7 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: 50,
-                                label: undocumentedLabel({ placement: 'inside', ...label, reserveSpace }),
+                                label: { placement: 'inside', ...label },
                             },
                         ],
                     },
@@ -2459,9 +2467,8 @@ describe('CrossLine', () => {
                 .map((node) => Transformable.toCanvas(node));
         }
 
-        it('keeps series labels clear of a cross line label that reserves its space', async () => {
-            const build = (reserveSpace: boolean) =>
-                reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, reserveSpace);
+        it('keeps series labels clear of a cross line label unless they may overlap it', async () => {
+            const build = (avoided: boolean) => reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, avoided);
 
             const clearOfCrossLine = () => {
                 const crossLineBox = crossLineLabelBox('y');
@@ -2481,16 +2488,69 @@ describe('CrossLine', () => {
             await chart.publicApi!.update({ ...build(true), title: { text: 'relayout' } });
             const relaidOut = clearOfCrossLine();
 
-            // Guards the assertions below: without the opt-in the labels must genuinely be in the way.
+            // Guards the assertions below: when allowed to overlap, the labels must genuinely be in the way.
             expect(off.overlapping).toBeGreaterThan(0);
             expect(on.overlapping).toBe(0);
             expect(on.shown).toBeGreaterThan(0);
             expect(relaidOut.overlapping).toBe(0);
         });
 
+        it('keeps series labels clear of a cross line label when they may overlap other labels', async () => {
+            chart = deproxy(
+                await createChart(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true, { labels: true }))
+            );
+
+            const crossLineBox = crossLineLabelBox('y');
+            const shown = shownSeriesLabelBoxes();
+            expect(shown.length).toBeGreaterThan(0);
+            expect(shown.filter((box) => box.collidesBBox(crossLineBox))).toHaveLength(0);
+        });
+
+        it('moves a bar label off a cross line label drawn over its own bar', async () => {
+            const barChart = (crossLineLabels: boolean): AgCartesianChartOptions => ({
+                data: [{ x: 'A', y: 50 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            placement: ['inside-center', 'outside-end'],
+                            collision: { collideWith: { crossLineLabels } },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        min: 0,
+                        max: 100,
+                        crossLines: [
+                            { type: 'line', value: 25, label: { text: 'CROSSLINE LABEL', placement: 'inside' } },
+                        ],
+                    },
+                },
+            });
+            const barLabelOverlaps = () => {
+                const [label] = shownSeriesLabelBoxes();
+                expect(label).toBeDefined();
+                return label.collidesBBox(crossLineLabelBox('y'));
+            };
+
+            chart = deproxy(await createChart(barChart(true)));
+            const allowed = barLabelOverlaps();
+            await chart.publicApi!.update(barChart(false));
+
+            expect(allowed).toBe(true);
+            expect(barLabelOverlaps()).toBe(false);
+        });
+
         it('reserves a rotated label the space it actually occupies', async () => {
-            const build = (reserveSpace: boolean) =>
-                reservationChart({ text: 'ROTATED CROSSLINE LABEL', fontSize: 30, rotation: 90 }, reserveSpace);
+            const build = (avoided: boolean) =>
+                reservationChart({ text: 'ROTATED CROSSLINE LABEL', fontSize: 30, rotation: 90 }, avoided);
 
             const geometry = () => {
                 const drawn = crossLineLabelBox('y');
@@ -2527,7 +2587,9 @@ describe('CrossLine', () => {
             const axis = chart.axes.findById('y')!;
             const plugin = getCrossLinesPlugin(axis)!;
 
-            expect(plugin.labelSources[0].getLabelData(BBox.zero)).toMatchObject([{ obstacle: true }]);
+            expect(plugin.labelSources[0].getLabelData(BBox.zero)).toMatchObject([
+                { obstacleCategory: 'crossLineLabel' },
+            ]);
 
             const version = plugin.nodeDataVersion;
             await chart.publicApi!.update({
@@ -2542,18 +2604,24 @@ describe('CrossLine', () => {
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });
 
-        // One chart per reservation state, each carrying an upright reserved label, a rotated one on a
-        // range cross line on the other axis, and an unreserved label the series labels may overlap.
-        function packedReservationChart(reserveSpace: boolean): AgCartesianChartOptions {
+        // One chart per avoidance state, each carrying two upright labels and a rotated one on a range
+        // cross line on the other axis.
+        function packedReservationChart(avoided: boolean): AgCartesianChartOptions {
+            const collision = { collideWith: { crossLineLabels: !avoided } };
             return {
                 data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50, y2: Math.sin(i / 2) * 15 + 80 })),
                 series: [
-                    { type: 'line', xKey: 'x', yKey: 'y', label: { enabled: true, placement: ['bottom', 'top'] } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { enabled: true, placement: ['bottom', 'top'], collision },
+                    },
                     {
                         type: 'line',
                         xKey: 'x',
                         yKey: 'y2',
-                        label: { enabled: true, placement: ['top', 'bottom'] },
+                        label: { enabled: true, placement: ['top', 'bottom'], collision },
                     },
                 ],
                 axes: {
@@ -2568,13 +2636,12 @@ describe('CrossLine', () => {
                                 strokeWidth: 1,
                                 fill: 'green',
                                 fillOpacity: 0.1,
-                                label: undocumentedLabel({
-                                    text: 'ROTATED RESERVED',
+                                label: {
+                                    text: 'ROTATED',
                                     fontSize: 40,
                                     rotation: 90,
                                     placement: 'inside-top',
-                                    reserveSpace,
-                                }),
+                                },
                             },
                         ],
                     },
@@ -2590,19 +2657,14 @@ describe('CrossLine', () => {
                                 value: 50,
                                 stroke: 'red',
                                 strokeWidth: 1,
-                                label: undocumentedLabel({
-                                    text: 'RESERVED',
-                                    fontSize: 40,
-                                    placement: 'inside',
-                                    reserveSpace,
-                                }),
+                                label: { text: 'UPRIGHT', fontSize: 40, placement: 'inside' },
                             },
                             {
                                 type: 'line',
                                 value: 80,
                                 stroke: 'blue',
                                 strokeWidth: 1,
-                                label: { text: 'NEVER RESERVED', fontSize: 24, placement: 'inside' },
+                                label: { text: 'SECOND', fontSize: 24, placement: 'inside' },
                             },
                         ],
                     },
@@ -2610,12 +2672,12 @@ describe('CrossLine', () => {
             };
         }
 
-        it('renders series labels clear of every cross line label that reserves its space', async () => {
+        it('renders series labels clear of every cross line label', async () => {
             chart = deproxy(await createChart(packedReservationChart(true)));
             await compare();
         });
 
-        it('renders series labels over cross line labels that reserve nothing', async () => {
+        it('renders series labels over cross line labels with collideWith.crossLineLabels', async () => {
             chart = deproxy(await createChart(packedReservationChart(false)));
             await compare();
         });
@@ -3785,5 +3847,150 @@ describe('CrossLine label fitting', () => {
         );
 
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    describe('series-area bound', () => {
+        const LONG_WORDS = 'Quarterly revenue forecast review '.repeat(30).trim();
+        const rangeWith = (label: AgCartesianCrossLineLabelOptions): AgCartesianCrossLineOptions => ({
+            type: 'range',
+            range: [2, 4],
+            label: { text: LONG_WORDS, ...label },
+        });
+        const longLine = (label: AgCartesianCrossLineLabelOptions) => lineWith({ text: LONG_WORDS, ...label });
+
+        // Labels pad the chart, so the series length is read from a chart without them.
+        const unpaddedSeriesLength = async (rotation: number | undefined) => {
+            const reference = deproxy(await createChart(fitChart(longLine({}), 'x', { x: { crossLines: [] } })));
+            const { width, height } = getSeriesRect(reference);
+            reference.destroy();
+            return rotation === 90 ? height : width;
+        };
+
+        it.each<[string, 'x' | 'y', AgCartesianCrossLineOptions, number | undefined]>([
+            ['a vertical line at top', 'x', longLine({ placement: 'top' }), undefined],
+            ['a vertical line at inside', 'x', longLine({ placement: 'inside' }), undefined],
+            ['a horizontal line at left', 'y', longLine({ placement: 'left' }), undefined],
+            ['a horizontal line at inside', 'y', longLine({ placement: 'inside' }), undefined],
+            ['a rotated vertical line', 'x', longLine({ placement: 'top', rotation: 90 }), 90],
+            ['a vertical line at 45°', 'x', longLine({ placement: 'top', rotation: 45 }), undefined],
+            ['a horizontal line at 45°', 'y', longLine({ placement: 'left', rotation: 45 }), undefined],
+            ['a range at top', 'x', rangeWith({ placement: 'top' }), undefined],
+            ['a range at bottom', 'x', rangeWith({ placement: 'bottom' }), undefined],
+            ['a range at left', 'y', rangeWith({ placement: 'left' }), undefined],
+            ['a range at top-left', 'x', rangeWith({ placement: 'top-left' }), undefined],
+            ['a rotated range at top', 'x', rangeWith({ placement: 'top', rotation: 90 }), 90],
+        ])('fits %s label to the series area', async (_, axisId, crossLine, rotation) => {
+            const limit = await unpaddedSeriesLength(rotation);
+            chart = deproxy(await createChart(fitChart(crossLine, axisId)));
+
+            const rendered = renderedLabel(axisId);
+            expect(rendered.text.replaceAll('\n', ' ').startsWith('Quarterly revenue')).toBe(true);
+            expect(rendered.text.includes('\n') || rendered.text.endsWith('\u2026')).toBe(true);
+            // The bbox is turned, so a label on its side runs along its height.
+            expect(rotation === 90 ? rendered.height : rendered.width).toBeLessThanOrEqual(limit + 1);
+            const { footprint } = rendered;
+            expect(footprint.x).toBeGreaterThanOrEqual(0);
+            expect(footprint.y).toBeGreaterThanOrEqual(0);
+            expect(footprint.x + footprint.width).toBeLessThanOrEqual(CANVAS_WIDTH);
+            expect(footprint.y + footprint.height).toBeLessThanOrEqual(CANVAS_HEIGHT);
+        });
+
+        it('lets a label at the series-area edge reach over the axis and no further', async () => {
+            const chartPadding = 40;
+            const options = fitChart({ type: 'line', value: 0, label: { text: LONG_WORDS, placement: 'top' } }, 'x');
+            chart = deproxy(await createChart({ ...options, padding: { left: chartPadding } }));
+
+            const { text, footprint } = renderedLabel('x');
+            expect(text).toMatch(/^Quarterly.*\u2026$/s);
+            expect(footprint.x).toBeLessThan(getSeriesRect(chart).x);
+            expect(footprint.x).toBeGreaterThanOrEqual(chartPadding - 1);
+        });
+
+        it('pads for a rotated boxed label the room it is fitted to', async () => {
+            const label = {
+                text: 'Peak',
+                placement: 'top',
+                rotation: 90,
+                fill: 'lightgrey',
+                padding: { top: 0, bottom: 0, left: 20, right: 20 },
+            } as const;
+            chart = deproxy(await createChart(fitChart({ type: 'line', value: 5, label }, 'x')));
+
+            const { text, footprint } = renderedLabel('x');
+            expect(text).toBe('Peak');
+            expect(footprint.y).toBeGreaterThanOrEqual(0);
+            expect(footprint.y + footprint.height).toBeLessThanOrEqual(getSeriesRect(chart).y);
+        });
+
+        it.each<['x' | 'y', AgCartesianCrossLineLabelOptions, AgCartesianCrossLineLabelOptions]>([
+            ['y', { placement: 'left' }, { placement: 'right' }],
+            ['x', { placement: 'top', rotation: 90 }, { placement: 'bottom', rotation: 90 }],
+        ])('fits labels padding opposite sides of a %s axis on the canvas', async (axisId, first, second) => {
+            const crossLines = [
+                { ...longLine(first), value: 3 },
+                { ...longLine(second), value: 7 },
+            ];
+            chart = deproxy(await createChart(fitChart(crossLines[0], axisId, { [axisId]: { crossLines } })));
+
+            for (const crossLine of crossLineInstancesOf(chart, axisId)) {
+                const footprint = Transformable.toCanvas(crossLine.labelGroup);
+                const [start, length, canvasLength] =
+                    axisId === 'y'
+                        ? [footprint.x, footprint.width, CANVAS_WIDTH]
+                        : [footprint.y, footprint.height, CANVAS_HEIGHT];
+                expect(start).toBeGreaterThanOrEqual(0);
+                expect(start + length).toBeLessThanOrEqual(canvasLength);
+            }
+        });
+
+        it('lets an explicit maxWidth beyond the series area replace the bound', async () => {
+            const maxWidth = 3000;
+            chart = deproxy(await createChart(fitChart(longLine({ placement: 'top', maxWidth }), 'x')));
+
+            const rendered = renderedLabel('x');
+            expect(rendered.width).toBeGreaterThan(getSeriesRect(chart).width);
+            expect(rendered.width).toBeLessThanOrEqual(maxWidth);
+        });
+
+        it('does not lift the bound for a maxHeight alone', async () => {
+            chart = deproxy(await createChart(fitChart(longLine({ placement: 'top', maxHeight: 400 }), 'x')));
+
+            expect(renderedLabel('x').width).toBeLessThanOrEqual(getSeriesRect(chart).width + 1);
+        });
+
+        it('renders the full text when wrapping and truncation are off', async () => {
+            chart = deproxy(
+                await createChart(fitChart(longLine({ placement: 'top', wrapping: 'never', truncate: false }), 'x'))
+            );
+
+            const rendered = renderedLabel('x');
+            expect(rendered.text).toBe(LONG_WORDS);
+            expect(rendered.width).toBeGreaterThan(getSeriesRect(chart).width);
+        });
+
+        it('keeps fitting a range label inside its band to the band', async () => {
+            chart = deproxy(await createChart(fitChart(rangeWith({ placement: 'inside' }), 'x')));
+
+            const rendered = renderedLabel('x');
+            const band = Transformable.toCanvas(rendered.crossLine.rangeGroup).width;
+            expect(band).toBeLessThan(getSeriesRect(chart).width / 2);
+            expect(rendered.text.includes('\n') || rendered.text.endsWith('\u2026')).toBe(true);
+            expect(rendered.width).toBeLessThanOrEqual(band + 1);
+        });
+
+        it('renders wrapped line and outside range labels', async () => {
+            const xCrossLines: AgCartesianCrossLineOptions[] = [
+                longLine({ placement: 'top' }),
+                rangeWith({ placement: 'bottom', fill: 'lightyellow' }),
+            ];
+            const yCrossLines: AgCartesianCrossLineOptions[] = [longLine({ placement: 'inside' })];
+            chart = deproxy(
+                await createChart(
+                    fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+                )
+            );
+
+            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
     });
 });

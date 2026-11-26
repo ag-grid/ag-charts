@@ -9,7 +9,7 @@ export * from './chart/test/bigintExamples';
 export * from './chart/test/aggregationStubs';
 export { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from './chart/test/examples-gallery';
 export * as CROSSLINE_EXAMPLES from './chart/crossline/test/examples';
-export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
+export { getCrossLineLabelNode, getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
@@ -29,6 +29,7 @@ export * from './chart/test/glowCases';
 export * from './chart/test/glowRender';
 export * from './chart/test/glowRenderSuite';
 export { byteDifference, differingBytes, expectSamePixels } from './chart/test/expectSamePixels';
+export * from './chart/test/solidFills';
 export * from './chart/test/prepareOptions';
 export { optionAt } from './module/test/moduleAccessors';
 export * from './chart/test/syncFixtures';

@@ -14,6 +14,7 @@ export enum AnnotationOptions {
     TextColor = 'text-color',
     TextSize = 'text-size',
     Settings = 'settings',
+    Move = 'move',
 }
 
 function channelMenuItemVisible(scale: Scale<any, any>) {

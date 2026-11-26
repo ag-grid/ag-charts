@@ -8,6 +8,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
+    NEUTRAL_GLOW_THEME_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -73,18 +74,13 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeOpacity: 1,
                 cornerRadius: 0,
                 shadow: SHADOW_THEME_DEFAULTS,
-                glow: GLOW_THEME_DEFAULTS,
+                glow: { ...GLOW_THEME_DEFAULTS, fill: NEUTRAL_GLOW_THEME_DEFAULTS.fill },
                 padding: 4,
                 gap: 2,
                 interactive: true,
                 highlight: withFollowedGlowThemeDefaults(
                     {
                         enabled: { $circular: { $path: '/highlight/enabled' } },
-                        unhighlightedItem: {
-                            opacity: 0.2,
-                            fillOpacity: 0.2,
-                            strokeOpacity: 0.2,
-                        },
                     },
                     ITEM_GLOW_BUCKETS,
                     '/series/$index/group/glow'
@@ -129,20 +125,13 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeOpacity: 1,
                 cornerRadius: 0,
                 shadow: SHADOW_THEME_DEFAULTS,
-                glow: GLOW_THEME_DEFAULTS,
+                glow: NEUTRAL_GLOW_THEME_DEFAULTS,
                 padding: 3,
                 gap: 1,
                 highlight: withFollowedGlowThemeDefaults(
                     {
                         enabled: { $circular: { $path: '/highlight/enabled' } },
-                        unhighlightedItem: {
-                            fillOpacity: 0.6,
-                            strokeOpacity: 0.6,
-                        },
-                        unhighlightedBranch: {
-                            fillOpacity: 0.2,
-                            strokeOpacity: 0.2,
-                        },
+                        unhighlightedBranch: { opacity: 0.5 },
                     },
                     BRANCH_GLOW_BUCKETS,
                     '/series/$index/tile/glow'

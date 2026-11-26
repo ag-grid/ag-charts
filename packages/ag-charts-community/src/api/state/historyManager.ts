@@ -18,6 +18,8 @@ export class HistoryManager {
     private readonly clearState: Map<string, any> = new Map();
     private readonly maxHistoryLength = 100;
 
+    private readonly beforeStepListeners = new Set<() => void>();
+
     private readonly debug = Debug.create(true, 'history');
     private readonly cleanup = new CleanupRegistry();
 
@@ -30,6 +32,12 @@ export class HistoryManager {
 
     destroy() {
         this.cleanup.flush();
+    }
+
+    /** Registers a callback run before an undo or redo, so that a change not yet recorded can be recorded first. */
+    onBeforeStep(listener: () => void) {
+        this.beforeStepListeners.add(listener);
+        return () => this.beforeStepListeners.delete(listener);
     }
 
     addMementoOriginator(originator: MementoOriginator) {
@@ -77,6 +85,7 @@ export class HistoryManager {
     }
 
     undo() {
+        this.beforeStep();
         const undoAction = this.history[this.historyIndex];
         if (undoAction == null) return;
 
@@ -94,6 +103,7 @@ export class HistoryManager {
     }
 
     redo() {
+        this.beforeStep();
         const redoAction = this.history[this.historyIndex + 1];
         if (redoAction == null) return;
 
@@ -117,6 +127,10 @@ export class HistoryManager {
         }
 
         this.debugEvent('History revert:', originators.map((originator) => originator.mementoOriginatorKey).join());
+    }
+
+    private beforeStep() {
+        for (const listener of this.beforeStepListeners) listener();
     }
 
     private findMemento(mementoOriginatorKey: string, fromIndex: number) {

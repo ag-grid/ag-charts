@@ -1,5 +1,5 @@
 import type { AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community';
-import { Color, type InternalAgGradientColor, type NormalisedColorType } from 'ag-charts-core';
+import { Color, type InternalAgGradientColor, type NormalisedColorType, plainFillColour } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
 
 const LINE_FRACTION = 1 / 7;
@@ -27,7 +27,7 @@ function withOpacity(color: CssColor, opacity: number) {
 
 // Gradient, pattern and image fills do not fit in a few pixels, so those bands show their edge colour.
 function solidFill({ fill, fillOpacity, stroke }: HlcSymbolBand) {
-    return withOpacity(typeof fill === 'string' ? fill : stroke, fillOpacity);
+    return withOpacity(plainFillColour(fill) ?? stroke, fillOpacity);
 }
 
 // A marker has one fill and stroke, so the lines and bands are sharp stops in a single vertical gradient.

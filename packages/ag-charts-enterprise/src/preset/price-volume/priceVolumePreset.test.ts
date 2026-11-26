@@ -172,11 +172,11 @@ describe('priceVolumePreset', () => {
     });
 
     it.each([
-        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, mode: 'weak', range: 20 } },
+        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, range: 20 } },
         {
             name: 'applies a theme override of the magnet',
-            theme: { overrides: { common: { annotations: { magnet: { enabled: true, mode: 'strong' } } } } },
-            expected: { enabled: true, mode: 'strong', range: 20 },
+            theme: { overrides: { common: { annotations: { magnet: { enabled: true, range: 'nearest' } } } } },
+            expected: { enabled: true, range: 'nearest' },
         },
     ] as const)('$name', async ({ theme, expected }) => {
         chart = AgCharts.createFinancialChart(
@@ -1110,9 +1110,14 @@ describe('priceVolumePreset', () => {
             expect(presetButtons({ common: {} })).toHaveLength(7);
         });
 
-        it('includes the magnet button by default, before the clear button', () => {
-            const values = presetButtons()?.map((button) => button.value);
-            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
+        it('includes the magnet switch by default, before the clear button', () => {
+            const buttons = presetButtons();
+            expect(buttons?.map((button) => button.value).slice(-2)).toEqual(['magnet', 'clear']);
+            expect(buttons?.at(-2)).toMatchObject({
+                type: 'switch',
+                icon: 'no-magnet',
+                checkedOverrides: { icon: 'magnet' },
+            });
         });
     });
 });

@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
@@ -41,26 +42,24 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
         shadow: SHADOW_THEME_DEFAULTS,
-        glow: GLOW_THEME_DEFAULTS,
+        glow: { ...GLOW_THEME_DEFAULTS, fillOpacity: 1 },
         cap: { lengthRatio: 0.5 },
         whisker: { lineDash: UNSET_LINE_DASH_THEME_DEFAULT },
         tooltip: SERIES_TOOLTIP_THEME,
         highlight: {
-            enabled: { $path: ['/highlight/enabled', true] },
-            bringToFront: true,
             ...withLineDashThemeDefaults(
                 withGlowThemeDefaults(
                     {
-                        unhighlightedItem: {
-                            opacity: 0.5,
-                        },
-                        unhighlightedSeries: { opacity: 0.1 },
+                        unhighlightedItem: MULTI_SERIES_HIGHLIGHT_STYLE.unhighlightedItem,
+                        unhighlightedSeries: MULTI_SERIES_HIGHLIGHT_STYLE.unhighlightedSeries,
                     },
                     SERIES_GLOW_BUCKETS
                 ),
                 [...ITEM_GLOW_BUCKETS, ...SERIES_GLOW_BUCKETS],
                 { within: 'whisker' }
             ),
+            enabled: { $path: ['/highlight/enabled', true] },
+            bringToFront: true,
         },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,

@@ -224,6 +224,26 @@ test.describe('toolbar', () => {
         await expectChartScreenshot(page, page, 'text-10-deleted.png', { animations: 'disabled' });
     });
 
+    test('magnet switch shows its state with its icon', async ({ page }) => {
+        await gotoExample(page, url);
+        const { bbox } = await locateCanvas(page);
+        const magnet = page.getByTitle('Magnet');
+
+        await expect(magnet).toHaveAttribute('aria-checked', 'false');
+        await expect(magnet).toHaveScreenshot('magnet-1-off.png');
+
+        await magnet.click();
+        // Away from the button, so that neither screenshot shows its hover state.
+        await page.mouse.move(bbox.x + 300, bbox.y + 300);
+        await expect(magnet).toHaveAttribute('aria-checked', 'true');
+        await expect(magnet).toHaveScreenshot('magnet-2-on.png');
+
+        await magnet.click();
+        await page.mouse.move(bbox.x + 300, bbox.y + 300);
+        await expect(magnet).toHaveAttribute('aria-checked', 'false');
+        await expect(magnet).toHaveScreenshot('magnet-1-off.png');
+    });
+
     test('AG-13008 delete annotation', async ({ page }) => {
         await gotoExample(page, url);
         const point = await canvasToPageTransformer(page);

@@ -1008,6 +1008,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             const whiskerOpacity = style.whisker?.strokeOpacity ?? style.strokeOpacity;
 
             boxPlotNode.fill = style.fill;
+            boxPlotNode.styleOpacity = nodeOpacity;
             boxPlotNode.fillOpacity = style.fillOpacity * nodeOpacity;
             boxPlotNode.stroke = style.stroke;
             boxPlotNode.strokeWidth = style.strokeWidth;

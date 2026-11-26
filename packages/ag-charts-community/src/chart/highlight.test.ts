@@ -695,6 +695,9 @@ describe('Chart highlighting', () => {
             datumIndex: Number.NaN,
         });
 
+        // The bar theme leaves the other items of the hovered series undimmed in `single` mode, so dim them here.
+        const DIM_ITEMS = { unhighlightedItem: { opacity: 0.6 } };
+
         const twoSeriesOptions = () =>
             prepareTestOptions<AgCartesianChartOptions>({
                 ...SINGLE_HIGHLIGHT_SHARED_TOOLTIP,
@@ -704,8 +707,8 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 series: [
-                    { type: 'bar', xKey: 'category', yKey: 'apples' },
-                    { type: 'bar', xKey: 'category', yKey: 'oranges' },
+                    { type: 'bar', xKey: 'category', yKey: 'apples', highlight: DIM_ITEMS },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges', highlight: DIM_ITEMS },
                 ],
             });
 

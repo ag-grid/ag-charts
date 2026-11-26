@@ -4,51 +4,6 @@
  * served from 'self'. Wrapped in an IIFE to avoid leaking into global scope.
  */
 (function () {
-    const tabs = Array.from(document.querySelectorAll('[role="tab"][data-tab]'));
-    const panels = Array.from(document.querySelectorAll('[data-panel]'));
-
-    const activate = (name, focusTab = false) => {
-        for (const tab of tabs) {
-            const selected = tab.dataset.tab === name;
-            tab.setAttribute('aria-selected', selected ? 'true' : 'false');
-            tab.tabIndex = selected ? 0 : -1;
-            if (selected && focusTab) {
-                tab.focus();
-            }
-        }
-        for (const panel of panels) {
-            panel.hidden = panel.dataset.panel !== name;
-        }
-    };
-
-    // Roving tabindex: only the selected tab is in the tab order on load.
-    for (const tab of tabs) {
-        tab.tabIndex = tab.getAttribute('aria-selected') === 'true' ? 0 : -1;
-    }
-
-    for (let i = 0, len = tabs.length; i < len; ++i) {
-        const tab = tabs[i];
-        tab.addEventListener('click', () => activate(tab.dataset.tab ?? 'talks'));
-        // Arrow / Home / End move between tabs (the ARIA tablist keyboard pattern).
-        tab.addEventListener('keydown', (event) => {
-            let next = -1;
-            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                next = (i + 1) % len;
-            } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                next = (i - 1 + len) % len;
-            } else if (event.key === 'Home') {
-                next = 0;
-            } else if (event.key === 'End') {
-                next = len - 1;
-            }
-            if (next === -1) {
-                return;
-            }
-            event.preventDefault();
-            activate(tabs[next].dataset.tab ?? 'talks', true);
-        });
-    }
-
     // Hero keynote: clicking the custom thumbnail swaps in the autoplay embed.
     for (const frame of document.querySelectorAll('[data-hero-video]')) {
         const playBtn = frame.querySelector('[data-hero-video-play]');

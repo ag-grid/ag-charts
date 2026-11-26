@@ -1,6 +1,13 @@
 import { persistentAtom } from '@nanostores/persistent';
 
-export const BASE_THEME_NAMES = ['ag-default', 'ag-sheets', 'ag-polychroma', 'ag-vivid', 'ag-material'] as const;
+export const BASE_THEME_NAMES = [
+    'ag-default',
+    'ag-sheets',
+    'ag-polychroma',
+    'ag-vivid',
+    'ag-material',
+    'ag-accessible',
+] as const;
 
 export type BaseThemeName = (typeof BASE_THEME_NAMES)[number];
 

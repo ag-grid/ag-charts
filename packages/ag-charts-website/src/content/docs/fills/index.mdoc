@@ -26,7 +26,7 @@ The default colours and fills come from the default or user provided [Theme Pale
 
 The `fill` attribute is set at the series level.
 
-Solid fills use a CSS colour string. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
+Solid fills use a CSS colour string, or an object with type `solid`. Gradient and Pattern fills require an object with type `gradient` or `pattern`.
 
 ```js format="snippet"
 {
@@ -59,6 +59,37 @@ Solid fills use a CSS colour string. Gradient and Pattern fills require an objec
     ],
 }
 ```
+
+## Solid Colours
+
+A solid fill can also be an object with type `solid`, which holds the colour and its opacity together.
+
+{% chartExampleRunner title="Solid Fill" name="solid-fill" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            marker: {
+                fill: {
+                    type: 'solid',
+                    fillOpacity: 0.5,
+                },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `fill` is the colour. If it is not provided on a series or its markers, the colour comes from the [Theme Palette](./themes/#palette), using the stroke colour where the palette fill is a pattern.
+- `fillOpacity` is the opacity of the colour. It is multiplied with the `fillOpacity` of the series or marker.
+
+In the example above, the palette fills are patterns, and the markers use a `solid` fill to take the stroke colour of their series' pattern. The markers of the last series also set a `fillOpacity`.
+
+See the [Solid API reference](#reference-AgSolidColor) for all the available options.
 
 ## Gradients
 
@@ -219,6 +250,10 @@ See the [Image API reference](#reference-AgImageFill) all the available options.
 ## API Reference
 
 {% tabs %}
+
+{% tabItem id="AgSolidColor" label="Solid Fill" %}
+{% apiReference id="AgSolidColor" /%}
+{% /tabItem %}
 
 {% tabItem id="AgGradientColor" label="Gradient Fill" %}
 {% apiReference id="AgGradientColor" /%}

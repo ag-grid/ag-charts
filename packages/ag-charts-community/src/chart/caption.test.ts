@@ -1,4 +1,4 @@
-import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { Transformable, getElementBBox } from 'ag-charts-core';
@@ -21,6 +21,8 @@ import {
     delay,
     deproxy,
     expectWarningsCalls,
+    iconSvg,
+    preloadImages,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -45,34 +47,29 @@ describe('Caption', () => {
 
     describe('#create', () => {
         describe('text align', () => {
-            it('left', async () => {
+            it.each([
+                ['left', 'left', 'left', 'left'],
+                ['center', 'center', 'center', 'center'],
+                ['right', 'right', 'right', 'right'],
+                ['mixed', 'left', 'center', 'right'],
+            ] as const)('%s', async (_name, titleAlign, subtitleAlign, footnoteAlign) => {
                 const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
+                    title: { text: 'Monthly Sales Report 2023', textAlign: titleAlign, maxWidth: 180 },
+                    subtitle: {
+                        text: 'Region: North America (Values in USD)',
+                        textAlign: subtitleAlign,
+                        maxWidth: 150,
+                    },
+                    footnote: {
+                        text: 'Source: Sales Department Generated on 2023-12-20',
+                        textAlign: footnoteAlign,
+                        maxWidth: 180,
+                    },
                 });
                 await compare(instance);
             });
 
-            it('center', async () => {
-                const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
-                });
-                await compare(instance);
-            });
-
-            it('right', async () => {
-                const instance = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                });
-                await compare(instance);
-            });
-
-            it('mixed', async () => {
+            it('keeps explicit line breaks as authored', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
@@ -248,7 +245,7 @@ describe('Caption', () => {
                 maxWidth: 200,
                 maxHeight: 50,
             });
-            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product…');
+            expect(String(caption.node.text)).toBe('Quarterly revenue by\nregion and product l…');
             await compare(proxy);
             proxy.destroy();
         });
@@ -730,23 +727,13 @@ describe('Caption', () => {
 
     describe('image segments', () => {
         // Captions accept `ContentSegment[]` directly, so `block: true` image segments render through the same Text shape.
-        const iconSvg = (letter: string, fill: string) =>
-            `data:image/svg+xml;utf8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">` +
-                    `<rect x="2" y="2" width="32" height="32" rx="6" fill="${fill}"/>` +
-                    `<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18"` +
-                    ` fill="white" font-weight="bold">${letter}</text></svg>`
-            )}`;
-        const LOGO = iconSvg('A', '#1f77b4');
-        const INLINE = iconSvg('i', '#2ca02c');
+        const LOGO = iconSvg('#1f77b4', 'square');
+        const INLINE = iconSvg('#2ca02c', 'square');
         const URLS = { LOGO, INLINE };
 
         let preloaded: Record<string, SkiaImage> = {};
         beforeAll(async () => {
-            const entries = await Promise.all(
-                Object.values(URLS).map(async (url) => [url, await skiaLoadImage(url)] as const)
-            );
-            preloaded = Object.fromEntries(entries);
+            preloaded = await preloadImages(Object.values(URLS));
         });
 
         // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.

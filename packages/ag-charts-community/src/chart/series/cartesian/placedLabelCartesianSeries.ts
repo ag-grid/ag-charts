@@ -1,6 +1,7 @@
 import type {
     BoxBounds,
     CandidateStyleResolver,
+    InsideMarkerFit,
     LabelMeasureContext,
     MeasuredLabel,
     NormalisedPlacedSeriesLabelOptions,
@@ -14,8 +15,11 @@ import type {
 } from 'ag-charts-core';
 import {
     PointerEvents,
+    applyStyledMarker,
     cachedTextMeasurer,
+    insideMarkerPolicy,
     lineHeightAtSize,
+    markerShapeAnalysis,
     measurePlacedLabel,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
@@ -30,11 +34,9 @@ import {
     styledLabelTextOffset,
 } from '../../label';
 import {
-    boundLabelFit,
     compassCandidatePlacement,
     createCandidateStyleResolver,
     getLabelStyles,
-    insideMarkerContainer,
     pickPlacementStyle,
     resolveInsidePlacement,
 } from '../../labelUtil';
@@ -54,6 +56,8 @@ export interface PlacedLabelContext extends LabelMeasureContext {
     readonly labelInsideSize: { width: number; height: number } | undefined;
     /** Marker anchor, so a label placed on an anchored/off-centre shape (e.g. pin) tracks its drawn centre. */
     readonly labelAnchor: Point | undefined;
+    /** Marker shape, so labels avoid each marker's outline rather than its nominal circle. */
+    readonly labelMarkerShape: AgMarkerShape | undefined;
     /** The series area a directional label must stay inside, unless it may overflow it. */
     readonly labelRegion: BoxBounds | undefined;
 }
@@ -71,6 +75,7 @@ const DISABLED_LABEL_CONTEXT: MarkerLabelContext = {
     labelInsideOffset: undefined,
     labelInsideSize: undefined,
     labelAnchor: undefined,
+    labelMarkerShape: undefined,
     labelRegion: undefined,
 };
 
@@ -138,19 +143,24 @@ export abstract class PlacedLabelCartesianSeries<
             size: labelInsideSize,
         } = resolveInsidePlacement(toArray(label.placement), shape);
         const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        const insideMarkerFit: InsideMarkerFit | undefined = insideFit
+            ? { base: insideFit, threshold: collision.threshold ?? 0, masked: false }
+            : undefined;
         return {
             labelsEnabled: true,
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: insideFit
-                ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, shape, collision.threshold ?? 0))
+            labelFit: insideMarkerFit
+                ? insideMarkerPolicy(insideMarkerFit, markerShapeAnalysis(shape), markerSize)
                 : resolveLabelFit(label, !collision.alwaysShow),
+            labelInsideMarkerFit: insideMarkerFit,
             // Keeps the label on a marker too small to hold even an ellipsis.
             labelFitOverflow: collision.alwaysShow ? insideFit : undefined,
             labelStyled: label.itemStyler != null,
             labelInsideOffset,
             labelInsideSize,
             labelAnchor: Marker.anchor(shape),
+            labelMarkerShape: shape,
             // Inside-only labels ride with their marker, so only directional placements can spill out.
             labelRegion: insideOnly ? undefined : this.resolveLabelPlotRegion(collision),
         };
@@ -160,9 +170,31 @@ export abstract class PlacedLabelCartesianSeries<
         return measurePlacedLabel(labelText, this.labelProperty, ctx);
     }
 
+    /** The series' marker, which its `styler`, `itemStyler` or state may restyle where drawn. */
+    protected abstract get labelMarker(): {
+        readonly enabled: boolean;
+        readonly shape: AgMarkerShape;
+        readonly itemStyler?: unknown;
+    };
+    /** The style resolved for the marker drawn at the label's point. */
+    protected abstract labelMarkerStyle(
+        datum: LabelOf<TTypes>
+    ): { readonly size?: number; readonly shape?: AgMarkerShape } | undefined;
+
     override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {
         if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
+    }
+
+    protected override stampLabelMarkers(): boolean {
+        const { enabled, itemStyler, shape } = this.labelMarker;
+        if (!enabled || !this.isLabelEnabled()) return false;
+        const itemStyled = itemStyler != null;
+        let changed = false;
+        for (const datum of this.contextNodeData?.labelData ?? []) {
+            changed = applyStyledMarker(datum, this.labelMarkerStyle(datum), shape, itemStyled) || changed;
+        }
+        return changed;
     }
 
     override getLabelDefaults(): SeriesLabelDefaults | undefined {

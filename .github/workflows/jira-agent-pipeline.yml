@@ -201,7 +201,8 @@ jobs:
              needs.preflight.outputs.ci_failure_eligible == 'true' ||
              needs.ci-success-handler.outputs.dispatch_pr_iterate == 'true' ||
              (github.event_name == 'workflow_dispatch' && inputs.stage != 'resume'))
-        runs-on: ubuntu-latest
+        # Pinned to ubuntu-24.04: the Nx cache is saved there; matching the image avoids the Nx cache miss before cache adoption (ubuntu-latest is now 26.04).
+        runs-on: ubuntu-24.04
         # Scaled to the ticket's resolved AI model effort; 60 when unset.
         timeout-minutes: ${{ fromJSON(needs.preflight.outputs.agent_timeout_minutes || '60') }}
         permissions:

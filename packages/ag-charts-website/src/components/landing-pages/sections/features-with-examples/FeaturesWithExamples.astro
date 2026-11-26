@@ -3,6 +3,7 @@ import type { InternalFramework } from '@ag-grid-types';
 import ExampleRunner from '../example-runner/ExampleRunner.astro';
 import { FeaturesWithExamplesContent, type FeatureConfig } from './FeaturesWithExamplesContent';
 import styles from './FeaturesWithExamples.module.scss';
+import { FEATURES_PANEL_ID, getFeatureTabId } from './constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 interface Props {
@@ -26,7 +27,12 @@ const { features, framework, syncFramework } = Astro.props;
     </div>
 
     <!-- Side by side layout: content left, example right -->
-    <div class="landing-page-features-layout">
+    <div
+        class="landing-page-features-layout"
+        id={FEATURES_PANEL_ID}
+        role="tabpanel"
+        aria-labelledby={features[0] && getFeatureTabId(features[0].id)}
+    >
         <!-- Content column (controlled by React component via portal/slot) -->
         <div class="landing-page-content-column" id="landing-page-features-content-target">
             <!-- Content is rendered by LandingPageFeaturesContent via portal -->

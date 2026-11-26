@@ -140,7 +140,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial', 'ag-financial-dark', 'ag-accessible' or 'ag-accessible-dark' or an object, ignoring.",
   ],
 ]
 `);
@@ -343,14 +343,17 @@ describe('themes.ts', () => {
         setupMockConsole();
         setupMockCanvas();
 
-        it.each(Object.keys(themes) as AgChartThemeName[])(
-            '%s defaults palette.markerShapes to circle and palette.lineDashes to solid',
-            (name) => {
-                const { palette } = themes[name]!();
-                expect(palette.markerShapes).toEqual(['circle']);
-                expect(palette.lineDashes).toEqual([[]]);
-            }
+        const cycledMarkerThemes: AgChartThemeName[] = ['ag-accessible', 'ag-accessible-dark'];
+        const circleMarkerThemes = (Object.keys(themes) as AgChartThemeName[]).filter(
+            (name) => !cycledMarkerThemes.includes(name)
         );
+        it.each(circleMarkerThemes)('%s defaults palette.markerShapes to circle', (name) => {
+            expect(themes[name]?.().palette.markerShapes).toEqual(['circle']);
+        });
+
+        it.each(Object.keys(themes) as AgChartThemeName[])('%s defaults palette.lineDashes to solid', (name) => {
+            expect(themes[name]?.().palette.lineDashes).toEqual([[]]);
+        });
 
         it.each(['ag-default', 'ag-vivid-dark'] as AgChartThemeName[])(
             '%s resolves circle for every marker series',
@@ -596,7 +599,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+                  "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial', 'ag-financial-dark', 'ag-accessible' or 'ag-accessible-dark' or an object, ignoring.",
                 ],
               ]
             `);
