@@ -317,6 +317,7 @@ export function accessibleThemeParameters({
         seriesLabelInsideTextColor: { $ref: 'textColor' },
         seriesLabelInsideBackgroundColor: { $ref: 'chartBackgroundColor' },
         seriesLabelFontSize: 16,
+        seriesLabelPadding: 4,
         axisLabelColor: { $ref: 'subtleTextColor' },
         axisTitleColor: { $ref: 'subtleTextColor' },
         axisTitleFontWeight: 500,

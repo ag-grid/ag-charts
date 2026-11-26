@@ -21,6 +21,8 @@ export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOption
     isMultiColor?: boolean;
     hasMultiColorOption: boolean;
     sourceEvent: Event;
+    /** Whether to show Apply and Cancel buttons. Enter applies and Escape cancels either way. */
+    showActionButtons?: boolean;
     onChange?: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
     /** Called when the picker closes after the colour changed. `cancelled` is set when it closed via Cancel. */
     onChangeHide?: (cancelled: boolean) => void;
@@ -50,6 +52,12 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
     protected override onHide() {
         this.i18nUpdater = undefined;
         if (this.hasChanged) this.onChangeHide?.(this.cancelled);
+    }
+
+    /** Closes the picker; `onChangeHide(true)` then lets the owner discard the change. */
+    private cancel() {
+        this.cancelled = true;
+        this.hide();
     }
 
     public show(options: ColorPickerOptions) {
@@ -106,19 +114,25 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         colorPicker.addChild(alphaInput);
         colorPicker.addChild(colorField);
 
-        const actionsRow = new ContainerWidget(doc, 'ag-charts-color-picker__actions');
-        actionsRow.setAriaRole('presentation');
-        const cancelButton = new InputButtonWidget(
-            { label: localeManager.t('colorPickerCancel') },
-            'ag-charts-color-picker__cancel-button'
-        );
-        const confirmButton = new InputButtonWidget(
-            { label: localeManager.t('colorPickerConfirm') },
-            'ag-charts-color-picker__confirm-button'
-        );
-        actionsRow.addChild(cancelButton);
-        actionsRow.addChild(confirmButton);
-        colorPicker.addChild(actionsRow);
+        let cancelButton: InputButtonWidget | undefined;
+        let applyButton: InputButtonWidget | undefined;
+        if (opts.showActionButtons) {
+            const actionsRow = new ContainerWidget(doc, 'ag-charts-color-picker__actions');
+            actionsRow.setAriaRole('presentation');
+            cancelButton = new InputButtonWidget(
+                { label: localeManager.t('annotationsCancel') },
+                'ag-charts-color-picker__cancel-button'
+            );
+            applyButton = new InputButtonWidget(
+                { label: localeManager.t('annotationsApply') },
+                'ag-charts-color-picker__apply-button'
+            );
+            // There is nothing to apply until the colour changes.
+            applyButton.setEnabled(false);
+            actionsRow.addChild(cancelButton);
+            actionsRow.addChild(applyButton);
+            colorPicker.addChild(actionsRow);
+        }
 
         // Update the 2D-slider to with the new S and V values. By default, announce S first followed by V. If the user
         // is arrowing up or down, then announce V first because it's more relevant.
@@ -135,8 +149,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             alphaInput.setAriaLabel(localeManager.t('ariaLabelColorPickerAlpha'));
             colorInput.setAriaLabel(localeManager.t('ariaLabelColor'));
             updatePaletteInputAriaValue('s');
-            cancelButton.setTextContent(localeManager.t('colorPickerCancel'));
-            confirmButton.setTextContent(localeManager.t('colorPickerConfirm'));
+            cancelButton?.setTextContent(localeManager.t('annotationsCancel'));
+            applyButton?.setTextContent(localeManager.t('annotationsApply'));
         };
         this.i18nUpdater();
 
@@ -174,7 +188,10 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                 opts.onChange?.(colorString, plainColor, a, isMultiColor);
             }
 
-            if (trackChange) this.hasChanged = true;
+            if (trackChange) {
+                this.hasChanged = true;
+                applyButton?.setEnabled(true);
+            }
         };
 
         update(false);
@@ -193,20 +210,18 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         colorPicker.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => {
             switch (sourceEvent.key) {
                 case 'Enter':
-                case 'Escape':
                     this.hide();
+                    break;
+                case 'Escape':
+                    this.cancel();
                     break;
                 default:
                     return;
             }
             sourceEvent.preventDefault();
         });
-        confirmButton.addListener('click', () => this.hide());
-        cancelButton.addListener('click', () => {
-            // Closing records the change; onChangeHide(true) then lets the owner undo that record.
-            this.cancelled = true;
-            this.hide();
-        });
+        applyButton?.addListener('click', () => this.hide());
+        cancelButton?.addListener('click', () => this.cancel());
         paletteInput.addListener('drag-start', (event) => {
             paletteInput.focus();
             paletteRect = paletteInput.getBoundingClientRect();

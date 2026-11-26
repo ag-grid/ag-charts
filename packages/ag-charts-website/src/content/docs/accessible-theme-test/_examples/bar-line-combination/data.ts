@@ -1,0 +1,58 @@
+export function getData() {
+    return [
+        {
+            year: '2018',
+            phone: -0.09,
+            desktop: -0.15,
+            tv: -0.12,
+            tablet: -0.09,
+            radio: -0.05,
+            billboard: -0.09,
+        },
+        {
+            year: '2019',
+            phone: -0.05,
+            desktop: -0.07,
+            tv: -0.11,
+            tablet: -0.01,
+            radio: -0.02,
+            billboard: -0.04,
+        },
+        {
+            year: '2020',
+            phone: -0.06,
+            desktop: -0.06,
+            tv: -0.1,
+            tablet: -0.04,
+            radio: -0.04,
+            billboard: -0.04,
+        },
+        {
+            year: '2021',
+            phone: 0,
+            desktop: -0.03,
+            tv: -0.05,
+            tablet: 0.01,
+            radio: -0.01,
+            billboard: -0.01,
+        },
+        {
+            year: '2022',
+            phone: 0.01,
+            desktop: -0.02,
+            tv: -0.03,
+            tablet: -0.02,
+            radio: 0.02,
+            billboard: 0,
+        },
+        {
+            year: '2023',
+            phone: 0.03,
+            desktop: -0.03,
+            tv: -0.01,
+            tablet: -0.05,
+            radio: 0.03,
+            billboard: 0,
+        },
+    ];
+}

@@ -32,7 +32,7 @@ This is a living document. It describes a transition, so whoever changes what it
 
 -   Code outside `widget/` talks to Widgets, never to their elements.
 -   `DOMManager` owns a single root Widget, so the whole chart DOM is one graph (Phase 3). Today it owns the root containers as raw elements (`getParent()`, `addChild()`), hence the `DOMManagerWidget`/`NativeWidget` fallbacks.
--   Widget DOM writes get scene-graph-style batching. Today setters write immediately, with no compare-before-write; the caching and deferred-write layer is `DOMElementProxy` (`.rulesync/rules/dom-performance.md`), outside the widget tree.
+-   Widget DOM writes get scene-graph-style batching. Today setters write immediately, but write on change: `setBounds()`, the attribute setters (`setAria*()`, `setAriaRole()`, `setTabIndex()`, `setTitle()`, the `id` setter) and `setTextContent()` skip a write whose value is already in place. Style, class and `setData()` setters still write unconditionally; give them the same check in `widget/` when a caller needs it. `DOMElementProxy` (`.rulesync/rules/dom-performance.md`) is the caching and deferred-write layer for elements outside the widget tree.
 
 **Please help steer.** When your change touches code next to a known gap or an escape, and one step toward the direction is small and safe (adding a missing widget event, swapping a raw write for an existing setter, deleting an exemption that is no longer needed), please take it in the same change. If it is not small, do not skip it silently: say in your PR description or hand-off what you saw and why you left it, so the next agent can pick it up. Reviewers, ask the same question of every change: did it leave a nearby escape that was cheap to fix?
 
@@ -53,12 +53,15 @@ An expandable widget owns what it expands (submenus, popovers, dialogs) and is r
 
 Put behaviour in a core widget (a method or subclass), not in the feature using it: roles and `aria-*` (`setAriaRole()`, `setAriaExpanded()`, …), roving tab index and arrow keys (e.g. `RovingTabContainerWidget`), hide hooks (e.g. `Popover.onHide()`) rather than collected hide callbacks, widget events via `addListener()` (their `canvasX`/`canvasY` are `NaN` unless the widget or an ancestor has a canvas origin, see `setCanvasOrigin()`), and narrow semantic setters (`setCssOffset()`, `setCSSVariable()`, `toggleClass()`, …) rather than raw `style` or `setAttribute()`.
 
+**Write on change is the widget's job.** A feature calls its widgets' setters with the current values on every update, and the widget skips what has not changed. The feature keeps no copy of what it wrote to decide whether to call a setter: no `last*` fields, no `getTextContent() !== label` checks, no tracking of which item changed, no label cache. If a setter writes unconditionally, add the check to the setter in `widget/`, so every caller gets it and only the widget, which owns its element, holds that state.
+
 ## Rules
 
 1.  **Do not reach through `getElement()`** outside `widget/`. Use or add a Widget method.
 2.  **Lint:** `aglint/widget-boundary` reports every `getElement` reference outside `src/widget/**` and tests in core, community and enterprise. An unavoidable escape takes `// eslint-disable-next-line aglint/widget-boundary -- <reason>`, one site each; a missing reason, a block or file-wide disable, or a directive that no longer suppresses anything fails lint.
 3.  **`NativeWidget` and `DOMManagerWidget` are last-resort fallbacks.** Prefer an existing subclass (`ContainerWidget`, `IconWidget`, `ButtonWidget`, …). Each `new` or `extends` of a fallback needs `// TODO: Phase 3 "Common Widget Ancestor" - <why>` directly before the statement or class: no ticket key, and do not copy the older `AG−18361` form.
 4.  **Keep this file's `globs` current.** They attach this rule by path, so widget or DOM code outside them (say, a widget under `src/series/`) never sees it. If you add such code, extend the `globs` in the same change; reviewers, check for it.
+5.  **Write on change lives in the widget.** Features call setters unconditionally; any compare-before-write belongs in the setter, in `widget/`.
 
 ## Review red flags
 
@@ -67,6 +70,7 @@ Put behaviour in a core widget (a method or subclass), not in the feature using 
 -   Focus moved by hand (`.focus()` on stored elements, `document.activeElement` checks) instead of through the expandable that owns it.
 -   A widget with no owner, a child added to a second parent without `remove()`, or `destroy()` on a borrowed widget.
 -   `role`, `aria-*` or `style` written on a raw element, or a new fallback without the Phase 3 TODO.
+-   A feature that compares before calling a widget setter or keeps its own copy of widget state (`last*` fields, read-then-set checks, per-item change tracking, label caches). A review that asks a caller to add one is the same red flag: point it at the setter instead.
 -   A nearby escape left in place that was cheap to fix, with no note saying why.
 
 ## Known gaps: low-hanging fruit

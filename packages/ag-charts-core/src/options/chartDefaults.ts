@@ -354,6 +354,7 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'locked',
         'magnet',
         'measurer-drawing',
+        'move',
         'no-magnet',
         'note-annotation',
         'ohlc-series',
@@ -806,6 +807,8 @@ const collideWithOptionsDef: OptionsDefs<AgSeriesLabelCollideWithOptions> = {
     labels: boolean,
     seriesArea: boolean,
     axisLabels: boolean,
+    crossLineLabels: boolean,
+    regionLabels: boolean,
 };
 
 export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {
