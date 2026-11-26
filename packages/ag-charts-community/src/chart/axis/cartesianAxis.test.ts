@@ -1907,6 +1907,48 @@ describe('CartesianAxis', () => {
             expect(last.x + last.width / 2).toBeLessThan(seriesRect.x + seriesRect.width);
         });
 
+        it('keeps a centred first label within the chart', async () => {
+            chart = await createChart({
+                data: [26, 24, 29, 31, 22].map((price, i) => ({ date: new Date(2024, 0, 1 + i), price })),
+                axes: { x: { type: 'time', position: 'bottom' }, y: { type: 'number', position: 'right' } },
+                series: [{ type: 'bar', xKey: 'date', yKey: 'price' }],
+            });
+
+            const { width } = deproxy(chart).ctx.scene;
+            const boxes = getAxisLabelNodes(chart, 'bottom').map((node) => Transformable.toCanvas(node));
+            expect(boxes.length).toBeGreaterThan(0);
+            for (const box of boxes) {
+                expect(box.x).toBeGreaterThanOrEqual(0);
+                expect(box.x + box.width).toBeLessThanOrEqual(width);
+            }
+        });
+
+        it('keeps the whole label box, border included, within the chart', async () => {
+            const strokeWidth = 4;
+            chart = await createChart({
+                data: [1, 2, 3, 4, 5, 6, 10, 11, 12].map((month, value) => ({
+                    date: new Date(2024, month - 1, 1),
+                    value,
+                })),
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        label: { border: { strokeWidth, stroke: 'red' }, fill: 'pink', padding: 8 },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+            });
+
+            const { width } = deproxy(chart).ctx.scene;
+            for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                const box = Transformable.toCanvas(node);
+                expect(box.x - strokeWidth / 2).toBeGreaterThanOrEqual(0);
+                expect(box.x + box.width + strokeWidth / 2).toBeLessThanOrEqual(width);
+            }
+        });
+
         it('truncates colliding labels at the last rotation before removing any', async () => {
             const departments = Array.from({ length: 12 }, (_, i) => `Department ${i + 1}`);
             chart = await createChart({

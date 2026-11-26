@@ -51,7 +51,7 @@ import {
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextWrap, VerticalAlign } from 'ag-charts-types';
 
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
-import { expandLabelPadding } from '../label';
+import { expandLabelBoxExtent } from '../label';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 
@@ -377,7 +377,7 @@ export function labelFitsRoom(label: {
 
 /** A cheap check, before fitting, for a label whose padded box at `rotation` degrees may not fit across the room. */
 function roomExceeded(label: ChartAxisLabel, isVertical: boolean | undefined, room: number, rotation: number) {
-    const { left, right, top, bottom } = expandLabelPadding(label);
+    const { left, right, top, bottom } = expandLabelBoxExtent(label);
     const limit = room - (left + right + top + bottom);
     const angle = toRadians(rotation);
     const sin = Math.abs(Math.sin(angle));
@@ -420,7 +420,7 @@ function labelFitPolicy(
 }
 
 /** Fit options an axis label carries, at its axis or at one depth of a grouped axis. */
-type AxisLabelFitOptions = Parameters<typeof expandLabelPadding>[0] &
+type AxisLabelFitOptions = Parameters<typeof expandLabelBoxExtent>[0] &
     FontOptions & {
         maxWidth?: number;
         maxHeight?: number;
@@ -440,7 +440,7 @@ export function axisLabelFit(
     rotation: number,
     wrapping: TextWrap | undefined
 ): LabelFit {
-    const { left, right, top, bottom } = expandLabelPadding(label);
+    const { left, right, top, bottom } = expandLabelBoxExtent(label);
     const angle = toRadians(rotation);
     const sin = Math.abs(Math.sin(angle));
     const cos = Math.abs(Math.cos(angle));
@@ -773,7 +773,7 @@ export function timeIntervalMaxLabelSize(
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
-        const padding = expandLabelPadding(label);
+        const padding = expandLabelBoxExtent(label);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         let l0: Date;
@@ -794,7 +794,7 @@ export function timeIntervalMaxLabelSize(
     }
 
     if (primaryLabelFormatter != null && hierarchyRange != null) {
-        const padding = expandLabelPadding(primaryLabel);
+        const padding = expandLabelBoxExtent(primaryLabel);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         // The estimate uses the axis label's font, at the parent level's line height.

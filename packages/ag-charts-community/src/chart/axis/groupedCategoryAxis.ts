@@ -37,6 +37,7 @@ import {
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
+import { labelBorderInset } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
@@ -215,6 +216,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
+        const withBorder = (bbox: BBox) => {
+            const inset = labelBorderInset(tempText.getBoxingProperties());
+            return inset === 0 ? bbox : bbox.clone().grow(inset);
+        };
 
         const optionsMap = this.getDepthOptionsMap(maxDepth);
         const labelSpacing = sideFlag * (optionsMap[0].spacing + scrollbarThickness + tickSpacing);
@@ -323,10 +328,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 tempText.textBaseline = this.parallel ? 'top' : 'bottom';
                 tempText.setFont(styles);
                 tempText.setBoxing(styles);
-                const bbox = tempText.getBBox();
+                const bbox = withBorder(tempText.getBBox());
                 if (bbox == null) return;
                 tempText.rotation = normalizeAngle360FromDegrees(rotation);
-                const turned = tempText.getBBox();
+                const turned = withBorder(tempText.getBBox());
                 const across = horizontal ? turned.height : turned.width;
                 const alongSize = horizontal ? turned.width : turned.height;
                 return { text, styles, bbox, across, alongSize, exceedsBand: labelExceedsBand(alongSize, bandRoom) };
@@ -555,7 +560,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             }
 
             if (!optionsMap[depth].alwaysShow) {
-                const { width, height } = tempText.getBBox();
+                const { width, height } = withBorder(tempText.getBBox());
                 const labelSize = horizontal ? width : height;
                 const availableRange = isLeaf ? step : datum.leafCount * step;
                 if (labelExceedsBand(labelSize, bandRoomAt(depth, availableRange, labelRotation))) {
@@ -570,7 +575,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 optionsMap[depth].truncate === true &&
                 labelSlides(depthRotation[depth], horizontal)
             ) {
-                const bbox = tempText.getBBox();
+                const bbox = withBorder(tempText.getBBox());
                 const [min, max] = horizontal ? [bbox.x, bbox.x + bbox.width] : [bbox.y, bbox.y + bbox.height];
                 const shift = Math.max(0, alongBounds[0] - min) - Math.max(0, max - alongBounds[1]);
                 if (horizontal) {
@@ -609,7 +614,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 x: tempText.x,
                 y: tempText.y,
             });
-            labelBBoxes.set(index, Transformable.toCanvas(tempText));
+            labelBBoxes.set(index, withBorder(Transformable.toCanvas(tempText)));
         }
 
         const maxTickSize = tickSizeAtDepth[maxDepth - 1] ?? 0;

@@ -110,7 +110,7 @@ export function labelHasBox(label: LabelBoxingMixin | undefined): boolean {
 }
 
 /** How far a drawn border stroke extends beyond the box edge on each side (half its width); `0` when no border is drawn. */
-function labelBorderInset(label: LabelBoxingMixin | undefined): number {
+export function labelBorderInset(label: LabelBoxingMixin | undefined): number {
     const { enabled: borderEnabled = false, stroke: borderStroke, strokeWidth = 0 } = label?.border ?? {};
     return borderEnabled && borderStroke != null ? strokeWidth / 2 : 0;
 }

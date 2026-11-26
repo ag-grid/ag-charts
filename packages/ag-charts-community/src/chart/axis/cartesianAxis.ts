@@ -51,7 +51,7 @@ import { resetMotion } from '../../motion/resetMotion';
 import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
 import type { AnimationManager } from '../interaction/animationManager';
-import { expandLabelPadding } from '../label';
+import { expandLabelBoxExtent } from '../label';
 import { AxisLabelSource } from '../layout/axisLabelSource';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type AxisPickDatum, type LabelNodeDatum } from './axis';
@@ -471,13 +471,17 @@ export abstract class CartesianAxis<
             // A banded scale anchors an aligned label on the band edge rather than the tick, so the
             // edges the overflow test measures move with it.
             const bandEdgeOffset = getBandEdgeOffset(this.scale.bandwidth ?? 0, labelTextAlign);
+            const box = expandLabelBoxExtent(label);
             const labelEdges = (width: number) => {
                 const { leading, trailing } = getTickLabelEdgeOffsets(
                     width,
                     tickGenerationResult.rotation,
                     alignmentOverride
                 );
-                return { leading: leading + bandEdgeOffset, trailing: trailing + bandEdgeOffset };
+                return {
+                    leading: leading + bandEdgeOffset - box.left,
+                    trailing: trailing + bandEdgeOffset + box.right,
+                };
             };
             const padding = this.chartLayout?.padding;
             const { ticks } = tickData;
@@ -505,12 +509,9 @@ export abstract class CartesianAxis<
                 tick.labelShift = (tick.labelShift ?? 0) + shift;
             };
             slideInside(lastTick, ticks.at(-2));
-            // The leading edge can only overflow once the override pushes the label past the start
-            // of the range, so the centre-anchored case has nothing to check.
-            if (alignmentOverride != null) slideInside(firstTick, ticks[1]);
+            slideInside(firstTick, ticks[1]);
             const { hideFirst, hideLast } = resolveEdgeLabelOverflow({
-                firstStart:
-                    alignmentOverride != null && firstTick?.tickLabel != null ? extentOf(firstTick)[0] : undefined,
+                firstStart: firstTick?.tickLabel == null ? undefined : extentOf(firstTick)[0],
                 lastEnd: lastTick?.tickLabel == null ? undefined : extentOf(lastTick)[1],
                 start,
                 end,
@@ -1141,7 +1142,7 @@ export abstract class CartesianAxis<
 
     /** See {@link AxisLayout.label.boxOffset}, which this is reported through. */
     private labelBoxOffset(label: NormalisedBaseAxisLabelOptions): number {
-        return -getAxisLabelSideFlag(this.mirrored) * expandLabelPadding(label)[this.position];
+        return -getAxisLabelSideFlag(this.mirrored) * expandLabelBoxExtent(label)[this.position];
     }
 
     protected override getLabelBoxOffset(): number {
@@ -1306,7 +1307,7 @@ export abstract class CartesianAxis<
                 let measuredBox: LabelBox = box;
                 let innerPadding = 0;
                 if (alignment == null) {
-                    const padding = expandLabelPadding(datum);
+                    const padding = expandLabelBoxExtent(datum);
                     measuredBox = {
                         x: box.x - padding.left,
                         y: box.y - padding.top,

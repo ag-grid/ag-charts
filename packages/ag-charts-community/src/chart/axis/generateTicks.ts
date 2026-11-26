@@ -29,7 +29,7 @@ import {
 } from 'ag-charts-core';
 import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
-import { expandLabelPadding } from '../label';
+import { expandLabelBoxExtent } from '../label';
 import { getVerticalAlignShift } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
@@ -111,7 +111,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     const truncatesToClear = !alwaysShow && label.truncate === true && BandScale.is(options.scale);
     const rotationOf = (fitIndex: number) => Math.min(fitIndex, lastRotationIndex);
     const rotationFits = Array.from({ length: rotations.length + 1 }, () => new WeakMap<TickData, RotationFit>());
-    const labelPadding = expandLabelPadding(label);
+    const labelPadding = expandLabelBoxExtent(label);
     const spacingAt = (rotation: number) =>
         tickLabelSpacing(label.collision.threshold, Math.cos(configuredRotation + rotation) < 1 - 1e-9);
     const computedBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);

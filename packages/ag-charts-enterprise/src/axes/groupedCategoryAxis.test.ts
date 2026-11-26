@@ -121,6 +121,40 @@ describe('Grouped Category', () => {
         }
     );
 
+    it('keeps a label box shifted inward from the chart edge, border included, within the chart', async () => {
+        const strokeWidth = 6;
+        const leaves = Array.from({ length: 20 }, (_, i) => `Category Label ${i}`);
+        chart = await createEnterpriseChart({
+            data: leaves.map((leaf, i) => ({ grouping: ['Group', leaf], value: i + 1 })),
+            series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            axes: {
+                x: {
+                    type: 'grouped-category',
+                    position: 'bottom',
+                    label: { fill: 'pink', padding: 4, border: { strokeWidth, stroke: 'red' } },
+                    depthOptions: [{ label: { rotation: 0 } }, {}],
+                },
+                y: { type: 'number', position: 'right' },
+            },
+            zoom: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.02, end: 0.32 } } },
+        });
+
+        const boxes = getAxisLabelNodes(chart, 'bottom')
+            .filter((node) => getLabelText(node) !== 'Group')
+            .map((node) =>
+                Transformable.toCanvas(node)
+                    .clone()
+                    .grow(strokeWidth / 2)
+            )
+            .sort((a, b) => a.x - b.x);
+        expect(boxes.length).toBeGreaterThan(1);
+        expect(boxes[0].x).toBeGreaterThanOrEqual(0);
+        for (let i = 1; i < boxes.length; i++) {
+            expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+        }
+    });
+
     describe('AG-18185 callback standardisation', () => {
         let formatter: ReturnType<typeof vi.fn>;
         let itemStyler: ReturnType<typeof vi.fn>;
