@@ -161,11 +161,19 @@ export interface AgTreemapSeriesTileHighlightOptions {
     enabled?: boolean;
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
-    /** Style for the directly hovered tile. */
+    /**
+     * Style for the directly hovered tile.
+     *
+     * Default: `{ glow: { enabled: true } }`
+     */
     highlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
-    /** Style for tiles outside of the hovered branch. */
+    /**
+     * Style for tiles outside of the hovered branch.
+     *
+     * Default: `{ opacity: 0.5 }`
+     */
     unhighlightedBranch?: AgTreemapSeriesTileHighlightStyle;
 }
 
@@ -181,7 +189,11 @@ export interface AgTreemapSeriesGroupHighlightOptions {
      * Default: `true`
      */
     enabled?: boolean;
-    /** Style for the hovered group. */
+    /**
+     * Style for the hovered group.
+     *
+     * Default: `{ glow: { enabled: true } }`
+     */
     highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
     /** Style for groups that are not hovered when another group is active. */
     unhighlightedItem?: AgTreemapSeriesGroupHighlightStyle;

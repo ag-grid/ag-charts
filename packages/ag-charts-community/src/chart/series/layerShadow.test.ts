@@ -4,7 +4,7 @@ import { ChartUpdateType, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
-import { CATEGORY_DATA, HISTOGRAM_DATA, SERIES_SHADOW, TRANSPARENT_PATTERN, XY_DATA } from '../test/shadowFixtures';
+import { CATEGORY_DATA, HISTOGRAM_DATA, SERIES_SHADOW, XY_DATA } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 interface SeriesCase {
@@ -291,6 +291,15 @@ describe('layer shadow batching of series', () => {
                 { color: 'rgba(0, 0, 0, 0)', stop: 0 },
                 { color: 'rgba(255, 0, 0, 0)', stop: 1 },
             ],
+        };
+        const TRANSPARENT_PATTERN = {
+            type: 'pattern',
+            pattern: 'squares',
+            width: 10,
+            height: 10,
+            fill: 'rgba(0, 0, 0, 0)',
+            backgroundFill: 'rgba(0, 0, 0, 0)',
+            strokeOpacity: 0,
         };
 
         const render = async (fill: unknown, shadow: AgDropShadowOptions) => {

@@ -288,19 +288,19 @@ describe.each(Object.keys(SHAPES).map((name) => glowCaseNamed(COMMUNITY_GLOW_SER
                 expect((glow.glow ?? glow.marker?.glow)?.spread).toBe(THEME_GLOW.spread);
             });
 
-            it('warns about a negative gap and drops it, leaving the glow cast like a shadow', async () => {
+            it('warns about a negative gap and drops it, leaving the theme gap', async () => {
                 const { inPlace } = await create([series('first', { ...SERIES_GLOW, gap: -3 })]);
 
                 expectWarningMessages([expect.stringContaining('glow.gap')]);
-                for (const shape of inPlace()) expect(shape.fillGlow?.gap).toBeUndefined();
+                for (const shape of inPlace()) expect(shape.fillGlow?.gap).toBe(THEME_GLOW.gap);
             });
         });
 
         describe('gap', () => {
-            it('leaves the gap unset by default, which casts the glow like a shadow', async () => {
+            it('takes the theme gap by default', async () => {
                 const { inPlace } = await create([series('first', SERIES_GLOW)]);
 
-                for (const shape of inPlace()) expect(shape.fillGlow?.gap).toBeUndefined();
+                for (const shape of inPlace()) expect(shape.fillGlow?.gap).toBe(THEME_GLOW.gap);
             });
 
             it.each([0, 4])('carries a gap of %s to the glow of every item', async (gap) => {

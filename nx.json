@@ -14,6 +14,14 @@
     ],
     "buildOutputExcludes": ["!{projectRoot}/dist/**"],
     "production": ["default", "defaultExcludes"],
+    "tsSources": [
+      "{projectRoot}/package.json",
+      "{projectRoot}/src/**/*",
+      "{projectRoot}/tsconfig.*.json",
+      "tsDeclarations",
+      "sharedGlobals",
+      "defaultExcludes"
+    ],
     "tsDeclarations": [
       {
         "dependentTasksOutputFiles": "**/*.d.ts",
@@ -231,7 +239,8 @@
         "{projectRoot}/eslint.*",
         "{workspaceRoot}/tsconfig.base.json",
         "{projectRoot}/tsconfig.json",
-        "{projectRoot}/tsconfig.lint.*"
+        "{projectRoot}/tsconfig.lint.*",
+        "tsDeclarations"
       ],
       "outputs": [],
       "configurations": {

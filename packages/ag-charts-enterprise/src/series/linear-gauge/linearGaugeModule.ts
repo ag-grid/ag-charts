@@ -8,11 +8,11 @@ import {
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
-    SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     lineDashThemeDefault,
+    seriesSelectionTheme,
     themeLineHeight,
     undocumentedThemeOptions,
     withLineDashThemeDefaults,
@@ -97,7 +97,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             },
         }),
         highlight: withLineDashThemeDefaults({ enabled: true }, ITEM_GLOW_BUCKETS),
-        selection: SERIES_SELECTION_THEME,
+        selection: seriesSelectionTheme(0.6, 0.2, null),
         ...undocumentedThemeOptions({
             defaultColorRange: {
                 $if: [

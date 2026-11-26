@@ -75,6 +75,14 @@ describe('highlight glow on every hierarchy bucket', () => {
         return node.path[0] === hovered.path[0] ? 'sameBranch' : 'otherBranch';
     };
 
+    // The hovered leaf glows by default (`highlightedItem.glow`), which the buckets other than the hovered leaf's own are
+    // tested without, so that only the bucket under test casts.
+    const NO_HOVER_GLOW = { highlightedItem: { glow: { enabled: false } } };
+    const highlightOf = (bucket: Bucket, glow: AgGlowOptions) => ({
+        ...(bucket === 'highlightedItem' || bucket === 'highlightedBranch' ? {} : NO_HOVER_GLOW),
+        [bucket]: { glow },
+    });
+
     const SERIES: Array<{
         name: string;
         series: (bucket: Bucket, glow: AgGlowOptions, shadow?: object) => object;
@@ -86,7 +94,7 @@ describe('highlight glow on every hierarchy bucket', () => {
                 labelKey: 'name',
                 sizeKey: 'size',
                 shadow,
-                highlight: { [bucket]: { glow } },
+                highlight: highlightOf(bucket, glow),
             }),
         },
         {
@@ -95,7 +103,7 @@ describe('highlight glow on every hierarchy bucket', () => {
                 type: 'treemap',
                 labelKey: 'name',
                 sizeKey: 'size',
-                tile: { shadow, highlight: { [bucket]: { glow } } },
+                tile: { shadow, highlight: highlightOf(bucket, glow) },
             }),
         },
     ];
@@ -218,9 +226,9 @@ describe('highlight glow on every hierarchy bucket', () => {
         });
 
         it('casts no glow from a bucket that is disabled', async () => {
-            const { inPlace, highlighted } = await hover(
-                series('highlightedBranch', { ...HIGHLIGHT_GLOW, enabled: false })
-            );
+            const options: any = series('highlightedBranch', { ...HIGHLIGHT_GLOW, enabled: false });
+            Object.assign(options.type === 'sunburst' ? options.highlight : options.tile.highlight, NO_HOVER_GLOW);
+            const { inPlace, highlighted } = await hover(options);
 
             expect(cast(highlighted, 'highlighted')).toEqual([]);
             expect(cast(inPlace, 'inPlace')).toEqual([]);
@@ -318,7 +326,10 @@ describe('highlight glow on treemap groups', () => {
     };
 
     it('casts unhighlightedItem.glow from the sibling groups of the hovered group, not from the group itself', async () => {
-        const { inPlace, highlighted, castBy } = await hoverGroupA({ unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
+        const { inPlace, highlighted, castBy } = await hoverGroupA({
+            highlightedItem: { glow: { enabled: false } },
+            unhighlightedItem: { glow: HIGHLIGHT_GLOW },
+        });
 
         expect(castBy(inPlace, 'inPlace').sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['B', 'C']);
         for (const shape of inPlace.filter((s) => s.datum?.datum?.name !== 'A')) {

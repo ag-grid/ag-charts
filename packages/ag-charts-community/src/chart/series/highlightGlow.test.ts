@@ -7,7 +7,6 @@ import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions, AgGlowOpt
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { expectSamePixels } from '../test/expectSamePixels';
 import {
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
@@ -17,7 +16,6 @@ import {
 } from '../test/seriesAccessors';
 import {
     CATEGORY_DATA,
-    FADING_FILL,
     HIGHLIGHT_GLOW,
     HIGHLIGHT_SHADOW,
     HISTOGRAM_DATA,
@@ -206,11 +204,11 @@ describe('highlight glow', () => {
             }
         );
 
-        it('casts no glow unless it is enabled', async () => {
+        it('casts the default glow on the hovered item unless it is disabled', async () => {
             const { highlighted } = await hoverFirstItem(testCase, undefined);
 
             expect(highlighted).toHaveLength(1);
-            expect(highlighted.filter(casts)).toHaveLength(0);
+            expect(highlighted.filter(casts)).toHaveLength(1);
         });
 
         it('casts no glow when it is configured but disabled', async () => {
@@ -247,7 +245,12 @@ describe('highlight glow', () => {
         it.each(['cutout', 'overlay'] as const)(
             'does not cast the base shadow from the highlight copy when there is no glow in %s mode',
             async (drawingMode) => {
-                const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, drawingMode);
+                const { inPlace, highlighted } = await hoverFirstItem(
+                    testCase,
+                    SERIES_SHADOW,
+                    { highlightedItem: { glow: { enabled: false } } },
+                    drawingMode
+                );
 
                 expect(highlighted).toHaveLength(1);
                 expect(highlighted.filter(casts)).toHaveLength(0);
@@ -257,7 +260,7 @@ describe('highlight glow', () => {
 
         it('casts no glow from the highlight copy when only the base shadow is configured', async () => {
             const { highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {
-                highlightedItem: { fill: 'orange' },
+                highlightedItem: { fill: 'orange', glow: { enabled: false } },
             });
 
             expect(highlighted.filter(casts)).toHaveLength(0);
@@ -491,7 +494,7 @@ describe('highlight glow', () => {
     });
 
     describe('theme defaults', () => {
-        const THEME_GLOW = { enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 };
+        const THEME_GLOW = { enabled: false, fillOpacity: 0.6, blur: 1, spread: 2, gap: 1 };
 
         const createBar = async (theme: 'ag-default' | 'ag-default-dark', glow?: AgGlowOptions) => {
             chart = deproxy(
@@ -519,7 +522,7 @@ describe('highlight glow', () => {
         it.each(BUCKETS)('has the %s glow follow the series glow, and none of its other fields', async (bucket) => {
             await createBar('ag-default');
 
-            expect(resolvedGlow(bucket)).toEqual({ enabled: false });
+            expect(resolvedGlow(bucket)).toEqual({ enabled: bucket === 'highlightedItem' });
         });
 
         it.each(BUCKETS)('turns the %s glow on with the series glow', async (bucket) => {
@@ -561,9 +564,9 @@ describe('highlight glow', () => {
 
             expect(highlighted[0].fillGlow).toMatchObject({
                 enabled: true,
-                fillOpacity: 0.4,
-                blur: 2,
-                spread: 4,
+                fillOpacity: 0.6,
+                blur: 1,
+                spread: 2,
                 xOffset: 0,
                 yOffset: 0,
             });
@@ -868,7 +871,7 @@ describe('highlight glow', () => {
                 expect(shape.getCastShadow('glow')).toMatchObject({
                     enabled: true,
                     fill: shape.fill,
-                    fillOpacity: 0.4,
+                    fillOpacity: 0.6,
                 });
             });
 
@@ -885,7 +888,7 @@ describe('highlight glow', () => {
                     highlightedItem: { fill: 'orange', glow: { ...GLOW, fill: '#123456' } },
                 });
 
-                expect(highlighted[0].getCastShadow('glow')).toMatchObject({ fill: '#123456', fillOpacity: 0.4 });
+                expect(highlighted[0].getCastShadow('glow')).toMatchObject({ fill: '#123456', fillOpacity: 0.6 });
             });
 
             it('casts at the fillOpacity that it sets, and at that of the theme where it sets none', async () => {
@@ -896,7 +899,7 @@ describe('highlight glow', () => {
                 chart.destroy();
 
                 const unset = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: GLOW } });
-                expect(unset.highlighted[0].getCastShadow('glow')?.fillOpacity).toBe(0.4);
+                expect(unset.highlighted[0].getCastShadow('glow')?.fillOpacity).toBe(0.6);
             });
 
             it.each(BUCKETS)('takes fill and fillOpacity in the %s bucket', async (bucket) => {
@@ -1074,7 +1077,7 @@ describe('highlight glow', () => {
             ] as const)('draws a spread glow in the stroke colour around %s', async (_name, testCase, options) => {
                 const pixels = await hoveredPixels(testCase, options, glow({ spread: 4, blur: 0 }));
 
-                expect(pixels.above(2)).toEqual(BLUE);
+                expect(pixels.above(3)).toEqual(BLUE);
                 expect(pixels.above(12)).toEqual(WHITE);
             });
 
@@ -1112,7 +1115,7 @@ describe('highlight glow', () => {
                         glow({ spread: 4, blur: 0, fill: GREEN_FILL })
                     );
 
-                    expect(pixels.above(2)).toEqual(GREEN);
+                    expect(pixels.above(3)).toEqual(GREEN);
                     expect(pixels.above(12)).toEqual(WHITE);
                 }
             );
@@ -1292,20 +1295,27 @@ describe('highlight glow', () => {
             });
 
             describe('parity of the routes that cast a glow at a spread of 0', () => {
-                // The glow lies under the item and shows only where its paint lets it through, which a cut footprint never does.
+                // With no spread and no blur the glow lies under the item, so it shows only where the item's paint lets it through.
+                const FADING = {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: 'rgb(255, 0, 0)', stop: 0 },
+                        { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+                    ],
+                };
                 const RED_FILL = '#ff0000';
                 const BLUE_FILL = '#0000ff';
                 const NO_GLOW = { enabled: false };
                 const ZERO = glow({ spread: 0, blur: 0 });
+                const BLUR_ONLY = glow({ spread: 0, blur: 8 });
 
                 const PAINTS = [
-                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING_FILL }, RED_FILL, true],
+                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL],
                     [
                         'a dashed stroke round a marker with no fill',
                         SERIES[3],
                         { fill: 'none', stroke: 'blue', strokeWidth: 4, lineDash: [4, 4], size: 28 },
                         BLUE_FILL,
-                        false,
                     ],
                 ] as const;
 
@@ -1331,24 +1341,14 @@ describe('highlight glow', () => {
                     expect(off.length).toBe(0);
                 };
 
-                describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill, seeThrough) => {
+                describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill) => {
                     describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
                         // Cut out of the item, a glow with no spread has nothing to show.
-                        it.skipIf(drawingMode === 'cutout' || seeThrough)(
-                            'casts something that the item does not hide',
-                            async () => {
-                                const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
-                                const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
-
-                                expect(cast).not.toEqual(none);
-                            }
-                        );
-
-                        it.runIf(seeThrough)('casts nothing, as its footprint is cut out of the glow', async () => {
-                            const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                        it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
+                            const cast = await regionOf(testCase, options, BLUR_ONLY, drawingMode, undefined);
                             const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
 
-                            expectSamePixels({ data: cast }, { data: none }, 2);
+                            expect(cast).not.toEqual(none);
                         });
 
                         it('casts the same pixels where the canvas cannot tint as where it can', async () => {
@@ -1377,7 +1377,7 @@ describe('highlight glow', () => {
                 });
 
                 it.each([undefined, false])(
-                    'casts no glow through the transparent end of the gradient either, with tinting %s',
+                    'keeps the glow out of the item through the transparent end of the gradient, with tinting %s',
                     async (canTint) => {
                         const [, testCase, options] = PAINTS[0];
                         const sample = async (bucketGlow: object) => {
@@ -1390,8 +1390,12 @@ describe('highlight glow', () => {
                         const cast = await sample(ZERO);
                         const none = await sample(NO_GLOW);
 
-                        // The gradient is opaque at one end and transparent at the other, and the footprint is clear at both.
-                        expectSamePixels({ data: cast.flat() }, { data: none.flat() }, 2);
+                        // The glow takes the theme's gap of 1, which cuts the item's footprint out of it, so it shows through
+                        // neither the opaque end of the gradient nor the transparent one.
+                        const differences = cast.map((pixel, end) =>
+                            Math.max(...pixel.map((v, i) => Math.abs(v - none[end][i])))
+                        );
+                        expect(Math.max(...differences)).toBeLessThanOrEqual(8);
                     }
                 );
             });

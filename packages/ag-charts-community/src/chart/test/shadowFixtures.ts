@@ -44,26 +44,6 @@ export const ITEM_SHADOW: AgDropShadowOptions = {
     blur: 9,
 };
 
-/** A gradient fill that is opaque red at one end and fades to transparent at the other, so that a glow beneath it shows through the fade. */
-export const FADING_FILL = {
-    type: 'gradient',
-    colorStops: [
-        { color: 'rgb(255, 0, 0)', stop: 0 },
-        { color: 'rgba(255, 0, 0, 0)', stop: 1 },
-    ],
-} as const;
-
-/** A pattern of squares with no fill and no background, so that it paints nothing; set its `fill` for squares that hide what is beneath. */
-export const TRANSPARENT_PATTERN = {
-    type: 'pattern',
-    pattern: 'squares',
-    width: 10,
-    height: 10,
-    fill: 'rgba(0, 0, 0, 0)',
-    backgroundFill: 'rgba(0, 0, 0, 0)',
-    strokeOpacity: 0,
-} as const;
-
 /** The glow an item styler returns in the item styler tests, distinct from `SERIES_GLOW` and `HIGHLIGHT_GLOW` in every field. */
 export const ITEM_GLOW: AgGlowOptions = { enabled: true, fill: '#ff00ff', fillOpacity: 0.9, blur: 11, spread: 6 };
 
@@ -125,7 +105,7 @@ export function expectParamsInState(byState: Map<string, any[]>, state: string, 
 }
 
 /** What a glow with no fields of its own casts, from the glow theme defaults. */
-export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
+export const THEME_GLOW = { enabled: true, fillOpacity: 0.6, blur: 1, spread: 2, gap: 1 };
 
 /** What a shadow with no fields of its own casts: black, at the theme's opacity (0.5, or 1 in the dark theme). */
 export const themeShadow = (opacity: number) => ({

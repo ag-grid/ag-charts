@@ -43,11 +43,21 @@ type SectorLabel = AgPieSeriesOptions['sectorLabel'] & AgDonutSeriesOptions['sec
 const LABEL_OFF: SectorLabel = { enabled: false };
 const LABEL_NO_FIT: SectorLabel = { enabled: true };
 const LABEL_TRUNCATE: SectorLabel = { enabled: true, wrapping: 'on-space', truncate: true };
+const LABEL_RICH_TEXT: SectorLabel = {
+    enabled: true,
+    formatter: ({ datum }) => [{ text: datum.name, fontWeight: 'bold' }, { text: ` ${datum.value}` }],
+};
+const LABEL_ITEM_STYLER: SectorLabel = {
+    enabled: true,
+    itemStyler: ({ highlightState }) => (highlightState === 'highlighted-item' ? { fontWeight: 'bold' } : {}),
+};
 
 const LABEL_VARIANTS = [
     { name: 'Off', sectorLabel: LABEL_OFF },
     { name: 'No fit options', sectorLabel: LABEL_NO_FIT },
     { name: 'Wrap + truncate', sectorLabel: LABEL_TRUNCATE },
+    { name: 'Rich text', sectorLabel: LABEL_RICH_TEXT },
+    { name: 'Item styler', sectorLabel: LABEL_ITEM_STYLER },
 ];
 
 type SectorData = ReturnType<typeof getSectorData>;
@@ -93,9 +103,10 @@ function resetPreparedChart() {
 async function performDataUpdate(
     type: 'pie' | 'donut',
     sectorCount: number,
-    sectorLabel: SectorLabel
+    sectorLabel: SectorLabel,
+    labels: string
 ): Promise<number> {
-    const variant = `${type}:${sectorCount}:${JSON.stringify(sectorLabel)}`;
+    const variant = `${type}:${sectorCount}:${labels}`;
     if (prepared.variant !== variant || prepared.chart !== chartRef.current) {
         await performInitialLoad(seriesOptions(type, sectorCount, sectorLabel), chartRef, create);
         prepared.variant = variant;
@@ -138,7 +149,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             variants: SECTOR_COUNTS.flatMap((count) =>
                 LABEL_VARIANTS.map(({ name, sectorLabel }) => ({
                     params: { Sectors: String(count), Labels: name },
-                    run: () => performDataUpdate(type, count, sectorLabel),
+                    run: () => performDataUpdate(type, count, sectorLabel, name),
                 }))
             ),
         });
