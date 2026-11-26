@@ -177,6 +177,15 @@ describe('glow gap in a chart', () => {
             }
         );
 
+        it('should blur a glow with no spread or gap from the outer edge of a stroke of 24', async () => {
+            const strokeWidth = 24;
+            await create(strokedMarkers({ strokeWidth, glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1 } }));
+            const at = rightOfFirstItem();
+
+            expect(isGlowing(at(strokeWidth / 2 + 2))).toBe(true);
+            expect(at(strokeWidth / 2 + 40)).toEqual(WHITE);
+        });
+
         it('should keep the default hover glow visible past a stroke of 6', async () => {
             const strokeWidth = 6;
             await create(
