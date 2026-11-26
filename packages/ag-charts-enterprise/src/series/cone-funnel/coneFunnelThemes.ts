@@ -2,7 +2,6 @@ import {
     CARTESIAN_AXIS_TYPE,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
-    GLOW_THEME_DEFAULTS,
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
@@ -51,7 +50,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         shadow: SHADOW_THEME_DEFAULTS,
-        glow: GLOW_THEME_DEFAULTS,
+        glow: { enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 },
         label: {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
@@ -71,15 +70,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         tooltip: NEAREST_TOOLTIP_THEME,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
-            ...withLineDashThemeDefaults(
-                {
-                    highlightedItem: {
-                        stroke: `rgba(0, 0, 0, 0.4)`,
-                        strokeWidth: 2,
-                    },
-                },
-                ITEM_GLOW_BUCKETS
-            ),
+            ...withLineDashThemeDefaults({ unhighlightedItem: { opacity: 1 } }, ITEM_GLOW_BUCKETS),
         },
         ...undocumentedThemeOptions({ selection: withLineDashThemeDefaults({}, SELECTION_LINE_DASH_STATES) }),
     },

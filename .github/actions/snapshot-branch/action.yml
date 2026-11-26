@@ -59,7 +59,12 @@ runs:
 
               git checkout -b ${{inputs.branch}}
 
-              git stash pop
+              # The stash was taken on the checked-out commit (the merge commit on a `pull_request` run)
+              # but lands on the source branch head. Where the base branch has a baseline the head lacks
+              # or holds a different copy of, `git stash pop` conflicts, so copy the stashed files over.
+              git diff --name-only --no-renames --diff-filter=d -z 'stash@{0}^1' 'stash@{0}' | xargs -0 -r git checkout 'stash@{0}' --
+              git diff --name-only --no-renames --diff-filter=D -z 'stash@{0}^1' 'stash@{0}' | xargs -0 -r git rm -q --ignore-unmatch --
+              git stash drop
               git add ${{ inputs.path }}
               # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
               git config user.name "github-actions[bot]"

@@ -164,7 +164,10 @@ describe.each(SERIES)(
 
             it('keeps the base shadow where the state glow is disabled', async () => {
                 const { inPlace, highlighted } = await hover(
-                    { highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } } },
+                    {
+                        highlightedItem: { glow: { enabled: false } },
+                        highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } },
+                    },
                     SERIES_SHADOW
                 );
 
@@ -294,7 +297,11 @@ describe('glow on rings linked through legendItemKey', () => {
     // The highlight layer's copy casts the glow of the `Item` state, which `highlightedSeries.glow` falls back to.
     it.each([
         ['highlightedSeries', { highlightedSeries: { glow: HIGHLIGHT_GLOW } }, GLOW_SHADOW],
-        ['unhighlightedItem', { unhighlightedItem: { glow: HIGHLIGHT_GLOW } }, undefined],
+        [
+            'unhighlightedItem',
+            { highlightedItem: { glow: { enabled: false } }, unhighlightedItem: { glow: HIGHLIGHT_GLOW } },
+            undefined,
+        ],
     ])(
         "keeps the linked ring's in-place sector shadow beneath its highlight copy with %s.glow",
         async (_name, highlight, copyGlow) => {
