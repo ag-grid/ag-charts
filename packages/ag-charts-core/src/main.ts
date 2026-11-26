@@ -47,6 +47,7 @@ export * from './state/stateMachine';
 export * from './async/async';
 export * from './async/deferredExecutor';
 export * from './async/functions';
+export * from './async/gestureDeferredRefresh';
 export * from './async/mutex';
 
 // modules
