@@ -1,18 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, Logger, enterpriseRegistry, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 import {
     applyContainerSize,
+    captureSizeCallbacks,
     clearInjectedHeadStyles,
+    flushManager,
     getManagerElement,
     getManagerSizeMonitor,
     hasDeferredProxy,
     stubScrollableOverflow,
     zeroPaddingComputedStyle,
 } from './test/domAccessors';
+
+const TEST_VERSION = '14.0.0-test';
 
 describe('DOMManager', () => {
     const doc = new AgDocument(getDocument());
@@ -1600,6 +1604,512 @@ describe('DOMManager', () => {
             expect(transferred.isConnected).toBe(true);
             expect(newOwner.contains(transferred)).toBe(true);
             expect(owned.isConnected).toBe(false);
+        });
+    });
+
+    // `injectStyles: false`: the chart never creates a `<style>`, so nothing here may depend on a CSP letting one in.
+    describe('static mode', () => {
+        const otherDocument = getDocument().implementation.createHTMLDocument('other');
+        const otherAgDocument = new AgDocument(otherDocument, getDocument().defaultView!);
+
+        const spyOnLogger = () => {
+            const logger = new Logger();
+            return { logger, warn: vi.spyOn(logger, 'warn').mockImplementation(() => {}) };
+        };
+
+        // Every document, shadow root and style container a scenario touched, to look for a `<style>` in.
+        type Scenario = (create: (agDocument: AgDocument, container: HTMLElement, mode?: 'minimal') => DOMManager) => {
+            parents: ParentNode[];
+        };
+        const attachedLater = (mode?: 'minimal'): Scenario => {
+            return (create) => {
+                const container = doc.createElement('div');
+                const dm = create(doc, container, mode);
+                dm.addStyles('late', '.late {}');
+                doc.body.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+                flushManager(dm);
+                return { parents: [doc.document] };
+            };
+        };
+        const scenarios: Record<string, Scenario> = {
+            'connected light DOM': (create) => {
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const dm = create(doc, container);
+                dm.addStyles('test', '.test {}');
+                dm.setDeferring(false);
+                vi.runAllTimers();
+                return { parents: [doc.document] };
+            },
+            'detached then attached': attachedLater(),
+            'minimal mode attached before its updates settle': attachedLater('minimal'),
+            'minimal mode attached after its updates settled': (create) => {
+                const deliverSize = captureSizeCallbacks();
+                const container = doc.createElement('div');
+                const dm = create(doc, container, 'minimal');
+                flushManager(dm);
+                doc.body.append(container);
+                deliverSize({ width: 300, height: 300 });
+                return { parents: [doc.document] };
+            },
+            'shadow root': (create) => {
+                const { shadow, container } = buildShadowTree();
+                const dm = create(doc, container);
+                dm.addStyles('test', '.test {}');
+                dm.setDeferring(false);
+                vi.runAllTimers();
+                return { parents: [doc.document, shadow] };
+            },
+            // The style container itself is passed to the constructor below, and inspected with the document.
+            styleContainer: (create) => {
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                create(doc, container).addStyles('test', '.test {}');
+                return { parents: [doc.document] };
+            },
+            'second document': (create) => {
+                const container = otherDocument.createElement('div');
+                otherDocument.body.append(container);
+                const dm = create(otherAgDocument, container);
+                dm.addStyles('test', '.test {}');
+                return { parents: [doc.document, otherDocument] };
+            },
+            'moved to another parent': (create) => {
+                const container = doc.createElement('div');
+                const next = doc.createElement('div');
+                doc.body.append(container, next);
+                const dm = create(doc, container);
+                dm.setContainer(next);
+                dm.updateContainer();
+                return { parents: [doc.document] };
+            },
+            'moved to another document': (create) => {
+                const container = doc.createElement('div');
+                const next = otherDocument.createElement('div');
+                doc.body.append(container);
+                otherDocument.body.append(next);
+                const dm = create(doc, container);
+                dm.setContainer(next);
+                dm.updateContainer();
+                return { parents: [doc.document, otherDocument] };
+            },
+            destroy: (create) => {
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const dm = create(doc, container);
+                dm.destroy();
+                return { parents: [doc.document] };
+            },
+        };
+
+        beforeEach(() => {
+            vi.useFakeTimers();
+            otherDocument.head.innerHTML = '';
+            otherDocument.body.innerHTML = '';
+            clearInjectedHeadStyles(DOMManager, otherDocument.head);
+        });
+        afterEach(() => {
+            vi.useRealTimers();
+            vi.restoreAllMocks();
+            doc.body.innerHTML = '';
+        });
+
+        const styleCount = (parents: ParentNode[]) =>
+            parents.reduce((count, parent) => count + parent.querySelectorAll('style').length, 0);
+
+        describe.each(Object.entries(scenarios))('%s', (name, scenario) => {
+            it.each([
+                { injectStyles: undefined, expected: 'injects' },
+                { injectStyles: true, expected: 'injects' },
+                { injectStyles: false, expected: 'injects nothing' },
+            ])('$expected with injectStyles $injectStyles', ({ injectStyles }) => {
+                const { logger, warn } = spyOnLogger();
+                const styleContainer = name === 'styleContainer' ? doc.createElement('div') : undefined;
+                const { parents } = scenario((agDocument, container, mode) => {
+                    const dm = new DOMManager(
+                        eventsHub,
+                        'a-nonce',
+                        agDocument,
+                        container,
+                        styleContainer,
+                        undefined,
+                        mode,
+                        undefined,
+                        injectStyles === false ? { logger, version: TEST_VERSION } : undefined
+                    );
+                    dm.updateCSSVariableWatchers({ 'var(--static-color)': 'red' });
+                    return dm;
+                });
+                if (styleContainer != null) parents.push(styleContainer);
+
+                if (injectStyles === false) {
+                    expect(styleCount(parents)).toBe(0);
+                    // Neither the nonce nor the style container is an error: the grid passes the nonce whenever set.
+                    expect(warn).not.toHaveBeenCalled();
+                } else {
+                    expect(styleCount(parents)).toBeGreaterThan(0);
+                }
+            });
+        });
+
+        describe('CSS variable watchers', () => {
+            const stubRegisterProperty = (window: Window, impl: (definition: unknown) => void = () => {}) => {
+                const registerProperty = vi.fn(impl);
+                Object.defineProperty(window, 'CSS', { value: { registerProperty }, configurable: true });
+                return registerProperty;
+            };
+            afterEach(() => {
+                Reflect.deleteProperty(doc.window, 'CSS');
+            });
+
+            const newStaticManager = (container: HTMLElement, agDocument = doc) => {
+                const { logger, warn } = spyOnLogger();
+                const dm = new DOMManager(
+                    eventsHub,
+                    undefined,
+                    agDocument,
+                    container,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    { logger, version: TEST_VERSION }
+                );
+                return { dm, warn };
+            };
+
+            it('registers each colour once per window, as a colour that inherits and starts transparent', () => {
+                const registerProperty = stubRegisterProperty(doc.window);
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const { dm } = newStaticManager(container);
+                dm.updateCSSVariableWatchers({ 'var(--once-a)': 'red', 'var(--once-b)': 'blue' });
+                const other = doc.createElement('div');
+                doc.body.append(other);
+                newStaticManager(other).dm.updateCSSVariableWatchers({ 'var(--once-a)': 'red' });
+
+                expect(registerProperty.mock.calls.map(([definition]) => definition)).toEqual([
+                    { name: '--once-a', syntax: '<color>', inherits: true, initialValue: 'transparent' },
+                    { name: '--once-b', syntax: '<color>', inherits: true, initialValue: 'transparent' },
+                ]);
+                expect(container.querySelectorAll('style')).toHaveLength(0);
+                expect(dm.getParent('style-sensors').children).toHaveLength(2);
+            });
+
+            it('treats an already registered property as registered', () => {
+                const registerProperty = stubRegisterProperty(doc.window, () => {
+                    throw Object.assign(new Error('registered'), { name: 'InvalidModificationError' });
+                });
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const { dm, warn } = newStaticManager(container);
+
+                expect(() => dm.updateCSSVariableWatchers({ 'var(--already)': 'red' })).not.toThrow();
+
+                expect(registerProperty).toHaveBeenCalledTimes(1);
+                expect(warn).not.toHaveBeenCalled();
+            });
+
+            it('does nothing, and does not throw, where the window has no CSS.registerProperty', () => {
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const { dm } = newStaticManager(container);
+
+                expect(() => dm.updateCSSVariableWatchers({ 'var(--no-api)': 'red' })).not.toThrow();
+                expect(container.querySelectorAll('style')).toHaveLength(0);
+            });
+
+            it('does not register a name that is not a plain custom property name', () => {
+                const registerProperty = stubRegisterProperty(doc.window);
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const { dm } = newStaticManager(container);
+
+                dm.updateCSSVariableWatchers({ 'var(--a, fallback)': 'red' });
+
+                expect(registerProperty).not.toHaveBeenCalled();
+            });
+
+            it('registers again on the new window when the container moves into another document', () => {
+                const first = stubRegisterProperty(doc.window);
+                // A document of its own with a window of its own, as an iframe has.
+                const frameDocument = getDocument().implementation.createHTMLDocument('frame');
+                const second = vi.fn();
+                const frameWindow = {
+                    CSS: { registerProperty: second },
+                    document: frameDocument,
+                    addEventListener: () => {},
+                    removeEventListener: () => {},
+                    getComputedStyle: () => ({ ...zeroPaddingComputedStyle(), getPropertyValue: () => '1' }),
+                } as unknown as Window;
+                Object.defineProperty(frameDocument, 'defaultView', { value: frameWindow });
+                // Its own AgDocument, as the move repoints it at the new window.
+                const movingDocument = new AgDocument(getDocument());
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const { dm } = newStaticManager(container, movingDocument);
+                dm.updateCSSVariableWatchers({ 'var(--moved)': 'red' });
+                expect(first).toHaveBeenCalledTimes(1);
+
+                const moved = frameDocument.createElement('div');
+                frameDocument.body.append(moved);
+                dm.setContainer(moved);
+                dm.updateContainer();
+
+                expect(second).toHaveBeenCalledTimes(1);
+                expect(second.mock.calls[0][0]).toMatchObject({ name: '--moved' });
+                expect(first).toHaveBeenCalledTimes(1);
+            });
+
+            it('keeps the registration when the chart is destroyed', () => {
+                const registerProperty = stubRegisterProperty(doc.window);
+                const container = doc.createElement('div');
+                doc.body.append(container);
+                const { dm } = newStaticManager(container);
+                dm.updateCSSVariableWatchers({ 'var(--kept)': 'red' });
+
+                dm.destroy();
+                const other = doc.createElement('div');
+                doc.body.append(other);
+                newStaticManager(other).dm.updateCSSVariableWatchers({ 'var(--kept)': 'red' });
+
+                expect(registerProperty).toHaveBeenCalledTimes(1);
+            });
+
+            it('still uses the colour sensor in a shadow root', () => {
+                const registerProperty = stubRegisterProperty(doc.window);
+                const { shadow, container } = buildShadowTree();
+                const { dm } = newStaticManager(container);
+
+                dm.updateCSSVariableWatchers({ 'var(--shadowed)': 'red' });
+
+                expect(registerProperty).not.toHaveBeenCalled();
+                expect(shadowWatchers(shadow, '--shadowed')).toHaveLength(1);
+            });
+        });
+
+        describe('stylesheet check', () => {
+            const COMMUNITY_FILE = 'ag-charts-community/css/ag-charts-community.css';
+            const ENTERPRISE_FILE = 'ag-charts-enterprise/css/ag-charts-enterprise.css';
+
+            // A fresh document per case, as the check runs once per root and the main document's is shared.
+            const newRoot = () => {
+                const rootDocument = getDocument().implementation.createHTMLDocument('check');
+                return { rootDocument, agDocument: new AgDocument(rootDocument, getDocument().defaultView!) };
+            };
+
+            const setup = (markers: Record<string, string>, skipCss?: boolean) => {
+                const { rootDocument, agDocument } = newRoot();
+                const hub: EventsHub = new EventEmitter();
+                const { logger, warn } = spyOnLogger();
+                const getComputedStyle = vi.spyOn(doc.window, 'getComputedStyle').mockImplementation(() => ({
+                    ...zeroPaddingComputedStyle(),
+                    getPropertyValue: (name: string) => markers[name] ?? '',
+                }));
+                const create = (connected = true, mode?: 'minimal', parent?: ParentNode) => {
+                    const container = rootDocument.createElement('div');
+                    if (connected) (parent ?? rootDocument.body).append(container);
+                    const dm = new DOMManager(
+                        hub,
+                        undefined,
+                        agDocument,
+                        container,
+                        undefined,
+                        skipCss,
+                        mode,
+                        undefined,
+                        { logger, version: TEST_VERSION }
+                    );
+                    return { dm, container };
+                };
+                const settle = () => hub.emit('update:settled', {} as never);
+                return { rootDocument, markers, warn, getComputedStyle, create, settle, hub };
+            };
+
+            afterEach(() => {
+                vi.restoreAllMocks();
+                enterpriseRegistry.styles = undefined;
+            });
+
+            it('warns once per root, only after the re-check still finds the stylesheet missing', () => {
+                const { warn, create, settle, getComputedStyle } = setup({});
+                create();
+                create();
+                expect(warn).not.toHaveBeenCalled();
+
+                settle();
+                settle();
+
+                expect(warn).toHaveBeenCalledTimes(1);
+                expect(warn).toHaveBeenCalledWith(
+                    `injectStyles is false, but the AG Charts stylesheet is not loaded. Add ${COMMUNITY_FILE} to the page.`
+                );
+                // The check and its re-check, whatever the number of charts.
+                const wrapperReads = getComputedStyle.mock.calls.filter(([el]) =>
+                    el.classList.contains('ag-charts-wrapper')
+                );
+                expect(wrapperReads).toHaveLength(2);
+            });
+
+            it('does not warn when the stylesheet arrives before the re-check', () => {
+                const { warn, create, settle, markers } = setup({});
+                create();
+                markers['--ag-charts-css-loaded'] = '1';
+
+                settle();
+
+                expect(warn).not.toHaveBeenCalled();
+            });
+
+            it.each<[string, Record<string, string>]>([
+                ['the marker is present', { '--ag-charts-css-loaded': '1' }],
+                [
+                    'the stylesheet is the same version',
+                    { '--ag-charts-css-loaded': '1', '--ag-charts-css-version': `"${TEST_VERSION}"` },
+                ],
+            ])('does not warn when %s', (_name, markers) => {
+                const { warn, create, settle } = setup(markers);
+                create();
+                settle();
+                expect(warn).not.toHaveBeenCalled();
+            });
+
+            it('names the enterprise file for a chart with enterprise styles', () => {
+                enterpriseRegistry.styles = '.e {}';
+                // The community marker alone does not satisfy an enterprise chart.
+                const { warn, create, settle } = setup({ '--ag-charts-css-loaded': '1' });
+                create();
+                settle();
+
+                expect(warn).toHaveBeenCalledTimes(1);
+                expect(warn).toHaveBeenCalledWith(
+                    `injectStyles is false, but the AG Charts stylesheet is not loaded. Add ${ENTERPRISE_FILE} to the page.`
+                );
+            });
+
+            it('warns once when the loaded stylesheet is another version', () => {
+                const { warn, create, settle } = setup({
+                    '--ag-charts-css-loaded': '1',
+                    '--ag-charts-css-version': '"1.2.3"',
+                });
+                create();
+                create();
+                settle();
+
+                expect(warn).toHaveBeenCalledTimes(1);
+                expect(warn).toHaveBeenCalledWith(
+                    `the loaded AG Charts stylesheet is version 1.2.3, but AG Charts is version ${TEST_VERSION}. Load the stylesheet that matches this version.`
+                );
+            });
+
+            it('checks each shadow root of one document on its own, and a root once', () => {
+                const { rootDocument, warn, create, settle } = setup({});
+                const shadowRoot = () => {
+                    const host = rootDocument.createElement('div');
+                    rootDocument.body.append(host);
+                    const shadow = host.attachShadow({ mode: 'open' });
+                    const outer = rootDocument.createElement('div');
+                    shadow.append(outer);
+                    return outer;
+                };
+                const first = shadowRoot();
+                const second = shadowRoot();
+
+                create(true, undefined, first);
+                create(true, undefined, first);
+                settle();
+                expect(warn).toHaveBeenCalledTimes(1);
+
+                create(true, undefined, second);
+                settle();
+                expect(warn).toHaveBeenCalledTimes(2);
+
+                // The document itself is a third root, with its own check.
+                create();
+                settle();
+                expect(warn).toHaveBeenCalledTimes(3);
+            });
+
+            it.each([
+                { description: 'with skipCss', skipCss: true, connected: true },
+                { description: 'a container that is not connected', skipCss: false, connected: false },
+            ])('never checks $description', ({ skipCss, connected }) => {
+                const { warn, create, settle, getComputedStyle } = setup({}, skipCss);
+                create(connected);
+                settle();
+                expect(warn).not.toHaveBeenCalled();
+                expect(getComputedStyle).not.toHaveBeenCalled();
+            });
+
+            // Wherever the check first sees a connected container, a missing stylesheet ends in one warning. Some of these
+            // charts get no further update on their own (fixed-size sparklines), so the check asks for the re-check.
+            describe.each<[string, (s: ReturnType<typeof setup>) => void | Promise<void>]>([
+                [
+                    'the flush',
+                    ({ rootDocument, create }) => {
+                        const { dm, container } = create(false);
+                        rootDocument.body.append(container);
+                        dm.setDeferring(false);
+                        vi.runAllTimers();
+                    },
+                ],
+                [
+                    'the attach observer',
+                    async ({ rootDocument, create }) => {
+                        const { container } = create(false);
+                        rootDocument.body.append(container);
+                        await Promise.resolve();
+                    },
+                ],
+                [
+                    'the container size callback',
+                    ({ rootDocument, create }) => {
+                        const deliverSize = captureSizeCallbacks();
+                        const { dm, container } = create(false, 'minimal');
+                        flushManager(dm);
+                        rootDocument.body.append(container);
+                        deliverSize({ width: 300, height: 300 });
+                    },
+                ],
+                [
+                    'a move into a connected container',
+                    ({ rootDocument, create }) => {
+                        const { dm } = create(false);
+                        const next = rootDocument.createElement('div');
+                        rootDocument.body.append(next);
+                        dm.setContainer(next);
+                        dm.updateContainer();
+                    },
+                ],
+            ])('when it first sees a connected container in %s', (_name, reach) => {
+                beforeEach(() => vi.useFakeTimers());
+                afterEach(() => vi.useRealTimers());
+
+                it('requests the re-check and warns once', async () => {
+                    const context = setup({});
+                    const refresh = vi.fn();
+                    context.hub.on('chart:request-refresh', refresh);
+
+                    await reach(context);
+                    expect(context.warn).not.toHaveBeenCalled();
+                    expect(refresh).toHaveBeenCalledTimes(1);
+
+                    context.settle();
+                    context.settle();
+                    expect(context.warn).toHaveBeenCalledTimes(1);
+                    expect(context.rootDocument.querySelectorAll('style')).toHaveLength(0);
+                });
+            });
+
+            it('hands the root to another chart when the chart waiting on it is destroyed', () => {
+                const { warn, create, settle } = setup({});
+                create().dm.destroy();
+                create();
+                settle();
+                expect(warn).toHaveBeenCalledTimes(1);
+            });
         });
     });
 });

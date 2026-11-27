@@ -333,6 +333,15 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
      * Default: `undefined`
      */
     styleNonce?: string;
+    /**
+     * Set to `false` to stop the chart adding `<style>` elements to the page, for example under a Content
+     * Security Policy that does not allow inline styles. The page must then load the AG Charts stylesheet
+     * (`ag-charts-community/css/ag-charts-community.css`, or `ag-charts-enterprise/css/ag-charts-enterprise.css`
+     * when using AG Charts Enterprise).
+     *
+     * Default: `true`
+     */
+    injectStyles?: boolean;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum, TContext>;
     /**

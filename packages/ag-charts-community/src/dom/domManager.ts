@@ -6,6 +6,7 @@ import {
     type CanvasPoint,
     type ClientPoint,
     type ElementSize,
+    type Logger,
     type PerWindowEntry,
     SizeMonitor,
     StateTracker,
@@ -15,6 +16,7 @@ import {
     createId,
     createPerWindowRegistry,
     createStyleElement,
+    enterpriseRegistry,
     entries,
     getAttribute,
     hasNoModifiers,
@@ -50,6 +52,9 @@ const BUTTON_STATE_BORDER_KEYS = new Set(['buttonHoverBorder', 'buttonActiveBord
 
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
 const CSS_VARIABLE_NAME = /^--[\w-]+$/;
+const CSS_LOADED_MARKER = '--ag-charts-css-loaded';
+const ENTERPRISE_CSS_LOADED_MARKER = '--ag-charts-enterprise-css-loaded';
+const CSS_VERSION_MARKER = '--ag-charts-css-version';
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
     safeVertical: 'ag-charts-wrapper--safe-vertical',
@@ -84,6 +89,37 @@ function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (inters
     observer?.observe(element);
     return observer;
 }
+
+// Static mode registers a watched colour once per window, however many charts or moves ask for it.
+const registeredColorProperties = new WeakMap<Window, Set<string>>();
+
+/** Registers `property` as a typed `<color>` on `window` in place of an `@property` `<style>`; no-op without the API. */
+function registerColorProperty(window: Window, property: string, logger: Logger) {
+    const css = (window as { CSS?: { registerProperty?: (definition: PropertyDefinition) => void } }).CSS;
+    if (typeof css?.registerProperty !== 'function') return;
+
+    let registered = registeredColorProperties.get(window);
+    if (registered == null) {
+        registered = new Set();
+        registeredColorProperties.set(window, registered);
+    }
+    if (registered.has(property)) return;
+    registered.add(property);
+
+    try {
+        css.registerProperty({ name: property, syntax: '<color>', inherits: true, initialValue: 'transparent' });
+    } catch (e) {
+        // Already registered by the page or another chart: the registration that stands is as good as ours.
+        if ((e as { name?: string } | null)?.name !== 'InvalidModificationError') {
+            logger.warnOnce(`unable to register the CSS property ${property}.`, e);
+        }
+    }
+}
+
+type StylesheetCheck = { phase: 'pending'; owner: DOMManager } | { phase: 'settled' };
+const staleStylesheetWarnings = new WeakSet<Node>();
+// Per root (`Document` or `ShadowRoot`) and marker, so a page of charts is checked and warned about once.
+const stylesheetChecks = new WeakMap<Node, Map<string, StylesheetCheck>>();
 
 type LiveDOMElement = {
     element: HTMLElement;
@@ -183,7 +219,13 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
     private hasDeferredCSSVariables = false;
+    private pendingStylesheetCheck?: { checks: Map<string, StylesheetCheck>; marker: string } = undefined;
     containerSize?: ElementSize = undefined;
+
+    /** Whether the chart injects `<style>` elements; fixed for the life of the manager. */
+    get injectStyles(): boolean {
+        return this.staticStyles == null;
+    }
 
     private readonly observer?: IntersectionObserver;
     private attachObserver?: MutationObserver;
@@ -223,7 +265,9 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         private readonly styleContainer?: HTMLElement,
         private readonly skipCss?: boolean,
         readonly mode: 'normal' | 'minimal' = 'normal',
-        readonly cssVariables?: Record<string, string>
+        readonly cssVariables?: Record<string, string>,
+        /** Set for `injectStyles: false`: no `<style>` is ever created, and `styleNonce` and `styleContainer` are ignored. */
+        private readonly staticStyles?: { logger: Logger; version: string }
     ) {
         super();
 
@@ -333,6 +377,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
         this.pendingContainer = undefined;
         this.removeCSSVariableWatchers();
+        this.releaseStylesheetChecks();
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
@@ -433,6 +478,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             this.updateShadowDocumentRoot(this.container);
         }
         this.initiallyConnected = true;
+        this.checkStylesheet();
         // Remove styles from our DOM tree before re-adding to correct location
         this.removeInTreeStyles();
         // Re-add styles to correct location (shadow DOM vs head)
@@ -527,6 +573,7 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
         this.updateShadowDocumentRoot(pendingContainer);
+        this.registerWatchedColorProperties();
         this.initiallyConnected = pendingContainer.isConnected;
         if (this.initiallyConnected && this.shadowDocumentRoot == null) {
             this.removeInTreeStyles();
@@ -540,6 +587,9 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
         }
 
         pendingContainer.appendChild(this.element);
+        if (this.initiallyConnected) {
+            this.checkStylesheet();
+        }
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
@@ -866,6 +916,8 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
 
         this.styles.set(id, styles);
 
+        if (this.staticStyles != null) return;
+
         if (this.container == null) return;
 
         // Skip CSS injection in SSR - CSS is not needed for canvas-based image rendering
@@ -1168,10 +1220,16 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
                 continue;
             }
 
-            const styleElement = createStyleElement(this.styleNonce);
-            styleElement.dataset.variableName = property;
-            styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
-            this.element.prepend(styleElement);
+            // Static mode registers the property on the window instead, as an `@property` rule would need a `<style>`.
+            let styleElement: HTMLStyleElement | undefined;
+            if (this.staticStyles == null) {
+                styleElement = createStyleElement(this.styleNonce);
+                styleElement.dataset.variableName = property;
+                styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
+                this.element.prepend(styleElement);
+            } else {
+                registerColorProperty(this.agDocument.window, property, this.staticStyles.logger);
+            }
 
             const sensorElement = createElement('div');
             sensorElement.style.setProperty('transition', `${property} 1ms`, 'important');
@@ -1184,8 +1242,94 @@ export class DOMManager extends BaseManager implements CanvasOrigin {
             this.cssVariableWatchers.set(property, () => {
                 sensorElement.removeEventListener('transitionend', handleTransitionEnd);
                 sensorElement.remove();
-                styleElement.remove();
+                // A registration made in static mode stays for the life of the window.
+                styleElement?.remove();
             });
+        }
+    }
+
+    /** A container moved into another document needs the watched colours registered on that document's window. */
+    private registerWatchedColorProperties() {
+        if (this.staticStyles == null || this.shadowDocumentRoot != null) return;
+
+        for (const property of this.cssVariableWatchers.keys()) {
+            if (CSS_VARIABLE_NAME.test(property)) {
+                registerColorProperty(this.agDocument.window, property, this.staticStyles.logger);
+            }
+        }
+    }
+
+    /** Static mode: warns once per root if the page's stylesheet is missing; never injects it. Re-checks on `update:settled`. */
+    private checkStylesheet() {
+        const { staticStyles, container } = this;
+        if (staticStyles == null || this.skipCss || container?.isConnected !== true) return;
+
+        const marker = enterpriseRegistry.styles == null ? CSS_LOADED_MARKER : ENTERPRISE_CSS_LOADED_MARKER;
+        const root = container.getRootNode();
+        let checks = stylesheetChecks.get(root);
+        if (checks == null) {
+            checks = new Map();
+            stylesheetChecks.set(root, checks);
+        }
+        if (checks.has(marker)) return;
+
+        if (this.readStylesheetMarkers(root, marker, staticStyles)) {
+            checks.set(marker, { phase: 'settled' });
+            return;
+        }
+
+        checks.set(marker, { phase: 'pending', owner: this });
+        this.pendingStylesheetCheck = { checks, marker };
+        const stopWaiting = this.eventsHub.on('update:settled', () => {
+            stopWaiting();
+            this.pendingStylesheetCheck = undefined;
+            if (this.destroyed || checks.get(marker)?.phase !== 'pending') return;
+
+            checks.set(marker, { phase: 'settled' });
+            if (container.isConnected && !this.readStylesheetMarkers(root, marker, staticStyles)) {
+                const file =
+                    marker === CSS_LOADED_MARKER
+                        ? 'ag-charts-community/css/ag-charts-community.css'
+                        : 'ag-charts-enterprise/css/ag-charts-enterprise.css';
+                staticStyles.logger.warn(
+                    `injectStyles is false, but the AG Charts stylesheet is not loaded. Add ${file} to the page.`
+                );
+            }
+        });
+        this.cleanup.register(stopWaiting);
+        // A chart attached after its updates settled gets no further update, so ask for the one that re-checks.
+        this.eventsHub.emit('chart:request-refresh', null);
+    }
+
+    /** One `getComputedStyle` read: whether the marker is set, and the version warning when the stylesheet is stale. */
+    private readStylesheetMarkers(
+        root: Node,
+        marker: string,
+        { logger, version }: { logger: Logger; version: string }
+    ): boolean {
+        const computed = this.agDocument.getComputedStyle(this.element);
+        if (computed.getPropertyValue(marker).trim() === '') return false;
+
+        const cssVersion = computed
+            .getPropertyValue(CSS_VERSION_MARKER)
+            .trim()
+            .replace(/^(["'])(.*)\1$/, '$2');
+        if (cssVersion !== '' && cssVersion !== version && !staleStylesheetWarnings.has(root)) {
+            staleStylesheetWarnings.add(root);
+            logger.warn(
+                `the loaded AG Charts stylesheet is version ${cssVersion}, but AG Charts is version ${version}. Load the stylesheet that matches this version.`
+            );
+        }
+        return true;
+    }
+
+    /** A chart destroyed before its re-check hands the root back, so that another chart can check it. */
+    private releaseStylesheetChecks() {
+        const { checks, marker } = this.pendingStylesheetCheck ?? {};
+        this.pendingStylesheetCheck = undefined;
+        const check = checks?.get(marker!);
+        if (check?.phase === 'pending' && check.owner === this) {
+            checks!.delete(marker!);
         }
     }
 

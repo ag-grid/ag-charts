@@ -1,6 +1,6 @@
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 
-import type { SizeMonitor } from 'ag-charts-core';
+import { SizeMonitor } from 'ag-charts-core';
 
 import type { DOMManager } from '../domManager';
 
@@ -10,6 +10,7 @@ interface DOMManagerInternals {
     sizeMonitor: SizeMonitor;
     deferredProxies: Map<string, unknown>;
     updateContainerSize(): void;
+    flushDeferredProxies(): void;
 }
 
 interface DOMManagerStatics {
@@ -32,6 +33,20 @@ export function getManagerSizeMonitor(dm: DOMManager): SizeMonitor {
     const { sizeMonitor } = internalsOf(dm);
     expect(sizeMonitor, 'DOMManager size monitor').toBeDefined();
     return sizeMonitor;
+}
+
+/**
+ * Stops `SizeMonitor` observing, since jsdom never fires a layout-driven size callback. The returned function
+ * delivers a size to every callback registered since, as the monitor does when a container is first laid out.
+ */
+export function captureSizeCallbacks(): (size: { width: number; height: number }) => void {
+    const callbacks: Array<(size: { width: number; height: number }) => void> = [];
+    vi.spyOn(SizeMonitor.prototype, 'observe').mockImplementation((_el, callback) => {
+        callbacks.push(callback as (typeof callbacks)[number]);
+    });
+    return (size) => {
+        for (const callback of callbacks) callback(size);
+    };
 }
 
 /** Whether a deferred proxy is still registered under `<domElementClass>:<id>`. */
@@ -71,4 +86,9 @@ export function zeroPaddingComputedStyle(): CSSStyleDeclaration {
         paddingTop: '0px',
         paddingBottom: '0px',
     } as unknown as CSSStyleDeclaration;
+}
+
+/** Runs the flush a deferred-proxy timer would, which places the styles of a container attached since creation. */
+export function flushManager(dm: DOMManager): void {
+    internalsOf(dm).flushDeferredProxies();
 }
