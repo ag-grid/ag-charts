@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceSelectedItem: 'valittu',
     ariaAnnounceUnselectedItem: 'ei valittu',
     ariaAnnounceChart: 'kaavio, ${seriesCount}[number] sarjaa',
+    ariaAnnounceChartWithCaption: 'kaavio, ${caption}, ${seriesCount}[number] sarjaa',
     ariaAnnounceFlowProportionLink: 'linkki ${index} / ${count}, lähtien ${from} päättyen ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'solmu ${index} ${count} näkyvissä, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaDescriptionToggleNode: 'Paina Space tai Enter laajentaaksesi tai tiivistääksesi tämän solmun',
     ariaAnnounceGaugeChart: 'mittarikaavio, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkkinen kaavio, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'hierarkkinen kaavio',
     ariaAnnounceHierarchyDatum: 'taso ${level}[number], ${count}[number] lasta, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'kaavio, ${caption}',

@@ -36,8 +36,8 @@ export type DialogCloseOutcome = 'applied' | 'cancelled' | 'unchanged';
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {
     /**
-     * Whether the dialog, and the colour pickers in it, show Apply and Cancel buttons. Closing the dialog any other way
-     * than Apply counts as Cancel.
+     * Whether the dialog, and the colour pickers in it, show Apply and Cancel buttons. Enter applies and Escape cancels
+     * either way; any other close is a Cancel with the buttons and an Apply without.
      */
     showActionButtons?: boolean;
 }
@@ -92,7 +92,7 @@ interface ColorPickerOptions {
     isMultiColor?: boolean;
     hasMultiColorOption: boolean;
     onChange: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
-    onChangeHide: (cancelled: boolean) => void;
+    onChangeHide: () => void;
 }
 
 /**
@@ -115,8 +115,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     /** Whether Apply and Cancel buttons are shown, as set by the options of the current show. */
     private showActionButtons = false;
-    /** Whether the dialog is closing through Apply. */
-    private applied = false;
+    private closesAs: 'applied' | 'cancelled' = 'applied';
     /** Whether anything has changed since the dialog opened. */
     private changed = false;
 
@@ -127,7 +126,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     protected override showWithChildren(children: Widget[], options: Options): ContainerWidget {
         this.showActionButtons = options.showActionButtons ?? false;
-        this.applied = false;
+        this.closesAs = this.showActionButtons ? 'cancelled' : 'applied';
         this.changed = false;
         this.applyButton = undefined;
         if (this.showActionButtons) {
@@ -167,7 +166,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     /** Closes the dialog, keeping the changes made since it opened. */
     public apply() {
-        this.applied = true;
+        this.closesAs = 'applied';
+        this.hide();
+    }
+
+    public cancel() {
+        this.closesAs = 'cancelled';
         this.hide();
     }
 
@@ -179,8 +183,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     /** How the dialog closed, which is `unchanged` when there was nothing to apply or cancel. */
     protected get closeOutcome(): DialogCloseOutcome {
-        if (!this.changed) return 'unchanged';
-        return this.applied ? 'applied' : 'cancelled';
+        return this.changed ? this.closesAs : 'unchanged';
     }
 
     /**************
@@ -380,7 +383,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         );
         // There is nothing to apply until something changes.
         applyButton.setEnabled(false);
-        cancelButton.addListener('click', () => this.hide());
+        cancelButton.addListener('click', () => this.cancel());
         applyButton.addListener('click', () => this.apply());
         actions.addChild(cancelButton);
         actions.addChild(applyButton);
@@ -449,18 +452,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 sourceEvent,
                 onChange: (...args) => changeColor(...args),
                 onChangeHide: (cancelled) => {
-                    if (cancelled && this.showActionButtons) {
-                        // The dialog holds back its history until Apply, so there is no record to revert to. Put the
-                        // colour back to what the picker settled on as it opened, leaving the dialog's other changes alone.
+                    if (cancelled) {
+                        // No history record to revert to while the dialog holds it back; restore this colour alone.
                         const { color: c = '', opacity: o = 1, isMultiColor: m = false } = settled;
                         if (c !== '') changeColor(toColorWithOpacity(c, o), c, o, m, true);
                         return;
                     }
-                    if (cancelled) {
-                        // Cancelling undoes the colour change, so put the swatch back to how it was when the picker opened.
-                        paintSwatch(opening.color, opening.opacity, opening.isMultiColor);
-                    }
-                    onChangeHide(cancelled);
+                    onChangeHide();
                 },
             });
             // A colour that was unset has been given the picker's default by now.
@@ -510,8 +508,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
 
         if (event.key === 'Escape') {
-            this.hide();
-        } else if (event.key === 'Enter' && this.showActionButtons) {
+            this.cancel();
+        } else if (event.key === 'Enter') {
             // A button, select or text area already does something with Enter.
             const tagName = (event.target as Element | null)?.tagName;
             if (tagName === 'BUTTON' || tagName === 'SELECT' || tagName === 'TEXTAREA') return;

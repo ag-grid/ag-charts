@@ -33,6 +33,7 @@ function getBenchmarkConfig() {
     return getShadowRootConfig(
         [
             'bars-spread',
+            'bars-large',
             'areas-markers',
             'highlight',
             'many-markers',

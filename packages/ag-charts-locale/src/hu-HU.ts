@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceSelectedItem: 'kijelölve',
     ariaAnnounceUnselectedItem: 'nincs kijelölve',
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat',
+    ariaAnnounceChartWithCaption: 'diagram, ${caption}, ${seriesCount}[number] sorozat',
     ariaAnnounceFlowProportionLink:
         'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',
@@ -29,6 +30,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaDescriptionToggleNode: 'Nyomja meg a Space vagy Enter billentyűt a csomópont kibontásához vagy összecsukásához',
     ariaAnnounceGaugeChart: 'mérőműszer diagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchia diagram, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'hierarchia diagram',
     ariaAnnounceHierarchyDatum: 'szint ${level}[number], ${count}[number] gyermek, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'diagram, ${caption}',

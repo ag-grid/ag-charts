@@ -38,8 +38,11 @@ export const SHADOW_SHRINK_AFTER = 30;
 /** How many casts of one user keep their shadows between redraws. Further casts of it blur every time. */
 const MAX_CACHED_CASTS = 4;
 
-/** The most pixels that the kept shadows of a scene hold between them: about 16 MB, or one 1200 x 800 layer at 2x (3.84M). */
-const MAX_CACHED_AREA = MAX_MASK_AREA / 4;
+/**
+ * The most pixels that the kept shadows of a scene hold between them: about 32 MB (8.39M), which holds the shadows of a 1600 x 900
+ * chart at 2x. The kept parts of overlay glows are given the same room, beside it.
+ */
+const MAX_CACHED_AREA = MAX_MASK_AREA / 2;
 
 /**
  * The most pixels that the kept parts of overlay glows hold between them: about 32 MB, or two parts of a 2800 x 1200 layer (3.4M each).
@@ -67,19 +70,13 @@ export type ShadowCaster = Shape;
  */
 export type ShadowScope = 'run' | 'layer' | 'root';
 
-/** The casters that share their shadow options and clip, and so one mask and one blur. */
-export interface ShadowKey {
+/** What every key has: the casters that share their shadow options and clip, and so one mask and one blur. */
+interface ShadowKeyBase {
     /** Which of its casters' two slots the key casts. A caster that casts both is in a key of each. */
     readonly slot: ShadowSlot;
     /** The shadow options of its casters. A glow with no `fill` keeps none: each caster's silhouette has its own colour. */
     readonly shadow: NormalisedDropShadowOptions;
-    /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
-    readonly clip: ShadowClip | undefined;
     readonly casters: ShadowCaster[];
-    /** The frame of each caster, in the order of {@link casters}, for a `root` key. */
-    readonly frames?: ShadowFrame[];
-    /** All that clips every caster of a `root` key, in device pixels: the clips of its frames, and of a path. */
-    readonly clips?: readonly ShadowRegion[];
     /** For a key that a cast split from another by strength, see {@link splitByStrength}: that key, and every key split from it. */
     readonly split?: { readonly from: ShadowKey; readonly parts: readonly ShadowKey[] };
     /** The series of the casters of a glow key whose glows are cut by its own shapes, see {@link ownCuts}. */
@@ -89,6 +86,24 @@ export interface ShadowKey {
     /** Whether the casters are the highlight copies of hovered items, see {@link cutsSeeThrough}. */
     readonly hovered?: boolean;
 }
+
+/** The key of a group's own casters, which are clipped by `clip`, in the coordinates of the group. */
+export interface LocalShadowKey extends ShadowKeyBase {
+    readonly clip: ShadowClip | undefined;
+    readonly frames?: undefined;
+    readonly clips?: undefined;
+}
+
+/** The key of the casters that a shadow root gathers from many groups, each in a {@link ShadowFrame}. */
+export interface RootShadowKey extends ShadowKeyBase {
+    readonly clip?: undefined;
+    /** The frame of each caster, in the order of {@link casters}. */
+    readonly frames: ShadowFrame[];
+    /** All that clips every caster, in device pixels: the clips of its frames, and of a path. */
+    readonly clips: readonly ShadowRegion[];
+}
+
+export type ShadowKey = LocalShadowKey | RootShadowKey;
 
 /** Whether a hovered glow key with no `gap` has a see-through caster, whose footprint is cut out of the glow like at rest. */
 function cutsSeeThrough({ hovered, slot, shadow, casters }: ShadowKey): boolean {
@@ -176,7 +191,8 @@ export function inLayerOf(first: Node, next: Node, scope: ShadowScope): boolean 
     return scope !== 'layer' || sameLayer(first, next);
 }
 
-function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
+/** Whether two shadows cast alike. Keep the options it compares the same as those of {@link shadowKeyId}. */
+export function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
     return (
         a === b ||
         (a.fill === b.fill &&
@@ -190,6 +206,24 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
             a.overlay === b.overlay &&
             a.selfCut === b.selfCut)
     );
+}
+
+/**
+ * Names the shadow options that {@link sameShadow} compares, so that keys of one shadow are found without comparing each. Shadows
+ * that {@link sameShadow} finds alike must have the same id, or a caster would not join a key that it matches.
+ */
+export function shadowKeyId({
+    fill,
+    fillOpacity,
+    xOffset,
+    yOffset,
+    blur,
+    spread,
+    gap,
+    overlay,
+    selfCut,
+}: NormalisedDropShadowOptions): string {
+    return `${fill}|${fillOpacity ?? 1}|${xOffset}|${yOffset}|${blur}|${spread ?? 0}|${gap}|${overlay}|${selfCut}`;
 }
 
 /** Whether `next`, which casts `shadow` to `clip`, joins the casters of `key`. A `root` key is clipped by `clips` instead. */
@@ -891,12 +925,12 @@ function splitByStrength(key: ShadowKey): StrengthPart[] {
     const split = { from: key, parts };
     for (const indices of members) {
         indices.sort((a, b) => a - b);
-        parts.push({
-            ...key,
-            casters: indices.map((i) => casters[i]),
-            frames: frames == null ? undefined : indices.map((i) => frames[i]),
-            split,
-        });
+        const partCasters = indices.map((i) => casters[i]);
+        parts.push(
+            frames == null
+                ? { ...key, casters: partCasters, split }
+                : { ...key, casters: partCasters, frames: indices.map((i) => frames[i]), split }
+        );
     }
     return parts.map((part, i) => ({ key: part, strength: strengths[i] }));
 }

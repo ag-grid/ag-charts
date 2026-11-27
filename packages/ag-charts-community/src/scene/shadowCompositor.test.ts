@@ -2402,7 +2402,7 @@ describe('Group shadow compositor', () => {
             // A kept cast holds a canvas as large as its shadows reach, and a scene holds no more pixels in them than its budget.
             describe.each([
                 ['small casters', 3000, 3000, {}, 2],
-                ['casters as large as the layer', 2000, 2000, { width: 2000, height: 2000 }, 1],
+                ['casters as large as the layer', 2800, 2800, { width: 2800, height: 2800 }, 1],
                 ['small casters', 4200, 4100, {}, 0],
             ])('%s on a layer of %i x %i', (_name, width, height, size, expectedKept) => {
                 it(`should keep the shadows of ${expectedKept} of its 2 casts, and draw the same either way`, () => {
@@ -2586,7 +2586,7 @@ describe('Group shadow compositor', () => {
 
         // A cast that was refused room does not measure its casters, or ask for a canvas, until it could be given one.
         describe('a cast that was refused room', () => {
-            const SIZE = 2000;
+            const SIZE = 2800;
             // Each caster is as large as the layer, so that the kept shadows of one fill most of the budget and a second would not fit.
             // They differ in x, which is how a cast that blurred again shows itself.
             const makeLayers = () => {
@@ -3827,7 +3827,7 @@ describe('Group shadow compositor', () => {
                                 { matrix: [1, 0, 0, 1, 150, 100], alpha: 1, clips: [] },
                                 { matrix: [1, 0, 0, 1, 230, 160], alpha: 0.5, clips: [] },
                             ];
-                            return [{ ...shadowKey(casters), frames }];
+                            return [{ ...shadowKey(casters), clip: undefined, frames, clips: [] }];
                         },
                         held: { width: 120, height: 90 },
                     };
@@ -3931,11 +3931,11 @@ describe('Group shadow compositor', () => {
                         keys: () => [
                             shadowKey([
                                 box(10, 10, 40, 30, { fillShadow: BLURRED }),
-                                box(2350, 1760, 40, 30, { fillShadow: BLURRED }),
+                                box(3350, 2460, 40, 30, { fillShadow: BLURRED }),
                             ]),
                         ],
-                        held: { width: 2380, height: 1780 },
-                        layer: { width: 2400, height: 1800 },
+                        held: { width: 3380, height: 2480 },
+                        layer: { width: 3400, height: 2500 },
                         casts: 5,
                     };
                     const bounded = castScenario(scenario, false, true);

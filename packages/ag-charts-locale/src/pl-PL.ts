@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaAnnounceSelectedItem: 'zaznaczone',
     ariaAnnounceUnselectedItem: 'niezaznaczone',
     ariaAnnounceChart: 'wykres, ${seriesCount}[number] serii',
+    ariaAnnounceChartWithCaption: 'wykres, ${caption}, ${seriesCount}[number] serii',
     ariaAnnounceFlowProportionLink: 'link ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'węzeł ${index} z ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaDescriptionToggleNode: 'Naciśnij Space lub Enter, aby rozwinąć lub zwinąć ten węzeł',
     ariaAnnounceGaugeChart: 'wykres wskaźnikowy, ${caption}',
     ariaAnnounceHierarchyChart: 'wykres hierarchii, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'wykres hierarchii',
     ariaAnnounceHierarchyDatum: 'poziom ${level}[number], ${count}[number] dzieci, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'wykres, ${caption}',

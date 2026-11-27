@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaAnnounceSelectedItem: '선택됨',
     ariaAnnounceUnselectedItem: '선택 안 됨',
     ariaAnnounceChart: '차트, ${seriesCount}[number] 시리즈',
+    ariaAnnounceChartWithCaption: '차트, ${caption}, ${seriesCount}[number] 시리즈',
     ariaAnnounceFlowProportionLink: '링크 ${index} / ${count}, ${from}에서 ${to}로, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '노드 ${index} / ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaDescriptionToggleNode: 'Space 또는 Enter를 눌러 이 노드를 펼치거나 접으세요',
     ariaAnnounceGaugeChart: '게이지 차트, ${caption}',
     ariaAnnounceHierarchyChart: '계층 차트, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: '계층 차트',
     ariaAnnounceHierarchyDatum: '레벨 ${level}[number], ${count}[number] 자식, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: '차트, ${caption}',

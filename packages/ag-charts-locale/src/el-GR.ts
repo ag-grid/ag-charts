@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaAnnounceSelectedItem: 'επιλεγμένο',
     ariaAnnounceUnselectedItem: 'μη επιλεγμένο',
     ariaAnnounceChart: 'διάγραμμα, ${seriesCount}[number] σειρές',
+    ariaAnnounceChartWithCaption: 'διάγραμμα, ${caption}, ${seriesCount}[number] σειρές',
     ariaAnnounceFlowProportionLink: 'σύνδεσμος ${index} από ${count}, από ${from} προς ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'κόμβος ${index} από ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaDescriptionToggleNode: 'Πατήστε Space ή Enter για ανάπτυξη ή σύμπτυξη αυτού του κόμβου',
     ariaAnnounceGaugeChart: 'διάγραμμα δείκτη, ${caption}',
     ariaAnnounceHierarchyChart: 'διάγραμμα ιεραρχίας, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'διάγραμμα ιεραρχίας',
     ariaAnnounceHierarchyDatum: 'επίπεδο ${level}[number], ${count}[number] παιδιά, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'Διάγραμμα, ${caption}',

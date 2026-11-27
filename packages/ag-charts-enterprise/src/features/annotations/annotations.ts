@@ -165,7 +165,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
-    /** Whether a settings dialog with Apply and Cancel is open, so its changes are not yet recorded in the history. */
+    /** Whether a settings dialog is open, so its changes are not yet recorded in the history. */
     private holdsHistory = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -511,15 +511,14 @@ export class Annotations extends AbstractModuleInstance {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
-                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) =>
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () =>
                     this.endColorPickerSession(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
-                        cancelled
+                        false
                     );
 
-                // With Apply and Cancel the dialog's changes are one history entry, made on Apply, or none, on Cancel.
                 const { showActionButtons } = this.optionsToolbar;
-                this.holdsHistory = showActionButtons;
+                this.holdsHistory = true;
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,

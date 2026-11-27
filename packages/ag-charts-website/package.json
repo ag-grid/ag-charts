@@ -5,9 +5,9 @@
   "private": true,
   "dependencies": {
     "@angular/platform-browser": "^17.0.0",
-    "@astrojs/check": "^0.9.10",
+    "@astrojs/check": "^0.9.12",
     "@astrojs/markdoc": "2.0.9",
-    "@astrojs/react": "7.0.0",
+    "@astrojs/react": "7.1.1",
     "@astrojs/sitemap": "3.7.4",
     "@carbon/icons-react": "^11.89.0",
     "@dash0/sdk-web": "^0.28.3",
@@ -31,7 +31,7 @@
     "ag-grid-react": "~36.2.0",
     "ag-stack": "~36.2.0",
     "algoliasearch": "^5.60.0",
-    "astro": "7.3.4",
+    "astro": "7.4.2",
     "cheerio": "^1.2.0",
     "chokidar": "^6.0.0",
     "classnames": "^2.5.1",
@@ -73,6 +73,7 @@
     "@playwright/test": "^1.59.1",
     "ag-charts-test": "14.3.0-beta.20261122",
     "algoliasearch": "^5.60.0",
+    "pngjs": "3.4.0",
     "puppeteer-core": "25.16.0"
   }
 }

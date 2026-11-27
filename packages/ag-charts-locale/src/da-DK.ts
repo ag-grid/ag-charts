@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaAnnounceSelectedItem: 'valgt',
     ariaAnnounceUnselectedItem: 'ikke valgt',
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
+    ariaAnnounceChartWithCaption: 'diagram, ${caption}, ${seriesCount}[number] serier',
     ariaAnnounceFlowProportionLink: 'link ${index} af ${count}, fra ${from} til ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'node ${index} af ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaDescriptionToggleNode: 'Tryk på Space eller Enter for at udvide eller skjule denne node',
     ariaAnnounceGaugeChart: 'målerdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkisk diagram, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'hierarkisk diagram',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] børn, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'diagram, ${caption}',

@@ -645,7 +645,7 @@ export interface AgAnnotationOptionsToolbar extends Toggleable {
     buttonSize?: PixelSize;
     /**
      * Whether to show Apply and Cancel buttons on the colour picker and settings dialog opened from this toolbar.
-     * In the colour picker Enter always applies and Escape always cancels; in the dialog they do so only with the buttons.
+     * Enter always applies and Escape always cancels, in both the colour picker and the dialog.
      *
      * Default: `false`
      */
