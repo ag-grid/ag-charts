@@ -65,6 +65,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
             seriesRect: context.seriesRect,
             xAxis: context.xAxis,
             yAxis: context.yAxis,
+            layoutVersion: context.layoutVersion,
         });
     }
 

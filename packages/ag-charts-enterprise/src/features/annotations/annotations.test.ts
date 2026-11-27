@@ -39,6 +39,7 @@ import {
     hasAnnotationAxisButton,
 } from '../../test/featureAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { AxisLabelScene } from './scenes/axisLabelScene';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -3004,6 +3005,84 @@ describe('Annotations', () => {
             }
             expect(Math.max(...labelWidths.at(-1)!)).toBeGreaterThan(Math.max(...labelWidths[0]));
             await compare();
+        });
+
+        // The depth and label width grow only while the annotation is selected: unselected, they follow the text.
+        it('redraws and shrinks the labels and shading of an annotation that is always shown, when the axis formats differently', async () => {
+            // The same options throughout, so that only the layout tells the labels that the values format differently.
+            let decimals = 6;
+            const { axes, ...options } = withAxes('bottom', 'left', { axisLabel: { visible: 'always' } });
+            const formatter = ({ value }: { value: unknown }) => Number(value).toFixed(decimals);
+            const sameOptions = { ...options, axes: { ...axes, y: { ...axes.y, label: { formatter } } } };
+            await prepareChart({ annotations: [LINE] }, sameOptions);
+
+            const yLabels = () =>
+                visibleAxisLabels()
+                    .map((group) => String([...(group as Group).children()].find((c) => c instanceof Text)?.text))
+                    .filter((text) => /^\d+(\.\d+)?$/.test(text))
+                    .sort((a, b) => a.localeCompare(b));
+            const yDepth = () =>
+                Math.min(
+                    ...(
+                        findSceneNodes(
+                            chart,
+                            (node) => node.name === 'AnnotationSelectionAxisShading' && node.visible
+                        ) as any[]
+                    ).map((node) => node.width as number)
+                );
+
+            expect(yLabels()).toEqual(['25.000000', '75.000000']);
+            const wide = yDepth();
+
+            decimals = 0;
+            await chart.update(prepareEnterpriseTestOptions({ ...sameOptions, initialState: undefined }) as never);
+            await waitForChartStability(chart);
+
+            expect(yLabels()).toEqual(['25', '75']);
+            expect(yDepth()).toBeLessThan(wide);
+            await compare();
+        });
+
+        // Every annotation runs its update on every pre-render, such as each pointer move, so one that is unchanged is skipped.
+        it('redraws the labels of an annotation that is always shown only when something about it changes', async () => {
+            await prepareChart(
+                { annotations: [LINE] },
+                withAxes('bottom', 'left', { axisLabel: { visible: 'always' } })
+            );
+            const redraw = vi.spyOn(AxisLabelScene.prototype, 'update');
+            try {
+                const { x, y, width, height } = getSeriesRect(chart);
+                await hoverAction(x + (width * EMPTY.x) / 100, y + (height * (100 - EMPTY.y)) / 100)(chart);
+                await waitForChartStability(chart);
+                expect(redraw).not.toHaveBeenCalled();
+
+                await clickDatum(LINE_BODY.x, LINE_BODY.y);
+                expect(redraw).toHaveBeenCalled();
+            } finally {
+                redraw.mockRestore();
+            }
+        });
+
+        // These types have no axis label state, so a restore warns about it and keeps the annotation.
+        it('ignores the axis label and shading options that saved state holds for lines and channels', async () => {
+            const axisLabel = { enabled: true, fill: RED };
+            await prepareChart({
+                annotations: [
+                    { ...LINE, axisLabel, axisShading: { fill: RED } },
+                    { ...PARALLEL_CHANNEL, axisLabel },
+                ],
+            } as never);
+
+            expectWarningsCalls().toEqual([
+                ['AG Charts - Unknown option `annotations[0][type=line].axisLabel`, ignoring.'],
+                ['AG Charts - Unknown option `annotations[0][type=line].axisShading`, ignoring.'],
+                ['AG Charts - Unknown option `annotations[1][type=parallel-channel].axisLabel`, ignoring.'],
+            ]);
+            const [line, channel] = chart.getState().annotations as Array<Record<string, any>>;
+            expect(line).toMatchObject({ type: 'line' });
+            expect(channel).toMatchObject({ type: 'parallel-channel' });
+            expect(line.axisLabel).toBeUndefined();
+            expect(channel.axisLabel).toBeUndefined();
         });
 
         it('writes the state of a selected annotation back so that it restores unchanged', async () => {

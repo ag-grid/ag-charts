@@ -118,6 +118,8 @@ export interface AnnotationContext {
     logger: Logger;
     localeManager: _ModuleSupport.LocaleManager;
     seriesRect: BBox;
+    /** Increases each time the chart lays out, so that what is derived from the axes can be kept until then. */
+    layoutVersion: number;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
     /** When an annotation type shows axis labels and shading on the axes, and their styles. */

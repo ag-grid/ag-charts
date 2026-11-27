@@ -77,17 +77,15 @@ class AxisSelectionOverlay {
         const inRange = positions.filter((p) => context.inRange(p));
 
         const shown = isShown(styles.visible, selected);
-        this.updateLabels(inRange, styles.axisLabel, shown, seriesRect, context, edge);
+        this.updateLabels(inRange, styles.axisLabel, shown, selected, seriesRect, context, edge);
 
-        // The shading is as deep as the labels it sits behind. They are wider for values of more digits, so it only
-        // grows, until the shading is hidden, rather than follow them as a handle is dragged.
+        // The shading is as deep as the labels it sits behind. They are wider for values of more digits, so while the
+        // annotation is selected it only grows, rather than follow them as a handle is dragged.
         const showShading = shown && positions.length >= 2;
-        this.labelReach = showShading
-            ? Math.max(
-                  this.labelReach,
-                  this.measureLabelReach(inRange.length, styles.axisLabel, seriesRect, context, edge)
-              )
+        const reach = showShading
+            ? this.measureLabelReach(inRange.length, styles.axisLabel, seriesRect, context, edge)
             : 0;
+        this.labelReach = selected ? Math.max(this.labelReach, reach) : reach;
         this.updateShading(
             positions,
             length,
@@ -131,6 +129,7 @@ class AxisSelectionOverlay {
         positions: number[],
         axisLabel: SelectionAxisStyles['axisLabel'],
         enabled: boolean,
+        hold: boolean,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin }: AxisEdge
@@ -149,10 +148,8 @@ class AxisSelectionOverlay {
         for (const [index, label] of labels.entries()) {
             const p = positions[index];
             label.visible = enabled && p != null;
-            if (!label.visible) {
-                label.resetWidth();
-                continue;
-            }
+            if (!label.visible || !hold) label.resetWidth();
+            if (!label.visible) continue;
 
             label.update({
                 x: isX ? seriesRect.x + p : origin,
@@ -160,7 +157,7 @@ class AxisSelectionOverlay {
                 value: getGroupingValue(invert(p, context)),
                 styles: axisLabel,
                 context,
-                holdWidth: true,
+                holdWidth: hold,
             });
         }
     }
@@ -239,14 +236,25 @@ class AxisSelectionOverlay {
 export class SelectionAxesScene {
     private readonly x = new AxisSelectionOverlay();
     private readonly y = new AxisSelectionOverlay();
+    private last?: { coords: number[]; styles: SelectionAxisStyles; selected: boolean; layoutVersion: number };
 
-    update(opts: Omit<UpdateOpts, 'context'> & { xAxis: AnnotationAxisContext; yAxis: AnnotationAxisContext }) {
-        const { xAxis, yAxis, ...rest } = opts;
+    update(
+        opts: Omit<UpdateOpts, 'context'> & {
+            xAxis: AnnotationAxisContext;
+            yAxis: AnnotationAxisContext;
+            /** Changes when the chart lays out again, which can change how the axes format and place values. */
+            layoutVersion: number;
+        }
+    ) {
+        const { xAxis, yAxis, layoutVersion, ...rest } = opts;
+        if (this.isUnchanged(rest.points, rest.styles, rest.selected, layoutVersion)) return;
+
         this.x.update({ ...rest, context: xAxis });
         this.y.update({ ...rest, context: yAxis });
     }
 
     hide() {
+        this.last = undefined;
         this.x.hide();
         this.y.hide();
     }
@@ -259,5 +267,24 @@ export class SelectionAxesScene {
     destroy() {
         this.x.destroy();
         this.y.destroy();
+    }
+
+    // Runs for every shown annotation on every pre-render, so an overlay that would redraw as it is stays as it is.
+    private isUnchanged(points: Point[], styles: SelectionAxisStyles, selected: boolean, layoutVersion: number) {
+        const last = this.last;
+        if (
+            last?.styles === styles &&
+            last.selected === selected &&
+            last.layoutVersion === layoutVersion &&
+            last.coords.length === points.length * 2 &&
+            points.every((p, i) => last.coords[i * 2] === p.x && last.coords[i * 2 + 1] === p.y)
+        ) {
+            return true;
+        }
+
+        const coords: number[] = [];
+        for (const { x, y } of points) coords.push(x, y);
+        this.last = { coords, styles, selected, layoutVersion };
+        return false;
     }
 }

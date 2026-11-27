@@ -160,6 +160,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
+    private layoutVersion = 0;
     private readonly selectionAxesCache = new Map<string, { source?: object; styles: SelectionAxisStyles }>();
 
     private postUpdateFns: Array<() => void> = [];
@@ -878,6 +879,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
+        this.layoutVersion++;
 
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
@@ -1184,6 +1186,7 @@ export class Annotations extends AbstractModuleInstance {
             logger: ctx.logger,
             localeManager: ctx.localeManager,
             seriesRect,
+            layoutVersion: this.layoutVersion,
             getSelectionAxes: this.getSelectionAxes,
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
