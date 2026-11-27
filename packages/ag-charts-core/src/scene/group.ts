@@ -301,7 +301,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (previousScene !== scene) {
             releaseShadowScratch(previousScene, this);
             this.releaseGlowOverlay(previousScene);
-            if (this.shadowRoot) this.sharedShadowCover = undefined;
+            // Through the cover's setter, so that the groups it covered repaint if the root casts for them no more.
+            if (this.shadowRoot) this.coverSharedShadows(undefined);
         }
 
         if (this.layer && previousScene && previousScene !== scene) {
@@ -615,7 +616,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         // A group that isn't drawn holds no shadows, as a hidden series would otherwise keep them until it is shown.
         if ((this.batchShadows !== false || this.shadowRoot) && !this.getVisibility()) {
             releaseShadowRoot(this.scene, this);
-            this.sharedShadowCover = undefined;
+            this.coverSharedShadows(undefined);
             this.releaseGlowOverlay(this.scene);
         }
 

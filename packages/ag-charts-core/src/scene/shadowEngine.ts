@@ -191,7 +191,8 @@ export function inLayerOf(first: Node, next: Node, scope: ShadowScope): boolean 
     return scope !== 'layer' || sameLayer(first, next);
 }
 
-function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
+/** Whether two shadows cast alike. Keep the options it compares the same as those of {@link shadowKeyId}. */
+export function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
     return (
         a === b ||
         (a.fill === b.fill &&
@@ -207,7 +208,10 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
     );
 }
 
-/** Names the shadow options that {@link sameShadow} compares, so that keys of one shadow are found without comparing each. */
+/**
+ * Names the shadow options that {@link sameShadow} compares, so that keys of one shadow are found without comparing each. Shadows
+ * that {@link sameShadow} finds alike must have the same id, or a caster would not join a key that it matches.
+ */
 export function shadowKeyId({
     fill,
     fillOpacity,
