@@ -208,4 +208,59 @@ test.describe('annotations keyboard navigation', () => {
 
         expect((await getHorizontalLineValues(page))[0]).toBeGreaterThan(30);
     });
+
+    test.describe('with keyboardOnly buttons', () => {
+        // Omits Move Annotation, which a keyboard user must still get.
+        const buttons = [
+            { icon: 'settings', tooltip: 'toolbarAnnotationsSettings', value: 'settings' },
+            {
+                type: 'switch',
+                icon: 'unlocked',
+                tooltip: 'toolbarAnnotationsLock',
+                ariaLabel: 'toolbarAnnotationsLock',
+                checkedOverrides: { icon: 'locked', tooltip: 'toolbarAnnotationsUnlock' },
+                value: 'lock',
+                keyboardOnly: true,
+            },
+            { icon: 'delete', tooltip: 'toolbarAnnotationsDelete', value: 'delete', keyboardOnly: true },
+        ];
+
+        test.beforeEach(async ({ page }) => {
+            await page.evaluate(
+                (optionsButtons) =>
+                    (window as any).agE2E.chart.updateDelta({
+                        annotations: { optionsToolbar: { buttons: optionsButtons } },
+                    }),
+                buttons
+            );
+            const state = await getChartState(page);
+            await setChartState(page, { ...state, annotations: LINE_ANNOTATIONS as typeof state.annotations });
+        });
+
+        const keyboardOnlyItems = (page: Page) => [
+            optionsToolbar(page).getByRole('button', { name: 'Lock' }),
+            optionsToolbar(page).getByRole('button', { name: 'Delete' }),
+            optionsToolbar(page).getByRole('button', { name: 'Move Annotation' }),
+        ];
+
+        test('opening the toolbar with the keyboard shows them, and Move Annotation', async ({ page }) => {
+            await tabToAnnotations(page);
+            await page.keyboard.press('Enter');
+
+            await expect(optionsToolbar(page).getByRole('button', { name: 'Settings' })).toBeVisible();
+            for (const item of keyboardOnlyItems(page)) {
+                await expect(item).toBeVisible();
+            }
+        });
+
+        test('opening the toolbar with a pointer hides them', async ({ page }) => {
+            const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
+            await page.mouse.click(seriesArea!.x + seriesArea!.width / 2, seriesArea!.y + seriesArea!.height * 0.7);
+
+            await expect(optionsToolbar(page).getByRole('button', { name: 'Settings' })).toBeVisible();
+            for (const item of keyboardOnlyItems(page)) {
+                await expect(item).toHaveCount(0);
+            }
+        });
+    });
 });
