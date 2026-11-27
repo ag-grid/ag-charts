@@ -290,7 +290,7 @@ interface PreparedBarNodeDatumState {
     precomputedIsUpward?: boolean;
 }
 
-/** How many skews beyond the last one `createStackTotalLookup` tries before it reads the datum-to-group index. */
+/** How many skews each side of the last one `createStackTotalLookup` tries before it reads the datum-to-group index. */
 const GROUP_SKEW_PROBES = 8;
 /** The largest group `createStackTotalLookup` searches for a datum; a larger one is left to the datum-to-group index. */
 const GROUP_SEARCH_LIMIT = 4;
@@ -2417,8 +2417,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let skew = 0;
         return (datumIndex, positive) => {
             let groupIndex = -1;
-            for (let step = 0; step <= GROUP_SKEW_PROBES && groupIndex < 0; step++) {
-                if (hasDatum(datumIndex - skew - step, datumIndex)) groupIndex = datumIndex - skew - step;
+            // Offsets 0, +1, -1, +2, ... from the last skew: a bucket's rows can sit either side of a duplicate key.
+            for (let step = 0; step <= 2 * GROUP_SKEW_PROBES && groupIndex < 0; step++) {
+                const candidate = datumIndex - skew - ((step & 1) === 1 ? (step + 1) >> 1 : -(step >> 1));
+                if (candidate <= datumIndex && hasDatum(candidate, datumIndex)) groupIndex = candidate;
             }
             if (groupIndex < 0) groupIndex = this.datumGroupIndex(processedData, columnIndex)[datumIndex] ?? -1;
             if (groupIndex >= 0) skew = datumIndex - groupIndex;
