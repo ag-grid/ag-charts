@@ -1,7 +1,7 @@
 import type { Geometry, Position } from 'ag-charts-core';
 
 import { projectGeometry } from './geometryUtil';
-import { type GapIndexRegion, MapShapeGapIndex } from './mapShapeGapIndex';
+import { type GapIndexRegion, type GapRingInfo, MapShapeGapIndex } from './mapShapeGapIndex';
 import { MercatorScale } from './mercatorScale';
 import { insetPolygonRings } from './polygonGapInset';
 
@@ -81,6 +81,10 @@ function buildKey(sources: readonly MapShapeGapSource[]): unknown[] {
 export class MapShapeGapNeighbours {
     readonly index = new MapShapeGapIndex();
 
+    // `getPolygonRingInfo` builds a new array, so its result is kept per source polygon until the index is rebuilt. A
+    // projection refresh then allocates only the inset output. `null` records a polygon with no moved edge.
+    private polygonInfos = new WeakMap<readonly (readonly Position[])[], (GapRingInfo | undefined)[] | null>();
+
     private sources: readonly MapShapeGapSource[] = [];
     private layoutKey: readonly unknown[] | undefined;
     private builtKey: readonly unknown[] | undefined;
@@ -121,6 +125,17 @@ export class MapShapeGapNeighbours {
             }
         }
         this.index.build(regions);
+        this.polygonInfos = new WeakMap();
+    }
+
+    /** The ring infos of a source polygon, aligned with its rings, or `undefined` when none has a moved edge. */
+    getPolygonRingInfo(polygon: readonly (readonly Position[])[]): (GapRingInfo | undefined)[] | undefined {
+        let infos = this.polygonInfos.get(polygon);
+        if (infos === undefined) {
+            infos = this.index.getPolygonRingInfo(polygon) ?? null;
+            this.polygonInfos.set(polygon, infos);
+        }
+        return infos ?? undefined;
     }
 }
 
@@ -144,8 +159,13 @@ export function collectPolygons(geometry: Geometry, into: Position[][][] = []): 
     return into;
 }
 
-function insetPolygon(source: Position[][], projected: Position[][], index: MapShapeGapIndex, d: number): Position[][] {
-    const ringInfo = index.getPolygonRingInfo(source);
+function insetPolygon(
+    source: Position[][],
+    projected: Position[][],
+    neighbours: MapShapeGapNeighbours,
+    d: number
+): Position[][] {
+    const ringInfo = neighbours.getPolygonRingInfo(source);
     if (ringInfo == null) return projected;
     // A collapsed polygon keeps its place as no rings, so polygon indices match the undrawn geometry.
     return insetPolygonRings(projected, ringInfo, d) ?? [];
@@ -156,9 +176,14 @@ function insetPolygon(source: Position[][], projected: Position[][], index: MapS
  * at the fixed scale, whose rings the index knows. Returns `projected` itself when nothing moves, and the same polygon arrays for
  * polygons that have no moved edge.
  */
-export function insetGeometry(source: Geometry, projected: Geometry, index: MapShapeGapIndex, d: number): Geometry {
+export function insetGeometry(
+    source: Geometry,
+    projected: Geometry,
+    neighbours: MapShapeGapNeighbours,
+    d: number
+): Geometry {
     if (projected.type === 'Polygon' && source.type === 'Polygon') {
-        const coordinates = insetPolygon(source.coordinates, projected.coordinates, index, d);
+        const coordinates = insetPolygon(source.coordinates, projected.coordinates, neighbours, d);
         return coordinates === projected.coordinates ? projected : { type: 'Polygon', coordinates };
     }
 
@@ -167,7 +192,7 @@ export function insetGeometry(source: Geometry, projected: Geometry, index: MapS
         const polygons = projected.coordinates;
         let coordinates: Position[][][] | undefined;
         for (let i = 0; i < polygons.length; i += 1) {
-            const inset = insetPolygon(source.coordinates[i], polygons[i], index, d);
+            const inset = insetPolygon(source.coordinates[i], polygons[i], neighbours, d);
             if (coordinates == null) {
                 if (inset === polygons[i]) continue;
                 coordinates = polygons.slice(0, i);
@@ -181,7 +206,7 @@ export function insetGeometry(source: Geometry, projected: Geometry, index: MapS
         const members = projected.geometries;
         let geometries: Geometry[] | undefined;
         for (let i = 0; i < members.length; i += 1) {
-            const inset = insetGeometry(source.geometries[i], members[i], index, d);
+            const inset = insetGeometry(source.geometries[i], members[i], neighbours, d);
             if (geometries == null) {
                 if (inset === members[i]) continue;
                 geometries = members.slice(0, i);

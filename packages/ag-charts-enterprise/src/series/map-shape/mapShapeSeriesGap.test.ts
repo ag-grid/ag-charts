@@ -971,7 +971,8 @@ describe('MapShapeSeries gap', () => {
         it('rebuilds the index only when its inputs change, not for a hover or a zoom (DR2-3)', async () => {
             await create(timeZoneOptions({ gaps: allGaps(4), chart: { zoom: { enabled: true } } }));
             const build = vi.spyOn(MapShapeGapIndex.prototype, 'build');
-            const inset = vi.spyOn(MapShapeGapIndex.prototype, 'getPolygonRingInfo');
+            const inset = vi.spyOn(MapShapeGapNeighbours.prototype, 'getPolygonRingInfo');
+            const ringInfo = vi.spyOn(MapShapeGapIndex.prototype, 'getPolygonRingInfo');
 
             await hoverNode(chart!, datumOf(chart!, 'Colorado'));
             deproxy(chart!).ctx.zoomManager!.updateZoom(
@@ -980,9 +981,11 @@ describe('MapShapeSeries gap', () => {
             );
             await waitForChartStability(chart!);
 
-            // The zoom moved the scale, so every region insets again, from the index it already has.
+            // The zoom moved the scale, so every region insets again, from the index it already has and from the ring
+            // infos already cached for each source polygon.
             expect(inset).toHaveBeenCalled();
             expect(build).not.toHaveBeenCalled();
+            expect(ringInfo).not.toHaveBeenCalled();
         });
 
         it('hands the one index to every map-shape series (DR2-3)', async () => {

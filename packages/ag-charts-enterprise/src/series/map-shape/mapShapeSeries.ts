@@ -58,7 +58,7 @@ import type {
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
 import { LonLatBBox } from '../map-util/lonLatBbox';
-import type { GapIndexRegion, MapShapeGapIndex } from '../map-util/mapShapeGapIndex';
+import type { GapIndexRegion } from '../map-util/mapShapeGapIndex';
 import {
     type MapShapeGapNeighbours,
     type MapShapeGapSource,
@@ -593,13 +593,13 @@ export class MapShapeSeries
         this.ctx.logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
-    /** The index every inset reads, or `undefined` while no visible `map-shape` series has a gap. */
-    private ensureGapIndex(): MapShapeGapIndex | undefined {
+    /** The neighbours every inset reads, built up to date, or `undefined` while no visible `map-shape` series has a gap. */
+    private ensureGapNeighbours(): MapShapeGapNeighbours | undefined {
         const { gapNeighbours } = this;
         if (!gapNeighbours?.active) return undefined;
 
         gapNeighbours.ensure();
-        return gapNeighbours.index;
+        return gapNeighbours;
     }
 
     /** Fills are pulled in by half the gap plus half the stroke, as the stroke is centred on the moved edge. */
@@ -633,7 +633,7 @@ export class MapShapeSeries
         }
 
         const columns = this.resolveShapeDataColumns(processedData);
-        const gapIndex = this.ensureGapIndex();
+        const gapNeighbours = this.ensureGapNeighbours();
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
@@ -675,12 +675,12 @@ export class MapShapeSeries
             const style = this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false);
             const insetDistance = this.getInsetDistance(style);
             const sourceGeometry =
-                gapIndex != null && geometry != null && projectedGeometry != null
+                gapNeighbours != null && geometry != null && projectedGeometry != null
                     ? fixedScaleGeometry(geometry)
                     : undefined;
             const drawnGeometry =
-                gapIndex != null && sourceGeometry != null && projectedGeometry != null
-                    ? insetGeometry(sourceGeometry, projectedGeometry, gapIndex, insetDistance)
+                gapNeighbours != null && sourceGeometry != null && projectedGeometry != null
+                    ? insetGeometry(sourceGeometry, projectedGeometry, gapNeighbours, insetDistance)
                     : projectedGeometry;
 
             const polygon =
@@ -1046,8 +1046,8 @@ export class MapShapeSeries
         nodeDatum: MapShapeNodeDatum
     ): Geometry | undefined {
         const { drawnGeometry, projectedGeometry, sourceGeometry, insetDistance } = nodeDatum;
-        const index = this.gapNeighbours?.index;
-        if (sourceGeometry == null || projectedGeometry == null || index == null) return drawnGeometry;
+        const { gapNeighbours } = this;
+        if (sourceGeometry == null || projectedGeometry == null || gapNeighbours == null) return drawnGeometry;
 
         const distance = this.getInsetDistance(nodeDatum.style);
         if (distance === insetDistance) return drawnGeometry;
@@ -1056,7 +1056,7 @@ export class MapShapeSeries
         if (cached?.projectedGeometry === projectedGeometry && cached.distance === distance)
             return cached.drawnGeometry;
 
-        const restyled = insetGeometry(sourceGeometry, projectedGeometry, index, distance);
+        const restyled = insetGeometry(sourceGeometry, projectedGeometry, gapNeighbours, distance);
         this.restyledInsets.set(geoGeometry, { projectedGeometry, distance, drawnGeometry: restyled });
         return restyled;
     }
