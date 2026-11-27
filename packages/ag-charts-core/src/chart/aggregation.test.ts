@@ -1,10 +1,11 @@
 import { nextPowerOf2 } from '../data/numberArray';
+import { seedRandom } from '../test/random';
 import {
     AGGREGATION_INDEX_UNSET,
-    AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_MIN_RANGE,
     AGGREGATION_SPAN,
     aggregationRangeFittingPoints,
     computeExtremesAggregation,
@@ -156,375 +157,133 @@ describe('createAggregationIndices', () => {
 });
 
 describe('computeExtremesAggregation', () => {
-    describe('threshold behavior', () => {
-        it('should return undefined when data points below threshold', () => {
-            const xValues = Array.from({ length: 500 }, (_, i) => i);
-            const highValues = Array.from({ length: 500 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 500 }, () => Math.random() * 100);
+    type Case = {
+        length: number;
+        domain: [number, number];
+        x?: (i: number) => number;
+        high?: (i: number) => number;
+        low?: (i: number) => number;
+        smallestKeyInterval?: number;
+    };
 
-            const result = computeExtremesAggregation([0, 500], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeUndefined();
-        });
-
-        it('should return filters when data points at threshold', () => {
-            const xValues = Array.from({ length: 1000 }, (_, i) => i);
-            const highValues = Array.from({ length: 1000 }, (_, i) => 50 + i * 0.1);
-            const lowValues = Array.from({ length: 1000 }, (_, i) => 50 - i * 0.1);
-
-            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            expect(result!.length).toBeGreaterThan(0);
-            // At threshold, should have at least one filter level
-            const coarsestLevel = result![0];
-            expect(coarsestLevel.maxRange).toBeLessThanOrEqual(64);
-            expect(coarsestLevel.indexData.length).toBe(coarsestLevel.maxRange * AGGREGATION_SPAN);
-        });
-
-        it('should return filters when data points above threshold', () => {
-            const xValues = Array.from({ length: 2000 }, (_, i) => i);
-            const highValues = Array.from({ length: 2000 }, (_, i) => 50 + i * 0.1);
-            const lowValues = Array.from({ length: 2000 }, (_, i) => 50 - i * 0.1);
-
-            const result = computeExtremesAggregation([0, 2000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            expect(result!.length).toBeGreaterThan(0);
-            // Large dataset should generate multiple compaction levels
-            // Verify compaction progression: each level should have double the maxRange of previous
-            for (let i = 1; i < result!.length; i++) {
-                expect(result![i].maxRange).toBe(result![i - 1].maxRange * 2);
-            }
-            // Coarsest level should stop at 64 or less
-            expect(result![0].maxRange).toBeLessThanOrEqual(64);
-        });
+    let random: () => number;
+    beforeEach(() => {
+        random = seedRandom(4721);
     });
 
-    describe('multi-level filter generation', () => {
-        it('should generate multiple aggregation levels', () => {
-            const xValues = Array.from({ length: 5000 }, (_, i) => i);
-            const highValues = Array.from({ length: 5000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 5000 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 5000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            expect(result!.length).toBeGreaterThanOrEqual(2);
-            for (const filter of result!) {
-                expect(filter.midpointIndices).toBeInstanceOf(Uint32Array);
-                expect(filter.midpointIndices.length).toBe(filter.maxRange);
-            }
+    function run({
+        length,
+        domain,
+        x = (i) => i,
+        high = () => random() * 100,
+        low = () => random() * 100,
+        smallestKeyInterval,
+    }: Case) {
+        const xValues = Array.from({ length }, (_, i) => x(i));
+        const highValues = Array.from({ length }, (_, i) => high(i));
+        const lowValues = Array.from({ length }, (_, i) => low(i));
+        const filters = computeExtremesAggregation(domain, xValues, highValues, lowValues, {
+            smallestKeyInterval,
+            xNeedsValueOf: false,
+            yNeedsValueOf: false,
         });
+        return { xValues, filters };
+    }
 
-        it('should have coarser levels first', () => {
-            const xValues = Array.from({ length: 3000 }, (_, i) => i);
-            const highValues = Array.from({ length: 3000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 3000 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 3000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            for (let i = 1; i < result!.length; i++) {
-                expect(result![i].maxRange).toBeGreaterThan(result![i - 1].maxRange);
-            }
-        });
-
-        it('should stop when maxRange <= 64', () => {
-            const xValues = Array.from({ length: 2000 }, (_, i) => i);
-            const highValues = Array.from({ length: 2000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 2000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            const finestLevel = result![result!.length - 1];
-            expect(finestLevel.maxRange).toBeGreaterThan(64);
-        });
-
-        it('should respect domain boundaries', () => {
-            const xValues = Array.from({ length: 3000 }, (_, i) => i);
-            const highValues = Array.from({ length: 3000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 3000 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([500, 2500], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            expect(result!.length).toBeGreaterThan(0);
-        });
+    it.each<[string, Case]>([
+        ['empty data', { length: 0, domain: [0, 0] }],
+        ['a single data point', { length: 1, domain: [0, 1] }],
+        ['500 points', { length: 500, domain: [0, 500] }],
+    ])('returns undefined below the threshold: %s', (_name, input) => {
+        expect(run(input).filters).toBeUndefined();
     });
 
-    describe('edge cases', () => {
-        it('should handle empty data', () => {
-            const result = computeExtremesAggregation([0, 0], [], [], [], {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
+    // finestMaxRange is nextPowerOf2(1 / smallest pixel interval) >> 3, where the interval is the
+    // smallestKeyInterval over the domain width, or the estimated spacing of the x values.
+    it.each<[string, Case & { finestMaxRange?: number }]>([
+        ['1000 points, at the threshold', { length: 1000, domain: [0, 1000], finestMaxRange: 128 }],
+        ['1200 points', { length: 1200, domain: [0, 1200], finestMaxRange: 256 }],
+        ['1500 points', { length: 1500, domain: [0, 1500], finestMaxRange: 256 }],
+        ['2000 points', { length: 2000, domain: [0, 2000], finestMaxRange: 256 }],
+        ['3000 points', { length: 3000, domain: [0, 3000], finestMaxRange: 512 }],
+        ['5000 points', { length: 5000, domain: [0, 5000], finestMaxRange: 1024 }],
+        [
+            'sparse x, smallestKeyInterval 10',
+            { length: 1000, domain: [0, 10000], x: (i) => i * 10, smallestKeyInterval: 10, finestMaxRange: 128 },
+        ],
+        [
+            'x every 2, smallestKeyInterval 2',
+            { length: 1200, domain: [0, 2400], x: (i) => i * 2, smallestKeyInterval: 2, finestMaxRange: 256 },
+        ],
+        ['irregular x intervals', { length: 1200, domain: [0, 1200], x: (i) => i + random() * 0.5 }],
+    ])('builds levels from coarse to fine, halving down to the minimum range: %s', (_name, input) => {
+        const { filters } = run(input);
 
-            expect(result).toBeUndefined();
-        });
-
-        it('should handle single data point', () => {
-            const result = computeExtremesAggregation([0, 1], [0], [50], [25], {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeUndefined();
-        });
-
-        it('should handle sparse data within domain', () => {
-            const xValues = Array.from({ length: 1000 }, (_, i) => i * 10);
-            const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 10000], xValues, highValues, lowValues, {
-                smallestKeyInterval: 10,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-        });
-
-        it('should handle data with gaps', () => {
-            const xValues: number[] = [];
-            const highValues: number[] = [];
-            const lowValues: number[] = [];
-
-            // Create data with gaps: 0-499, 1000-1499, 2000-2499
-            for (let i = 0; i < 500; i++) {
-                xValues.push(i);
-                highValues.push(Math.random() * 100);
-                lowValues.push(Math.random() * 100);
-            }
-            for (let i = 1000; i < 1500; i++) {
-                xValues.push(i);
-                highValues.push(Math.random() * 100);
-                lowValues.push(Math.random() * 100);
-            }
-            for (let i = 2000; i < 2500; i++) {
-                xValues.push(i);
-                highValues.push(Math.random() * 100);
-                lowValues.push(Math.random() * 100);
-            }
-
-            const result = computeExtremesAggregation([0, 2500], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-        });
-
-        it('should handle extreme high/low spread', () => {
-            const xValues = Array.from({ length: 1000 }, (_, i) => i);
-            const highValues = Array.from({ length: 1000 }, () => 1e6);
-            const lowValues = Array.from({ length: 1000 }, () => -1e6);
-
-            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-        });
-
-        it('should handle negative ranges', () => {
-            const xValues = Array.from({ length: 1200 }, (_, i) => i);
-            const highValues = Array.from({ length: 1200 }, () => -10);
-            const lowValues = Array.from({ length: 1200 }, () => -50);
-
-            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            const { indexData } = result![0];
-
-            for (let i = 0; i < result![0].maxRange; i++) {
-                const aggIndex = i * AGGREGATION_SPAN;
-                const highIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
-                const lowIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
-
-                if (highIndex >= 0) {
-                    // High should still be >= Low even with negative values
-                    expect(highValues[highIndex]).toBeGreaterThanOrEqual(lowValues[lowIndex]);
-                }
-            }
-        });
-    });
-
-    describe('smallestKeyInterval handling', () => {
-        it('should work with undefined smallestKeyInterval', () => {
-            const xValues = Array.from({ length: 1200 }, (_, i) => i);
-            const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-        });
-
-        it('should work with defined smallestKeyInterval', () => {
-            const xValues = Array.from({ length: 1200 }, (_, i) => i * 2);
-            const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 2400], xValues, highValues, lowValues, {
-                smallestKeyInterval: 2,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-        });
-
-        it('should handle irregular intervals', () => {
-            const xValues: number[] = [];
-            for (let i = 0; i < 1200; i++) {
-                xValues.push(i + Math.random() * 0.5);
-            }
-            const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-        });
-    });
-
-    describe('filter structure', () => {
-        it('should return filters with correct structure', () => {
-            const xValues = Array.from({ length: 1500 }, (_, i) => i);
-            const highValues = Array.from({ length: 1500 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1500 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 1500], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            for (const filter of result!) {
-                expect(filter).toHaveProperty('maxRange');
-                expect(filter).toHaveProperty('indexData');
-                expect(filter.maxRange).toBeGreaterThan(0);
-                expect(filter.indexData).toBeInstanceOf(Uint32Array);
-                expect(filter.indexData.length).toBe(filter.maxRange * AGGREGATION_SPAN);
-            }
-        });
-
-        it('should use Uint32Array for index storage', () => {
-            const xValues = Array.from({ length: 1000 }, (_, i) => i);
-            const highValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1000 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 1000], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            expect(result![0].indexData).toBeInstanceOf(Uint32Array);
-        });
-
-        it('should have valid SPAN-based indexing', () => {
-            const xValues = Array.from({ length: 1200 }, (_, i) => i);
-            const highValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 1200 }, () => Math.random() * 100);
-
-            const result = computeExtremesAggregation([0, 1200], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
-
-            expect(result).toBeDefined();
-            const { indexData, maxRange } = result![0];
-
-            // Each bucket should have AGGREGATION_SPAN indices
+        expect(filters).toBeDefined();
+        expect(filters![0].maxRange).toBeLessThanOrEqual(AGGREGATION_MIN_RANGE);
+        for (let i = 1; i < filters!.length; i++) {
+            expect(filters![i].maxRange).toBe(filters![i - 1].maxRange * 2);
+            expect(filters![i].maxRange).toBeGreaterThan(AGGREGATION_MIN_RANGE);
+        }
+        for (const { maxRange, indexData, valueData, midpointIndices } of filters!) {
+            expect(indexData).toBeInstanceOf(Uint32Array);
             expect(indexData.length).toBe(maxRange * AGGREGATION_SPAN);
+            expect(valueData.length).toBe(maxRange * AGGREGATION_SPAN);
+            expect(midpointIndices).toBeInstanceOf(Uint32Array);
+            expect(midpointIndices.length).toBe(maxRange);
+        }
+        if (input.finestMaxRange != null) {
+            expect(filters!.at(-1)!.maxRange).toBe(input.finestMaxRange);
+        }
+    });
 
-            // Verify we can access all four indices for each bucket
+    it.each<[string, number, number, number]>([
+        ['negative ranges', 1200, -10, -50],
+        ['extreme high/low spread', 1000, 1e6, -1e6],
+    ])('records the constant high and low as every bucket extreme: %s', (_name, length, high, low) => {
+        const { filters } = run({ length, domain: [0, length], high: () => high, low: () => low });
+
+        expect(filters).toBeDefined();
+        for (const { maxRange, indexData, valueData } of filters!) {
             for (let i = 0; i < maxRange; i++) {
                 const aggIndex = i * AGGREGATION_SPAN;
-                expect(aggIndex + AGGREGATION_INDEX_X_MIN).toBeLessThan(indexData.length);
-                expect(aggIndex + AGGREGATION_INDEX_Y_MAX).toBeLessThan(indexData.length);
-                expect(aggIndex + AGGREGATION_INDEX_Y_MIN).toBeLessThan(indexData.length);
-                expect(aggIndex + AGGREGATION_INDEX_X_MAX).toBeLessThan(indexData.length);
+                expect(indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]).not.toBe(AGGREGATION_INDEX_UNSET);
+                expect(valueData[aggIndex + AGGREGATION_INDEX_Y_MAX]).toBe(high);
+                expect(valueData[aggIndex + AGGREGATION_INDEX_Y_MIN]).toBe(low);
             }
-        });
+        }
     });
 
-    describe('domain boundaries', () => {
-        it('should respect scale domain boundaries', () => {
-            const xValues = Array.from({ length: 2000 }, (_, i) => i);
-            const highValues = Array.from({ length: 2000 }, () => Math.random() * 100);
-            const lowValues = Array.from({ length: 2000 }, () => Math.random() * 100);
+    it('leaves buckets inside a gap in the data unset', () => {
+        // x runs 0-499, 1000-1499 and 2000-2499.
+        const { filters } = run({ length: 1500, domain: [0, 2500], x: (i) => i + 500 * Math.floor(i / 500) });
 
-            // Use a subset of the data
-            const result = computeExtremesAggregation([500, 1500], xValues, highValues, lowValues, {
-                smallestKeyInterval: undefined,
-                xNeedsValueOf: false,
-                yNeedsValueOf: false,
-            });
+        expect(filters).toBeDefined();
+        for (const { maxRange, indexData } of filters!) {
+            const bucketAt = (x: number) => Math.floor((x / 2500) * maxRange) * AGGREGATION_SPAN;
+            expect(indexData[bucketAt(750) + AGGREGATION_INDEX_X_MIN]).toBe(AGGREGATION_INDEX_UNSET);
+            expect(indexData[bucketAt(1700) + AGGREGATION_INDEX_X_MIN]).toBe(AGGREGATION_INDEX_UNSET);
+            expect(indexData[bucketAt(1200) + AGGREGATION_INDEX_X_MIN]).not.toBe(AGGREGATION_INDEX_UNSET);
+        }
+    });
 
-            expect(result).toBeDefined();
-            // Verify the aggregation respects the domain
-            const { indexData } = result![0];
-            for (let i = 0; i < result![0].maxRange; i++) {
-                const aggIndex = i * AGGREGATION_SPAN;
-                const startIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
-                if (startIndex >= 0) {
-                    expect(xValues[startIndex]).toBeGreaterThanOrEqual(500);
-                    expect(xValues[startIndex]).toBeLessThanOrEqual(1500);
-                }
+    it.each<[number, [number, number]]>([
+        [3000, [500, 2500]],
+        [2000, [500, 1500]],
+    ])('starts the first bucket at the domain start: %i points, domain %j', (length, domain) => {
+        const { xValues, filters } = run({ length, domain });
+        const [d0, d1] = domain;
+
+        expect(filters).toBeDefined();
+        for (const { maxRange, indexData } of filters!) {
+            // Datums below the domain are dropped, so x = d0 (datum index d0) opens the first bucket.
+            expect(indexData[AGGREGATION_INDEX_X_MIN]).toBe(d0);
+            for (let i = 0; i < maxRange; i++) {
+                const xMinIndex = indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_X_MIN];
+                expect(xMinIndex).not.toBe(AGGREGATION_INDEX_UNSET);
+                expect(xValues[xMinIndex]).toBeGreaterThanOrEqual(d0);
+                expect(xValues[xMinIndex]).toBeLessThanOrEqual(d1);
             }
-        });
+        }
     });
 });
