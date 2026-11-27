@@ -153,8 +153,8 @@ const MAX_ITEM_CASTS = 16;
 const ITEM_SHADOW_INDEX = 0;
 const ITEM_GLOW_INDEX = 1;
 
-/** The `shadow` an item styler is given: the one the item would cast, with no deprecated `color`. */
-type StylerShadow = Readonly<Omit<NormalisedDropShadowOptions, 'color'>>;
+/** The `shadow` an item styler is given: the one the item would cast, with no `_fillOpacitySet`. */
+type StylerShadow = Readonly<Omit<NormalisedDropShadowOptions, '_fillOpacitySet'>>;
 
 /**
  * The overrides of a shadow that sets some of its fields: a `fill` alone is opaque, and a `fillOpacity` of its own is set.
@@ -1272,19 +1272,19 @@ export abstract class Series<
     private stylerShadows?: WeakMap<NormalisedDropShadowOptions, StylerShadow>;
 
     /**
-     * The `shadow` for an item styler's params: unset where it casts none, and with no deprecated `color` or
-     * `_fillOpacitySet`, so that a styler can return, or spread, what it was given. It is the shadow itself where it has
-     * neither, and one cached copy of it otherwise, so nothing is allocated per item.
+     * The `shadow` for an item styler's params: unset where it casts none, and with no `_fillOpacitySet`, so that a
+     * styler can return, or spread, what it was given. It is the shadow itself where it has none, and one cached copy of
+     * it otherwise, so nothing is allocated per item.
      */
     protected toStylerShadow(shadow: NormalisedDropShadowOptions | undefined): StylerShadow | undefined {
         if (!shadow?.enabled) return undefined;
-        if (!('color' in shadow) && !('_fillOpacitySet' in shadow)) return shadow;
+        if (!('_fillOpacitySet' in shadow)) return shadow;
 
         const cache = (this.stylerShadows ??= new WeakMap());
         let stylerShadow = cache.get(shadow);
         if (stylerShadow == null) {
-            const { color, _fillOpacitySet: _stripped, ...rest } = shadow;
-            stylerShadow = { ...rest, fill: rest.fill ?? color };
+            const { _fillOpacitySet: _stripped, ...rest } = shadow;
+            stylerShadow = rest;
             cache.set(shadow, stylerShadow);
         }
         return stylerShadow;

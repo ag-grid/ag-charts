@@ -15,12 +15,6 @@ export interface AgDropShadowOptions {
      * Default: `1` if `fill` is set, otherwise the opacity of the theme's default shadow (`0.5` in the light theme, `1` in the dark theme)
      */
     fillOpacity?: Opacity;
-    /**
-     * The colour of the shadow.
-     *
-     * @deprecated Use `fill` instead.
-     */
-    color?: CssColor;
     /** The horizontal offset in pixels for the shadow. */
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the shadow. */
@@ -81,7 +75,7 @@ export interface AgItemShadowStyle {
      *
      * A series casts up to 16 distinct `shadow` and `glow` values between them from its `itemStyler`. Past that, an item casts the `shadow` that it would cast without one, and a warning is logged once.
      */
-    shadow?: Omit<AgDropShadowOptions, 'color'>;
+    shadow?: AgDropShadowOptions;
     /**
      * The `glow` of this item, merged over the `glow` that it would cast. Setting it without `enabled` turns it on.
      *
@@ -96,7 +90,7 @@ export interface AgItemShadowStylerParams {
      * The `shadow` that this item would cast, which the `shadow` an `itemStyler` returns is merged over. Unset if nothing sets it.
      * It has no deprecated `color`, so it can be returned, or spread into the `shadow` that is returned.
      */
-    readonly shadow?: Readonly<Omit<AgDropShadowOptions, 'color'>>;
+    readonly shadow?: Readonly<AgDropShadowOptions>;
     /** The `glow` that this item would cast, which the `glow` an `itemStyler` returns is merged over. Unset if nothing sets it. */
     readonly glow?: Readonly<AgGlowOptions>;
 }

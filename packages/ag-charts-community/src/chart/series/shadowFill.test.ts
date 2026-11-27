@@ -69,6 +69,7 @@ describe('shadow fill and fillOpacity', () => {
     });
 
     const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
+    const UNKNOWN_SHADOW_COLOR = expect.stringMatching(/Unknown option `[^`]*\.shadow\.color`/);
 
     const create = async (options: AgChartOptions) => {
         const created = deproxy(await createChart(options));
@@ -126,20 +127,21 @@ describe('shadow fill and fillOpacity', () => {
             }
         });
 
-        it('still casts the shadow in its deprecated colour, as the fill, and warns', async () => {
-            await createSeries(testCase, { enabled: true, color: '#336699', xOffset: 2, yOffset: 2, blur: 4 });
+        it('ignores a colour, casting the theme fill and fillOpacity, and warns that it is unknown', async () => {
+            await createSeries(testCase, {
+                enabled: true,
+                color: '#336699',
+                xOffset: 2,
+                yOffset: 2,
+                blur: 4,
+            } as AgDropShadowOptions);
 
             expect(casters().length).toBeGreaterThan(0);
-            for (const shape of casters()) {
-                expect(shape.fillShadow).toMatchObject({ fill: '#336699', fillOpacity: 1 });
-            }
-            const messages = warnings().filter((message) => message.includes('.shadow.color'));
-            expect(messages).toHaveLength(1);
-            expect(messages[0]).toContain('is deprecated');
-            expect(messages[0]).toContain('Use `fill` instead.');
+            for (const shape of casters()) expect(shape.fillShadow).toMatchObject({ fill: '#000', fillOpacity: 0.5 });
+            expect(warnings()).toEqual([UNKNOWN_SHADOW_COLOR]);
         });
 
-        it('casts the fill and not the deprecated colour when it has both, and warns about the colour', async () => {
+        it('casts the fill and ignores a colour beside it', async () => {
             await createSeries(testCase, {
                 enabled: true,
                 fill: '#336699',
@@ -147,11 +149,11 @@ describe('shadow fill and fillOpacity', () => {
                 xOffset: 2,
                 yOffset: 2,
                 blur: 4,
-            });
+            } as AgDropShadowOptions);
 
             expect(casters().length).toBeGreaterThan(0);
-            for (const shape of casters()) expect(shape.fillShadow?.fill).toBe('#336699');
-            expect(warnings().filter((message) => message.includes('.shadow.color'))).toHaveLength(1);
+            for (const shape of casters()) expect(shape.fillShadow).toMatchObject({ fill: '#336699', fillOpacity: 1 });
+            expect(warnings()).toEqual([UNKNOWN_SHADOW_COLOR]);
         });
 
         it('warns about a fillOpacity beyond 0 to 1, and casts the shadow without it', async () => {
@@ -247,12 +249,11 @@ describe('shadow fill and fillOpacity', () => {
             expectChannels(await shadowPixel({ fill: '#ff0000', fillOpacity: 0 }), [255, 255, 255, 255]);
         });
 
-        it('casts the deprecated colour as the fill would be cast', async () => {
-            const withColor = await shadowPixel({ color: 'rgba(255, 0, 0, 0.5)' });
-            const withFill = await shadowPixel({ fill: 'rgba(255, 0, 0, 0.5)' });
+        it('ignores a colour, casting the default shadow', async () => {
+            const withColor = await shadowPixel({ color: 'rgba(255, 0, 0, 0.5)' } as AgDropShadowOptions);
 
-            expect(withColor).toEqual(withFill);
-            expectChannels(withColor, [255, 128, 128, 255]);
+            expect(withColor).toEqual(await shadowPixel({}));
+            expectChannels(withColor, [127, 127, 127, 255]);
         });
 
         it('casts the default shadow of the light theme as before: black at half strength', async () => {
