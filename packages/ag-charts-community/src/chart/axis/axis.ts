@@ -988,7 +988,7 @@ export abstract class Axis<
         return { primaryTickCount, bbox };
     }
 
-    private invalidateLayoutCache() {
+    protected invalidateLayoutCache() {
         this.unzoomedTickLayoutCache = undefined;
         this.tickLayoutCache = undefined;
         this.tickLayout = undefined;

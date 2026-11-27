@@ -12,6 +12,7 @@ import type {
 } from 'ag-charts-core';
 import {
     BBox,
+    CategoryScale,
     ChartAxisDirection,
     ContinuousScale,
     DiscreteTimeScale,
@@ -32,6 +33,7 @@ import {
     lineHeightAtSize,
     resolveEdgeLabelOverflow,
     resolveTextAlign,
+    toDegrees,
 } from 'ag-charts-core';
 import type {
     AgAxisTitleOrientation,
@@ -81,7 +83,7 @@ import {
     resetAxisLineSelectionFn,
 } from './axisUtil';
 import { generateTicks } from './generateTicks';
-import { isLabelFitEnabled } from './generateTicksUtils';
+import { type GenerateTicksOptions, findWidestLabelOnOneLine, isLabelFitEnabled } from './generateTicksUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -238,6 +240,15 @@ export abstract class CartesianAxis<
     protected gridFillGroupSelection = Selection.select<Rect<AxisFillDatum>>(this.gridFillGroup, Rect, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
+    private reservedLabelCache:
+        | {
+              label: GenerateTicksOptions<S, D>['label'];
+              rotation: number;
+              room: number | undefined;
+              domain: D[];
+              widest: TickDatum | undefined;
+          }
+        | undefined;
     readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, (seriesRect) =>
         this.getTickLabelBoxes(seriesRect)
     );
@@ -416,7 +427,7 @@ export abstract class CartesianAxis<
         const { primaryLabel, scale, range, defaultTickMinSpacing, minimumTimeGranularity } = this;
         const { interval, reverse } = this.options;
 
-        const tickGenerationResult = generateTicks({
+        const tickOptions: GenerateTicksOptions<S, D> = {
             label,
             parallel: this.parallel,
             scale,
@@ -435,7 +446,7 @@ export abstract class CartesianAxis<
             axisRotation: this.horizontal ? Math.PI / -2 : 0,
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
-            labelRoom: isLabelFitEnabled(label) ? this.getLabelRoom(scrollbar, scrollbarThickness) : undefined,
+            labelRoom: this.getLabelRoom(scrollbar, scrollbarThickness),
             labelStyle:
                 isLabelFitEnabled(label) && label.itemStyler != null
                     ? (value, formattedValue) => ({
@@ -448,7 +459,8 @@ export abstract class CartesianAxis<
             labelBandOffsets: (ticks, rotation, textAlign, textBaseline) =>
                 this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness),
             tickFormatter: (...args) => this.tickFormatter(...args),
-        });
+        };
+        const tickGenerationResult = generateTicks(tickOptions);
 
         const { tickData } = tickGenerationResult;
         const removeOverflowLabels =
@@ -524,11 +536,61 @@ export abstract class CartesianAxis<
         const gridLines = this.calculateGridLines(ticks, p1, p2);
         const gridFills = this.calculateGridFills(ticks, p1, p2);
         const tickLines = this.calculateTickLines(ticks, direction, scrollbarThickness);
-        const { bbox, spacing } = this.measureAxisLayout(tickDomain, ticks, labels, scrollbar, scrollbarThickness);
+        const reservedLabel = this.getReservedLabel(tickOptions, tickGenerationResult, scrollbarThickness);
+        const { bbox, spacing } = this.measureAxisLayout(
+            tickDomain,
+            ticks,
+            labels,
+            scrollbar,
+            scrollbarThickness,
+            reservedLabel
+        );
         const state = this.captureLayoutState();
         const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing, state };
 
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
+    }
+
+    /**
+     * The widest category label, reserved while zoomed so the axis keeps still as labels scroll in and out.
+     * Measured unstyled, so no `itemStyler` runs for a label that is not drawn.
+     */
+    private getReservedLabel(
+        tickOptions: GenerateTicksOptions<S, D>,
+        tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: VerticalAlign },
+        scrollbarThickness: number
+    ): LabelNodeDatum | undefined {
+        const { visibleRange, scale } = this;
+        const { label, domain, labelRoom: room } = tickOptions;
+        if (!label.enabled || !CategoryScale.is(scale) || (visibleRange[0] === 0 && visibleRange[1] === 1)) return;
+
+        const rotation = toDegrees(tickGenerationResult.rotation);
+        let cache = this.reservedLabelCache;
+        if (
+            cache?.label !== label ||
+            cache.rotation !== rotation ||
+            cache.room !== room ||
+            (cache.domain !== domain && !arraysEqual(cache.domain, domain))
+        ) {
+            cache = { label, rotation, room, domain, widest: findWidestLabelOnOneLine(tickOptions, rotation) };
+            this.reservedLabelCache = cache;
+        } else {
+            cache.domain = domain;
+        }
+        if (cache.widest == null) return;
+
+        const translation = (scale.range[0] + scale.range[1]) / 2;
+        return this.getTickLabelProps(
+            { ...cache.widest, translation },
+            tickGenerationResult,
+            scrollbarThickness,
+            false
+        );
+    }
+
+    protected override invalidateLayoutCache() {
+        super.invalidateLayoutCache();
+        this.reservedLabelCache = undefined;
     }
 
     private captureLayoutState(): CartesianLayoutState {
@@ -933,7 +995,8 @@ export abstract class CartesianAxis<
         ticks: TickDatum[],
         labels: LabelNodeDatum[],
         scrollbar: ScrollbarLayout | undefined,
-        scrollbarThickness: number
+        scrollbarThickness: number,
+        reservedLabel?: LabelNodeDatum
     ) {
         const { primaryTick, primaryLabel, position, horizontal, seriesAreaPadding } = this;
         const tick = this.options.tick;
@@ -950,7 +1013,7 @@ export abstract class CartesianAxis<
         }
 
         if (label.enabled) {
-            this.measureTickLabels(labels, boxes);
+            this.measureTickLabels(reservedLabel == null ? labels : [...labels, reservedLabel], boxes);
         }
 
         if (primaryLabel?.enabled && position === 'bottom') {
@@ -1126,7 +1189,8 @@ export abstract class CartesianAxis<
     private getTickLabelProps(
         datum: TickDatum,
         tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: VerticalAlign },
-        scrollbarThickness: number
+        scrollbarThickness: number,
+        applyStyler = true
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated, fitSource } = datum;
@@ -1164,7 +1228,12 @@ export abstract class CartesianAxis<
         const y = horizontal ? -labelOffset : translation + bandEdgeOffsetY;
 
         // A fitted label was styled from its formatter output, so the styler sees that here too.
-        const style = this.getLabelStyles({ value: datum.tick, formattedValue: fitSource ?? text }, undefined, label);
+        const styleLabel = applyStyler ? label : { ...label, itemStyler: undefined };
+        const style = this.getLabelStyles(
+            { value: datum.tick, formattedValue: fitSource ?? text },
+            undefined,
+            styleLabel
+        );
         return {
             ...(datum.fontSize == null
                 ? style

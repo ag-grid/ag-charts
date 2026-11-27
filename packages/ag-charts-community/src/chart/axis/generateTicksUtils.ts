@@ -21,9 +21,11 @@ import {
     createIdsGenerator,
     dropFirstWhile,
     dropLastWhile,
+    fitLabelText,
     fitLabelTextAutoSize,
     fontWithSize,
     getMaxInnerRectSize,
+    getMinOuterRectSizeInto,
     hasRealChars,
     intervalCeil,
     intervalExtent,
@@ -82,7 +84,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     interval: AxisIntervalOptions<TScale> | undefined;
     minimumTimeGranularity?: AgTimeIntervalUnit;
     sizeLimit?: number;
-    /** Room across the axis for labels, net of ticks and scrollbars; set only when fitting. */
+    /** Room across the axis for labels, net of ticks and scrollbars. */
     labelRoom?: number;
     /** Label options with the `itemStyler` overrides for one label; set only when fitting, so a label is fitted as it renders. */
     labelStyle?: (tick: unknown, formattedValue: NormalisedTextOrSegments) => ChartAxisLabel;
@@ -236,8 +238,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             tickFormatter
         );
 
-        let maxWidth = isVertical ? sizeLimit : maxBandwidth;
-        let maxHeight = isVertical ? maxBandwidth : sizeLimit;
+        const room = options.labelRoom ?? sizeLimit;
+        let maxWidth = isVertical ? room : maxBandwidth;
+        let maxHeight = isVertical ? maxBandwidth : room;
 
         if (label.rotation != null && label.rotation !== 0) {
             const innerRect = getMaxInnerRectSize(label.rotation, maxWidth, maxHeight);
@@ -254,7 +257,6 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             textWrap: label.wrapping ?? 'never',
         };
 
-        const room = options.labelRoom ?? sizeLimit;
         const fitBounds = (fitLabel: ChartAxisLabel) => {
             const rotation = fitLabel.rotation ?? 0;
             const wrapping = fitLabel.wrapping ?? 'never';
@@ -264,6 +266,10 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             };
         };
         const fitOptions = isLabelFitEnabled(label) ? fitBounds(label) : undefined;
+        // A label the wrap cannot fit to its band is drawn on one line, so it still has to stop at the room.
+        const roomFit = Number.isFinite(room)
+            ? axisLabelFit(label, isVertical, room, Infinity, label.rotation ?? 0, 'never')
+            : undefined;
 
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
@@ -293,9 +299,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 ({ text: wrappedLabel, fontSize } = fitted);
             } else if (label.avoidCollisions) {
                 const wrapped = wrapTextOrSegments(inputText, wrapOptions);
-                wrappedLabel = wrapped === '' ? null : wrapped;
-                if (wrappedLabel === EllipsisChar) {
-                    wrappedLabel = null;
+                wrappedLabel = toWrappedLabel(wrapped);
+                if (wrappedLabel == null && roomFit != null) {
+                    wrappedLabel = toWrappedLabel(fitLabelText(inputText, roomFit, label));
                 }
             }
 
@@ -332,6 +338,53 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     });
 
     return ticks;
+}
+
+/**
+ * The label of each `domain` value that reaches furthest across the axis, fitted on one line to the room and
+ * turned by `rotation` degrees. One line bounds any wrap of the same text, and leaves the band out of it.
+ */
+export function findWidestLabelOnOneLine<S extends Scale<D, number, TickInterval<S>>, D>(
+    options: GenerateTicksOptions<S, D>,
+    rotation: number
+): TickDatum | undefined {
+    const { domain, label, isVertical, tickFormatter } = options;
+    const room = options.labelRoom ?? options.sizeLimit ?? Infinity;
+    const formatter = axisTickFormatter(label.enabled, false, domain, domain, 0, undefined, tickFormatter);
+    const fit = axisLabelFit(label, isVertical, room, Infinity, rotation, 'never');
+    const measurer = cachedTextMeasurer(label);
+    const outer = { width: 0, height: 0 };
+
+    let widest: TickDatum | undefined;
+    let widestExtent = -Infinity;
+    for (let i = 0; i < domain.length; i++) {
+        const tick = domain[i];
+        const inputText = formatter(false, tick, i);
+        const { text, fontSize } = fitLabelTextAutoSize(inputText, fit, label);
+        const tickLabel = toWrappedLabel(text) ?? inputText;
+        const textMetrics = measureFittedLabel(tickLabel, label, fontSize, measurer);
+        getMinOuterRectSizeInto(outer, rotation, textMetrics.width, textMetrics.height);
+        const extent = isVertical ? outer.width : outer.height;
+        if (extent <= widestExtent) continue;
+        widestExtent = extent;
+        const isTruncated = tickLabel !== inputText && isLabelTruncated(tickLabel);
+        widest = {
+            tick,
+            tickId: `reserved:${i}`,
+            tickLabel,
+            isPrimary: false,
+            index: i,
+            textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
+            fontSize,
+            textMetrics,
+            translation: 0,
+        };
+    }
+    return widest;
+}
+
+function toWrappedLabel(text: NormalisedTextOrSegments): NormalisedTextOrSegments | null {
+    return text === '' || text === EllipsisChar ? null : text;
 }
 
 export function isLabelFitEnabled(label: { maxWidth?: number; maxHeight?: number; minimumFontSize?: number }) {

@@ -11,7 +11,6 @@ import {
     extractImageData,
     getAxisLabelNodes,
     getAxisLayoutState,
-    getAxisTickLayouts,
     getSeriesRect,
     scrollAction,
     setupMockCanvas,
@@ -809,9 +808,12 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         await waitForChartStability(chart);
     }
 
-    function expectLongLabelDrawn(chart: Chart) {
-        const labels = getAxisTickLayouts(chart).flatMap((layout) => layout.labels.map(({ text }) => text));
-        expect(labels).toContain(LONG_LABEL);
+    function findLongLabelNode(chart: Chart, position: AgCartesianAxisPosition) {
+        const node = getAxisLabelNodes(chart, getScrollbarAxisId(chart, position), { visibleOnly: false }).find(
+            (n) => n.datum.textUntruncated === LONG_LABEL || n.text === LONG_LABEL
+        );
+        expect(node).toBeDefined();
+        return node!;
     }
 
     /** Distance from the series edge to the near and far sides of the track. */
@@ -861,24 +863,24 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
     }
 
     it.each<AgCartesianAxisPosition>(['left', 'right', 'top', 'bottom'])(
-        'keeps a %s scrollbar between the series area and the padding edge once a long label scrolls into view',
+        'keeps a %s axis and its scrollbar still and clear of a long label as it scrolls into view',
         async (position) => {
             const chart = await createLongLabelChart({ position });
             const { spacing } = getPositionScrollbarState(chart, position).properties;
+            const seriesRect = getSeriesRect(chart).clone();
+            const track = getTrackExtent(chart, position);
 
-            // Short labels: the track sits just past the labels, as it did before the clamp.
-            expect(getTrackExtent(chart, position).near).toBeCloseTo(
+            expect(track.near).toBeCloseTo(
                 getAxisLabelThickness(chart, getScrollbarAxisId(chart, position)) + spacing,
                 0
             );
 
             await scrollLongLabelIntoView(chart, position);
 
-            expectLongLabelDrawn(chart);
-            // The labels alone need more room than the axis was granted, so the clamp is what keeps the track in.
-            expect(getAxisLabelThickness(chart, getScrollbarAxisId(chart, position))).toBeGreaterThan(
-                getRoomToPaddingEdge(chart, position)
-            );
+            expect(getSeriesRect(chart)).toEqual(seriesRect);
+            expect(getTrackExtent(chart, position)).toEqual(track);
+            expect(findLongLabelNode(chart, position).datum.textUntruncated).toBe(LONG_LABEL);
+            expect(getLongLabelExtent(chart, position).far).toBeLessThanOrEqual(track.near + 0.5);
             expectTrackBetweenSeriesAndPaddingEdge(chart, position);
             if (position === 'left') {
                 await compareImageSnapshot(chart, ctx, {
@@ -889,12 +891,8 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         }
     );
 
-    function getFittedLongLabelExtent(chart: Chart, position: AgCartesianAxisPosition) {
-        const node = getAxisLabelNodes(chart, getScrollbarAxisId(chart, position), { visibleOnly: false }).find(
-            (n) => n.datum.textUntruncated === LONG_LABEL || (typeof n.text === 'string' && n.text.startsWith('test50'))
-        );
-        expect(node).toBeDefined();
-        const { x, y, width, height } = Transformable.toCanvas(node!);
+    function getLongLabelExtent(chart: Chart, position: AgCartesianAxisPosition) {
+        const { x, y, width, height } = Transformable.toCanvas(findLongLabelNode(chart, position));
         const seriesRect = getSeriesRect(chart);
         switch (position) {
             case 'left':
@@ -932,7 +930,7 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         await scrollLongLabelIntoView(chart, position);
 
         const track = getTrackExtent(chart, position);
-        const fitted = getFittedLongLabelExtent(chart, position);
+        const fitted = getLongLabelExtent(chart, position);
         expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
         expectTrackBetweenSeriesAndPaddingEdge(chart, position);
         if (position === 'left' && limit.maxWidth != null) {
@@ -982,7 +980,7 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
             await scrollLongLabelIntoView(chart, 'left');
 
             const track = getTrackExtent(chart, 'left');
-            const fitted = getFittedLongLabelExtent(chart, 'left');
+            const fitted = getLongLabelExtent(chart, 'left');
             expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
             expectTrackBetweenSeriesAndPaddingEdge(chart, 'left');
             if (limit.maxWidth != null) {
@@ -999,16 +997,16 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
         await scrollLongLabelIntoView(chart, 'left');
 
-        expectLongLabelDrawn(chart);
+        expect(findLongLabelNode(chart, 'left').datum.textUntruncated).toBe(LONG_LABEL);
         // The room to the padding edge spans both axes, so measure the track against the scrollbar axis's own width.
         const axisId = getScrollbarAxisId(chart, 'left');
         const grantedWidth = getAxisGrantedLabelWidth(chart, axisId);
-        expect(getAxisLabelThickness(chart, axisId)).toBeGreaterThan(grantedWidth);
 
         const { group } = getPositionScrollbarState(chart, 'left');
         const layoutRect = getPositionScrollbarState(chart, 'left').layoutRect!;
         const axisLine = getAxisLayoutState(chart, axisId).translation.x;
         expect(group.visible).toBe(true);
+        expect(getLongLabelExtent(chart, 'left').far).toBeLessThanOrEqual(getTrackExtent(chart, 'left').near + 0.5);
         expect(axisLine - layoutRect.x - layoutRect.width).toBeGreaterThanOrEqual(0);
         expect(axisLine - layoutRect.x).toBeLessThanOrEqual(grantedWidth);
     });
@@ -1019,7 +1017,7 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
         await scrollLongLabelIntoView(chart, 'left');
 
-        expectLongLabelDrawn(chart);
+        findLongLabelNode(chart, 'left');
         expect(getTrackExtent(chart, 'left')).toEqual(before);
         expect(before.near).toBeCloseTo(getPositionScrollbarState(chart, 'left').properties.spacing);
     });
@@ -1029,18 +1027,19 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         const chart = await createLongLabelChart({ position: 'left', axis: { thickness } });
 
         await scrollLongLabelIntoView(chart, 'left');
-        expectLongLabelDrawn(chart);
 
         const { near, far } = getTrackExtent(chart, 'left');
-        expect(near).toBeGreaterThanOrEqual(0);
-        expect(far).toBeCloseTo(thickness, 0);
+        expect(findLongLabelNode(chart, 'left').datum.textUntruncated).toBe(LONG_LABEL);
+        expect(getLongLabelExtent(chart, 'left').far).toBeLessThanOrEqual(near + 0.5);
+        expect(near).toBeGreaterThan(0);
+        expect(far).toBeLessThanOrEqual(thickness);
     });
 
     it('keeps the track outside the series area when the axis is thinner than the scrollbar', async () => {
         const chart = await createLongLabelChart({ position: 'left', axis: { thickness: 4 } });
 
         await scrollLongLabelIntoView(chart, 'left');
-        expectLongLabelDrawn(chart);
+        findLongLabelNode(chart, 'left');
 
         const { thickness } = getPositionScrollbarState(chart, 'left').properties;
         expect(thickness).toBeGreaterThan(4);
