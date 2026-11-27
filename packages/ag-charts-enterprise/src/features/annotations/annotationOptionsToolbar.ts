@@ -31,6 +31,7 @@ import {
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasSettings, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
+import { withSwitchState } from './utils/switch';
 import { isFibonacciType, isTextType } from './utils/types';
 
 type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
@@ -555,7 +556,7 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
+                this.updateButtonByIndex(index, withSwitchState(button, locked));
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }

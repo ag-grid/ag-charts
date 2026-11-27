@@ -322,7 +322,7 @@ describe('Annotations magnet', () => {
         await compareAnnotationsSnapshot(chart, ctx);
     });
 
-    it('toggles the magnet with a switch button that swaps its icon, until the enabled option changes', async () => {
+    it('toggles the magnet with a switch button that swaps its icon but keeps its name, until the enabled option changes', async () => {
         chart = await createAnnotationsChart({
             ...ANNOTATIONS_EXAMPLE_OPTIONS,
             annotations: {
@@ -334,7 +334,7 @@ describe('Annotations magnet', () => {
                         {
                             type: 'switch',
                             icon: 'no-magnet',
-                            ariaLabel: 'Magnet',
+                            tooltip: 'Magnet',
                             checkedOverrides: { icon: 'magnet', tooltip: 'Magnet on' },
                             value: 'magnet',
                         },
@@ -348,6 +348,7 @@ describe('Annotations magnet', () => {
             role: magnetButton().getAttribute('role'),
             checked: magnetButton().getAttribute('aria-checked'),
             pressed: magnetButton().hasAttribute('aria-pressed'),
+            name: magnetButton().getAttribute('aria-label'),
             title: magnetButton().getAttribute('title'),
             icon: magnetButton()
                 .querySelector('[class*="ag-charts-icon-"]')
@@ -358,7 +359,8 @@ describe('Annotations magnet', () => {
             role: 'switch',
             checked: 'false',
             pressed: false,
-            title: null,
+            name: 'Magnet',
+            title: 'Magnet',
             icon: 'icon-no-magnet',
         });
 
@@ -369,6 +371,7 @@ describe('Annotations magnet', () => {
             role: 'switch',
             checked: 'true',
             pressed: false,
+            name: 'Magnet',
             title: 'Magnet on',
             icon: 'icon-magnet',
         });
@@ -379,7 +382,8 @@ describe('Annotations magnet', () => {
             role: 'switch',
             checked: 'false',
             pressed: false,
-            title: null,
+            name: 'Magnet',
+            title: 'Magnet',
             icon: 'icon-no-magnet',
         });
 
