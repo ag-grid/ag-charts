@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceSelectedItem: 'selectat',
     ariaAnnounceUnselectedItem: 'neselectat',
     ariaAnnounceChart: 'diagramă, ${seriesCount}[number] serii',
+    ariaAnnounceChartWithCaption: 'diagramă, ${caption}, ${seriesCount}[number] serii',
     ariaAnnounceFlowProportionLink: 'legătură ${index} din ${count}, de la ${from} la ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodul ${index} din ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaDescriptionToggleNode: 'Apăsați Space sau Enter pentru a extinde sau restrânge acest nod',
     ariaAnnounceGaugeChart: 'grafic indicator, ${caption}',
     ariaAnnounceHierarchyChart: 'diagramă ierarhică, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'diagramă ierarhică',
     ariaAnnounceHierarchyDatum: 'nivel ${level}[number], ${count}[number] copii, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'diagramă, ${caption}',

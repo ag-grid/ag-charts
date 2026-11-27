@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaAnnounceSelectedItem: '已选择',
     ariaAnnounceUnselectedItem: '未选择',
     ariaAnnounceChart: '图表，共有${seriesCount}[number]个系列',
+    ariaAnnounceChartWithCaption: '图表，${caption}，共有${seriesCount}[number]个系列',
     ariaAnnounceFlowProportionLink: '链接 ${index} 总共 ${count}，从 ${from} 到 ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '节点 ${index} 之 ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaDescriptionToggleNode: '按 Space 或 Enter 展开或折叠此节点',
     ariaAnnounceGaugeChart: '仪表盘图表, ${caption}',
     ariaAnnounceHierarchyChart: '层次图表, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: '层次图表',
     ariaAnnounceHierarchyDatum: '级别 ${level}[number], ${count}[number] 子项, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: '图表, ${caption}',

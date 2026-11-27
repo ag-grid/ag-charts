@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaAnnounceSelectedItem: 'محدد',
     ariaAnnounceUnselectedItem: 'غير محدد',
     ariaAnnounceChart: 'مخطط، ${seriesCount}[number] سلسلة',
+    ariaAnnounceChartWithCaption: 'مخطط، ${caption}، ${seriesCount}[number] سلسلة',
     ariaAnnounceFlowProportionLink: 'رابط ${index} من ${count}، من ${from} إلى ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'العقدة ${index} من ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaDescriptionToggleNode: 'اضغط على Space أو Enter لتوسيع أو طي هذه العقدة',
     ariaAnnounceGaugeChart: 'مخطط المقياس، ${caption}',
     ariaAnnounceHierarchyChart: 'مخطط هرمي، ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'مخطط هرمي',
     ariaAnnounceHierarchyDatum: 'المستوى ${level}[number]، ${count}[number] أطفال، ${description}',
     ariaAnnounceHoverDatum: '${datum} الموجود على',
     ariaAnnounceStandaloneChart: 'المخطط، ${caption}',

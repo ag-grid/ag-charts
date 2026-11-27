@@ -200,6 +200,7 @@ export abstract class HierarchySeries<
     }
 
     override getChartAriaLabel(caption: string) {
+        if (caption === '') return this.ctx.localeManager.t('ariaAnnounceHierarchyChartWithoutCaption');
         return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
     }
 
