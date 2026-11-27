@@ -79,6 +79,18 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     label?: AgMapShapeSeriesLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
+    /**
+     * The gap, in pixels, between neighbouring regions. Each region is pulled in by half the gap along every border it
+     * shares with a region drawn by a `map-shape` series, so a region with `gap: 4` next to a region with `gap: 0`
+     * leaves 2 pixels between them.
+     *
+     * Coastlines and other edges with no neighbouring region stay where they are.
+     *
+     * __Note:__ A region that is narrower than its share of the gap is not drawn.
+     *
+     * Default: `0`
+     */
+    gap?: PixelSize;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the glow around the shapes. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */

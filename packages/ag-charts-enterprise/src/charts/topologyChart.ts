@@ -11,6 +11,7 @@ import type {
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
+import { MapShapeGapNeighbours, type MapShapeGapSource } from '../series/map-util/mapShapeGapNeighbours';
 import { MercatorScale } from '../series/map-util/mercatorScale';
 import type { ITopology } from '../series/map-util/topologyTypes';
 
@@ -22,6 +23,12 @@ function isTopologySeries(series: _ModuleSupport.UnknownSeries): series is _Modu
         series.type === 'map-shape-background' ||
         series.type === 'map-line-background'
     );
+}
+
+function isMapShapeSeries(
+    series: _ModuleSupport.UnknownSeries
+): series is _ModuleSupport.UnknownSeries & MapShapeGapSource & { gapNeighbours: MapShapeGapNeighbours | undefined } {
+    return series.type === 'map-shape';
 }
 
 export interface TopologyChartEnv {
@@ -39,6 +46,8 @@ export class TopologyChartType implements ChartTypeInstance<TopologyChartEnv> {
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
 
     topology?: FeatureCollection;
+
+    private readonly gapNeighbours = new MapShapeGapNeighbours();
 
     constructor(private readonly host: ChartTypeHost<TopologyChartEnv>) {
         if (host.ctx.zoomManager) {
@@ -70,6 +79,10 @@ export class TopologyChartType implements ChartTypeInstance<TopologyChartEnv> {
         host.setLayoutRects(seriesRect, seriesRect);
 
         const mapSeries = host.series.filter(isTopologySeries);
+
+        // Before the scale goes out: each map-shape series insets from its neighbours in the update that follows.
+        const shapeSeries = host.series.filter(isMapShapeSeries);
+        this.gapNeighbours.update(shapeSeries);
         const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
@@ -124,6 +137,9 @@ export class TopologyChartType implements ChartTypeInstance<TopologyChartEnv> {
 
         for (const series of mapSeries) {
             series.scale = scale;
+        }
+        for (const series of shapeSeries) {
+            series.gapNeighbours = this.gapNeighbours;
         }
 
         const seriesVisible = host.series.some((s) => s.visible);

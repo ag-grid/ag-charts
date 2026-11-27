@@ -48,6 +48,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
             padding: 2,
+            gap: 0,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 // The shape always bounds the label, so the shared opt-in triggers do not apply: wrapping is

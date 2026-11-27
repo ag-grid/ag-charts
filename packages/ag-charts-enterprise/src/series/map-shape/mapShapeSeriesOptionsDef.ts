@@ -34,6 +34,7 @@ import {
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
     padding: positiveNumber,
+    gap: positiveNumber,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle & AgItemShadowStyle>({
         ...itemStylerCastDefs,
         ...fillOptionsDef,
