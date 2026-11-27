@@ -19,6 +19,11 @@ export function reverseRing(ring: Ring): Ring {
     return ring.map(([x, y]): Position => [x, y]).reverse();
 }
 
+/** The ring reflected across the y axis and wound counter-clockwise again, so its walk order is mirrored too. */
+export function mirrorRing(ring: Ring): Ring {
+    return reverseRing(ring.map(([x, y]): Position => [-x, y]));
+}
+
 /** The same closed ring, starting `shift` vertices later. */
 export function rotateRing(ring: Ring, shift: number): Ring {
     const open = ring.slice(0, -1);
@@ -368,4 +373,26 @@ export function pinnedEnclave(radius = 5): { enclave: Ring; host: Ring[]; touchi
         touching,
         pin: [radius, 0],
     };
+}
+
+/**
+ * An open, counter-clockwise ring: a disc of `count` vertices with a needle on its left side, narrowing to a rounded
+ * tip 1 wide. The tip holds the ring's lowest coordinate, and every edge of a ring like this one can be moved, so at
+ * `d > 0.5` the needle's edges reverse one after another, from the tip inwards.
+ */
+export function discWithNeedle(count = 400): Ring {
+    const radius = 100;
+    const ring: Ring = [];
+    const gap = Math.PI / 18;
+    for (let i = 0; i < count; i += 1) {
+        const angle = -Math.PI + gap + ((2 * Math.PI - 2 * gap) * i) / (count - 1);
+        ring.push([radius * Math.cos(angle), radius * Math.sin(angle)]);
+    }
+    // From the last disc vertex (above the needle) out to the tip and back to the first (below it).
+    ring.push([-130, 0.5]);
+    for (let i = 1; i < 8; i += 1) {
+        const angle = Math.PI / 2 + (Math.PI * i) / 8;
+        ring.push([-130 + 0.5 * Math.cos(angle), 0.5 * Math.sin(angle)]);
+    }
+    return ring;
 }

@@ -217,6 +217,19 @@ describe('MapShapeGapIndex', () => {
             expect(index.stats).toMatchObject({ rings: 2, sharedEdges: 1, movedEdges: 1 });
         });
 
+        it('keeps an exterior and a hole with the identical ordered vertex sequence apart (D-4)', () => {
+            // A hole wound like the exterior, so the two sequences match vertex for vertex and only the role differs.
+            const exterior = rect(0, 0, 10, 10);
+            const host = [rect(-20, -20, 20, 20), rect(0, 0, 10, 10)];
+            const index = build(region(true, [exterior]), region(true, host));
+
+            expect(index.stats).toMatchObject({ rings: 3, sharedEdges: 4, movedEdges: 4 });
+            expect(moved(index, exterior)).toEqual([1, 1, 1, 1]);
+            expect(moved(index, host[1])).toEqual([1, 1, 1, 1]);
+            expect(index.getRingInfo(host[1])).toMatchObject({ hole: true, orientation: 1 });
+            expect(index.getRingInfo(exterior)).toMatchObject({ hole: false, orientation: 1 });
+        });
+
         it('treats the same ring as an exterior and as a hole as two rings', () => {
             const enclave = rect(10, 10, 20, 20);
             const host = [rect(0, 0, 30, 30), reverseRing(enclave)];

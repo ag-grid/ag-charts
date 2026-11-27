@@ -8,8 +8,10 @@ import {
     circle,
     coastArm,
     collinearBorder,
+    discWithNeedle,
     fullyNeighbouredChamfer,
     microBorder,
+    mirrorRing,
     narrowCoastTip,
     nearCollinearCoast,
     pinnedEnclave,
@@ -24,13 +26,25 @@ import {
     tooth,
     tripoint,
 } from '../map-test/gapSyntheticRings';
-import { type GapTopology, SWEEP_TOPOLOGIES, createScene, rotateTopology } from '../map-test/gapTestUtil';
+import {
+    type GapTopology,
+    SWEEP_TOPOLOGIES,
+    createScene,
+    reverseTopology,
+    rotateTopology,
+} from '../map-test/gapTestUtil';
 import indonesiaTimorTopology from '../map-test/indonesiaTimorTopology.json';
 import southernAfricaItalyTopology from '../map-test/southernAfricaItalyTopology.json';
 import worldTopology from '../map-test/worldTopology.json';
 import { lineStringDistance } from './lineStringUtil';
 import { MapShapeGapIndex } from './mapShapeGapIndex';
-import { type GapInsetEdge, insetGapRing, insetPolygonRings, simplifyGapRing } from './polygonGapInset';
+import {
+    type GapInsetEdge,
+    type GapInsetTrace,
+    insetGapRing,
+    insetPolygonRings,
+    simplifyGapRing,
+} from './polygonGapInset';
 
 function indexOf(...regions: [boolean, Ring[]][]): MapShapeGapIndex {
     const index = new MapShapeGapIndex();
@@ -89,6 +103,24 @@ function signedArea(ring: readonly Position[]): number {
         area += ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
     }
     return area / 2;
+}
+
+/** The winding number of `rings` around a point: what nonzero fill goes by. */
+function windingNumber(rings: readonly Position[][], [px, py]: Position): number {
+    let winding = 0;
+    for (const ring of rings) {
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+            const [x0, y0] = ring[j];
+            const [x1, y1] = ring[i];
+            const side = (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0);
+            if (y0 <= py) {
+                if (y1 > py && side > 0) winding += 1;
+            } else if (y1 <= py && side < 0) {
+                winding -= 1;
+            }
+        }
+    }
+    return winding;
 }
 
 function keyOf([x, y]: Position): string {
@@ -250,7 +282,7 @@ describe('insetPolygonRings', () => {
 
             for (const d of [0.2, 0.5, 1, 2, 3]) {
                 const edges: GapInsetEdge[] = [];
-                expect(insetGapRing(simplified.points, simplified.moved, d, true, edges)).toBeDefined();
+                expect(insetGapRing(simplified.points, simplified.moved, d, true, { edges, joins: 0 })).toBeDefined();
                 const edge = edges.find((e) => e.edge === ramp);
                 expect(edge).toBeDefined();
                 const dot = (edge!.x1 - edge!.x0) * -1 + (edge!.y1 - edge!.y0) * -1;
@@ -283,7 +315,7 @@ describe('insetPolygonRings', () => {
 
             for (const d of [0.75, 1, 2]) {
                 const edges: GapInsetEdge[] = [];
-                expect(insetGapRing(simplified.points, simplified.moved, d, true, edges)).toBeDefined();
+                expect(insetGapRing(simplified.points, simplified.moved, d, true, { edges, joins: 0 })).toBeDefined();
                 const drawn = edges.find((e) => e.edge === tip)!;
                 // The tip runs from (14, 4) up to (14, 5): it is never drawn downwards, whatever the two ends ask for.
                 expect(drawn.y1 - drawn.y0).toBeGreaterThanOrEqual(0);
@@ -301,7 +333,7 @@ describe('insetPolygonRings', () => {
             const tip = simplified.points.findIndex(([x, y]) => x === 14 && y === 4);
             const edges: GapInsetEdge[] = [];
 
-            insetGapRing(simplified.points, simplified.moved, 0.25, true, edges);
+            insetGapRing(simplified.points, simplified.moved, 0.25, true, { edges, joins: 0 });
             const drawn = edges.find((e) => e.edge === tip)!;
             expect([drawn.y0, drawn.y1]).toEqual([4.25, 4.75]);
         });
@@ -406,6 +438,12 @@ describe('insetPolygonRings', () => {
             for (const result of drawn) {
                 expect(vertices(result)).toEqual(vertices(drawn[0]));
             }
+            // The same ring wound the other way round, which the removal pass walks as the same edges.
+            for (const shift of starts.slice(0, points.length)) {
+                const rotated = [...points.slice(shift), ...points.slice(0, shift)];
+                const reversed = insetGapRing([...rotated].reverse(), moved, d, false);
+                expect(vertices(reverseRing(reversed!))).toEqual(vertices(drawn[0]));
+            }
         });
 
         it.each([2.5, 4, 5])(
@@ -425,6 +463,158 @@ describe('insetPolygonRings', () => {
 
                 for (const result of results) {
                     expect(result).toEqual(results[0]);
+                }
+            }
+        );
+    });
+
+    describe('unmoved edges between moved ones (D-10, DR2-1)', () => {
+        // Rings of moved and unmoved edges, each one built so that a join in `joinEdges` is asked for a slide that is
+        // past the cap or, with the slide at the other end of the edge, past the edge. Wherever it lands, the edge has
+        // to be kept, drawn the way it runs, and moved no further than twice the distance at either end.
+        const cases: { name: string; points: Position[]; moved: number[]; d: number; edges?: number }[] = [
+            {
+                name: 'a join in the walk, at the start of the second edge',
+                points: [
+                    [0, 4],
+                    [8, 7],
+                    [8, 6],
+                    [10, 8],
+                    [7, 8],
+                ],
+                moved: [1, 0, 1, 0, 0],
+                d: 2,
+            },
+            {
+                name: 'the closing join, with a slide at the start of the first edge',
+                points: [
+                    [1, 4],
+                    [7, 1],
+                    [5, 2],
+                    [8, 0],
+                    [9, 4],
+                ],
+                moved: [1, 0, 1, 0, 1],
+                d: 2,
+            },
+            {
+                name: 'the closing join, with a slide at the end of the first edge',
+                points: [
+                    [1, 5],
+                    [9, -2],
+                    [4, 4],
+                    [4, 6],
+                ],
+                moved: [1, 0, 1, 0],
+                d: 2,
+            },
+            {
+                name: 'the closing join, with a slide at the end of the edge it closes on',
+                points: [
+                    [7, 8],
+                    [5, 4],
+                    [6, 4],
+                    [8, 0],
+                ],
+                moved: [0, 1, 0, 1],
+                d: 2,
+            },
+            {
+                name: 'the closing join of a moved edge and an unmoved one',
+                points: [
+                    [4, 6],
+                    [3, 1],
+                    [3, -2],
+                    [5, 1],
+                ],
+                moved: [0, 1, 0, 1],
+                d: 2,
+                // No edge of this ring reverses at d = 2, so none may be removed (D-14).
+                edges: 4,
+            },
+            {
+                name: 'a slide past twice the distance at the end of the first edge',
+                points: [
+                    [1, 9],
+                    [-1, 1],
+                    [2, 7],
+                    [2, 3],
+                    [3, 5],
+                ],
+                moved: [1, 1, 0, 0, 0],
+                d: 1,
+            },
+            {
+                name: 'a slide past twice the distance at the start of the second edge',
+                points: [
+                    [8, 6],
+                    [5, 6],
+                    [1, 9],
+                    [1, 8],
+                    [6, 4],
+                ],
+                moved: [0, 1, 1, 0, 1],
+                d: 1.5,
+            },
+        ];
+
+        it.each(cases)('keeps every unmoved edge, drawn forwards and within twice the distance: $name', (c) => {
+            const flags = Uint8Array.from(c.moved);
+            const points = c.points;
+            const trace: GapInsetTrace = { edges: [], joins: 0 };
+
+            expect(insetGapRing(points, flags, c.d, true, trace)).toBeDefined();
+            if (c.edges != null) expect(trace.edges).toHaveLength(c.edges);
+            const unmoved = c.moved.flatMap((flag, edge) => (flag === 0 ? [edge] : []));
+            expect(
+                trace.edges
+                    .filter((e) => flags[e.edge] === 0)
+                    .map((e) => e.edge)
+                    .sort((a, b) => a - b)
+            ).toEqual(unmoved);
+            for (const e of trace.edges.filter((edge) => flags[edge.edge] === 0)) {
+                const [x0, y0] = points[e.edge];
+                const [x1, y1] = points[(e.edge + 1) % points.length];
+                expect((e.x1 - e.x0) * (x1 - x0) + (e.y1 - e.y0) * (y1 - y0)).toBeGreaterThanOrEqual(0);
+                expect(Math.hypot(e.x0 - x0, e.y0 - y0)).toBeLessThanOrEqual(2 * c.d + 1e-9);
+                expect(Math.hypot(e.x1 - x1, e.y1 - y1)).toBeLessThanOrEqual(2 * c.d + 1e-9);
+            }
+        });
+    });
+
+    describe('removal pass', () => {
+        // Every edge of the ring is moved, and the needle's edges, which include the one the ring is anchored on,
+        // reverse one after another from its tip.
+        const needles = [400, 2000].flatMap((count) => [2.5, 4].map((d) => ({ count, d })));
+
+        it.each(needles)(
+            'walks a fully moved ring once, however many edges reverse (count $count, d = $d)',
+            ({ count, d }) => {
+                const ring = discWithNeedle(count);
+                const trace: GapInsetTrace = { edges: [], joins: 0 };
+
+                const drawn = insetGapRing(ring, new Uint8Array(ring.length).fill(1), d, true, trace);
+                expect(drawn).toBeDefined();
+                // The needle's tip is gone, and with it the edges that reversed.
+                expect(trace.edges.length).toBeLessThan(ring.length - 5);
+                // One join per edge, one per edge popped, and the closing joins: never a second walk.
+                expect(trace.joins).toBeLessThanOrEqual(2 * ring.length);
+            }
+        );
+
+        it.each([2.5, 4])(
+            'draws the disc with a needle the same from every start vertex and either winding (d = %d)',
+            (d) => {
+                const ring = discWithNeedle(60);
+                const moved = new Uint8Array(ring.length).fill(1);
+                const expected = vertices([...insetGapRing(ring, moved, d, true)!]);
+
+                for (const shift of [1, 17, 40, ring.length - 1]) {
+                    const rotated = [...ring.slice(shift), ...ring.slice(0, shift)];
+                    expect(vertices(insetGapRing(rotated, moved, d, true))).toEqual(expected);
+                    expect(vertices(reverseRing(insetGapRing([...rotated].reverse(), moved, d, false)!))).toEqual(
+                        expected
+                    );
                 }
             }
         );
@@ -493,6 +683,47 @@ describe('insetPolygonRings', () => {
                 [-2, 6],
             ]);
             expect(signedArea(drawn[1])).toBeCloseTo(-56, 9);
+        });
+
+        it('draws a grown box wound like a hole that winds the other way round, and leaves it empty', () => {
+            // A clockwise exterior with a counter-clockwise hole, the other way round to the usual rings.
+            const hole = rect(10, 10, 10.2, 10.2);
+            const host = [reverseRing(rect(0, 0, 30, 30)), hole];
+            const index = indexOf([true, host], [true, [reverseRing(hole)]]);
+
+            const drawn = inset(index, host, 2)!;
+            expect(index.getRingInfo(hole)).toMatchObject({ hole: true, orientation: 1 });
+            expect(drawn).toHaveLength(2);
+            expectRing(drawn[1], [
+                [8, 8],
+                [12, 8],
+                [12, 12],
+                [8, 12],
+            ]);
+            expect(signedArea(drawn[1])).toBeCloseTo(16, 9);
+            expect(windingNumber(drawn, [10.1, 10.1])).toBe(0);
+            expect(windingNumber(drawn, [3, 3])).not.toBe(0);
+        });
+
+        it('leaves a grown box empty under nonzero fill when its hole is wound as usual', () => {
+            const enclave = rect(10, 10, 10.2, 10.2);
+            const host = [rect(0, 0, 30, 30), reverseRing(enclave)];
+            const index = indexOf([true, host], [true, [enclave]]);
+            const drawn = inset(index, host, 2)!;
+
+            expect(windingNumber(drawn, [10.1, 10.1])).toBe(0);
+            expect(windingNumber(drawn, [3, 3])).not.toBe(0);
+        });
+
+        it('counts grown boxes in the holes that fill a host (D-15)', () => {
+            // The host is not moved at all; only the box of its one tiny hole, 5.2 by 5.2 at d = 2.6, outgrows it.
+            const enclave = rect(2.4, 2.4, 2.6, 2.6);
+            const host = [rect(0, 0, 5, 5), reverseRing(enclave)];
+            const index = indexOf([true, host], [true, [enclave]]);
+
+            expect(inset(index, host, 2)).toBeDefined();
+            expect(inset(index, host, 2.4)).toBeDefined();
+            expect(inset(index, host, 2.6)).toBeUndefined();
         });
 
         it('collapses a host whose holes grow to fill it', () => {
@@ -911,55 +1142,98 @@ describe('insetPolygonRings', () => {
         });
     });
 
-    describe('reflex slides', () => {
-        const unitCoast = (tx: number): Position => [tx, Math.sqrt(1 - tx * tx)];
-        const neighbour = rect(10, 0, 20, 10);
+    describe('slides along a coast', () => {
         const d = 2;
-
-        // The border runs up x = 10 and the coast leaves its end to the right, a reflex corner for the fill: the moved
-        // border meets the coast behind the original vertex, so the slide is negative.
-        function reflexRing(tx: number, length: number): Ring {
-            const [ux, uy] = unitCoast(tx);
-            return [
-                [0, 0],
-                [10, 0],
-                [10, 10],
-                [10 + ux * length, 10 + uy * length],
-                [0, 10 + uy * length],
-                [0, 0],
-            ];
-        }
-
-        const cases = [
-            { name: 'a coast edge shorter than the slide', tx: Math.SQRT1_2, length: 0.7, slides: true },
-            { name: 'a coast edge longer than the slide', tx: 0.6, length: 20, slides: true },
-            { name: 'a slide past twice the distance', tx: 0.4, length: 20, slides: false },
-        ];
-
+        const neighbour = rect(10, 0, 20, 10);
+        const unitCoast = (tx: number): Position => [tx, Math.sqrt(1 - tx * tx)];
         const has = (ring: Position[], [px, py]: Position) =>
             ring.some(([x, y]) => Math.abs(x - px) < 1e-9 && Math.abs(y - py) < 1e-9);
 
-        function expectSlide(ring: Ring, other: Ring, tx: number, slides: boolean) {
-            const drawn = exterior(indexRings(ring, other), ring, d)!;
-            const [ux, uy] = unitCoast(tx);
-
-            expect(has(drawn, [10 - d, 10 - (d * uy) / ux])).toBe(slides);
-            expect(has(drawn, [10 - d, 10])).toBe(!slides);
+        /** What `ring` draws next to `neighbour`, mirrored when `mirrored` so the coast comes before the border. */
+        function drawnPoints(ring: Ring, mirrored: boolean): (point: Position) => boolean {
+            const [r, other] = mirrored ? [mirrorRing(ring), mirrorRing(neighbour)] : [ring, neighbour];
+            const drawn = exterior(indexRings(r, other), r, d)!;
+            expect(drawn).toBeDefined();
+            return ([x, y]) => has(drawn, mirrored ? [-x, y] : [x, y]);
         }
 
-        it.each(cases)(
-            'slides back past the corner only within twice the distance, with $name (coast edge second)',
-            ({ tx, length, slides }) => {
-                expectSlide(reflexRing(tx, length), neighbour, tx, slides);
-            }
-        );
+        // The border runs up x = 10 and the coast leaves its end. In the walk with the fill on the left, the border
+        // comes first in the plain ring and second in the mirrored one, which covers both of `joinEdges`' slides.
+        const sides = [
+            { side: 'coast edge second', mirrored: false },
+            { side: 'coast edge first', mirrored: true },
+        ];
 
-        it.each(cases)(
-            'slides back past the corner only within twice the distance, with $name (coast edge first)',
-            ({ tx, length, slides }) => {
-                expectSlide(reverseRing(reflexRing(tx, length)), reverseRing(neighbour), tx, slides);
+        describe('reflex corner: back past the vertex', () => {
+            // The coast leaves to the right, a reflex corner for the fill: the moved border meets the coast behind
+            // the original vertex, so the slide is negative.
+            function reflexRing(tx: number, length: number): Ring {
+                const [ux, uy] = unitCoast(tx);
+                return [
+                    [0, 0],
+                    [10, 0],
+                    [10, 10],
+                    [10 + ux * length, 10 + uy * length],
+                    [0, 10 + uy * length],
+                    [0, 0],
+                ];
             }
-        );
+
+            const cases = [
+                { name: 'a coast edge shorter than the slide', tx: Math.SQRT1_2, length: 0.7, slides: true },
+                { name: 'a coast edge longer than the slide', tx: 0.6, length: 20, slides: true },
+                { name: 'a slide past twice the distance', tx: 0.4, length: 20, slides: false },
+            ].flatMap((c) => sides.map((s) => ({ ...c, ...s })));
+
+            it.each(cases)(
+                'slides back past the corner only within twice the distance, with $name ($side)',
+                ({ tx, length, slides, mirrored }) => {
+                    const [ux, uy] = unitCoast(tx);
+                    const drawn = drawnPoints(reflexRing(tx, length), mirrored);
+
+                    expect(drawn([10 - d, 10 - (d * uy) / ux])).toBe(slides);
+                    expect(drawn([10 - d, 10])).toBe(!slides);
+                }
+            );
+        });
+
+        describe('convex corner: forward along the coast (D-10)', () => {
+            // The coast leaves up and to the left, a convex corner: the moved border meets the coast ahead of the
+            // original vertex, at `d / tx` along it. Beyond `2d`, or beyond the coast edge, the corner steps square.
+            function convexRing(tx: number, length: number): Ring {
+                const [ux, uy] = unitCoast(tx);
+                const y = 10 + uy * length;
+                return [
+                    [0, 0],
+                    [10, 0],
+                    [10, 10],
+                    [10 - ux * length, y],
+                    [0, y],
+                    [0, 0],
+                ];
+            }
+
+            const cases = [
+                { name: 'a slide of 2.5 along a long coast edge', tx: 0.8, length: 8, slides: true },
+                { name: 'a slide just inside twice the distance', tx: 0.52, length: 10, slides: true },
+                {
+                    name: 'a slide of 5, past twice the distance, along a longer coast edge',
+                    tx: 0.4,
+                    length: 20,
+                    slides: false,
+                },
+                { name: 'a coast edge shorter than the slide', tx: 0.8, length: 2, slides: false },
+            ].flatMap((c) => sides.map((s) => ({ ...c, ...s })));
+
+            it.each(cases)('slides along the coast only within twice the distance, with $name ($side)', (c) => {
+                const [ux, uy] = unitCoast(c.tx);
+                const drawn = drawnPoints(convexRing(c.tx, c.length), c.mirrored);
+
+                expect(drawn([10 - d, 10 + (d * uy) / ux])).toBe(c.slides);
+                expect(drawn([10 - d, 10])).toBe(!c.slides);
+                expect(drawn([10, 10])).toBe(!c.slides);
+            });
+        });
     });
 
     describe('near-parallel joins', () => {
@@ -986,6 +1260,37 @@ describe('insetPolygonRings', () => {
             expect(drawn.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y))).toBe(true);
             expect(drawn.some(([x, y]) => Math.abs(x - 8) < 1e-6 && Math.abs(y - 5) < 1e-6)).toBe(true);
             expect(Math.max(...drawn.map(([x]) => x))).toBeLessThan(8 + 1e-6);
+        });
+    });
+
+    describe('the parallel threshold (D-12)', () => {
+        /** A moved ring with a vertex at (10, 0) where the walk turns left by `asin(sine)`; returns its drawn point. */
+        function cornerAt(sine: number): Position {
+            const cos = Math.sqrt(1 - sine * sine);
+            const ring: Position[] = [
+                [0, 0],
+                [10, 0],
+                [10 + 10 * cos, 10 * sine],
+                [10 + 10 * cos, 40],
+                [0, 40],
+            ];
+            const drawn = insetGapRing(ring, new Uint8Array(ring.length).fill(1), 2, true)!;
+            const distance = ([x, y]: Position) => Math.hypot(x - 10, y - 2);
+            return drawn.reduce((best, p) => (distance(p) < distance(best) ? p : best), drawn[0]);
+        }
+
+        it('offsets along the shared normal when the two edges are parallel within 1e-6', () => {
+            const [x, y] = cornerAt(5e-7);
+
+            expect(x).toBeCloseTo(10, 9);
+            expect(y).toBeCloseTo(2, 9);
+        });
+
+        it('mitres when they are not', () => {
+            const [x, y] = cornerAt(5e-6);
+
+            expect(Math.hypot(x - 10, y - 2)).toBeGreaterThan(1e-6);
+            expect(Math.hypot(x - 10, y - 2)).toBeLessThan(1e-4);
         });
     });
 });
@@ -1052,9 +1357,9 @@ function sweep(topology: GapTopology, zoom: number, d: number): SweepResult {
                 }
             }
 
-            const trace: GapInsetEdge[] = [];
+            const trace: GapInsetTrace = { edges: [], joins: 0 };
             if (insetGapRing(points, moved, d, fillLeft, trace) == null) continue;
-            for (const e of trace) {
+            for (const e of trace.edges) {
                 const [x0, y0] = points[e.edge];
                 const [x1, y1] = points[(e.edge + 1) % m];
                 const length = Math.hypot(x1 - x0, y1 - y0);
@@ -1131,6 +1436,40 @@ describe('gap sweep: start vertex', () => {
                 }
                 expect(differing.slice(0, 5)).toEqual([]);
             }
+        }
+    );
+});
+
+/** Differences between what two draws of one topology give per polygon, as readable lines. */
+function differences(expected: (number[] | null)[], actual: (number[] | null)[], label: string): string[] {
+    const differing: string[] = [];
+    for (const [p, areas] of expected.entries()) {
+        const other = actual[p];
+        const same =
+            areas == null || other == null
+                ? areas === other
+                : areas.length === other.length &&
+                  areas.every((area, r) => Math.abs(area - other[r]) <= 1e-6 * Math.max(1, Math.abs(area)));
+        if (!same) differing.push(`polygon ${p} ${label}: ${JSON.stringify(areas)} vs ${JSON.stringify(other)}`);
+    }
+    return differing;
+}
+
+describe('gap sweep: winding', () => {
+    const cases = SWEEP_TOPOLOGIES.flatMap(([name, topology]) =>
+        [1, 16].flatMap((zoom) => [2.5, 4].map((d) => ({ name, topology, zoom, d })))
+    );
+
+    it.each(cases)(
+        '$name at zoom $zoom with d = $d draws the same whichever way every ring is wound',
+        ({ topology, zoom, d }) => {
+            const expected = outlines(topology, zoom, d);
+            expect(expected.some((areas) => areas != null)).toBe(true);
+
+            const reversed = outlines(reverseTopology(topology), zoom, d);
+            // Reversing a ring flips the sign of its signed area.
+            const flipped = reversed.map((areas) => areas?.map((area) => -area) ?? null);
+            expect(differences(expected, flipped, 'reversed').slice(0, 5)).toEqual([]);
         }
     );
 });

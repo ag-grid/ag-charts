@@ -26,6 +26,14 @@ export interface GapInsetEdge {
     readonly y1: number;
 }
 
+/** What a test can ask `insetGapRing` to record. Production passes nothing. */
+export interface GapInsetTrace {
+    /** Where each surviving edge was drawn. */
+    readonly edges: GapInsetEdge[];
+    /** How many times two edges were joined, to check the removal pass stays linear. */
+    joins: number;
+}
+
 function mod(i: number, n: number): number {
     return ((i % n) + n) % n;
 }
@@ -111,6 +119,11 @@ interface StackEntry {
     endSlide: number;
 }
 
+/**
+ * Edges in the canonical walk direction: the fill is on the left of every edge. A ring wound the other way is walked
+ * backwards, edge `j` being the source's edge `m - 1 - j` reversed, so that the removal pass sees the same sequence
+ * whichever way the source is wound.
+ */
 function buildEdges(points: readonly Position[], sourceMoved: Uint8Array, fillLeft: boolean): Edges {
     const m = points.length;
     const edges: Edges = {
@@ -126,22 +139,23 @@ function buildEdges(points: readonly Position[], sourceMoved: Uint8Array, fillLe
         moved: new Uint8Array(m),
     };
 
-    for (let i = 0; i < m; i += 1) {
-        const [x0, y0] = points[i];
-        const [x1, y1] = points[(i + 1) % m];
+    for (let j = 0; j < m; j += 1) {
+        const e = fillLeft ? j : m - 1 - j;
+        const [x0, y0] = points[fillLeft ? e : (e + 1) % m];
+        const [x1, y1] = points[fillLeft ? (e + 1) % m : e];
         const dx = x1 - x0;
         const dy = y1 - y0;
         const len = Math.hypot(dx, dy);
-        edges.sx[i] = x0;
-        edges.sy[i] = y0;
-        edges.ex[i] = x1;
-        edges.ey[i] = y1;
-        edges.tx[i] = dx / len;
-        edges.ty[i] = dy / len;
-        edges.nx[i] = fillLeft ? -dy / len : dy / len;
-        edges.ny[i] = fillLeft ? dx / len : -dx / len;
-        edges.len[i] = len;
-        edges.moved[i] = sourceMoved[i];
+        edges.sx[j] = x0;
+        edges.sy[j] = y0;
+        edges.ex[j] = x1;
+        edges.ey[j] = y1;
+        edges.tx[j] = dx / len;
+        edges.ty[j] = dy / len;
+        edges.nx[j] = -dy / len;
+        edges.ny[j] = dx / len;
+        edges.len[j] = len;
+        edges.moved[j] = sourceMoved[e];
     }
     return edges;
 }
@@ -155,17 +169,16 @@ function edgeSortsBefore(g: Edges, a: number, b: number): boolean {
 }
 
 /**
- * The edge the removal pass starts from, which it never removes while it judges its neighbours. An unmoved edge is never
- * removed, so it is preferred. Otherwise the choice is by coordinates, not by position in the ring, so that the result
- * is the same whichever vertex the ring starts at.
+ * The edge the removal pass starts from, which it doesn't remove while it judges its neighbours. An unmoved edge is
+ * never removed, so it is preferred. The choice is by coordinates, not by position in the ring, so the result is the
+ * same whichever vertex the ring starts at.
  */
-function findAnchor(g: Edges, excluded: Uint8Array | undefined): number {
+function findAnchor(g: Edges): number {
     const m = g.moved.length;
     let unmoved = -1;
-    let any = -1;
+    let any = 0;
     for (let k = 0; k < m; k += 1) {
-        if (excluded?.[k] === 1) continue;
-        if (any < 0 || edgeSortsBefore(g, k, any)) any = k;
+        if (edgeSortsBefore(g, k, any)) any = k;
         if (g.moved[k] === 0 && (unmoved < 0 || edgeSortsBefore(g, k, unmoved))) unmoved = k;
     }
     return unmoved >= 0 ? unmoved : any;
@@ -199,15 +212,7 @@ function bevelJoin(qax: number, qay: number, qbx: number, qby: number): Join {
  * end of `a` and the start of `b`). A mitre where both edges are moved, a slide along the unmoved edge where one is.
  * Past the caps, a bevel or a square step at the original vertex.
  */
-function joinEdges(
-    g: Edges,
-    a: number,
-    b: number,
-    aStartSlide: number,
-    bEndSlide: number,
-    d: number,
-    fillLeft: boolean
-): Join {
+function joinEdges(g: Edges, a: number, b: number, aStartSlide: number, bEndSlide: number, d: number): Join {
     const vax = g.ex[a];
     const vay = g.ey[a];
     const vbx = g.sx[b];
@@ -230,7 +235,7 @@ function joinEdges(
         }
         const mitre = intersect(qax, qay, g.tx[a], g.ty[a], qbx, qby, g.tx[b], g.ty[b]);
         if (mitre == null) return bevelJoin(qax, qay, qbx, qby);
-        const convex = cross > 0 === fillLeft;
+        const convex = cross > 0;
         if (!convex && segmentDistanceToPointSquared(vax, vay, vbx, vby, mitre[0], mitre[1]) > cap * cap) {
             return bevelJoin(qax, qay, qbx, qby);
         }
@@ -291,104 +296,89 @@ function appendPoints(ring: Position[], points: readonly number[]): void {
 }
 
 /**
- * Insets the moved edges of one simplified ring by `d`, towards the fill, and returns the drawn ring, closed. Returns
- * `undefined` when fewer than 3 edges survive the removal of reversed moved edges. Tests pass `trace` to also get the
- * segment each surviving edge is drawn as; production leaves it out.
+ * Insets the moved edges of one simplified ring by `d`, towards the fill, and returns the drawn ring, closed, wound as
+ * the input is. Returns `undefined` when fewer than 3 edges survive the removal of reversed moved edges. Tests pass
+ * `trace` to also get the segment each surviving edge is drawn as and the number of joins; production leaves it out.
  */
 export function insetGapRing(
     points: readonly Position[],
     moved: Uint8Array,
     d: number,
     fillLeft: boolean,
-    trace?: GapInsetEdge[]
+    trace?: GapInsetTrace
 ): Position[] | undefined {
     const m = points.length;
     if (m < 3) return undefined;
 
     const g = buildEdges(points, moved, fillLeft);
+    const anchor = findAnchor(g);
+    const stack: StackEntry[] = [];
+    let joins = 0;
 
-    // A moved edge is judged against its neighbours' joins, so the edge the pass starts from has to be one that stays.
-    // When the pass finds that start edge reversed (only possible when every edge moves), it is left out and the pass
-    // starts again, so the edges popped against it come back.
-    let excluded: Uint8Array | undefined;
-    for (;;) {
-        const anchor = findAnchor(g, excluded);
-        const stack: StackEntry[] = [];
+    for (let t = 0; t < m; t += 1) {
+        const k = (anchor + t) % m;
 
-        for (let t = 0; t < m; t += 1) {
-            const k = (anchor + t) % m;
-            if (excluded?.[k] === 1) continue;
-
-            let join: Join;
-            for (;;) {
-                const top = stack.at(-1);
-                if (top == null) {
-                    join = { points: [], endSlide: 0, startSlide: 0 };
-                    break;
-                }
-                join = joinEdges(g, top.edge, k, top.startSlide, 0, d, fillLeft);
-                const removable = stack.length > 1 && g.moved[top.edge] === 1;
-                if (removable && isReversed(g, top.edge, top.startPoints, join.points)) {
-                    stack.pop();
-                    continue;
-                }
-                top.endSlide = join.endSlide;
+        let join: Join;
+        for (;;) {
+            const top = stack.at(-1);
+            if (top == null) {
+                join = { points: [], endSlide: 0, startSlide: 0 };
                 break;
             }
-            stack.push({ edge: k, startPoints: join.points, startSlide: join.startSlide, endSlide: 0 });
-        }
-
-        // Close the ring. Either end may be a moved edge that reverses once the ring is joined up.
-        let head = 0;
-        let closing: Join = { points: [], endSlide: 0, startSlide: 0 };
-        while (stack.length - head >= 3) {
-            const top = stack.at(-1);
-            if (top == null) break;
-            const bottom = stack[head];
-            closing = joinEdges(g, top.edge, bottom.edge, top.startSlide, bottom.endSlide, d, fillLeft);
-            if (g.moved[top.edge] === 1 && isReversed(g, top.edge, top.startPoints, closing.points)) {
+            join = joinEdges(g, top.edge, k, top.startSlide, 0, d);
+            joins += 1;
+            const removable = stack.length > 1 && g.moved[top.edge] === 1;
+            if (removable && isReversed(g, top.edge, top.startPoints, join.points)) {
                 stack.pop();
                 continue;
             }
-            if (g.moved[bottom.edge] === 1 && isReversed(g, bottom.edge, closing.points, stack[head + 1].startPoints)) {
-                head += 1;
-                continue;
-            }
+            top.endSlide = join.endSlide;
             break;
         }
-        if (stack.length - head < 3) return undefined;
+        stack.push({ edge: k, startPoints: join.points, startSlide: join.startSlide, endSlide: 0 });
+    }
 
-        if (head > 0) {
-            excluded ??= new Uint8Array(m);
-            for (let i = 0; i < head; i += 1) {
-                excluded[stack[i].edge] = 1;
-            }
+    // Close the ring. Either end may be a moved edge that reverses once the ring is joined up.
+    let head = 0;
+    let closing: Join = { points: [], endSlide: 0, startSlide: 0 };
+    while (stack.length - head >= 3) {
+        const top = stack.at(-1);
+        if (top == null) break;
+        const bottom = stack[head];
+        closing = joinEdges(g, top.edge, bottom.edge, top.startSlide, bottom.endSlide, d);
+        joins += 1;
+        if (g.moved[top.edge] === 1 && isReversed(g, top.edge, top.startPoints, closing.points)) {
+            stack.pop();
             continue;
         }
-
-        const ring: Position[] = [];
-        appendPoints(ring, closing.points);
-        for (let i = 1; i < stack.length; i += 1) {
-            appendPoints(ring, stack[i].startPoints);
+        if (g.moved[bottom.edge] === 1 && isReversed(g, bottom.edge, closing.points, stack[head + 1].startPoints)) {
+            head += 1;
+            continue;
         }
-        ring.push([ring[0][0], ring[0][1]]);
-
-        if (trace != null) {
-            for (let i = 0; i < stack.length; i += 1) {
-                const from = i === 0 ? closing.points : stack[i].startPoints;
-                const to = i === stack.length - 1 ? closing.points : stack[i + 1].startPoints;
-                const end = from.length;
-                trace.push({
-                    edge: stack[i].edge,
-                    x0: from[end - 2],
-                    y0: from[end - 1],
-                    x1: to[0],
-                    y1: to[1],
-                });
-            }
-        }
-        return ring;
+        break;
     }
+    if (trace != null) trace.joins = joins;
+    if (stack.length - head < 3) return undefined;
+
+    const ring: Position[] = [];
+    appendPoints(ring, closing.points);
+    for (let i = head + 1; i < stack.length; i += 1) {
+        appendPoints(ring, stack[i].startPoints);
+    }
+    if (!fillLeft) ring.reverse();
+    ring.push([ring[0][0], ring[0][1]]);
+
+    if (trace != null) {
+        for (let i = head; i < stack.length; i += 1) {
+            const from = i === head ? closing.points : stack[i].startPoints;
+            const to = i === stack.length - 1 ? closing.points : stack[i + 1].startPoints;
+            const end = from.length;
+            const edge = fillLeft ? stack[i].edge : m - 1 - stack[i].edge;
+            const [x0, y0, x1, y1] = [from[end - 2], from[end - 1], to[0], to[1]];
+            trace.edges.push(fillLeft ? { edge, x0, y0, x1, y1 } : { edge, x0: x1, y0: y1, x1: x0, y1: y0 });
+        }
+    }
+    return ring;
 }
 
 function signedArea(ring: readonly Position[]): number {

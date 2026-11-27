@@ -37,27 +37,37 @@ export function featurePolygons(feature: TestFeature): Polygon[] {
     }
 }
 
-/** The same topology with every ring starting `shift` vertices later. The geometry is unchanged. */
-export function rotateTopology(topology: GapTopology, shift: number): GapTopology {
-    const rotatePolygon = (polygon: Polygon): Polygon => polygon.map((ring) => rotateRing(ring, shift));
+/** The same topology with every ring mapped by `change`. The geometry is unchanged. */
+function mapTopologyRings(topology: GapTopology, change: (ring: Ring) => Ring): GapTopology {
+    const mapPolygon = (polygon: Polygon): Polygon => polygon.map(change);
     return {
         features: topology.features.map((feature) => {
             switch (feature.geometry.type) {
                 case 'Polygon':
                     return {
                         ...feature,
-                        geometry: { ...feature.geometry, coordinates: rotatePolygon(feature.geometry.coordinates) },
+                        geometry: { ...feature.geometry, coordinates: mapPolygon(feature.geometry.coordinates) },
                     };
                 case 'MultiPolygon':
                     return {
                         ...feature,
-                        geometry: { ...feature.geometry, coordinates: feature.geometry.coordinates.map(rotatePolygon) },
+                        geometry: { ...feature.geometry, coordinates: feature.geometry.coordinates.map(mapPolygon) },
                     };
                 default:
                     return feature;
             }
         }),
     };
+}
+
+/** The same topology with every ring starting `shift` vertices later. The geometry is unchanged. */
+export function rotateTopology(topology: GapTopology, shift: number): GapTopology {
+    return mapTopologyRings(topology, (ring) => rotateRing(ring, shift));
+}
+
+/** The same topology with every ring wound the other way, as a clockwise source is to a counter-clockwise one. */
+export function reverseTopology(topology: GapTopology): GapTopology {
+    return mapTopologyRings(topology, (ring) => [...ring].reverse());
 }
 
 export function topologyRegions(topology: GapTopology, hasGap = true): GapIndexRegion[] {
