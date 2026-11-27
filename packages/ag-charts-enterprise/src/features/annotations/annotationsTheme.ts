@@ -80,7 +80,7 @@ const axes: WithThemeParams<AgAnnotationAxes> = {
         fill: { $ref: 'annotationColor' },
         visible: axisVisible(DEFAULT_AXIS_VISIBILITY.other),
     },
-    axisShading: { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 },
+    axisShading: { fill: { $ref: 'annotationColor' }, fillOpacity: 0.075 },
 };
 
 const text = {
