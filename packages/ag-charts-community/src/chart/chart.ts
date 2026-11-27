@@ -409,6 +409,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
                 this.update(ChartUpdateType.PERFORM_LAYOUT);
             }),
             ctx.eventsHub.on('chart:request-update', (e) => this.update(e.type, e.opts)),
+            ctx.eventsHub.on('annotations:announced-count-change', () => this.updateAriaLabels()),
             ctx.scene.on('scene-changed', () => this.update(ChartUpdateType.SCENE_RENDER))
         );
         ctx.scene.setDirection(ctx.domManager.isRtl);
@@ -652,10 +653,15 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     private getDefaultAriaLabel(caption: string): string {
-        return (
-            this.chartType.getDefaultAriaLabel?.() ??
-            seriesCountChartAriaLabel(this.ctx.localeManager, caption, this.series.length)
-        );
+        const chartTypeLabel = this.chartType.getDefaultAriaLabel?.();
+        if (chartTypeLabel != null) return chartTypeLabel;
+
+        const { localeManager, annotationManager } = this.ctx;
+        const seriesCount = this.series.length;
+        const annotationCount = annotationManager?.getAnnouncedCount() ?? 0;
+        if (annotationCount === 0) return seriesCountChartAriaLabel(localeManager, caption, seriesCount);
+        if (annotationCount === 1) return localeManager.t('ariaAnnounceChartWithAnnotation', { seriesCount });
+        return localeManager.t('ariaAnnounceChartWithAnnotations', { seriesCount, annotationCount });
     }
 
     private refreshSeriesUserVisibility(

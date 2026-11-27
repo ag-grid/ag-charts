@@ -15,6 +15,8 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'ni izbrano',
     ariaAnnounceChart: 'grafikon, ${seriesCount}[number] serij',
     ariaAnnounceChartWithCaption: 'grafikon, ${caption}, ${seriesCount}[number] serij',
+    ariaAnnounceChartWithAnnotation: 'grafikon, ${seriesCount}[number] serij, 1 opomba',
+    ariaAnnounceChartWithAnnotations: 'grafikon, ${seriesCount}[number] serij, ${annotationCount}[number] opomb',
     ariaAnnounceStandaloneChart: 'grafikon, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarhični grafikon, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'hierarhični grafikon',

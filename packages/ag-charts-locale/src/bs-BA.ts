@@ -15,6 +15,8 @@ export const AG_CHARTS_LOCALE_BS_BA: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nije odabrano',
     ariaAnnounceChart: 'grafikon, ${seriesCount}[number] serija',
     ariaAnnounceChartWithCaption: 'grafikon, ${caption}, ${seriesCount}[number] serija',
+    ariaAnnounceChartWithAnnotation: 'grafikon, ${seriesCount}[number] serija, 1 napomena',
+    ariaAnnounceChartWithAnnotations: 'grafikon, ${seriesCount}[number] serija, ${annotationCount}[number] napomena',
     ariaAnnounceStandaloneChart: 'grafikon, ${caption}',
     ariaAnnounceHierarchyChart: 'hijerarhijski grafikon, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'hijerarhijski grafikon',

@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'seçili değil',
     ariaAnnounceChart: 'grafik, ${seriesCount}[number] seri',
     ariaAnnounceChartWithCaption: 'grafik, ${caption}, ${seriesCount}[number] seri',
+    ariaAnnounceChartWithAnnotation: 'grafik, ${seriesCount}[number] seri, 1 ek açıklama',
+    ariaAnnounceChartWithAnnotations: 'grafik, ${seriesCount}[number] seri, ${annotationCount}[number] ek açıklama',
     ariaAnnounceFlowProportionLink: 'bağlantı ${index} / ${count}, ${from} - ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'düğüm ${index} / ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

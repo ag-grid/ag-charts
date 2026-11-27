@@ -12,6 +12,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
     private editingProbe?: () => boolean;
+    private announcedCount = 0;
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
@@ -29,6 +30,17 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
     public isEditing() {
         return this.editingProbe?.() ?? false;
+    }
+
+    /** How many annotations the chart's accessible name announces: those the keyboard reaches, and read-only ones. */
+    public getAnnouncedCount() {
+        return this.announcedCount;
+    }
+
+    public setAnnouncedCount(count: number) {
+        if (this.announcedCount === count) return;
+        this.announcedCount = count;
+        this.ctx.eventsHub.emit('annotations:announced-count-change', null);
     }
 
     public createMemento() {

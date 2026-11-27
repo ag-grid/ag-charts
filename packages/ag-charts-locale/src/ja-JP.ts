@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaAnnounceUnselectedItem: '未選択',
     ariaAnnounceChart: 'チャート, ${seriesCount}[number]シリーズ',
     ariaAnnounceChartWithCaption: 'チャート, ${caption}, ${seriesCount}[number]シリーズ',
+    ariaAnnounceChartWithAnnotation: 'チャート, ${seriesCount}[number]シリーズ, 1件の注釈',
+    ariaAnnounceChartWithAnnotations: 'チャート, ${seriesCount}[number]シリーズ, ${annotationCount}[number]件の注釈',
     ariaAnnounceFlowProportionLink: 'リンク ${index} / ${count}、${from} から ${to} へ、${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'ノード ${index} / ${count}、${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

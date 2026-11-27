@@ -5,7 +5,7 @@ import { getAnnotationLabel } from '../annotationsMenuOptions';
 import type { AnnotationDatum } from '../annotationsSuperTypes';
 import { getGroupingValue } from './scale';
 import type { PointType } from './scale';
-import { isCrossLineType, isTextType } from './types';
+import { isChannelType, isCrossLineType, isFibonacciType, isLineType, isMeasurerType, isTextType } from './types';
 
 type Axis = 'x' | 'y';
 
@@ -42,13 +42,23 @@ function describePosition(datum: AnnotationDatum, context: AnnotationContext) {
     return `${describeAnnotationAxis(datum, context, 'x')}, ${describeAnnotationAxis(datum, context, 'y')}`;
 }
 
+function getText(datum: AnnotationDatum) {
+    if (isTextType(datum)) return datum.text;
+    if (isLineType(datum) || isChannelType(datum) || isMeasurerType(datum) || isFibonacciType(datum)) {
+        return datum.text.label;
+    }
+    return '';
+}
+
 /** The accessible name of an annotation in the keyboard list: its text, if any, where it is and its type. */
 export function describeAnnotation(datum: AnnotationDatum, context: AnnotationContext) {
     const { localeManager } = context;
     const label = getAnnotationLabel(datum.type);
     const type = label == null ? datum.type : localeManager.t(label);
     const position = describePosition(datum, context);
-    const text = isTextType(datum) ? datum.text.replaceAll(/\s*\n\s*/g, ' ') : '';
+    const text = getText(datum)
+        .trim()
+        .replaceAll(/\s*\n\s*/g, ' ');
     const description = text === '' ? position : `${text}, ${position}`;
     return localeManager.t('ariaLabelAnnotation', { description, type });
 }

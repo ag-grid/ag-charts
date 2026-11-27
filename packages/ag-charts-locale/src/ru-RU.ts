@@ -15,6 +15,8 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'не выбрано',
     ariaAnnounceChart: 'диаграмма, ${seriesCount}[number] серий',
     ariaAnnounceChartWithCaption: 'диаграмма, ${caption}, ${seriesCount}[number] серий',
+    ariaAnnounceChartWithAnnotation: 'диаграмма, ${seriesCount}[number] серий, 1 аннотация',
+    ariaAnnounceChartWithAnnotations: 'диаграмма, ${seriesCount}[number] серий, ${annotationCount}[number] аннотаций',
     ariaAnnounceStandaloneChart: 'диаграмма, ${caption}',
     ariaAnnounceHierarchyChart: 'иерархическая диаграмма, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'иерархическая диаграмма',

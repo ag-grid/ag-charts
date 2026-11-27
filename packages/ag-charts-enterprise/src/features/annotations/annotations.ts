@@ -199,6 +199,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.yAxis?.button?.destroy();
                 this.textInput.destroy();
                 this.domProxy.destroy();
+                ctx.annotationManager?.setAnnouncedCount(0);
             }
         );
     }
@@ -938,6 +939,7 @@ export class Annotations extends AbstractModuleInstance {
     private onPreRender() {
         if (!(this.opts.enabled ?? true)) {
             this.domProxy.clear();
+            this.ctx.annotationManager?.setAnnouncedCount(0);
             this.reconcileKeyboardFocus();
             return;
         }
@@ -1439,24 +1441,29 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private updateDOMProxy(context: AnnotationContext, seriesRect: BBox, showAnnotations: boolean) {
-        const { domProxy, optionsToolbar, movingId } = this;
+        const { domProxy, optionsToolbar, movingId, ctx } = this;
         if (!showAnnotations) {
             domProxy.clear();
+            ctx.annotationManager?.setAnnouncedCount(0);
             return;
         }
 
         const domainBBox = getDomainBBox(context);
         const active = this.state.getActive();
         const items: AnnotationsDOMProxyItem[] = [];
+        let announcedCount = 0;
         this.annotations.each((node, datum, index) => {
-            if (!node.visible) return;
-            // A pointer cannot select a read-only or ephemeral annotation, so the keyboard does not list it.
-            if (datum.readOnly === true || isEphemeralType(datum)) return;
+            if (!node.visible || isEphemeralType(datum)) return;
 
             // Pointer users cannot reach an annotation outside the domain, so neither does the keyboard. The
             // intersection is inclusive, as a horizontal or vertical line has no height or width.
             const bbox = node.getFocusBBox();
             if (bbox.intersection(domainBBox) == null) return;
+
+            // The chart's accessible name counts read-only annotations, but a pointer cannot select one, so the keyboard
+            // does not list it.
+            announcedCount++;
+            if (datum.readOnly === true) return;
 
             items.push({
                 id: datum.id,
@@ -1468,6 +1475,7 @@ export class Annotations extends AbstractModuleInstance {
 
         domProxy.setHasPopup(optionsToolbar.isEnabled());
         domProxy.update(items, seriesRect);
+        ctx.annotationManager?.setAnnouncedCount(announcedCount);
     }
 
     /** Keeps the keyboard on a listed annotation's control, and on one that can still move for the mover. */

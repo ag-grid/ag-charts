@@ -15,6 +15,8 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'tidak dipilih',
     ariaAnnounceChart: 'carta, ${seriesCount}[number] siri',
     ariaAnnounceChartWithCaption: 'carta, ${caption}, ${seriesCount}[number] siri',
+    ariaAnnounceChartWithAnnotation: 'carta, ${seriesCount}[number] siri, 1 anotasi',
+    ariaAnnounceChartWithAnnotations: 'carta, ${seriesCount}[number] siri, ${annotationCount}[number] anotasi',
     ariaAnnounceStandaloneChart: 'carta, ${caption}',
     ariaAnnounceHierarchyChart: 'carta hierarki, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'carta hierarki',

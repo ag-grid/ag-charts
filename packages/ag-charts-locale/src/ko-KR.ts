@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaAnnounceUnselectedItem: '선택 안 됨',
     ariaAnnounceChart: '차트, ${seriesCount}[number] 시리즈',
     ariaAnnounceChartWithCaption: '차트, ${caption}, ${seriesCount}[number] 시리즈',
+    ariaAnnounceChartWithAnnotation: '차트, ${seriesCount}[number] 시리즈, 주석 1개',
+    ariaAnnounceChartWithAnnotations: '차트, ${seriesCount}[number] 시리즈, 주석 ${annotationCount}[number]개',
     ariaAnnounceFlowProportionLink: '링크 ${index} / ${count}, ${from}에서 ${to}로, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '노드 ${index} / ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

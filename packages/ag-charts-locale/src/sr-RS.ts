@@ -15,6 +15,8 @@ export const AG_CHARTS_LOCALE_SR_RS: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'неизабрано',
     ariaAnnounceChart: 'графикон, ${seriesCount}[number] серија',
     ariaAnnounceChartWithCaption: 'графикон, ${caption}, ${seriesCount}[number] серија',
+    ariaAnnounceChartWithAnnotation: 'графикон, ${seriesCount}[number] серија, 1 анотација',
+    ariaAnnounceChartWithAnnotations: 'графикон, ${seriesCount}[number] серија, ${annotationCount}[number] анотација',
     ariaAnnounceStandaloneChart: 'графикон, ${caption}',
     ariaAnnounceHierarchyChart: 'хијерархијски графикон, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'хијерархијски графикон',

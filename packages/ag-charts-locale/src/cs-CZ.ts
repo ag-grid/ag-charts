@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nevybráno',
     ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceChartWithCaption: 'graf, ${caption}, ${seriesCount}[number] sérií',
+    ariaAnnounceChartWithAnnotation: 'graf, ${seriesCount}[number] sérií, 1 anotace',
+    ariaAnnounceChartWithAnnotations: 'graf, ${seriesCount}[number] sérií, ${annotationCount}[number] anotací',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzel ${index} z ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

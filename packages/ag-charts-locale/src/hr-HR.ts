@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nije odabrano',
     ariaAnnounceChart: 'grafikon, ${seriesCount}[number] serija',
     ariaAnnounceChartWithCaption: 'grafikon, ${caption}, ${seriesCount}[number] serija',
+    ariaAnnounceChartWithAnnotation: 'grafikon, ${seriesCount}[number] serija, 1 oznaka',
+    ariaAnnounceChartWithAnnotations: 'grafikon, ${seriesCount}[number] serija, ${annotationCount}[number] oznaka',
     ariaAnnounceFlowProportionLink: 'veza ${index} od ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'čvor ${index} od ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

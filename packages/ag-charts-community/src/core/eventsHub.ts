@@ -144,6 +144,7 @@ export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
     'annotations:restore': AnnotationsRestoreEvent;
     'annotations:axis-label-drag-start': AnnotationsAxisLabelDragStartEvent;
+    'annotations:announced-count-change': null;
     'axis:change': null;
     'axis-interaction:cursor': { cursor: BaseStyleTypeMap['cursor'] | undefined };
     'axis-interaction:toggle-dragging-cursor': { direction: ChartAxisDirection; enabled: boolean };

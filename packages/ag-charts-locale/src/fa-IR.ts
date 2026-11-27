@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'انتخاب‌نشده',
     ariaAnnounceChart: 'چارت، ${seriesCount}[number] مجموعه',
     ariaAnnounceChartWithCaption: 'چارت، ${caption}، ${seriesCount}[number] مجموعه',
+    ariaAnnounceChartWithAnnotation: 'چارت، ${seriesCount}[number] مجموعه، ۱ حاشیه‌نویسی',
+    ariaAnnounceChartWithAnnotations: 'چارت، ${seriesCount}[number] مجموعه، ${annotationCount}[number] حاشیه‌نویسی',
     ariaAnnounceFlowProportionLink: 'لینک ${index} از ${count}، از ${from} به ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'گره ${index} از ${count}، ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
