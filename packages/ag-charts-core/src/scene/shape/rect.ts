@@ -569,6 +569,16 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return this.paintedByStroke.getPath2D();
     }
 
+    /** A glow mask of a rect its stroke covers is drawn from what the stroke paints, in place of the rect's path. */
+    protected override isPathPaintedByStroke(): boolean {
+        return (
+            this.coveredByStroke &&
+            shadowPass.state === 'mask' &&
+            shadowPass.slot === 'glow' &&
+            super.hasStrokeOutline()
+        );
+    }
+
     /** A stroke that covers the rect paints no outline past it, so a glow and its `gap` are measured from what it paints. */
     protected override hasStrokeOutline(): boolean {
         return !this.coveredByStroke && super.hasStrokeOutline();
@@ -773,12 +783,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         if (this.fillsDirectly()) {
             // No path: `executeFill` fills the rect itself, and a plain rect has no stroke to draw.
             this.fillStroke(ctx, logger);
-        } else if (
-            this.coveredByStroke &&
-            shadowPass.state === 'mask' &&
-            shadowPass.slot === 'glow' &&
-            super.hasStrokeOutline()
-        ) {
+        } else if (this.isPathPaintedByStroke()) {
             this.fillStroke(ctx, logger, this.getPaintedByStroke());
         } else {
             super.drawPath(ctx, logger);

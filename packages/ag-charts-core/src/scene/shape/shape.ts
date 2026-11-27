@@ -957,6 +957,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return false;
     }
 
+    /** Whether the path a mask is drawn from is already all that the stroke paints, so it is cast as a fill and not stroked again. */
+    protected isPathPaintedByStroke(): boolean {
+        return false;
+    }
+
     /**
      * Draws the silhouette that casts a shape's shadow into a shadow batch's mask when it has a `spread`, or when the batch
      * casts all its casters at one strength: what {@link castSpreadShadow} blits for the shape without the blur. That is the fill, the dilated stroke and the dilated
@@ -979,6 +984,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // A batch that casts at its casters' shared strength draws each silhouette solid. See `getSpreadMaskStrength`.
         const strength = shadowPass.opaque && base > 0 ? 1 : base * ctx.globalAlpha;
         if (strength <= 0 || !isFiniteNumber(strength)) return;
+
+        if (drawsStroke && this.isPathPaintedByStroke()) {
+            drawsFill = true;
+            drawsStroke = false;
+        }
 
         if (strength >= 1) {
             ctx.save();
