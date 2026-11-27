@@ -1170,8 +1170,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         footprint: boolean = false,
         painted: boolean = false
     ) {
-        if (!footprint) spread += this.getGlowStrokeGrowth(slot);
         const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
+        if (!footprint) spread += this.getGlowStrokeGrowth(slot);
         try {
             const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
             ctx.fillStyle = tint;
@@ -1221,7 +1221,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Saves `ctx` and clips it to where this shape's glow, or its `gap` cut, may reach, dilated by `reach`. Returns true if
+     * Saves `ctx` and clips it to where this shape's glow, or its `gap` cut, may reach, `reach` past its stroke. Returns true if
      * it did, for the caller to restore. A shape's glow reaches everywhere around it unless it says otherwise.
      */
     protected clipGlowEnds(_ctx: CanvasContext, _reach: number): boolean {
