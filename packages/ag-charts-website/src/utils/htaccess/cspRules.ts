@@ -72,13 +72,13 @@ const hashInlineScript = (source: string): string =>
 // pinned, and an Astro upgrade changes them. To regenerate: build, serve via
 // `preview:csp`, visit a page per client: directive and read the sha256 values out of the
 // console's CSP violations, then bump ASTRO_HYDRATION_HASHES_VERIFIED_FOR.
-export const ASTRO_HYDRATION_HASHES_VERIFIED_FOR = '7.3.4';
+export const ASTRO_HYDRATION_HASHES_VERIFIED_FOR = '7.4.2';
 const ASTRO_HYDRATION_SCRIPT_HASHES = [
-    "'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='", // client:load bootstrap
-    "'sha256-eIXWvAmxkr251LJZkjniEK5LcPF3NkapbJepohwYRIc='", // client:only bootstrap
-    "'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q='", // client:visible bootstrap
-    "'sha256-BF0290pkb3jxQsE7z00xR8Imp8X34FLC88L0lkMnrGw='", // client:idle bootstrap
-    "'sha256-Ya0pUYrC7nM5Cn/056TyVuEiz6dFGrzmkWzgON0pF0U='", // <astro-island> hydration runtime
+    "'sha256-1BvDVWLr3QCC20uHhUDi27eDFVJpk1uMQJGIWKUks2I='", // client:load bootstrap
+    "'sha256-Y8t0ntteBwH+PqGKUyjWW3CAk+BNJKSoQc0xZ68FjhM='", // client:only bootstrap
+    "'sha256-0O7iB6zr9x0r6X6eWYITC9V5q+yWCGAoFvcysBGbY9Q='", // client:visible bootstrap
+    "'sha256-xIb/Pa7FUshAu4ihwjchYcQpyCI8eS8kt40GpOAYCz8='", // client:idle bootstrap
+    "'sha256-UIrFqcaitjA3OKa9mHKajg3N+0Y7tW9+y0o3QmMFeZQ='", // <astro-island> hydration runtime
 ];
 
 // Each pins a third party's exact bytes, so editing the tag silently stops it running. A tag is
