@@ -19,6 +19,25 @@ description: Bake a fully-scripted node_modules tarball and publish it as a rele
 #     the artifacts download endpoint returns 401 without actions:read even on a
 #     public repo, which is what rules out actions/upload-artifact here.
 #
+# The payload is encrypted and authenticated, because the consuming repos are
+# public and a release asset is world-readable. That is about not republishing
+# several hundred MB of third-party dependency tree under our own name, not about
+# secrecy — the contents are public npm packages. The MAC is the part that earns
+# its keep: only a holder of the passphrase can produce an asset the setup script
+# will accept.
+#
+# The MAC therefore covers the asset's IDENTITY as well as its bytes. Over the
+# ciphertext alone it would not: anyone able to write release assets could copy a
+# legitimately-baked asset over a different lockfile's asset name, and the MAC
+# would still verify — the consumer would then install a tree for the wrong
+# lockfile and stamp its OWN lockfile hash beside it, so nothing downstream could
+# notice. Binding the name closes that, since the consumer authenticates against
+# the name it resolved from its own lockfile rather than anything in the download.
+#
+# What this does NOT give is freshness: an older asset for the SAME name is still
+# accepted. That is bounded by the name being a function of the lockfile, so such
+# an asset is a tree for the same dependency set.
+#
 # Everything behavioural lives in this action so a fix percolates to every repo
 # via the ag-shared subrepo; each repo supplies only a caller workflow.
 
@@ -35,6 +54,21 @@ inputs:
         description: "Re-bake and overwrite even when an asset for this lockfile already exists. Anything other than 'true' is ignored."
         required: false
         default: 'false'
+    encryption-key:
+        description: 'Passphrase the payload is encrypted and MACed with. Required: the bake fails rather than publishing a readable tree.'
+        required: true
+    key-generation:
+        description: 'Generation label for the passphrase, carried in the asset name so that rotating the key misses the cache cleanly instead of serving assets nothing can decrypt. Must match CACHE_KEY_GENERATION in cloud-setup.sh.'
+        required: false
+        default: 'k1'
+    release-title:
+        description: 'Title of the rolling release. Deliberately uninformative: an opaque payload under a self-describing banner is not opaque.'
+        required: false
+        default: 'Build cache'
+    release-target:
+        description: 'Commit-ish the release tag is created at, on first use only. Set it to an old commit to keep the release off the top of the releases page, and keep it set — otherwise a release that is ever deleted is recreated against the default branch and resurfaces.'
+        required: false
+        default: ''
     github-token:
         description: 'Token with contents:write, to create the release and upload assets.'
         required: false
@@ -51,6 +85,43 @@ outputs:
 runs:
     using: composite
     steps:
+        # First, and unconditional. Fail closed: an empty passphrase must stop the
+        # bake in seconds rather than spend five minutes installing and then
+        # publish a readable dependency tree to a public repo. A missing secret is
+        # the likeliest way that happens — a new consumer repo that has not set it
+        # yet — so it must be loud rather than a silent downgrade.
+        - name: Require an encryption key
+          shell: bash
+          env:
+              KEY: ${{ inputs.encryption-key }}
+          run: |
+              set -euo pipefail
+              [[ -n "$KEY" ]] || {
+                  echo "::error::encryption-key is empty — refusing to publish an unencrypted node_modules tree"
+                  exit 1
+              }
+              # The MAC subkey is one HMAC of the passphrase, not a 200k-iteration
+              # PBKDF2 like the encryption key, so the published MAC is in principle
+              # an offline verifier for guesses at the passphrase. In practice each
+              # guess costs a full HMAC pass over the several-hundred-MB ciphertext,
+              # which cannot be amortised across candidates because the key varies —
+              # so this is not the cheap oracle it first looks like, and a dictionary
+              # word is the only realistically reachable value.
+              #
+              # Hence a check here rather than a KDF on both subkeys: this is the one
+              # place that sees the key and can refuse, and `openssl kdf` needs
+              # OpenSSL 3, which the consumer side cannot assume (macOS ships
+              # LibreSSL, and cloud-setup.sh is meant to stay runnable there).
+              #
+              # The check is on FORMAT, not length. A length floor admits `aaaa...`
+              # and a long English phrase, neither of which carries the entropy the
+              # floor was standing in for. Matching what `openssl rand -hex 32`
+              # produces makes the requirement checkable rather than aspirational.
+              [[ "$KEY" =~ ^[0-9a-fA-F]{64,}$ ]] || {
+                  echo "::error::encryption-key must be 64 or more hex characters — generate one with 'openssl rand -hex 32'"
+                  exit 1
+              }
+
         - name: Setup Node
           uses: actions/setup-node@v7
           with:
@@ -73,16 +144,19 @@ runs:
         - name: Compute cache key
           id: key
           shell: bash
+          env:
+              KEYGEN: ${{ inputs.key-generation }}
           run: |
               set -euo pipefail
               # cloud-setup.sh computes exactly this: sha256 of yarn.lock, first 16
-              # hex characters. The two must agree or every session misses the cache
-              # silently and falls back to installing. Change one, change both.
+              # hex characters, then the key generation. The two must agree or every
+              # session misses the cache silently and falls back to installing.
+              # Change one, change both.
               full="$(sha256sum yarn.lock | awk '{print $1}')"
               {
                   echo "full=${full}"
                   echo "short=${full:0:16}"
-                  echo "asset=node-modules-${full:0:16}.tar.zst"
+                  echo "asset=node-modules-${full:0:16}-${KEYGEN}.bin"
               } >>"$GITHUB_OUTPUT"
 
         - name: Skip when this lockfile is already baked
@@ -147,16 +221,49 @@ runs:
               echo "node_modules size:    $(du -sh node_modules | awk '{print $1}')"
               df -h . | tail -1
 
-        - name: Pack
+        - name: Pack, encrypt and authenticate
           if: steps.existing.outputs.hit != 'true'
           shell: bash
           env:
               ASSET: ${{ steps.key.outputs.asset }}
+              AG_CACHE_KEY: ${{ inputs.encryption-key }}
           run: |
               set -euo pipefail
               # The archive's root entry must be `node_modules/` — the cloud side
               # extracts into a staging directory and moves that entry into place.
-              tar -I 'zstd -3 -T0' -cf "$ASSET" node_modules
+              tar -I 'zstd -3 -T0' -cf payload.tar.zst node_modules
+
+              # Two independent subkeys from the one passphrase, so the key that
+              # encrypts is not the key that authenticates. cloud-setup.sh derives
+              # these identically: change the labels here, change them there.
+              subkey() { printf '%s' "$AG_CACHE_KEY" | openssl dgst -sha256 -hmac "$1" -r | cut -d' ' -f1; }
+              AG_CACHE_KENC="$(subkey ag-cloud-cache-enc)"
+              kmac="$(subkey ag-cloud-cache-mac)"
+              export AG_CACHE_KENC
+
+              # Encrypt-then-MAC, with the key passed through the environment
+              # rather than argv.
+              openssl enc -aes-256-ctr -pbkdf2 -iter 200000 -salt \
+                  -pass env:AG_CACHE_KENC -in payload.tar.zst -out payload.enc
+
+              # The MAC rides as a fixed 65-byte header (64 hex + newline) rather
+              # than as a second asset, because the prune step below keeps the N
+              # most recent assets: a second file per bake would silently halve how
+              # many lockfiles the tag retains.
+              #
+              # Authenticated data is a context label, the asset name and then the
+              # ciphertext. cloud-setup.sh reconstructs exactly this — change the
+              # encoding on one side, change it on both. The newline delimiters make
+              # the encoding unambiguous, which a bare concatenation would not be;
+              # an asset name cannot contain one.
+              { printf 'ag-cloud-cache/v1\n%s\n' "$ASSET"; cat payload.enc; } |
+                  openssl dgst -sha256 -hmac "$kmac" -r | cut -d' ' -f1 >payload.mac
+              [[ "$(wc -c <payload.mac)" -eq 65 ]] || {
+                  echo "::error::MAC header is not 65 bytes — refusing to publish a payload the consumer cannot parse"
+                  exit 1
+              }
+              cat payload.mac payload.enc >"$ASSET"
+              rm -f payload.tar.zst payload.enc payload.mac
               ls -l "$ASSET"
 
         - name: Publish as a release asset
@@ -166,16 +273,34 @@ runs:
               GH_TOKEN: ${{ inputs.github-token }}
               TAG: ${{ inputs.release-tag }}
               ASSET: ${{ steps.key.outputs.asset }}
+              TITLE: ${{ inputs.release-title }}
+              TARGET: ${{ inputs.release-target }}
           run: |
               set -euo pipefail
               # A prerelease so it stays out of the repo's normal release listing.
               # Draft would not work: draft assets are not anonymously downloadable,
               # and anonymous is the only access the cloud setup script has.
+              #
+              # The notes are empty and the title is generic on purpose. The old
+              # ones named the payload and spelled out the key derivation, which
+              # undoes the point of shipping an opaque blob.
+              #
+              # --target matters on the create path only, and only because a
+              # release's created_at is the TAGGED COMMIT'S date rather than the
+              # publication time (measured on ag-charts: created_at 12:48:38Z
+              # exactly matched commit fd9ce35). Aiming the tag at an old commit is
+              # therefore the only lever on where this sorts in the releases list.
+              #
+              # Which means an ALREADY-EXISTING release keeps its old title, notes
+              # and tag target: this block cannot retarget it, and deliberately does
+              # not try. Moving a tag from CI would be a force-push on every run,
+              # and re-titling on every run would overwrite a deliberate human edit.
+              # Migrating an existing release is a documented one-off — delete it,
+              # move the tag, recreate — see the cloud-sessions doc.
               if ! gh release view "$TAG" >/dev/null 2>&1; then
-                  gh release create "$TAG" \
-                      --prerelease \
-                      --title 'Cloud session dependency cache' \
-                      --notes 'Prebuilt, fully-scripted node_modules trees consumed by Claude Code cloud environment setup. Assets are keyed by the first 16 hex characters of sha256(yarn.lock). Not a product release; safe to ignore.'
+                  create_args=(--prerelease --title "$TITLE" --notes '')
+                  [[ -n "$TARGET" ]] && create_args+=(--target "$TARGET")
+                  gh release create "$TAG" "${create_args[@]}"
               fi
               gh release upload "$TAG" "$ASSET" --clobber
 
