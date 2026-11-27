@@ -2291,7 +2291,7 @@ describe('Chart', () => {
             ],
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
         };
-        const pieOptions: AgPolarChartOptions = {
+        const pieOptions: AgStandaloneChartOptions = {
             data: [
                 { label: 'A', value: 10 },
                 { label: 'B', value: 20 },
