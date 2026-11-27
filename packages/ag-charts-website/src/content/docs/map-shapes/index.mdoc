@@ -34,6 +34,44 @@ In this example:
   See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
 - `title` provides a name for the series, and is used in the [Legend](./legend/) and [Tooltips](./tooltips/).
 
+## Gap
+
+{% chartExampleRunner title="Gap" name="gap" type="generated" /%}
+
+To separate neighbouring shapes, use `gap`. It is the distance in pixels between the shapes.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'map-shape',
+            data: pacific,
+            idKey: 'name',
+            title: 'Pacific',
+            gap: 4,
+        },
+        // ... other series
+    ],
+}
+```
+
+In this configuration:
+
+- `gap` is set to 4 on every series, so neighbouring states are 4 pixels apart, within a time zone and across time zones.
+- Coastlines and other edges with no neighbouring shape stay where they are.
+
+Each shape moves in by half the gap along every border it shares with a shape drawn by a Map Shape Series. A shape with `gap: 4` next to a shape with `gap: 0` leaves 2 pixels between them.
+
+The following apply when using `gap`:
+
+- A shape that is narrower than its share of the gap is not drawn, but it can still be hovered and clicked.
+- Shapes are neighbours only when they share exact border coordinates, as shapes from one topology do.
+- An enclave, such as Lesotho within South Africa, is separated only when the shape around it has a matching hole. An enclave drawn over a shape with no hole for it gets no gap.
+- Shapes in a series that is hidden, and shapes in a Map Shape Background Series, are not neighbours. Borders next to them behave like coastlines.
+- The default `stroke` is the colour of the chart background, so the visible separation between shapes is `gap` plus `strokeWidth`. Set `stroke` to another colour to see the borders and the gap separately.
+- The hover glow covers part of the gap on the highlighted shape's side. With the default glow, a `gap` of 4 leaves 3 pixels of background around the highlighted shape.
+- Where a shape has a narrow part with a large `gap`, the outline can overlap itself and paint a little outside the gap.
+
 ## Colour Scale
 
 {% chartExampleRunner title="Heatmap" name="heatmap" type="generated" /%}
