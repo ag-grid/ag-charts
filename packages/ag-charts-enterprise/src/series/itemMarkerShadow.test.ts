@@ -57,6 +57,7 @@ describe('item marker shadow fill and fillOpacity', () => {
     });
 
     const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
+    const UNKNOWN_SHADOW_COLOR = expect.stringMatching(/Unknown option `[^`]*\.shadow\.color`/);
 
     const castBy = async (
         testCase: ItemCase,
@@ -84,7 +85,7 @@ describe('item marker shadow fill and fillOpacity', () => {
             const shadows = await castBy(testCase, { enabled: true, color: 'red' } as AgDropShadowOptions);
 
             for (const shadow of shadows) expect(shadow).toMatchObject({ fill: '#000', fillOpacity: 0.5 });
-            expect(warnings()).toEqual([expect.stringMatching(/Unknown option `[^`]*\.shadow\.color`/)]);
+            expect(warnings()).toEqual([UNKNOWN_SHADOW_COLOR]);
         });
 
         it('casts a fill at a fillOpacity of 1 unless it sets one', async () => {
@@ -108,6 +109,7 @@ describe('item marker shadow fill and fillOpacity', () => {
             } as AgDropShadowOptions);
 
             for (const shadow of shadows) expect(shadow).toMatchObject({ fill: 'blue', fillOpacity: 1 });
+            expect(warnings()).toEqual([UNKNOWN_SHADOW_COLOR]);
         });
 
         it('starts from the fill and fillOpacity of the series marker shadow', async () => {
