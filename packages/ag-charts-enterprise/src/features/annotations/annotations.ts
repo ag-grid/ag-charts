@@ -12,6 +12,7 @@ import {
     Selection,
     Vec2,
     addValues,
+    clamp,
     deepClone,
     generateUUID,
     isValidDate,
@@ -1463,6 +1464,7 @@ export class Annotations extends AbstractModuleInstance {
                 label: describeAnnotation(datum, context),
                 bbox,
                 expanded: index === active && movingId == null,
+                selected: index === active,
             });
         });
 
@@ -1511,7 +1513,7 @@ export class Annotations extends AbstractModuleInstance {
         const { seriesRect } = context;
         const { x, y } = target.computeCenter();
         if (!seriesRect.containsPoint(x, y)) {
-            this.ctx.zoomManager?.panToBBox(seriesRect, target);
+            this.ctx.zoomManager?.panToBBox(seriesRect, fitPanTarget(target, seriesRect));
         }
     }
 
@@ -1756,6 +1758,21 @@ function getKeyboardTranslation(sourceEvent: KeyboardEvent, context: AnnotationC
         default:
             return { x: 0, y: 0 };
     }
+}
+
+/**
+ * `panToBBox()` does not pan along an axis that the target is longer than the viewport on, which would leave a long
+ * annotation outside the viewport. Shortens such a target to the part of it nearest to the viewport instead.
+ */
+function fitPanTarget(target: BBox, viewport: BBox) {
+    const [x, width] = fitPanTargetAxis(target.x, target.width, viewport.x, viewport.width);
+    const [y, height] = fitPanTargetAxis(target.y, target.height, viewport.y, viewport.height);
+    return new BBox(x, y, width, height);
+}
+
+function fitPanTargetAxis(start: number, length: number, viewportStart: number, viewportLength: number) {
+    if (length <= viewportLength) return [start, length];
+    return [clamp(start, viewportStart, start + length - viewportLength), viewportLength];
 }
 
 /** The canvas area that the axis domains span, which extends past the series area while the chart is zoomed. */

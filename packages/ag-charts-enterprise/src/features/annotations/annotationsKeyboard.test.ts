@@ -120,6 +120,7 @@ describe('Annotations keyboard navigation', () => {
                 { type: 'horizontal-line', value: 30 },
                 { type: 'horizontal-line', value: 60 },
             ]);
+            await openOptions(0);
             const changed: Array<string | null> = [];
             const observer = new MutationObserver((records) => {
                 changed.push(...records.map((record) => record.attributeName));
