@@ -593,6 +593,15 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
                 for (const shape of inPlace) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
                 expectWarningMessages([]);
             });
+
+            it('gives every item in a state the same shadow object', async () => {
+                const { byState, styler } = recordParamsByHighlightState();
+                await create({ shadow: FILLED_SHADOW, hover: true, styler });
+
+                const unhighlighted = byState.get('unhighlighted-item') ?? [];
+                expect(unhighlighted.length).toBeGreaterThan(1);
+                for (const itemParams of unhighlighted) expect(itemParams.shadow).toBe(unhighlighted[0].shadow);
+            });
         });
 
         it('gives the tooltip params neither a shadow nor a glow', async () => {
