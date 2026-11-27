@@ -10,10 +10,9 @@ export function barGapEdges(
     yEnd: AgNumericValue,
     yRange: AgNumericValue,
     currY: AgNumericValue,
-    endIsFull: boolean,
-    hasOpposite?: boolean
+    endIsFull: boolean
 ): number {
-    const edges = stackGapEdges(yStart, yEnd, yRange, hasOpposite);
+    const edges = stackGapEdges(yStart, yEnd, yRange);
     return endIsFull || reachesEnd(currY, yEnd) ? edges : edges & ~GAP_EDGE_END;
 }
 
@@ -21,12 +20,4 @@ export function barGapEdges(
 function reachesEnd(currY: AgNumericValue, yEnd: AgNumericValue): boolean {
     const end = Number(yEnd);
     return isNumberEqual(Number(currY), end, 1e-9 * Math.max(1, Math.abs(end)));
-}
-
-/**
- * Whether a stack has a segment on the other side of the axis from a datum: `opposite` is the end of the stack's range
- * on that side, so a positive datum looks at the range's lower end and has a neighbour when it is below zero.
- */
-export function hasOppositeStack(opposite: AgNumericValue | undefined, isPositive: boolean): boolean {
-    return opposite != null && (isPositive ? opposite < 0 : opposite > 0);
 }

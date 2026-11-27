@@ -12,19 +12,12 @@ export interface GapSpan {
 }
 
 /**
- * `GAP_EDGE_*` flags for the edges of a stacked segment that have a neighbour: the start unless it is on the baseline
- * with nothing on the other side of it, and the end unless it is the end of the stack. A start on the baseline has a
- * neighbour when `hasOpposite`, whether the stack has a segment on the other side of the baseline, is set. Pass
- * `stackEnd` as `end` when the stack's end is unknown, and leave `hasOpposite` unset when it is, so the segment loses
- * a gap rather than moving an edge that has no neighbour.
+ * `GAP_EDGE_*` flags for the edges of a stacked segment that have a neighbour: the start unless it is on the baseline,
+ * and the end unless it is the end of the stack. Pass `stackEnd` as `end` when the stack's end is unknown, so the
+ * segment loses a gap rather than moving the end of the stack.
  */
-export function stackGapEdges(
-    start: AgNumericValue,
-    end: AgNumericValue,
-    stackEnd: AgNumericValue,
-    hasOpposite = false
-): number {
-    let edges = hasOpposite || start !== zeroLike(start) ? GAP_EDGE_START : 0;
+export function stackGapEdges(start: AgNumericValue, end: AgNumericValue, stackEnd: AgNumericValue): number {
+    let edges = start === zeroLike(start) ? 0 : GAP_EDGE_START;
     if (end !== stackEnd) edges |= GAP_EDGE_END;
     return edges;
 }
