@@ -562,10 +562,7 @@ export abstract class CartesianAxis<
     ): LabelNodeDatum | undefined {
         const { visibleRange, scale } = this;
         const { label, domain, labelRoom: room } = tickOptions;
-        if (!label.enabled || !CategoryScale.is(scale) || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
-            this.reservedLabelCache = undefined;
-            return;
-        }
+        if (!label.enabled || !CategoryScale.is(scale) || (visibleRange[0] === 0 && visibleRange[1] === 1)) return;
 
         const rotation = toDegrees(tickGenerationResult.rotation);
         let cache = this.reservedLabelCache;
@@ -573,10 +570,12 @@ export abstract class CartesianAxis<
             cache?.label !== label ||
             cache.rotation !== rotation ||
             cache.room !== room ||
-            !arraysEqual(cache.domain, domain)
+            (cache.domain !== domain && !arraysEqual(cache.domain, domain))
         ) {
             cache = { label, rotation, room, domain, widest: findWidestLabelOnOneLine(tickOptions, rotation) };
             this.reservedLabelCache = cache;
+        } else {
+            cache.domain = domain;
         }
         if (cache.widest == null) return;
 
@@ -587,6 +586,11 @@ export abstract class CartesianAxis<
             scrollbarThickness,
             false
         );
+    }
+
+    protected override invalidateLayoutCache() {
+        super.invalidateLayoutCache();
+        this.reservedLabelCache = undefined;
     }
 
     private captureLayoutState(): CartesianLayoutState {

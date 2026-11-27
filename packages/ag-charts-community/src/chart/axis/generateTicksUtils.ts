@@ -25,6 +25,7 @@ import {
     fitLabelTextAutoSize,
     fontWithSize,
     getMaxInnerRectSize,
+    getMinOuterRectSizeInto,
     hasRealChars,
     intervalCeil,
     intervalExtent,
@@ -352,9 +353,7 @@ export function findWidestLabelOnOneLine<S extends Scale<D, number, TickInterval
     const formatter = axisTickFormatter(label.enabled, false, domain, domain, 0, undefined, tickFormatter);
     const fit = axisLabelFit(label, isVertical, room, Infinity, rotation, 'never');
     const measurer = cachedTextMeasurer(label);
-    const angle = toRadians(rotation);
-    const sin = Math.abs(Math.sin(angle));
-    const cos = Math.abs(Math.cos(angle));
+    const outer = { width: 0, height: 0 };
 
     let widest: TickDatum | undefined;
     let widestExtent = -Infinity;
@@ -364,9 +363,8 @@ export function findWidestLabelOnOneLine<S extends Scale<D, number, TickInterval
         const { text, fontSize } = fitLabelTextAutoSize(inputText, fit, label);
         const tickLabel = toWrappedLabel(text) ?? inputText;
         const textMetrics = measureFittedLabel(tickLabel, label, fontSize, measurer);
-        const extent = isVertical
-            ? textMetrics.width * cos + textMetrics.height * sin
-            : textMetrics.width * sin + textMetrics.height * cos;
+        getMinOuterRectSizeInto(outer, rotation, textMetrics.width, textMetrics.height);
+        const extent = isVertical ? outer.width : outer.height;
         if (extent <= widestExtent) continue;
         widestExtent = extent;
         const isTruncated = tickLabel !== inputText && isLabelTruncated(tickLabel);
