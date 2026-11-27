@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
+import { ExtendedPath2D, Transformable } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { getSeriesAt } from '../test/seriesAccessors';
@@ -25,6 +25,7 @@ describe('Marker Shapes', () => {
         if (chart != null) {
             chart.destroy();
         }
+        vi.restoreAllMocks();
     });
 
     const compare = async () => {
@@ -168,6 +169,55 @@ describe('Marker Shapes', () => {
             const centre = Transformable.toCanvas(circle).computeCenter();
             // Between the fill and the inner edge of a stroke that curve strokers can leave unpainted.
             expect(chartPixelAt(proxy, (centre.x + 10) * pixelRatio, centre.y * pixelRatio)).toEqual([255, 0, 0, 255]);
+            await compare();
+        });
+
+        it('should keep a glow that follows straight segments round a stroke that stays curved', async () => {
+            const [radius, strokeWidth, spread] = [20, 30, 10];
+            const strokePaths = vi.spyOn(ExtendedPath2D.prototype, 'getStrokePath2D');
+            const proxy = await createChart({
+                data: [{ x: 0, y: 0 }],
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        shape: 'circle',
+                        size: radius * 2,
+                        // Without a fill to cast, the glow is cast from the stroke.
+                        fillOpacity: 0,
+                        stroke: 'red',
+                        strokeWidth,
+                        glow: { enabled: true, fill: 'blue', fillOpacity: 1, blur: 0, gap: 0, spread },
+                    },
+                ],
+            });
+            chart = proxy;
+
+            // Only the glow pass is wide enough to follow straight segments.
+            const { contexts, results } = strokePaths.mock;
+            const curved = results.filter(
+                ({ value }, index) => value === (contexts[index] as ExtendedPath2D).getPath2D()
+            );
+            expect(curved.length).toBeGreaterThan(0);
+            expect(curved.length).toBeLessThan(results.length);
+
+            const internal = deproxy(proxy);
+            const { pixelRatio } = internal.ctx.scene.canvas;
+            const [marker] = shapesOf(getSeriesAt(internal, 0).contentGroup, Marker);
+            const centre = Transformable.toCanvas(marker).computeCenter();
+            const outerEdge = radius + strokeWidth / 2;
+            const at = (distance: number, angle: number) =>
+                chartPixelAt(
+                    proxy,
+                    (centre.x + distance * Math.cos(angle)) * pixelRatio,
+                    (centre.y + distance * Math.sin(angle)) * pixelRatio
+                );
+            // Angles between the vertices of the glow's segments as well as on them.
+            for (const angle of [0, Math.PI / 37, Math.PI / 4, (3 * Math.PI) / 5]) {
+                expect(at(outerEdge - 2, angle), `${angle} in the stroke`).toEqual([255, 0, 0, 255]);
+                expect(at(outerEdge + spread / 2, angle), `${angle} in the glow`).toEqual([0, 0, 255, 255]);
+            }
             await compare();
         });
     });
