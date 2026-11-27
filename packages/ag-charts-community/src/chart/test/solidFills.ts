@@ -10,7 +10,7 @@ export const solidFill: Fill = (fill, fillOpacity) => ({ fill: { type: 'solid', 
 
 export const plainFill: Fill = (fill, fillOpacity) => (fillOpacity == null ? { fill } : { fill, fillOpacity });
 
-interface ChartFactory {
+export interface ChartFactory {
     create: (options: AgChartOptions) => Promise<AgChartInstance>;
     prepare: (options: AgChartOptions) => AgChartOptions;
 }
