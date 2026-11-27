@@ -14,9 +14,10 @@ export interface ShadowFrame {
     readonly clips: readonly ShadowRegion[];
 }
 
-export interface CollectedFrame extends ShadowFrame {
+/** `TSource` is the type of the groups that cast, which the collector can't name without importing them. */
+export interface CollectedFrame<TSource extends object = object> extends ShadowFrame {
     /** The group whose children cast. */
-    readonly source: object;
+    readonly source: TSource;
     /** The version of the group when it was gathered, which changes whenever it or anything below it is marked dirty. */
     readonly version: number;
     /** Whether the group draws into a layer of its own below the root, where a cutout can't erase what the root cast. */
@@ -51,10 +52,10 @@ export function transformCorners(matrix: readonly number[], corners: readonly nu
 }
 
 /** Records the groups below a shadow root that cast through it, with the device-space state they draw in. */
-export class ShadowCollector {
+export class ShadowCollector<TSource extends object = object> {
     alpha: number;
     readonly clips: ShadowRegion[] = [];
-    readonly frames: CollectedFrame[] = [];
+    readonly frames: CollectedFrame<TSource>[] = [];
     /** How many of the groups being gathered draw into a layer of their own. */
     layers = 0;
     /** The series of the group being gathered. */
@@ -70,7 +71,7 @@ export class ShadowCollector {
     }
 
     addFrame(
-        source: object,
+        source: TSource,
         version: number,
         glowsOnly: boolean = false,
         cutsOnly: boolean = false,
