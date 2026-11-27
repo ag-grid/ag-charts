@@ -11,6 +11,7 @@ import {
     SHAPE_ANNOTATION_ITEMS,
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
+import { withSwitchState } from './utils/switch';
 
 const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
@@ -116,8 +117,7 @@ export class AnnotationsToolbar {
     private withMagnetState(button: AnnotationsToolbarButtonOptions): AnnotationsToolbarButtonOptions {
         if (button.value !== 'magnet') return button;
 
-        const checked = this.magnetChecked;
-        return { ...button, ...(checked ? button.checkedOverrides : undefined), checked };
+        return withSwitchState(button, this.magnetChecked);
     }
 
     public resetButtonIcons() {
