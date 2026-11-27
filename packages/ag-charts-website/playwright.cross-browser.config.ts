@@ -52,7 +52,10 @@ const PART_A_SPECS = [
  */
 const PART_B_SPECS = ['**/cross-browser.spec.ts'];
 
-const CROSS_BROWSER_SPECS = [...PART_A_SPECS, ...PART_B_SPECS];
+/** Routed-origin CSP spec: vanilla by construction; its screenshot cases skip themselves outside Chromium. */
+const PART_C_SPECS = ['**/security-static.spec.ts'];
+
+const CROSS_BROWSER_SPECS = [...PART_A_SPECS, ...PART_B_SPECS, ...PART_C_SPECS];
 
 export default defineConfig({
     ...baseConfig,

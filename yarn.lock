@@ -14918,6 +14918,7 @@ __metadata:
     lucide-react: "npm:^1.48.0"
     nanostores: "npm:^1.5.5"
     node-html-parser: "npm:^6.1.13"
+    pngjs: "npm:3.4.0"
     prettier: "npm:3.9.10"
     puppeteer-core: "npm:25.16.0"
     react: "npm:^18.2.0"
