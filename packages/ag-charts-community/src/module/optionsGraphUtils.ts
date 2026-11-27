@@ -58,6 +58,7 @@ export interface OptionsGraphInterface {
     ): void;
     hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
+    hasUserParam(name: string): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
     prune(vertex: VertexInterface, edges: Array<string>): void;
     removeEdges(vertex: VertexInterface, edge: string): void;

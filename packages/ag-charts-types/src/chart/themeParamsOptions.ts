@@ -1105,8 +1105,6 @@ export interface AgChartPrivateThemeParams {
     shadowFillOpacity?: Ratio;
     captionLayoutStyle?: 'block' | 'overlay';
     captionAlignment?: TextAlign;
-    /** Whether the user's theme sets `legendBackgroundColor`, which a param's resolved value cannot tell from its default. */
-    legendBackgroundColorSet?: boolean;
 }
 
 export interface AgChartAllThemeParams extends AgChartThemeParams, AgChartPrivateThemeParams {}

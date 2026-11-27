@@ -1105,7 +1105,7 @@ export const MARKER_SERIES_SELECTION_THEME = seriesSelectionTheme(0.3);
 /** A floating legend is filled by default; one that is not floating is only once `legendBackgroundColor` is set. */
 export const LEGEND_BACKGROUND_FILL: Operation = {
     $if: [
-        { $or: [{ $path: ['./position/floating', false] }, { $ref: 'legendBackgroundColorSet' }] },
+        { $or: [{ $path: ['./position/floating', false] }, { $isUserParam: 'legendBackgroundColor' }] },
         { $ref: 'legendBackgroundColor' },
         'transparent',
     ],
@@ -1127,7 +1127,7 @@ export const LEGEND_CONTAINER_THEME: any = {
                 $or: [
                     { $eq: [{ $path: './border/enabled' }, true] },
                     { $isUserOption: ['./fill', true, false] },
-                    { $ref: 'legendBackgroundColorSet' },
+                    { $isUserParam: 'legendBackgroundColor' },
                 ],
             },
             { $ref: 'legendPadding' },

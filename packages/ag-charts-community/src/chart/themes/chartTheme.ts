@@ -90,6 +90,8 @@ export class ChartTheme {
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
     readonly params: AgChartAllThemeParams;
+    /** The params the user's theme sets, which `params` cannot tell from the defaults it merges them with. */
+    readonly userParams: AgChartThemeParams;
     readonly isDark: boolean = false;
 
     public static getDefaultColors(): DefaultColors {
@@ -315,7 +317,6 @@ export class ChartTheme {
             shadowFillOpacity: 0.5,
             captionLayoutStyle: 'block',
             captionAlignment: 'center',
-            legendBackgroundColorSet: false,
         };
     }
 
@@ -351,11 +352,8 @@ export class ChartTheme {
         );
         this.paletteType = paletteType(palette);
 
-        // These are the user's own params, so this is the only place a set param can be told from its default.
-        const userParams: AgChartPrivateThemeParams = {
-            legendBackgroundColorSet: params?.legendBackgroundColor != null,
-        };
-        this.params = mergeDefaults(userParams, params, this.getThemeParameters() as AgChartAllThemeParams);
+        this.userParams = params ?? {};
+        this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
         const { config, chartDefaults } = this.getFrozenDefaultsConfig(presetName, moduleRegistry);
         this.config = config;

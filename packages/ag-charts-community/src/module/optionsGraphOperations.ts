@@ -710,6 +710,7 @@ export const RAW_OPERANDS_FROM: Partial<Record<Operation, number>> = {
 export enum LocationOperation {
     Circular = '$circular',
     IsUserOption = '$isUserOption',
+    IsUserParam = '$isUserParam',
     MapPalette = '$mapPalette',
     Palette = '$palette',
     Path = '$path',
@@ -721,6 +722,7 @@ export enum LocationOperation {
 const locationOperations: Record<LocationOperation, OperationFns> = {
     $circular: circularOperation,
     $isUserOption: isUserOptionOperation,
+    $isUserParam: isUserParamOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
     $path: {
@@ -781,6 +783,11 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     // styling, which would otherwise let every themed style switch its own feature on.
     const infersEnablement = pathArray.at(-1) === 'enabled' && path.at(-1) !== 'enabled';
     return !infersEnablement && graph.hasThemeOverride(path);
+}
+
+function isUserParamOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [value] = values;
+    return graph.hasUserParam(graph.getVertexValue(value) as string);
 }
 
 /** The palette array a per-item `$palette`/`$mapPalette` key reads at the item's index. */
