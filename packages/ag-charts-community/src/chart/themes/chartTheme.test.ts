@@ -590,7 +590,7 @@ describe('ChartTheme', () => {
             expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
         });
 
-        it('ignores a shadow colour on the series or in a theme override, and warns that it is unknown', async () => {
+        it('ignores a shadow colour on the series or in a theme override, and warns that it is unknown, suggesting fill', async () => {
             const { bar, line } = await create(
                 { overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } } } as AgChartTheme,
                 { shadow: { enabled: true, color: '#0000ff80' } } as Partial<AgBarSeriesOptions>
@@ -599,8 +599,10 @@ describe('ChartTheme', () => {
             expect(bar.shadow).toMatchObject({ fill: '#000', fillOpacity: 0.5 });
             expect(line.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity: 0.5 });
             expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([
-                expect.stringContaining('Unknown option `theme.overrides.line.series.marker.shadow.color`'),
-                expect.stringContaining('Unknown option `series[0].shadow.color`'),
+                expect.stringContaining(
+                    'Unknown option `theme.overrides.line.series.marker.shadow.color`; Did you mean `fill`?'
+                ),
+                expect.stringContaining('Unknown option `series[0].shadow.color`; Did you mean `fill`?'),
             ]);
             vi.mocked(console.warn).mockClear();
         });

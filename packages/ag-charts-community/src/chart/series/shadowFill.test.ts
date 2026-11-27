@@ -70,6 +70,9 @@ describe('shadow fill and fillOpacity', () => {
 
     const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
     const UNKNOWN_SHADOW_COLOR = expect.stringMatching(/Unknown option `[^`]*\.shadow\.color`/);
+    const UNKNOWN_SHADOW_COLOR_SUGGESTING_FILL = expect.stringMatching(
+        /Unknown option `[^`]*\.shadow\.color`; Did you mean `fill`\?/
+    );
 
     const create = async (options: AgChartOptions) => {
         const created = deproxy(await createChart(options));
@@ -127,7 +130,7 @@ describe('shadow fill and fillOpacity', () => {
             }
         });
 
-        it('ignores a colour, casting the theme fill and fillOpacity, and warns that it is unknown', async () => {
+        it('ignores a colour, casting the theme fill and fillOpacity, and warns that it is unknown, suggesting fill', async () => {
             await createSeries(testCase, {
                 enabled: true,
                 color: '#336699',
@@ -138,7 +141,7 @@ describe('shadow fill and fillOpacity', () => {
 
             expect(casters().length).toBeGreaterThan(0);
             for (const shape of casters()) expect(shape.fillShadow).toMatchObject({ fill: '#000', fillOpacity: 0.5 });
-            expect(warnings()).toEqual([UNKNOWN_SHADOW_COLOR]);
+            expect(warnings()).toEqual([UNKNOWN_SHADOW_COLOR_SUGGESTING_FILL]);
         });
 
         it('casts the fill and ignores a colour beside it', async () => {
