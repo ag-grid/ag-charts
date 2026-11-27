@@ -795,6 +795,8 @@ function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
             return graph.palette.strokes;
         case 'markerShape':
             return graph.palette.markerShapes;
+        case 'lineDash':
+            return graph.palette.lineDashes;
         case 'gradient':
             return graph.palette.sequentialColors;
     }
@@ -1084,10 +1086,11 @@ function resolveLineDashDefault(
 
 /**
  * Resolves a named `lineDash` to its array, scaled by the stroke width (the second value, e.g. `./strokeWidth`). A name
- * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled.
+ * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled. A set array
+ * merges over the third value, when given, in place of the default.
  */
 function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [defaultVertex, widthVertex] = values;
+    const [defaultVertex, widthVertex, setBaseVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
@@ -1111,7 +1114,8 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
         return scaleLineDashName(winner, width);
     }
 
-    const resolvedDefault = resolveLineDashDefault(graph, vertex, defaultVertex);
+    const isSet = userOption != null || overrideOption != null;
+    const resolvedDefault = resolveLineDashDefault(graph, vertex, (isSet ? setBaseVertex : undefined) ?? defaultVertex);
     const defaultDash = isLineDashName(resolvedDefault)
         ? scaleLineDashName(resolvedDefault, width)
         : (resolvedDefault as number[] | undefined);
@@ -1125,8 +1129,9 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
     }
     const base = overrideBase ?? defaultDash ?? [];
 
-    // Nothing to layer: keep the default as it stands, so that an unset option still falls back.
-    if (base.length === 0 && userOption == null && overrideOption == null) return defaultDash;
+    // Nothing to layer: keep the default as it stands, so that an unset option still falls back. A default with a set
+    // base is not grafted either, so that none of its elements show through a styler's array layered over that base.
+    if (!isSet && (base.length === 0 || setBaseVertex != null)) return defaultDash && [...defaultDash];
 
     // On the defaults edge, so the base cannot clobber a styler's partial values during its resolution.
     graph.graftObject(vertex, base, undefined, DEFAULTS_EDGE);
