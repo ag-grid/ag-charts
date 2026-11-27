@@ -49,13 +49,13 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
     onChangeTextContent: (text: string) => void;
     onChangeFillColor: Required<ColorPickerOptions>['onChange'];
-    onChangeHideFillColor: Required<ColorPickerOptions>['onChangeHide'];
+    onChangeHideFillColor: () => void;
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
-    onChangeHideLineColor: Required<ColorPickerOptions>['onChangeHide'];
+    onChangeHideLineColor: () => void;
     onChangeLineStyleType: (lineStyleType: AnnotationLineStyleType) => void;
     onChangeLineStyleWidth: (strokeWidth: number) => void;
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
-    onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
+    onChangeHideTextColor: () => void;
     onChangeTextFontSize: (fontSize: number) => void;
     /** Called as the dialog closes, with how it closed. */
     onClose?: (outcome: DialogCloseOutcome) => void;
@@ -191,7 +191,7 @@ export class AnnotationSettingsDialog extends Dialog {
         this.events.emit('hidden', null);
     }
 
-    /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
+    /** Brings the Coordinates tab up to date with its annotation, which a drag changes while the dialog is open. */
     public refreshCoordinates() {
         this.refreshCoordinateInputs?.();
     }
@@ -609,7 +609,7 @@ export class AnnotationSettingsDialog extends Dialog {
         isMultiColor: boolean | undefined,
         hasMultiColorOption: boolean,
         onChange: Required<ColorPickerOptions>['onChange'],
-        onChangeHide: Required<ColorPickerOptions>['onChangeHide']
+        onChangeHide: () => void
     ) {
         const label = colorType === 'fill-color' ? 'dialogInputFillColorPicker' : 'dialogInputColorPicker';
         const altText = COLOR_PICKER_ALT_TEXT[colorType];
