@@ -32,6 +32,19 @@ async function tabToAnnotations(page: Page) {
     await page.keyboard.press('Tab');
 }
 
+async function openOptionsFromKeyboard(page: Page) {
+    await tabToAnnotations(page);
+    await page.keyboard.press('Enter');
+    await expect(optionsToolbar(page)).toBeVisible();
+}
+
+async function clickFirstLine(page: Page) {
+    const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
+    // The first line is at 30 on a 0 to 100 y axis.
+    await page.mouse.click(seriesArea!.x + seriesArea!.width / 2, seriesArea!.y + seriesArea!.height * 0.7);
+    await expect(optionsToolbar(page)).toBeVisible();
+}
+
 test.describe('annotations keyboard navigation', () => {
     setupIntrinsicAssertions(test);
 
@@ -100,6 +113,57 @@ test.describe('annotations keyboard navigation', () => {
         await expect(moveButton).toBeFocused();
     });
 
+    const toolbarOpeners = [
+        { opener: 'the keyboard', open: openOptionsFromKeyboard },
+        { opener: 'a pointer', open: clickFirstLine },
+    ];
+    for (const { opener, open } of toolbarOpeners) {
+        for (const name of ['Line Style', 'Line Stroke Width']) {
+            test(`The ${name} dropdown of a toolbar opened by ${opener} returns focus to its button`, async ({
+                page,
+            }) => {
+                await open(page);
+                const button = optionsToolbar(page).getByRole('button', { name });
+                const menu = page.getByRole('menu');
+                await button.focus();
+                const before = await getChartState(page);
+
+                await page.keyboard.press('Enter');
+                await expect(menu).toBeVisible();
+                await page.keyboard.press('Escape');
+
+                await expect(menu).toHaveCount(0);
+                await expect(button).toBeFocused();
+
+                await page.keyboard.press('Enter');
+                // The dropdown opens on its first item, which may be the current value.
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('Enter');
+
+                await expect(menu).toHaveCount(0);
+                await expect(button).toBeFocused();
+                expect((await getChartState(page)).annotations?.[0]).not.toEqual(before.annotations?.[0]);
+            });
+        }
+    }
+
+    test('The Text Size dropdown returns focus to its button after Enter picks a size', async ({ page }) => {
+        const state = await getChartState(page);
+        const text = { type: 'text', text: 'Hello', x: 50, y: 50 };
+        await setChartState(page, { ...state, annotations: [text] as typeof state.annotations });
+        await openOptionsFromKeyboard(page);
+        const button = optionsToolbar(page).getByRole('button', { name: 'Text Size' });
+        await button.focus();
+
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+
+        await expect(page.getByRole('menu')).toHaveCount(0);
+        await expect(button).toBeFocused();
+    });
+
     test('An update that removes the focused annotation moves the focus to the next one', async ({ page }) => {
         await tabToAnnotations(page);
 
@@ -135,9 +199,7 @@ test.describe('annotations keyboard navigation', () => {
     });
 
     test('Clicking an annotation still selects it without the Move Annotation button', async ({ page }) => {
-        const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
-        // The first line is at 30 on a 0 to 100 y axis.
-        await page.mouse.click(seriesArea!.x + seriesArea!.width / 2, seriesArea!.y + seriesArea!.height * 0.7);
+        await clickFirstLine(page);
 
         await expect(optionsToolbar(page)).toBeVisible();
         await expect(optionsToolbar(page).getByRole('button', { name: 'Move Annotation' })).toHaveCount(0);

@@ -528,7 +528,6 @@ export class AnnotationOptionsToolbar {
 
         const fontSize = item.value;
         this.events.emit('updated-font-size', { type: datum.type, fontSize });
-        this.textSizeMenu.hide();
         this.updateFontSize(fontSize);
     }
 
@@ -537,7 +536,6 @@ export class AnnotationOptionsToolbar {
 
         const type = item.value;
         this.events.emit('updated-line-style', { type: datum.type, lineStyleType: type });
-        this.lineStyleTypeMenu.hide();
         this.updateLineStyleType(item);
     }
 
@@ -548,7 +546,6 @@ export class AnnotationOptionsToolbar {
 
         const strokeWidth = item.value;
         this.events.emit('updated-line-width', { type: datum.type, strokeWidth });
-        this.lineStrokeWidthMenu.hide();
         this.updateStrokeWidth(item);
     }
 
