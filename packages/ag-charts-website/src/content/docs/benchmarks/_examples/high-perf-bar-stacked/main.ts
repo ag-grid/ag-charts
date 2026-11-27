@@ -53,6 +53,8 @@ const GAP = 4;
 // Below AGGREGATION_THRESHOLD (1,000), so the bars are drawn individually rather than aggregated.
 const UNAGGREGATED_POINTS = 900;
 const HOVER_POSITIONS = 20;
+// Each x key appears twice, so a group holds two datums per series and the stack total lookup can't assume one each.
+const DUPLICATE_KEY_POINTS = 100_000;
 
 const withGap = (source: AgCartesianChartOptions): AgCartesianChartOptions => ({
     ...source,
@@ -61,6 +63,11 @@ const withGap = (source: AgCartesianChartOptions): AgCartesianChartOptions => ({
 const gapOptions = withGap(options);
 const unaggregatedOptions: AgCartesianChartOptions = { ...options, data: data.slice(0, UNAGGREGATED_POINTS) };
 const unaggregatedGapOptions = withGap(unaggregatedOptions);
+const duplicateKeyOptions: AgCartesianChartOptions = {
+    ...options,
+    data: data.slice(0, DUPLICATE_KEY_POINTS / 2).flatMap((row) => [row, { ...row }]),
+};
+const duplicateKeyGapOptions = withGap(duplicateKeyOptions);
 
 // The options the chart in `chartRef` was last built with.
 let builtWith: AgCartesianChartOptions = options;
@@ -167,6 +174,21 @@ function getBenchmarkConfig(): BenchmarkConfig {
                             onChart(gapOptions, () =>
                                 performDatumHighlight(chartRef.current!, container, HOVER_POSITIONS)
                             ),
+                    },
+                ],
+            },
+            {
+                id: 'initial-load-duplicate-keys',
+                label: 'Initial Load (duplicate x keys, aggregated)',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => chartCreate(duplicateKeyOptions),
+                    },
+                    {
+                        params: { Operation: 'Chart Create', Gap: `${GAP}px` },
+                        available: gapAvailable,
+                        run: () => chartCreate(duplicateKeyGapOptions),
                     },
                 ],
             },
