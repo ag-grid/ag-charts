@@ -192,7 +192,7 @@ describe('glow gap in a chart', () => {
             { width: 0.5, strokeWidth: 4, fillOpacity: 1, paintedEdge: 0.5 },
             { direction: 'horizontal', width: 0.5, strokeWidth: 4, fillOpacity: 1, paintedEdge: 0 },
             { width: 10, strokeWidth: 12, fillOpacity: 0, paintedEdge: 0 },
-            { width: 0.5, strokeWidth: 4, fillOpacity: 0, paintedEdge: 0.5 },
+            { width: 0.5, strokeWidth: 8, fillOpacity: 0, paintedEdge: 0.5 },
         ])(
             'should grow the glow a gap and a spread past the painted edge of a bar $width wide with a stroke of $strokeWidth and a fill opacity of $fillOpacity',
             async ({ paintedEdge, ...bar }) => {
