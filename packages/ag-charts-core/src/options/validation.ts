@@ -25,6 +25,7 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
+const deprecatedSymbol = Symbol('deprecated');
 const enterpriseSymbol = Symbol('enterprise');
 const themeComputedSymbol = Symbol('themeComputed');
 export const unionSymbol = Symbol('union');
@@ -66,6 +67,7 @@ type PrivateSymbols = {
     [undocumentedSymbol]?: boolean;
     [enterpriseSymbol]?: boolean;
     [themeComputedSymbol]?: boolean;
+    [deprecatedSymbol]?: string;
     [unionSymbol]?: string;
 };
 
@@ -107,10 +109,11 @@ export interface ValidateParams {
      */
     skipDisabledNodeValidation?: boolean;
     /**
-     * When true, validators that emit advisory warnings (e.g. `buttonNameAdvisory()`) stay silent.
-     * Used during post-theme passes, where values may come from theme expansion rather than the user.
-     * It also admits the keys that `themeComputed` rejects from user input, so a pass over user input
-     * must not set it.
+     * When true, validators that emit advisory warnings (e.g. `deprecated()`) should stay silent.
+     * Used during post-theme passes where the values originate from theme expansion rather than
+     * the user — emitting a deprecation warning for a theme-injected value would be a false
+     * positive. It also admits the keys that `themeComputed` rejects from user input, so a pass over
+     * user input must not set it.
      */
     silentAdvisories?: boolean;
     /** Accept a theme operator (`{ $op: ... }`) wherever a value is expected, as theme templates and overrides may. */
@@ -529,6 +532,28 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
     };
     return Object.assign(gated, {
         [enterpriseSymbol]: true,
+        [descriptionSymbol]: description,
+    }) as T;
+}
+
+/**
+ * Marks an option as deprecated: values still validate, with a one-shot `deprecationOnce` notice.
+ * Intentionally unused for now; kept because it is needed transiently whenever an option is phased out.
+ */
+export function deprecated(validator: Validator, message: string): Validator;
+export function deprecated<T extends OptionsDefs<any>>(validatorOrDefs: T, message: string): T;
+export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T, message: string) {
+    const inner: Validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
+    const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
+    const gated: Validator = (value, context) => {
+        if (value !== undefined && !context.params?.silentAdvisories) {
+            const notice = `Option \`${context.path}\` is deprecated. ${message}`;
+            context.params.logger.deprecationOnce(notice);
+        }
+        return inner(value, context);
+    };
+    return Object.assign(gated, {
+        [deprecatedSymbol]: message,
         [descriptionSymbol]: description,
     }) as T;
 }

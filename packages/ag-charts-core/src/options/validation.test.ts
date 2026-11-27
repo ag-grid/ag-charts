@@ -27,13 +27,13 @@ import {
     arrayOfDefs,
     attachDescription,
     boolean,
-    buttonNameAdvisory,
     callback,
     callbackDefs,
     callbackOf,
     color,
     constant,
     date,
+    deprecated,
     enterprise,
     greaterThan,
     instanceOf,
@@ -259,19 +259,41 @@ describe('Validation utils', () => {
         });
     });
 
-    describe('buttonNameAdvisory', () => {
-        test.each([
-            { silentAdvisories: false, warnings: 1 },
-            { silentAdvisories: true, warnings: 0 },
-        ])(
-            'warns about a button with no accessible name $warnings time(s) when silentAdvisories is $silentAdvisories',
-            ({ silentAdvisories, warnings }) => {
-                validate<{ buttons: object[] }>({ buttons: [{}] }, { buttons: buttonNameAdvisory(array) }, '', {
-                    silentAdvisories,
-                });
-                expect(console.warn).toHaveBeenCalledTimes(warnings);
-            }
-        );
+    describe('deprecated wrapper', () => {
+        afterEach(() => validationLogger.setEnabledLevels(['error', 'warning', 'deprecation']));
+
+        test('reports the notice and path once at the default console level', () => {
+            const { cleared, invalid } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(invalid).toEqual([]);
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as Mock).mock.calls[0][0]).toContain(
+                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.'
+            );
+        });
+
+        test('silences the notice once "deprecation" is deselected from the console levels', () => {
+            validationLogger.setEnabledLevels(['error', 'warning']);
+            const { cleared } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        test('stays silent under silentAdvisories', () => {
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
+                '',
+                { silentAdvisories: true }
+            );
+            expect(console.warn).not.toHaveBeenCalled();
+        });
     });
 
     describe('Union Validator', () => {
