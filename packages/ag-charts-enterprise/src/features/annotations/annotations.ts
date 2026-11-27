@@ -162,7 +162,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
-    /** Whether a settings dialog with Apply and Cancel is open, so its changes are not yet recorded in the history. */
+    /** Whether a settings dialog is open, so its changes are not yet recorded in the history. */
     private holdsHistory = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -514,9 +514,8 @@ export class Annotations extends AbstractModuleInstance {
                         cancelled
                     );
 
-                // With Apply and Cancel the dialog's changes are one history entry, made on Apply, or none, on Cancel.
                 const { showActionButtons } = this.optionsToolbar;
-                this.holdsHistory = showActionButtons;
+                this.holdsHistory = true;
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,

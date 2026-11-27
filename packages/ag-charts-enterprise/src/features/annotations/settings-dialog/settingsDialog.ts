@@ -191,7 +191,7 @@ export class AnnotationSettingsDialog extends Dialog {
         this.events.emit('hidden', null);
     }
 
-    /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
+    /** Brings the Coordinates tab up to date with its annotation, which a drag changes while the dialog is open. */
     public refreshCoordinates() {
         this.refreshCoordinateInputs?.();
     }
