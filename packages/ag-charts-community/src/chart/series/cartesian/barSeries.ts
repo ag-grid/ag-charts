@@ -290,6 +290,11 @@ interface PreparedBarNodeDatumState {
     precomputedIsUpward?: boolean;
 }
 
+/** How many skews beyond the last one `createStackTotalLookup` tries before it reads the datum-to-group index. */
+const GROUP_SKEW_PROBES = 8;
+/** The largest group `createStackTotalLookup` searches for a datum; a larger one is left to the datum-to-group index. */
+const GROUP_SEARCH_LIMIT = 4;
+
 /** Scratch for `insetGapSpan`; always written before it is read. */
 const gapSpan: GapSpan = { start: 0, length: 0 };
 
@@ -2397,20 +2402,26 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this,
             ctx.filteredValueExceedUnfiltered ? 'yFilterValue-range' : 'yValue-range'
         );
-        // Only a group holding this series' one datum is checked directly, so a lookup costs the same whatever the
-        // group size; any other group is read from the datum-to-group index.
-        const isOnlyDatum = (groupIndex: number, datumIndex: number) => {
+        // Duplicate keys shift a datum's group by a few places. Each try reads at most GROUP_SEARCH_LIMIT entries, so
+        // a lookup doesn't grow with group size.
+        const hasDatum = (groupIndex: number, datumIndex: number) => {
             const indices = groups[groupIndex]?.datumIndices[columnIndex];
-            return indices?.length === 1 && indices[0] === datumIndex - groupIndex;
+            if (indices == null || indices.length > GROUP_SEARCH_LIMIT) return false;
+            const relative = datumIndex - groupIndex;
+            for (let i = 0; i < indices.length; i++) {
+                if (indices[i] === relative) return true;
+            }
+            return false;
         };
 
         let skew = 0;
         return (datumIndex, positive) => {
-            let groupIndex = datumIndex - skew;
-            if (!isOnlyDatum(groupIndex, datumIndex)) {
-                groupIndex = this.datumGroupIndex(processedData, columnIndex)[datumIndex] ?? -1;
-                if (groupIndex >= 0) skew = datumIndex - groupIndex;
+            let groupIndex = -1;
+            for (let step = 0; step <= GROUP_SKEW_PROBES && groupIndex < 0; step++) {
+                if (hasDatum(datumIndex - skew - step, datumIndex)) groupIndex = datumIndex - skew - step;
             }
+            if (groupIndex < 0) groupIndex = this.datumGroupIndex(processedData, columnIndex)[datumIndex] ?? -1;
+            if (groupIndex >= 0) skew = datumIndex - groupIndex;
             return groups[groupIndex]?.aggregation[rangeIndex][positive ? 1 : 0];
         };
     }
