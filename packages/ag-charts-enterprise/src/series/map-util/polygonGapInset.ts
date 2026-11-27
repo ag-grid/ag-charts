@@ -1,5 +1,6 @@
 import type { Position } from 'ag-charts-core';
 
+import { segmentDistanceToPointSquared } from './lineStringUtil';
 import type { GapRingInfo } from './mapShapeGapIndex';
 
 const DROP_DISTANCE_SQ = 0.5 * 0.5;
@@ -195,14 +196,6 @@ function intersect(
     return Number.isFinite(x) && Number.isFinite(y) ? [x, y] : undefined;
 }
 
-function distanceToSegment(px: number, py: number, x0: number, y0: number, x1: number, y1: number): number {
-    const dx = x1 - x0;
-    const dy = y1 - y0;
-    const lengthSq = dx * dx + dy * dy;
-    const t = lengthSq === 0 ? 0 : Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / lengthSq));
-    return Math.hypot(px - (x0 + t * dx), py - (y0 + t * dy));
-}
-
 /**
  * Meets edge `a` and the following edge `b` at their shared vertex (or, after edges between them were removed, at the
  * end of `a` and the start of `b`). A mitre where both edges are moved, a slide along the unmoved edge where one is.
@@ -248,7 +241,7 @@ function joinEdges(
                 ? bevel
                 : { points: mitre, endSlide: 0, startSlide: 0 };
         }
-        if (distanceToSegment(mitre[0], mitre[1], vax, vay, vbx, vby) > cap) return bevel;
+        if (segmentDistanceToPointSquared(vax, vay, vbx, vby, mitre[0], mitre[1]) > cap * cap) return bevel;
         return { points: mitre, endSlide: 0, startSlide: 0 };
     }
 

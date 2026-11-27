@@ -182,10 +182,13 @@ describe('MapShapeGapIndex', () => {
             expect(index.getRingInfo(copy)).toBeUndefined();
         });
 
-        it('gaps a merged ring when any of its owners has a gap', () => {
+        it.each([
+            { order: 'last', gaps: [false, true, false] },
+            { order: 'first', gaps: [true, false, false] },
+        ])('gaps a merged ring when any of its owners has a gap, with the gapped owner $order', ({ gaps }) => {
             const { a, b } = sideBySide();
             const copy = rect(0, 0, 10, 10);
-            const index = build(region(false, [a]), region(true, [copy]), region(false, [b]));
+            const index = build(region(gaps[0], [a]), region(gaps[1], [copy]), region(gaps[2], [b]));
 
             expect(moved(index, a)).toEqual([0, 1, 0, 0]);
             expect(moved(index, copy)).toEqual([0, 1, 0, 0]);
@@ -428,7 +431,7 @@ describe('MapShapeGapIndex', () => {
             expect(index.stats.movedEdges).toBe(0);
         });
 
-        it('finds the unshared edges between two moved runs that the design counted: 4 in the US and 15 in the world (DR2-1)', () => {
+        it('finds the unshared edges between two moved runs that the design counted: 4 in the US, 15 in the world and 0 in London (DR2-1)', () => {
             const unsharedBetweenRuns = (topology: GapTopology) => {
                 const { index, fixed } = createScene(topology, 1);
                 let count = 0;
@@ -446,6 +449,7 @@ describe('MapShapeGapIndex', () => {
 
             expect(unsharedBetweenRuns(SWEEP_TOPOLOGIES[0][1])).toBe(4);
             expect(unsharedBetweenRuns(SWEEP_TOPOLOGIES[1][1])).toBe(15);
+            expect(unsharedBetweenRuns(SWEEP_TOPOLOGIES[2][1])).toBe(0);
         });
 
         it('finds the land border between Indonesia and Timor-Leste', () => {

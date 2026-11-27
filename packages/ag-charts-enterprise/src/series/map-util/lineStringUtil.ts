@@ -2,9 +2,14 @@ import type { Position } from 'ag-charts-core';
 
 const delta = 1e-9;
 
-export function lineSegmentDistanceToPointSquared(a: Position, b: Position, x: number, y: number): number {
-    const [ax, ay] = a;
-    const [bx, by] = b;
+export function segmentDistanceToPointSquared(
+    ax: number,
+    ay: number,
+    bx: number,
+    by: number,
+    x: number,
+    y: number
+): number {
     const abx = bx - ax;
     const aby = by - ay;
     const l = abx * abx + aby * aby;
@@ -25,6 +30,10 @@ export function lineSegmentDistanceToPointSquared(a: Position, b: Position, x: n
     const dy = y - y0;
 
     return dx * dx + dy * dy;
+}
+
+export function lineSegmentDistanceToPointSquared(a: Position, b: Position, x: number, y: number): number {
+    return segmentDistanceToPointSquared(a[0], a[1], b[0], b[1], x, y);
 }
 
 export function lineStringDistance(lineString: Position[], x: number, y: number) {

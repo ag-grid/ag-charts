@@ -24,6 +24,7 @@ import { type GapTopology, SWEEP_TOPOLOGIES, createScene } from '../map-test/gap
 import indonesiaTimorTopology from '../map-test/indonesiaTimorTopology.json';
 import southernAfricaItalyTopology from '../map-test/southernAfricaItalyTopology.json';
 import worldTopology from '../map-test/worldTopology.json';
+import { lineStringDistance } from './lineStringUtil';
 import { MapShapeGapIndex } from './mapShapeGapIndex';
 import { insetGapRing, insetPolygonRings, simplifyGapRing } from './polygonGapInset';
 
@@ -739,6 +740,57 @@ describe('insetPolygonRings', () => {
         });
     });
 
+    describe('reflex slides', () => {
+        const unitCoast = (tx: number): Position => [tx, Math.sqrt(1 - tx * tx)];
+        const neighbour = rect(10, 0, 20, 10);
+        const d = 2;
+
+        // The border runs up x = 10 and the coast leaves its end to the right, a reflex corner for the fill: the moved
+        // border meets the coast behind the original vertex, so the slide is negative.
+        function reflexRing(tx: number, length: number): Ring {
+            const [ux, uy] = unitCoast(tx);
+            return [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [10 + ux * length, 10 + uy * length],
+                [0, 10 + uy * length],
+                [0, 0],
+            ];
+        }
+
+        const cases = [
+            { name: 'a coast edge shorter than the slide', tx: Math.SQRT1_2, length: 0.7, slides: true },
+            { name: 'a coast edge longer than the slide', tx: 0.6, length: 20, slides: true },
+            { name: 'a slide past twice the distance', tx: 0.4, length: 20, slides: false },
+        ];
+
+        const has = (ring: Position[], [px, py]: Position) =>
+            ring.some(([x, y]) => Math.abs(x - px) < 1e-9 && Math.abs(y - py) < 1e-9);
+
+        function expectSlide(ring: Ring, other: Ring, tx: number, slides: boolean) {
+            const drawn = exterior(indexRings(ring, other), ring, d)!;
+            const [ux, uy] = unitCoast(tx);
+
+            expect(has(drawn, [10 - d, 10 - (d * uy) / ux])).toBe(slides);
+            expect(has(drawn, [10 - d, 10])).toBe(!slides);
+        }
+
+        it.each(cases)(
+            'slides back past the corner only within twice the distance, with $name (coast edge second)',
+            ({ tx, length, slides }) => {
+                expectSlide(reflexRing(tx, length), neighbour, tx, slides);
+            }
+        );
+
+        it.each(cases)(
+            'slides back past the corner only within twice the distance, with $name (coast edge first)',
+            ({ tx, length, slides }) => {
+                expectSlide(reverseRing(reflexRing(tx, length)), reverseRing(neighbour), tx, slides);
+            }
+        );
+    });
+
     describe('near-parallel joins', () => {
         it('offsets a vertex whose two moved edges are parallel within 1e-6 rad along the shared normal', () => {
             const a: Ring = [
@@ -963,25 +1015,9 @@ describe('gap on real topologies', () => {
         const drawnHost = insetPolygonRings(screen[host], index.getPolygonRingInfo(fixed[host])!, d)!;
         const hole = drawnHost[1];
 
-        const nearest = (point: Position, ring: readonly Position[]) =>
-            Math.min(
-                ...ring.slice(1).map(([x1, y1], i) => {
-                    const [x0, y0] = ring[i];
-                    const dx = x1 - x0;
-                    const dy = y1 - y0;
-                    const t =
-                        dx === 0 && dy === 0
-                            ? 0
-                            : Math.max(
-                                  0,
-                                  Math.min(1, ((point[0] - x0) * dx + (point[1] - y0) * dy) / (dx * dx + dy * dy))
-                              );
-                    return Math.hypot(point[0] - x0 - t * dx, point[1] - y0 - t * dy);
-                })
-            );
         const separation = Math.min(
-            ...drawnLesotho[0].map((point) => nearest(point, hole)),
-            ...hole.map((point) => nearest(point, drawnLesotho[0]))
+            ...drawnLesotho[0].map((point) => lineStringDistance(hole, point[0], point[1])),
+            ...hole.map((point) => lineStringDistance(drawnLesotho[0], point[0], point[1]))
         );
         expect(separation).toBeGreaterThanOrEqual(2 * d - 1e-6);
     });
