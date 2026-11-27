@@ -598,7 +598,7 @@ describe('cartesian series shadow root', () => {
                 const [second] = itemCentres(1);
                 const cast = shadow ?? {
                     ...shadowAt(Math.round(first.x - second.x), Math.round(first.y - second.y)),
-                    color: SOLID,
+                    fill: SOLID,
                 };
                 await create(lines(cast));
                 await hoverSeries(2);

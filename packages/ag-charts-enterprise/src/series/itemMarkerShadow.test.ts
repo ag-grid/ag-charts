@@ -80,11 +80,11 @@ describe('item marker shadow fill and fillOpacity', () => {
     };
 
     describe.each(ITEM_CASES)('$name', (testCase) => {
-        it('casts a deprecated color as its fill, at a fillOpacity of 1', async () => {
-            const shadows = await castBy(testCase, { enabled: true, color: 'red' });
+        it('ignores a color, casting the theme fill and fillOpacity, and warns that it is unknown', async () => {
+            const shadows = await castBy(testCase, { enabled: true, color: 'red' } as AgDropShadowOptions);
 
-            for (const shadow of shadows) expect(shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
-            expect(warnings().some((message) => message.includes('color'))).toBe(true);
+            for (const shadow of shadows) expect(shadow).toMatchObject({ fill: '#000', fillOpacity: 0.5 });
+            expect(warnings()).toEqual([expect.stringMatching(/Unknown option `[^`]*\.shadow\.color`/)]);
         });
 
         it('casts a fill at a fillOpacity of 1 unless it sets one', async () => {
@@ -100,8 +100,12 @@ describe('item marker shadow fill and fillOpacity', () => {
             for (const shadow of shadows) expect(shadow).toMatchObject({ fill: 'red', fillOpacity: 0.3 });
         });
 
-        it('casts its fill rather than its color where it sets both', async () => {
-            const shadows = await castBy(testCase, { enabled: true, fill: 'blue', color: 'red' });
+        it('casts its fill and ignores a color beside it', async () => {
+            const shadows = await castBy(testCase, {
+                enabled: true,
+                fill: 'blue',
+                color: 'red',
+            } as AgDropShadowOptions);
 
             for (const shadow of shadows) expect(shadow).toMatchObject({ fill: 'blue', fillOpacity: 1 });
         });
