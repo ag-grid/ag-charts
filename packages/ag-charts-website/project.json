@@ -77,6 +77,8 @@
     },
     "dev": {
       "executor": "nx:run-commands",
+      "continuous": true,
+      "readyWhen": { "port": "{env.PORT ?? 4600}" },
       "cache": false,
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "inputs": [],
