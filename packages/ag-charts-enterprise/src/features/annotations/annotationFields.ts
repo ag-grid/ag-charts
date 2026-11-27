@@ -45,6 +45,12 @@ export type SelectionAxisLabelStyles = Omit<AxisLabelDatum, 'enabled'>;
 
 export type SelectionAxisShadingStyles = FillFields;
 
+/** When each kind of annotation shows its axis labels and shading, unless the options say otherwise. */
+export const DEFAULT_AXIS_VISIBILITY = {
+    crossLine: 'always',
+    other: 'selected',
+} as const satisfies Record<string, AgAnnotationAxisVisibility>;
+
 /** When an annotation type shows axis labels and shading, and their styles, which are not saved in its state. */
 export interface SelectionAxisStyles {
     visible: AgAnnotationAxisVisibility;

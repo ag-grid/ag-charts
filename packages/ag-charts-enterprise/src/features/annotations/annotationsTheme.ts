@@ -19,6 +19,7 @@ import {
 } from 'ag-charts-community';
 import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
 
+import { DEFAULT_AXIS_VISIBILITY } from './annotationFields';
 import { DEFAULT_MAGNET } from './utils/magnet';
 
 export const DEFAULT_FIBONACCI_STROKES = [
@@ -69,12 +70,16 @@ const axisVisible = (fallback: AgAnnotationAxisVisibility) => ({
 const axisLabel: WithThemeParams<AgAnnotationAxisLabel & { visible?: AgAnnotationAxisVisibility }> = {
     ...axisLabelStyles,
     enabled: true,
-    visible: axisVisible('always'),
+    visible: axisVisible(DEFAULT_AXIS_VISIBILITY.crossLine),
 };
 
 // The labels and shading use the annotation colour, not the colours that a user picks for an annotation.
 const axes: WithThemeParams<AgAnnotationAxes> = {
-    axisLabel: { ...axisLabelStyles, fill: { $ref: 'annotationColor' }, visible: axisVisible('selected') },
+    axisLabel: {
+        ...axisLabelStyles,
+        fill: { $ref: 'annotationColor' },
+        visible: axisVisible(DEFAULT_AXIS_VISIBILITY.other),
+    },
     axisShading: { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 },
 };
 

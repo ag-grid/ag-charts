@@ -1,4 +1,5 @@
 import { type SelectionAxisStyles, createAxisLabelDatum } from '../annotationDatum';
+import { DEFAULT_AXIS_VISIBILITY } from '../annotationFields';
 import { AnnotationType } from '../annotationTypes';
 
 type StatelessAxisStyles = Partial<{
@@ -42,7 +43,9 @@ export function resolveSelectionAxes(type: string, stateless: object | undefined
     const { axisLabel, axisShading } = (stateless ?? {}) as StatelessAxisStyles;
     const { visible, ...label } = axisLabel ?? {};
     return {
-        visible: (visible as SelectionAxisStyles['visible'] | undefined) ?? (isCrossLine(type) ? 'always' : 'selected'),
+        visible:
+            (visible as SelectionAxisStyles['visible'] | undefined) ??
+            DEFAULT_AXIS_VISIBILITY[isCrossLine(type) ? 'crossLine' : 'other'],
         // The options have been through the theme by now, so they hold no colour references, which the types allow.
         axisLabel: { ...createAxisLabelDatum(), ...label },
         axisShading: { ...axisShading },

@@ -35,16 +35,16 @@ function getAxisEdge({ x, y, width, height }: BBox, isX: boolean, position: Axis
     return { isX, origin: outward > 0 ? start + size : start, outward };
 }
 
-/**
- * The labels and shading for one axis of an annotation. They are attached to the axis, as a horizontal or
- * vertical line's axis label is, so they draw over its ticks and tick labels.
- */
 // How far the labels at the axis ends reach depends on the axis and the label styles, so annotations share it.
 const edgeReaches = new WeakMap<
     AnnotationAxisContext['attachLabel'],
     WeakMap<object, { layoutVersion: number; reach: number }>
 >();
 
+/**
+ * The labels and shading for one axis of an annotation. They are attached to the axis, as a horizontal or
+ * vertical line's axis label is, so they draw over its ticks and tick labels.
+ */
 class AxisSelectionOverlay {
     private readonly shading = new Rect({ name: 'AnnotationSelectionAxisShading' });
     private readonly labels: AxisLabelScene[] = [];
@@ -253,7 +253,7 @@ class AxisSelectionOverlay {
     }
 }
 
-/** The axis labels and shading shown on both axes while an annotation with two or more points is selected. */
+/** The axis labels of an annotation's points and the shading between them, on both axes. */
 export class SelectionAxesScene {
     private readonly x = new AxisSelectionOverlay();
     private readonly y = new AxisSelectionOverlay();

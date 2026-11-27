@@ -32,12 +32,8 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
     public abstract getCursor(): string | undefined;
     public abstract getNodeAtCoords(x: number, y: number): string | undefined;
 
-    /** Deselecting hides the axis labels and shading at once; the next update shows them again for an `'always'` type. */
     public toggleSelected(selected: boolean) {
         this.selected = selected;
-        if (!selected) {
-            this.selectionAxes?.hide();
-        }
     }
 
     /** The datum is `undefined` for an annotation that has no selection axes, such as a horizontal line. */

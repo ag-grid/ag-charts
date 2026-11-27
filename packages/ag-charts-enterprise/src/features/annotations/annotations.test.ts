@@ -2560,6 +2560,15 @@ describe('Annotations', () => {
         const visibleAxisLabels = () =>
             findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP && node.visible);
 
+        // The labels of the y axis lie left of the series area.
+        const yAxisLabelRects = () => {
+            const { x: left } = getSeriesRect(chart);
+            return visibleAxisLabels()
+                .map((group) => [...(group as Group).children()].find((c) => c instanceof Rect) as any)
+                .filter((rect) => rect.x + rect.width / 2 < left);
+        };
+        const yAxisLabelWidths = (): number[] => yAxisLabelRects().map((rect) => rect.width);
+
         const [START, END] = [
             { x: day(20), y: 25 },
             { x: day(80), y: 75 },
@@ -2964,15 +2973,7 @@ describe('Annotations', () => {
                 ) as any[];
             // The y axis's shading is the narrower of the two.
             const yDepth = () => Math.min(...shading().map((node) => node.width));
-            const rects = () =>
-                visibleAxisLabels().map(
-                    (group) => [...(group as Group).children()].find((c) => c instanceof Rect) as any
-                );
             const { x: left, y: top, width, height } = getSeriesRect(chart);
-            const yLabelWidths = () =>
-                rects()
-                    .filter((r) => r.x + r.width / 2 < left)
-                    .map((r) => r.width as number);
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
             expect(shading()).toHaveLength(2);
@@ -2982,16 +2983,16 @@ describe('Annotations', () => {
             const end = { x: left + width * 0.8, y: top + height * 0.25 };
             await mouseDownAction(end.x, end.y)(chart);
             const depths = [yDepth()];
-            const labelWidths = [yLabelWidths()];
+            const labelWidths = [yAxisLabelWidths()];
             for (const dy of [7, 33, 61, 12, 90]) {
                 await hoverAction(end.x, end.y + dy)(chart);
                 await waitForChartStability(chart);
                 depths.push(yDepth());
 
-                labelWidths.push(yLabelWidths());
+                labelWidths.push(yAxisLabelWidths());
 
-                // The labels of the y axis lie left of the series area, and fit within its shading.
-                for (const rect of rects().filter((r) => r.x + r.width / 2 < left)) {
+                // The labels of the y axis fit within its shading.
+                for (const rect of yAxisLabelRects()) {
                     expect(rect.x).toBeGreaterThanOrEqual(Math.min(...shading().map((node) => node.x)) - 0.5);
                 }
             }
@@ -3093,16 +3094,26 @@ describe('Annotations', () => {
             }
         });
 
-        it('keeps the labels of an annotation that is always shown when it is deselected', async () => {
+        it('keeps the labels of an annotation that is always shown when it is deselected, at the width of their text', async () => {
             await prepareChart(
                 { annotations: [LINE] },
                 withAxes('bottom', 'left', { axisLabel: { visible: 'always' } })
             );
+            const { x: left, y: top, width, height } = getSeriesRect(chart);
+
+            // Dragging the end handle away and back leaves its label as wide as its longest text was.
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
-            expect(visibleAxisLabels()).toHaveLength(4);
+            const end = { x: left + width * 0.8, y: top + height * 0.25 };
+            await mouseDownAction(end.x, end.y)(chart);
+            await hoverAction(end.x, end.y + 33)(chart);
+            await hoverAction(end.x, end.y)(chart);
+            await mouseUpAction(end.x, end.y)(chart);
+            await waitForChartStability(chart);
+            const held = Math.max(...yAxisLabelWidths());
 
             await clickDatum(EMPTY.x, EMPTY.y);
             expect(visibleAxisLabels()).toHaveLength(4);
+            expect(Math.max(...yAxisLabelWidths())).toBeLessThan(held);
         });
 
         // These types have no axis label state, so a restore warns about it and keeps the annotation.
