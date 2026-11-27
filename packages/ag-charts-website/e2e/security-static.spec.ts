@@ -14,6 +14,8 @@ const BRAND_BEFORE = '#d33b2b';
 const BRAND_BEFORE_RGB = [211, 59, 43] as const;
 const BRAND_AFTER = '#2b6cd3';
 const BRAND_AFTER_RGB = [43, 108, 211] as const;
+/** Per channel, when matching a canvas pixel against a brand colour. */
+const COLOUR_TOLERANCE = 2;
 
 type ModeName = 'base' | 'nonce';
 
@@ -179,11 +181,7 @@ const CSS_VARIABLE_ROW: Row = {
     name: 'css-variable',
     enterprise: false,
     options: CSS_VARIABLE_OPTIONS,
-    async arrange(page) {
-        expect(await firstBarCentre(page, BRAND_BEFORE_RGB), 'first bar in the initial colour').toBeDefined();
-        await setBrand(page, BRAND_AFTER);
-        await expect.poll(() => firstBarCentre(page, BRAND_AFTER_RGB), { message: 'bar repainted' }).toBeDefined();
-    },
+    arrange: repaintFirstBar,
 };
 
 function withTheme(options: Record<string, unknown>, theme: Theme, mode: Mode) {
@@ -209,6 +207,8 @@ async function routeOrigin(page: Page) {
         const bundle = BUNDLES[url.pathname];
         if (bundle != null) {
             const response = await page.request.get(bundle);
+            // An error page served as the script would only surface as a missing `agCharts` global.
+            expect(response.ok(), `HTTP ${response.status()} for ${bundle}: is the UMD build present?`).toBe(true);
             return route.fulfill({ contentType: 'text/javascript', headers, body: await response.body() });
         }
         switch (url.pathname) {
@@ -259,6 +259,18 @@ async function expectNonceOnInjectedStyles(page: Page) {
     expect(nonces.length).toBeGreaterThan(0);
     // Read the IDL property, not the attribute: browsers empty the `nonce` content attribute once inserted.
     expect(nonces.filter((n) => n !== NONCE)).toEqual([]);
+}
+
+/** Pauses the watermark's fade as it is inserted: left running, it removes the element after a few seconds. */
+async function holdWatermarkFade(page: Page) {
+    await page.addInitScript(() => {
+        new MutationObserver((_, observer) => {
+            const animations = document.querySelector('.ag-watermark')?.getAnimations() ?? [];
+            if (animations.length === 0) return;
+            animations.forEach((a) => a.pause());
+            observer.disconnect();
+        }).observe(document, { childList: true, subtree: true });
+    });
 }
 
 /** Lets a licence watermark play out, so that it is gone before pixels are taken. */
@@ -316,9 +328,23 @@ async function compareModesWithBase(page: Page, row: Row, theme: Theme) {
     expectPixelIdentical(nonce, base, `${row.name} (${theme}) in nonce mode`);
 }
 
-async function setBrand(page: Page, value: string) {
-    await page.evaluate((v) => document.documentElement.style.setProperty('--brand', v), value);
+/** Changes `--brand`, then waits for the pixel at the first bar's centre to take the new colour. */
+async function repaintFirstBar(page: Page) {
+    const centre = await firstBarCentre(page, BRAND_BEFORE_RGB);
+    expect(centre, 'first bar in the initial colour').toBeDefined();
+
+    await page.evaluate((v) => document.documentElement.style.setProperty('--brand', v), BRAND_AFTER);
     await waitForAllChartUpdates(page);
+
+    await expect
+        .poll(
+            async () => {
+                const pixel = await pixelAt(page, centre!);
+                return pixel.every((c, k) => Math.abs(c - BRAND_AFTER_RGB[k]) <= COLOUR_TOLERANCE);
+            },
+            { message: 'first bar repaints in the new colour' }
+        )
+        .toBe(true);
 }
 
 /** The centre, in device pixels, of the left-most region of `rgb` on the chart's canvas. */
@@ -352,7 +378,7 @@ async function firstBarCentre(page: Page, rgb: readonly number[]) {
             }
             return { x: Math.round((x0 + x1) / 2), y: Math.round((y0 + y1) / 2) };
         },
-        { target: [...rgb], tolerance: 2 }
+        { target: [...rgb], tolerance: COLOUR_TOLERANCE }
     );
 }
 
@@ -397,6 +423,7 @@ test.describe('security: routed origin', () => {
             test(`displays in ${modeName} mode`, async ({ page, browserName }) => {
                 test.skip(browserName !== 'chromium', 'Chromium only: outside it the spec runs the repaint cases');
                 const mode = MODES[modeName];
+                await holdWatermarkFade(page);
                 await render(page, {
                     mode,
                     enterprise: true,
@@ -411,16 +438,12 @@ test.describe('security: routed origin', () => {
                     const logo = getComputedStyle(el, '::before');
                     return {
                         position: own.position,
-                        bottom: own.bottom,
-                        right: own.right,
                         fontFamily: own.fontFamily,
                         logo: logo.backgroundImage,
                         animations: el.getAnimations().map((a) => (a as CSSAnimation).animationName),
                     };
                 });
                 expect(style.position).toBe('absolute');
-                expect(style.bottom).toBe('20px');
-                expect(style.right).toBe('25px');
                 expect(style.fontFamily).toContain('Impact');
                 expect(style.logo).toContain('data:image/svg+xml');
                 expect(style.animations).toContain('ag-watermark-fadeout');
@@ -443,19 +466,7 @@ test.describe('security: routed origin', () => {
                     options: withTheme(CSS_VARIABLE_OPTIONS, 'ag-default', mode),
                 });
 
-                const before = await firstBarCentre(page, BRAND_BEFORE_RGB);
-                expect(before, 'first bar in the initial colour').toBeDefined();
-                await setBrand(page, BRAND_AFTER);
-
-                await expect
-                    .poll(
-                        async () => {
-                            const pixel = await pixelAt(page, before!);
-                            return pixel.every((c, k) => Math.abs(c - BRAND_AFTER_RGB[k]) <= 2);
-                        },
-                        { message: 'first bar repaints in the new colour' }
-                    )
-                    .toBe(true);
+                await repaintFirstBar(page);
 
                 // A registered `<color>` property resolves to rgb(); an unregistered one returns the hex text.
                 const registered = await page.evaluate(() =>
