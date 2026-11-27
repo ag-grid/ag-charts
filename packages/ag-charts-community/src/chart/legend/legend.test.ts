@@ -647,6 +647,7 @@ describe('Legend', () => {
     describe('legendBackgroundColor theme param', () => {
         const FLOATING: AgChartLegendPosition = { placement: 'right-top', floating: true, xOffset: -90, yOffset: 60 };
         const CHART_BACKGROUND = '#d8e6f3';
+        const DARK_BACKGROUND = '#192232';
 
         it('fills a floating legend by default, and every legend once it is set', async () => {
             let proxy: AgChartInstance | undefined;
@@ -710,7 +711,7 @@ describe('Legend', () => {
             await compare(chart);
 
             const dark = await legendOf({ baseTheme: 'ag-default-dark' }, { position: FLOATING });
-            expect(dark).toEqual({ fill: chart.chartOptions.themeParameters.chartBackgroundColor, padding: 0 });
+            expect(dark).toEqual({ fill: DARK_BACKGROUND, padding: 0 });
             await compare(chart);
         });
     });

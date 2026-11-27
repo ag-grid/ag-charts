@@ -163,6 +163,7 @@ describe('GradientLegend', () => {
     it('legendBackgroundColor fills a floating gradient legend by default, and every gradient legend once it is set', async () => {
         const FLOATING: AgChartLegendPosition = { placement: 'right-top', floating: true, xOffset: -120, yOffset: 60 };
         const CHART_BACKGROUND = '#d8e6f3';
+        const DARK_BACKGROUND = '#192232';
 
         // One chart updated per case: the mock canvas only captures the first chart a test creates.
         const gradientLegendOf = async (
@@ -189,6 +190,10 @@ describe('GradientLegend', () => {
         expect(await gradientLegendOf(unset)).toEqual({ fill: 'transparent', padding: 0 });
         expect(await gradientLegendOf(unset, { position: FLOATING })).toEqual({ fill: CHART_BACKGROUND, padding: 0 });
         await compare();
+        expect(await gradientLegendOf({ params: { backgroundColor: '#eee8d5' } }, { position: FLOATING })).toEqual({
+            fill: '#eee8d5',
+            padding: 0,
+        });
 
         const set: AgChartTheme = { params: { legendBackgroundColor: '#ffd9a8', legendPadding: 12 } };
         expect(await gradientLegendOf(set)).toEqual({ fill: '#ffd9a8', padding: 12 });
@@ -202,6 +207,12 @@ describe('GradientLegend', () => {
         };
         expect(await gradientLegendOf(setToDefault)).toEqual({ fill: CHART_BACKGROUND, padding: 5 });
 
+        const setToRef: AgChartTheme = {
+            params: { accentColor: '#8a2be2', legendBackgroundColor: { ref: 'accentColor' } },
+        };
+        expect(await gradientLegendOf(setToRef)).toEqual({ fill: '#8a2be2', padding: 5 });
+        expect(await gradientLegendOf(setToRef, { position: FLOATING })).toEqual({ fill: '#8a2be2', padding: 5 });
+
         expect(await gradientLegendOf(set, { fill: '#b7e4c7', position: FLOATING })).toEqual({
             fill: '#b7e4c7',
             padding: 12,
@@ -209,7 +220,7 @@ describe('GradientLegend', () => {
         expect(await gradientLegendOf(set, { fill: '#b7e4c7' })).toEqual({ fill: '#b7e4c7', padding: 12 });
 
         const dark = await gradientLegendOf({ baseTheme: 'ag-default-dark' }, { position: FLOATING });
-        expect(dark).toEqual({ fill: deproxy(chart).chartOptions.themeParameters.chartBackgroundColor, padding: 0 });
+        expect(dark).toEqual({ fill: DARK_BACKGROUND, padding: 0 });
         await compare();
     });
 
