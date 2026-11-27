@@ -74,7 +74,9 @@ export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
         const geometry = this.pickGeometry ?? this.projectedGeometry;
         if (geometry == null) return false;
 
-        const bounds = this.pickGeometry == null ? this.getBBox() : this.getPickBBox();
+        // Reads the bounds in place: this runs for every node on each pointer move, so it must not clone.
+        this.updatePathIfDirty();
+        const bounds = this.pickBBox ?? this.bbox;
         if (!bounds?.containsPoint(x, y)) return false;
 
         return this.geometryDistance(geometry, x, y) <= 0;
