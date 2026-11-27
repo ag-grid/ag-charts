@@ -1149,7 +1149,7 @@ describe('Caption', () => {
             series: [{ type: 'pie', angleKey: 'count', legendItemKey: 'fruit' }],
         };
 
-        it.each([
+        it.each<[name: string, options: AgChartOptions, expected: string]>([
             ['a cartesian chart without captions', titleChartOptions, 'chart, 1 series'],
             [
                 'a cartesian chart with a title',
