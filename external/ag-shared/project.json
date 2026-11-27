@@ -7,7 +7,7 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package"],
-      "inputs": [],
+      "inputs": ["production", "^production"],
       "outputs": [],
       "configurations": {
         "watch": {},
@@ -43,7 +43,7 @@
     "test": {
       "executor": "nx:noop",
       "dependsOn": ["test:vitest"],
-      "inputs": [],
+      "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": [],
       "configurations": {
         "ci": {},

@@ -50,7 +50,7 @@ import type { AgBaseChartOptions, AgBaseThemeableChartOptions, AgChartValidation
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from './polarOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
-import type { AgMarkerShape, ContextDefault, CssColor, DatumDefault } from './types';
+import type { AgLineDashName, AgMarkerShape, ContextDefault, CssColor, DatumDefault, PixelSize } from './types';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -89,6 +89,12 @@ export interface AgChartThemePalette {
      * Default: `['circle']`
      */
     markerShapes?: AgMarkerShape[];
+    /**
+     * The array of line dash patterns to be used by Line, Area, Range Area, Radar Line and Radar Area Series. Each series without an explicit `lineDash` takes the pattern at its series index, wrapping around when there are more series than patterns. Each pattern takes the same form as a series `lineDash`.
+     *
+     * Default: `['solid']`
+     */
+    lineDashes?: (PixelSize[] | AgLineDashName)[];
     /** Colours used for positive or upward values, such as rising prices in Financial Charts. */
     up?: AgPaletteColors;
     /** Colours used for negative or downward values, such as falling prices in Financial Charts. */

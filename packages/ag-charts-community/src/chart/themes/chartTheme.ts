@@ -342,6 +342,7 @@ export class ChartTheme {
                 fills: defaultFills,
                 strokes: Object.values(strokes),
                 markerShapes: ['circle'],
+                lineDashes: ['solid'],
                 sequentialColors: Object.values(sequentialColors),
                 ...otherColors,
             })

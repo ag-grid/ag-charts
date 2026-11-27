@@ -16,7 +16,6 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:package", "build:umd", "build:types"],
-      "inputs": [],
       "outputs": [],
       "configurations": {
         "watch": {},

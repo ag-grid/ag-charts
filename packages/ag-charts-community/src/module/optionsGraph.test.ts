@@ -1395,6 +1395,21 @@ describe('OptionsGraph', () => {
             });
         });
 
+        it.each(['$switch', '$applySwitch'])('should not build a graph for the cases of `%s`', (operator) => {
+            const deepCase = { first: { second: [{ third: 1 }, { third: 2 }] } };
+            const themeConfig = (caseValue: unknown) => ({
+                line: {
+                    one: { [operator]: [{ $path: '/two' }, {}, [['case-a', 'case-b'], caseValue]] },
+                    two: 'case-a',
+                },
+            });
+            const shallowGraph = new OptionsGraph(themeConfig({}), prepareOptions({}));
+            const deepGraph = new OptionsGraph(themeConfig(deepCase), prepareOptions({}));
+
+            expect(deepGraph.getVertexCount()).toBe(shallowGraph.getVertexCount());
+            expect(deepGraph.resolve(testLogger).one).toStrictEqual(deepCase);
+        });
+
         it('should resolve `$every` operations', () => {
             const themeConfig = {
                 line: {

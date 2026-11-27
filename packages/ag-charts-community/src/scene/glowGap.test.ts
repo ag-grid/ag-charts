@@ -315,16 +315,12 @@ describe('glow gap', () => {
                 return { bare, pixelAt };
             };
 
+            // The glow ends a gap and a spread past the stroke's outer edge, which pixel centres measure to within a pixel's diagonal.
+            const REACH = THICK_GAP + THICK_SPREAD + Math.SQRT2;
             const MITRED: PointExpectation = { clear: THICK_GAP - 1, cut: THICK_GAP, glow: THICK_SPREAD - 1 };
-            // The glow of a fill follows the fill outline, so the ring over a round join is a half-stroke thinner than the spread.
-            const ROUND: PointExpectation = {
-                clear: THICK_GAP - 1,
-                reach: THICK_GAP + THICK_SPREAD + 1,
-                cut: 2,
-                glow: 3,
-            };
+            const ROUND: PointExpectation = { clear: THICK_GAP - 1, reach: REACH, cut: 2, glow: THICK_SPREAD - 1 };
             // A bevel face is a gap times the sine of half the point's angle from the glow, so only that it is clear is asserted.
-            const BEVELLED: PointExpectation = { reach: THICK_GAP + THICK_SPREAD + 1, cut: 1, glow: 1 };
+            const BEVELLED: PointExpectation = { reach: REACH, cut: 1, glow: 1 };
 
             it.each<[string, Partial<Shape>, PointExpectation]>([
                 ['a thick mitred stroke', {}, MITRED],
