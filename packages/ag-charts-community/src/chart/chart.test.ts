@@ -44,6 +44,7 @@ import {
     deproxy,
     doubleClickAction,
     expectWarningsCalls,
+    getChartAriaLabel,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -2280,6 +2281,50 @@ describe('Chart', () => {
 
             chart = deproxy(await createChart(options));
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+    describe('ariaLabel', () => {
+        const barOptions: AgCartesianChartOptions = {
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        };
+        const pieOptions: AgStandaloneChartOptions = {
+            data: [
+                { label: 'A', value: 10 },
+                { label: 'B', value: 20 },
+            ],
+            series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }],
+        };
+
+        it.each([
+            ['a cartesian chart', barOptions],
+            ['a pie chart', pieOptions],
+        ])('replaces the generated accessible name of %s', async (_name, options) => {
+            chart = deproxy(await createChart({ ...options, title: { text: 'Q3 revenue' }, ariaLabel: 'Sales' }));
+
+            expect(getChartAriaLabel(chart)).toBe('Sales');
+        });
+
+        it('keeps the generated accessible name when empty', async () => {
+            chart = deproxy(await createChart({ ...barOptions, ariaLabel: '' }));
+
+            expect(getChartAriaLabel(chart)).toBe('chart, 1 series');
+        });
+
+        it('follows updates to the option', async () => {
+            const proxy = await createChart(barOptions);
+            chart = deproxy(proxy);
+
+            await proxy.update(prepareTestOptions({ ...barOptions, ariaLabel: 'Sales' }));
+            await waitForChartStability(proxy);
+            expect(getChartAriaLabel(chart)).toBe('Sales');
+
+            await proxy.update(prepareTestOptions({ ...barOptions }));
+            await waitForChartStability(proxy);
+            expect(getChartAriaLabel(chart)).toBe('chart, 1 series');
         });
     });
 });
