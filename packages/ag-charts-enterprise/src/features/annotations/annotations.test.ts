@@ -2013,6 +2013,13 @@ describe('Annotations', () => {
             width.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
         };
+        /** The settings dialog changes that the dialog tests apply, cancel and undo. */
+        const edit = async () => {
+            await changeStrokeWidth('8');
+            await press('.ag-charts-dialog__color-picker-button');
+            await pickColor('#00ff00');
+            await pressEnterOn(PALETTE);
+        };
         const toolbarSwatch = () =>
             chartBody().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
         const dialogSwatches = () =>
@@ -2139,12 +2146,6 @@ describe('Annotations', () => {
             expect(annotation().stroke).toBe('#0000ff');
 
             const original = { stroke: '#0000ff', strokeWidth: 4 };
-            const edit = async () => {
-                await changeStrokeWidth('8');
-                await press('.ag-charts-dialog__color-picker-button');
-                await pickColor('#00ff00');
-                await pressEnterOn(PALETTE);
-            };
             await press('button[title="Settings"]');
             expect(hasDialog()).toBe(true);
             expect(chartBody().querySelector('.ag-charts-dialog__actions')).toBeNull();
@@ -2179,12 +2180,6 @@ describe('Annotations', () => {
         it('applies and cancels the settings dialog as a whole', async () => {
             await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
             const { historyManager } = deproxy(chart).ctx;
-            const edit = async () => {
-                await changeStrokeWidth('8');
-                await press('.ag-charts-dialog__color-picker-button');
-                await pickColor('#00ff00');
-                await pressEnterOn(PALETTE);
-            };
             const original = { stroke: '#ff0000', strokeWidth: 2 };
 
             // Apply has nothing to apply until something changes.

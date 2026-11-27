@@ -92,7 +92,7 @@ interface ColorPickerOptions {
     isMultiColor?: boolean;
     hasMultiColorOption: boolean;
     onChange: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
-    onChangeHide: (cancelled: boolean) => void;
+    onChangeHide: () => void;
 }
 
 /**
@@ -458,7 +458,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                         if (c !== '') changeColor(toColorWithOpacity(c, o), c, o, m, true);
                         return;
                     }
-                    onChangeHide(cancelled);
+                    onChangeHide();
                 },
             });
             // A colour that was unset has been given the picker's default by now.

@@ -508,10 +508,10 @@ export class Annotations extends AbstractModuleInstance {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
                         this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
-                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => (cancelled: boolean) =>
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () =>
                     this.endColorPickerSession(
                         `Change ${datum.type} ${colorType} to ${getDefaultColor(datum, colorType)}`,
-                        cancelled
+                        false
                     );
 
                 const { showActionButtons } = this.optionsToolbar;

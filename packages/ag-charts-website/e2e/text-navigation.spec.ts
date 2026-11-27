@@ -96,7 +96,7 @@ test.describe('text-navigation', () => {
         await expect(input).toHaveValue(/^0002-/);
 
         await page.keyboard.type(original.slice(1, 4));
-        await page.keyboard.press('Enter');
+        await page.keyboard.press('Tab');
         await expect(input).toHaveValue(original);
     });
 });
