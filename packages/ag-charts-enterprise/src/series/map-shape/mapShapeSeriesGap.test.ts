@@ -25,11 +25,11 @@ import {
 import { BBox, type Geometry, type Position, Selection, Text, Transformable } from 'ag-charts-core';
 
 import { getSeriesGroup, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
+import { type Pixels, hexToRgb, measureStrip, pixelAt, pixelBox, readPixels } from '../../test/pixelRuns';
 import { createEnterpriseChart } from '../../test/utils';
 import { rect, reverseRing } from '../map-test/gapSyntheticRings';
 import { type GapTopology, featurePolygons } from '../map-test/gapTestUtil';
 import indonesiaTimorTopology from '../map-test/indonesiaTimorTopology.json';
-import { type Pixels, hexToRgb, measureStrip, pixelAt, pixelBox, readPixels } from '../map-test/pixelRuns';
 import southernAfricaItalyTopology from '../map-test/southernAfricaItalyTopology.json';
 import { usData } from '../map-test/usData';
 import { central, eastern, mountain, pacific } from '../map-test/usTimeZoneData';
