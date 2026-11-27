@@ -10,12 +10,10 @@ import {
     tooth,
     tripoint,
 } from '../map-test/gapSyntheticRings';
-import { type GapTopology, createScene, topologyRegions } from '../map-test/gapTestUtil';
+import { type GapTopology, SWEEP_TOPOLOGIES, createScene, topologyRegions } from '../map-test/gapTestUtil';
 import indonesiaTimorTopology from '../map-test/indonesiaTimorTopology.json';
-import londonBoroughTopology from '../map-test/londonBoroughTopology.json';
 import southernAfricaItalyTopology from '../map-test/southernAfricaItalyTopology.json';
 import usTopology from '../map-test/usTopology.json';
-import worldTopology from '../map-test/worldTopology.json';
 import { MapShapeGapIndex } from './mapShapeGapIndex';
 
 function build(...regions: ReturnType<typeof region>[]): MapShapeGapIndex {
@@ -359,11 +357,12 @@ describe('MapShapeGapIndex', () => {
     });
 
     describe('topologies', () => {
-        const topologies: [string, GapTopology, number][] = [
-            ['US states', usTopology as GapTopology, 582],
-            ['world countries', worldTopology as GapTopology, 2677],
-            ['London boroughs', londonBoroughTopology as GapTopology, 962],
-        ];
+        const sharedEdgeCounts = [582, 2677, 962];
+        const topologies = SWEEP_TOPOLOGIES.map(([name, topology], i): [string, GapTopology, number] => [
+            name,
+            topology,
+            sharedEdgeCounts[i],
+        ]);
 
         it.each(topologies)('finds every shared edge of the %s', (_name, topology, sharedEdges) => {
             const index = new MapShapeGapIndex();
@@ -427,6 +426,26 @@ describe('MapShapeGapIndex', () => {
 
             expect(index.stats.sharedEdges).toBe(582);
             expect(index.stats.movedEdges).toBe(0);
+        });
+
+        it('finds the unshared edges between two moved runs that the design counted: 4 in the US and 15 in the world (DR2-1)', () => {
+            const unsharedBetweenRuns = (topology: GapTopology) => {
+                const { index, fixed } = createScene(topology, 1);
+                let count = 0;
+                for (const ring of fixed.flat()) {
+                    const info = index.getRingInfo(ring);
+                    if (info == null) continue;
+                    const n = info.vertexCount;
+                    for (let i = 0; i < n; i += 1) {
+                        const edgeMoved = (e: number) => info.movedEdges[(e + n) % n] === 1;
+                        if (!edgeMoved(i) && edgeMoved(i - 1) && edgeMoved(i + 1)) count += 1;
+                    }
+                }
+                return count;
+            };
+
+            expect(unsharedBetweenRuns(SWEEP_TOPOLOGIES[0][1])).toBe(4);
+            expect(unsharedBetweenRuns(SWEEP_TOPOLOGIES[1][1])).toBe(15);
         });
 
         it('finds the land border between Indonesia and Timor-Leste', () => {

@@ -20,11 +20,9 @@ import {
     tooth,
     tripoint,
 } from '../map-test/gapSyntheticRings';
-import { type GapTopology, createScene } from '../map-test/gapTestUtil';
+import { type GapTopology, SWEEP_TOPOLOGIES, createScene } from '../map-test/gapTestUtil';
 import indonesiaTimorTopology from '../map-test/indonesiaTimorTopology.json';
-import londonBoroughTopology from '../map-test/londonBoroughTopology.json';
 import southernAfricaItalyTopology from '../map-test/southernAfricaItalyTopology.json';
-import usTopology from '../map-test/usTopology.json';
 import worldTopology from '../map-test/worldTopology.json';
 import { MapShapeGapIndex } from './mapShapeGapIndex';
 import { insetGapRing, insetPolygonRings, simplifyGapRing } from './polygonGapInset';
@@ -397,6 +395,31 @@ describe('insetPolygonRings', () => {
             expect(exterior(index, a, 2.9)).toBeUndefined();
         });
 
+        it('collapses a polygon whose exterior has fewer than 3 distinct vertices (D-15)', () => {
+            // At d = 3 the drawn ring is a zero-width strip: 4 vertices, only 2 of them distinct.
+            const { index, a } = narrow(3);
+
+            expect(exterior(index, a, 3)).toBeUndefined();
+        });
+
+        it('collapses a polygon whose signed area has flipped sign (D-15)', () => {
+            const { index, a } = narrow(3);
+
+            expect(exterior(index, a, 3.5)).toBeUndefined();
+        });
+
+        it('does not throw for a screen ring whose points all coincide, and for non-finite inputs', () => {
+            const { a, b } = sideBySide();
+            const index = indexRings(a, b);
+
+            expect(() => inset(index, [a], 2, 0)).not.toThrow();
+            expect(inset(index, [a], 2, 0)).toBeUndefined();
+            expect(() => inset(index, [a], Number.POSITIVE_INFINITY)).not.toThrow();
+            const withNaN = scaleRing(a, 1).map(([x, y]): Position => [x, y]);
+            withNaN[1] = [Number.NaN, Number.NaN];
+            expect(() => insetPolygonRings([withNaN], index.getPolygonRingInfo([a])!, 2)).not.toThrow();
+        });
+
         it('collapses a polygon with a coordinate that is not finite', () => {
             const { a, b } = sideBySide();
             const index = indexRings(a, b);
@@ -671,7 +694,7 @@ describe('insetPolygonRings', () => {
     });
 
     describe('slides', () => {
-        it('slides a border end along the coast edge it meets by d, and steps square when the edge is shorter', () => {
+        it('slides a border end along the coast edge it meets, and steps square when the edge is shorter', () => {
             const neighbour = rect(10, 0, 20, 10);
             // The coast leaves the end of the border up and to the left at 45 degrees: the end slides along it by d.
             const long: Ring = [
@@ -767,6 +790,12 @@ function sweep(topology: GapTopology, zoom: number, d: number): SweepResult {
         }
         if (Math.abs(signedArea(drawn[0])) > Math.abs(signedArea(polygon[0])) + 1e-6) report(p, 'the area grew');
         if (signedArea(drawn[0]) * signedArea(polygon[0]) <= 0) report(p, 'the exterior ring flipped');
+        // DR2-7: the polygon's signed area, exterior plus holes (holes wind the other way), never grows.
+        const total = (rings: readonly Position[][]) => rings.reduce((sum, ring) => sum + signedArea(ring), 0);
+        if (Math.abs(total(drawn)) > Math.abs(total(polygon)) + 1e-6) report(p, 'the polygon area grew');
+        for (let r = 0; r < polygon.length; r += 1) {
+            if (infos[r] == null && !drawn.includes(polygon[r])) report(p, `unmoved ring ${r} was not kept as it was`);
+        }
 
         for (let r = 0; r < polygon.length; r += 1) {
             const info = infos[r];
@@ -810,11 +839,7 @@ function sweep(topology: GapTopology, zoom: number, d: number): SweepResult {
 }
 
 describe('gap sweep', () => {
-    const topologies: [string, GapTopology][] = [
-        ['US states', usTopology as GapTopology],
-        ['world countries', worldTopology as GapTopology],
-        ['London boroughs', londonBoroughTopology as GapTopology],
-    ];
+    const topologies = SWEEP_TOPOLOGIES;
     const cases = topologies.flatMap(([name, topology]) =>
         [1, 16].flatMap((zoom) => [2.5, 4].map((d) => ({ name, topology, zoom, d })))
     );
@@ -832,11 +857,7 @@ describe('gap sweep: both sides of a border', () => {
     const edgeKey = ([x0, y0]: Position, [x1, y1]: Position): string =>
         x0 < x1 || (x0 === x1 && y0 < y1) ? `${x0},${y0}|${x1},${y1}` : `${x1},${y1}|${x0},${y0}`;
 
-    const topologies: [string, GapTopology][] = [
-        ['US states', usTopology as GapTopology],
-        ['world countries', worldTopology as GapTopology],
-        ['London boroughs', londonBoroughTopology as GapTopology],
-    ];
+    const topologies = SWEEP_TOPOLOGIES;
     const cases = topologies.flatMap(([name, topology]) => [1, 4, 16].map((zoom) => ({ name, topology, zoom })));
 
     it.each(cases)('$name at zoom $zoom: both rings of a border keep the same edges (D-13)', ({ topology, zoom }) => {
@@ -908,6 +929,45 @@ describe('gap on real topologies', () => {
         const drawnHost = insetPolygonRings(screen[hostPolygon], index.getPolygonRingInfo(fixed[hostPolygon])!, 4)!;
         expect(drawnHost).toHaveLength(screen[hostPolygon].length);
         expect(Math.abs(signedArea(drawnHost[1]))).toBeGreaterThan(Math.abs(signedArea(screen[hostPolygon][1])));
+    });
+
+    it.each([
+        [4, 2.5],
+        [4, 4],
+        [16, 4],
+    ])('keeps Lesotho 2d from its host on every side at zoom %d with d = %d (V7)', (zoom, d) => {
+        const { index, fixed, screen, features } = createScene(southernAfricaItalyTopology as GapTopology, zoom);
+        const lesotho = features.find((f) => f.name === 'Lesotho')!.first;
+        const southAfrica = features.find((f) => f.name === 'South Africa')!;
+        const host = Array.from({ length: southAfrica.count }, (_, i) => southAfrica.first + i).find(
+            (p) => screen[p].length > 1
+        )!;
+
+        const drawnLesotho = insetPolygonRings(screen[lesotho], index.getPolygonRingInfo(fixed[lesotho])!, d)!;
+        const drawnHost = insetPolygonRings(screen[host], index.getPolygonRingInfo(fixed[host])!, d)!;
+        const hole = drawnHost[1];
+
+        const nearest = (point: Position, ring: readonly Position[]) =>
+            Math.min(
+                ...ring.slice(1).map(([x1, y1], i) => {
+                    const [x0, y0] = ring[i];
+                    const dx = x1 - x0;
+                    const dy = y1 - y0;
+                    const t =
+                        dx === 0 && dy === 0
+                            ? 0
+                            : Math.max(
+                                  0,
+                                  Math.min(1, ((point[0] - x0) * dx + (point[1] - y0) * dy) / (dx * dx + dy * dy))
+                              );
+                    return Math.hypot(point[0] - x0 - t * dx, point[1] - y0 - t * dy);
+                })
+            );
+        const separation = Math.min(
+            ...drawnLesotho[0].map((point) => nearest(point, hole)),
+            ...hole.map((point) => nearest(point, drawnLesotho[0]))
+        );
+        expect(separation).toBeGreaterThanOrEqual(2 * d - 1e-6);
     });
 
     it('does not draw microstates narrower than their share of the gap, and still draws their host', () => {

@@ -2,6 +2,9 @@ import type { Position } from 'ag-charts-core';
 
 import { type GapIndexRegion, MapShapeGapIndex } from '../map-util/mapShapeGapIndex';
 import { MercatorScale } from '../map-util/mercatorScale';
+import londonBoroughTopology from './londonBoroughTopology.json';
+import usTopology from './usTopology.json';
+import worldTopology from './worldTopology.json';
 
 type Ring = Position[];
 type Polygon = Ring[];
@@ -14,6 +17,13 @@ interface TestFeature {
 export interface GapTopology {
     features: TestFeature[];
 }
+
+/** The topologies the gap suites sweep, by name. */
+export const SWEEP_TOPOLOGIES: [string, GapTopology][] = [
+    ['US states', usTopology as GapTopology],
+    ['world countries', worldTopology as GapTopology],
+    ['London boroughs', londonBoroughTopology as GapTopology],
+];
 
 export function featurePolygons(feature: TestFeature): Polygon[] {
     switch (feature.geometry.type) {
