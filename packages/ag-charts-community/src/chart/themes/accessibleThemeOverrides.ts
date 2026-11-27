@@ -156,9 +156,6 @@ const SERIES_LABEL_INSIDE_FILL = {
     padding: 4,
 } as const;
 
-// Sankey derives node colours from this undocumented option, which accepts only solid colours.
-const SANKEY_SOLID_FILLS = { defaultPatternFills: { $palette: 'fillsFallback' } };
-
 const ACCESSIBLE_THEME_OVERRIDES: WithThemeParams<AgThemeOverrides> = {
     common: {
         legend: {
@@ -231,7 +228,7 @@ const ACCESSIBLE_THEME_OVERRIDES: WithThemeParams<AgThemeOverrides> = {
         },
     },
     sunburst: { series: { ...STROKE, label: SERIES_LABEL_INSIDE_FILL, secondaryLabel: SERIES_LABEL_INSIDE_FILL } },
-    sankey: { series: { node: STROKE, link: STROKE, ...SANKEY_SOLID_FILLS } },
+    sankey: { series: { node: STROKE, link: STROKE } },
     chord: { series: { node: STROKE, link: STROKE } },
     funnel: { series: STROKE },
     'cone-funnel': { series: STROKE },

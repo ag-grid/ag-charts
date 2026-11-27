@@ -375,9 +375,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private _opaquePaintSource?: Gradient | Pattern | Image;
     private _opaquePaint = true;
 
-    /** Whether the fill paints every pixel of the shape at alpha 1 before `fillOpacity`: a gradient or pattern, or an image, can't. */
+    /**
+     * Whether the fill paints every pixel of the shape at alpha 1 before `fillOpacity`: a gradient or pattern, or an image, can't.
+     * A solid object fill counts by the alpha it resolves to, as a plain colour does.
+     */
     private hasOpaquePaint(fill: ShapeColor): boolean {
         if (typeof fill === 'string') return this.getFillAlpha(fill) >= 1;
+        if (this.fillSolid != null) return this.getFillAlpha(this.fillSolid) >= 1;
 
         const paint = this.fillGradient ?? this.fillPattern ?? this.fillImage;
         if (paint == null) return true;
@@ -612,6 +616,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             mode === 'silhouette' ||
             dilatesShadow(shadow) ||
             this.castsOverFillAlpha(slot) ||
+            this.cutsSeeThroughGlow(slot) ||
             (mode === 'fill' && this.getShadowMode(slot) === 'stroke')
         );
     }
@@ -631,7 +636,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Whether the slot casts at its own `fillOpacity`, not scaled by the fill's alpha: a glow, or a shadow whose `fillOpacity` is set. */
     private castsAtOwnAlpha(slot: ShadowSlot): boolean {
         const shadow = this.getSlot(slot);
-        return shadow?.glow === true || shadow?.fillOpacitySet === true;
+        return shadow?.glow === true || shadow?._fillOpacitySet === true;
+    }
+
+    /** Whether the glow this item casts itself is cut by its footprint: a hovered copy, with no `gap`, that paints see-through. */
+    private cutsSeeThroughGlow(slot: ShadowSlot): boolean {
+        return (
+            slot === 'glow' &&
+            shadowPass.highlight &&
+            this.__drawingMode === 'cutout' &&
+            this.getSlot(slot)?.gap == null &&
+            this.paintsSeeThrough()
+        );
     }
 
     /** Whether the slot casts at its own alpha over a fill that is not uniformly opaque, so its silhouette is cast solid instead. */
@@ -768,6 +784,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Whether the stroke is visible and has any alpha to cast a shadow from. */
     private hasCastableStroke(): boolean {
         return this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
+    }
+
+    /** Whether a glow beneath the shape shows through its fill (a gradient or pattern may fade in part), stroke or `opacity`. */
+    paintsSeeThrough(): boolean {
+        const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
+        const fillPainted = this.hasCastableFill();
+        const strokePainted = this.hasCastableStroke();
+        if (!fillPainted && !strokePainted) return false;
+
+        return (
+            opacity < 1 ||
+            (fillPainted && (fillOpacity < 1 || !this.hasOpaquePaint(this.__fill!))) ||
+            (strokePainted && (strokeOpacity < 1 || this.getStrokeAlpha(this.__stroke) < 1))
+        );
     }
 
     /**
@@ -1108,6 +1138,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return false;
     }
 
+    /** Whether a glow's `spread` grows from the outer edge of the item's stroke, as its `gap` does, rather than from its path. */
+    protected glowGrowsFromStrokeEdge(): boolean {
+        return false;
+    }
+
+    /** How much further a dilation of the fill alone grows, to reach as far past the stroke's outer edge as the `gap` cut does. */
+    private getGlowStrokeGrowth(slot: ShadowSlot): number {
+        if (slot !== 'glow' || !this.glowGrowsFromStrokeEdge() || !this.hasStrokeOutline()) return 0;
+        const shadow = this.getSlot(slot);
+        if (shadow == null || !dilatesShadow(shadow) || this.getShadowMode(slot) !== 'fill') return 0;
+        return this.__strokeWidth / 2;
+    }
+
     /** Whether the item has a stroke whose outline, with its own join, miter limit and cap, a glow's `gap` is kept clear of. */
     private hasStrokeOutline(): boolean {
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
@@ -1132,6 +1175,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         footprint: boolean = false,
         painted: boolean = false
     ) {
+        if (!footprint) spread += this.getGlowStrokeGrowth(slot);
         const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
         try {
             const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
@@ -1219,6 +1263,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         painted: boolean = false
     ) {
         if (ctx.globalAlpha <= 0 || (this.__opacity ?? 1) <= 0) return;
+        // An opaque item hides the glow beneath it, and its anti-aliased edge would lose the glow that shows there.
+        if (shadowPass.eraseSeeThroughOnly && !this.paintsSeeThrough()) return;
 
         const drawsStroke = this.hasStrokeOutline() && (!painted || this.hasCastableStroke());
         const drawsFill =
@@ -1266,7 +1312,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private getShadowStrokeReach(slot: ShadowSlot, spread: number): number {
         const fillOnly = this.getShadowMode(slot) === 'fill';
         const gapped = this.getSlot(slot)?.gap != null;
-        const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
+        const halfStroke = (fillOnly ? this.getGlowStrokeGrowth(slot) : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A glow's gap dilates the fill of a stroked item with the join of its stroke.
         const ownJoin = !fillOnly || (gapped && this.hasStrokeOutline());
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
@@ -1344,7 +1390,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             return;
         }
 
-        if (dilatesShadow(shadow) || this.castsOverFillAlpha(slot)) {
+        if (dilatesShadow(shadow) || this.castsOverFillAlpha(slot) || this.cutsSeeThroughGlow(slot)) {
             spreadBounds.minX = minX;
             spreadBounds.minY = minY;
             spreadBounds.maxX = maxX;
@@ -1452,7 +1498,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         scratch.restore();
 
         const { gap } = this.getSlot(slot)!;
-        if (gap != null && this.castGappedShadow(slot, ctx, path, matrix, gap, distance, strength, canvas)) return;
+        const cutsPainted = gap == null && this.cutsSeeThroughGlow(slot);
+        if (
+            (gap != null || cutsPainted) &&
+            this.castGappedShadow(slot, ctx, path, matrix, gap ?? 0, distance, strength, canvas, cutsPainted)
+        ) {
+            return;
+        }
 
         ctx.save();
         ctx.resetTransform();
@@ -1475,7 +1527,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         gap: number,
         distance: number,
         strength: number,
-        silhouette: OffscreenCanvas
+        silhouette: OffscreenCanvas,
+        painted: boolean
     ): boolean {
         const { x, y, width, height } = spreadRegion;
         if (!setGapRegion()) return true;
@@ -1497,7 +1550,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         land.save();
         land.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e - left, matrix.f - top);
-        this.eraseFootprint(slot, land, path, gap);
+        this.eraseFootprint(slot, land, path, gap, painted);
         land.restore();
 
         ctx.save();

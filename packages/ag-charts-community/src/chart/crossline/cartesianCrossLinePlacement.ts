@@ -1,7 +1,5 @@
-import type { CrossLineType } from 'ag-charts-core';
+import type { AnchorDirection, CrossLineType } from 'ag-charts-core';
 import type { AgCartesianCrossLineLabelPlacement } from 'ag-charts-types';
-
-export type AnchorDirection = 1 | 0 | -1;
 
 /**
  * `rangeH`/`rangeV` pick the point on the cross line's bounds the label is pinned to; `labelH`/`labelV` the
