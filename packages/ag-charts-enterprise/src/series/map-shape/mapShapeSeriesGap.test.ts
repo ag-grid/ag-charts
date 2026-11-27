@@ -37,7 +37,7 @@ import usTopology from '../map-test/usTopology.json';
 import worldTopology from '../map-test/worldTopology.json';
 import type { GeoGeometry } from '../map-util/geoGeometry';
 import { MapShapeGapIndex } from '../map-util/mapShapeGapIndex';
-import { MapShapeGapNeighbours } from '../map-util/mapShapeGapNeighbours';
+import { MapShapeGapNeighbours, collectPolygons, findDrawnPolygon } from '../map-util/mapShapeGapNeighbours';
 import { polygonDistance } from '../map-util/polygonUtil';
 import { type MapShapeNodeDatum, MapShapeSeries } from './mapShapeSeries';
 
@@ -127,19 +127,9 @@ function canvasPoint(chart: AgChartInstance, [lon, lat]: Position, seriesIndex =
     return { x: canvasX, y: canvasY };
 }
 
+/** The exterior ring points of every polygon of a geometry. */
 function exteriorPoints(geometry: Geometry | undefined): Position[] {
-    const points: Position[] = [];
-    const visit = (g: Geometry) => {
-        if (g.type === 'Polygon') {
-            if (g.coordinates[0] != null) points.push(...g.coordinates[0]);
-        } else if (g.type === 'MultiPolygon') {
-            for (const polygon of g.coordinates) if (polygon[0] != null) points.push(...polygon[0]);
-        } else if (g.type === 'GeometryCollection') {
-            for (const member of g.geometries) visit(member);
-        }
-    };
-    if (geometry != null) visit(geometry);
-    return points;
+    return geometry == null ? [] : collectPolygons(geometry).flatMap(([exterior]) => exterior ?? []);
 }
 
 function extent(geometry: Geometry | undefined) {
@@ -147,20 +137,6 @@ function extent(geometry: Geometry | undefined) {
     const xs = points.map(([x]) => x);
     const ys = points.map(([, y]) => y);
     return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
-}
-
-/** The polygons of a geometry, each as its list of rings, in order. */
-function polygonsOf(geometry: Geometry): Position[][][] {
-    switch (geometry.type) {
-        case 'Polygon':
-            return [geometry.coordinates];
-        case 'MultiPolygon':
-            return geometry.coordinates;
-        case 'GeometryCollection':
-            return geometry.geometries.flatMap(polygonsOf);
-        default:
-            return [];
-    }
 }
 
 type TopologyFeature = GapTopology['features'][number];
@@ -340,7 +316,9 @@ const southernAfricaItaly = (series: Record<string, unknown> = {}): AgChartOptio
  */
 function recession(chart: AgChartInstance, name: string, at: Position, seriesIndex = seriesOf(name)): number {
     const [x, y] = mapSeries(chart, seriesIndex).scale!.convert(at);
-    const polygons = polygonsOf(datumOf(chart, name, seriesIndex).drawnGeometry!).filter(({ length }) => length > 0);
+    const polygons = collectPolygons(datumOf(chart, name, seriesIndex).drawnGeometry!).filter(
+        ({ length }) => length > 0
+    );
     if (polygons.length === 0) return Infinity;
     return Math.min(...polygons.map((polygon) => Math.abs(polygonDistance(polygon, x, y))));
 }
@@ -529,9 +507,9 @@ describe('MapShapeSeries gap', () => {
 
             for (const name of names) {
                 const datum = datumOf(chart!, name, 0);
-                const polygons = polygonsOf(datum.projectedGeometry!);
+                const polygons = collectPolygons(datum.projectedGeometry!);
                 expect(datum.drawnGeometry, name).toBe(datum.projectedGeometry);
-                for (const [i, polygon] of polygonsOf(datum.drawnGeometry!).entries()) {
+                for (const [i, polygon] of collectPolygons(datum.drawnGeometry!).entries()) {
                     expect(polygon, `${name} polygon ${i} is the same array`).toBe(polygons[i]);
                 }
             }
@@ -618,7 +596,15 @@ describe('MapShapeSeries gap', () => {
                 ? { type: 'Polygon', coordinates: polygons[0] }
                 : { type: 'MultiPolygon', coordinates: polygons },
     });
-    const syntheticOptions = (features: ReturnType<typeof feature>[], series: Record<string, unknown> = {}) =>
+    /** A feature whose geometry is a `GeometryCollection` of the given geometries, which GeoJSON allows for one region. */
+    const collectionFeature = (name: string, ...geometries: Geometry[]) => ({
+        type: 'Feature',
+        properties: { name },
+        geometry: { type: 'GeometryCollection', geometries },
+    });
+    const polygonOf = (...rings: Position[][]): Geometry => ({ type: 'Polygon', coordinates: rings });
+    const multiPolygonOf = (...polygons: Position[][][]): Geometry => ({ type: 'MultiPolygon', coordinates: polygons });
+    const syntheticOptions = (features: { properties: { name: string } }[], series: Record<string, unknown> = {}) =>
         ({
             topology: { type: 'FeatureCollection', features },
             legend: { enabled: false },
@@ -647,8 +633,8 @@ describe('MapShapeSeries gap', () => {
                     feature('Right', [rect(10, -10, 14, 10)]),
                 ])
             );
-            const [left, right] = polygonsOf(datumOf(chart!, 'Pair', 0).drawnGeometry!);
-            const [leftBefore, rightBefore] = polygonsOf(datumOf(chart!, 'Pair', 0).projectedGeometry!);
+            const [left, right] = collectPolygons(datumOf(chart!, 'Pair', 0).drawnGeometry!);
+            const [leftBefore, rightBefore] = collectPolygons(datumOf(chart!, 'Pair', 0).projectedGeometry!);
             const ring = (polygon: Position[][]) => extent({ type: 'Polygon', coordinates: polygon });
             const shift = (a: number, b: number) => Math.abs(a - b);
 
@@ -699,8 +685,8 @@ describe('MapShapeSeries gap', () => {
 
             // South Africa's hole for it grows by the same amount, so the host is pulled back from it on every side.
             const host = datumOf(chart!, 'South Africa', 0);
-            const holes = polygonsOf(host.drawnGeometry!).flatMap((polygon) => polygon.slice(1));
-            const undrawnHoles = polygonsOf(host.projectedGeometry!).flatMap((polygon) => polygon.slice(1));
+            const holes = collectPolygons(host.drawnGeometry!).flatMap((polygon) => polygon.slice(1));
+            const undrawnHoles = collectPolygons(host.projectedGeometry!).flatMap((polygon) => polygon.slice(1));
             expect(holes).toHaveLength(undrawnHoles.length);
             const grown = holes.map((h) => extent({ type: 'Polygon', coordinates: [h] }));
             const was = undrawnHoles.map((h) => extent({ type: 'Polygon', coordinates: [h] }));
@@ -1138,7 +1124,7 @@ describe('MapShapeSeries gap', () => {
 
             expect(sliver.drawnGeometry).toEqual({ type: 'Polygon', coordinates: [] });
             expect(sliver.projectedGeometry).toEqual(expect.objectContaining({ type: 'Polygon' }));
-            expect(polygonsOf(sliver.projectedGeometry!)[0].length).toBeGreaterThan(0);
+            expect(collectPolygons(sliver.projectedGeometry!)[0].length).toBeGreaterThan(0);
 
             const node = nodeOf(chart!, 'Sliver', 0);
             expect(node.isDrawnEmpty()).toBe(true);
@@ -1287,6 +1273,169 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
+    // -----------------------------------------------------------------------------------------------------------------
+    // A region that is a GeometryCollection: user GeoJSON may hold one, and its polygons sit inside nested members.
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /** `Coll` is a `Polygon` sliver then a `MultiPolygon` of a second sliver and a big part: three polygons, one drawn. */
+    const collectionOptions = (series: Record<string, unknown> = {}) =>
+        syntheticOptions(
+            [
+                feature('West', [rect(-10, -10, 0, 10)]),
+                feature('Middle', [rect(SLIVER, -10, 20, 10)]),
+                feature('East', [rect(20 + SLIVER, -10, 30, 10)]),
+                collectionFeature(
+                    'Coll',
+                    polygonOf(rect(0, -10, SLIVER, 10)),
+                    multiPolygonOf([rect(20, -10, 20 + SLIVER, 10)], [rect(30, -10, 40, 10)])
+                ),
+            ],
+            series
+        );
+
+    /** `Gone` is a `Polygon` and a `MultiPolygon` of three slivers, each between two neighbours: nothing of it is drawn. */
+    const goneOptions = (series: Record<string, unknown> = {}) =>
+        syntheticOptions(
+            [
+                feature('A', [rect(-10, -10, 0, 10)]),
+                feature('B', [rect(SLIVER, -10, 10, 10)]),
+                feature('C', [rect(10 + SLIVER, -10, 20, 10)]),
+                feature('D', [rect(20 + SLIVER, -10, 30, 10)]),
+                collectionFeature(
+                    'Gone',
+                    polygonOf(rect(0, -10, SLIVER, 10)),
+                    multiPolygonOf([rect(10, -10, 10 + SLIVER, 10)], [rect(20, -10, 20 + SLIVER, 10)])
+                ),
+            ],
+            series
+        );
+    const GONE_MIDDLES: Position[] = [
+        [SLIVER / 2, 0],
+        [10 + SLIVER / 2, 0],
+        [20 + SLIVER / 2, 0],
+    ];
+
+    describe('a region that is a GeometryCollection (DR2-7, D-15, D-17, D-19, D-20)', () => {
+        it('keeps each collapsed part as no rings at its index, and insets the part that survives (D-15)', async () => {
+            await create(collectionOptions());
+            const coll = datumOf(chart!, 'Coll', 0);
+            const drawn = coll.drawnGeometry!;
+            const projected = coll.projectedGeometry!;
+
+            expect(drawn.type).toBe('GeometryCollection');
+            expect(collectPolygons(projected)).toHaveLength(3);
+            const [first, second, big] = collectPolygons(drawn);
+            expect(first, 'the Polygon sliver').toEqual([]);
+            expect(second, 'the sliver inside the MultiPolygon').toEqual([]);
+            expect(big.length, 'the big part is drawn').toBeGreaterThan(0);
+
+            // The big part borders East along x = 30 only: that edge moved in by half the gap and stroke, the rest did not.
+            const [undrawnBig] = collectPolygons(projected).slice(2);
+            expect(extent(polygonOf(...big)).x0 - extent(polygonOf(...undrawnBig)).x0).toBeCloseTo(2.5, 1);
+            expect(extent(polygonOf(...big)).x1).toBeCloseTo(extent(polygonOf(...undrawnBig)).x1, 6);
+        });
+
+        it('finds the drawn copy of each polygon, nested or not, and nothing for a polygon that is not part of it', async () => {
+            await create(collectionOptions());
+            const { drawnGeometry, projectedGeometry } = datumOf(chart!, 'Coll', 0);
+            const drawn = collectPolygons(drawnGeometry!);
+
+            for (const [i, polygon] of collectPolygons(projectedGeometry!).entries()) {
+                expect(findDrawnPolygon(projectedGeometry!, drawnGeometry!, polygon), `polygon ${i}`).toBe(drawn[i]);
+            }
+            const foreign = collectPolygons(datumOf(chart!, 'Middle', 0).projectedGeometry!)[0];
+            expect(findDrawnPolygon(projectedGeometry!, drawnGeometry!, foreign)).toBeUndefined();
+        });
+
+        it('fits the label inside the drawn copy of the largest part (D-20)', async () => {
+            await create(collectionOptions({ labelKey: 'name', label: { enabled: true, fontSize: 12 } }));
+            const texts = Selection.selectByClass(getSeriesGroup(chart!, 'contentGroup', 0), Text).filter(
+                (text) => (text.datum as { idValue?: string } | undefined)?.idValue === 'Coll'
+            );
+            expect(texts, "Coll's label is drawn").toHaveLength(1);
+
+            const box = Transformable.toCanvas(texts[0], texts[0].getBBox());
+            const big = collectPolygons(datumOf(chart!, 'Coll', 0).drawnGeometry!)[2];
+            const contentGroup = mapSeries(chart!, 0).contentGroup;
+            const onCanvas = big.map((ring) =>
+                ring.map(([px, py]): Position => {
+                    const { canvasX, canvasY } = Transformable.toCanvasPoint(contentGroup, px, py);
+                    return [canvasX, canvasY];
+                })
+            );
+            for (const [x, y] of [
+                [box.x, box.y],
+                [box.x + box.width, box.y],
+                [box.x, box.y + box.height],
+                [box.x + box.width, box.y + box.height],
+            ]) {
+                expect(polygonDistance(onCanvas, x, y), `label corner (${x.toFixed(1)}, ${y.toFixed(1)})`).toBeLessThan(
+                    0
+                );
+            }
+            // And it is the big part, to the right of East, not either sliver.
+            expect(box.x).toBeGreaterThan(canvasPoint(chart!, [30, 0]).x);
+        });
+
+        it('draws no ink and no label for a collection that collapsed entirely, and still picks it (D-17, D-20)', async () => {
+            await create(
+                goneOptions({
+                    nodeClickRange: 'exact',
+                    tooltip: { range: 'exact' },
+                    labelKey: 'name',
+                    label: { enabled: true, fontSize: 12 },
+                })
+            );
+            const gone = datumOf(chart!, 'Gone', 0);
+            expect(collectPolygons(gone.drawnGeometry!)).toEqual([[], [], []]);
+            expect(collectPolygons(gone.projectedGeometry!).every((polygon) => polygon.length > 0)).toBe(true);
+            expect(nodeOf(chart!, 'Gone', 0).isDrawnEmpty()).toBe(true);
+
+            const names = Selection.selectByClass(getSeriesGroup(chart!, 'contentGroup', 0), Text).map(
+                (text) => (text.datum as { idValue?: string } | undefined)?.idValue
+            );
+            expect(names).not.toContain('Gone');
+
+            for (const at of GONE_MIDDLES) {
+                const { x, y } = canvasPoint(chart!, at);
+                await hoverAction(x, y)(chart!);
+                await waitForChartStability(chart!);
+                expect(hoveredName(chart!), `hover at ${at}`).toBe('Gone');
+            }
+        });
+
+        it('has the bounds of its undrawn parts as the focus box of a collection that collapsed entirely (D-19)', async () => {
+            await create(goneOptions());
+            const series = mapSeries(chart!, 0);
+            const { bounds } = series.pickFocus({
+                datumIndex: datumOf(chart!, 'Gone', 0).datumIndex,
+                datumIndexDelta: 0,
+                otherIndex: 0,
+                otherIndexDelta: 0,
+            })!;
+
+            expect(bounds).toBeInstanceOf(BBox);
+            const [topLeft, bottomRight] = [canvasPoint(chart!, [0, 10]), canvasPoint(chart!, [20 + SLIVER, -10])];
+            const box = bounds as BBox;
+            expect(box.x).toBeCloseTo(topLeft.x, 3);
+            expect(box.y).toBeCloseTo(topLeft.y, 3);
+            expect(box.width).toBeCloseTo(bottomRight.x - topLeft.x, 3);
+            expect(box.height).toBeCloseTo(bottomRight.y - topLeft.y, 3);
+        });
+
+        it('has the focus box of a collection with a drawn part trace what is drawn (D-19)', async () => {
+            await create(collectionOptions());
+            const { bounds } = mapSeries(chart!, 0).pickFocus({
+                datumIndex: datumOf(chart!, 'Coll', 0).datumIndex,
+                datumIndexDelta: 0,
+                otherIndex: 0,
+                otherIndexDelta: 0,
+            })!;
+            expect(bounds).toBe(nodeOf(chart!, 'Coll', 0));
+            expect(nodeOf(chart!, 'Coll', 0).isDrawnEmpty()).toBe(false);
+        });
+    });
+
     describe('picking each half of a gap (D-17, V2)', () => {
         const PAIRS = [
             ['Utah', 'Colorado'],
@@ -1393,7 +1542,7 @@ describe('MapShapeSeries gap', () => {
         /** Whether a canvas point is inside one of the region's drawn polygons, its holes left out. */
         const insideDrawn = (name: string, seriesIndex: number, x: number, y: number) => {
             const contentGroup = mapSeries(chart!, seriesIndex).contentGroup;
-            return polygonsOf(datumOf(chart!, name, seriesIndex).drawnGeometry!)
+            return collectPolygons(datumOf(chart!, name, seriesIndex).drawnGeometry!)
                 .filter(({ length }) => length > 0)
                 .some((polygon) => {
                     const onCanvas = polygon.map((ring) =>
@@ -1482,7 +1631,7 @@ describe('MapShapeSeries gap', () => {
                 )
             );
             const two = datumOf(chart!, 'Two', 0);
-            const [first, second] = polygonsOf(two.drawnGeometry!);
+            const [first, second] = collectPolygons(two.drawnGeometry!);
             expect(first, 'the first part collapsed').toEqual([]);
             expect(second.length, 'the second part is drawn').toBeGreaterThan(0);
 
@@ -1504,10 +1653,10 @@ describe('MapShapeSeries gap', () => {
                 )
             );
             const thin = datumOf(chart!, 'Thin', 0);
-            const [sliver, island] = polygonsOf(thin.drawnGeometry!);
+            const [sliver, island] = collectPolygons(thin.drawnGeometry!);
             expect(sliver).toEqual([]);
             // The island has no neighbour: the very array as projected (D-15).
-            expect(island).toBe(polygonsOf(thin.projectedGeometry!)[1]);
+            expect(island).toBe(collectPolygons(thin.projectedGeometry!)[1]);
 
             const names = labelled(0).map((text) => (text.datum as { idValue?: string })?.idValue);
             expect(names).not.toContain('Thin');
@@ -1549,8 +1698,8 @@ describe('MapShapeSeries gap', () => {
             for (const f of topology.features) {
                 const name = f.properties!.name!;
                 const datum = datumOf(chart!, name, 0);
-                const projected = polygonsOf(datum.projectedGeometry!);
-                const drawn = polygonsOf(datum.drawnGeometry!);
+                const projected = collectPolygons(datum.projectedGeometry!);
+                const drawn = collectPolygons(datum.drawnGeometry!);
                 for (const [p, polygon] of featurePolygons(f).entries()) {
                     if ([...ringEdges(polygon)].every(([a, b]) => !isShared(a, b))) {
                         // No moved edge: the same array, however small.

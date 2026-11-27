@@ -113,20 +113,3 @@ export function measureStrip(
     }
     return total;
 }
-
-/** How many pixels of the run starting at `from` along `axis` are, to within `tolerance`, the colour `colour`. */
-export function countColour(
-    pixels: Pixels,
-    from: { x: number; y: number },
-    axis: 'x' | 'y',
-    length: number,
-    colour: RGB,
-    tolerance = 3
-): number {
-    let count = 0;
-    for (let i = 0; i < length; i += 1) {
-        const pixel = axis === 'x' ? pixelAt(pixels, from.x + i, from.y) : pixelAt(pixels, from.x, from.y + i);
-        if (pixel.every((channel, k) => Math.abs(channel - colour[k]) <= tolerance)) count += 1;
-    }
-    return count;
-}
