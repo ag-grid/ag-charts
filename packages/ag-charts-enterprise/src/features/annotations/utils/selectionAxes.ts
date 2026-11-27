@@ -1,4 +1,5 @@
 import { type SelectionAxisStyles, createAxisLabelDatum } from '../annotationDatum';
+import { AnnotationType } from '../annotationTypes';
 
 type StatelessAxisStyles = Partial<{
     axisLabel: Partial<SelectionAxisStyles['axisLabel']> & { visible?: string };
@@ -10,6 +11,8 @@ export function isShown(visible: SelectionAxisStyles['visible'], selected: boole
     return visible === 'always' || (visible === 'selected' && selected);
 }
 
+const annotationTypes = new Set<string>(Object.values(AnnotationType));
+
 function isCrossLine(type: string) {
     return type === 'horizontal-line' || type === 'vertical-line';
 }
@@ -19,6 +22,9 @@ function isCrossLine(type: string) {
  * A horizontal or vertical line's axis label is saved in its state, except for when it shows.
  */
 export function splitSelectionAxisStyles(type: string, styles: object) {
+    // Other options with an `axisLabel`, such as `lastPriceLine`, keep it.
+    if (!annotationTypes.has(type)) return { styles };
+
     const { axisLabel, axisShading, ...rest } = styles as StatelessAxisStyles & Record<string, unknown>;
     if (axisLabel == null && axisShading == null) return { styles };
 

@@ -1166,7 +1166,7 @@ export class Annotations extends AbstractModuleInstance {
         return Object.assign(datum, { value, locked: true, readOnly: true });
     }
 
-    // Runs for every annotation on every pre-render, so the styles are resolved again only when the theme's change.
+    // Runs for every annotation on every pre-render, so the styles are resolved again only when the theme changes.
     private readonly getSelectionAxes = (type: string) => {
         const source = this.ctx.annotationManager?.getStatelessAnnotationStyles(type);
         const cached = this.selectionAxesCache.get(type);

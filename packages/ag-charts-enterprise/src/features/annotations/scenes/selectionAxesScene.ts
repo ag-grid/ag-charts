@@ -17,6 +17,8 @@ interface UpdateOpts {
     selected: boolean;
     seriesRect: BBox;
     context: AnnotationAxisContext;
+    /** Changes when the chart lays out again, which can change how the axes format and place values. */
+    layoutVersion: number;
 }
 
 interface AxisEdge {
@@ -37,6 +39,12 @@ function getAxisEdge({ x, y, width, height }: BBox, isX: boolean, position: Axis
  * The labels and shading for one axis of an annotation. They are attached to the axis, as a horizontal or
  * vertical line's axis label is, so they draw over its ticks and tick labels.
  */
+// How far the labels at the axis ends reach depends on the axis and the label styles, so annotations share it.
+const edgeReaches = new WeakMap<
+    AnnotationAxisContext['attachLabel'],
+    WeakMap<object, { layoutVersion: number; reach: number }>
+>();
+
 class AxisSelectionOverlay {
     private readonly shading = new Rect({ name: 'AnnotationSelectionAxisShading' });
     private readonly labels: AxisLabelScene[] = [];
@@ -54,7 +62,7 @@ class AxisSelectionOverlay {
         this.shading.visible = false;
     }
 
-    update({ points, styles, selected, seriesRect, context }: UpdateOpts) {
+    update({ points, styles, selected, seriesRect, context, layoutVersion }: UpdateOpts) {
         this.attach(context);
 
         const isX = context.direction === ChartAxisDirection.X;
@@ -78,7 +86,7 @@ class AxisSelectionOverlay {
         // Wider labels deepen the shading, which only grows while selected, so that it does not flicker as a handle drags.
         const showShading = shown && positions.length >= 2;
         const reach = showShading
-            ? this.measureLabelReach(inRange.length, styles.axisLabel, seriesRect, context, edge)
+            ? this.measureLabelReach(inRange.length, styles.axisLabel, layoutVersion, seriesRect, context, edge)
             : 0;
         this.labelReach = selected ? Math.max(this.labelReach, reach) : reach;
         this.updateShading(
@@ -97,16 +105,33 @@ class AxisSelectionOverlay {
     private measureLabelReach(
         drawn: number,
         axisLabel: SelectionAxisStyles['axisLabel'],
+        layoutVersion: number,
+        seriesRect: BBox,
+        context: AnnotationAxisContext,
+        edge: AxisEdge
+    ) {
+        let reach = this.measureEdgeReach(axisLabel, layoutVersion, seriesRect, context, edge);
+        for (const label of this.labels.slice(0, drawn)) {
+            reach = Math.max(reach, label.getReach(edge.isX, edge.outward, edge.origin));
+        }
+        return reach;
+    }
+
+    private measureEdgeReach(
+        axisLabel: SelectionAxisStyles['axisLabel'],
+        layoutVersion: number,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin, outward }: AxisEdge
     ) {
+        const byStyles = edgeReaches.get(context.attachLabel) ?? new WeakMap();
+        edgeReaches.set(context.attachLabel, byStyles);
+        const cached = byStyles.get(axisLabel);
+        if (cached?.layoutVersion === layoutVersion) return cached.reach;
+
         const probe = (this.probe ??= new AxisLabelScene());
         const length = isX ? seriesRect.width : seriesRect.height;
         let reach = 0;
-        for (const label of this.labels.slice(0, drawn)) {
-            reach = Math.max(reach, label.getReach(isX, outward, origin));
-        }
         for (const p of [0, length]) {
             probe.update({
                 x: isX ? seriesRect.x + p : origin,
@@ -117,6 +142,7 @@ class AxisSelectionOverlay {
             });
             reach = Math.max(reach, probe.getReach(isX, outward, origin));
         }
+        byStyles.set(axisLabel, { layoutVersion, reach });
         return reach;
     }
 
@@ -233,16 +259,9 @@ export class SelectionAxesScene {
     private readonly y = new AxisSelectionOverlay();
     private last?: { coords: number[]; styles: SelectionAxisStyles; selected: boolean; layoutVersion: number };
 
-    update(
-        opts: Omit<UpdateOpts, 'context'> & {
-            xAxis: AnnotationAxisContext;
-            yAxis: AnnotationAxisContext;
-            /** Changes when the chart lays out again, which can change how the axes format and place values. */
-            layoutVersion: number;
-        }
-    ) {
-        const { xAxis, yAxis, layoutVersion, ...rest } = opts;
-        if (this.isUnchanged(rest.points, rest.styles, rest.selected, layoutVersion)) return;
+    update(opts: Omit<UpdateOpts, 'context'> & { xAxis: AnnotationAxisContext; yAxis: AnnotationAxisContext }) {
+        const { xAxis, yAxis, ...rest } = opts;
+        if (this.isUnchanged(rest.points, rest.styles, rest.selected, rest.layoutVersion)) return;
 
         this.x.update({ ...rest, context: xAxis });
         this.y.update({ ...rest, context: yAxis });

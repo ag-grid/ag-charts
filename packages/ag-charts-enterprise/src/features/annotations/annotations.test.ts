@@ -2739,6 +2739,9 @@ describe('Annotations', () => {
 
             await clickDatum(50, 60);
             expect(visibleAxisLabels()).toHaveLength(1);
+
+            await clickDatum(EMPTY.x, EMPTY.y);
+            expect(visibleAxisLabels()).toHaveLength(0);
         });
 
         it('keeps `visible`, the shading and the label styles out of the saved state', async () => {
@@ -3062,6 +3065,31 @@ describe('Annotations', () => {
             } finally {
                 update.mockRestore();
                 redraw.mockRestore();
+            }
+        });
+
+        it('measures the ends of an axis once for the annotations that share label styles', async () => {
+            const lines = [0, 10, 20].map((dy): AgAnnotation => ({
+                type: 'line',
+                start: { x: day(20), y: 25 + dy },
+                end: { x: day(80), y: 75 - dy },
+            }));
+            let decimals = 6;
+            const { axes, ...options } = withAxes('bottom', 'left', { axisLabel: { visible: 'always' } });
+            const formatter = ({ value }: { value: unknown }) => Number(value).toFixed(decimals);
+            const sameOptions = { ...options, axes: { ...axes, y: { ...axes.y, label: { formatter } } } };
+            await prepareChart({ annotations: lines }, sameOptions);
+
+            const update = vi.spyOn(AxisLabelScene.prototype, 'update');
+            try {
+                decimals = 0;
+                await chart.update(prepareEnterpriseTestOptions({ ...sameOptions, initialState: undefined }) as never);
+                await waitForChartStability(chart);
+                // The y axis spans 0 to 100, and only the probes at its ends read these values.
+                const probes = update.mock.calls.filter(([{ value }]) => value === 0 || value === 100);
+                expect(probes).toHaveLength(2);
+            } finally {
+                update.mockRestore();
             }
         });
 
