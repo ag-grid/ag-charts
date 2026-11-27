@@ -632,7 +632,7 @@ export interface AgAnnotationOptionsToolbar extends Toggleable {
     buttonSize?: PixelSize;
     /**
      * Whether to show Apply and Cancel buttons on the colour picker and settings dialog opened from this toolbar.
-     * In the colour picker Enter always applies and Escape always cancels; in the dialog they do so only with the buttons.
+     * Enter always applies and Escape always cancels, in both the colour picker and the dialog.
      *
      * Default: `false`
      */
@@ -648,6 +648,12 @@ export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
     type?: 'button';
     /** The action to perform when the button is clicked. */
     value: AgAnnotationOptionsToolbarButtonValue;
+    /**
+     * Whether to show this item only when the Annotation Options Toolbar is opened with the keyboard.
+     *
+     * Default: `false`
+     */
+    keyboardOnly?: boolean;
 }
 
 export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
@@ -655,6 +661,12 @@ export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
     type: 'switch';
     /** The action to perform when the switch is toggled. */
     value: AgAnnotationOptionsToolbarSwitchValue;
+    /**
+     * Whether to show this item only when the Annotation Options Toolbar is opened with the keyboard.
+     *
+     * Default: `false`
+     */
+    keyboardOnly?: boolean;
 }
 
 export type AgAnnotationOptionsToolbarButtonValue =

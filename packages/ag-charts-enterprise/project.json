@@ -7,7 +7,6 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd"],
-      "inputs": [],
       "outputs": [],
       "configurations": {
         "watch": {},
@@ -112,6 +111,7 @@
     "test:validate-size": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["production", "^production"],
       "options": {
         "cwd": "{projectRoot}",
         "command": "size-limit"

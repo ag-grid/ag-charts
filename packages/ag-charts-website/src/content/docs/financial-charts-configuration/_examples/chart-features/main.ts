@@ -23,15 +23,16 @@ const options: AgFinancialChartOptions = {
 
 const chart = AgCharts.createFinancialChart(options);
 
-function toggleFeature(
-    type: 'navigator' | 'toolbar' | 'rangeButtons' | 'volume' | 'statusBar' | 'zoom',
-    enabled: boolean
-) {
-    options[type] = enabled;
+function toggleFeature(type: 'navigator' | 'toolbar' | 'rangeButtons' | 'volume' | 'statusBar' | 'zoom') {
+    options[type] = !options[type];
     chart.update(options);
+    document.getElementById(`toggle-${type}`)?.setAttribute('aria-pressed', String(options[type]));
 }
 
-function toggleVolumeProfile(enabled: boolean) {
-    options.volumeProfile!.enabled = enabled;
+function toggleVolumeProfile() {
+    options.volumeProfile!.enabled = !options.volumeProfile!.enabled;
     chart.update(options);
+    document
+        .getElementById('toggle-volumeProfile')
+        ?.setAttribute('aria-pressed', String(options.volumeProfile!.enabled));
 }

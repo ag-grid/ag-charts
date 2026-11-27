@@ -6,7 +6,7 @@
   "targets": {
     "test:package": {
       "executor": "nx:noop",
-      "inputs": [],
+      "inputs": ["production"],
       "outputs": [],
       "dependsOn": ["test:package:modules:local-latest", "test:package:production-latest"],
       "configurations": {

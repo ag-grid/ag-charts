@@ -1298,7 +1298,7 @@ describe('Annotations', () => {
             });
         });
 
-        it('merges the checked overrides onto the lock switch while the selected annotation is locked', async () => {
+        it('shows the lock as a switch with a fixed name while the tooltip follows the state', async () => {
             await prepareChart(
                 { annotations: [{ type: 'horizontal-line', value: 50, locked: true }] },
                 {
@@ -1312,7 +1312,6 @@ describe('Annotations', () => {
                                     value: 'lock',
                                     icon: 'unlocked',
                                     label: 'Lock',
-                                    ariaLabel: 'toolbarAnnotationsLock',
                                     tooltip: 'toolbarAnnotationsLock',
                                     checkedOverrides: { icon: 'locked', tooltip: 'toolbarAnnotationsUnlock' },
                                 },
@@ -1331,8 +1330,8 @@ describe('Annotations', () => {
 
             const lockButton = () =>
                 deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-label="Lock"]');
-            expect(lockButton()?.hasAttribute('role')).toBe(false);
-            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.getAttribute('role')).toBe('switch');
+            expect(lockButton()?.getAttribute('aria-checked')).toBe('true');
             expect(lockButton()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
             expect(lockButton()?.title).toBe('Unlock');
             expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
@@ -1341,8 +1340,8 @@ describe('Annotations', () => {
             lockButton()!.click();
             await waitForChartStability(chart);
 
-            expect(lockButton()?.hasAttribute('role')).toBe(false);
-            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.getAttribute('role')).toBe('switch');
+            expect(lockButton()?.getAttribute('aria-checked')).toBe('false');
             expect(lockButton()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
             expect(lockButton()?.title).toBe('Lock');
             expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
@@ -1676,7 +1675,7 @@ describe('Annotations', () => {
 
             await pressKey(chart, 'z', { ctrlKey: true });
             expect(chart.getState().annotations).toMatchObject([{ type: 'horizontal-line', value: 50 }]);
-            expect(input.value).toBe('50');
+            expect(body.querySelector('.ag-charts-dialog')).toBeNull();
         });
 
         it('stays open while its annotation is clicked or dragged, and closes on selecting another annotation', async () => {
@@ -2013,6 +2012,13 @@ describe('Annotations', () => {
             width.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
         };
+        /** The settings dialog changes that the dialog tests apply, cancel and undo. */
+        const edit = async () => {
+            await changeStrokeWidth('8');
+            await press('.ag-charts-dialog__color-picker-button');
+            await pickColor('#00ff00');
+            await pressEnterOn(PALETTE);
+        };
         const toolbarSwatch = () =>
             chartBody().querySelector<HTMLElement>('button[title="Line Color"]')!.style.getPropertyValue('--color');
         const dialogSwatches = () =>
@@ -2138,21 +2144,41 @@ describe('Annotations', () => {
             expect(hasPicker()).toBe(false);
             expect(annotation().stroke).toBe('#0000ff');
 
-            // The settings dialog has no buttons either.
+            const original = { stroke: '#0000ff', strokeWidth: 4 };
             await press('button[title="Settings"]');
             expect(hasDialog()).toBe(true);
             expect(chartBody().querySelector('.ag-charts-dialog__actions')).toBeNull();
+
+            // Escape cancels every change made in the dialog, including a colour the picker applied with Enter.
+            await edit();
+            expect(annotation()).toMatchObject({ stroke: '#00ff00', strokeWidth: 8 });
+            await pressKeyOn('.ag-charts-dialog__color-picker-button', 'Escape');
+            expect(hasDialog()).toBe(false);
+            expect(annotation()).toMatchObject(original);
+            await compare();
+
+            await press('button[title="Settings"]');
+            await edit();
+            await pressEnterOn('.ag-charts-dialog__tab-list');
+            expect(hasDialog()).toBe(false);
+            expect(annotation()).toMatchObject({ stroke: '#00ff00', strokeWidth: 8 });
+            await compare();
+
+            const { historyManager } = deproxy(chart).ctx;
+            historyManager.undo();
+            await waitForChartStability(chart);
+            expect(annotation()).toMatchObject(original);
+
+            await press('button[title="Settings"]');
+            await changeStrokeWidth('2');
+            await press('.ag-charts-dialog__close-button');
+            expect(hasDialog()).toBe(false);
+            expect(annotation().strokeWidth).toBe(2);
         });
 
         it('applies and cancels the settings dialog as a whole', async () => {
             await select([{ type: 'horizontal-line', value: 50, stroke: '#ff0000', strokeWidth: 2 }]);
             const { historyManager } = deproxy(chart).ctx;
-            const edit = async () => {
-                await changeStrokeWidth('8');
-                await press('.ag-charts-dialog__color-picker-button');
-                await pickColor('#00ff00');
-                await pressEnterOn(PALETTE);
-            };
             const original = { stroke: '#ff0000', strokeWidth: 2 };
 
             // Apply has nothing to apply until something changes.
@@ -2436,8 +2462,6 @@ describe('Annotations', () => {
             );
         });
 
-        // With the buttons the dialog holds its history back, so a cancel restores the colour itself; without them it
-        // reverts through the history.
         const DIALOG_COLOUR_CASES = [
             ['', ACTION_BUTTONS_OPTIONS, () => press(CANCEL)],
             [' without the buttons', ANNOTATIONS_EXAMPLE_OPTIONS, () => pressEscape()],
@@ -2909,6 +2933,9 @@ describe('Annotations', () => {
             input.value = value;
             input.dispatchEvent(new Event('change'));
             await waitForChartStability(chart);
+
+            body.querySelector<HTMLElement>('.ag-charts-dialog__close-button')!.click();
+            await waitForChartStability(chart);
         }
 
         it('reports the initial state as an api-call', async () => {
@@ -3244,9 +3271,11 @@ describe('Annotations', () => {
             it('shows it as locked when the restored annotation is locked', async () => {
                 await restoreWhileSelected({ type: 'horizontal-line', value: 50, locked: true });
 
-                const lockButton = body().querySelector<HTMLElement>('button[aria-label="Unlock"]');
-                expect(lockButton).not.toBeNull();
-                expect(lockButton?.hasAttribute('aria-checked')).toBe(false);
+                const lockButton = body().querySelector<HTMLElement>('button[aria-label="Lock"]');
+                expect(lockButton?.getAttribute('role')).toBe('switch');
+                expect(lockButton?.getAttribute('aria-checked')).toBe('true');
+                expect(lockButton?.title).toBe('Unlock');
+                expect(lockButton?.getAttribute('aria-description')).toBe('');
             });
         });
 

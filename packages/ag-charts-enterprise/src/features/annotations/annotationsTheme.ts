@@ -200,7 +200,6 @@ const optionsToolbar: WithThemeParams<AgAnnotationOptionsToolbar> = {
                 checkedOverrides: {
                     icon: 'locked',
                     tooltip: 'toolbarAnnotationsUnlock',
-                    ariaLabel: 'toolbarAnnotationsUnlock',
                 },
                 value: 'lock',
             },

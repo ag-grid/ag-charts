@@ -1,10 +1,11 @@
 import { arraysEqual } from '../data/arrays';
 import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
 import type { Node, RenderContext } from './node';
-import { type CollectedFrame, type ShadowFrame, transformCorners } from './shadowCollector';
+import { type CollectedFrame, type ShadowFrame, type ShadowRegion, transformCorners } from './shadowCollector';
 import {
     CUT_ONLY_GLOW,
     OWN_CUT_GLOW,
+    type RootShadowKey,
     type ShadowCaster,
     type ShadowClip,
     type ShadowKey,
@@ -16,6 +17,7 @@ import {
     getShadowClip,
     joinsShadowKey,
     releaseShadowScratch,
+    shadowKeyId,
 } from './shadowEngine';
 import type { ShadowSlot } from './shadowPass';
 import { Shape } from './shape/shape';
@@ -30,17 +32,17 @@ export type ShadowCover = boolean | 'glow';
 
 /** The keys of the root's last cast, and the frames they were built from, to tell whether they are still the keys. */
 interface RootMemo {
-    readonly frames: readonly CollectedFrame[];
+    readonly frames: readonly CollectedFrame<ShadowSource>[];
     readonly keys: readonly ShadowKey[];
     /** The keys of the glows of the hovered item, cast above the overlay, see {@link CollectedFrame.hovered}. */
     readonly hoveredKeys?: readonly ShadowKey[];
-    readonly cover: ReadonlyMap<object, ShadowCover>;
+    readonly cover: ReadonlyMap<ShadowSource, ShadowCover>;
 }
 
 const memos = new WeakMap<object, RootMemo>();
 
 /** Whether the frames are the memo's with no group marked dirty since, so its keys are still theirs. */
-function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame[]): boolean {
+function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame<ShadowSource>[]): boolean {
     if (memo.frames.length !== frames.length) return false;
     for (let i = 0; i < frames.length; i++) {
         const a = memo.frames[i];
@@ -52,10 +54,24 @@ function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame[]): boolean
     return true;
 }
 
+const shadowIds = new WeakMap<NormalisedDropShadowOptions, string>();
+
+/** The {@link shadowKeyId} of a shadow, which is built once, as the shadows of a chart are the same objects from one frame to the next. */
+function getShadowId(shadow: NormalisedDropShadowOptions): string {
+    let id = shadowIds.get(shadow);
+    if (id == null) {
+        id = shadowKeyId(shadow);
+        shadowIds.set(shadow, id);
+    }
+    return id;
+}
+
 /** Groups the casters of one slot into keys by their shadow options and clips, in the order of their first caster. */
 class SlotKeys {
-    readonly keys: ShadowKey[] = [];
-    private last: ShadowKey | undefined;
+    readonly keys: RootShadowKey[] = [];
+    /** The keys of each shadow, so that a caster finds its key without comparing every key, as the colours of a scale have many. */
+    private readonly byShadow = new Map<string, RootShadowKey[]>();
+    private last: RootShadowKey | undefined;
     private lastFrame: ShadowFrame | undefined;
 
     constructor(private readonly slot: ShadowSlot) {}
@@ -73,20 +89,36 @@ class SlotKeys {
         const alone = shadow.selfCut === true;
         // The casters of a group follow one another, and rarely differ in shadow or clip.
         if (alone || key == null || frame !== this.lastFrame || pathClip != null || key.shadow !== shadow) {
-            key = alone
-                ? undefined
-                : this.keys.find(
-                      (k) => k.owner === owner && joinsShadowKey(k, caster, shadow, undefined, 'root', clips)
-                  );
+            key = alone ? undefined : this.find(caster, shadow, clips, owner);
             if (key == null) {
-                key = { slot: this.slot, shadow, clip: undefined, casters: [], frames: [], clips, owner };
+                key = { slot: this.slot, shadow, casters: [], frames: [], clips, owner };
                 this.keys.push(key);
+                if (!alone) this.index(key);
             }
         }
         this.last = pathClip == null && !alone ? key : undefined;
         this.lastFrame = frame;
         key.casters.push(caster);
-        key.frames?.push(frame);
+        key.frames.push(frame);
+    }
+
+    private find(
+        caster: ShadowCaster,
+        shadow: NormalisedDropShadowOptions,
+        clips: readonly ShadowRegion[],
+        owner: object | undefined
+    ) {
+        const candidates = this.byShadow.get(getShadowId(shadow));
+        return candidates?.find(
+            (k) => k.owner === owner && joinsShadowKey(k, caster, shadow, undefined, 'root', clips)
+        );
+    }
+
+    private index(key: RootShadowKey) {
+        const id = getShadowId(key.shadow);
+        const candidates = this.byShadow.get(id);
+        if (candidates == null) this.byShadow.set(id, [key]);
+        else candidates.push(key);
     }
 }
 
@@ -119,14 +151,19 @@ function getCut(glow: NormalisedDropShadowOptions | undefined): NormalisedDropSh
 }
 
 /** Adds the footprint of a child to the cuts of the overlay, which a child that casts no glow of its own makes. */
-function addCut(cuts: SlotKeys | undefined, child: Node, frame: CollectedFrame, glow?: NormalisedDropShadowOptions) {
+function addCut(
+    cuts: SlotKeys | undefined,
+    child: Node,
+    frame: CollectedFrame<ShadowSource>,
+    glow?: NormalisedDropShadowOptions
+) {
     cuts ??= new SlotKeys('glow');
     cuts.add(child as ShadowCaster, getCut(glow), frame, getShadowClip(child));
     return cuts;
 }
 
 /** The series whose glows are cut by their own shapes alone, so that their glows are keyed apart from those of the rest. */
-function getOwnCutters(frames: readonly CollectedFrame[]): Set<object> | undefined {
+function getOwnCutters(frames: readonly CollectedFrame<ShadowSource>[]): Set<object> | undefined {
     let owners: Set<object> | undefined;
     for (const frame of frames) {
         if (!frame.ownCuts || frame.owner == null) continue;
@@ -138,7 +175,7 @@ function getOwnCutters(frames: readonly CollectedFrame[]): Set<object> | undefin
 
 /** The cuts of the labels and error bars of each series that has a glow in `keys` or `hoveredKeys`, keyed by series. */
 function buildOwnCuts(
-    frames: readonly CollectedFrame[],
+    frames: readonly CollectedFrame<ShadowSource>[],
     keys: readonly ShadowKey[],
     hoveredKeys: readonly ShadowKey[] | undefined
 ): Map<object, SlotKeys> | undefined {
@@ -155,13 +192,13 @@ function buildOwnCuts(
             ownCuts ??= new Map();
             ownCuts.set(owner, ownerCuts);
         }
-        addOwnCuts(ownerCuts, frame.source as ShadowSource, frame, frame.groupedCuts);
+        addOwnCuts(ownerCuts, frame.source, frame, frame.groupedCuts);
     }
     return ownCuts;
 }
 
 /** Adds the shapes of the source to the cuts of its series, and with `grouped`, those of its child groups too. */
-function addOwnCuts(ownerCuts: SlotKeys, source: ShadowSource, frame: CollectedFrame, grouped: boolean) {
+function addOwnCuts(ownerCuts: SlotKeys, source: ShadowSource, frame: CollectedFrame<ShadowSource>, grouped: boolean) {
     for (const child of source.children()) {
         if (!child.visible) continue;
 
@@ -177,13 +214,13 @@ function addOwnCuts(ownerCuts: SlotKeys, source: ShadowSource, frame: CollectedF
  * The keys of the frames' casters: those of every shadow, or, for the overlay, every glow, see {@link withFootprintCut}.
  * The glows of the hovered item go into `hoveredKeys`, if given, and its footprint cuts every glow of the overlay.
  */
-function buildKeys(frames: readonly CollectedFrame[], glows: boolean, hoveredKeys?: ShadowKey[]) {
+function buildKeys(frames: readonly CollectedFrame<ShadowSource>[], glows: boolean, hoveredKeys?: ShadowKey[]) {
     const keys = new SlotKeys(glows ? 'glow' : 'shadow');
     const hovered = hoveredKeys == null ? undefined : new SlotKeys('glow');
     let cuts: SlotKeys | undefined;
     let hoveredCuts: SlotKeys | undefined;
     const ownCutters = glows ? getOwnCutters(frames) : undefined;
-    let ownCutFrames: CollectedFrame[] | undefined;
+    let ownCutFrames: CollectedFrame<ShadowSource>[] | undefined;
     for (const frame of frames) {
         // The root casts only the glows of a group that batches its shadows itself, and nothing for one that casts its own glows.
         if (!glows && (frame.glowsOnly || frame.cutsOnly)) continue;
@@ -196,7 +233,7 @@ function buildKeys(frames: readonly CollectedFrame[], glows: boolean, hoveredKey
         }
         const keyOwner = owner != null && ownCutters?.has(owner) === true ? owner : undefined;
 
-        for (const child of (frame.source as ShadowSource).children()) {
+        for (const child of frame.source.children()) {
             if (!child.visible) continue;
 
             // A group that casts its own glows has only its items cut out of the overlay.
@@ -246,7 +283,7 @@ function buildKeys(frames: readonly CollectedFrame[], glows: boolean, hoveredKey
 }
 
 /** The cover of a cast of nothing, which is shared, as no frame has a group to put in one. */
-const NO_COVER: ReadonlyMap<object, boolean> = new Map();
+const NO_COVER: ReadonlyMap<never, ShadowCover> = new Map<never, ShadowCover>();
 
 /** Frees what the root of `user` holds: the scratch canvas and cached shadows of its casts, and the keys of the last. */
 export function releaseShadowRoot(scene: object | undefined, user: object) {
@@ -258,13 +295,13 @@ export function releaseShadowRoot(scene: object | undefined, user: object) {
  * Casts the frames' shadows beneath what the root draws next. Returns the groups whose casters now draw without them, with
  * whether that includes cutouts, or undefined if the cast failed. With `glows`, groups are covered even if no shadow is cast.
  */
-export function castRootShadows(
-    frames: readonly CollectedFrame[],
+export function castRootShadows<TSource extends ShadowSource>(
+    frames: readonly CollectedFrame<TSource>[],
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext,
     glows: boolean = false
-): ReadonlyMap<object, ShadowCover> | undefined {
+): ReadonlyMap<TSource, ShadowCover> | undefined {
     const memo = memos.get(user);
     const unchanged = memo != null && matchesMemo(memo, frames);
     const keys = unchanged ? memo.keys : buildKeys(frames, false);
@@ -283,10 +320,11 @@ export function castRootShadows(
     } else {
         releaseShadowScratch(scene, user);
     }
-    if (unchanged) return memo.cover;
+    // The memo holds the cover of the frames that matched, which have this type of source.
+    if (unchanged) return memo.cover as ReadonlyMap<TSource, ShadowCover>;
 
     // A group that is only cut out of the overlay draws as it did, with its own glows.
-    const cover = new Map<object, ShadowCover>();
+    const cover = new Map<TSource, ShadowCover>();
     for (const frame of frames) {
         if (!frame.cutsOnly) cover.set(frame.source, frame.glowsOnly ? 'glow' : frame.layered);
     }
@@ -299,7 +337,7 @@ export function castRootShadows(
  * Returns false if either can't be cast, having drawn the overlay alone if only the hovered item's glows can't be.
  */
 export function castGlowOverlay(
-    frames: readonly CollectedFrame[],
+    frames: readonly CollectedFrame<ShadowSource>[],
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext

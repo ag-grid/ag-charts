@@ -1,7 +1,7 @@
 import { Canvas } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, LinearGradient, Logger, Pattern, Scene, TranslatableGroup } from 'ag-charts-core';
+import { ExtendedPath2D, Group, LinearGradient, Logger, Pattern, Scene, TranslatableGroup } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
@@ -205,6 +205,32 @@ describe('Pattern paint and shadow mask', () => {
                 expect(frames).toEqual([0, 0, 0]);
             });
         });
+
+        it.each([
+            { pixelRatio: 1, scale: 1 },
+            { pixelRatio: 2, scale: 1 },
+            { pixelRatio: 1, scale: 3 },
+            { pixelRatio: 2, scale: 3 },
+        ])(
+            'should flatten a wide pattern stroke for the device pixels of pixel ratio $pixelRatio and scale $scale',
+            ({ pixelRatio, scale }) => {
+                const flatten = vi.spyOn(ExtendedPath2D.prototype, 'getFlattenedPath2D');
+                // A circle of radius 1 (half the width, less the padding and half the stroke) stroked 10 out each side.
+                const pattern = new Pattern({
+                    pattern: 'circles',
+                    width: 20,
+                    height: 20,
+                    padding: 1,
+                    strokeWidth: 20,
+                    scale,
+                } as never);
+
+                pattern.createPattern(new Canvas(10, 10).getContext('2d') as never, pixelRatio, new Logger());
+
+                expect(flatten).toHaveBeenCalledOnce();
+                expect(flatten.mock.calls[0][0]).toBeCloseTo(11 * pixelRatio * scale, 1);
+            }
+        );
 
         it('should build a pattern once for each context and pixel ratio', () => {
             const pattern = new Pattern({ pattern: 'squares', fill: 'red' } as never);

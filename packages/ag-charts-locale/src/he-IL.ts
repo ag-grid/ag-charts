@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaAnnounceSelectedItem: 'נבחר',
     ariaAnnounceUnselectedItem: 'לא נבחר',
     ariaAnnounceChart: 'תרשים, ${seriesCount}[number] סדרות',
+    ariaAnnounceChartWithCaption: 'תרשים, ${caption}, ${seriesCount}[number] סדרות',
     ariaAnnounceFlowProportionLink: 'קישור ${index} מתוך ${count}, מ-${from} ל-${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'צומת ${index} מתוך ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaDescriptionToggleNode: 'לחץ על Space או Enter כדי להרחיב או לכווץ את הצומת הזה',
     ariaAnnounceGaugeChart: 'תרשים מד, ${caption}',
     ariaAnnounceHierarchyChart: 'תרשים היררכי, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'תרשים היררכי',
     ariaAnnounceHierarchyDatum: 'רמה ${level}[number], ${count}[number] ילדים, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'תרשים, ${caption}',

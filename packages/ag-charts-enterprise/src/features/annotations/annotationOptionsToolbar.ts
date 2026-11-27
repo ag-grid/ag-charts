@@ -31,6 +31,7 @@ import {
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasSettings, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
+import { withSwitchState } from './utils/switch';
 import { isFibonacciType, isTextType } from './utils/types';
 
 type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
@@ -84,6 +85,7 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     color?: string;
     strokeWidth?: number;
     isMultiColor?: boolean;
+    keyboardOnly?: boolean;
 }
 
 // Appended whenever the toolbar opens from the keyboard, whatever the `buttons` options say, since a keyboard user has
@@ -226,7 +228,7 @@ export class AnnotationOptionsToolbar {
         if (index >= 0) this.toolbar.getButtonWidget(index)?.focus();
     }
 
-    /** `keyboard` appends the buttons that only a keyboard user needs, such as moving the annotation. */
+    /** `keyboard` shows the `keyboardOnly` buttons and appends Move Annotation. */
     public updateButtons(datum: AnnotationDatum, keyboard = false) {
         if (!this.enabled) return;
 
@@ -242,7 +244,9 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.Delete]: true,
             [AnnotationOptions.Move]: false,
         };
-        this.visibleButtons = this.buttons.filter((button) => visible[button.value]);
+        this.visibleButtons = this.buttons.filter(
+            (button) => visible[button.value] && (keyboard || !button.keyboardOnly)
+        );
         if (keyboard) {
             this.visibleButtons.push(...KEYBOARD_ONLY_BUTTONS);
         }
@@ -528,7 +532,6 @@ export class AnnotationOptionsToolbar {
 
         const fontSize = item.value;
         this.events.emit('updated-font-size', { type: datum.type, fontSize });
-        this.textSizeMenu.hide();
         this.updateFontSize(fontSize);
     }
 
@@ -537,7 +540,6 @@ export class AnnotationOptionsToolbar {
 
         const type = item.value;
         this.events.emit('updated-line-style', { type: datum.type, lineStyleType: type });
-        this.lineStyleTypeMenu.hide();
         this.updateLineStyleType(item);
     }
 
@@ -548,7 +550,6 @@ export class AnnotationOptionsToolbar {
 
         const strokeWidth = item.value;
         this.events.emit('updated-line-width', { type: datum.type, strokeWidth });
-        this.lineStrokeWidthMenu.hide();
         this.updateStrokeWidth(item);
     }
 
@@ -558,7 +559,7 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
+                this.updateButtonByIndex(index, withSwitchState(button, locked));
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }

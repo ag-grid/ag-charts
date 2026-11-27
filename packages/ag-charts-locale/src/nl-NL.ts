@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaAnnounceSelectedItem: 'geselecteerd',
     ariaAnnounceUnselectedItem: 'niet geselecteerd',
     ariaAnnounceChart: 'grafiek, ${seriesCount}[number] reeksen',
+    ariaAnnounceChartWithCaption: 'grafiek, ${caption}, ${seriesCount}[number] reeksen',
     ariaAnnounceFlowProportionLink: 'link ${index} van ${count}, van ${from} naar ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'knooppunt ${index} van ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaDescriptionToggleNode: 'Druk op Space of Enter om dit knooppunt uit of samen te vouwen',
     ariaAnnounceGaugeChart: 'meterdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hiërarchie diagram, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'hiërarchie diagram',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] kinderen, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'grafiek, ${caption}',

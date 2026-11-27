@@ -88,7 +88,7 @@ export type AgChartOptions<TDatum = DatumDefault, TContext = ContextDefault> =
 /** Chart options shared by the gauge, quadrant and financial presets. */
 export type AgBasePresetOptions<TDatum = DatumDefault, TContext = ContextDefault> = Pick<
     AgBaseChartOptions<TDatum, TContext>,
-    'border' | 'keyboard' | 'loadGoogleFonts' | 'styleNonce' | 'validations'
+    'border' | 'injectStyles' | 'keyboard' | 'loadGoogleFonts' | 'styleNonce' | 'validations'
 >;
 
 export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = AgBasePresetOptions<TDatum, never> &

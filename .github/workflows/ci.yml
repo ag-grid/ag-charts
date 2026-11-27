@@ -1410,13 +1410,13 @@ jobs:
                       reports/
                       packages/ag-charts-website/**/__scene_snapshots__/*
 
-    # Report-only axe-core accessibility scan of docs examples (e2e/a11y-axe.spec.ts). A job of its
-    # own so the PR carries the whole report in one artefact, rather than it landing on whichever
-    # `e2e` shard picked up the spec; the main config testIgnores the spec for that reason. The scan
-    # never fails on findings, and this job is not in the result-gating `needs` lists.
+    # axe-core accessibility scan of docs examples (e2e/a11y-axe.spec.ts). A job of its own so the PR
+    # carries the whole report in one artefact, rather than it landing on whichever `e2e` shard picked
+    # up the spec; the main config testIgnores the spec for that reason. The scan fails on a violation
+    # not in e2e/a11y/axe-allowlist.json (scan errors do not fail it), and `report` gates on this job.
     e2e_a11y:
         runs-on: ubuntu-latest
-        name: E2E Accessibility Report
+        name: E2E Accessibility Scan
         permissions:
             contents: read
             packages: read
@@ -1897,6 +1897,7 @@ jobs:
                 test,
                 e2e,
                 e2e_cross_browser,
+                e2e_a11y,
                 demos_e2e,
                 sonarqube,
                 fw_pkg_test,
@@ -2020,6 +2021,8 @@ jobs:
                   elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.e2e_cross_browser.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.e2e_a11y.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.demos_e2e.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
@@ -2296,6 +2299,7 @@ jobs:
                   TEST_RESULT: ${{ needs.test.result }}
                   E2E_RESULT: ${{ needs.e2e.result }}
                   E2E_CROSS_BROWSER_RESULT: ${{ needs.e2e_cross_browser.result }}
+                  E2E_A11Y_RESULT: ${{ needs.e2e_a11y.result }}
                   DEMOS_E2E_RESULT: ${{ needs.demos_e2e.result }}
                   FW_PKG_RESULT: ${{ needs.fw_pkg_test.result }}
                   PLAYWRIGHT_RESULT: ${{ needs.playwright_image.result }}
@@ -2319,6 +2323,7 @@ jobs:
                   [[ "$TEST_RESULT" == "failure" ]] && LINES+=("• Test")
                   [[ "$E2E_RESULT" == "failure" ]] && LINES+=("• E2E")
                   [[ "$E2E_CROSS_BROWSER_RESULT" == "failure" ]] && LINES+=("• E2E Cross-Browser")
+                  [[ "$E2E_A11Y_RESULT" == "failure" ]] && LINES+=("• E2E Accessibility")
                   [[ "$DEMOS_E2E_RESULT" == "failure" ]] && LINES+=("• Demos E2E")
                   [[ "$FW_PKG_RESULT" == "failure" ]] && LINES+=("• FW Pkg")
                   [[ "$PLAYWRIGHT_RESULT" == "failure" ]] && LINES+=("• Playwright Image")

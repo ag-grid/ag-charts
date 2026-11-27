@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceSelectedItem: 'انتخاب‌شده',
     ariaAnnounceUnselectedItem: 'انتخاب‌نشده',
     ariaAnnounceChart: 'چارت، ${seriesCount}[number] مجموعه',
+    ariaAnnounceChartWithCaption: 'چارت، ${caption}، ${seriesCount}[number] مجموعه',
     ariaAnnounceFlowProportionLink: 'لینک ${index} از ${count}، از ${from} به ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'گره ${index} از ${count}، ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaDescriptionToggleNode: 'برای گسترش یا جمع کردن این گره، Space یا Enter را فشار دهید',
     ariaAnnounceGaugeChart: 'چارت سنجشی، ${caption}',
     ariaAnnounceHierarchyChart: 'نمودار سلسله مراتبی، ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'نمودار سلسله مراتبی',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number]، ${count}[number] فرزند، ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'نمودار, ${caption}',

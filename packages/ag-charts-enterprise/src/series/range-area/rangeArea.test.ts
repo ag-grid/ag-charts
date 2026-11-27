@@ -43,12 +43,14 @@ import {
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
+    shadowAt,
     spyOnAnimationFrames,
     testLegendItemName,
+    useFailedRootCast,
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Group, type Shape, Transformable } from 'ag-charts-core';
+import { type Shape, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -62,15 +64,6 @@ import type { RangeAreaMarkerDatum } from './rangeAreaUtil';
 
 const RED = [255, 0, 0];
 const HALF_BLACK = [128, 128, 128];
-
-// A shadow with no blur, so that the colour of a pixel is the strength of the shadows cast on it.
-const shadowAt = (xOffset: number, yOffset = 0) => ({
-    enabled: true,
-    fill: 'rgba(0, 0, 0, 0.5)',
-    xOffset,
-    yOffset,
-    blur: 0,
-});
 
 // The test data rows are keyed by `month`; the datum type keeps its row opaque.
 type ClickableMarkerDatum = RangeAreaMarkerDatum & { datum: { month: string | Date } };
@@ -1869,15 +1862,13 @@ describe('RangeAreaSeries', () => {
             return count;
         };
 
+        const failRootCast = useFailedRootCast();
+
         /** Creates the chart with the root unable to cast, if `rootCasts` is false, so that each series casts its own. */
         const render = async (series: AgRangeAreaSeriesOptions[], rootCasts: boolean) => {
-            if (!rootCasts) vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+            if (!rootCasts) failRootCast();
             chart = await createEnterpriseChart(options(series));
         };
-
-        afterEach(() => {
-            vi.restoreAllMocks();
-        });
 
         it('should not draw the shadow of a later range-area over an earlier one', async () => {
             // The shadow of the later area falls up, onto the part of the earlier area that shows above it.
@@ -2001,7 +1992,7 @@ describe('RangeAreaSeries', () => {
                 const through = pixelAt(chartCanvas, x, y + 20);
 
                 chart = destroyChart(chart);
-                vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+                failRootCast();
                 await dim(SOLID);
                 const local = pixelAt(chartCanvas, x, y + 20);
 

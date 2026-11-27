@@ -94,9 +94,14 @@ function getAllGeneratedExamples(): A11yExample[] {
     return examples;
 }
 
-export function selectA11yExamples(): A11yExample[] {
+/** Whether `AG_A11Y_ALL_EXAMPLES` asks for every generated example (the `a11y-all` configuration) rather than the CI set. */
+export function isA11yAllExamples() {
     const sweepAll = process.env.AG_A11Y_ALL_EXAMPLES;
-    if (sweepAll != null && sweepAll !== '') {
+    return sweepAll != null && sweepAll !== '';
+}
+
+export function selectA11yExamples(): A11yExample[] {
+    if (isA11yAllExamples()) {
         return getAllGeneratedExamples();
     }
     return POC_EXAMPLES.map(([pageName, example]) => docsExample(pageName, example));

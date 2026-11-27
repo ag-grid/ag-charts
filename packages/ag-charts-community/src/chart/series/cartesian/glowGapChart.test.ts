@@ -146,6 +146,64 @@ describe('glow gap in a chart', () => {
         });
     });
 
+    describe('around a marker with a wide stroke', () => {
+        const GAP = 1;
+        const SPREAD = 8;
+        const strokedMarkers = (stroke: object) =>
+            markers({
+                fill: 'blue',
+                fillOpacity: 1,
+                stroke: 'darkslategray',
+                glow: { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 },
+                ...stroke,
+            });
+
+        it.each([
+            { strokeWidth: 6 },
+            { strokeWidth: 12 },
+            { strokeWidth: 18 },
+            { strokeWidth: 24 },
+            { strokeWidth: 24, strokeOpacity: 0 },
+        ])(
+            'should grow the glow a gap and a spread past the outer edge of a stroke of $strokeWidth',
+            async (stroke) => {
+                await create(strokedMarkers(stroke));
+                const at = rightOfFirstItem();
+                const outerEdge = stroke.strokeWidth / 2;
+
+                expect(at(outerEdge + GAP + 1)).toEqual(GLOW_RED);
+                expect(at(outerEdge + GAP + SPREAD - 2)).toEqual(GLOW_RED);
+                expect(at(outerEdge + GAP + SPREAD + 2)).toEqual(WHITE);
+            }
+        );
+
+        it('should blur a glow with no spread or gap from the outer edge of a stroke of 24', async () => {
+            const strokeWidth = 24;
+            await create(strokedMarkers({ strokeWidth, glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1 } }));
+            const at = rightOfFirstItem();
+
+            expect(isGlowing(at(strokeWidth / 2 + 2))).toBe(true);
+            expect(at(strokeWidth / 2 + 40)).toEqual(WHITE);
+        });
+
+        it('should keep the default hover glow visible past a stroke of 6', async () => {
+            const strokeWidth = 6;
+            await create(
+                markers({
+                    stroke: 'darkslategray',
+                    strokeWidth,
+                    highlight: { highlightedItem: { glow: { fill: 'red' } } },
+                })
+            );
+            await hoverFirst();
+            const pixel = rightOfFirstItem()(strokeWidth / 2 + GAP + 1);
+
+            expect(pixel[0]).toBe(255);
+            // The default glow is red at an opacity of 0.6, which takes most of the green out of the white beneath it.
+            expect(pixel[1]).toBeLessThanOrEqual(160);
+        });
+    });
+
     describe('with the spread at 0', () => {
         // The blur of the glow reaches 12px past the item, so a probe 40px out is clear of it.
         const blurred = (gap?: number) => bars({ glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1, gap } });

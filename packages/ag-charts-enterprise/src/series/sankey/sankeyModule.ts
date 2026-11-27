@@ -8,7 +8,7 @@ import {
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
-    SAFE_FILLS_OPERATION,
+    SAFE_FILL_OPERATION,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
@@ -95,7 +95,8 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
                 fillImageDefaults: FILL_IMAGE_DEFAULTS,
                 defaultColorRange: { $palette: 'gradients' },
-                defaultPatternFills: SAFE_FILLS_OPERATION,
+                // Per fill, as a palette can mix colours with patterns; the option accepts only solid colours.
+                defaultPatternFills: { $map: [SAFE_FILL_OPERATION, { $palette: 'fills' }] },
             }),
         },
         legend: {

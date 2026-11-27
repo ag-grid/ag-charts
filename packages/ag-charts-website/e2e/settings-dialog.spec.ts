@@ -167,8 +167,9 @@ test.describe('settings dialog', () => {
         await expect(price).toHaveValue((drawn + 0.5).toFixed(1));
 
         await price.fill('203.3');
-        await page.keyboard.press('Enter');
+        await page.keyboard.press('Tab');
         await expect(price).toHaveValue('203.3');
+        await price.focus();
         await page.keyboard.press('ArrowDown');
         await expect(price).toHaveValue('202.8');
         await expect(panel.locator('input:invalid')).toHaveCount(0);

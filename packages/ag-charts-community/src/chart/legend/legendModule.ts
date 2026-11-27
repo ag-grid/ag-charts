@@ -1,5 +1,6 @@
 import {
     CARTESIAN_POSITION,
+    LEGEND_BACKGROUND_FILL,
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     legendOptionsDefs,
@@ -96,9 +97,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                     fontFamily: { $ref: 'legendLabelFontFamily' },
                 },
             },
-            fill: {
-                $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
-            },
+            fill: LEGEND_BACKGROUND_FILL,
         },
 
         create: (ctx) => {

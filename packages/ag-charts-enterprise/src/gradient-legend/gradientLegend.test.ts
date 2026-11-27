@@ -5,13 +5,14 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    expectLegendBackgroundRules,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
 describe('GradientLegend', () => {
     setupMockConsole();
@@ -158,6 +159,22 @@ describe('GradientLegend', () => {
         };
         chart = await createEnterpriseChart(options);
         await compare();
+    });
+
+    it('legendBackgroundColor fills a floating gradient legend by default, and every gradient legend once it is set', async () => {
+        await expectLegendBackgroundRules(
+            ctx,
+            { create: createEnterpriseChart, prepare: prepareEnterpriseTestOptions },
+            {
+                key: 'gradientLegend',
+                options: {
+                    data: EXAMPLE_OPTIONS.data,
+                    series: EXAMPLE_OPTIONS.series,
+                    gradientLegend: { gradient: { preferredLength: 200 } },
+                },
+                floating: { placement: 'right-top', floating: true, xOffset: -120, yOffset: 60 },
+            }
+        );
     });
 
     it('AG-17925 shows arrow when highlight.enabled is false (supersedes AG-16729 arrow gating)', async () => {

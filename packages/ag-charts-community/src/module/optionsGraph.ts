@@ -20,7 +20,14 @@ import {
 import { detectChartType } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
-import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
+import {
+    LocationOperation,
+    type Operation,
+    RAW_OPERANDS_FROM,
+    getOperation,
+    isOperation,
+    operations,
+} from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
     AUTO_ENABLE_VALUE_EDGE,
@@ -92,7 +99,8 @@ function resolveSeriesThemeDefaults(
         cssVariables,
         undefined,
         moduleRegistry,
-        theme.chartDefaults
+        theme.chartDefaults,
+        theme.userParams
     );
     const { series } = optionsGraph.resolve(undefined);
     optionsGraph.clearSafe();
@@ -116,7 +124,8 @@ export function resolveSeriesThemeOption(
         undefined,
         undefined,
         moduleRegistry,
-        theme.chartDefaults
+        theme.chartDefaults,
+        theme.userParams
     );
     const { series } = optionsGraph.resolve(undefined);
     optionsGraph.clearSafe();
@@ -176,7 +185,8 @@ export function createOptionsGraph(
             cssVariables,
             presetOptions,
             moduleRegistry,
-            theme.chartDefaults
+            theme.chartDefaults,
+            theme.userParams
         );
 
         return {
@@ -333,7 +343,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         private cssVariables: Record<string, string> = {},
         private readonly presetOptions: PlainObject = {},
         public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope(),
-        chartDefaults: PlainObject = {}
+        chartDefaults: PlainObject = {},
+        private readonly userParams: PlainObject = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -580,6 +591,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
+    }
+
+    hasUserParam(name: string) {
+        return this.userParams[name] != null;
     }
 
     hasUserOption(path: Array<string>) {
@@ -1143,8 +1158,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     ) {
         const operationVertex = this.addVertex(operation.operation);
         this.addEdge(valueVertex, operationVertex, OPERATION_EDGE);
-        for (const operationValue of operation.values) {
-            this.buildGraphFromOperationValue(valueVertex, operationValue, edgeValue, pathArrayVertex);
+        const rawFrom = RAW_OPERANDS_FROM[operation.operation] ?? Infinity;
+        const { values } = operation;
+        for (let i = 0; i < values.length; i++) {
+            if (i >= rawFrom) {
+                this.addEdge(valueVertex, this.addVertex(values[i]), OPERATION_VALUE_EDGE);
+            } else {
+                this.buildGraphFromOperationValue(valueVertex, values[i], edgeValue, pathArrayVertex);
+            }
         }
     }
 

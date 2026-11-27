@@ -2,6 +2,7 @@ import { createNodesFromFiles } from '@nx/devkit';
 import type { CreateDependencies, CreateNodes, CreateNodesResult, TargetConfiguration } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import { dirname } from 'path';
+import { isDeepStrictEqual } from 'util';
 
 import * as generateChartThumbnails from './generate-chart-thumbnails';
 import * as generateExampleFiles from './generate-example-files';
@@ -52,6 +53,10 @@ function createExampleNodes(configFilePath: string): CreateNodesResult {
     }
 
     const projectRoot = dirname(configFilePath);
+    const generateTargets: Record<string, TargetConfiguration> = {
+        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, projectRoot),
+        ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
+    };
     return {
         projects: {
             [projectName]: {
@@ -59,10 +64,9 @@ function createExampleNodes(configFilePath: string): CreateNodesResult {
                 name: projectName,
                 tags,
                 targets: {
-                    ...createGenerateTarget(thumbnails),
+                    ...createGenerateTarget(generateTargets),
                     ...createTypecheckTarget(),
-                    ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, projectRoot),
-                    ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
+                    ...generateTargets,
                 },
             },
         },
@@ -73,16 +77,17 @@ export const createDependencies: CreateDependencies = async (opts, ctx) => {
     return [...(await generateExampleFiles.createDependencies(opts, ctx))];
 };
 
-function createGenerateTarget(thumbnails: boolean): { [targetName: string]: TargetConfiguration<any> } {
-    const dependsOn = ['generate-example'];
-    if (thumbnails) {
-        dependsOn.push('generate-thumbnail');
-    }
+// Takes the inputs of the tasks it runs: `nx affected` selects a task by its own inputs, so an
+// aggregator with none would never be selected, and neither would the tasks under it.
+function createGenerateTarget(generateTargets: Record<string, TargetConfiguration>): {
+    [targetName: string]: TargetConfiguration<any>;
+} {
+    const inputs = Object.values(generateTargets).flatMap((target) => target.inputs ?? []);
     return {
         generate: {
             executor: 'nx:noop',
-            dependsOn,
-            inputs: [],
+            dependsOn: Object.keys(generateTargets),
+            inputs: inputs.filter((input, index) => inputs.findIndex((i) => isDeepStrictEqual(i, input)) === index),
             outputs: [],
             cache: true,
         },

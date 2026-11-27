@@ -1,15 +1,17 @@
-import { type MockInstance, afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgDropShadowOptions } from 'ag-charts-community';
 import {
     deproxy,
+    expectSamePixels,
     getSeriesNodeData,
     getSeriesSelectionNodes,
     setupMockCanvas,
     setupMockConsole,
+    useFailedRootCast,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, type Shape, Transformable } from 'ag-charts-core';
+import { type Shape, Transformable } from 'ag-charts-core';
 
 import { type SeriesGroupName, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
 import { HIERARCHY_SHADOW_DATA, createEnterpriseChart, pixelAt } from '../test/utils';
@@ -57,14 +59,11 @@ describe('series that cast their shadows through the shadow root', () => {
     setupMockCanvas();
 
     let chart: AgChartInstance | undefined;
-    let rootSpy: MockInstance | undefined;
+    const withoutRoot = useFailedRootCast();
 
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        // Only the spy: restoring every mock would disarm the console check that setupMockConsole makes after each test.
-        rootSpy?.mockRestore();
-        rootSpy = undefined;
     });
 
     const create = async (options: AgChartOptions) => {
@@ -77,11 +76,6 @@ describe('series that cast their shadows through the shadow root', () => {
     const pixels = () => {
         const { canvas } = deproxy(chart!).ctx.scene;
         return Array.from(canvas.context.getImageData(0, 0, canvas.width, canvas.height).data as ArrayLike<number>);
-    };
-
-    /** Gathers nothing for the root to cast, so that every group batches its own shadows, as it does without a root. */
-    const withoutRoot = () => {
-        rootSpy = vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
     };
 
     /** How the group of a series that is named, which holds the shapes that it casts shadows from, batches them. */
@@ -118,9 +112,7 @@ describe('series that cast their shadows through the shadow root', () => {
 
         withoutRoot();
         await create(options);
-        const local = pixels();
-        expect(local).toHaveLength(through.length);
-        expect(through.every((value, i) => Math.abs(value - local[i]) <= tolerance)).toBe(true);
+        expectSamePixels({ data: pixels() }, { data: through }, tolerance);
     };
 
     describe('the opt-in', () => {

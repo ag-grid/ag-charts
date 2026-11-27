@@ -18,6 +18,7 @@ import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { InteractionState } from '../interaction/interactionManager';
 import * as examples from '../test/examples';
+import { expectLegendBackgroundRules } from '../test/legendBackground';
 import { seedRandom } from '../test/random';
 import type { AgChartProxy, LegendTestItemNode } from '../test/utils';
 import {
@@ -640,6 +641,27 @@ describe('Legend', () => {
                 },
             });
         });
+    });
+
+    it('legendBackgroundColor theme param fills a floating legend by default, and every legend once it is set', async () => {
+        await expectLegendBackgroundRules(
+            ctx,
+            { create: createChart, prepare: prepareTestOptions },
+            {
+                key: 'legend',
+                options: {
+                    data: [
+                        { x: 'x1', a: 4, b: 5 },
+                        { x: 'x2', a: 5, b: 6 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'a' },
+                        { type: 'bar', xKey: 'x', yKey: 'b' },
+                    ],
+                },
+                floating: { placement: 'right-top', floating: true, xOffset: -90, yOffset: 60 },
+            }
+        );
     });
 
     describe('Item labels', () => {

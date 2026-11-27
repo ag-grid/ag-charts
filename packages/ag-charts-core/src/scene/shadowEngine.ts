@@ -38,8 +38,11 @@ export const SHADOW_SHRINK_AFTER = 30;
 /** How many casts of one user keep their shadows between redraws. Further casts of it blur every time. */
 const MAX_CACHED_CASTS = 4;
 
-/** The most pixels that the kept shadows of a scene hold between them: about 16 MB, or one 1200 x 800 layer at 2x (3.84M). */
-const MAX_CACHED_AREA = MAX_MASK_AREA / 4;
+/**
+ * The most pixels that the kept shadows of a scene hold between them: about 32 MB (8.39M), which holds the shadows of a 1600 x 900
+ * chart at 2x. The kept parts of overlay glows are given the same room, beside it.
+ */
+const MAX_CACHED_AREA = MAX_MASK_AREA / 2;
 
 /**
  * The most pixels that the kept parts of overlay glows hold between them: about 32 MB, or two parts of a 2800 x 1200 layer (3.4M each).
@@ -67,25 +70,49 @@ export type ShadowCaster = Shape;
  */
 export type ShadowScope = 'run' | 'layer' | 'root';
 
-/** The casters that share their shadow options and clip, and so one mask and one blur. */
-export interface ShadowKey {
+/** What every key has: the casters that share their shadow options and clip, and so one mask and one blur. */
+interface ShadowKeyBase {
     /** Which of its casters' two slots the key casts. A caster that casts both is in a key of each. */
     readonly slot: ShadowSlot;
     /** The shadow options of its casters. A glow with no `fill` keeps none: each caster's silhouette has its own colour. */
     readonly shadow: NormalisedDropShadowOptions;
-    /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
-    readonly clip: ShadowClip | undefined;
     readonly casters: ShadowCaster[];
-    /** The frame of each caster, in the order of {@link casters}, for a `root` key. */
-    readonly frames?: ShadowFrame[];
-    /** All that clips every caster of a `root` key, in device pixels: the clips of its frames, and of a path. */
-    readonly clips?: readonly ShadowRegion[];
     /** For a key that a cast split from another by strength, see {@link splitByStrength}: that key, and every key split from it. */
     readonly split?: { readonly from: ShadowKey; readonly parts: readonly ShadowKey[] };
     /** The series of the casters of a glow key whose glows are cut by its own shapes, see {@link ownCuts}. */
     readonly owner?: object;
     /** The keys of the shapes, such as labels and error bars, that cut their footprint out of this glow alone. */
     ownCuts?: readonly ShadowKey[];
+    /** Whether the casters are the highlight copies of hovered items, see {@link cutsSeeThrough}. */
+    readonly hovered?: boolean;
+}
+
+/** The key of a group's own casters, which are clipped by `clip`, in the coordinates of the group. */
+export interface LocalShadowKey extends ShadowKeyBase {
+    readonly clip: ShadowClip | undefined;
+    readonly frames?: undefined;
+    readonly clips?: undefined;
+}
+
+/** The key of the casters that a shadow root gathers from many groups, each in a {@link ShadowFrame}. */
+export interface RootShadowKey extends ShadowKeyBase {
+    readonly clip?: undefined;
+    /** The frame of each caster, in the order of {@link casters}. */
+    readonly frames: ShadowFrame[];
+    /** All that clips every caster, in device pixels: the clips of its frames, and of a path. */
+    readonly clips: readonly ShadowRegion[];
+}
+
+export type ShadowKey = LocalShadowKey | RootShadowKey;
+
+/** Whether a hovered glow key with no `gap` has a see-through caster, whose footprint is cut out of the glow like at rest. */
+function cutsSeeThrough({ hovered, slot, shadow, casters }: ShadowKey): boolean {
+    if (hovered !== true || slot !== 'glow' || shadow.gap != null) return false;
+
+    for (let i = 0; i < casters.length; i++) {
+        if (casters[i].paintsSeeThrough()) return true;
+    }
+    return false;
 }
 
 /** The options that a node casts in a slot through a shadow root, which a cutout may, or undefined if it casts none. */
@@ -164,7 +191,8 @@ export function inLayerOf(first: Node, next: Node, scope: ShadowScope): boolean 
     return scope !== 'layer' || sameLayer(first, next);
 }
 
-function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
+/** Whether two shadows cast alike. Keep the options it compares the same as those of {@link shadowKeyId}. */
+export function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
     return (
         a === b ||
         (a.fill === b.fill &&
@@ -178,6 +206,24 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
             a.overlay === b.overlay &&
             a.selfCut === b.selfCut)
     );
+}
+
+/**
+ * Names the shadow options that {@link sameShadow} compares, so that keys of one shadow are found without comparing each. Shadows
+ * that {@link sameShadow} finds alike must have the same id, or a caster would not join a key that it matches.
+ */
+export function shadowKeyId({
+    fill,
+    fillOpacity,
+    xOffset,
+    yOffset,
+    blur,
+    spread,
+    gap,
+    overlay,
+    selfCut,
+}: NormalisedDropShadowOptions): string {
+    return `${fill}|${fillOpacity ?? 1}|${xOffset}|${yOffset}|${blur}|${spread ?? 0}|${gap}|${overlay}|${selfCut}`;
 }
 
 /** Whether `next`, which casts `shadow` to `clip`, joins the casters of `key`. A `root` key is clipped by `clips` instead. */
@@ -497,7 +543,7 @@ function putSignature(cache: SignatureTarget, value: number | string) {
 }
 
 /** Writes what a cast of the key reads of it: its shadow and clips, and each caster's revision and frame. */
-function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, frames }: ShadowKey) {
+function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, frames, hovered }: ShadowKey) {
     putSignature(cache, slot);
     putSignature(cache, shadow.fill ?? '');
     putSignature(cache, shadow.fillOpacity ?? 1);
@@ -507,6 +553,7 @@ function signKey(cache: SignatureTarget, { slot, shadow, clip, clips, casters, f
     putSignature(cache, shadow.spread ?? 0);
     putSignature(cache, shadow.gap ?? -1);
     putSignature(cache, shadow.selfCut === true ? 1 : 0);
+    putSignature(cache, hovered === true ? 1 : 0);
     putSignature(cache, clip?.length ?? -1);
     if (clip != null) {
         for (const corner of clip) putSignature(cache, corner);
@@ -762,11 +809,13 @@ function renderPass(
     before?: (index: number) => void,
     erase?: number,
     erasePainted: boolean = false,
-    eraseOp: GlobalCompositeOperation = ERASE
+    eraseOp: GlobalCompositeOperation = ERASE,
+    eraseSeeThroughOnly: boolean = false
 ): boolean {
     let rendered = true;
     const previousErase = shadowPass.erase;
     const previousErasePainted = shadowPass.erasePainted;
+    const previousEraseSeeThroughOnly = shadowPass.eraseSeeThroughOnly;
     const previousEraseOp = shadowPass.eraseOp;
     const previousState = shadowPass.state;
     const previousSlot = shadowPass.slot;
@@ -780,6 +829,7 @@ function renderPass(
     shadowPass.resolution = resolution;
     shadowPass.erase = erase;
     shadowPass.erasePainted = erasePainted;
+    shadowPass.eraseSeeThroughOnly = eraseSeeThroughOnly;
     shadowPass.eraseOp = eraseOp;
     try {
         for (let i = 0; i < casters.length; i++) {
@@ -794,6 +844,7 @@ function renderPass(
         shadowPass.resolution = previousResolution;
         shadowPass.erase = previousErase;
         shadowPass.erasePainted = previousErasePainted;
+        shadowPass.eraseSeeThroughOnly = previousEraseSeeThroughOnly;
         shadowPass.eraseOp = previousEraseOp;
     }
     return rendered;
@@ -874,12 +925,12 @@ function splitByStrength(key: ShadowKey): StrengthPart[] {
     const split = { from: key, parts };
     for (const indices of members) {
         indices.sort((a, b) => a - b);
-        parts.push({
-            ...key,
-            casters: indices.map((i) => casters[i]),
-            frames: frames == null ? undefined : indices.map((i) => frames[i]),
-            split,
-        });
+        const partCasters = indices.map((i) => casters[i]);
+        parts.push(
+            frames == null
+                ? { ...key, casters: partCasters, split }
+                : { ...key, casters: partCasters, frames: indices.map((i) => frames[i]), split }
+        );
     }
     return parts.map((part, i) => ({ key: part, strength: strengths[i] }));
 }
@@ -915,6 +966,8 @@ interface KeyPlan extends MaskPlan {
     readonly extent: Extent | undefined;
     /** The glow part that holds the plan's glow, once the cast has matched its plans with the parts held. */
     part?: GlowPart;
+    /** Whether the glow, which has no `gap`, is cut by the footprint of its see-through casters, see {@link cutsSeeThrough}. */
+    readonly cutsSeeThrough: boolean;
 }
 
 /**
@@ -1119,7 +1172,7 @@ function castPlan(
     let rendered = drawMask(plan, scratch, transform, renderCtx);
 
     const { gap } = key.shadow;
-    if (gap != null) {
+    if (gap != null || plan.cutsSeeThrough) {
         const region = getGapRegion(key, keyExtent, transform, renderCtx, target, originX, originY, measured);
         if (region == null) return rendered;
 
@@ -1141,10 +1194,22 @@ function castPlan(
                 erase.restore();
             }
             const resolutionOfHole = { x: holeScaleX, y: holeScaleY };
-            // The glow of an overlay with no `gap` is cut only where an item is painted, whereas a `gap` clears the whole footprint.
-            const painted = key.shadow.overlay === true;
+            // An overlay, or a hovered key cut like one, is cut only where an item is painted, whereas a `gap` clears the whole footprint.
+            const painted = key.shadow.overlay === true || plan.cutsSeeThrough;
             rendered =
-                eraseFootprints(key, erase, transform, renderCtx, region, resolutionOfHole, gap, painted) && rendered;
+                eraseFootprints(
+                    key,
+                    erase,
+                    transform,
+                    renderCtx,
+                    region,
+                    resolutionOfHole,
+                    gap ?? 0,
+                    painted,
+                    ERASE,
+                    false,
+                    plan.cutsSeeThrough
+                ) && rendered;
             // The target holds what the layer has drawn and the glows of other keys, so only the cut glow is drawn onto it.
             target.save();
             try {
@@ -1187,13 +1252,13 @@ function castPlan(
 
 /** OPTIMIZATION: a blur costs the area it is clipped to, so a key of few casters, such as a hovered item's, is clipped to its extent. */
 function getSmallKeyExtent(
-    key: ShadowKey,
+    { key, cutsSeeThrough: cutsKey }: KeyPlan,
     transform: DOMMatrix,
     renderCtx: RenderContext,
     measured: MeasuredKeys
 ): Extent | undefined {
-    // A key with a `gap` is already cast on a canvas of its own extent.
-    if (key.shadow.gap != null || key.casters.length > MAX_BOUNDED_CASTERS) return;
+    // A key with a `gap`, or cut like one, is already cast on a canvas of its own extent.
+    if (key.shadow.gap != null || cutsKey || key.casters.length > MAX_BOUNDED_CASTERS) return;
 
     const { canvas } = renderCtx.ctx;
     return getShadowExtent(
@@ -1845,7 +1910,8 @@ function eraseFootprints(
     gap: number,
     painted: boolean,
     op: GlobalCompositeOperation = ERASE,
-    clipped: boolean = false
+    clipped: boolean = false,
+    seeThroughOnly: boolean = false
 ): boolean {
     const { frames } = key;
     const place = ([a, b, c, d, e, f]: readonly number[]) =>
@@ -1897,7 +1963,8 @@ function eraseFootprints(
                   },
             gap,
             painted,
-            op
+            op,
+            seeThroughOnly
         );
     } finally {
         erase.restore();
@@ -2022,6 +2089,7 @@ export function castShadows(
             scaleX: canvasWidth / mask.maskWidth,
             scaleY: canvasHeight / mask.maskHeight,
             part: undefined,
+            cutsSeeThrough: cutsSeeThrough(mask.key),
             // A key of many casters is measured only for a kept cast, which measures them all for its cache anyway. A direct cast
             // may be a frame that changes every caster, so measuring them would cost more than clearing the mask whole.
             extent:
@@ -2117,7 +2185,7 @@ export function castShadows(
         // A refused cast's extent is about the layer, so clipping to it would only cost a measure.
         const declined = cache != null && isDeclined(cache, scene);
         for (const plan of plans) {
-            const bound = declined ? undefined : getSmallKeyExtent(plan.key, transform, renderCtx, measured);
+            const bound = declined ? undefined : getSmallKeyExtent(plan, transform, renderCtx, measured);
             castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0, scene, undefined, measured, bound);
         }
     }

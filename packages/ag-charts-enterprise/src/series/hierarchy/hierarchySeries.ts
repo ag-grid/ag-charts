@@ -200,6 +200,7 @@ export abstract class HierarchySeries<
     }
 
     override getChartAriaLabel(caption: string) {
+        if (caption === '') return this.ctx.localeManager.t('ariaAnnounceHierarchyChartWithoutCaption');
         return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
     }
 
@@ -704,7 +705,7 @@ export abstract class HierarchySeries<
 
     /**
      * The `shadow` a node casts without an item styler, for the params of one: unset where it casts none.
-     * It is the series' own object, or one cached copy of it without its deprecated `color`, so nothing is allocated per node.
+     * It is the series' own object, or one cached copy of it without its `_fillOpacitySet`, so nothing is allocated per node.
      */
     protected getHierarchyStylerShadow(shadow: NormalisedDropShadowOptions | undefined) {
         return this.toStylerShadow(shadow);

@@ -124,6 +124,7 @@ export function createQuadrant(
         'formatter',
         'height',
         'initialState',
+        'injectStyles',
         'keyboard',
         'listeners',
         'loadGoogleFonts',

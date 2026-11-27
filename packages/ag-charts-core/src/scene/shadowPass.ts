@@ -41,10 +41,14 @@ export const shadowPass: {
     erase: number | undefined;
     /** During a pass that erases footprints, whether an item with no fill has the footprint of its stroke alone. */
     erasePainted: boolean;
+    /** During a pass that erases footprints, whether an item that paints fully opaque keeps its footprint, as it hides the glow. */
+    eraseSeeThroughOnly: boolean;
     /** During a pass that erases footprints, how they are drawn: `destination-out` onto a glow, or solid onto a canvas to cut it. */
     eraseOp: GlobalCompositeOperation;
     /** While a group of the hovered item draws, whose glows the shadow root casts, so that a cutout casts none of its own. */
     hoveredGlowsCast: boolean;
+    /** While a group that holds the highlight copies of hovered items draws, see {@link Group.holdsHighlight}. */
+    highlight: boolean;
 } = {
     state: 'none',
     slot: 'shadow',
@@ -53,8 +57,10 @@ export const shadowPass: {
     resolution: { x: 1, y: 1 },
     erase: undefined,
     erasePainted: false,
+    eraseSeeThroughOnly: false,
     eraseOp: 'destination-out',
     hoveredGlowsCast: false,
+    highlight: false,
 };
 
 /** How far a shadow's silhouette is dilated: its `spread`, moved outwards by its glow's `gap`, which is then cut out. */

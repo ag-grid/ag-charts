@@ -1,5 +1,5 @@
 import type { AgGradientColor, AgImageFill, AgPatternColor, AgSolidColor } from '../series/cartesian/commonOptions';
-import type { AgChartAllThemeParams } from './themeParamsOptions';
+import type { AgChartAllThemeParams, AgChartThemeParams } from './themeParamsOptions';
 import type { AgLineDashName } from './types';
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
@@ -84,6 +84,8 @@ type PaletteParam =
     | 'stroke'
     | 'markerShapes'
     | 'markerShape'
+    | 'lineDashes'
+    | 'lineDash'
     | 'gradients'
     | 'gradient'
     | 'sequentialColors'
@@ -134,6 +136,7 @@ type LocationOperation =
           $isUserOption:
               Leaf<string> | [UserOptionTarget] | [UserOptionTarget, AnyLeaf] | [UserOptionTarget, AnyLeaf, AnyLeaf];
       }
+    | { $isUserParam: keyof AgChartThemeParams } // Theme param, `true` when the user's theme sets it
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
     | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] } // Relative path to vertex | Default if path undefined | Custom branch on which to find the path
@@ -172,7 +175,11 @@ type TransformOperation =
     | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
-    | { $applyLineDash: [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>] } // Default dash | Stroke width a name scales by
+    | {
+          $applyLineDash:
+              | [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>]
+              | [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>, AgLineDashName];
+      } // Default dash | Stroke width a name scales by | Dash a set value layers over in place of the default
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
     | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge

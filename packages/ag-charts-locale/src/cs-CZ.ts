@@ -12,6 +12,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaAnnounceSelectedItem: 'vybráno',
     ariaAnnounceUnselectedItem: 'nevybráno',
     ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
+    ariaAnnounceChartWithCaption: 'graf, ${caption}, ${seriesCount}[number] sérií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzel ${index} z ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
@@ -28,6 +29,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaDescriptionToggleNode: 'Stiskněte Space nebo Enter pro rozbalení nebo sbalení tohoto uzlu',
     ariaAnnounceGaugeChart: 'graf měřidla, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchický graf, ${caption}',
+    ariaAnnounceHierarchyChartWithoutCaption: 'hierarchický graf',
     ariaAnnounceHierarchyDatum: 'úroveň ${level}[number], ${count}[number] děti, ${description}',
     ariaAnnounceHoverDatum: '${datum}',
     ariaAnnounceStandaloneChart: 'graf, ${caption}',

@@ -698,6 +698,17 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
     lineDashOffset: 0,
 };
 
+/**
+ * A `lineDash` default whose set values (user, theme override or styler) layer over solid instead of the `defaultDash`,
+ * so that no element of the default shows through a shorter array, as it would by index.
+ */
+export function solidLayeredLineDashThemeDefault(defaultDash: AgLineDashName | number[] | Operation) {
+    return { $applyLineDash: [defaultDash, SIBLING_STROKE_WIDTH, 'solid'] } satisfies Operation;
+}
+
+/** A series stroke's `lineDash` default: the palette's pattern at the series index. */
+export const PALETTE_LINE_DASH_THEME_DEFAULT = solidLayeredLineDashThemeDefault({ $palette: 'lineDash' });
+
 /** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
 export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
 
@@ -710,8 +721,8 @@ export const FONT_THEME_DEFAULTS = {
 } as const;
 
 /**
- * A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone.
- * `fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
+ * The fallback opacity goes with the fallback `fill` alone.
+ * `_fillOpacitySet` is true for a user `fillOpacity`, and a `fill` alone leaves it at `fallbackFillOpacitySet`.
  */
 function shadowFillTheme(
     fallbackFill: Operation | string,
@@ -719,18 +730,18 @@ function shadowFillTheme(
     fallbackFillOpacitySet?: Operation
 ) {
     return {
-        fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
-        fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
-        fillOpacitySet: {
+        fill: fallbackFill,
+        fillOpacity: { $isUserOption: ['./fill', 1, fallbackFillOpacity] },
+        _fillOpacitySet: {
             $isUserOption: [
                 './fillOpacity',
                 true,
                 fallbackFillOpacitySet == null
                     ? undefined
-                    : { $isUserOption: [['./color', './fill'], undefined, fallbackFillOpacitySet] },
+                    : { $isUserOption: ['./fill', undefined, fallbackFillOpacitySet] },
             ],
         },
-    } as const satisfies Record<string, Operation>;
+    } as const satisfies Record<string, Operation | string>;
 }
 
 /**
@@ -741,7 +752,7 @@ export function inheritedShadowFillTheme(seriesShadowPath: string) {
     return shadowFillTheme(
         { $path: `${seriesShadowPath}/fill` },
         { $path: `${seriesShadowPath}/fillOpacity` },
-        { $path: `${seriesShadowPath}/fillOpacitySet` }
+        { $path: `${seriesShadowPath}/_fillOpacitySet` }
     );
 }
 
@@ -1091,6 +1102,15 @@ export const SERIES_SELECTION_THEME = seriesSelectionTheme(0.5);
 
 export const MARKER_SERIES_SELECTION_THEME = seriesSelectionTheme(0.3);
 
+/** A floating legend is filled by default; one that is not floating is only once `legendBackgroundColor` is set. */
+export const LEGEND_BACKGROUND_FILL: Operation = {
+    $if: [
+        { $or: [{ $path: ['./position/floating', false] }, { $isUserParam: 'legendBackgroundColor' }] },
+        { $ref: 'legendBackgroundColor' },
+        'transparent',
+    ],
+};
+
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
         enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
@@ -1104,7 +1124,11 @@ export const LEGEND_CONTAINER_THEME: any = {
     padding: {
         $if: [
             {
-                $or: [{ $eq: [{ $path: './border/enabled' }, true] }, { $isUserOption: ['./fill', true, false] }],
+                $or: [
+                    { $eq: [{ $path: './border/enabled' }, true] },
+                    { $isUserOption: ['./fill', true, false] },
+                    { $isUserParam: 'legendBackgroundColor' },
+                ],
             },
             { $ref: 'legendPadding' },
             0,
@@ -1140,7 +1164,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }),
+            lineDash: solidLayeredLineDashThemeDefault({ $path: '../../../lineDash' }),
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

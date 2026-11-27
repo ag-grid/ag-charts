@@ -537,10 +537,8 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
 }
 
 /**
- * Marks an option as deprecated. Supplied values still pass through to the inner validator (so the
- * option remains functional during the deprecation window), but a one-shot notice is emitted via
- * `deprecationOnce` (the quietest console tier) to nudge consumers toward the replacement API. The provided `message` should describe
- * the recommended migration (e.g. "Use `colorScale.fills` instead.").
+ * Marks an option as deprecated: values still validate, with a one-shot `deprecationOnce` notice.
+ * Intentionally unused for now; kept because it is needed transiently whenever an option is phased out.
  */
 export function deprecated(validator: Validator, message: string): Validator;
 export function deprecated<T extends OptionsDefs<any>>(validatorOrDefs: T, message: string): T;

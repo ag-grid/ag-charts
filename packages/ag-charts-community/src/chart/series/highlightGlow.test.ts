@@ -626,7 +626,7 @@ describe('highlight glow', () => {
                 });
             });
 
-            it('rejects a shadow colour, which a new option does not take', async () => {
+            it('rejects a shadow colour as an unknown option', async () => {
                 await createWith({
                     type: 'bar',
                     xKey: 'category',
@@ -634,7 +634,9 @@ describe('highlight glow', () => {
                     highlight: { highlightedItem: { shadow: { color: '#ff00ff' } } },
                 });
 
-                expect(warnings().filter((message) => message.includes('shadow.color'))).toHaveLength(1);
+                expect(warnings()).toEqual([
+                    expect.stringContaining('Unknown option `series[0].highlight.highlightedItem.shadow.color`'),
+                ]);
                 vi.mocked(console.warn).mockClear();
             });
 
@@ -1144,16 +1146,17 @@ describe('highlight glow', () => {
                 expect(pixels.above(2)).toEqual(WHITE);
             });
 
-            it('draws a glow in its own fill from the fill alone, not the stroke, around a marker that has a fill', async () => {
-                // The stroke reaches 5px past the edge of the fill, which the 4px of spread of a glow cast from the fill stays within.
+            it('draws a glow in its own fill past the outer edge of the stroke around a marker that has a fill', async () => {
                 const pixels = await hoveredPixels(
                     SERIES[3],
                     { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 10, size: 24 },
                     glow({ spread: 4, blur: 0, fill: GREEN_FILL })
                 );
-                const sampled = [0, 2, 4, 6, 8, 10, 12].map((offset) => pixels.above(offset));
 
-                expect(sampled).not.toContainEqual(GREEN);
+                // The stroke reaches 5px past the edge of the fill, and the glow a gap of 1 and its spread of 4 past that.
+                expect(pixels.above(2)).toEqual(BLUE);
+                expect(pixels.above(8)).toEqual(GREEN);
+                expect(pixels.above(12)).toEqual(WHITE);
             });
 
             it('draws a glow of the item fill, and not the stroke, around a marker that has a fill', async () => {

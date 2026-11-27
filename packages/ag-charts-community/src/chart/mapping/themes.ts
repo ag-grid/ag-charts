@@ -14,6 +14,7 @@ import {
     fontWeight,
     gradientStrict,
     isObject,
+    lineDash,
     mergeDefaults,
     number,
     object,
@@ -352,6 +353,7 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         crosshairLabelTextColor: colorOrRefNoOperator,
         crosshairLabelVerticalPadding: positiveNumber,
 
+        legendBackgroundColor: colorOrRefNoOperator,
         legendBorder: or(boolean, themeParamBorder),
         legendBorderRadius: positiveNumber,
         legendItemHorizontalPadding: positiveNumber,
@@ -412,6 +414,7 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         fills: arrayOf(simpleColorUnion),
         strokes: arrayOf(color),
         markerShapes: arrayOf(shapeValidator),
+        lineDashes: arrayOf(lineDash),
         up: { fill: or(color, gradientStrict), stroke: color },
         down: { fill: or(color, gradientStrict), stroke: color },
         neutral: { fill: or(color, gradientStrict), stroke: color },

@@ -4,7 +4,7 @@ const scenarios = [
     {
         name: 'Full package',
         import: '*',
-        srcLimit: '405 kB',
+        srcLimit: '406 kB',
         distLimit: '406 kB',
     },
     {

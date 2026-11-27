@@ -67,6 +67,10 @@ class InternalMarker<D = any> extends Path<D> {
         super.onChangeDetection(property);
     }
 
+    protected override glowGrowsFromStrokeEdge(): boolean {
+        return true;
+    }
+
     /**
      * Half the widest stroke the marker is drawn with, so `'exact'` hit testing includes the stroke
      * (AG-8173). Set by `Series.applyMarkerStyle`; not change-detected, as it is never rendered.
@@ -212,6 +216,12 @@ class InternalMarker<D = any> extends Path<D> {
 
     protected override executeStroke(ctx: CanvasContext, path?: Path2D): void {
         if (!path) return;
+
+        const sharedPath = this._sharedPath;
+        if (sharedPath?.getPath2D() === path) {
+            const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+            path = sharedPath.getStrokePath2D(this.__strokeWidth + this.shadowStrokeGrowth, pixelRatio);
+        }
 
         return super.executeStroke(ctx, path);
     }
