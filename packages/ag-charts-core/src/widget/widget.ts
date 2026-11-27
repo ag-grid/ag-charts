@@ -256,6 +256,15 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-current', ariaCurrent);
     }
 
+    /** An empty string stops the `title` being announced as the description. */
+    setAriaDescription(ariaDescription: string | undefined) {
+        if (ariaDescription == null) {
+            this.elem.removeAttribute('aria-description');
+        } else if (this.elem.getAttribute('aria-description') !== ariaDescription) {
+            this.elem.setAttribute('aria-description', ariaDescription);
+        }
+    }
+
     setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
         this.setAttributeIfChanged('aria-selected', ariaSelected);
     }

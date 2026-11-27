@@ -385,6 +385,8 @@ export interface AgBaseChartOptions<
     loading?: boolean;
     /** Configuration for how the chart reports invalid configuration and runtime problems. */
     validations?: AgChartValidationsOptions;
+    /** The accessible name of the chart, announced by screen readers in place of the name the chart generates. */
+    ariaLabel?: string;
 }
 
 /** The severity of a validation issue. */

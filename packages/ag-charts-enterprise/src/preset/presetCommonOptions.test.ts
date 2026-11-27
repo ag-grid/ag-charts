@@ -48,7 +48,15 @@ type UncoveredChartOptions<TPreset, TExcluded extends keyof AgBaseChartOptions> 
     Exclude<keyof AgBaseChartOptions, keyof TPreset | TExcluded> | Extract<TExcluded, keyof TPreset>;
 
 type ExcludedFromAllPresets =
-    'flashOnUpdate' | 'gradientLegend' | 'legend' | 'loading' | 'overlays' | 'ranges' | 'scrollbar' | 'seriesArea';
+    | 'ariaLabel'
+    | 'flashOnUpdate'
+    | 'gradientLegend'
+    | 'legend'
+    | 'loading'
+    | 'overlays'
+    | 'ranges'
+    | 'scrollbar'
+    | 'seriesArea';
 
 type ExcludedFromGauge =
     | ExcludedFromAllPresets

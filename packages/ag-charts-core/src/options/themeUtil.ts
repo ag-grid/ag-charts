@@ -721,8 +721,8 @@ export const FONT_THEME_DEFAULTS = {
 } as const;
 
 /**
- * A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone.
- * `_fillOpacitySet` is true for a user `fillOpacity`, and a `fill` or `color` alone leaves it at `fallbackFillOpacitySet`.
+ * The fallback opacity goes with the fallback `fill` alone.
+ * `_fillOpacitySet` is true for a user `fillOpacity`, and a `fill` alone leaves it at `fallbackFillOpacitySet`.
  */
 function shadowFillTheme(
     fallbackFill: Operation | string,
@@ -730,18 +730,18 @@ function shadowFillTheme(
     fallbackFillOpacitySet?: Operation
 ) {
     return {
-        fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
-        fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
+        fill: fallbackFill,
+        fillOpacity: { $isUserOption: ['./fill', 1, fallbackFillOpacity] },
         _fillOpacitySet: {
             $isUserOption: [
                 './fillOpacity',
                 true,
                 fallbackFillOpacitySet == null
                     ? undefined
-                    : { $isUserOption: [['./color', './fill'], undefined, fallbackFillOpacitySet] },
+                    : { $isUserOption: ['./fill', undefined, fallbackFillOpacitySet] },
             ],
         },
-    } as const satisfies Record<string, Operation>;
+    } as const satisfies Record<string, Operation | string>;
 }
 
 /**
@@ -1102,6 +1102,15 @@ export const SERIES_SELECTION_THEME = seriesSelectionTheme(0.5);
 
 export const MARKER_SERIES_SELECTION_THEME = seriesSelectionTheme(0.3);
 
+/** A floating legend is filled by default; one that is not floating is only once `legendBackgroundColor` is set. */
+export const LEGEND_BACKGROUND_FILL: Operation = {
+    $if: [
+        { $or: [{ $path: ['./position/floating', false] }, { $isUserParam: 'legendBackgroundColor' }] },
+        { $ref: 'legendBackgroundColor' },
+        'transparent',
+    ],
+};
+
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
         enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
@@ -1115,7 +1124,11 @@ export const LEGEND_CONTAINER_THEME: any = {
     padding: {
         $if: [
             {
-                $or: [{ $eq: [{ $path: './border/enabled' }, true] }, { $isUserOption: ['./fill', true, false] }],
+                $or: [
+                    { $eq: [{ $path: './border/enabled' }, true] },
+                    { $isUserOption: ['./fill', true, false] },
+                    { $isUserParam: 'legendBackgroundColor' },
+                ],
             },
             { $ref: 'legendPadding' },
             0,

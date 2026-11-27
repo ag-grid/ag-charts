@@ -206,6 +206,26 @@ It is possible to override this behaviour and set the `strokeWidth` and `length`
 }
 ```
 
+### Background
+
+A [Floating](#floating) Legend is filled with the chart's background colour, so that it stays readable above the series. A Legend that is not floating has a transparent background.
+
+Use the `legendBackgroundColor` [Theme Parameter](./themes/#parameters) to change the background of every Legend that uses the theme, whether it is floating or not. Use `legend.fill` to change the background of the Legend in a single chart, which takes precedence over the theme parameter.
+
+```js format="snippet"
+{
+    theme: {
+        params: {
+            legendBackgroundColor: '#f2f2f2',
+        },
+    },
+}
+```
+
+Setting either of these also adds padding inside the Legend, which can be changed using the `legendPadding` theme parameter or `legend.padding`.
+
+The [Gradient Legend](./colour-scale/#gradient-legend) follows the same rules, using `gradientLegend.fill` and `gradientLegend.padding` in its options.
+
 ## Series Visibility Toggling
 
 {% chartExampleRunner title="Series Visibility Toggling" name="legend-click-series-toggle" type="generated" /%}

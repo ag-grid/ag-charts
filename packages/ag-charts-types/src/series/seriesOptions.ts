@@ -41,7 +41,7 @@ export interface AgShadowHighlightStyleOptions {
      *
      * Default: the `shadow` of the series
      */
-    shadow?: Omit<AgDropShadowOptions, 'color'>;
+    shadow?: AgDropShadowOptions;
 }
 
 /** Highlight options for a series whose items can cast a `glow`, and whose highlighted item can cast a `shadow`. */

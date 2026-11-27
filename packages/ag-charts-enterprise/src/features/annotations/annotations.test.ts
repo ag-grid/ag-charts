@@ -1307,7 +1307,7 @@ describe('Annotations', () => {
             });
         });
 
-        it('merges the checked overrides onto the lock switch while the selected annotation is locked', async () => {
+        it('shows the lock as a switch with a fixed name while the tooltip follows the state', async () => {
             await prepareChart(
                 { annotations: [{ type: 'horizontal-line', value: 50, locked: true }] },
                 {
@@ -1321,7 +1321,6 @@ describe('Annotations', () => {
                                     value: 'lock',
                                     icon: 'unlocked',
                                     label: 'Lock',
-                                    ariaLabel: 'toolbarAnnotationsLock',
                                     tooltip: 'toolbarAnnotationsLock',
                                     checkedOverrides: { icon: 'locked', tooltip: 'toolbarAnnotationsUnlock' },
                                 },
@@ -1340,8 +1339,8 @@ describe('Annotations', () => {
 
             const lockButton = () =>
                 deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('button[aria-label="Lock"]');
-            expect(lockButton()?.hasAttribute('role')).toBe(false);
-            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.getAttribute('role')).toBe('switch');
+            expect(lockButton()?.getAttribute('aria-checked')).toBe('true');
             expect(lockButton()?.querySelector('.ag-charts-icon-locked')).not.toBeNull();
             expect(lockButton()?.title).toBe('Unlock');
             expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
@@ -1350,8 +1349,8 @@ describe('Annotations', () => {
             lockButton()!.click();
             await waitForChartStability(chart);
 
-            expect(lockButton()?.hasAttribute('role')).toBe(false);
-            expect(lockButton()?.hasAttribute('aria-checked')).toBe(false);
+            expect(lockButton()?.getAttribute('role')).toBe('switch');
+            expect(lockButton()?.getAttribute('aria-checked')).toBe('false');
             expect(lockButton()?.querySelector('.ag-charts-icon-unlocked')).not.toBeNull();
             expect(lockButton()?.title).toBe('Lock');
             expect(lockButton()?.getAttribute('aria-label')).toBe('Lock');
@@ -3546,9 +3545,11 @@ describe('Annotations', () => {
             it('shows it as locked when the restored annotation is locked', async () => {
                 await restoreWhileSelected({ type: 'horizontal-line', value: 50, locked: true });
 
-                const lockButton = body().querySelector<HTMLElement>('button[aria-label="Unlock"]');
-                expect(lockButton).not.toBeNull();
-                expect(lockButton?.hasAttribute('aria-checked')).toBe(false);
+                const lockButton = body().querySelector<HTMLElement>('button[aria-label="Lock"]');
+                expect(lockButton?.getAttribute('role')).toBe('switch');
+                expect(lockButton?.getAttribute('aria-checked')).toBe('true');
+                expect(lockButton?.title).toBe('Unlock');
+                expect(lockButton?.getAttribute('aria-description')).toBe('');
             });
         });
 

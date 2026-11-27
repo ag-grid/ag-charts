@@ -661,6 +661,12 @@ export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
     type?: 'button';
     /** The action to perform when the button is clicked. */
     value: AgAnnotationOptionsToolbarButtonValue;
+    /**
+     * Whether to show this item only when the Annotation Options Toolbar is opened with the keyboard.
+     *
+     * Default: `false`
+     */
+    keyboardOnly?: boolean;
 }
 
 export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
@@ -668,6 +674,12 @@ export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
     type: 'switch';
     /** The action to perform when the switch is toggled. */
     value: AgAnnotationOptionsToolbarSwitchValue;
+    /**
+     * Whether to show this item only when the Annotation Options Toolbar is opened with the keyboard.
+     *
+     * Default: `false`
+     */
+    keyboardOnly?: boolean;
 }
 
 export type AgAnnotationOptionsToolbarButtonValue =

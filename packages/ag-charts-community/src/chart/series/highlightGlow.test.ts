@@ -626,7 +626,7 @@ describe('highlight glow', () => {
                 });
             });
 
-            it('rejects a shadow colour, which a new option does not take', async () => {
+            it('rejects a shadow colour as an unknown option', async () => {
                 await createWith({
                     type: 'bar',
                     xKey: 'category',
@@ -634,7 +634,9 @@ describe('highlight glow', () => {
                     highlight: { highlightedItem: { shadow: { color: '#ff00ff' } } },
                 });
 
-                expect(warnings().filter((message) => message.includes('shadow.color'))).toHaveLength(1);
+                expect(warnings()).toEqual([
+                    expect.stringContaining('Unknown option `series[0].highlight.highlightedItem.shadow.color`'),
+                ]);
                 vi.mocked(console.warn).mockClear();
             });
 

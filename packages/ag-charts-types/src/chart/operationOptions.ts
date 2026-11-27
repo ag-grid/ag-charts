@@ -1,5 +1,5 @@
 import type { AgGradientColor, AgImageFill, AgPatternColor, AgSolidColor } from '../series/cartesian/commonOptions';
-import type { AgChartAllThemeParams } from './themeParamsOptions';
+import type { AgChartAllThemeParams, AgChartThemeParams } from './themeParamsOptions';
 import type { AgLineDashName } from './types';
 
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
@@ -136,6 +136,7 @@ type LocationOperation =
           $isUserOption:
               Leaf<string> | [UserOptionTarget] | [UserOptionTarget, AnyLeaf] | [UserOptionTarget, AnyLeaf, AnyLeaf];
       }
+    | { $isUserParam: keyof AgChartThemeParams } // Theme param, `true` when the user's theme sets it
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
     | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] } // Relative path to vertex | Default if path undefined | Custom branch on which to find the path

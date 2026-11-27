@@ -69,14 +69,15 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         return { path, paintsFill };
     }
 
-    private renderStroke(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
-        const { stroke, strokeWidth, strokeOpacity } = this;
+    private renderStroke(path: ExtendedPath2D, ctx: OffscreenCanvasRenderingContext2D, pixelRatio: number) {
+        const { stroke, strokeWidth, strokeOpacity, scale } = this;
         // `strokeStyle = 'none'` is ignored by the canvas, which would stroke in its default black.
         if (stroke === 'none' || strokeWidth === 0 || Number.isNaN(strokeWidth)) return;
         ctx.strokeStyle = stroke;
         ctx.lineWidth = strokeWidth;
         ctx.globalAlpha = strokeOpacity;
-        ctx.stroke(path2d);
+
+        ctx.stroke(path.getStrokePath2D(strokeWidth, pixelRatio * scale));
     }
 
     private renderFill(path2d: Path2D, ctx: OffscreenCanvasRenderingContext2D) {
@@ -109,12 +110,10 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         }
 
         const { path, paintsFill } = this.getPath(pixelRatio);
-        const path2d = path.getPath2D();
-
         if (paintsFill) {
-            this.renderFill(path2d, offscreenPatternCtx);
+            this.renderFill(path.getPath2D(), offscreenPatternCtx);
         }
-        this.renderStroke(path2d, offscreenPatternCtx);
+        this.renderStroke(path, offscreenPatternCtx, pixelRatio);
 
         const pattern = ctx.createPattern(offscreenPattern.canvas, 'repeat');
 

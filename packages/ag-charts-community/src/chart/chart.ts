@@ -644,6 +644,9 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
     }
 
     private getAriaLabel(): string {
+        const ariaLabel = this.ctx.chartState.getValue('options')?.ariaLabel;
+        if (ariaLabel != null && ariaLabel !== '') return ariaLabel;
+
         const caption = this.getCaptionText();
         return this.series[0]?.getChartAriaLabel(caption, this.series) ?? this.getDefaultAriaLabel(caption);
     }

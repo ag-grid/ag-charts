@@ -567,49 +567,36 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
             });
         });
 
-        describe('with the deprecated shadow color', () => {
-            // `color` is accepted on a series `shadow`, but not in the `shadow` that a styler returns.
-            const COLORED_SHADOW = { enabled: true, color: 'red', blur: 3 } as AgDropShadowOptions;
-            // The one warning allowed: the option is deprecated. The styler's own `unknown property` warning is not.
-            const DEPRECATED_COLOR_WARNING = expect.stringContaining('shadow.color` is deprecated');
+        describe('with a series shadow fill', () => {
+            // A `fillOpacity` makes the theme set `_fillOpacitySet`, which the styler params must not carry back to it.
+            const FILLED_SHADOW: AgDropShadowOptions = { enabled: true, fill: 'red', fillOpacity: 0.5, blur: 3 };
 
             it('gives the styler a shadow that it can spread into the shadow it returns, with no warning of its own', async () => {
                 const { inPlace } = await create({
-                    shadow: COLORED_SHADOW,
+                    shadow: FILLED_SHADOW,
                     styler: (params) =>
                         testCase.indexOf(params.datum) === 0 ? { shadow: { ...params.shadow, blur: 9 } } : {},
                 });
 
                 expect(inPlace[0].fillShadow).toMatchObject({ fill: 'red', blur: 9 });
                 for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
-                expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+                expectWarningMessages([]);
             });
 
             it('gives the styler a shadow that it can return as it is, in the hovered state too', async () => {
                 const { inPlace } = await create({
-                    shadow: COLORED_SHADOW,
+                    shadow: FILLED_SHADOW,
                     hover: true,
                     styler: (params) => ({ shadow: params.shadow }),
                 });
 
                 for (const shape of inPlace) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
-                expectWarningMessages([DEPRECATED_COLOR_WARNING]);
-            });
-
-            it('gives every call a shadow with the color as its fill, and no color, in each highlight state', async () => {
-                const { byState, styler } = recordParamsByHighlightState();
-                await create({ shadow: COLORED_SHADOW, hover: true, styler });
-
-                expect([...byState.keys()]).toContain('highlighted-item');
-                for (const itemParams of [...byState.values()].flat()) {
-                    expect(itemParams.shadow).toMatchObject({ fill: 'red', blur: 3 });
-                    expect(itemParams.shadow).not.toHaveProperty('color');
-                }
+                expectWarningMessages([]);
             });
 
             it('gives every item in a state the same shadow object', async () => {
                 const { byState, styler } = recordParamsByHighlightState();
-                await create({ shadow: COLORED_SHADOW, hover: true, styler });
+                await create({ shadow: FILLED_SHADOW, hover: true, styler });
 
                 const unhighlighted = byState.get('unhighlighted-item') ?? [];
                 expect(unhighlighted.length).toBeGreaterThan(1);

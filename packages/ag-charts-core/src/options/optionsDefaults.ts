@@ -147,6 +147,7 @@ const themeParams = [
     'footnoteFontFamily',
     'footnoteColor',
     'groupedCategoryLineColor',
+    'legendBackgroundColor',
     'legendBorder',
     'legendBorderRadius',
     'legendItemHorizontalPadding',

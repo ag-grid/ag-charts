@@ -324,12 +324,14 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
                                 'settings'
                             )
                         ),
+                        keyboardOnly: boolean,
                     }),
                     optionsDefs<AgAnnotationOptionsToolbarSwitch>({
                         ...toolbarButtonOptionsDefs,
                         type: required(union('switch')),
                         value: required(union('lock')),
                         checkedOverrides: toolbarButtonOptionsDefs,
+                        keyboardOnly: boolean,
                     })
                 )
             )

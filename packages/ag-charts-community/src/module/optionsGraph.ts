@@ -99,7 +99,8 @@ function resolveSeriesThemeDefaults(
         cssVariables,
         undefined,
         moduleRegistry,
-        theme.chartDefaults
+        theme.chartDefaults,
+        theme.userParams
     );
     const { series } = optionsGraph.resolve(undefined);
     optionsGraph.clearSafe();
@@ -123,7 +124,8 @@ export function resolveSeriesThemeOption(
         undefined,
         undefined,
         moduleRegistry,
-        theme.chartDefaults
+        theme.chartDefaults,
+        theme.userParams
     );
     const { series } = optionsGraph.resolve(undefined);
     optionsGraph.clearSafe();
@@ -183,7 +185,8 @@ export function createOptionsGraph(
             cssVariables,
             presetOptions,
             moduleRegistry,
-            theme.chartDefaults
+            theme.chartDefaults,
+            theme.userParams
         );
 
         return {
@@ -340,7 +343,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         private cssVariables: Record<string, string> = {},
         private readonly presetOptions: PlainObject = {},
         public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope(),
-        chartDefaults: PlainObject = {}
+        chartDefaults: PlainObject = {},
+        private readonly userParams: PlainObject = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -587,6 +591,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
+    }
+
+    hasUserParam(name: string) {
+        return this.userParams[name] != null;
     }
 
     hasUserOption(path: Array<string>) {

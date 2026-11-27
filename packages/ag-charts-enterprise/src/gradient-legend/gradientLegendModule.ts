@@ -3,6 +3,7 @@ import {
     FILL_GRADIENT_BLANK_DEFAULTS,
     FILL_IMAGE_BLANK_DEFAULTS,
     FILL_PATTERN_BLANK_DEFAULTS,
+    LEGEND_BACKGROUND_FILL,
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     gradientLegendOptionsDefs,
@@ -46,7 +47,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         fill: {
             $applySwitch: [
                 { $path: 'type' },
-                { $ref: 'chartBackgroundColour' },
+                LEGEND_BACKGROUND_FILL,
                 ['gradient', FILL_GRADIENT_BLANK_DEFAULTS],
                 ['pattern', FILL_PATTERN_BLANK_DEFAULTS],
                 ['image', FILL_IMAGE_BLANK_DEFAULTS],
