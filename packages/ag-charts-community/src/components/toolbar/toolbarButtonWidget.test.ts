@@ -102,6 +102,7 @@ describe('ToolbarButtonWidget', () => {
                 expect(elem.getAttribute('role')).toBe('switch');
                 expect(elem.getAttribute('aria-checked')).toBe(String(checked));
                 expect(elem.hasAttribute('aria-pressed')).toBe(false);
+                expect(elem.getAttribute('aria-description')).toBe('');
 
                 update({ icon: 'magnet', checked: !checked });
                 expect(elem.getAttribute('aria-checked')).toBe(String(!checked));
@@ -113,6 +114,7 @@ describe('ToolbarButtonWidget', () => {
             update({ icon: 'magnet' });
             expect(elem.hasAttribute('role')).toBe(false);
             expect(elem.hasAttribute('aria-checked')).toBe(false);
+            expect(elem.hasAttribute('aria-description')).toBe(false);
         });
 
         it.each(['line-color', 'fill-color', 'text-color', 'settings'] as const)(

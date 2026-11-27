@@ -195,6 +195,8 @@ export class ToolbarButtonWidget extends ButtonWidget {
 
         this.setAriaRole(options.checked == null ? undefined : 'switch');
         this.setAriaChecked(options.checked);
+        // The tooltip can follow the switch state, which aria-checked already announces.
+        this.setAriaDescription(options.checked == null ? undefined : '');
 
         const haspopup = getAriaHasPopupOfValue(options.value);
         this.opensDialog = haspopup === 'dialog';

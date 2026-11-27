@@ -3247,6 +3247,7 @@ describe('Annotations', () => {
                 expect(lockButton?.getAttribute('role')).toBe('switch');
                 expect(lockButton?.getAttribute('aria-checked')).toBe('true');
                 expect(lockButton?.title).toBe('Unlock');
+                expect(lockButton?.getAttribute('aria-description')).toBe('');
             });
         });
 
