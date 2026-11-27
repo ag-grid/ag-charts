@@ -237,30 +237,22 @@ test.describe('annotations keyboard navigation', () => {
             await setChartState(page, { ...state, annotations: LINE_ANNOTATIONS as typeof state.annotations });
         });
 
-        const keyboardOnlyItems = (page: Page) => [
-            optionsToolbar(page).getByRole('button', { name: 'Lock' }),
-            optionsToolbar(page).getByRole('button', { name: 'Delete' }),
-            optionsToolbar(page).getByRole('button', { name: 'Move Annotation' }),
-        ];
-
         test('opening the toolbar with the keyboard shows them, and Move Annotation', async ({ page }) => {
-            await tabToAnnotations(page);
-            await page.keyboard.press('Enter');
+            await openOptionsFromKeyboard(page);
 
             await expect(optionsToolbar(page).getByRole('button', { name: 'Settings' })).toBeVisible();
-            for (const item of keyboardOnlyItems(page)) {
-                await expect(item).toBeVisible();
-            }
+            await expect(optionsToolbar(page).getByRole('switch', { name: 'Lock' })).toBeVisible();
+            await expect(optionsToolbar(page).getByRole('button', { name: 'Delete' })).toBeVisible();
+            await expect(optionsToolbar(page).getByRole('button', { name: 'Move Annotation' })).toBeVisible();
         });
 
         test('opening the toolbar with a pointer hides them', async ({ page }) => {
-            const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
-            await page.mouse.click(seriesArea!.x + seriesArea!.width / 2, seriesArea!.y + seriesArea!.height * 0.7);
+            await clickFirstLine(page);
 
             await expect(optionsToolbar(page).getByRole('button', { name: 'Settings' })).toBeVisible();
-            for (const item of keyboardOnlyItems(page)) {
-                await expect(item).toHaveCount(0);
-            }
+            await expect(optionsToolbar(page).getByRole('switch', { name: 'Lock' })).toHaveCount(0);
+            await expect(optionsToolbar(page).getByRole('button', { name: 'Delete' })).toHaveCount(0);
+            await expect(optionsToolbar(page).getByRole('button', { name: 'Move Annotation' })).toHaveCount(0);
         });
     });
 });
