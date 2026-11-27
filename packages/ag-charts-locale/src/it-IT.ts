@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'non selezionato',
     ariaAnnounceChart: 'grafico, ${seriesCount}[number] serie',
     ariaAnnounceChartWithCaption: 'grafico, ${caption}, ${seriesCount}[number] serie',
+    ariaAnnounceChartWithAnnotations: 'grafico, ${seriesCount}[number] serie, ${annotationCount}[number] annotazioni',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'grafico, ${caption}, ${seriesCount}[number] serie, ${annotationCount}[number] annotazioni',
     ariaAnnounceFlowProportionLink: 'collegamento ${index} di ${count}, da ${from} a ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodo ${index} di ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

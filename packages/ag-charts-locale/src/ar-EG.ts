@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'غير محدد',
     ariaAnnounceChart: 'مخطط، ${seriesCount}[number] سلسلة',
     ariaAnnounceChartWithCaption: 'مخطط، ${caption}، ${seriesCount}[number] سلسلة',
+    ariaAnnounceChartWithAnnotations: 'مخطط، ${seriesCount}[number] سلسلة، ${annotationCount}[number] تعليقات توضيحية',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'مخطط، ${caption}، ${seriesCount}[number] سلسلة، ${annotationCount}[number] تعليقات توضيحية',
     ariaAnnounceFlowProportionLink: 'رابط ${index} من ${count}، من ${from} إلى ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'العقدة ${index} من ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

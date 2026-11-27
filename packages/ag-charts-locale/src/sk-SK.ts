@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nevybraté',
     ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceChartWithCaption: 'graf, ${caption}, ${seriesCount}[number] sérií',
+    ariaAnnounceChartWithAnnotations: 'graf, ${seriesCount}[number] sérií, ${annotationCount}[number] anotácií',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'graf, ${caption}, ${seriesCount}[number] sérií, ${annotationCount}[number] anotácií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzol ${index} z ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

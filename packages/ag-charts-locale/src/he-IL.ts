@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'לא נבחר',
     ariaAnnounceChart: 'תרשים, ${seriesCount}[number] סדרות',
     ariaAnnounceChartWithCaption: 'תרשים, ${caption}, ${seriesCount}[number] סדרות',
+    ariaAnnounceChartWithAnnotations: 'תרשים, ${seriesCount}[number] סדרות, ${annotationCount}[number] הערות',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'תרשים, ${caption}, ${seriesCount}[number] סדרות, ${annotationCount}[number] הערות',
     ariaAnnounceFlowProportionLink: 'קישור ${index} מתוך ${count}, מ-${from} ל-${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'צומת ${index} מתוך ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

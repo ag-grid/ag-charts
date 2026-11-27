@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nincs kijelölve',
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat',
     ariaAnnounceChartWithCaption: 'diagram, ${caption}, ${seriesCount}[number] sorozat',
+    ariaAnnounceChartWithAnnotations: 'diagram, ${seriesCount}[number] sorozat, ${annotationCount}[number] jelölés',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'diagram, ${caption}, ${seriesCount}[number] sorozat, ${annotationCount}[number] jelölés',
     ariaAnnounceFlowProportionLink:
         'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',

@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'niet geselecteerd',
     ariaAnnounceChart: 'grafiek, ${seriesCount}[number] reeksen',
     ariaAnnounceChartWithCaption: 'grafiek, ${caption}, ${seriesCount}[number] reeksen',
+    ariaAnnounceChartWithAnnotations: 'grafiek, ${seriesCount}[number] reeksen, ${annotationCount}[number] annotaties',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'grafiek, ${caption}, ${seriesCount}[number] reeksen, ${annotationCount}[number] annotaties',
     ariaAnnounceFlowProportionLink: 'link ${index} van ${count}, van ${from} naar ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'knooppunt ${index} van ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

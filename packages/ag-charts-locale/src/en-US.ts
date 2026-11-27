@@ -11,6 +11,11 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceChart: 'chart, ${seriesCount}[number] series',
     // Screen reader announcement when focusing a chart that has a title, subtitle or footnote
     ariaAnnounceChartWithCaption: 'chart, ${caption}, ${seriesCount}[number] series',
+    // Screen reader announcement when focusing a chart that has annotations in its keyboard list
+    ariaAnnounceChartWithAnnotations: 'chart, ${seriesCount}[number] series, ${annotationCount}[number] annotations',
+    // Screen reader announcement when focusing a chart that has a caption and annotations in its keyboard list
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'chart, ${caption}, ${seriesCount}[number] series, ${annotationCount}[number] annotations',
     // Screen reader announcement when focusing a standalone chart (gauges, pyramid)
     ariaAnnounceStandaloneChart: 'chart, ${caption}',
     // Screen reader announcement when focusing a hierarchy chart

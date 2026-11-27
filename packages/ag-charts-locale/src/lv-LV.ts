@@ -15,6 +15,9 @@ export const AG_CHARTS_LOCALE_LV_LV: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nav atlasīts',
     ariaAnnounceChart: 'diagramma, ${seriesCount}[number] rindas',
     ariaAnnounceChartWithCaption: 'diagramma, ${caption}, ${seriesCount}[number] rindas',
+    ariaAnnounceChartWithAnnotations: 'diagramma, ${seriesCount}[number] rindas, ${annotationCount}[number] anotācijas',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'diagramma, ${caption}, ${seriesCount}[number] rindas, ${annotationCount}[number] anotācijas',
     ariaAnnounceStandaloneChart: 'diagramma, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarhijas diagramma, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'hierarhijas diagramma',

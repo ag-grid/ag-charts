@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'neselectat',
     ariaAnnounceChart: 'diagramă, ${seriesCount}[number] serii',
     ariaAnnounceChartWithCaption: 'diagramă, ${caption}, ${seriesCount}[number] serii',
+    ariaAnnounceChartWithAnnotations: 'diagramă, ${seriesCount}[number] serii, ${annotationCount}[number] adnotări',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'diagramă, ${caption}, ${seriesCount}[number] serii, ${annotationCount}[number] adnotări',
     ariaAnnounceFlowProportionLink: 'legătură ${index} din ${count}, de la ${from} la ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodul ${index} din ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

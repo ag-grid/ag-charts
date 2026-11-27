@@ -5,6 +5,7 @@ import {
     clickAction,
     deproxy,
     expectSamePixels,
+    getChartAriaLabel,
     getSeriesRect,
     hoverAction,
     pressKey,
@@ -202,6 +203,45 @@ describe('Annotations keyboard navigation', () => {
             expect(items()[0].textContent).toBe('Horizontal Line: 50');
         });
 
+        const july = { __type: 'date', value: '2024-07-01' } as const;
+        const start = { x: { __type: 'date', value: '2024-03-01' }, y: 20 } as const;
+        const end = { x: { __type: 'date', value: '2024-10-01' }, y: 80 } as const;
+        const labelled: AgAnnotation[] = [
+            { type: 'horizontal-line', value: 50, text: { label: 'Support' } },
+            { type: 'vertical-line', value: july, text: { label: 'Support' } },
+            { type: 'line', start, end, text: { label: 'Support' } },
+            { type: 'arrow', start, end, text: { label: 'Support' } },
+            { type: 'parallel-channel', start, end, height: 10, text: { label: 'Support' } },
+            { type: 'disjoint-channel', start, end, startHeight: 10, endHeight: 20, text: { label: 'Support' } },
+            { type: 'date-range', start, end, text: { label: 'Support' } },
+            { type: 'price-range', start, end, text: { label: 'Support' } },
+            { type: 'date-price-range', start, end, text: { label: 'Support' } },
+            { type: 'fibonacci-retracement', start, end, text: { label: 'Support' } },
+            {
+                type: 'fibonacci-retracement-trend-based',
+                start,
+                end,
+                endRetracement: { x: { __type: 'date', value: '2024-11-01' }, y: 50 },
+                text: { label: 'Support' },
+            },
+        ];
+
+        it.each(labelled.map((annotation) => ({ type: annotation.type, annotation })))(
+            'names a $type annotation by its text first',
+            async ({ annotation }) => {
+                await prepareChart([annotation]);
+
+                expect(items()).toHaveLength(1);
+                expect(items()[0].textContent).toMatch(/^Support, /);
+            }
+        );
+
+        it('names a line annotation by its text on one line, without surrounding whitespace', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50, text: { label: '  Resistance\n level ' } }]);
+
+            expect(items()[0].textContent).toBe('Resistance level, 50, Horizontal Line annotation');
+        });
+
         it('leaves the focus alone when an update removes the annotation after the keyboard left it', async () => {
             await prepareChart([{ type: 'horizontal-line', value: 50 }]);
             await focusItem(0);
@@ -296,6 +336,79 @@ describe('Annotations keyboard navigation', () => {
             expect(ratioX).toEqual({ start: 0.25, end: 0.5 });
             expect((ratioY?.end ?? 0) - (ratioY?.start ?? 0)).toBeCloseTo(0.2);
             expect(ratioY?.end).toBeGreaterThan(0.85);
+        });
+    });
+
+    describe('chart announcement', () => {
+        it.each([
+            { name: 'no annotations', annotations: [], expected: 'chart, 1 series' },
+            {
+                name: 'one annotation',
+                annotations: [{ type: 'horizontal-line', value: 50 }],
+                expected: 'chart, 1 series, 1 annotations',
+            },
+            {
+                name: 'annotations, counting read-only ones but not hidden ones or those outside the domain',
+                annotations: [
+                    { type: 'horizontal-line', value: 50 },
+                    { type: 'horizontal-line', value: 20, readOnly: true },
+                    { type: 'horizontal-line', value: 60, visible: false },
+                    { type: 'horizontal-line', value: 1000 },
+                ],
+                expected: 'chart, 1 series, 2 annotations',
+            },
+            {
+                name: 'no annotations, after the caption',
+                title: 'Prices',
+                annotations: [],
+                expected: 'chart, Prices, 1 series',
+            },
+            {
+                name: 'one annotation, after the caption',
+                title: 'Prices',
+                annotations: [{ type: 'horizontal-line', value: 50 }],
+                expected: 'chart, Prices, 1 series, 1 annotations',
+            },
+            {
+                name: 'annotations, after the caption',
+                title: 'Prices',
+                annotations: [
+                    { type: 'horizontal-line', value: 30 },
+                    { type: 'horizontal-line', value: 60 },
+                ],
+                expected: 'chart, Prices, 1 series, 2 annotations',
+            },
+        ] satisfies { name: string; title?: string; annotations: AgAnnotation[]; expected: string }[])(
+            'counts $name',
+            async ({ title, annotations, expected }) => {
+                await prepareChart(annotations, title == null ? {} : { title: { text: title } });
+
+                expect(getChartAriaLabel(chart)).toBe(expected);
+            }
+        );
+
+        it('recounts after the keyboard deletes an annotation', async () => {
+            await prepareChart([
+                { type: 'horizontal-line', value: 30 },
+                { type: 'horizontal-line', value: 60 },
+            ]);
+            await openOptions(0);
+
+            toolbarButtons()
+                .find((button) => button.title === 'Delete')!
+                .click();
+            await waitForChartStability(chart);
+
+            expect(getChartAriaLabel(chart)).toBe('chart, 1 series, 1 annotations');
+        });
+
+        it('drops the annotations when they are disabled', async () => {
+            await prepareChart([{ type: 'horizontal-line', value: 50 }]);
+
+            await chart.updateDelta({ annotations: { enabled: false } });
+            await waitForChartStability(chart);
+
+            expect(getChartAriaLabel(chart)).toBe('chart, 1 series');
         });
     });
 

@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'ikke valgt',
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
     ariaAnnounceChartWithCaption: 'diagram, ${caption}, ${seriesCount}[number] serier',
+    ariaAnnounceChartWithAnnotations: 'diagram, ${seriesCount}[number] serier, ${annotationCount}[number] anmærkninger',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'diagram, ${caption}, ${seriesCount}[number] serier, ${annotationCount}[number] anmærkninger',
     ariaAnnounceFlowProportionLink: 'link ${index} af ${count}, fra ${from} til ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'node ${index} af ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

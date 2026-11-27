@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'μη επιλεγμένο',
     ariaAnnounceChart: 'διάγραμμα, ${seriesCount}[number] σειρές',
     ariaAnnounceChartWithCaption: 'διάγραμμα, ${caption}, ${seriesCount}[number] σειρές',
+    ariaAnnounceChartWithAnnotations: 'διάγραμμα, ${seriesCount}[number] σειρές, ${annotationCount}[number] σχόλια',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'διάγραμμα, ${caption}, ${seriesCount}[number] σειρές, ${annotationCount}[number] σχόλια',
     ariaAnnounceFlowProportionLink: 'σύνδεσμος ${index} από ${count}, από ${from} προς ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'κόμβος ${index} από ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

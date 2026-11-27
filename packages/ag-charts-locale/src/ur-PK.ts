@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'غیر منتخب',
     ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز',
     ariaAnnounceChartWithCaption: 'چارٹ، ${caption}، ${seriesCount}[number] سیریز',
+    ariaAnnounceChartWithAnnotations: 'چارٹ، ${seriesCount}[number] سیریز، ${annotationCount}[number] تشریحات',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'چارٹ، ${caption}، ${seriesCount}[number] سیریز، ${annotationCount}[number] تشریحات',
     ariaAnnounceFlowProportionLink: 'لنک ${index} کا ${count} میں سے، ${from} سے ${to} تک، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'نوڈ ${index} کا ${count}، ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

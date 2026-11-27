@@ -13,6 +13,9 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'ei valittu',
     ariaAnnounceChart: 'kaavio, ${seriesCount}[number] sarjaa',
     ariaAnnounceChartWithCaption: 'kaavio, ${caption}, ${seriesCount}[number] sarjaa',
+    ariaAnnounceChartWithAnnotations: 'kaavio, ${seriesCount}[number] sarjaa, ${annotationCount}[number] merkintää',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'kaavio, ${caption}, ${seriesCount}[number] sarjaa, ${annotationCount}[number] merkintää',
     ariaAnnounceFlowProportionLink: 'linkki ${index} / ${count}, lähtien ${from} päättyen ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'solmu ${index} ${count} näkyvissä, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

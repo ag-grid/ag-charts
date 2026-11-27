@@ -15,6 +15,9 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'valimata',
     ariaAnnounceChart: 'diagramm, ${seriesCount}[number] sarja',
     ariaAnnounceChartWithCaption: 'diagramm, ${caption}, ${seriesCount}[number] sarja',
+    ariaAnnounceChartWithAnnotations: 'diagramm, ${seriesCount}[number] sarja, ${annotationCount}[number] märkust',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'diagramm, ${caption}, ${seriesCount}[number] sarja, ${annotationCount}[number] märkust',
     ariaAnnounceStandaloneChart: 'diagramm, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarhiadiagramm, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'hierarhiadiagramm',

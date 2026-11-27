@@ -15,6 +15,9 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'tidak dipilih',
     ariaAnnounceChart: 'bagan, ${seriesCount}[number] seri',
     ariaAnnounceChartWithCaption: 'bagan, ${caption}, ${seriesCount}[number] seri',
+    ariaAnnounceChartWithAnnotations: 'bagan, ${seriesCount}[number] seri, ${annotationCount}[number] anotasi',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'bagan, ${caption}, ${seriesCount}[number] seri, ${annotationCount}[number] anotasi',
     ariaAnnounceStandaloneChart: 'bagan, ${caption}',
     ariaAnnounceHierarchyChart: 'bagan hierarki, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'bagan hierarki',

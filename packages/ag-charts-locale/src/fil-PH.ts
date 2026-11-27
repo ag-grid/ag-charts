@@ -15,6 +15,9 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'hindi napili',
     ariaAnnounceChart: 'tsart, ${seriesCount}[number] serye',
     ariaAnnounceChartWithCaption: 'tsart, ${caption}, ${seriesCount}[number] serye',
+    ariaAnnounceChartWithAnnotations: 'tsart, ${seriesCount}[number] serye, ${annotationCount}[number] anotasyon',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'tsart, ${caption}, ${seriesCount}[number] serye, ${annotationCount}[number] anotasyon',
     ariaAnnounceStandaloneChart: 'tsart, ${caption}',
     ariaAnnounceHierarchyChart: 'tsart ng hierarchy, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'tsart ng hierarchy',
