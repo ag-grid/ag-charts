@@ -585,7 +585,7 @@ HTMLCollection [
                 .map((el) => el.getAttribute('style') ?? '')
                 .join(';');
             const animationNames = Array.from(inlineStyles.matchAll(/animation:\s*(ag-charts-[\w-]+)/g), (m) => m[1]);
-            expect(animationNames.sort()).toEqual(['ag-charts-loading', 'ag-charts-loading-matrix']);
+            expect(animationNames).toEqual(['ag-charts-loading', 'ag-charts-loading-matrix']);
 
             const here = (file: string) => readFileSync(join(__dirname, file), 'utf8');
             const spinnerCss = here('loadingSpinner.css');
