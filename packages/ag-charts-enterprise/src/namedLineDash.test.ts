@@ -22,6 +22,11 @@ type Location = [label: string, options: object, path: string];
 
 const DATA = [{ x: 'a', y: 1 }];
 
+const ORG_DATA = [
+    { id: 'ceo', name: 'Alice', parentId: null },
+    { id: 'cto', name: 'Bob', parentId: 'ceo' },
+];
+
 const series = (overrides: object, extra: object = {}): object => ({ data: DATA, series: [overrides], ...extra });
 
 /** The same dash name at each enterprise option location whose theme has to resolve it. */
@@ -538,5 +543,95 @@ describe('named line dash patterns in enterprise options', () => {
             expect(drawn).toEqual(new Set(expected.map((dash) => dash.join())));
             await compareImageSnapshot(chart, ctx);
         });
+    });
+});
+
+describe('a user lineDash array in enterprise options', () => {
+    setupMockConsole();
+
+    const bar = { type: 'bar', xKey: 'x', yKey: 'y' };
+    const rangeArea = { type: 'range-area', xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
+    const hlc = { type: 'hlc', xKey: 'x', highKey: 'y', lowKey: 'y', closeKey: 'y' };
+    const organization = { type: 'organization', idKey: 'id', parentIdKey: 'parentId' };
+
+    // A location whose default is the value of another location (a `$path`), or a literal array.
+    const rows: Array<[label: string, options: object, path: string, expected: number[]]> = [
+        ...([[10, 4], 'dash-dot'] as const).map((base): [string, object, string, number[]] => [
+            `range-area item marker over a marker of ${JSON.stringify(base)}`,
+            series({ ...rangeArea, marker: { lineDash: base }, item: { low: { marker: { lineDash: [2] } } } }),
+            'series[0].item.low.marker.lineDash',
+            [2],
+        ]),
+        [
+            'hlc item marker over a marker array',
+            series({ ...hlc, marker: { lineDash: [10, 4] }, item: { high: { marker: { lineDash: [2] } } } }),
+            'series[0].item.high.marker.lineDash',
+            [2],
+        ],
+        [
+            'scrollbar track over the scrollbar track array',
+            series(bar, {
+                scrollbar: { enabled: true, track: { lineDash: [10, 4] }, vertical: { track: { lineDash: [2] } } },
+            }),
+            'scrollbar.vertical.track.lineDash',
+            [2],
+        ],
+        [
+            'scrollbar thumb over the scrollbar thumb name',
+            series(bar, {
+                scrollbar: { enabled: true, thumb: { lineDash: 'dash-dot' }, vertical: { thumb: { lineDash: [2] } } },
+            }),
+            'scrollbar.vertical.thumb.lineDash',
+            [2],
+        ],
+        [
+            'organization expander over the node array',
+            series({ ...organization, node: { lineDash: [10, 4] }, expander: { lineDash: [2] } }, { data: ORG_DATA }),
+            'series[0].expander.lineDash',
+            [2],
+        ],
+        ...([[2], []] as number[][]).map((dash): [string, object, string, number[]] => [
+            `crosshair over its default, ${JSON.stringify(dash)}`,
+            series(bar, {
+                axes: {
+                    x: { type: 'category', position: 'bottom', crosshair: { enabled: true, lineDash: dash } },
+                    y: { type: 'number', position: 'left' },
+                },
+            }),
+            'axes.x.crosshair.lineDash',
+            dash,
+        ]),
+    ];
+
+    it.each(rows)('replaces the dash beneath it: %s', (_, options, path, expected) => {
+        expect(optionAt(prepareProcessedOptions(options).processedOptions, path)).toEqual(expected);
+    });
+
+    it.each([
+        [
+            'range-area item marker',
+            series({ ...rangeArea, marker: { lineDash: [10, 4] } }),
+            'series[0].item.low.marker.lineDash',
+            [10, 4],
+        ],
+        [
+            'scrollbar track',
+            series(bar, { scrollbar: { enabled: true, track: { lineDash: [10, 4] } } }),
+            'scrollbar.vertical.track.lineDash',
+            [10, 4],
+        ],
+        [
+            'crosshair',
+            series(bar, {
+                axes: {
+                    x: { type: 'category', position: 'bottom', crosshair: { enabled: true } },
+                    y: { type: 'number', position: 'left' },
+                },
+            }),
+            'axes.x.crosshair.lineDash',
+            [5, 6],
+        ],
+    ])('still falls back to the dash beneath it when unset: %s', (_, options, path, expected) => {
+        expect(optionAt(prepareProcessedOptions(options).processedOptions, path)).toEqual(expected);
     });
 });

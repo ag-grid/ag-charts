@@ -110,6 +110,40 @@ describe('named line dash patterns', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
+    it('should draw a user or styler array as it is over a theme dash name, never merged with it', async () => {
+        const line = (yKey: string, yName: string, options: Partial<AgLineSeriesOptions>): AgLineSeriesOptions => ({
+            type: 'line',
+            xKey: 'month',
+            yKey,
+            yName,
+            strokeWidth: 2,
+            marker: { enabled: false },
+            ...options,
+        });
+
+        chart = await createChart({
+            data: MONTHS.map((month, i) => ({
+                month,
+                theme: 100 + i * 4,
+                array: 80 + i * 4,
+                short: 60 + i * 4,
+                empty: 40 + i * 4,
+                styler: 20 + i * 4,
+            })),
+            theme: { overrides: { line: { series: { lineDash: 'dash-dot' } } } },
+            series: [
+                line('theme', 'theme: dash-dot', {}),
+                line('array', 'array [10, 4] over dash-dot', { lineDash: [10, 4] }),
+                line('short', 'array [2] over dash-dot', { lineDash: [2] }),
+                line('empty', 'array [] over dash-dot', { lineDash: [] }),
+                line('styler', 'styler [16, 6] over dash-dot', { styler: () => ({ lineDash: [16, 6] }) }),
+            ],
+            legend: { position: 'right' },
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+        } satisfies AgCartesianChartOptions);
+        await compareImageSnapshot(chart, ctx);
+    });
+
     it('should give a styler the resolved array of lengths, never a name', () => {
         expectTypeOf<AgLineSeriesStylerParams<unknown, unknown>['lineDash']>().toEqualTypeOf<number[]>();
         expectTypeOf<AgBarSeriesStylerParams<unknown, unknown>['lineDash']>().toEqualTypeOf<number[]>();

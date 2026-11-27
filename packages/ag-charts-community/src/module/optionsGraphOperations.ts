@@ -1113,6 +1113,10 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
         graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
         return scaleLineDashName(winner, width);
     }
+    if (Array.isArray(winner)) {
+        graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
+        return [...(winner as number[])];
+    }
 
     const isSet = userOption != null || overrideOption != null;
     const resolvedDefault = resolveLineDashDefault(graph, vertex, (isSet ? setBaseVertex : undefined) ?? defaultVertex);

@@ -202,7 +202,7 @@ describe('palette.lineDashes', () => {
 
         expect(
             getSeriesOptions<ResolvedOptions>(chart!, 4).segmentation?.segments.map((segment) => segment.lineDash)
-        ).toEqual([[2], [0], [8, 4]]);
+        ).toEqual([[2], [], [8, 4]]);
 
         // A styler's array layers over solid, not over the palette's pattern.
         expect([0, 1, 2, 3].map(drawnDashes)).toEqual([new Set(), new Set(['8,4']), new Set(['2']), new Set()]);
