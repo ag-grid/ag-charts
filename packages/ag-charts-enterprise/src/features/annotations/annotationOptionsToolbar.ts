@@ -558,7 +558,13 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
+                // A switch keeps its name when its state changes, so only an explicit `checkedOverrides.ariaLabel` renames it.
+                this.updateButtonByIndex(index, {
+                    ...button,
+                    ariaLabel: button.ariaLabel ?? button.tooltip ?? button.label,
+                    ...(locked ? button.checkedOverrides : undefined),
+                    checked: locked,
+                });
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }
