@@ -348,18 +348,19 @@ describe('priceVolumePreset', () => {
 
         const seriesIndexOf = (id: string) => deproxy(chart).series.findIndex((series) => series.id === id);
 
-        const glowCount = () =>
+        const highlightedShapes = () =>
             deproxy(chart).series.flatMap((_, index) =>
-                collectShapes(getSeriesAt(chart, index).highlightGroup).filter(
-                    (shape) => shape.visible && shape.getCastShadow('glow') != null
-                )
-            ).length;
+                collectShapes(getSeriesAt(chart, index).highlightGroup).filter((shape) => shape.visible)
+            );
+
+        const glowCount = () => highlightedShapes().filter((shape) => shape.getCastShadow('glow') != null).length;
 
         it.each(CHART_TYPES)('casts no glow on hovering a price item or a volume bar of %s', async (chartType) => {
             await createChart(chartType, MARKERS_THEME);
 
             for (const id of ['price', 'volume']) {
                 await hoverDatum(chart, seriesIndexOf(id), 10);
+                expect(highlightedShapes().length, id).toBeGreaterThan(0);
                 expect(glowCount(), id).toBe(0);
             }
         });
@@ -367,8 +368,21 @@ describe('priceVolumePreset', () => {
         it.each<[(typeof CHART_TYPES)[number], AgChartTheme<any, never>]>([
             ['candlestick', { overrides: { candlestick: { series: { glow: { enabled: true } } } } }],
             ['line', { overrides: { line: { series: { marker: { enabled: true, glow: { enabled: true } } } } } }],
+            [
+                'hlc',
+                {
+                    overrides: {
+                        hlc: {
+                            series: {
+                                marker: { enabled: true },
+                                highlight: { highlightedItem: { glow: { enabled: true } } },
+                            },
+                        },
+                    },
+                },
+            ],
         ])(
-            'casts a glow on the hovered %s item when a theme override turns on the series glow',
+            'casts a glow on the hovered %s item when a theme override turns the glow back on',
             async (chartType, theme) => {
                 await createChart(chartType, theme);
 
