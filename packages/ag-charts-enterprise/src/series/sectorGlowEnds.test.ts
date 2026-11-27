@@ -37,6 +37,7 @@ const RINGS = [
     {
         name: 'donut',
         spread: 10,
+        strokeWidth: 0,
         crossing: 0,
         data: [
             { key: 'A', value: 4, radius: 2 },
@@ -48,6 +49,7 @@ const RINGS = [
     {
         name: 'nightingale',
         spread: 6,
+        strokeWidth: 0,
         crossing: 1,
         data: [
             { key: 'A', value: 4 },
@@ -55,6 +57,17 @@ const RINGS = [
             { key: 'C', value: 6.5 },
         ],
         series: { type: 'nightingale', angleKey: 'key', radiusKey: 'value', fill: '#808080' },
+    },
+    {
+        name: 'nightingale with a wide stroke',
+        spread: 10,
+        strokeWidth: 4,
+        crossing: 1,
+        data: [
+            { key: 'A', value: 4 },
+            { key: 'B', value: 9 },
+        ],
+        series: { type: 'nightingale', angleKey: 'key', radiusKey: 'value', fill: '#808080', stroke: '#808080' },
     },
 ];
 
@@ -70,7 +83,7 @@ describe('the glow ends of the sectors of a ring that animates in', () => {
 
     it.each(RINGS)(
         'ends each glow of a $name on the line to its neighbour',
-        async ({ spread, crossing, data, series }) => {
+        async ({ spread, strokeWidth, crossing, data, series }) => {
             animate(1200, 1);
             chart = deproxy(
                 await createEnterpriseChart({
@@ -81,7 +94,7 @@ describe('the glow ends of the sectors of a ring that animates in', () => {
                         {
                             ...series,
                             fillOpacity: 1,
-                            strokeWidth: 0,
+                            strokeWidth,
                             itemStyler: ({ datum }: { datum: { key: string } }) => ({
                                 glow: hardGlow(datum.key, spread),
                             }),
@@ -94,8 +107,8 @@ describe('the glow ends of the sectors of a ring that animates in', () => {
             const sectors = shapesOf(getSeriesAt(chart).contentGroup, Sector);
             expect(sectors.filter((sector) => sector.endAngle < sector.startAngle)).toHaveLength(crossing);
 
-            expect(sectors).toHaveLength(3);
-            expectSectorGlowJoins(chart, sectors, spread, [RED, GREEN, BLUE], GREY);
+            expect(sectors).toHaveLength(data.length);
+            expectSectorGlowJoins(chart, sectors, spread + strokeWidth / 2, [RED, GREEN, BLUE], GREY);
         }
     );
 });

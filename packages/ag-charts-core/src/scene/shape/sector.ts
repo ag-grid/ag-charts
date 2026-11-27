@@ -233,7 +233,7 @@ export class Sector<D = unknown> extends Path<D> {
         neighbourOuter: number
     ) {
         // Past this band a glow has no neighbour's glow to end against, so it wraps round the edge as a free one does.
-        const margin = reach + this.strokeWidth;
+        const margin = reach + this.strokeWidth / 2;
         const inner = Math.max(this.innerRadius, neighbourInner) - margin;
         // The mitred corner of a dilated sector stands a little further out than its arc does.
         const outer = Math.hypot(Math.min(this.outerRadius, neighbourOuter) + margin, margin);

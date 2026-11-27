@@ -957,6 +957,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return false;
     }
 
+    /** Whether the path a mask is drawn from is already all that the stroke paints, so it is cast as a fill and not stroked again. */
+    protected isPathPaintedByStroke(): boolean {
+        return false;
+    }
+
     /**
      * Draws the silhouette that casts a shape's shadow into a shadow batch's mask when it has a `spread`, or when the batch
      * casts all its casters at one strength: what {@link castSpreadShadow} blits for the shape without the blur. That is the fill, the dilated stroke and the dilated
@@ -979,6 +984,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // A batch that casts at its casters' shared strength draws each silhouette solid. See `getSpreadMaskStrength`.
         const strength = shadowPass.opaque && base > 0 ? 1 : base * ctx.globalAlpha;
         if (strength <= 0 || !isFiniteNumber(strength)) return;
+
+        if (drawsStroke && this.isPathPaintedByStroke()) {
+            drawsFill = true;
+            drawsStroke = false;
+        }
 
         if (strength >= 1) {
             ctx.save();
@@ -1138,21 +1148,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return false;
     }
 
-    /** Whether a glow's `spread` grows from the outer edge of the item's stroke, as its `gap` does, rather than from its path. */
-    protected glowGrowsFromStrokeEdge(): boolean {
-        return false;
-    }
-
     /** How much further a dilation of the fill alone grows, to reach as far past the stroke's outer edge as the `gap` cut does. */
     private getGlowStrokeGrowth(slot: ShadowSlot): number {
-        if (slot !== 'glow' || !this.glowGrowsFromStrokeEdge() || !this.hasStrokeOutline()) return 0;
+        if (slot !== 'glow' || !this.hasStrokeOutline()) return 0;
         const shadow = this.getSlot(slot);
         if (shadow == null || !dilatesShadow(shadow) || this.getShadowMode(slot) !== 'fill') return 0;
         return this.__strokeWidth / 2;
     }
 
     /** Whether the item has a stroke whose outline, with its own join, miter limit and cap, a glow's `gap` is kept clear of. */
-    private hasStrokeOutline(): boolean {
+    protected hasStrokeOutline(): boolean {
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
         return stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
     }
@@ -1175,8 +1180,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         footprint: boolean = false,
         painted: boolean = false
     ) {
-        if (!footprint) spread += this.getGlowStrokeGrowth(slot);
         const clipped = slot === 'glow' && this.clipGlowEnds(ctx, spread);
+        if (!footprint) spread += this.getGlowStrokeGrowth(slot);
         try {
             const tint = shadowPass.tinted ? this.getCastTint(slot) : '#000';
             ctx.fillStyle = tint;
@@ -1226,7 +1231,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Saves `ctx` and clips it to where this shape's glow, or its `gap` cut, may reach, dilated by `reach`. Returns true if
+     * Saves `ctx` and clips it to where this shape's glow, or its `gap` cut, may reach, `reach` past its stroke. Returns true if
      * it did, for the caller to restore. A shape's glow reaches everywhere around it unless it says otherwise.
      */
     protected clipGlowEnds(_ctx: CanvasContext, _reach: number): boolean {

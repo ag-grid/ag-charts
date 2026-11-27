@@ -6,9 +6,9 @@ import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
-import { getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
+import { type SeriesSelectionName, getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
-import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
+import { type ChartOrProxy, chartPixelAt, countChartPixels, deproxy, waitForChartStability } from './utils';
 
 /** An opaque, unblurred glow, so that the shape of the cast can be read off the render. */
 export const HARD_GLOW: AgGlowOptions = { enabled: true, fillOpacity: 1, blur: 0 };
@@ -129,9 +129,29 @@ export function dominantRedStrength(data: ArrayLike<number>) {
     return strengthOfRed([255, green, green]);
 }
 
-/** The visible items of the first datum selection of a chart, in canvas coordinates. */
-export function visibleItems(chartOrProxy: ChartOrProxy<any>) {
-    return getSeriesSelectionNodes<Node>(deproxy(chartOrProxy), 'datumSelection')
+/** A hard glow whose band, a `gap` to a `gap` and a `spread` past an item, shows where it is measured from. */
+export const BAND_GLOW = { blur: 0, spread: 8, gap: 1, fill: 'red', fillOpacity: 1 };
+
+/** The pixel `distance` past the right edge of `item`, along its middle row. */
+export function pixelsRightOf(
+    chartOrProxy: ChartOrProxy<any>,
+    { x, y, width, height }: { x: number; y: number; width: number; height: number }
+) {
+    return (distance: number) => chartPixelAt(chartOrProxy, x + width + distance, y + height / 2);
+}
+
+/** Expects the band of {@link BAND_GLOW} along `at` to start a gap past `edge` and end a spread further out. */
+export function expectGlowBand(at: (distance: number) => number[], edge: number) {
+    const { gap, spread } = BAND_GLOW;
+    const isReddened = (pixel: number[]) => pixel[0] === 255 && pixel[1] < 255;
+    expect(isReddened(at(edge + gap + 1))).toBe(true);
+    expect(isReddened(at(edge + gap + spread - 2))).toBe(true);
+    expect(at(edge + gap + spread + 2)).toEqual([255, 255, 255, 255]);
+}
+
+/** The visible items of the first series' `selection`, in canvas coordinates. */
+export function visibleItems(chartOrProxy: ChartOrProxy<any>, selection: SeriesSelectionName = 'datumSelection') {
+    return getSeriesSelectionNodes<Node>(deproxy(chartOrProxy), selection)
         .filter((n) => n.visible)
         .map((n) => Transformable.toCanvas(n));
 }
