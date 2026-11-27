@@ -963,20 +963,15 @@ describe('priceVolumePreset', () => {
             { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 138 },
         ];
 
-        // The theme sets white text on the annotation colour for the labels, and the annotation colour at 0.2 opacity for
-        // the shading.
-        it('themes the axis labels and shading of annotations that are not selected', async () => {
+        // The labels and shading take the annotation colour, as they do outside the preset.
+        it('shows the axis labels and shading of annotations that are not selected', async () => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({
                     data,
                     theme: {
                         overrides: {
                             common: {
-                                annotations: {
-                                    axisLabel: { visible: 'always' },
-                                    xAxis: { axisShading: { visible: 'always' } },
-                                    yAxis: { axisShading: { visible: 'always' } },
-                                },
+                                annotations: { axisLabel: { visible: 'always' } },
                             },
                         },
                     },

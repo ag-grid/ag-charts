@@ -22,7 +22,12 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { BandScale, Group, type Node, Rect, Text } from 'ag-charts-core';
-import type { AgAnnotationValue, AgAnnotationsOptions, AgHorizontalLineAnnotation } from 'ag-charts-types';
+import type {
+    AgAnnotationValue,
+    AgAnnotationsOptions,
+    AgAnnotationsThemeableOptions,
+    AgHorizontalLineAnnotation,
+} from 'ag-charts-types';
 
 import {
     findSceneNodes,
@@ -2517,11 +2522,13 @@ describe('Annotations', () => {
         const withAxes = (
             xPosition: 'top' | 'bottom' = 'bottom',
             yPosition: 'left' | 'right' = 'left',
-            annotations: AgAnnotationsOptions = {}
+            annotations: AgAnnotationsOptions = {},
+            themed: AgAnnotationsThemeableOptions = {}
         ) =>
             ({
                 ...ANNOTATIONS_EXAMPLE_OPTIONS,
                 annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, ...annotations },
+                theme: { overrides: { common: { annotations: themed } } },
                 data: [
                     { x: new Date('2024-01-01'), y: 0 },
                     { x: new Date('2024-04-10'), y: 100 },
@@ -2577,10 +2584,7 @@ describe('Annotations', () => {
                 {
                     annotations: [{ type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } }, LINE],
                 },
-                withAxes('bottom', 'left', {
-                    xAxis: { axisShading: { fillOpacity: 0.5 } },
-                    yAxis: { axisShading: { fillOpacity: 0.5 } },
-                })
+                withAxes('bottom', 'left', {}, { line: { axisShading: { fillOpacity: 0.5 } } })
             );
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
@@ -2648,15 +2652,21 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The options of an axis override the labels set for both, and the fills are the options' own.
-        it('takes the fills of the axis labels and shading from the annotations options, by axis', async () => {
+        // The colours are the type's own options, which the annotation's own colours do not change.
+        it('takes the colours of the axis labels and shading from the options of the annotation type', async () => {
             await prepareChart(
                 { annotations: [LINE] },
-                withAxes('bottom', 'left', {
-                    axisLabel: { fill: GREEN, color: 'black' },
-                    xAxis: { axisLabel: { fill: RED }, axisShading: { fill: BLUE, fillOpacity: 0.5 } },
-                    yAxis: { axisShading: { fill: RED, fillOpacity: 0.5 } },
-                })
+                withAxes(
+                    'bottom',
+                    'left',
+                    {},
+                    {
+                        line: {
+                            axisLabel: { fill: GREEN, color: 'black' },
+                            axisShading: { fill: BLUE, fillOpacity: 0.5 },
+                        },
+                    }
+                )
             );
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
@@ -2664,46 +2674,43 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // Whether the labels and shading show depends on `visible`, which each axis can set for itself.
+        // The top-level `visible` is the default of every type that does not set its own. Cross-lines default to
+        // 'always' and the other types to 'selected'.
         it('shows the axis labels and shading as `visible` sets, whether or not the annotation is selected', async () => {
-            const cases: Array<{ annotations: AgAnnotationsOptions; select: boolean }> = [
-                // Unselected labels on the y axis only, and no shading.
+            const cross: AgAnnotation = { type: 'horizontal-line', value: 90 };
+            const cases: Array<{
+                annotations: AgAnnotationsOptions;
+                themed: AgAnnotationsThemeableOptions;
+                select: boolean;
+            }> = [
+                // Only the channel is labelled and shaded, and the cross-line keeps its label.
                 {
-                    annotations: {
-                        axisLabel: { visible: 'always' },
-                        xAxis: { axisLabel: { visible: 'never' }, axisShading: { visible: 'never' } },
-                        yAxis: { axisShading: { visible: 'never' } },
-                    },
+                    annotations: { axisLabel: { visible: 'always' } },
+                    themed: { line: { axisLabel: { visible: 'never' } } },
                     select: false,
                 },
-                // Unselected shading with no labels.
+                // Nothing, not even the cross-line's label, though the line is selected.
+                { annotations: { axisLabel: { visible: 'never' } }, themed: {}, select: true },
+                // Only the cross-line, which sets its own `visible`.
                 {
-                    annotations: {
-                        axisLabel: { visible: 'never' },
-                        xAxis: { axisShading: { visible: 'always' } },
-                        yAxis: { axisShading: { visible: 'always' } },
-                    },
-                    select: false,
-                },
-                // Nothing, though the annotation is selected.
-                {
-                    annotations: {
-                        axisLabel: { visible: 'never' },
-                        xAxis: { axisShading: { visible: 'never' } },
-                        yAxis: { axisShading: { visible: 'never' } },
-                    },
+                    annotations: { axisLabel: { visible: 'never' } },
+                    themed: { 'horizontal-line': { axisLabel: { visible: 'always' } } },
                     select: true,
                 },
             ];
 
-            await prepareChart({ annotations: [LINE] }, withAxes('bottom', 'left', cases[0].annotations));
+            const [first, ...rest] = cases;
+            await prepareChart(
+                { annotations: [LINE, PARALLEL_CHANNEL, cross] },
+                withAxes('bottom', 'left', first.annotations, first.themed)
+            );
             await compare();
 
             // The mock canvas is bound to the first chart, so the others are updates of it.
-            for (const { annotations, select } of cases.slice(1)) {
+            for (const { annotations, themed, select } of rest) {
                 await chart.update(
                     prepareEnterpriseTestOptions({
-                        ...withAxes('bottom', 'left', annotations),
+                        ...withAxes('bottom', 'left', annotations, themed),
                         initialState: undefined,
                     }) as never
                 );
@@ -2711,6 +2718,43 @@ describe('Annotations', () => {
                 await waitForChartStability(chart);
                 await compare();
             }
+        });
+
+        it('shows the label of a cross-line when it is selected, and by default always', async () => {
+            await prepareChart(
+                { annotations: [{ type: 'horizontal-line', value: 60 }] },
+                withAxes('bottom', 'left', {})
+            );
+            expect(visibleAxisLabels()).toHaveLength(1);
+
+            await chart.update(
+                prepareEnterpriseTestOptions({
+                    ...withAxes('bottom', 'left', {}, { 'horizontal-line': { axisLabel: { visible: 'selected' } } }),
+                    initialState: undefined,
+                }) as never
+            );
+            await waitForChartStability(chart);
+            expect(visibleAxisLabels()).toHaveLength(0);
+
+            await clickDatum(50, 60);
+            expect(visibleAxisLabels()).toHaveLength(1);
+        });
+
+        it('keeps `visible`, the shading and the label styles out of the saved state', async () => {
+            await prepareChart(
+                { annotations: [LINE, { type: 'horizontal-line', value: 60 }] },
+                withAxes(
+                    'bottom',
+                    'left',
+                    { axisLabel: { visible: 'always' } },
+                    { line: { axisLabel: { fill: GREEN }, axisShading: { fill: BLUE } } }
+                )
+            );
+
+            const [line, cross] = chart.getState().annotations as Array<Record<string, any>>;
+            expect(line.axisLabel).toBeUndefined();
+            expect(line.axisShading).toBeUndefined();
+            expect(cross.axisLabel.visible).toBeUndefined();
         });
 
         // A single point has one label per axis and nothing to shade between. The callout's is at its pointer's tip.
