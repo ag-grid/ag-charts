@@ -106,6 +106,7 @@ export class BarShape<D = any> extends Rect<D> {
         borderPath.clear();
         // This path isn't the plain rect `Rect.updatePath` measured, so don't fill it with `fillRect`.
         this.plainRect = false;
+        this.coveredByStroke = false;
 
         if (direction === 'x') {
             const featherInsetX = Math.abs(featherRatio) * width;

@@ -1,17 +1,21 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { chartPixelAt, deproxy, setupMockCanvas, setupMockConsole, visibleItems } from 'ag-charts-community-test';
+import {
+    BAND_GLOW,
+    type Chart,
+    deproxy,
+    expectGlowBand,
+    pixelsRightOf,
+    setupMockCanvas,
+    setupMockConsole,
+    visibleItems,
+} from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
 import { getFunnelConnectorNodes } from '../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../test/utils';
 
-const GAP = 1;
-const SPREAD = 8;
-const GLOW = { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 };
-const RED = [255, 0, 0, 255];
-const WHITE = [255, 255, 255, 255];
 const STROKE = 'darkslategray';
 const BASE_CHART = { animation: { enabled: false }, legend: { enabled: false } };
 
@@ -35,7 +39,7 @@ const NIGHTINGALE = (strokeWidth: number) => ({
             fillOpacity: 1,
             stroke: STROKE,
             strokeWidth,
-            glow: GLOW,
+            glow: BAND_GLOW,
         },
     ],
 });
@@ -53,7 +57,7 @@ const MAP_SHAPE = (strokeWidth: number) => ({
             fillOpacity: 1,
             stroke: STROKE,
             strokeWidth,
-            glow: GLOW,
+            glow: BAND_GLOW,
         },
     ],
 });
@@ -70,7 +74,7 @@ const OHLC = (strokeWidth: number) => {
                 lowKey: 'low',
                 closeKey: 'close',
                 item: { up: item, down: item },
-                glow: GLOW,
+                glow: BAND_GLOW,
             },
         ],
     };
@@ -92,7 +96,7 @@ const CONE_FUNNEL = (strokeWidth: number) => ({
             fillOpacity: 1,
             strokes: [STROKE],
             strokeWidth,
-            glow: GLOW,
+            glow: BAND_GLOW,
         },
     ],
 });
@@ -101,39 +105,31 @@ describe('the glow around a stroked item', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: ReturnType<typeof deproxy>;
+    let chart: Chart;
     afterEach(() => {
         chart?.destroy();
     });
 
-    type Origin = (chart: ReturnType<typeof deproxy>) => { x: number; y: number };
-    const rightEdgeOf =
-        (selection: 'itemSelection' | 'datumSelection'): Origin =>
-        (c) => {
-            const { x, y, width, height } = visibleItems(c, selection)[0];
-            return { x: x + width, y: y + height / 2 };
-        };
+    type Item = (chart: Chart) => { x: number; y: number; width: number; height: number };
+    const firstOf =
+        (selection: 'itemSelection' | 'datumSelection'): Item =>
+        (c) =>
+            visibleItems(c, selection)[0];
 
-    const expectGlowFromOuterEdge = async (options: object, origin: Origin, strokeWidth: number) => {
+    const expectGlowFromOuterEdge = async (options: object, item: Item, strokeWidth: number) => {
         chart = deproxy(await createEnterpriseChart({ ...BASE_CHART, ...options } as AgChartOptions));
-        const { x, y } = origin(chart);
-        const edge = strokeWidth / 2;
-        const at = (distance: number) => chartPixelAt(chart, x + distance, y);
-
-        expect(at(edge + GAP + 1)).toEqual(RED);
-        expect(at(edge + GAP + SPREAD - 2)).toEqual(RED);
-        expect(at(edge + GAP + SPREAD + 2)).toEqual(WHITE);
+        expectGlowBand(pixelsRightOf(chart, item(chart)), strokeWidth / 2);
     };
 
     describe('where the stroke is centred on the path of the item', () => {
         it.each([
-            { name: 'nightingale', strokeWidth: 12, build: NIGHTINGALE, origin: rightEdgeOf('itemSelection') },
-            { name: 'nightingale', strokeWidth: 24, build: NIGHTINGALE, origin: rightEdgeOf('itemSelection') },
-            { name: 'map shape', strokeWidth: 12, build: MAP_SHAPE, origin: rightEdgeOf('datumSelection') },
+            { name: 'nightingale', strokeWidth: 12, build: NIGHTINGALE, item: firstOf('itemSelection') },
+            { name: 'nightingale', strokeWidth: 24, build: NIGHTINGALE, item: firstOf('itemSelection') },
+            { name: 'map shape', strokeWidth: 12, build: MAP_SHAPE, item: firstOf('datumSelection') },
         ])(
             'should grow the glow of a $name a gap and a spread past the outer edge of a stroke of $strokeWidth',
-            async ({ strokeWidth, build, origin }) => {
-                await expectGlowFromOuterEdge(build(strokeWidth), origin, strokeWidth);
+            async ({ strokeWidth, build, item }) => {
+                await expectGlowFromOuterEdge(build(strokeWidth), item, strokeWidth);
             }
         );
     });
@@ -143,21 +139,18 @@ describe('the glow around a stroked item', () => {
             {
                 name: 'OHLC bar',
                 build: OHLC,
-                origin: (c: ReturnType<typeof deproxy>) => {
+                item: (c: Chart) => {
                     const { x, y, width, height } = visibleItems(c, 'datumSelection')[0];
-                    return { x: x + width / 2, y: y + height / 2 };
+                    return { x: x + width / 2, y, width: 0, height };
                 },
             },
             {
                 name: 'cone funnel connector',
                 build: CONE_FUNNEL,
-                origin: (c: ReturnType<typeof deproxy>) => {
-                    const { x, y, width, height } = Transformable.toCanvas(getFunnelConnectorNodes(c)[0]);
-                    return { x: x + width, y: y + height / 2 };
-                },
+                item: (c: Chart) => Transformable.toCanvas(getFunnelConnectorNodes(c)[0]),
             },
-        ])('should keep the glow of a $name a gap and a spread past its stroke of 12', async ({ build, origin }) => {
-            await expectGlowFromOuterEdge(build(12), origin, 12);
+        ])('should keep the glow of a $name a gap and a spread past its stroke of 12', async ({ build, item }) => {
+            await expectGlowFromOuterEdge(build(12), item, 12);
         });
     });
 });

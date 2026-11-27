@@ -2,11 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { visibleItems } from '../../test/glowRender';
+import { BAND_GLOW, expectGlowBand, pixelsRightOf, visibleItems } from '../../test/glowRender';
 import type { SeriesSelectionName } from '../../test/seriesAccessors';
 import {
     type Chart,
-    chartPixelAt,
     createChart,
     deproxy,
     expectWarningMessages,
@@ -54,15 +53,10 @@ describe('glow gap in a chart', () => {
         return created;
     };
 
-    const pixelAt = (x: number, y: number) => chartPixelAt(chart!, x, y);
-
     const firstItem = (selection?: SeriesSelectionName) => visibleItems(chart!, selection)[0];
 
     /** The pixel `distance` to the right of the first item, along the line across its middle, which is inside it if negative. */
-    const rightOfFirstItem = (selection?: SeriesSelectionName) => {
-        const { x, y, width, height } = firstItem(selection);
-        return (distance: number) => pixelAt(x + width + distance, y + height / 2);
-    };
+    const rightOfFirstItem = (selection?: SeriesSelectionName) => pixelsRightOf(chart!, firstItem(selection));
 
     const hoverFirst = async () => {
         const { x, y, width, height } = firstItem();
@@ -149,10 +143,7 @@ describe('glow gap in a chart', () => {
 
     describe('around an item with a wide stroke', () => {
         const GAP = 1;
-        const SPREAD = 8;
         const STROKED = { fill: 'blue', fillOpacity: 1, stroke: 'darkslategray' };
-        const wideGlow = { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 };
-        const strokedMarkers = (stroke: object) => markers({ ...STROKED, glow: wideGlow, ...stroke });
 
         const donut = (options: object): AgChartOptions => ({
             data: [{ value: 1 }],
@@ -188,13 +179,9 @@ describe('glow gap in a chart', () => {
             ])(
                 'should grow the glow a gap and a spread past the outer edge of a stroke of $strokeWidth',
                 async (stroke) => {
-                    await create(build({ glow: wideGlow, ...stroke }));
-                    const at = rightOfFirstItem(selection);
-                    const edge = outerEdge(stroke.strokeWidth);
+                    await create(build({ glow: BAND_GLOW, ...stroke }));
 
-                    expect(at(edge + GAP + 1)).toEqual(GLOW_RED);
-                    expect(at(edge + GAP + SPREAD - 2)).toEqual(GLOW_RED);
-                    expect(at(edge + GAP + SPREAD + 2)).toEqual(WHITE);
+                    expectGlowBand(rightOfFirstItem(selection), outerEdge(stroke.strokeWidth));
                 }
             );
         });
@@ -206,18 +193,17 @@ describe('glow gap in a chart', () => {
         ])(
             'should grow the glow a gap and a spread past the painted edge of a bar $width wide with a stroke of $strokeWidth',
             async ({ width, strokeWidth, paintedEdge }) => {
-                await create(bars({ ...STROKED, glow: wideGlow, width, strokeWidth }));
-                const at = rightOfFirstItem();
+                await create(bars({ ...STROKED, glow: BAND_GLOW, width, strokeWidth }));
 
-                expect(isGlowing(at(paintedEdge + GAP + 1))).toBe(true);
-                expect(isGlowing(at(paintedEdge + GAP + SPREAD - 2))).toBe(true);
-                expect(at(paintedEdge + GAP + SPREAD + 2)).toEqual(WHITE);
+                expectGlowBand(rightOfFirstItem(), paintedEdge);
             }
         );
 
         it('should blur a glow with no spread or gap from the outer edge of a stroke of 24', async () => {
             const strokeWidth = 24;
-            await create(strokedMarkers({ strokeWidth, glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1 } }));
+            await create(
+                markers({ ...STROKED, strokeWidth, glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1 } })
+            );
             const at = rightOfFirstItem();
 
             expect(isGlowing(at(strokeWidth / 2 + 2))).toBe(true);
