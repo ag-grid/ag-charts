@@ -6,6 +6,7 @@ export const backgroundRegionStyle = {
     stroke: { $ref: 'backgroundColor' },
     strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
     label: {
+        placement: { $isUserOption: ['./position', { $path: './position' }, ['top', 'bottom']] },
         wrapping: 'on-space',
         truncate: true,
         ...FONT_THEME_DEFAULTS,

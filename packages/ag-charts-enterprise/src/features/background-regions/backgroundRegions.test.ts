@@ -14,7 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { RANGE_LABEL_ANCHORS, Transformable } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelPlacement,
@@ -26,7 +26,6 @@ import type {
 
 import { getBackgroundRegionBox, getBackgroundRegionLabelBox } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
-import { anchors } from './cartesianBackgroundRegion';
 
 const NUMERIC: AgCartesianChartOptions = {
     data: [
@@ -321,7 +320,7 @@ const STYLED = {
                     fontSize: 14,
                     fontWeight: 'bold' as const,
                     padding: { top: 12, right: 20, bottom: 12, left: 20 },
-                    position: 'inside' as const,
+                    placement: 'inside' as const,
                     text: 'Styled Region',
                 },
                 xRange: { start: 20, end: 80 },
@@ -373,7 +372,7 @@ const THEMED: AgCartesianChartOptions = {
                             fontSize: 14,
                             fontWeight: 'bold' as const,
                             padding: { top: 4, right: 40, bottom: 4, left: 8 },
-                            position: 'inside' as const,
+                            placement: 'inside' as const,
                         },
                     },
                 },
@@ -501,7 +500,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                     {
                         fill: 'lightsalmon',
                         fillOpacity: 0.8,
-                        label: { position: 'top', text: 'outside', fontSize: 20 },
+                        label: { placement: 'top', text: 'outside', fontSize: 20 },
                     },
                 ],
             },
@@ -521,7 +520,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                         fillOpacity: 0.8,
                         xRange: { start: 20, end: 80 },
                         yRange: { start: 20, end: 80 },
-                        label: { position: 'top', text: 'sticky', fontSize: 20 },
+                        label: { placement: 'top', text: 'sticky', fontSize: 20 },
                     },
                 ],
             },
@@ -541,7 +540,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                         fillOpacity: 0.8,
                         xRange: { start: 0, end: 10 },
                         yRange: { start: 0, end: 10 },
-                        label: { position: 'top', text: 'hidden', fontSize: 20 },
+                        label: { placement: 'top', text: 'hidden', fontSize: 20 },
                     },
                 ],
             },
@@ -561,14 +560,14 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                         fillOpacity: 0.8,
                         xRange: { start: 40, end: 60 },
                         yRange: { start: 20, end: 80 },
-                        label: { position: 'top', text: 'A region label that is too long', fontSize: 16 },
+                        label: { placement: 'top', text: 'A region label that is too long', fontSize: 16 },
                     },
                     {
                         fill: 'lightblue',
                         fillOpacity: 0.8,
                         xRange: { start: 60, end: 80 },
                         yRange: { start: 20, end: 70 },
-                        label: { position: 'top', text: 'Neighbour', fontSize: 16 },
+                        label: { placement: 'top', text: 'Neighbour', fontSize: 16 },
                     },
                 ],
             },
@@ -587,7 +586,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                         xRange: { start: 20, end: 80 },
                         yRange: { start: 20, end: 80 },
                         label: {
-                            position: 'inside-top-left',
+                            placement: 'inside-top-left',
                             text: 'offset',
                             fontSize: 20,
                             xOffset: 30,
@@ -611,7 +610,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                         xRange: { start: 20, end: 80 },
                         yRange: { start: 20, end: 80 },
                         label: {
-                            position: 'inside-bottom-right',
+                            placement: 'inside-bottom-right',
                             text: 'offset',
                             fontSize: 20,
                             xOffset: -30,
@@ -632,7 +631,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
                     {
                         fill: 'lightsalmon',
                         fillOpacity: 0.8,
-                        label: { position: 'top', text: 'outside', fontSize: 20, xOffset: 40, yOffset: 20 },
+                        label: { placement: 'top', text: 'outside', fontSize: 20, xOffset: 40, yOffset: 20 },
                     },
                 ],
             },
@@ -681,7 +680,7 @@ function fitLabelOptions(
                     xRange: { start: 20, end: 80 },
                     yRange: { start: 20, end: 80 },
                     ...region,
-                    label: { text: LONG_LABEL, fontSize: 20, position: 'inside-top', ...label },
+                    label: { text: LONG_LABEL, fontSize: 20, placement: 'inside-top', ...label },
                 },
             ],
         },
@@ -698,7 +697,7 @@ function fitRegion(
         fillOpacity: 0.8,
         xRange: { start: x, end: x + 30 },
         yRange: { start: y, end: y + 45 },
-        label: { text: LONG_LABEL, fontSize: 16, position: 'inside-top', ...label },
+        label: { text: LONG_LABEL, fontSize: 16, placement: 'inside-top', ...label },
     };
 }
 
@@ -711,7 +710,7 @@ EXAMPLES.LABEL_FIT_MODES = {
                 fitRegion(35, 55, { wrapping: 'never', truncate: true }),
                 fitRegion(70, 55, { maxWidth: 180, wrapping: 'never', minimumFontSize: 8 }),
                 fitRegion(0, 0, { maxHeight: 20, minimumFontSize: 12 }),
-                fitRegion(35, 0, { position: 'inside-left', rotation: 270 }),
+                fitRegion(35, 0, { placement: 'inside-left', rotation: 270 }),
                 fitRegion(70, 0, { fill: 'white', border: { enabled: true, stroke: 'black' } }),
             ],
         },
@@ -731,10 +730,10 @@ EXAMPLES.LABEL_REGION_BOUNDS = {
         seriesArea: {
             backgroundRegions: [
                 narrowRegion(5, 55, {}),
-                narrowRegion(40, 55, { position: 'bottom' }),
-                narrowRegion(75, 55, { position: 'inside-left', rotation: 270, fontSize: 20 }),
+                narrowRegion(40, 55, { placement: 'bottom' }),
+                narrowRegion(75, 55, { placement: 'inside-left', rotation: 270, fontSize: 20 }),
                 narrowRegion(5, 0, { maxWidth: 200 }),
-                narrowRegion(40, 0, { position: 'inside', xOffset: 4 }),
+                narrowRegion(40, 0, { placement: 'inside', xOffset: 4 }),
                 narrowRegion(75, 0, { fill: 'white', border: { enabled: true, stroke: 'black' } }),
             ],
         },
@@ -761,7 +760,7 @@ EXAMPLES.LABEL_FIT_POSITIONS = {
                 fillOpacity: index === 0 ? 0.8 : 0,
                 xRange: { start: 30, end: 70 },
                 yRange: { start: 30, end: 70 },
-                label: { text: 'Wrapped region label', fontSize: 12, maxWidth: 70, position },
+                label: { text: 'Wrapped region label', fontSize: 12, maxWidth: 70, placement: position },
             })),
         },
     },
@@ -780,7 +779,7 @@ for (const position of labelPositions) {
                         xRange: { start: 20, end: 80 },
                         yRange: { start: 20, end: 80 },
                         label: {
-                            position,
+                            placement: position,
                             text: position,
                             fontSize: 20,
                         },
@@ -958,7 +957,7 @@ describe('Background Region label fitting', () => {
     });
 
     it('bounds a rotated label along its own text direction', async () => {
-        const { text } = await renderLabel({ maxWidth: 120, truncate: false, position: 'inside-left', rotation: 270 });
+        const { text } = await renderLabel({ maxWidth: 120, truncate: false, placement: 'inside-left', rotation: 270 });
         expect(text.split('\n').length).toBeGreaterThan(1);
         expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
     });
@@ -980,7 +979,7 @@ describe('Background Region label fitting', () => {
     it.each(['inside', 'inside-top-left', 'inside-right', 'inside-bottom'] as const)(
         'holds an inside label at %s within the region',
         async (position) => {
-            const { box, regionBox: region } = await renderLabel({ position }, { region: SMALL });
+            const { box, regionBox: region } = await renderLabel({ placement: position }, { region: SMALL });
 
             const epsilon = 1e-6;
             expect(box.x).toBeGreaterThanOrEqual(region.x - epsilon);
@@ -993,7 +992,7 @@ describe('Background Region label fitting', () => {
     it.each(['top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'] as const)(
         'bounds a label at %s by the region width only',
         async (position) => {
-            const { text, box, regionBox: region } = await renderLabel({ position }, { region: SMALL });
+            const { text, box, regionBox: region } = await renderLabel({ placement: position }, { region: SMALL });
 
             expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
             expect(box.width).toBeLessThanOrEqual(region.width);
@@ -1004,11 +1003,11 @@ describe('Background Region label fitting', () => {
     it.each(['left', 'right', 'left-top', 'left-bottom', 'right-top', 'right-bottom'] as const)(
         'bounds a label at %s by the region height only',
         async (position) => {
-            const unrotated = await renderLabel({ position }, { region: SMALL });
+            const unrotated = await renderLabel({ placement: position }, { region: SMALL });
             expect(unrotated.text).toBe(LONG_LABEL);
             expect(unrotated.box.width).toBeGreaterThan(unrotated.regionBox.width);
 
-            const rotated = await renderLabel({ position, rotation: 270 }, { region: SHORT });
+            const rotated = await renderLabel({ placement: position, rotation: 270 }, { region: SHORT });
             expect(rotated.text).not.toBe(LONG_LABEL);
             expect(rotated.box.height).toBeLessThanOrEqual(rotated.regionBox.height);
         }
@@ -1019,7 +1018,7 @@ describe('Background Region label fitting', () => {
             text,
             box,
             regionBox: region,
-        } = await renderLabel({ position: 'inside', rotation: 45 }, { region: NARROW });
+        } = await renderLabel({ placement: 'inside', rotation: 45 }, { region: NARROW });
 
         expect(text).not.toBe(LONG_LABEL);
         expect(box.width).toBeLessThanOrEqual(region.width);
@@ -1027,7 +1026,7 @@ describe('Background Region label fitting', () => {
 
     it('anchors a rotated label by its turned footprint', async () => {
         const { box, regionBox: region } = await renderLabel(
-            { position: 'inside-left', rotation: 270 },
+            { placement: 'inside-left', rotation: 270 },
             { region: MEDIUM }
         );
 
@@ -1066,7 +1065,7 @@ describe('Background Region label fitting', () => {
 
     it('reduces the bound by the spacing along the direction the label grows', async () => {
         const label: NonNullable<AgSeriesAreaBackgroundRegion['label']> & { spacing: number } = {
-            position: 'inside-top-left',
+            placement: 'inside-top-left',
             wrapping: 'never',
             spacing: 20,
         };
@@ -1077,15 +1076,15 @@ describe('Background Region label fitting', () => {
     });
 
     it('rewraps an inside label to the visible region under zoom', async () => {
-        const unzoomed = await renderLabel({ position: 'inside' }, { region: NARROW });
-        const zoomed = await renderLabel({ position: 'inside' }, { region: NARROW, zoom: { start: 0.4, end: 0.6 } });
+        const unzoomed = await renderLabel({ placement: 'inside' }, { region: NARROW });
+        const zoomed = await renderLabel({ placement: 'inside' }, { region: NARROW, zoom: { start: 0.4, end: 0.6 } });
 
         expect(zoomed.text.split('\n').length).toBeLessThan(unzoomed.text.split('\n').length);
     });
 
     it('keeps a side label at its zoomed-out bound under zoom', async () => {
-        const unzoomed = await renderLabel({ position: 'top' }, { region: MEDIUM });
-        const zoomed = await renderLabel({ position: 'top' }, { region: MEDIUM, zoom: { start: 0.4, end: 0.6 } });
+        const unzoomed = await renderLabel({ placement: 'top' }, { region: MEDIUM });
+        const zoomed = await renderLabel({ placement: 'top' }, { region: MEDIUM, zoom: { start: 0.4, end: 0.6 } });
 
         expect(unzoomed.text).not.toBe(LONG_LABEL);
         expect(zoomed.text).toBe(unzoomed.text);
@@ -1101,7 +1100,7 @@ describe('Background Region label fitting', () => {
         async (position, rotation) => {
             const padding = { left: 0, right: 40, top: 0, bottom: 20 };
             const { box, regionBox: region } = await renderLabel(
-                { position, rotation, fill: 'white', padding },
+                { placement: position, rotation, fill: 'white', padding },
                 { region: SMALL }
             );
 
@@ -1115,14 +1114,17 @@ describe('Background Region label fitting', () => {
 
     it('frees only the screen axis an offset moves a rotated label along', async () => {
         const region = { xRange: { start: 20, end: 80 }, yRange: { start: 40, end: 60 } };
-        const { box, regionBox } = await renderLabel({ position: 'inside', rotation: 90, xOffset: 1 }, { region });
+        const { box, regionBox } = await renderLabel({ placement: 'inside', rotation: 90, xOffset: 1 }, { region });
 
         expect(box.height).toBeLessThanOrEqual(regionBox.height);
     });
 
     it('caps a side label at the visible part of a region panned mostly out of view', async () => {
         const region = { xRange: { start: 40, end: 60 }, yRange: { start: 20, end: 80 } };
-        const { box, regionBox } = await renderLabel({ position: 'top' }, { region, zoom: { start: 0.58, end: 0.78 } });
+        const { box, regionBox } = await renderLabel(
+            { placement: 'top' },
+            { region, zoom: { start: 0.58, end: 0.78 } }
+        );
 
         const seriesRect = getSeriesRect(chart);
         const visibleLeft = Math.max(regionBox.x, seriesRect.x);
@@ -1170,9 +1172,11 @@ describe('Background Region label avoidance', () => {
     function avoidanceChart({
         seriesCollideWith,
         crossLinePlacement,
+        regionPlacement = 'inside',
     }: {
         seriesCollideWith?: AgSeriesLabelCollideWithOptions;
         crossLinePlacement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
+        regionPlacement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
     }): AgCartesianChartOptions {
         const crossLines =
             crossLinePlacement == null
@@ -1197,7 +1201,7 @@ describe('Background Region label avoidance', () => {
                 y: { type: 'number', position: 'left', min: 0, max: 100, crossLines },
             },
             seriesArea: {
-                backgroundRegions: [{ label: { text: 'REGION LABEL', fontSize: 40, position: 'inside' } }],
+                backgroundRegions: [{ label: { text: 'REGION LABEL', fontSize: 40, placement: regionPlacement } }],
             },
         };
     }
@@ -1217,15 +1221,28 @@ describe('Background Region label avoidance', () => {
         return shown.filter((box) => box.collidesBBox(region)).length;
     }
 
-    it('keeps series labels clear of a region label unless they may overlap it', async () => {
-        chart = await createEnterpriseChart(avoidanceChart({ seriesCollideWith: { regionLabels: true } }));
-        const allowed = seriesLabelsOverlapping();
-        await chart.update(prepareEnterpriseTestOptions(avoidanceChart({})));
-        await waitForChartStability(chart);
+    it.each([
+        ['a single placement', 'inside'],
+        ['a placement list', ['inside', 'inside-left']],
+    ] as const)(
+        'keeps series labels clear of a region label with %s unless they may overlap it',
+        async (_name, regionPlacement) => {
+            chart = await createEnterpriseChart(
+                avoidanceChart({
+                    seriesCollideWith: { regionLabels: true },
+                    regionPlacement: [...[regionPlacement].flat()],
+                })
+            );
+            const allowed = seriesLabelsOverlapping();
+            await chart.update(
+                prepareEnterpriseTestOptions(avoidanceChart({ regionPlacement: [...[regionPlacement].flat()] }))
+            );
+            await waitForChartStability(chart);
 
-        expect(allowed).toBeGreaterThan(0);
-        expect(seriesLabelsOverlapping()).toBe(0);
-    });
+            expect(allowed).toBeGreaterThan(0);
+            expect(seriesLabelsOverlapping()).toBe(0);
+        }
+    );
 
     it('moves a cross line label off a region label', async () => {
         const crossLineOverlaps = () => {
@@ -1244,9 +1261,216 @@ describe('Background Region label avoidance', () => {
         expect(sole).toBe(true);
         expect(crossLineOverlaps()).toBe(false);
     });
+
+    function crossLineLabelBox() {
+        const node = getCrossLineLabelNode(deproxy(chart).axes.findById('y')!);
+        expect(node?.visible).toBe(true);
+        return Transformable.toCanvas(node!);
+    }
+
+    it('moves the cross line label when both labels could move', async () => {
+        chart = await createEnterpriseChart(
+            avoidanceChart({ crossLinePlacement: ['inside', 'inside-left'], regionPlacement: ['inside', 'inside-top'] })
+        );
+
+        const region = regionLabelBox();
+        const seriesRect = getSeriesRect(chart);
+        expect(region.y + region.height / 2).toBeCloseTo(seriesRect.y + seriesRect.height / 2, 0);
+        expect(crossLineLabelBox().collidesBBox(region)).toBe(false);
+    });
+
+    it('moves the region label off a cross line label with a single placement', async () => {
+        chart = await createEnterpriseChart(
+            avoidanceChart({ crossLinePlacement: 'inside', regionPlacement: ['inside', 'inside-top'] })
+        );
+
+        const region = regionLabelBox();
+        const crossLine = crossLineLabelBox();
+        const seriesRect = getSeriesRect(chart);
+        expect(crossLine.y + crossLine.height / 2).toBeCloseTo(seriesRect.y + seriesRect.height / 2, 0);
+        expect(region.y).toBeCloseTo(seriesRect.y, 0);
+        expect(crossLine.collidesBBox(region)).toBe(false);
+    });
 });
 
-type DerivedAnchor = { regionH: number; regionV: number; labelH: number; labelV: number };
+describe('Background Region label placement', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(async () => {
+        if (chart != null) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const EPSILON = 1e-6;
+    type RegionLabel = NonNullable<AgSeriesAreaBackgroundRegion['label']>;
+
+    // The region reaches the top of the series area, so a label above it overflows the chart.
+    function placementOptions(label: RegionLabel, region: Partial<AgSeriesAreaBackgroundRegion> = {}) {
+        const options: AgCartesianChartOptions = {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 50 },
+                        ...region,
+                        label: { text: 'PLACED', fontSize: 40, ...label },
+                    },
+                ],
+            },
+        };
+        return options;
+    }
+
+    async function renderPlaced(options: AgCartesianChartOptions) {
+        chart = await createEnterpriseChart(options);
+        return { box: getBackgroundRegionLabelBox(chart), region: getBackgroundRegionBox(chart) };
+    }
+
+    it('falls back to the next placement when one does not fit', async () => {
+        const { box, region } = await renderPlaced(placementOptions({ placement: ['top', 'bottom'] }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(box!.y).toBeGreaterThanOrEqual(region.y + region.height - EPSILON);
+    });
+
+    it('keeps a single placement that does not fit where it is', async () => {
+        const { box, region } = await renderPlaced(placementOptions({ placement: 'top' }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(region.y + EPSILON);
+    });
+
+    it('keeps a label no placement fits at its best placement by default', async () => {
+        const { box, region } = await renderPlaced(placementOptions({ placement: ['top', 'top-left'] }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(region.y + EPSILON);
+    });
+
+    it('hides a label no placement fits when alwaysShow is false', async () => {
+        const { box } = await renderPlaced(
+            placementOptions({ placement: ['top', 'top-left'], collision: { alwaysShow: false } })
+        );
+
+        expectWarningsCalls().toEqual([]);
+        expect(box).toBeUndefined();
+    });
+
+    it('falls back from a placement its text does not fit when alwaysShow is false', async () => {
+        const label: RegionLabel = {
+            placement: ['inside-top', 'top'],
+            collision: { alwaysShow: false },
+            truncate: false,
+        };
+        const { box, region } = await renderPlaced(placementOptions(label, { yRange: { start: 48, end: 52 } }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(region.y + EPSILON);
+    });
+
+    it('never hides a region label by default, even where no placement fits', async () => {
+        const { box } = await renderPlaced(placementOptions({ fontSize: 100 }, { yRange: undefined }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(box).toBeDefined();
+    });
+
+    it('takes its placement from a theme override', async () => {
+        const theme = {
+            overrides: { scatter: { seriesArea: { backgroundRegions: { label: { placement: 'bottom' } } } } },
+        };
+        const options = placementOptions({}, { yRange: { start: 20, end: 80 } });
+        const { box, region } = await renderPlaced({ ...options, theme } as AgCartesianChartOptions);
+
+        expectWarningsCalls().toEqual([]);
+        expect(box!.y).toBeGreaterThanOrEqual(region.y + region.height - EPSILON);
+    });
+
+    it.each([
+        ['left', false],
+        ['right', true],
+    ] as const)('aligns a top-start label with the region %s edge when enableRtl is %s', async (_edge, enableRtl) => {
+        const options = placementOptions({ placement: 'top-start', fontSize: 20 }, { yRange: { start: 20, end: 80 } });
+        const { box, region } = await renderPlaced({ ...options, enableRtl });
+        const startEdge = enableRtl ? region.x + region.width : region.x;
+        const labelStart = enableRtl ? box!.x + box!.width : box!.x;
+
+        expectWarningsCalls().toEqual([]);
+        expect(labelStart).toBeCloseTo(startEdge, 0);
+    });
+
+    it('still places a label by the deprecated position, with one warning naming placement', async () => {
+        const { box, region } = await renderPlaced(
+            placementOptions({ position: 'bottom', fontSize: 20 }, { yRange: { start: 20, end: 80 } })
+        );
+
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `seriesArea.backgroundRegions[0].label.position` is deprecated. Use `placement` instead.',
+            ],
+        ]);
+        expect(box!.y).toBeGreaterThanOrEqual(region.y + region.height - EPSILON);
+    });
+
+    it('prefers placement over the deprecated position', async () => {
+        const { box, region } = await renderPlaced(
+            placementOptions({ position: 'bottom', placement: 'top', fontSize: 20 }, { yRange: { start: 20, end: 80 } })
+        );
+
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `seriesArea.backgroundRegions[0].label.position` is deprecated. Use `placement` instead.',
+            ],
+        ]);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(region.y + EPSILON);
+    });
+
+    it.each([
+        ['a single placement', 'top'],
+        ['a placement list', ['top', 'bottom']],
+    ] as const)('keeps the default wrapping and truncate for %s', async (_name, placement) => {
+        chart = await createEnterpriseChart(placementOptions({ placement: [placement].flat() }));
+
+        expectWarningsCalls().toEqual([]);
+        expect(deproxy(chart).chartOptions.processedOptions.seriesArea).toMatchObject({
+            backgroundRegions: [{ label: { wrapping: 'on-space', truncate: true } }],
+        });
+    });
+
+    it('renders a fallback, a single placement and a hidden label', async () => {
+        const region = (start: number, label: RegionLabel): AgSeriesAreaBackgroundRegion => ({
+            fill: 'lightsalmon',
+            fillOpacity: 0.8,
+            xRange: { start, end: start + 30 },
+            yRange: { start: 60 },
+            label: { fontSize: 24, ...label },
+        });
+        chart = await createEnterpriseChart({
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    region(0, { text: 'Falls below', placement: ['top', 'bottom'] }),
+                    region(35, { text: 'Stays on top', placement: 'top' }),
+                    region(70, { text: 'Hidden', placement: 'top', collision: { alwaysShow: false } }),
+                ],
+            },
+        });
+
+        expectWarningsCalls().toEqual([]);
+        await compareImageSnapshot(chart, ctx);
+    });
+});
+
+type DerivedAnchor = { rangeH: number; rangeV: number; labelH: number; labelV: number };
 
 function axisDirection(position: string, negative: string, positive: string): number {
     if (position.includes(negative)) {
@@ -1265,20 +1489,20 @@ function axisDirection(position: string, negative: string, positive: string): nu
  * to both named edges.
  */
 function deriveAnchor(position: string): DerivedAnchor {
-    const regionH = axisDirection(position, 'left', 'right');
-    const regionV = axisDirection(position, 'top', 'bottom');
+    const rangeH = axisDirection(position, 'left', 'right');
+    const rangeV = axisDirection(position, 'top', 'bottom');
 
     if (position.startsWith('inside')) {
-        return { regionH, regionV, labelH: regionH, labelV: regionV };
+        return { rangeH, rangeV, labelH: rangeH, labelV: rangeV };
     }
 
     const side = position.split('-')[0];
     const outwardIsHorizontal = side === 'left' || side === 'right';
     return {
-        regionH,
-        regionV,
-        labelH: outwardIsHorizontal ? -regionH : regionH,
-        labelV: outwardIsHorizontal ? regionV : -regionV,
+        rangeH,
+        rangeV,
+        labelH: outwardIsHorizontal ? -rangeH : rangeH,
+        labelV: outwardIsHorizontal ? rangeV : -rangeV,
     };
 }
 
@@ -1286,7 +1510,7 @@ describe('Background Region label positions', () => {
     it('places every position where its own name says it should', () => {
         const expected: Record<string, DerivedAnchor> = {};
         const actual: Record<string, DerivedAnchor> = {};
-        for (const [position, anchor] of Object.entries(anchors)) {
+        for (const [position, anchor] of Object.entries(RANGE_LABEL_ANCHORS)) {
             expected[position] = deriveAnchor(position);
             actual[position] = anchor;
         }
@@ -1324,13 +1548,25 @@ describe('Background Region label position validation', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
           [
             [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` is deprecated. Use \`placement\` instead.",
+            ],
+            [
               "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"top-left-above"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
+            ],
+            [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` is deprecated. Use \`placement\` instead.",
             ],
             [
               "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"top-right-above"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
             ],
             [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` is deprecated. Use \`placement\` instead.",
+            ],
+            [
               "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"bottom-left-below"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",
+            ],
+            [
+              "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` is deprecated. Use \`placement\` instead.",
             ],
             [
               "AG Charts - Option \`seriesArea.backgroundRegions[0].label.position\` cannot be set to \`"bottom-right-below"\`; expecting a keyword such as 'top', 'left', 'right', 'bottom', 'left-top', 'right-top', 'left-bottom', 'right-bottom', 'inside', 'inside-left', 'inside-right', 'inside-top', 'inside-bottom', 'inside-top-left', 'inside-bottom-left', 'inside-top-right', 'inside-bottom-right', 'top-left', 'top-right', 'bottom-left' or 'bottom-right', ignoring.",

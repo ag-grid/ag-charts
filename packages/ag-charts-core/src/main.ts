@@ -144,6 +144,7 @@ export * from './geometry/markerLabelRect';
 export * from './geometry/markerOutline';
 export * from './geometry/panToBBox';
 export * from './geometry/placement';
+export * from './geometry/rangeLabelPlacement';
 export * from './geometry/scaling';
 export * from './geometry/shapeUtil';
 export * from './geometry/spatialIndex';

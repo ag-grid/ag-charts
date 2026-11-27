@@ -403,6 +403,39 @@ describe('LabelManager', () => {
 
             expect(placedTexts(line)).toEqual([]);
         });
+
+        // Every candidate claims the same box, so whichever datum is solved first takes it.
+        function contested(text: string, candidates: number, neverDrop = false) {
+            const box = { x: 80, y: 80, width: 40, height: 10 };
+            const positionedCandidates = Array.from({ length: candidates }, () => ({ box }));
+            return labelDatum(100, 100, text, { positionedCandidates, neverDrop });
+        }
+
+        it('solves a kept registered label with a single placement before movable ones', () => {
+            const manager = createLabelManager();
+            const movable = registered('crossLines:x', [contested('movable', 2)]);
+            const sole = registered('crossLines:y', [contested('sole', 1, true)]);
+            manager.registerSource(movable);
+            manager.registerSource(sole);
+
+            manager.updateLabels([], NO_PADDING, RECT);
+
+            expect(placedTexts(sole)).toEqual(['sole']);
+            expect(placedTexts(movable)).toEqual([]);
+        });
+
+        it('solves movable registered labels in ascending solve rank', () => {
+            const manager = createLabelManager();
+            const unranked = registered('crossLines:x', [contested('unranked', 2)]);
+            const ranked = Object.assign(registered('regions', [contested('ranked', 2)]), { solveRank: -1 });
+            manager.registerSource(unranked);
+            manager.registerSource(ranked);
+
+            manager.updateLabels([], NO_PADDING, RECT);
+
+            expect(placedTexts(ranked)).toEqual(['ranked']);
+            expect(placedTexts(unranked)).toEqual([]);
+        });
     });
 
     describe('layout invalidation', () => {
