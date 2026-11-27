@@ -15,6 +15,7 @@ import {
     type ChartOrProxy,
     GALLERY_EXAMPLES,
     MIN_TOOLTIP_HIDE_DELAY,
+    PATTERN_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
@@ -1019,7 +1020,7 @@ describe('SankeySeries', () => {
                     : await createEnterpriseChart({ ...sankeyOptions, theme })
             );
 
-            await compare();
+            await compareImageSnapshot(chart, ctx, PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 
