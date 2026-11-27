@@ -72,10 +72,10 @@ const axisLabel: WithThemeParams<AgAnnotationAxisLabel & { visible?: AgAnnotatio
     visible: axisVisible('always'),
 };
 
-// The labels and shading use the foreground colour, not the colours that a user picks for an annotation.
+// The labels and shading use the annotation colour, not the colours that a user picks for an annotation.
 const axes: WithThemeParams<AgAnnotationAxes> = {
-    axisLabel: { ...axisLabelStyles, visible: axisVisible('selected') },
-    axisShading: { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.2 },
+    axisLabel: { ...axisLabelStyles, fill: { $ref: 'annotationColor' }, visible: axisVisible('selected') },
+    axisShading: { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 },
 };
 
 const text = {
@@ -353,7 +353,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             handle: { ...handle },
             statistics: {
                 ...MEASURER_STATISTICS_THEME,
-                color: '#fff',
+                color: { $ref: 'chartBackgroundColor' },
                 fill: { $ref: 'annotationColor' },
                 strokeWidth: 0,
                 divider: { ...QUICK_MEASURER_DIVIDER_THEME },

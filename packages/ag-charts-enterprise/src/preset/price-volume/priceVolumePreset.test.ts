@@ -963,7 +963,7 @@ describe('priceVolumePreset', () => {
             { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 138 },
         ];
 
-        // The labels and shading take the foreground colour, as they do outside the preset.
+        // The labels and shading take the annotation colour, which is blue in the financial themes.
         it('shows the axis labels and shading of annotations that are not selected', async () => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({

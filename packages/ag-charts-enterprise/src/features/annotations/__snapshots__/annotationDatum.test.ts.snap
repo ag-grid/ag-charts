@@ -422,7 +422,7 @@ exports[`Annotation datum lifecycle > serialised state > serialises a note annot
       "strokeWidth": 1,
     },
     "color": "#000",
-    "fill": "#5090dc",
+    "fill": "#464646",
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 14,
     "handle": {
@@ -608,7 +608,7 @@ exports[`Annotation datum lifecycle > serialised state > serialises a quick-date
     },
     "type": "quick-date-price-range",
     "up": {
-      "fill": "#5090dc",
+      "fill": "#464646",
       "fillOpacity": 0.2,
       "handle": {
         "fill": "#ffffff",
@@ -616,13 +616,13 @@ exports[`Annotation datum lifecycle > serialised state > serialises a quick-date
         "strokeWidth": 2,
       },
       "statistics": {
-        "color": "#fff",
+        "color": "white",
         "divider": {
           "stroke": "#fff",
           "strokeOpacity": 0.5,
           "strokeWidth": 1,
         },
-        "fill": "#5090dc",
+        "fill": "#464646",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "stroke": "#ddd",

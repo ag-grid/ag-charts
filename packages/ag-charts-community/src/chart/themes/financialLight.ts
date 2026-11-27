@@ -1,5 +1,5 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams, AgChartPrivateThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme, type ThemeParamDefaults } from './chartTheme';
 
@@ -36,6 +36,13 @@ export class FinancialLight extends ChartTheme {
             altUp: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
             altDown: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
             altNeutral: { fill: FINANCIAL_LIGHT_FILLS.GRAY, stroke: FINANCIAL_LIGHT_STROKES.GRAY },
+        };
+    }
+
+    protected override getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+        return {
+            ...super.getPrivateParameters(),
+            annotationColor: this.getDefaultColors().fills.BLUE,
         };
     }
 

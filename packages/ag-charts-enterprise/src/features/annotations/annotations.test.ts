@@ -137,10 +137,12 @@ describe('Annotations', () => {
             expect(line.handle.fill).toBe(handleFill);
         });
 
+        // The foreground colour of the test theme, except in the financial themes, which use their blue.
         it.each([
-            ['ag-default', '#5090dc'],
-            ['ag-material', '#2196F3'],
-        ] as const)('resolves `annotationColor` from the %s fills', async (theme, annotationColor) => {
+            ['ag-default', '#464646'],
+            ['ag-financial', '#5090dc'],
+            ['ag-financial-dark', '#5090dc'],
+        ] as const)('resolves `annotationColor` for %s', async (theme, annotationColor) => {
             const { 'quick-date-price-range': quickDatePriceRange } = await resolveAnnotationThemes(theme);
             expect(quickDatePriceRange.up.fill).toBe(annotationColor);
         });
