@@ -1460,8 +1460,8 @@ export class Annotations extends AbstractModuleInstance {
             const bbox = node.getFocusBBox();
             if (bbox.intersection(domainBBox) == null) return;
 
-            // The chart's accessible name counts read-only annotations, but a pointer cannot select one, so the keyboard
-            // does not list it.
+            // The chart's accessible name counts read-only annotations, but a pointer cannot select one, so the
+            // keyboard does not list it.
             announcedCount++;
             if (datum.readOnly === true) return;
 

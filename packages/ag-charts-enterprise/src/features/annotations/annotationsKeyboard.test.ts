@@ -5,6 +5,7 @@ import {
     clickAction,
     deproxy,
     expectSamePixels,
+    getChartAriaLabel,
     getSeriesRect,
     hoverAction,
     pressKey,
@@ -339,14 +340,12 @@ describe('Annotations keyboard navigation', () => {
     });
 
     describe('chart announcement', () => {
-        const chartLabel = () => body().querySelector('.ag-charts-canvas-proxy')?.getAttribute('aria-label');
-
         it.each([
             { name: 'no annotations', annotations: [], expected: 'chart, 1 series' },
             {
                 name: 'one annotation',
                 annotations: [{ type: 'horizontal-line', value: 50 }],
-                expected: 'chart, 1 series, 1 annotation',
+                expected: 'chart, 1 series, 1 annotations',
             },
             {
                 name: 'annotations, counting read-only ones but not hidden ones or those outside the domain',
@@ -358,12 +357,33 @@ describe('Annotations keyboard navigation', () => {
                 ],
                 expected: 'chart, 1 series, 2 annotations',
             },
-        ] satisfies { name: string; annotations: AgAnnotation[]; expected: string }[])(
+            {
+                name: 'no annotations, after the caption',
+                title: 'Prices',
+                annotations: [],
+                expected: 'chart, Prices, 1 series',
+            },
+            {
+                name: 'one annotation, after the caption',
+                title: 'Prices',
+                annotations: [{ type: 'horizontal-line', value: 50 }],
+                expected: 'chart, Prices, 1 series, 1 annotations',
+            },
+            {
+                name: 'annotations, after the caption',
+                title: 'Prices',
+                annotations: [
+                    { type: 'horizontal-line', value: 30 },
+                    { type: 'horizontal-line', value: 60 },
+                ],
+                expected: 'chart, Prices, 1 series, 2 annotations',
+            },
+        ] satisfies { name: string; title?: string; annotations: AgAnnotation[]; expected: string }[])(
             'counts $name',
-            async ({ annotations, expected }) => {
-                await prepareChart(annotations);
+            async ({ title, annotations, expected }) => {
+                await prepareChart(annotations, title == null ? {} : { title: { text: title } });
 
-                expect(chartLabel()).toBe(expected);
+                expect(getChartAriaLabel(chart)).toBe(expected);
             }
         );
 
@@ -379,7 +399,7 @@ describe('Annotations keyboard navigation', () => {
                 .click();
             await waitForChartStability(chart);
 
-            expect(chartLabel()).toBe('chart, 1 series, 1 annotation');
+            expect(getChartAriaLabel(chart)).toBe('chart, 1 series, 1 annotations');
         });
 
         it('drops the annotations when they are disabled', async () => {
@@ -388,7 +408,7 @@ describe('Annotations keyboard navigation', () => {
             await chart.updateDelta({ annotations: { enabled: false } });
             await waitForChartStability(chart);
 
-            expect(chartLabel()).toBe('chart, 1 series');
+            expect(getChartAriaLabel(chart)).toBe('chart, 1 series');
         });
     });
 

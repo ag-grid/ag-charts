@@ -13,8 +13,9 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'не вибрано',
     ariaAnnounceChart: 'діаграма, ${seriesCount}[number] серій',
     ariaAnnounceChartWithCaption: 'діаграма, ${caption}, ${seriesCount}[number] серій',
-    ariaAnnounceChartWithAnnotation: 'діаграма, ${seriesCount}[number] серій, 1 анотація',
     ariaAnnounceChartWithAnnotations: 'діаграма, ${seriesCount}[number] серій, ${annotationCount}[number] анотацій',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'діаграма, ${caption}, ${seriesCount}[number] серій, ${annotationCount}[number] анотацій',
     ariaAnnounceFlowProportionLink: 'посилання ${index} з ${count}, від ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'вузол ${index} з ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

@@ -13,8 +13,9 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaAnnounceUnselectedItem: '未選取',
     ariaAnnounceChart: '圖表，${seriesCount}[number] 個系列',
     ariaAnnounceChartWithCaption: '圖表，${caption}，${seriesCount}[number] 個系列',
-    ariaAnnounceChartWithAnnotation: '圖表，${seriesCount}[number] 個系列，1 個註解',
     ariaAnnounceChartWithAnnotations: '圖表，${seriesCount}[number] 個系列，${annotationCount}[number] 個註解',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        '圖表，${caption}，${seriesCount}[number] 個系列，${annotationCount}[number] 個註解',
     ariaAnnounceFlowProportionLink: '連結 ${index} / ${count}，從 ${from} 到 ${to}，${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '節點 ${index} 之 ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

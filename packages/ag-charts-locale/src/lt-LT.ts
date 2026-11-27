@@ -15,8 +15,9 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'nepasirinkta',
     ariaAnnounceChart: 'diagrama, ${seriesCount}[number] serijos',
     ariaAnnounceChartWithCaption: 'diagrama, ${caption}, ${seriesCount}[number] serijos',
-    ariaAnnounceChartWithAnnotation: 'diagrama, ${seriesCount}[number] serijos, 1 anotacija',
     ariaAnnounceChartWithAnnotations: 'diagrama, ${seriesCount}[number] serijos, ${annotationCount}[number] anotacijos',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'diagrama, ${caption}, ${seriesCount}[number] serijos, ${annotationCount}[number] anotacijos',
     ariaAnnounceStandaloneChart: 'diagrama, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchijos diagrama, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'hierarchijos diagrama',

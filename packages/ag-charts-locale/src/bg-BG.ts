@@ -13,8 +13,9 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'неизбрано',
     ariaAnnounceChart: 'диаграма, ${seriesCount}[number] серии',
     ariaAnnounceChartWithCaption: 'диаграма, ${caption}, ${seriesCount}[number] серии',
-    ariaAnnounceChartWithAnnotation: 'диаграма, ${seriesCount}[number] серии, 1 анотация',
     ariaAnnounceChartWithAnnotations: 'диаграма, ${seriesCount}[number] серии, ${annotationCount}[number] анотации',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'диаграма, ${caption}, ${seriesCount}[number] серии, ${annotationCount}[number] анотации',
     ariaAnnounceFlowProportionLink: 'връзка ${index} от ${count}, от ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'възел ${index} от ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

@@ -657,11 +657,8 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
         if (chartTypeLabel != null) return chartTypeLabel;
 
         const { localeManager, annotationManager } = this.ctx;
-        const seriesCount = this.series.length;
         const annotationCount = annotationManager?.getAnnouncedCount() ?? 0;
-        if (annotationCount === 0) return seriesCountChartAriaLabel(localeManager, caption, seriesCount);
-        if (annotationCount === 1) return localeManager.t('ariaAnnounceChartWithAnnotation', { seriesCount });
-        return localeManager.t('ariaAnnounceChartWithAnnotations', { seriesCount, annotationCount });
+        return seriesCountChartAriaLabel(localeManager, caption, this.series.length, annotationCount);
     }
 
     private refreshSeriesUserVisibility(

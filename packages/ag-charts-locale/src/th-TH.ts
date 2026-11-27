@@ -15,9 +15,10 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'ยกเลิกการเลือกแล้ว',
     ariaAnnounceChart: 'แผนภูมิ ${seriesCount}[number] ชุดข้อมูล',
     ariaAnnounceChartWithCaption: 'แผนภูมิ ${caption} ${seriesCount}[number] ชุดข้อมูล',
-    ariaAnnounceChartWithAnnotation: 'แผนภูมิ ${seriesCount}[number] ชุดข้อมูล คำอธิบายประกอบ 1 รายการ',
     ariaAnnounceChartWithAnnotations:
         'แผนภูมิ ${seriesCount}[number] ชุดข้อมูล คำอธิบายประกอบ ${annotationCount}[number] รายการ',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'แผนภูมิ ${caption} ${seriesCount}[number] ชุดข้อมูล คำอธิบายประกอบ ${annotationCount}[number] รายการ',
     ariaAnnounceStandaloneChart: 'แผนภูมิ ${caption}',
     ariaAnnounceHierarchyChart: 'แผนภูมิลำดับชั้น ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'แผนภูมิลำดับชั้น',

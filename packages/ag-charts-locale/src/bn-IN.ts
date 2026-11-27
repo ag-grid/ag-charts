@@ -15,8 +15,9 @@ export const AG_CHARTS_LOCALE_BN_IN: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'অনির্বাচিত',
     ariaAnnounceChart: 'চার্ট, ${seriesCount}[number]টি সিরিজ',
     ariaAnnounceChartWithCaption: 'চার্ট, ${caption}, ${seriesCount}[number]টি সিরিজ',
-    ariaAnnounceChartWithAnnotation: 'চার্ট, ${seriesCount}[number]টি সিরিজ, ১টি মন্তব্য',
     ariaAnnounceChartWithAnnotations: 'চার্ট, ${seriesCount}[number]টি সিরিজ, ${annotationCount}[number]টি মন্তব্য',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'চার্ট, ${caption}, ${seriesCount}[number]টি সিরিজ, ${annotationCount}[number]টি মন্তব্য',
     ariaAnnounceStandaloneChart: 'চার্ট, ${caption}',
     ariaAnnounceHierarchyChart: 'হায়ারার্কি চার্ট, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'হায়ারার্কি চার্ট',

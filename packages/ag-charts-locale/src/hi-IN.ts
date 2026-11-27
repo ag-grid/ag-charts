@@ -15,8 +15,9 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'अचयनित',
     ariaAnnounceChart: 'चार्ट, ${seriesCount}[number] शृंखलाएँ',
     ariaAnnounceChartWithCaption: 'चार्ट, ${caption}, ${seriesCount}[number] शृंखलाएँ',
-    ariaAnnounceChartWithAnnotation: 'चार्ट, ${seriesCount}[number] शृंखलाएँ, 1 एनोटेशन',
     ariaAnnounceChartWithAnnotations: 'चार्ट, ${seriesCount}[number] शृंखलाएँ, ${annotationCount}[number] एनोटेशन',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'चार्ट, ${caption}, ${seriesCount}[number] शृंखलाएँ, ${annotationCount}[number] एनोटेशन',
     ariaAnnounceStandaloneChart: 'चार्ट, ${caption}',
     ariaAnnounceHierarchyChart: 'पदानुक्रम चार्ट, ${caption}',
     ariaAnnounceHierarchyChartWithoutCaption: 'पदानुक्रम चार्ट',

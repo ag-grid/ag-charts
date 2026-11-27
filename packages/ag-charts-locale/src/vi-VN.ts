@@ -13,8 +13,9 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaAnnounceUnselectedItem: 'chưa chọn',
     ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] chuỗi',
     ariaAnnounceChartWithCaption: 'biểu đồ, ${caption}, ${seriesCount}[number] chuỗi',
-    ariaAnnounceChartWithAnnotation: 'biểu đồ, ${seriesCount}[number] chuỗi, 1 chú thích',
     ariaAnnounceChartWithAnnotations: 'biểu đồ, ${seriesCount}[number] chuỗi, ${annotationCount}[number] chú thích',
+    ariaAnnounceChartWithCaptionAndAnnotations:
+        'biểu đồ, ${caption}, ${seriesCount}[number] chuỗi, ${annotationCount}[number] chú thích',
     ariaAnnounceFlowProportionLink: 'liên kết ${index} của ${count}, từ ${from} đến ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nút ${index} của ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart

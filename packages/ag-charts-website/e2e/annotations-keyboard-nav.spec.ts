@@ -70,6 +70,25 @@ test.describe('annotations keyboard navigation', () => {
         await expect(annotationItems(page).nth(1)).toHaveAccessibleName('60, Horizontal Line annotation');
     });
 
+    test('A line annotation is named by its text label before its value', async ({ page }) => {
+        const state = await getChartState(page);
+        const annotations = [{ type: 'horizontal-line', value: 30, text: { label: 'Resistance' } }];
+        await setChartState(page, { ...state, annotations: annotations as typeof state.annotations });
+
+        await tabToAnnotations(page);
+
+        await expect(annotationItems(page).first()).toHaveAccessibleName('Resistance, 30, Horizontal Line annotation');
+    });
+
+    test("The chart's accessible name includes both its caption and its annotation count", async ({ page }) => {
+        await page.evaluate(() => (window as any).agE2E.chart.updateDelta({ title: { text: 'Prices' } }));
+
+        await expect(page.locator('.ag-charts-canvas-proxy')).toHaveAttribute(
+            'aria-label',
+            'chart, Prices, 1 series, 2 annotations'
+        );
+    });
+
     test('Enter opens the Annotation Options Toolbar, and Escape returns to the annotation', async ({ page }) => {
         await tabToAnnotations(page);
 
