@@ -3872,6 +3872,131 @@ describe('HeatmapSeries', () => {
                     expectWarningsCalls().toHaveLength(warnings);
                 }
             );
+
+            describe('cell styles across identical data', () => {
+                const STROKED = { stroke: 'black', strokeWidth: 2 };
+                const MISSING_FILL = { colorScale: { ...COLOR_SCALE, missingDataFill: 'grey' } };
+                const withNullAt0 = GRID.map((cell, i) => (i === 0 ? { ...cell, v: null } : cell));
+                const copy = (data: GridCell[]) => data.map((cell) => ({ ...cell }));
+                const cellStyles = () =>
+                    heatmap(chart)
+                        .getNodeData()!
+                        .map((datum) => datum.style);
+
+                async function expectFreshCells(series: Record<string, unknown>, data: GridCell[]) {
+                    const fresh = deproxy(await createEnterpriseChart(options(series, data)));
+                    const expected = { values: getHeatmapNodeDataValues(fresh), batched: isBatched(fresh) };
+                    fresh.destroy();
+                    expect(getHeatmapNodeDataValues(chart)).toEqual(expected.values);
+                    expect(isBatched(chart)).toBe(expected.batched);
+                }
+
+                it.each([
+                    { name: 'batched', series: {} },
+                    { name: 'stroked, as Rects', series: STROKED },
+                ])('keeps every cell style, $name, without resolving it again', async ({ series }) => {
+                    await create(series);
+                    const before = cellStyles();
+                    const prototype = getHeatmapCellMethods();
+                    const getItemStyle = vi.spyOn(prototype, 'getItemStyle');
+                    const updateNodeDatum = vi.spyOn(prototype, 'updateNodeDatum');
+
+                    try {
+                        await updateData(copy(GRID));
+
+                        expect(updateNodeDatum).toHaveBeenCalledTimes(GRID.length);
+                        expect(getItemStyle).not.toHaveBeenCalled();
+                    } finally {
+                        getItemStyle.mockRestore();
+                        updateNodeDatum.mockRestore();
+                    }
+                    const after = cellStyles();
+                    expect(after).toHaveLength(GRID.length);
+                    expect(after.filter((style, i) => style !== before[i])).toEqual([]);
+                    await expectFreshCells(series, GRID);
+                });
+
+                it.each([
+                    {
+                        name: 'a new maximum in one cell',
+                        before: {},
+                        after: {},
+                        data: GRID.map((cell, i) => (i === 0 ? { ...cell, v: 1000 } : cell)),
+                    },
+                    { name: 'a stroke change', before: STROKED, after: { ...STROKED, stroke: 'red' } },
+                    { name: 'a stroke width change', before: STROKED, after: { ...STROKED, strokeWidth: 4 } },
+                    { name: 'a stroke opacity change', before: STROKED, after: { ...STROKED, strokeOpacity: 0.5 } },
+                    {
+                        name: 'a colour scale fills change',
+                        before: {},
+                        after: { colorScale: { fills: [{ color: 'green' }, { color: 'yellow' }] } },
+                    },
+                    {
+                        name: 'a colour scale mode change',
+                        before: {},
+                        after: { colorScale: { ...COLOR_SCALE, mode: 'discrete' } },
+                    },
+                    {
+                        name: 'a colour scale domain change',
+                        before: {},
+                        after: { colorScale: { ...COLOR_SCALE, domain: [0, 100] } },
+                    },
+                    {
+                        name: 'a missingDataFill change',
+                        before: MISSING_FILL,
+                        after: { colorScale: { ...COLOR_SCALE, missingDataFill: 'black' } },
+                        from: withNullAt0,
+                        data: withNullAt0,
+                    },
+                    {
+                        name: 'a colorKey change',
+                        before: { ...MISSING_FILL, colorKey: undefined },
+                        after: { ...MISSING_FILL, colorKey: 'w' },
+                        // This chart and the fresh one each warn of the missing key.
+                        warnings: 2,
+                    },
+                ])(
+                    'styles every cell as a fresh chart does after $name',
+                    async ({ before, after, from = GRID, data = GRID, warnings = 0 }) => {
+                        await create(before, from);
+
+                        await update(after, data, false);
+                        await updateData(copy(data));
+
+                        await expectFreshCells(after, data);
+                        expectWarningsCalls().toHaveLength(warnings);
+                    }
+                );
+
+                it('restyles the cells a highlight dimmed when the next pass keeps their colours', async () => {
+                    const series = { highlight: { unhighlightedItem: { opacity: 0.4 } }, tooltip: { enabled: false } };
+                    await create(series);
+                    await hoverDatumByIndex(chart, 0, 3);
+
+                    const after = { ...series, highlight: { enabled: false } };
+                    await update(after, copy(GRID), false);
+
+                    await expectFreshCells(after, GRID);
+                });
+
+                it('keeps cell styles again once a highlight has ended', async () => {
+                    await create({ tooltip: { enabled: false } });
+                    await hoverDatumByIndex(chart, 0, 3);
+                    await hoverAction(1, 1)(chart);
+                    await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                    await updateData(copy(GRID));
+                    const getItemStyle = vi.spyOn(getHeatmapCellMethods(), 'getItemStyle');
+
+                    try {
+                        await updateData(copy(GRID));
+
+                        const restyles = getItemStyle.mock.calls.filter(([, isHighlight]) => isHighlight === false);
+                        expect(restyles).toHaveLength(0);
+                    } finally {
+                        getItemStyle.mockRestore();
+                    }
+                });
+            });
         });
 
         describe('interaction', () => {

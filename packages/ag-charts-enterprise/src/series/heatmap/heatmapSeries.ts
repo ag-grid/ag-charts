@@ -268,6 +268,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     /** How many cells hold a style `cellBatch` can't paint, kept by every pass that styles cells. */
     private unbatchableCells = 0;
 
+    /** The `fastItemStyleKey` every cell's style was built under, or `undefined` once any cell was styled otherwise. */
+    private cellStyleKey: unknown[] | undefined;
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
@@ -430,14 +433,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         this.buildSignature = signature;
         if (touched == null) this.unbatchableCells = 0;
 
+        const keepStyles = this.updateCellStyleKey(ctx.itemStyleContext, touched != null);
+
         this.resetStaleCallbackResults(previous, signature, touched);
 
         if (touched != null) {
-            // OPTIMIZATION: a transaction that only updated cells rebuilds just those cells' datums.
-            for (const datumIndex of touched) {
-                this.updateNodeDatum(ctx, ctx.nodes[datumIndex], datumIndex, ctx.rawData[datumIndex]);
-            }
-            ctx.nodeIndex = ctx.nodes.length;
+            this.updateTouchedNodeData(ctx, touched);
             return;
         }
 
@@ -448,7 +449,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             // OPTIMIZATION: heatmap never animates, so a full pass rewrites the previous pass's datums in place.
             const reused = nodes[nodeIndex];
             const nodeDatum = reused ?? this.spareNodeDatum ?? this.createSkeletonNodeDatum(ctx, datumIndex, datum);
-            if (!this.updateNodeDatum(ctx, nodeDatum, datumIndex, datum)) {
+            if (!this.updateNodeDatum(ctx, nodeDatum, datumIndex, datum, keepStyles && reused != null)) {
                 // OPTIMIZATION: a row with no cell keeps its new datum for the next row, or the next pass.
                 if (reused == null) this.spareNodeDatum = nodeDatum;
                 continue;
@@ -462,6 +463,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             }
         }
         ctx.nodeIndex = nodeIndex;
+    }
+
+    /** OPTIMIZATION: a transaction that only updated cells rebuilds just those cells' datums. */
+    private updateTouchedNodeData(ctx: HeatmapSeriesNodeDatumContext, touched: number[]) {
+        for (const datumIndex of touched) {
+            this.updateNodeDatum(ctx, ctx.nodes[datumIndex], datumIndex, ctx.rawData[datumIndex]);
+        }
+        ctx.nodeIndex = ctx.nodes.length;
     }
 
     /** The remembered styler results go with every full reset, so drifting results cannot fill the memo for good. */
@@ -650,6 +659,36 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         };
     }
 
+    /**
+     * Every input of `getItemStyle`'s fast path but the cell's colour value, or `undefined` when a cell may take
+     * another path: a styler, a selection, or a highlight `getHighlightState` resolves per cell.
+     */
+    private fastItemStyleKey(itemStyleContext: HeatmapItemStyleContext): unknown[] | undefined {
+        const { colorScaleValid, baseStyle, selectionEnabled, activeHighlight } = itemStyleContext;
+        const { itemStyler, colorKey, colorScale } = this.options;
+        if (itemStyler != null || selectionEnabled) return;
+        if (this.isHighlightEnabled() && activeHighlight?.series != null) return;
+        const { mode, domain, range } = this.colorScale;
+        return [
+            ...Object.values(baseStyle),
+            colorScaleValid,
+            colorKey,
+            colorScale.missingDataFill,
+            mode,
+            domain.slice(),
+            range.slice(),
+        ];
+    }
+
+    /** Whether the cells' styles were built under this pass's `fastItemStyleKey`; records the key the pass leaves. */
+    private updateCellStyleKey(itemStyleContext: HeatmapItemStyleContext, incremental: boolean): boolean {
+        const styleKey = this.fastItemStyleKey(itemStyleContext);
+        const kept = styleKey != null && this.cellStyleKey != null && arraysEqual(this.cellStyleKey, styleKey);
+        // An incremental pass leaves the untouched cells styled under the previous key.
+        this.cellStyleKey = !incremental || kept ? styleKey : undefined;
+        return kept;
+    }
+
     private isHighlightActive(activeHighlight = this.ctx.highlightManager?.getActiveHighlight()) {
         return this.getHighlightState(activeHighlight, false) !== HighlightState.None;
     }
@@ -710,7 +749,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         ctx: HeatmapSeriesNodeDatumContext,
         node: HeatmapNodeDatum,
         datumIndex: number,
-        datum: unknown
+        datum: unknown,
+        keepFastStyle = false
     ): boolean {
         const { xScale, yScale, xOffset, yOffset, width, height, xKey, yKey, colorValues } = ctx;
         const mutableNode = node as Mutable<HeatmapNodeDatum>;
@@ -725,6 +765,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const incremental = this.touchedDatumIndices != null;
 
         const colorValue = colorValues?.[datumIndex];
+        const keepStyle = keepFastStyle && Object.is(node.colorValue, colorValue);
 
         mutableNode.datumIndex = datumIndex;
         mutableNode.datum = datum;
@@ -747,7 +788,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         // An incremental pass replaces a style that was already counted.
         if (incremental && !isBatchableStyle(node.style)) this.unbatchableCells--;
-        const style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
+        // OPTIMIZATION: the fast path's style is a function of `fastItemStyleKey` and the colour value alone.
+        const style = keepStyle
+            ? node.style
+            : this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
         mutableNode.style = style;
         if (!isBatchableStyle(style)) this.unbatchableCells++;
         return true;
@@ -994,6 +1038,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
         this.cellsStyledByHighlight = highlightActive;
         this.restyledEveryCell = true;
+        this.cellStyleKey = undefined;
 
         // OPTIMIZATION: this loop also finds whether a restyle moved a cell out of what `cellBatch` can paint.
         const nodeData = this.contextNodeData?.nodeData ?? [];
