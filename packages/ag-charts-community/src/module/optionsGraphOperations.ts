@@ -1074,23 +1074,13 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     return RESOLVED_TO_BRANCH;
 }
 
-function resolveLineDashDefault(
-    graph: OptionsGraphInterface,
-    vertex: VertexInterface,
-    defaultVertex?: VertexInterface
-) {
-    if (defaultVertex == null) return;
-    const value = graph.getVertexValue(defaultVertex);
-    return Array.isArray(value) ? [...(value as number[])] : graph.resolveVertexValue(vertex, defaultVertex);
-}
-
 /**
- * Resolves a named `lineDash` to its array, scaled by the stroke width (the second value, e.g. `./strokeWidth`). A name
- * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled. A set array
- * merges over the third value, when given, in place of the default.
+ * Resolves a named `lineDash` to its array, scaled by the stroke width (the second value, e.g. `./strokeWidth`). A set
+ * name or array replaces the default and every lower priority value, rather than merging with them by index; an array
+ * is in pixels and never scaled.
  */
 function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [defaultVertex, widthVertex, setBaseVertex] = values;
+    const [defaultVertex, widthVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
@@ -1109,37 +1099,17 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
     graph.removeEdges(vertex, PRUNE_EDGE);
 
     const winner = userOption ?? overrideOption;
-    if (isLineDashName(winner)) {
+    const isName = isLineDashName(winner);
+    if (isName || Array.isArray(winner)) {
         graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
-        return scaleLineDashName(winner, width);
-    }
-    if (Array.isArray(winner)) {
-        graph.prune(vertex, [DEFAULTS_EDGE, OVERRIDES_EDGE, USER_OPTIONS_EDGE, USER_PARTIAL_OPTIONS_EDGE]);
-        return [...(winner as number[])];
+        return isName ? scaleLineDashName(winner, width) : [...(winner as number[])];
     }
 
-    const isSet = userOption != null || overrideOption != null;
-    const resolvedDefault = resolveLineDashDefault(graph, vertex, (isSet ? setBaseVertex : undefined) ?? defaultVertex);
-    const defaultDash = isLineDashName(resolvedDefault)
-        ? scaleLineDashName(resolvedDefault, width)
-        : (resolvedDefault as number[] | undefined);
-
-    // A user array still merges by index over a named or operator override, which stands in for the default.
-    let overrideBase: number[] | undefined;
-    if (isLineDashName(overrideOption)) {
-        overrideBase = scaleLineDashName(overrideOption, width);
-    } else if (overrideIsOperation && Array.isArray(overrideOption)) {
-        overrideBase = overrideOption;
-    }
-    const base = overrideBase ?? defaultDash ?? [];
-
-    // Nothing to layer: keep the default as it stands, so that an unset option still falls back. A default with a set
-    // base is not grafted either, so that none of its elements show through a styler's array layered over that base.
-    if (!isSet && (base.length === 0 || setBaseVertex != null)) return defaultDash && [...defaultDash];
-
-    // On the defaults edge, so the base cannot clobber a styler's partial values during its resolution.
-    graph.graftObject(vertex, base, undefined, DEFAULTS_EDGE);
-    return RESOLVED_TO_BRANCH;
+    if (defaultVertex == null) return;
+    const literal = graph.getVertexValue(defaultVertex);
+    const resolved = Array.isArray(literal) ? literal : graph.resolveVertexValue(vertex, defaultVertex);
+    if (isLineDashName(resolved)) return scaleLineDashName(resolved, width);
+    return Array.isArray(resolved) ? [...resolved] : undefined;
 }
 
 function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

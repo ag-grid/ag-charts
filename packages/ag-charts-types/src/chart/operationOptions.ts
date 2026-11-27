@@ -174,11 +174,7 @@ type TransformOperation =
     | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
-    | {
-          $applyLineDash:
-              | [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>]
-              | [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>, AgLineDashName];
-      } // Default dash | Stroke width a name scales by | Dash a set value layers over in place of the default
+    | { $applyLineDash: [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>] } // Default dash | Stroke width a name scales by
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
     | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge
