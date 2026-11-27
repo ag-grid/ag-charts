@@ -238,7 +238,7 @@ test.describe('annotations keyboard navigation', () => {
         });
 
         const keyboardOnlyItems = (page: Page) => [
-            optionsToolbar(page).getByRole('button', { name: 'Lock' }),
+            optionsToolbar(page).getByRole('switch', { name: 'Lock' }),
             optionsToolbar(page).getByRole('button', { name: 'Delete' }),
             optionsToolbar(page).getByRole('button', { name: 'Move Annotation' }),
         ];
