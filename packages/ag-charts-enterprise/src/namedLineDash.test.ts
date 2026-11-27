@@ -540,3 +540,83 @@ describe('named line dash patterns in enterprise options', () => {
         });
     });
 });
+
+describe('a user lineDash array in enterprise options', () => {
+    setupMockConsole();
+
+    const bar = { type: 'bar', xKey: 'x', yKey: 'y' };
+    const rangeArea = { type: 'range-area', xKey: 'x', yLowKey: 'y', yHighKey: 'y' };
+    const hlc = { type: 'hlc', xKey: 'x', highKey: 'y', lowKey: 'y', closeKey: 'y' };
+    const organization = { type: 'organization', idKey: 'id', parentIdKey: 'parentId' };
+    const orgData = [
+        { id: 'ceo', name: 'Alice', parentId: null },
+        { id: 'cto', name: 'Bob', parentId: 'ceo' },
+    ];
+
+    const scrollbar = (options: object) => series(bar, { scrollbar: { enabled: true, ...options } });
+    const crosshair = (lineDash?: number[]) =>
+        series(bar, {
+            axes: {
+                x: { type: 'category', position: 'bottom', crosshair: { enabled: true, lineDash } },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+    // Each location defaults to the dash of another location (a `$path`), or to a literal array.
+    it.each<[label: string, options: object, path: string, expected: number[]]>([
+        [
+            'range-area item marker over a marker array',
+            series({ ...rangeArea, marker: { lineDash: [10, 4] }, item: { low: { marker: { lineDash: [2] } } } }),
+            'series[0].item.low.marker.lineDash',
+            [2],
+        ],
+        [
+            'range-area item marker over a marker name',
+            series({ ...rangeArea, marker: { lineDash: 'dash-dot' }, item: { low: { marker: { lineDash: [2] } } } }),
+            'series[0].item.low.marker.lineDash',
+            [2],
+        ],
+        [
+            'hlc item marker over a marker array',
+            series({ ...hlc, marker: { lineDash: [10, 4] }, item: { high: { marker: { lineDash: [2] } } } }),
+            'series[0].item.high.marker.lineDash',
+            [2],
+        ],
+        [
+            'scrollbar track over the scrollbar track array',
+            scrollbar({ track: { lineDash: [10, 4] }, vertical: { track: { lineDash: [2] } } }),
+            'scrollbar.vertical.track.lineDash',
+            [2],
+        ],
+        [
+            'scrollbar thumb over the scrollbar thumb name',
+            scrollbar({ thumb: { lineDash: 'dash-dot' }, vertical: { thumb: { lineDash: [2] } } }),
+            'scrollbar.vertical.thumb.lineDash',
+            [2],
+        ],
+        [
+            'organization expander over the node array',
+            series({ ...organization, node: { lineDash: [10, 4] }, expander: { lineDash: [2] } }, { data: orgData }),
+            'series[0].expander.lineDash',
+            [2],
+        ],
+        ['crosshair over its default', crosshair([2]), 'axes.x.crosshair.lineDash', [2]],
+        ['an empty crosshair array over its default', crosshair([]), 'axes.x.crosshair.lineDash', []],
+        // An unset option still follows the dash beneath it.
+        [
+            'range-area item marker, unset',
+            series({ ...rangeArea, marker: { lineDash: [10, 4] } }),
+            'series[0].item.low.marker.lineDash',
+            [10, 4],
+        ],
+        [
+            'scrollbar track, unset',
+            scrollbar({ track: { lineDash: [10, 4] } }),
+            'scrollbar.vertical.track.lineDash',
+            [10, 4],
+        ],
+        ['crosshair, unset', crosshair(), 'axes.x.crosshair.lineDash', [5, 6]],
+    ])('resolves the dash of %s', (_, options, path, expected) => {
+        expect(optionAt(prepareProcessedOptions(options).processedOptions, path)).toEqual(expected);
+    });
+});

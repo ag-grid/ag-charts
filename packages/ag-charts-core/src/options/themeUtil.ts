@@ -698,16 +698,8 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
     lineDashOffset: 0,
 };
 
-/**
- * A `lineDash` default whose set values (user, theme override or styler) layer over solid instead of the `defaultDash`,
- * so that no element of the default shows through a shorter array, as it would by index.
- */
-export function solidLayeredLineDashThemeDefault(defaultDash: AgLineDashName | number[] | Operation) {
-    return { $applyLineDash: [defaultDash, SIBLING_STROKE_WIDTH, 'solid'] } satisfies Operation;
-}
-
 /** A series stroke's `lineDash` default: the palette's pattern at the series index. */
-export const PALETTE_LINE_DASH_THEME_DEFAULT = solidLayeredLineDashThemeDefault({ $palette: 'lineDash' });
+export const PALETTE_LINE_DASH_THEME_DEFAULT = lineDashThemeDefault({ $palette: 'lineDash' });
 
 /** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
 export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
@@ -1151,7 +1143,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: solidLayeredLineDashThemeDefault({ $path: '../../../lineDash' }),
+            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }),
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

@@ -1010,7 +1010,7 @@ describe('ChartOptions', () => {
             expect(warnings()).toEqual([]);
         });
 
-        it('resolves a theme override operator to the dash it stands for', () => {
+        it('resolves a theme override to the dash it stands for, which a user array replaces outright', () => {
             const resolve = (lineDash: unknown, seriesDash?: number[]) =>
                 optionAt(
                     prepareOptions<AgCartesianChartOptions>({
@@ -1023,7 +1023,20 @@ describe('ChartOptions', () => {
             expect(resolve({ $if: [true, [9, 9], [1, 1]] })).toEqual([9, 9]);
             // A series line is 2px wide by default.
             expect(resolve({ $if: [true, 'dash', 'dot'] })).toEqual([6, 4]);
-            expect(resolve({ $if: [true, [9, 9], [1, 1]] }, [4])).toEqual([4, 9]);
+
+            const beneath = [
+                'dash-dot',
+                [1, 2, 3, 4],
+                { $if: [true, 'dash-dot', 'dot'] },
+                { $if: [true, [9, 9, 9], [1]] },
+            ];
+            for (const dash of beneath) {
+                for (const array of [[6, 4], [6], []]) {
+                    expect(resolve(dash, array), `${JSON.stringify(array)} over ${JSON.stringify(dash)}`).toEqual(
+                        array
+                    );
+                }
+            }
         });
 
         it('scales a stock dash name in the legend disabled style by the legend line strokeWidth, else 2', () => {
