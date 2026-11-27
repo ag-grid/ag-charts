@@ -287,7 +287,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
         // The size along the axis a label keeps within, leaving the collision threshold to its neighbours.
         const bandRoomAt = (depth: number, bandSize: number, rotation: number) =>
-            Math.max(0, bandSize - tickLabelSpacing(optionsMap[depth].threshold, Math.cos(rotation) < 1 - 1e-9));
+            Math.max(0, bandSize - tickLabelSpacing(optionsMap[depth].threshold, rotation));
 
         // Truncation fits a label to the room, and to its band only when `toBand` is set. A `centred` label stays
         // centred on its anchor rather than shifting inward from the chart edge.
@@ -452,7 +452,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             if (alongBounds == null) return true;
             const { min, max, shifted } = shiftedExtent(datum.screen, alongSize, alongBounds);
             if (!shifted) return true;
-            const spacing = tickLabelSpacing(optionsMap[depth].threshold, false);
+            const spacing = tickLabelSpacing(optionsMap[depth].threshold, toRadians(depthRotation[depth]));
             return candidatesAtDepth[depth].every((other) => {
                 const otherFit = depthFits[depth].get(other);
                 if (other.datum === datum || otherFit == null) return true;

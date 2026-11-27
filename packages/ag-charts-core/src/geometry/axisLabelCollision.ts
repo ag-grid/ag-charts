@@ -3,9 +3,9 @@ import { type BoxBounds, boxCollides } from './boxBounds';
 
 const DEFAULT_TICK_LABEL_SPACING = 10;
 
-/** Gap kept between cartesian tick labels: rotated labels pack edge to edge. */
-export function tickLabelSpacing(threshold: number | undefined, rotated: boolean): number {
-    return rotated ? 0 : (threshold ?? DEFAULT_TICK_LABEL_SPACING);
+/** Gap kept between cartesian tick labels drawn turned by `rotation` radians: rotated labels pack edge to edge. */
+export function tickLabelSpacing(threshold: number | undefined, rotation: number): number {
+    return Math.cos(rotation) < 1 - 1e-9 ? 0 : (threshold ?? DEFAULT_TICK_LABEL_SPACING);
 }
 
 /**

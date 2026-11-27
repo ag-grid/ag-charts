@@ -61,7 +61,6 @@ import {
     getAxisLabelSideFlag,
     getBandEdgeOffset,
     getRotatedLabelExtent,
-    getTickLabelEdgeOffsets,
     getVerticalBandEdgeOffset,
 } from './axisLabelUtil';
 import type {
@@ -81,7 +80,7 @@ import {
     resetAxisLabelSelectionFn,
     resetAxisLineSelectionFn,
 } from './axisUtil';
-import { generateTicks } from './generateTicks';
+import { generateTicks, labelAlongExtent } from './generateTicks';
 import { isLabelFitEnabled, labelFitsRoom } from './generateTicksUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
@@ -465,56 +464,53 @@ export abstract class CartesianAxis<
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
 
         if (removeOverflowLabels) {
-            // Selecting the alignment the axis already computes must leave the labels untouched, so
-            // the edge arithmetic only departs from its centre-anchored form once the two differ.
-            const alignmentOverride = labelTextAlign === tickGenerationResult.textAlign ? undefined : labelTextAlign;
             // A banded scale anchors an aligned label on the band edge rather than the tick, so the
             // edges the overflow test measures move with it.
             const bandEdgeOffset = getBandEdgeOffset(this.scale.bandwidth ?? 0, labelTextAlign);
             const box = expandLabelBoxExtent(label);
-            const labelEdges = (width: number) => {
-                const { leading, trailing } = getTickLabelEdgeOffsets(
-                    width,
-                    tickGenerationResult.rotation,
-                    alignmentOverride
-                );
-                return {
-                    leading: leading + bandEdgeOffset - box.left,
-                    trailing: trailing + bandEdgeOffset + box.right,
-                };
-            };
+            const { rotation } = tickGenerationResult;
+            const textAlign = labelTextAlign ?? tickGenerationResult.textAlign;
+            const textBaseline = this.resolveLabelBaseline(label.verticalAlign) ?? tickGenerationResult.textBaseline;
             const padding = this.chartLayout?.padding;
             const { ticks } = tickData;
             const lastTick = ticks.at(-1);
             const firstTick = ticks[0];
             const start = range[0] - (padding?.left ?? 0);
             const end = range[1] + (padding?.right ?? 0);
-            const extentOf = (tick: TickDatum) => {
-                const { leading, trailing } = labelEdges(tick.textMetrics.width);
-                const anchor = tick.translation + (tick.labelShift ?? 0);
-                return [anchor + leading, anchor + trailing];
-            };
+            // Labels slide within the padding but are only hidden once they leave the chart.
+            const [hideStart, hideEnd] = this.chartLayout?.alongBounds ?? [start, end];
+            const extentOf = (tick: TickDatum) =>
+                labelAlongExtent(
+                    tick,
+                    bandEdgeOffset + (tick.labelShift ?? 0),
+                    rotation,
+                    false,
+                    box,
+                    textBaseline,
+                    textAlign
+                );
+            const labelled = ticks.filter((tick) => tick.tickLabel != null && tick.tickLabel !== '');
             // An overflowing end label slides back inside while it stays clear of its neighbour, rather than being hidden.
-            const slides = Math.abs(Math.cos(tickGenerationResult.rotation)) > 1 - 1e-6;
-            const spacing = tickLabelSpacing(label.collision.threshold, false);
+            const slides = Math.abs(Math.cos(rotation)) > 1 - 1e-6;
+            const spacing = tickLabelSpacing(label.collision.threshold, rotation);
             const slideInside = (tick: TickDatum | undefined, neighbour: TickDatum | undefined) => {
                 if (!slides || tick?.tickLabel == null) return;
                 const [min, max] = extentOf(tick);
                 const shift = Math.max(0, start - min) - Math.max(0, max - end);
                 if (shift === 0) return;
-                if (neighbour?.tickLabel != null) {
+                if (neighbour != null && neighbour !== tick) {
                     const [otherMin, otherMax] = extentOf(neighbour);
                     if (otherMin < max + shift + spacing && otherMax > min + shift - spacing) return;
                 }
                 tick.labelShift = (tick.labelShift ?? 0) + shift;
             };
-            slideInside(lastTick, ticks.at(-2));
-            slideInside(firstTick, ticks[1]);
+            slideInside(lastTick, labelled.at(-2));
+            slideInside(firstTick, labelled[1]);
             const { hideFirst, hideLast } = resolveEdgeLabelOverflow({
                 firstStart: firstTick?.tickLabel == null ? undefined : extentOf(firstTick)[0],
                 lastEnd: lastTick?.tickLabel == null ? undefined : extentOf(lastTick)[1],
-                start,
-                end,
+                start: hideStart,
+                end: hideEnd,
                 pairEnds: visibleRange[0] === 0 && visibleRange[1] === 1,
             });
             if (hideFirst) {

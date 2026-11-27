@@ -15,16 +15,17 @@ import {
 
 describe('tickLabelSpacing', () => {
     it('defaults to 10px for unrotated labels', () => {
-        expect(tickLabelSpacing(undefined, false)).toBe(10);
+        expect(tickLabelSpacing(undefined, 0)).toBe(10);
     });
 
-    it('uses the threshold when set', () => {
-        expect(tickLabelSpacing(4, false)).toBe(4);
+    it('uses the threshold when set, for labels turned a full circle too', () => {
+        expect(tickLabelSpacing(4, 0)).toBe(4);
+        expect(tickLabelSpacing(4, 2 * Math.PI)).toBe(4);
     });
 
-    it('packs rotated labels edge to edge, whatever the threshold', () => {
-        expect(tickLabelSpacing(undefined, true)).toBe(0);
-        expect(tickLabelSpacing(40, true)).toBe(0);
+    it('packs rotated labels edge to edge, upside down included, whatever the threshold', () => {
+        expect(tickLabelSpacing(undefined, Math.PI / 2)).toBe(0);
+        expect(tickLabelSpacing(40, Math.PI)).toBe(0);
     });
 });
 

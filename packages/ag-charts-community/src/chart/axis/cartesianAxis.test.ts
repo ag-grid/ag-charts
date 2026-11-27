@@ -1907,6 +1907,49 @@ describe('CartesianAxis', () => {
             expect(last.x + last.width / 2).toBeLessThan(seriesRect.x + seriesRect.width);
         });
 
+        it('slides an end label only while it stays clear of the nearest visible label', async () => {
+            chart = await createChart({
+                data: [0, 100].map((x) => ({ x, y: x })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        interval: { step: 25 },
+                        label: { fontSize: 30, formatter: ({ value }) => `Value ${value} units total` },
+                    },
+                    y: { type: 'number', position: 'right' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const boxes = getAxisLabelNodes(chart, 'bottom')
+                .map((node) => Transformable.toCanvas(node))
+                .sort((a, b) => a.x - b.x);
+            expect(boxes.length).toBeGreaterThan(0);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        });
+
+        it('measures turned end labels as drawn before hiding them', async () => {
+            const first = 'Opening balance';
+            chart = await createChart({
+                data: [0, 100].map((x) => ({ x, y: x })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        interval: { step: 25 },
+                        label: { rotation: 90, formatter: ({ value }) => (value === 0 ? first : String(value)) },
+                    },
+                    y: { type: 'number', position: 'right' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(getAxisLabelNodes(chart, 'bottom').map(getLabelText)).toEqual([first, '25', '50', '75', '100']);
+        });
+
         it('keeps a centred first label within the chart', async () => {
             chart = await createChart({
                 data: [26, 24, 29, 31, 22].map((price, i) => ({ date: new Date(2024, 0, 1 + i), price })),

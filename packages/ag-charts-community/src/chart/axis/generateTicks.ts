@@ -112,8 +112,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     const rotationOf = (fitIndex: number) => Math.min(fitIndex, lastRotationIndex);
     const rotationFits = Array.from({ length: rotations.length + 1 }, () => new WeakMap<TickData, RotationFit>());
     const labelPadding = expandLabelBoxExtent(label);
-    const spacingAt = (rotation: number) =>
-        tickLabelSpacing(label.collision.threshold, Math.cos(configuredRotation + rotation) < 1 - 1e-9);
+    const spacingAt = (rotation: number) => tickLabelSpacing(label.collision.threshold, configuredRotation + rotation);
     const computedBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
     const labelFrame = (fitIndex: number) => {
         const rotation = autoRotations[rotationOf(fitIndex)];
@@ -753,7 +752,7 @@ function createLabelData(
 }
 
 /** How far along the axis a label's padded box reaches, as drawn turned by `rotation` from the horizontal. */
-function labelAlongExtent(
+export function labelAlongExtent(
     { textMetrics, translation }: TickDatum,
     anchorOffset: number,
     rotation: number,
