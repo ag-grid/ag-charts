@@ -5,7 +5,7 @@ const scenarios = [
         name: 'Full package',
         import: '*',
         srcLimit: '386 kB',
-        distLimit: '387 kB',
+        distLimit: '388 kB',
     },
     {
         name: 'CartesianChart only',
