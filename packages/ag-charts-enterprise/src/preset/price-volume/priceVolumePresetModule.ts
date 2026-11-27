@@ -1,12 +1,14 @@
 import { LineSeriesModule, VERSION } from 'ag-charts-community';
 import {
     FONT_SIZE_RATIO,
+    HOVER_GLOW_PART_DEFAULTS,
     type OptionsDefs,
     type PresetModuleDefinition,
     SAFE_STROKE_FILL_OPERATION,
     array,
     boolean,
     defined,
+    hoverGlowPartKey,
     interpolationThemeTemplate,
     optionsDefs,
     or,
@@ -86,6 +88,13 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
 };
 
 const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
+
+// The hovered item glows only when its series does.
+const HOVERED_ITEM_THEME = {
+    glow: { enabled: { $path: '/series/$index/highlight/highlightedSeries/glow/enabled' } },
+};
+
+const NO_HOVER_EMPHASIS_THEME = { ...NO_UNHIGHLIGHT_THEME, highlightedItem: HOVERED_ITEM_THEME };
 
 // The axis theme is taken from the first series' type, and series themes set `snap` over `common`, so this is applied
 // to every series type the preset can put first.
@@ -204,13 +213,13 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             axes: PRICE_AXIS_THEME,
             series: {
                 fillOpacity: 0.5,
-                highlight: NO_UNHIGHLIGHT_THEME,
+                highlight: NO_HOVER_EMPHASIS_THEME,
             },
         },
         candlestick: {
             axes: PRICE_AXIS_THEME,
             series: {
-                highlight: NO_UNHIGHLIGHT_THEME,
+                highlight: NO_HOVER_EMPHASIS_THEME,
                 item: {
                     up: {
                         fill: {
@@ -229,6 +238,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             series: {
                 marker: { enabled: false },
                 highlight: {
+                    highlightedItem: HOVERED_ITEM_THEME,
                     unhighlightedSeries: { opacity: 1 },
                 },
                 stroke: {
@@ -247,19 +257,25 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
         hlc: {
             axes: PRICE_AXIS_THEME,
             series: {
-                highlight: NO_UNHIGHLIGHT_THEME,
+                highlight: {
+                    ...NO_UNHIGHLIGHT_THEME,
+                    // @ts-expect-error undocumented option
+                    [HOVER_GLOW_PART_DEFAULTS]: Object.fromEntries(
+                        ['high', 'low', 'close'].map((_, i) => [hoverGlowPartKey(i), false])
+                    ),
+                },
             },
         },
         ohlc: {
             axes: PRICE_AXIS_THEME,
             series: {
-                highlight: NO_UNHIGHLIGHT_THEME,
+                highlight: NO_HOVER_EMPHASIS_THEME,
             },
         },
         'range-bar': {
             axes: PRICE_AXIS_THEME,
             series: {
-                highlight: NO_UNHIGHLIGHT_THEME,
+                highlight: NO_HOVER_EMPHASIS_THEME,
                 fill: {
                     $switch: [
                         { $preset: 'chartType' },
