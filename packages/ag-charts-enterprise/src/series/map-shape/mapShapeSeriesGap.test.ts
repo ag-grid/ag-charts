@@ -579,7 +579,12 @@ describe('MapShapeSeries gap', () => {
             await create(timeZoneOptions({ gaps: allGaps(4) }));
             const withGap = readPixels(chart!);
             for (const [i, { x, y, size }] of boxes.entries()) {
-                expect(pixelBox(withGap, x, y, size, size), spots[i][0]).toEqual(before[i]);
+                // Within one level per channel: a ring that starts at another vertex can round one edge pixel differently.
+                const after = pixelBox(withGap, x, y, size, size);
+                expect(
+                    Math.max(...after.map((value, k) => Math.abs(value - before[i][k]))),
+                    spots[i][0]
+                ).toBeLessThanOrEqual(1);
             }
         });
     });
