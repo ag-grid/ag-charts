@@ -628,22 +628,72 @@ describe('Group', () => {
         });
 
         describe('nested layers', () => {
-            it('repaint the inner layer in part, and the outer layer whole', () => {
-                const { frame, node, inner, layers } = setup();
-                inner.renderToOffscreenCanvas = true;
-                frame();
-                expect(layers).toHaveLength(2);
+            function nested() {
+                const result = setup();
+                result.inner.renderToOffscreenCanvas = true;
+                result.frame();
+                expect(result.layers).toHaveLength(2);
+                // A layer is created after the layers inside it.
+                const [innerLayer, outerLayer] = result.layers;
+                return { ...result, innerLayer, outerLayer };
+            }
+            const regionsOf = (layer: RecordingLayer) =>
+                layer.context.calls.filter((call) => call.startsWith('clearRect'));
+
+            it('repaint the same region of the inner layer and the outer layer', () => {
+                const { frame, node, innerLayer, outerLayer } = nested();
 
                 const result = frame(() => node.markDirtyRegion());
 
-                // A layer is created after the layers inside it.
-                const [innerLayer, outer] = layers;
-                expect(innerLayer.context.calls).toContain(REGION);
-                expect(innerLayer.clears).toBe(1);
-                // The outer layer was repainted whole: it was cleared, and repainted with no region.
-                expect(outer.context.calls.filter((call) => call.startsWith('clearRect'))).toEqual([]);
-                expect(outer.clears).toBe(2);
+                expect(regionsOf(innerLayer)).toEqual([REGION]);
+                expect(regionsOf(outerLayer)).toEqual([REGION]);
+                expect([innerLayer.clears, outerLayer.clears]).toEqual([1, 1]);
                 expect(result.partial).toBe(true);
+            });
+
+            type Nested = ReturnType<typeof nested>;
+            it.each([
+                {
+                    name: 'after a render error in the inner layer',
+                    before: ({ frame, node }: Nested) =>
+                        frame(() => {
+                            node.failNextRender = true;
+                            node.markDirtyRegion();
+                        }),
+                    change: ({ node }: Nested) => node.markDirtyRegion(),
+                },
+                {
+                    name: 'when the inner layer is removed after the mark',
+                    change: ({ node, inner }: Nested) => {
+                        node.markDirtyRegion();
+                        inner.renderToOffscreenCanvas = false;
+                    },
+                },
+            ])('repaint the outer layer whole $name', ({ before, change }) => {
+                const scene = nested();
+                before?.(scene);
+                const { outerLayer } = scene;
+                const clears = outerLayer.clears;
+
+                const result = scene.frame(() => change(scene));
+
+                expect(outerLayer.clears).toBe(clears + 1);
+                expect(result.partial).toBe(false);
+            });
+
+            it('repaint the outer layer whole when the inner layer is created after the mark', () => {
+                const { frame, node, inner, layers } = setup();
+                frame();
+
+                frame(() => {
+                    node.markDirtyRegion();
+                    inner.renderToOffscreenCanvas = true;
+                });
+
+                const [outerLayer, innerLayer] = layers;
+                expect(innerLayer).toBeDefined();
+                expect(regionsOf(outerLayer)).toEqual([]);
+                expect(outerLayer.clears).toBe(2);
             });
         });
 

@@ -39,20 +39,19 @@ describe('HeatmapSeries partial repaint', () => {
     const ROWS = 10;
     const GRID = gridCells(COLUMNS, ROWS);
 
+    const heatmapSeries = (series: Record<string, unknown> = {}) => ({
+        type: 'heatmap',
+        xKey: 'x',
+        yKey: 'y',
+        colorKey: 'v',
+        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+        ...series,
+    });
     const options = (data: GridCell[], series: Record<string, unknown> = {}, chartOptions: object = {}) =>
         ({
             data,
             dataIdKey: 'id',
-            series: [
-                {
-                    type: 'heatmap',
-                    xKey: 'x',
-                    yKey: 'y',
-                    colorKey: 'v',
-                    colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
-                    ...series,
-                },
-            ],
+            series: [heatmapSeries(series)],
             legend: { enabled: false },
             ...chartOptions,
         }) as AgChartOptions;
@@ -67,6 +66,13 @@ describe('HeatmapSeries partial repaint', () => {
         cells.filter((cell) => cell.x === `X${x}`).map((cell) => ({ ...cell, v: v(Number(cell.y.slice(1))) }));
 
     const updateData = (data: GridCell[]) => chart.publicApi!.updateDelta({ data });
+    const hoverCell = async (datumIndex: number) => {
+        const series = heatmap();
+        const { point } = series.getNodeData()!.find((n) => n.datumIndex === datumIndex)!;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, point.x, point.y);
+        await hoverAction(canvasX, canvasY)(chart);
+        await waitForChartStability(chart);
+    };
 
     async function transact(update: GridCell[]) {
         await chart.publicApi!.applyTransaction({ update });
@@ -75,10 +81,15 @@ describe('HeatmapSeries partial repaint', () => {
 
     /** The regions that layers repainted in part since the spy was last cleared. */
     const partialRegions = () => spy.mock.results.map((result) => result.value).filter((region) => region != null);
+    /** The layers that repainted in part since the spy was last cleared. */
+    const partialLayers = () =>
+        spy.mock.contexts.filter(
+            (layer, index): layer is Group => layer instanceof Group && spy.mock.results[index].value != null
+        );
 
     /** Repaints every layer whole, and returns what that painted. */
     function repaintWhole() {
-        heatmap().contentGroup.markDirty();
+        for (const series of chart.series) series.contentGroup.markDirty();
         chart.ctx.scene.render();
         return ctx.snapshot();
     }
@@ -92,13 +103,15 @@ describe('HeatmapSeries partial repaint', () => {
         expectSamePixels(frame, repaintWhole());
     }
 
-    it('repaints only the region of the updated column, and matches a whole repaint', async () => {
+    it('repaints only the region of the updated column in the series layer and the series root, and matches a whole repaint', async () => {
         await create();
 
         await transact(column(3, (y) => 150 + y));
 
+        expect(partialLayers()).toContain(chart.seriesRoot);
         const regions = partialRegions();
-        expect(regions).toHaveLength(1);
+        expect(regions).toHaveLength(2);
+        expect(regions[1]).toEqual(regions[0]);
         const [{ width, height }] = regions;
         // One of twenty columns, and all of the rows.
         expect(width / ctx.nodeCanvas.width).toBeLessThan(0.15);
@@ -212,19 +225,6 @@ describe('HeatmapSeries partial repaint', () => {
         expectFrameToMatchWholeRepaint(true);
     });
 
-    it('repaints in full when the cells are zoomed', async () => {
-        await create(
-            GRID,
-            {},
-            { zoom: { enabled: true, axes: 'x' }, initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } } }
-        );
-        spy.mockClear();
-
-        await transact(column(8, (y) => 100 + y));
-
-        expectFrameToMatchWholeRepaint(false);
-    });
-
     it('repaints in full, and matches a whole repaint, when cells with labels are updated', async () => {
         await create(GRID, { label: { enabled: true } });
 
@@ -281,9 +281,10 @@ describe('HeatmapSeries partial repaint', () => {
         await transact(column(3, (y) => 150 + y));
 
         const { seriesRoot } = chart.modulesManager.getModule<any>('navigator').miniChart;
-        const partialLayers = spy.mock.contexts.filter((_, index) => spy.mock.results[index].value != null);
-        // Only the main chart's series layer repaints in part; the mini chart's takes an ordinary mark.
-        expect(partialLayers).toHaveLength(1);
+        const layers = partialLayers();
+        // Only the main chart's layers repaint in part; the mini chart's take an ordinary mark.
+        expect(layers).toHaveLength(2);
+        expect(layers.every((layer) => [...layer.traverseUp(true)].includes(chart.seriesRoot))).toBe(true);
         expect(spy.mock.contexts).not.toContain(seriesRoot);
     });
 
@@ -352,8 +353,110 @@ describe('HeatmapSeries partial repaint', () => {
 
         await transact(column(3, (y) => 150 + y));
 
-        expect(partialRegions()).toHaveLength(1);
+        expect(partialLayers()).toHaveLength(2);
         expectFrameToMatchWholeRepaint(true);
+    });
+
+    describe('the series root around the series layer', () => {
+        const HOVERED = 3 * ROWS + 4;
+        const translucent = { itemStyler: () => ({ fillOpacity: 0.5 }) };
+        const cases: {
+            name: string;
+            series?: Record<string, unknown>;
+            chartOptions?: object;
+            before?: () => Promise<unknown>;
+            update: GridCell[];
+            rootPartial: boolean;
+            partialLayers: number;
+        }[] = [
+            { name: 'by default', update: column(3, (y) => 150 + y), rootPartial: true, partialLayers: 2 },
+            {
+                name: 'when it is not a layer',
+                chartOptions: { highlight: { drawingMode: 'overlay' } },
+                update: column(3, (y) => 150 + y),
+                rootPartial: false,
+                partialLayers: 1,
+            },
+            {
+                name: 'when the series glows',
+                series: { glow: { enabled: true } },
+                update: column(3, (y) => 150 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'while another cell is hovered',
+                before: () => hoverCell(HOVERED),
+                update: column(8, (y) => 70 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'while a cell with a highlight glow is hovered',
+                series: { highlight: { highlightedItem: { glow: { enabled: true } } } },
+                before: () => hoverCell(HOVERED),
+                update: column(8, (y) => 70 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'while the updated cell is hovered',
+                before: () => hoverCell(HOVERED),
+                update: [{ ...GRID[HOVERED], v: 120 }],
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'when the cells are zoomed',
+                chartOptions: {
+                    zoom: { enabled: true, axes: 'x' },
+                    initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } },
+                },
+                update: column(8, (y) => 100 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'with a second series over the first',
+                chartOptions: { series: [heatmapSeries(translucent), heatmapSeries(translucent)] },
+                update: column(3, (y) => 150 + y),
+                rootPartial: true,
+                partialLayers: 3,
+            },
+            {
+                name: 'when the region covers most of the layer',
+                // Two cells in opposite corners, within the extremes of the colour scale.
+                update: [
+                    { ...GRID[ROWS], v: 15 },
+                    { ...GRID[(COLUMNS - 1) * ROWS - 1], v: 185 },
+                ],
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'straight after a whole repaint',
+                before: () => updateData(withCell(GRID, 34, { v: 150 })),
+                update: column(3, (y) => 150 + y),
+                rootPartial: true,
+                partialLayers: 2,
+            },
+        ];
+
+        it.each(cases)(
+            'repaints in part or whole, and matches a whole repaint, $name',
+            async ({ series, chartOptions, before, update, rootPartial, partialLayers: layers }) => {
+                await create(GRID, series, chartOptions);
+                await before?.();
+                await waitForChartStability(chart);
+                spy.mockClear();
+
+                await transact(update);
+
+                expect(partialLayers().includes(chart.seriesRoot)).toBe(rootPartial);
+                expect(partialLayers()).toHaveLength(layers);
+                expectFrameToMatchWholeRepaint();
+            }
+        );
     });
 
     describe('after a change the cells may or may not show', () => {
@@ -362,12 +465,6 @@ describe('HeatmapSeries partial repaint', () => {
             chart.publicApi!.setState({ ...chart.publicApi!.getState(), zoom: { ratioX: { start, end } } });
         const updateTo = (data: GridCell[], series: Record<string, unknown> = {}, chartOptions: object = {}) =>
             chart.publicApi!.update(options(data, series, chartOptions));
-        const hoverCell = async (datumIndex: number) => {
-            const series = heatmap();
-            const { point } = series.getNodeData()!.find((n) => n.datumIndex === datumIndex)!;
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, point.x, point.y);
-            await hoverAction(canvasX, canvasY)(chart);
-        };
         const setPixelRatio = (pixelRatio: number) => {
             const { scene } = chart.ctx;
             scene.resize(scene.width, scene.height, pixelRatio);

@@ -490,8 +490,9 @@ export abstract class Node<TDatum = unknown> {
     /**
      * Marks the node dirty when only the region it reports from {@link getDirtyRegion} changed, so a layer that holds
      * it may repaint that region alone. Parents are marked dirty as usual for the render pass to reach the node, but
-     * the first one to own a persistent layer records the node instead of being fully dirtied. A node that calls this
-     * must paint nothing outside its reported region, and reproduce the same pixels inside it as a full repaint would.
+     * each one that owns a persistent layer records the node instead of being fully dirtied, unless a layer between them
+     * holds an invalid bitmap. A node that calls this must paint nothing outside its reported region, and reproduce the
+     * same pixels inside it as a full repaint would.
      *
      * Every other change must call {@link markDirty}: a region is only ever painted in addition to the dirty marks of
      * the same frame, and any ordinary mark in the layer's subtree repaints the whole layer.
@@ -509,7 +510,7 @@ export abstract class Node<TDatum = unknown> {
 
     /**
      * Records that a descendant changed within its dirty region. A node that is not a group has no descendants, so this
-     * is only called on groups, which forward it to the first persistent layer. Anything else is an ordinary mark.
+     * is only called on groups, which forward it through each persistent layer above it. Anything else is an ordinary mark.
      * @internal
      */
     markDirtyRegionOf(source: Node) {
