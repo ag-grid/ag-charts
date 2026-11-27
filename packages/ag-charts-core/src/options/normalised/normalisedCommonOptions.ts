@@ -82,8 +82,8 @@ export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?
 export type NormalisedLineDash = { lineDash?: PixelSize[] };
 
 /**
- * Only a glow's `fill` may be unset; the theme has folded the deprecated `color` into `fill`. `glow` marks the shadow
- * that a highlight `glow` makes, which surrounds an item with no visible fill by its stroke.
+ * Only a glow's `fill` may be unset. `glow` marks the shadow that a highlight `glow` makes, which surrounds an item
+ * with no visible fill by its stroke.
  */
 export type NormalisedDropShadowOptions = Normalised<
     AgDropShadowOptions,
