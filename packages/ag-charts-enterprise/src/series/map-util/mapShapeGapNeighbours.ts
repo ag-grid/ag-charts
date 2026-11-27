@@ -162,61 +162,62 @@ export function insetGeometry(source: Geometry, projected: Geometry, index: MapS
         return coordinates === projected.coordinates ? projected : { type: 'Polygon', coordinates };
     }
 
+    // The replacement container is allocated when the first child changes, so unchanged geometry allocates nothing.
     if (projected.type === 'MultiPolygon' && source.type === 'MultiPolygon') {
-        let changed = false;
-        const coordinates = projected.coordinates.map((polygon, i) => {
-            const inset = insetPolygon(source.coordinates[i], polygon, index, d);
-            changed ||= inset !== polygon;
-            return inset;
-        });
-        return changed ? { type: 'MultiPolygon', coordinates } : projected;
+        const polygons = projected.coordinates;
+        let coordinates: Position[][][] | undefined;
+        for (let i = 0; i < polygons.length; i += 1) {
+            const inset = insetPolygon(source.coordinates[i], polygons[i], index, d);
+            if (coordinates == null) {
+                if (inset === polygons[i]) continue;
+                coordinates = polygons.slice(0, i);
+            }
+            coordinates.push(inset);
+        }
+        return coordinates == null ? projected : { type: 'MultiPolygon', coordinates };
     }
 
     if (projected.type === 'GeometryCollection' && source.type === 'GeometryCollection') {
-        let changed = false;
-        const geometries = projected.geometries.map((geometry, i) => {
-            const inset = insetGeometry(source.geometries[i], geometry, index, d);
-            changed ||= inset !== geometry;
-            return inset;
-        });
-        return changed ? { type: 'GeometryCollection', geometries } : projected;
+        const members = projected.geometries;
+        let geometries: Geometry[] | undefined;
+        for (let i = 0; i < members.length; i += 1) {
+            const inset = insetGeometry(source.geometries[i], members[i], index, d);
+            if (geometries == null) {
+                if (inset === members[i]) continue;
+                geometries = members.slice(0, i);
+            }
+            geometries.push(inset);
+        }
+        return geometries == null ? projected : { type: 'GeometryCollection', geometries };
     }
 
     return projected;
 }
 
 /**
- * Where `polygon` sits in `geometry`: the index of each collection member and multi-polygon part on the way down. The same
- * path leads to the matching polygon of the drawn copy, which has the same shape.
+ * The polygon of `drawn` that matches `polygon` of `projected`. The drawn copy has the same shape as the projected geometry,
+ * so both are walked together and nothing is allocated. Undefined when `polygon` isn't part of `projected`.
  */
-export function polygonPath(geometry: Geometry, polygon: Position[][], path: number[] = []): number[] | undefined {
-    switch (geometry.type) {
+export function findDrawnPolygon(
+    projected: Geometry,
+    drawn: Geometry,
+    polygon: Position[][]
+): Position[][] | undefined {
+    switch (projected.type) {
         case 'Polygon':
-            return geometry.coordinates === polygon ? path : undefined;
+            return projected.coordinates === polygon && drawn.type === 'Polygon' ? drawn.coordinates : undefined;
         case 'MultiPolygon': {
-            const i = geometry.coordinates.indexOf(polygon);
-            return i < 0 ? undefined : [...path, i];
+            const i = projected.coordinates.indexOf(polygon);
+            return i < 0 || drawn.type !== 'MultiPolygon' ? undefined : drawn.coordinates[i];
         }
-        case 'GeometryCollection':
-            for (let i = 0; i < geometry.geometries.length; i += 1) {
-                const found = polygonPath(geometry.geometries[i], polygon, [...path, i]);
+        case 'GeometryCollection': {
+            if (drawn.type !== 'GeometryCollection') return undefined;
+            for (let i = 0; i < projected.geometries.length; i += 1) {
+                const member = drawn.geometries[i];
+                const found = member == null ? undefined : findDrawnPolygon(projected.geometries[i], member, polygon);
                 if (found != null) return found;
             }
             return undefined;
-        default:
-            return undefined;
-    }
-}
-
-export function polygonAtPath(geometry: Geometry, path: readonly number[], depth = 0): Position[][] | undefined {
-    switch (geometry.type) {
-        case 'Polygon':
-            return geometry.coordinates;
-        case 'MultiPolygon':
-            return geometry.coordinates[path[depth]];
-        case 'GeometryCollection': {
-            const member = geometry.geometries[path[depth]];
-            return member == null ? undefined : polygonAtPath(member, path, depth + 1);
         }
         default:
             return undefined;

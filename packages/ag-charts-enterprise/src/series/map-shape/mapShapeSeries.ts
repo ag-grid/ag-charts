@@ -63,10 +63,9 @@ import {
     type MapShapeGapNeighbours,
     type MapShapeGapSource,
     collectPolygons,
+    findDrawnPolygon,
     fixedScaleGeometry,
     insetGeometry,
-    polygonAtPath,
-    polygonPath,
 } from '../map-util/mapShapeGapNeighbours';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
@@ -609,15 +608,14 @@ export class MapShapeSeries
         return this.options.gap / 2 + stroke;
     }
 
-    private findDrawnPolygon(
+    private drawnPolygonFor(
         projectedGeometry: Geometry | undefined,
         drawnGeometry: Geometry | undefined,
         polygon: Position[][]
     ): Position[][] {
         if (projectedGeometry == null || drawnGeometry == null || drawnGeometry === projectedGeometry) return polygon;
 
-        const path = polygonPath(projectedGeometry, polygon);
-        return (path == null ? undefined : polygonAtPath(drawnGeometry, path)) ?? [];
+        return findDrawnPolygon(projectedGeometry, drawnGeometry, polygon) ?? [];
     }
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
@@ -688,7 +686,7 @@ export class MapShapeSeries
             const polygon =
                 labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
             if (labelLayout != null && polygon != null) {
-                const drawnPolygon = this.findDrawnPolygon(projectedGeometry, drawnGeometry, polygon);
+                const drawnPolygon = this.drawnPolygonFor(projectedGeometry, drawnGeometry, polygon);
                 labelTargets.push({
                     layout: labelLayout,
                     polygon,
