@@ -1,9 +1,10 @@
 import { type BBox, ChartAxisDirection, Rect } from 'ag-charts-core';
 import type { Point } from 'ag-charts-core';
 
-import type { AxisLabelDatum, SelectionAxesFields, SelectionColours } from '../annotationDatum';
+import type { SelectionAxisStyles } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
 import { getGroupingValue } from '../utils/scale';
+import { isShown } from '../utils/selectionAxes';
 import { invert } from '../utils/values';
 import { AxisLabelScene } from './axisLabelScene';
 
@@ -12,11 +13,12 @@ type AxisPosition = NonNullable<AnnotationAxisContext['position']>;
 interface UpdateOpts {
     /** Where the annotation's handles are, relative to the series area. */
     points: Point[];
-    styles: SelectionAxesFields;
-    /** What the labels and shading are filled with when the styles do not set it. */
-    colours: SelectionColours;
+    styles: SelectionAxisStyles;
+    selected: boolean;
     seriesRect: BBox;
     context: AnnotationAxisContext;
+    /** Changes when the chart lays out again, which can change how the axes format and place values. */
+    layoutVersion: number;
 }
 
 interface AxisEdge {
@@ -33,8 +35,14 @@ function getAxisEdge({ x, y, width, height }: BBox, isX: boolean, position: Axis
     return { isX, origin: outward > 0 ? start + size : start, outward };
 }
 
+// How far the labels at the axis ends reach depends on the axis and the label styles, so annotations share it.
+const edgeReaches = new WeakMap<
+    AnnotationAxisContext['attachLabel'],
+    WeakMap<object, { layoutVersion: number; reach: number }>
+>();
+
 /**
- * The labels and shading for one axis of a selected annotation. They are attached to the axis, as a horizontal or
+ * The labels and shading for one axis of an annotation. They are attached to the axis, as a horizontal or
  * vertical line's axis label is, so they draw over its ticks and tick labels.
  */
 class AxisSelectionOverlay {
@@ -43,6 +51,10 @@ class AxisSelectionOverlay {
     // The axis's `attachLabel` identifies it: an axis that is recreated has a new one, and its layer is a new group.
     private attachedTo?: AnnotationAxisContext['attachLabel'];
     private opacity = 1;
+    // Measures the labels at the ends of the axis, which are not drawn.
+    private probe?: AxisLabelScene;
+    // The deepest the labels have reached while the shading has been shown, which it does not shrink back from.
+    private labelReach = 0;
 
     constructor() {
         // Beneath a cross-line's axis label, which has the default z-index, while the selection's own labels sit above it.
@@ -50,7 +62,7 @@ class AxisSelectionOverlay {
         this.shading.visible = false;
     }
 
-    update({ points, styles, colours, seriesRect, context }: UpdateOpts) {
+    update({ points, styles, selected, seriesRect, context, layoutVersion }: UpdateOpts) {
         this.attach(context);
 
         const isX = context.direction === ChartAxisDirection.X;
@@ -68,25 +80,82 @@ class AxisSelectionOverlay {
         const positions = [...byPixel.values()];
         const inRange = positions.filter((p) => context.inRange(p));
 
-        this.updateLabels(inRange, styles.axisLabel, colours, seriesRect, context, edge);
-        this.updateShading(positions, length, styles, colours, seriesRect, context, edge);
+        const shown = isShown(styles.visible, selected);
+        this.updateLabels(inRange, styles.axisLabel, shown, selected, seriesRect, context, edge);
+
+        // Wider labels deepen the shading, which only grows while selected, so that it does not flicker as a handle drags.
+        const showShading = shown && positions.length >= 2;
+        const reach = showShading
+            ? this.measureLabelReach(inRange.length, styles.axisLabel, layoutVersion, seriesRect, context, edge)
+            : 0;
+        this.labelReach = selected ? Math.max(this.labelReach, reach) : reach;
+        this.updateShading(
+            positions,
+            length,
+            styles.axisShading,
+            showShading,
+            this.labelReach,
+            seriesRect,
+            context,
+            edge
+        );
+    }
+
+    /** How far the axis labels reach from the axis: the deepest of those drawn and of those at either end of the axis. */
+    private measureLabelReach(
+        drawn: number,
+        axisLabel: SelectionAxisStyles['axisLabel'],
+        layoutVersion: number,
+        seriesRect: BBox,
+        context: AnnotationAxisContext,
+        edge: AxisEdge
+    ) {
+        let reach = this.measureEdgeReach(axisLabel, layoutVersion, seriesRect, context, edge);
+        for (const label of this.labels.slice(0, drawn)) {
+            reach = Math.max(reach, label.getReach(edge.isX, edge.outward, edge.origin));
+        }
+        return reach;
+    }
+
+    private measureEdgeReach(
+        axisLabel: SelectionAxisStyles['axisLabel'],
+        layoutVersion: number,
+        seriesRect: BBox,
+        context: AnnotationAxisContext,
+        { isX, origin, outward }: AxisEdge
+    ) {
+        const byStyles = edgeReaches.get(context.attachLabel) ?? new WeakMap();
+        edgeReaches.set(context.attachLabel, byStyles);
+        const cached = byStyles.get(axisLabel);
+        if (cached?.layoutVersion === layoutVersion) return cached.reach;
+
+        const probe = (this.probe ??= new AxisLabelScene());
+        const length = isX ? seriesRect.width : seriesRect.height;
+        let reach = 0;
+        for (const p of [0, length]) {
+            probe.update({
+                x: isX ? seriesRect.x + p : origin,
+                y: isX ? origin : seriesRect.y + p,
+                value: getGroupingValue(invert(p, context)),
+                styles: axisLabel,
+                context,
+            });
+            reach = Math.max(reach, probe.getReach(isX, outward, origin));
+        }
+        byStyles.set(axisLabel, { layoutVersion, reach });
+        return reach;
     }
 
     private updateLabels(
         positions: number[],
-        axisLabel: AxisLabelDatum,
-        { stroke, strokeOpacity }: SelectionColours,
+        axisLabel: SelectionAxisStyles['axisLabel'],
+        enabled: boolean,
+        hold: boolean,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin }: AxisEdge
     ) {
         const { labels } = this;
-        const enabled = axisLabel.enabled ?? true;
-        const styles = {
-            ...axisLabel,
-            fill: axisLabel.fill ?? stroke,
-            fillOpacity: axisLabel.fillOpacity ?? strokeOpacity,
-        };
 
         // Labels are pooled: a spare one is hidden rather than removed, and there are at most a handful per axis.
         while (labels.length < positions.length) {
@@ -100,14 +169,16 @@ class AxisSelectionOverlay {
         for (const [index, label] of labels.entries()) {
             const p = positions[index];
             label.visible = enabled && p != null;
+            if (!label.visible || !hold) label.resetWidth();
             if (!label.visible) continue;
 
             label.update({
                 x: isX ? seriesRect.x + p : origin,
                 y: isX ? origin : seriesRect.y + p,
                 value: getGroupingValue(invert(p, context)),
-                styles,
+                styles: axisLabel,
                 context,
+                holdWidth: hold,
             });
         }
     }
@@ -115,8 +186,9 @@ class AxisSelectionOverlay {
     private updateShading(
         positions: number[],
         length: number,
-        { axisShading }: SelectionAxesFields,
-        colours: SelectionColours,
+        axisShading: SelectionAxisStyles['axisShading'],
+        show: boolean,
+        labelReach: number,
         seriesRect: BBox,
         context: AnnotationAxisContext,
         { isX, origin, outward }: AxisEdge
@@ -125,18 +197,11 @@ class AxisSelectionOverlay {
 
         const start = Math.max(0, Math.min(...positions));
         const end = Math.min(length, Math.max(...positions));
-        shading.visible = (axisShading.enabled ?? true) && positions.length >= 2 && end > start;
+        shading.visible = show && end > start;
         if (!shading.visible) return;
 
-        // The shading reaches the further of the tick labels and the annotation's own labels, which sit beyond them.
-        const outerEdge = (box: BBox) => {
-            const [near, size] = isX ? [box.y, box.height] : [box.x, box.width];
-            return outward > 0 ? near + size : near;
-        };
-        const labelReach = this.labels
-            .filter((label) => label.visible)
-            .map((label) => outward * (outerEdge(label.getBBox()) - origin));
-        const reach = Math.max(context.thickness, ...labelReach);
+        // The axis's ticks and tick labels, or the labels if they are deeper.
+        const reach = Math.max(context.thickness, labelReach);
         const from = outward > 0 ? origin : origin - reach;
         const along = end - start;
         if (isX) {
@@ -145,15 +210,17 @@ class AxisSelectionOverlay {
             shading.setProperties({ x: from, y: seriesRect.y + start, width: reach, height: along });
         }
 
-        shading.fill = axisShading.fill ?? colours.fill;
-        shading.fillOpacity = axisShading.fillOpacity ?? colours.fillOpacity ?? 1;
+        shading.fill = axisShading.fill;
+        shading.fillOpacity = axisShading.fillOpacity ?? 1;
         shading.strokeWidth = 0;
     }
 
     hide() {
+        this.labelReach = 0;
         this.shading.visible = false;
         for (const label of this.labels) {
             label.visible = false;
+            label.resetWidth();
         }
     }
 
@@ -166,6 +233,7 @@ class AxisSelectionOverlay {
     }
 
     destroy() {
+        this.probe?.destroy();
         this.shading.destroy();
         for (const label of this.labels) {
             label.destroy();
@@ -185,18 +253,22 @@ class AxisSelectionOverlay {
     }
 }
 
-/** The axis labels and shading shown on both axes while an annotation with two or more points is selected. */
+/** The axis labels of an annotation's points and the shading between them, on both axes. */
 export class SelectionAxesScene {
     private readonly x = new AxisSelectionOverlay();
     private readonly y = new AxisSelectionOverlay();
+    private last?: { coords: number[]; styles: SelectionAxisStyles; selected: boolean; layoutVersion: number };
 
     update(opts: Omit<UpdateOpts, 'context'> & { xAxis: AnnotationAxisContext; yAxis: AnnotationAxisContext }) {
         const { xAxis, yAxis, ...rest } = opts;
+        if (this.isUnchanged(rest.points, rest.styles, rest.selected, rest.layoutVersion)) return;
+
         this.x.update({ ...rest, context: xAxis });
         this.y.update({ ...rest, context: yAxis });
     }
 
     hide() {
+        this.last = undefined;
         this.x.hide();
         this.y.hide();
     }
@@ -209,5 +281,24 @@ export class SelectionAxesScene {
     destroy() {
         this.x.destroy();
         this.y.destroy();
+    }
+
+    // Runs for every shown annotation on every pre-render, so an overlay that would redraw as it is stays as it is.
+    private isUnchanged(points: Point[], styles: SelectionAxisStyles, selected: boolean, layoutVersion: number) {
+        const last = this.last;
+        if (
+            last?.styles === styles &&
+            last.selected === selected &&
+            last.layoutVersion === layoutVersion &&
+            last.coords.length === points.length * 2 &&
+            points.every((p, i) => last.coords[i * 2] === p.x && last.coords[i * 2 + 1] === p.y)
+        ) {
+            return true;
+        }
+
+        const coords: number[] = [];
+        for (const { x, y } of points) coords.push(x, y);
+        this.last = { coords, styles, selected, layoutVersion };
+        return false;
     }
 }

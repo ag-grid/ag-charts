@@ -7,6 +7,7 @@ import { annotationOptionsDef, annotationThemeOptionsDef } from './annotationOpt
 import { createAnnotationStateDefs } from './annotationStateDefs';
 import { Annotations } from './annotations';
 import { annotationsTheme } from './annotationsTheme';
+import { splitSelectionAxisStyles } from './utils/selectionAxes';
 
 export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
@@ -22,7 +23,8 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _Mo
 
     create: (ctx) => new Annotations(ctx),
     services: {
-        annotationManager: (c) => new _ModuleSupport.AnnotationManager(c, createAnnotationStateDefs()),
+        annotationManager: (c) =>
+            new _ModuleSupport.AnnotationManager(c, createAnnotationStateDefs(), splitSelectionAxisStyles),
         sharedToolbar: (c) => new SharedToolbar(c),
     },
 };

@@ -5,7 +5,7 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { PointDatum } from '../datum/pointDatum';
 import { getDragStartState, magnetTranslation, translate } from '../utils/coords';
 import { isWriteable } from '../utils/datum';
-import { convertPoint, invertCoords } from '../utils/values';
+import { convertPoint, convertPoints, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
@@ -24,6 +24,10 @@ export abstract class PointScene<Datum extends PointDatum> extends AnnotationSce
         y: 0,
         position: 'above',
     };
+
+    protected override getSelectionPoints(datum: Datum, context: AnnotationContext) {
+        return convertPoints([datum], context);
+    }
 
     public update(datum: Datum, context: AnnotationContext) {
         const coords = convertPoint(datum, context);

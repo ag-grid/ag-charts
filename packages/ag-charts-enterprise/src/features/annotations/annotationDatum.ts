@@ -1,7 +1,14 @@
-import type { FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
+import type { Formatter, TextAlign } from 'ag-charts-community';
 import { FONT_SIZE, generateUUID, isObject } from 'ag-charts-core';
-import type { AgLineDashName, Padding, PixelSize } from 'ag-charts-types';
 
+import type {
+    AxisLabelDatum,
+    AxisLabelFormatterParams,
+    FillFields,
+    FontFields,
+    LineStyleFields,
+    StrokeFields,
+} from './annotationFields';
 import type {
     AnnotationOptionsColorPickerType,
     AnnotationType,
@@ -11,34 +18,21 @@ import type {
     LineTextPosition,
 } from './annotationTypes';
 
+export type {
+    AxisLabelDatum,
+    AxisLabelFormatterParams,
+    FillFields,
+    FontFields,
+    LineStyleFields,
+    SelectionAxisLabelStyles,
+    SelectionAxisShadingStyles,
+    SelectionAxisStyles,
+    StrokeFields,
+} from './annotationFields';
+
 /****************
  * Field groups *
  ****************/
-
-export interface FillFields {
-    fill?: string;
-    fillOpacity?: number;
-}
-
-export interface StrokeFields {
-    stroke?: string;
-    strokeOpacity?: number;
-    strokeWidth?: number;
-}
-
-export interface LineStyleFields {
-    lineDash?: PixelSize[] | AgLineDashName;
-    lineDashOffset?: number;
-}
-
-export interface FontFields {
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
-    fontSize: number;
-    fontFamily: string;
-    lineHeight?: number;
-    color?: string;
-}
 
 export interface LabelFields {
     padding?: number;
@@ -51,10 +45,6 @@ export interface ExtendableFields {
     extendEnd?: boolean;
 }
 
-export interface AxisLabelFormatterParams {
-    readonly value: any;
-}
-
 /*****************
  * Nested datums *
  *****************/
@@ -65,54 +55,6 @@ export interface BackgroundDatum extends FillFields {}
 
 export interface ChannelMiddleDatum extends StrokeFields, LineStyleFields {
     visible?: boolean;
-}
-
-export interface AxisLabelDatum extends StrokeFields, LineStyleFields, FillFields, FontFields {
-    enabled?: boolean;
-    cornerRadius: number;
-    textAlign: TextAlign;
-    formatter?: Formatter<AxisLabelFormatterParams>;
-    padding?: Padding;
-}
-
-export interface AxisShadingDatum extends FillFields {
-    enabled?: boolean;
-}
-
-/** The axis labels and shading shown while an annotation with two or more points is selected. */
-export interface SelectionAxesFields {
-    axisLabel: AxisLabelDatum;
-    axisShading: AxisShadingDatum;
-}
-
-/** The colours of an annotation that its selection axes take, unless the datum sets its own. */
-export interface SelectionColours {
-    /** The annotation's line colour, which the axis labels take. */
-    stroke?: string;
-    strokeOpacity?: number;
-    /** The annotation's fill, which the shading takes. A line has none, so it is the line colour. */
-    fill?: string;
-    fillOpacity?: number;
-}
-
-/** The line colour is the annotation's colour, and so is the shading's when it has no fill of its own. */
-export function getStrokeColours({ stroke, strokeOpacity }: StrokeFields): SelectionColours {
-    return { stroke, strokeOpacity, fill: stroke };
-}
-
-/** The shading follows the background of a channel or a measurer. */
-export function getBackgroundColours({
-    stroke,
-    strokeOpacity,
-    background,
-}: StrokeFields & { background: BackgroundDatum }): SelectionColours {
-    return { stroke, strokeOpacity, fill: background.fill, fillOpacity: background.fillOpacity };
-}
-
-/** Whether a datum carries the selection axes, which only the annotations with two or more points do. */
-export function hasSelectionAxes<T extends object>(datum: T): datum is T & SelectionAxesFields {
-    const { axisLabel, axisShading } = datum as Partial<SelectionAxesFields>;
-    return isObject(axisLabel) && isObject(axisShading);
 }
 
 export interface LineTextDatum extends FontFields {
@@ -207,10 +149,6 @@ export function createChannelMiddleDatum(): ChannelMiddleDatum {
 
 export function createAxisLabelDatum(): AxisLabelDatum {
     return { ...createFontFields(), cornerRadius: 2, textAlign: 'center' };
-}
-
-export function createSelectionAxesFields(): SelectionAxesFields {
-    return { axisLabel: createAxisLabelDatum(), axisShading: {} };
 }
 
 export function createLineTextDatum(): LineTextDatum {

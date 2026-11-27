@@ -18,34 +18,34 @@ import type { CssColor, PixelSize } from './types';
 
 export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     // Lines
-    line?: AgLineAnnotationStyles;
-    'horizontal-line'?: AgCrossLineAnnotationStyles;
-    'vertical-line'?: AgCrossLineAnnotationStyles;
+    line?: AgLineAnnotationStyles & AgAnnotationAxes;
+    'horizontal-line'?: AgCrossLineAnnotationStyles & AgCrossLineAxisLabelVisibility;
+    'vertical-line'?: AgCrossLineAnnotationStyles & AgCrossLineAxisLabelVisibility;
 
     // Channels
-    'disjoint-channel'?: AgDisjointChannelAnnotationStyles;
-    'parallel-channel'?: AgParallelChannelAnnotationStyles;
+    'disjoint-channel'?: AgDisjointChannelAnnotationStyles & AgAnnotationAxes;
+    'parallel-channel'?: AgParallelChannelAnnotationStyles & AgAnnotationAxes;
 
     // Fibonaccis
-    'fibonacci-retracement'?: AgFibonacciAnnotationStyles;
-    'fibonacci-retracement-trend-based'?: AgFibonacciAnnotationStyles;
+    'fibonacci-retracement'?: AgFibonacciAnnotationStyles & AgAnnotationAxes;
+    'fibonacci-retracement-trend-based'?: AgFibonacciAnnotationStyles & AgAnnotationAxes;
 
     // Texts
-    callout?: AgCalloutAnnotationStyles;
-    comment?: AgCommentAnnotationStyles;
-    note?: AgNoteAnnotationStyles;
-    text?: AgTextAnnotationStyles;
+    callout?: AgCalloutAnnotationStyles & AgAnnotationAxes;
+    comment?: AgCommentAnnotationStyles & AgAnnotationAxes;
+    note?: AgNoteAnnotationStyles & AgAnnotationAxes;
+    text?: AgTextAnnotationStyles & AgAnnotationAxes;
 
     // Shapes
-    arrow?: AgLineAnnotationStyles;
-    'arrow-up'?: AgShapeAnnotationStyles;
-    'arrow-down'?: AgShapeAnnotationStyles;
+    arrow?: AgLineAnnotationStyles & AgAnnotationAxes;
+    'arrow-up'?: AgShapeAnnotationStyles & AgAnnotationAxes;
+    'arrow-down'?: AgShapeAnnotationStyles & AgAnnotationAxes;
 
     // Measurers
-    'date-range'?: AgMeasurerAnnotationStyles;
-    'price-range'?: AgMeasurerAnnotationStyles;
-    'date-price-range'?: AgMeasurerAnnotationStyles;
-    'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles;
+    'date-range'?: AgMeasurerAnnotationStyles & AgAnnotationAxes;
+    'price-range'?: AgMeasurerAnnotationStyles & AgAnnotationAxes;
+    'date-price-range'?: AgMeasurerAnnotationStyles & AgAnnotationAxes;
+    'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles & AgAnnotationAxes;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -57,8 +57,7 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
 // Lines
-export interface AgLineAnnotationStyles
-    extends Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+export interface AgLineAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandleStyles;
     /** Configuration for the line text. */
@@ -122,8 +121,7 @@ export interface AgShapeAnnotationStyles extends Writeable, Visible, FillOptions
 }
 
 // Measurers
-export interface AgMeasurerAnnotationStyles
-    extends StrokeOptions, LineOptions, Extendable, Writeable, Visible, SelectionAxes {
+export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Writeable, Visible {
     /** Configuration for the background fill. */
     background?: FillOptions;
     /** Configuration for the drag handles. */
@@ -134,7 +132,7 @@ export interface AgMeasurerAnnotationStyles
     text?: AgLineAnnotationTextStyles;
 }
 
-export interface AgQuickMeasurerAnnotationStyles extends Visible, SelectionAxes {
+export interface AgQuickMeasurerAnnotationStyles extends Visible {
     /** Configuration for the annotation when measuring up the y-axis. */
     up?: AgQuickMeasurerAnnotationDirectionStyles;
     /** Configuration for the annotation when measuring down the y-axis. */
@@ -167,6 +165,8 @@ export interface AgAnnotationMagnet extends Toggleable {
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
+    /** When annotations show their axis labels and shading, for each type that sets no `axisLabel.visible` of its own. */
+    axisLabel?: AgAnnotationAxisLabelVisibility;
     /** Configuration for snapping annotation points to the values of the nearest datum. */
     magnet?: AgAnnotationMagnet;
     /** Configuration for the toolbar for creating annotations. */
@@ -206,7 +206,7 @@ export type AgAnnotation =
 // ********************/
 
 export interface AgLineAnnotation
-    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the trend line annotation.*/
     type: 'line';
     /** Configuration for the drag handles. */
@@ -273,8 +273,7 @@ export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciA
 // * Channel Annotations *
 // ***********************/
 /** Configuration for channel annotation styling. */
-export interface AgChannelAnnotationStyles
-    extends Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+export interface AgChannelAnnotationStyles extends Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the channel text. */
@@ -346,7 +345,7 @@ export interface AgTextAnnotation extends AgTextAnnotationStyles, AgAnnotationPo
 // ********************/
 
 export interface AgArrowAnnotation
-    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
@@ -420,8 +419,7 @@ export interface AgQuickDatePriceRangeAnnotation extends AgMeasurerAnnotation {
     down?: AgMeasurerAnnotationDirection;
 }
 
-export interface AgMeasurerAnnotation
-    extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions, SelectionAxes {
+export interface AgMeasurerAnnotation extends AnnotationLinePoints, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
@@ -458,7 +456,8 @@ export interface AgChannelAnnotationBackground extends FillOptions {}
 /** Configuration for note annotation background. */
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
 
-export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOptions, LineDashOptions, TextOptions {
+/** The styles of an axis label, which the axis labels of lines and of selected annotations share. */
+export interface AgAnnotationAxisLabelStyles extends FillOptions, StrokeOptions, LineDashOptions, TextOptions {
     /** Apply rounded corners to the axis label container. */
     cornerRadius?: PixelSize;
     /**
@@ -472,26 +471,40 @@ export interface AgAnnotationAxisLabel extends Toggleable, FillOptions, StrokeOp
     padding?: Padding;
 }
 
-/** Configuration for the shading drawn over an axis between the points of the selected annotation. */
-export interface AgAnnotationAxisShading extends Toggleable, FillOptions {}
+export interface AgAnnotationAxisLabel extends Toggleable, AgAnnotationAxisLabelStyles {}
 
-/** Axis labels and shading shown for the points of an annotation while it is selected. */
-interface SelectionAxes {
+/**
+ * When the axis labels and shading of an annotation are shown: `'selected'` while it is selected or being drawn,
+ * `'always'` whether or not it is selected, or `'never'`.
+ */
+export type AgAnnotationAxisVisibility = 'always' | 'never' | 'selected';
+
+/** Whether annotations show their axis labels and shading. */
+export interface AgAnnotationAxisLabelVisibility {
     /**
-     * Configuration for the axis labels shown at each of the annotation's points, on both axes, while the annotation is
-     * selected. Unlike the axis label of a horizontal or vertical line, these are not shown when the annotation is not
-     * selected.
+     * When the axis labels and shading are shown.
      *
-     * The labels are filled with the annotation's line colour unless `fill` is set.
+     * Default: `'always'` for horizontal and vertical lines, `'selected'` for other annotations
      */
-    axisLabel?: AgAnnotationAxisLabel;
-    /**
-     * Configuration for the shading drawn over each axis, between the annotation's outermost points, while the
-     * annotation is selected. It covers the axis ticks and tick labels but not the axis title.
-     *
-     * The shading is filled with the annotation's background, such as a channel's, unless `fill` is set. An annotation
-     * with no background shades with its line colour.
-     */
+    visible?: AgAnnotationAxisVisibility;
+}
+
+/** Configuration for the axis label of a horizontal or vertical line, which sets when it is shown. */
+export interface AgCrossLineAxisLabelVisibility {
+    axisLabel?: AgAnnotationAxisLabelVisibility;
+}
+
+/** Configuration for the axis labels shown at the points of an annotation. */
+export interface AgAnnotationSelectionAxisLabel extends AgAnnotationAxisLabelStyles, AgAnnotationAxisLabelVisibility {}
+
+/** Configuration for the shading drawn over an axis between the points of an annotation. */
+export interface AgAnnotationAxisShading extends FillOptions {}
+
+/** The axis labels and shading of an annotation's points, which are not part of its state. */
+export interface AgAnnotationAxes {
+    /** Configuration for the axis label of each point, on both axes. */
+    axisLabel?: AgAnnotationSelectionAxisLabel;
+    /** Configuration for the shading between the points, on both axes. Annotations of a single point have none. */
     axisShading?: AgAnnotationAxisShading;
 }
 

@@ -1,5 +1,8 @@
 import {
+    type AgAnnotationAxes,
     type AgAnnotationAxisLabel,
+    type AgAnnotationAxisLabelStyles,
+    type AgAnnotationAxisVisibility,
     type AgAnnotationHandleStyles,
     type AgAnnotationMagnet,
     type AgAnnotationOptionsToolbar,
@@ -16,6 +19,7 @@ import {
 } from 'ag-charts-community';
 import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
 
+import { DEFAULT_AXIS_VISIBILITY } from './annotationFields';
 import { DEFAULT_MAGNET } from './utils/magnet';
 
 export const DEFAULT_FIBONACCI_STROKES = [
@@ -51,12 +55,32 @@ const font: WithThemeParams<TextOptions> = {
     fontFamily: { $ref: 'fontFamily' },
 };
 
-const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
+const axisLabelStyles: WithThemeParams<AgAnnotationAxisLabelStyles> = {
     ...font,
-    enabled: true,
     fill: { $ref: 'foregroundColor' },
     fontSize: { $ref: 'fontSize' },
     lineHeight: themeLineHeight('lineHeight'),
+};
+
+// Defers to the top-level `visible`, and falls back to the default of the annotation type.
+const axisVisible = (fallback: AgAnnotationAxisVisibility) => ({
+    $path: ['/annotations/axisLabel/visible', fallback] as [string, AgAnnotationAxisVisibility],
+});
+
+const axisLabel: WithThemeParams<AgAnnotationAxisLabel & { visible?: AgAnnotationAxisVisibility }> = {
+    ...axisLabelStyles,
+    enabled: true,
+    visible: axisVisible(DEFAULT_AXIS_VISIBILITY.crossLine),
+};
+
+// The labels and shading use the annotation colour, not the colours that a user picks for an annotation.
+const axes: WithThemeParams<AgAnnotationAxes> = {
+    axisLabel: {
+        ...axisLabelStyles,
+        fill: { $ref: 'annotationColor' },
+        visible: axisVisible(DEFAULT_AXIS_VISIBILITY.other),
+    },
+    axisShading: { fill: { $ref: 'annotationColor' }, fillOpacity: 0.075 },
 };
 
 const text = {
@@ -97,16 +121,8 @@ export const QUICK_MEASURER_DIVIDER_THEME = { stroke: '#fff', strokeWidth: 1, st
 
 const background = { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.075 } as const;
 
-// The labels and shading take the annotation's colours. A line has no fill to shade with, so it passes the opacity.
-export const selectionAxes = (label: WithThemeParams<AgAnnotationAxisLabel>, shadingOpacity?: number) =>
-    ({
-        axisLabel: { ...label, fill: undefined },
-        axisShading: { enabled: true, fillOpacity: shadingOpacity },
-    }) as const;
-
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel, background.fillOpacity),
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
     rangeStroke: { $ref: 'foregroundColor' },
     handle: { ...handle },
@@ -121,7 +137,6 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
 
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
-    ...selectionAxes(axisLabel),
     background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
@@ -220,8 +235,8 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     // Lines
     line: {
+        ...axes,
         ...stroke,
-        ...selectionAxes(axisLabel, background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
@@ -240,15 +255,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     // Channels
     'disjoint-channel': {
+        ...axes,
         ...stroke,
-        ...selectionAxes(axisLabel),
         background: { ...background },
         handle: { ...handle },
         text: { ...channelText },
     },
     'parallel-channel': {
+        ...axes,
         ...stroke,
-        ...selectionAxes(axisLabel),
         middle: {
             lineDash: [6, 5],
             strokeWidth: 1,
@@ -259,12 +274,13 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
 
     // Fibonnaccis
-    'fibonacci-retracement': { ...fibonacci },
+    'fibonacci-retracement': { ...fibonacci, ...axes },
 
-    'fibonacci-retracement-trend-based': { ...fibonacci },
+    'fibonacci-retracement-trend-based': { ...fibonacci, ...axes },
 
     // Texts
     callout: {
+        ...axes,
         ...stroke,
         ...text,
         color: { $ref: 'textColor' },
@@ -273,12 +289,14 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         fillOpacity: 0.075,
     },
     comment: {
+        ...axes,
         ...text,
         fontWeight: 700,
         handle: { ...handle },
         fill: { $ref: 'foregroundColor' },
     },
     note: {
+        ...axes,
         ...text,
         color: { $ref: 'annotationTextboxTextColor' },
         fill: { $ref: 'annotationColor' },
@@ -293,6 +311,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
     },
     text: {
+        ...axes,
         ...text,
         color: { $ref: 'textColor' },
         handle: { ...handle },
@@ -300,32 +319,37 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     // Shapes
     arrow: {
+        ...axes,
         ...stroke,
-        ...selectionAxes(axisLabel, background.fillOpacity),
         handle: { ...handle },
         text: { ...lineText },
     },
     'arrow-up': {
+        ...axes,
         fill: { $palette: 'up.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
     'arrow-down': {
+        ...axes,
         fill: { $palette: 'down.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
 
     // Measurers
     'date-range': {
+        ...axes,
         ...measurer,
     },
     'price-range': {
+        ...axes,
         ...measurer,
     },
     'date-price-range': {
+        ...axes,
         ...measurer,
     },
     'quick-date-price-range': {
-        ...selectionAxes(axisLabel),
+        ...axes,
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },
@@ -333,7 +357,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             handle: { ...handle },
             statistics: {
                 ...MEASURER_STATISTICS_THEME,
-                color: '#fff',
+                color: { $ref: 'chartBackgroundColor' },
                 fill: { $ref: 'annotationColor' },
                 strokeWidth: 0,
                 divider: { ...QUICK_MEASURER_DIVIDER_THEME },

@@ -25,7 +25,6 @@ import {
 import type { Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type {
-    AgAnnotation,
     AgAnnotationsToolbarButton,
     AgCartesianChartOptions,
     AgChartInstance,
@@ -1013,43 +1012,32 @@ describe('priceVolumePreset', () => {
         });
     });
 
-    describe('selected annotation axes (AG-12118)', () => {
+    describe('annotation axes (AG-12118)', () => {
         const data = getStockData().slice(0, 40);
+        // Both dates are before the clocks change in London, so their labels carry no hour.
         const [start, end] = [
-            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 140 },
-            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 150 },
+            { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 130 },
+            { x: { __type: 'date' as const, value: data[14].date.toISOString() }, y: 138 },
         ];
 
-        // The labels and shading take the annotation's own colours, so the theme sets only the white text and the shading
-        // at the opacity of the annotation's background, or of its own when it has no background.
-        it.each<AgAnnotation>([
-            { type: 'line', start, end },
-            { type: 'arrow', start, end },
-            { type: 'parallel-channel', start, end, height: 5 },
-            { type: 'disjoint-channel', start, end, startHeight: 4, endHeight: 8 },
-            { type: 'fibonacci-retracement', start, end },
-            { type: 'date-price-range', start, end },
-        ])('themes the axis labels and shading of a $type without fixing their colour', async (annotation) => {
+        // The labels and shading take the annotation colour, which is blue in the financial themes.
+        it('shows the axis labels and shading of annotations that are not selected', async () => {
             chart = AgCharts.createFinancialChart(
-                prepareFinancialTestOptions({ data, initialState: { annotations: [annotation] } })
+                prepareFinancialTestOptions({
+                    data,
+                    theme: {
+                        overrides: {
+                            common: {
+                                annotations: { axisLabel: { visible: 'always' } },
+                            },
+                        },
+                    },
+                    initialState: { annotations: [{ type: 'line', start, end }] },
+                })
             );
             await waitForChartStability(chart);
 
-            const state = chart.getState().annotations![0] as AgAnnotation & {
-                stroke?: string;
-                background?: { fillOpacity?: number };
-                axisLabel?: { fill?: string };
-                axisShading?: { fill?: string; fillOpacity?: number };
-            };
-            expect(state).toMatchObject({
-                axisLabel: { enabled: true, color: 'white' },
-                axisShading: { enabled: true },
-            });
-            expect(state.axisLabel?.fill).toBeUndefined();
-            expect(state.axisShading?.fill).toBeUndefined();
-            expect(state.axisShading?.fillOpacity ?? state.background?.fillOpacity).toBe(0.2);
-            // The annotation's colour, which they follow, is the theme's annotation colour and not the default foreground.
-            expect(state.stroke).not.toBe('#181d1f');
+            await compare();
         });
     });
 
@@ -1094,6 +1082,14 @@ describe('priceVolumePreset', () => {
                 'hidden when the close is out of the visible range',
                 { lastPriceLine: true, initialState: { zoom: { ratioX: { start: 0, end: 0.3 } } } },
             ],
+            // The line cannot be selected, so the visibility of the axis labels of annotations does not apply to it.
+            ...(['never', 'selected'] as const).map((visible): [string, AgFinancialChartOptions] => [
+                `the axis labels of annotations are '${visible}'`,
+                {
+                    lastPriceLine: true,
+                    theme: { overrides: { common: { annotations: { axisLabel: { visible } } } } },
+                },
+            ]),
         ])('draws a line at the last close when %s', async (_name, options) => {
             chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, ...options }));
             await compare();

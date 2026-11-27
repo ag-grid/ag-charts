@@ -1,5 +1,5 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams, AgChartPrivateThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import type { ThemeParamDefaults } from './chartTheme';
 import { DarkTheme } from './darkTheme';
@@ -46,6 +46,13 @@ export class FinancialDark extends DarkTheme {
             altUp: { fill: FINANCIAL_DARK_FILLS.GREEN, stroke: FINANCIAL_DARK_STROKES.GREEN },
             altDown: { fill: FINANCIAL_DARK_FILLS.RED, stroke: FINANCIAL_DARK_STROKES.RED },
             altNeutral: { fill: FINANCIAL_DARK_FILLS.GRAY, stroke: FINANCIAL_DARK_STROKES.GRAY },
+        };
+    }
+
+    protected override getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+        return {
+            ...super.getPrivateParameters(),
+            annotationColor: this.getDefaultColors().fills.BLUE,
         };
     }
 

@@ -7,6 +7,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import { uniformPadding } from '../text/util';
 import { isWriteable } from '../utils/datum';
+import { convertPoints } from '../utils/values';
 import type { CalloutDatum } from './calloutDatum';
 
 const DEFAULT_CALLOUT_PADDING = {
@@ -51,6 +52,11 @@ export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
     public override getPlaceholderColor(datum: TextualStartEndDatum) {
         const { r, g, b } = Color.fromString(datum.color ?? '#888888');
         return new Color(r, g, b, 0.66).toString();
+    }
+
+    // The pointer's tip, which is where the callout points on the chart, not the text box.
+    protected override getSelectionPoints(datum: CalloutDatum, context: AnnotationContext) {
+        return convertPoints([datum.start], context);
     }
 
     protected override getTextInputCoords(datum: TextualStartEndDatum, context: AnnotationContext, height: number) {

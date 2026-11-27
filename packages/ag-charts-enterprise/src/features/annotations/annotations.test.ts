@@ -21,8 +21,13 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { BandScale, Group, type Node, Text } from 'ag-charts-core';
-import type { AgAnnotationValue, AgHorizontalLineAnnotation } from 'ag-charts-types';
+import { BandScale, Group, type Node, Rect, Text } from 'ag-charts-core';
+import type {
+    AgAnnotationValue,
+    AgAnnotationsOptions,
+    AgAnnotationsThemeableOptions,
+    AgHorizontalLineAnnotation,
+} from 'ag-charts-types';
 
 import {
     findSceneNodes,
@@ -34,6 +39,8 @@ import {
     hasAnnotationAxisButton,
 } from '../../test/featureAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { AxisLabelScene } from './scenes/axisLabelScene';
+import { SelectionAxesScene } from './scenes/selectionAxesScene';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -131,10 +138,12 @@ describe('Annotations', () => {
             expect(line.handle.fill).toBe(handleFill);
         });
 
+        // The foreground colour of the test theme, except in the financial themes, which use their blue.
         it.each([
-            ['ag-default', '#5090dc'],
-            ['ag-material', '#2196F3'],
-        ] as const)('resolves `annotationColor` from the %s fills', async (theme, annotationColor) => {
+            ['ag-default', '#464646'],
+            ['ag-financial', '#5090dc'],
+            ['ag-financial-dark', '#5090dc'],
+        ] as const)('resolves `annotationColor` for %s', async (theme, annotationColor) => {
             const { 'quick-date-price-range': quickDatePriceRange } = await resolveAnnotationThemes(theme);
             expect(quickDatePriceRange.up.fill).toBe(annotationColor);
         });
@@ -2531,16 +2540,22 @@ describe('Annotations', () => {
     });
 
     describe('selected annotation axes', () => {
-        // Both axes span 100 units (the x axis, 100 days from 2024-01-01), so a datum offset is also the fraction of the
-        // way along its axis.
+        // Both axes span 100 units (the x axis, 100 days), so a datum offset is also the percentage along its axis.
         const day = (offset: number) => ({
             __type: 'date' as const,
             value: new Date(Date.UTC(2024, 0, 1 + offset)).toISOString().slice(0, 10),
         });
 
-        const withAxes = (xPosition: 'top' | 'bottom' = 'bottom', yPosition: 'left' | 'right' = 'left') =>
+        const withAxes = (
+            xPosition: 'top' | 'bottom' = 'bottom',
+            yPosition: 'left' | 'right' = 'left',
+            annotations: AgAnnotationsOptions = {},
+            themed: AgAnnotationsThemeableOptions = {}
+        ) =>
             ({
                 ...ANNOTATIONS_EXAMPLE_OPTIONS,
+                annotations: { ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations, ...annotations },
+                theme: { overrides: { common: { annotations: themed } } },
                 data: [
                     { x: new Date('2024-01-01'), y: 0 },
                     { x: new Date('2024-04-10'), y: 100 },
@@ -2569,6 +2584,15 @@ describe('Annotations', () => {
         const visibleAxisLabels = () =>
             findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP && node.visible);
 
+        // The labels of the y axis lie left of the series area.
+        const yAxisLabelRects = () => {
+            const { x: left } = getSeriesRect(chart);
+            return visibleAxisLabels()
+                .map((group) => [...(group as Group).children()].find((c) => c instanceof Rect) as any)
+                .filter((rect) => rect.x + rect.width / 2 < left);
+        };
+        const yAxisLabelWidths = (): number[] => yAxisLabelRects().map((rect) => rect.width);
+
         const [START, END] = [
             { x: day(20), y: 25 },
             { x: day(80), y: 75 },
@@ -2594,12 +2618,9 @@ describe('Annotations', () => {
         it('draws the shading beneath a cross-line axis label and the selection labels above it', async () => {
             await prepareChart(
                 {
-                    annotations: [
-                        { type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } },
-                        { ...LINE, axisShading: { fillOpacity: 0.5 } },
-                    ],
+                    annotations: [{ type: 'horizontal-line', value: 73, axisLabel: { fill: '#ff0000' } }, LINE],
                 },
-                withAxes()
+                withAxes('bottom', 'left', {}, { line: { axisShading: { fillOpacity: 0.5 } } })
             );
 
             await clickDatum(LINE_BODY.x, LINE_BODY.y);
@@ -2607,26 +2628,15 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The labels take the line colour and the shading the background, or the line colour where there is none.
-        // Each case is snapshotted, as one annotation is selected at a time.
+        // The labels and shading keep their own colours, so they stay legible; each case is snapshotted.
         const selectedCases: Array<{ name: string; annotation: AgAnnotation; body: { x: number; y: number } }> = [
             {
-                name: 'a line that follows its line colour',
-                annotation: { ...LINE, stroke: RED },
+                name: 'a line with a white stroke',
+                annotation: { ...LINE, stroke: '#ffffff' },
                 body: LINE_BODY,
             },
             {
-                name: 'a line that yields to the fills set on its axis label and shading',
-                annotation: {
-                    ...LINE,
-                    stroke: RED,
-                    axisLabel: { fill: GREEN },
-                    axisShading: { fill: BLUE, fillOpacity: 0.5 },
-                },
-                body: LINE_BODY,
-            },
-            {
-                name: 'a parallel channel that labels with its line colour and shades with its background',
+                name: 'a parallel channel with its own stroke and background',
                 // Its four corners are labelled, not the middle handles that only move an edge.
                 annotation: { ...PARALLEL_CHANNEL, stroke: RED, background: { fill: BLUE, fillOpacity: 0.3 } },
                 body: CHANNEL_BODY,
@@ -2644,7 +2654,7 @@ describe('Annotations', () => {
                 body: CHANNEL_BODY,
             },
             {
-                name: 'a Fibonacci retracement that follows its range stroke',
+                name: 'a Fibonacci retracement with its own range stroke',
                 annotation: { type: 'fibonacci-retracement', start: START, end: END, rangeStroke: GREEN },
                 // On the 0.5 level, which is drawn between the two x positions.
                 body: LINE_BODY,
@@ -2655,24 +2665,13 @@ describe('Annotations', () => {
                 body: LINE_BODY,
             },
             {
-                name: 'a quick range measuring up that follows its up styles',
+                name: 'a quick range with its own up styles',
                 annotation: {
                     type: 'quick-date-price-range',
                     start: START,
                     end: END,
                     up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
                     down: { stroke: BLUE, fill: BLUE, fillOpacity: 0.1 },
-                },
-                body: LINE_BODY,
-            },
-            {
-                name: 'a quick range measuring down that follows its down styles',
-                annotation: {
-                    type: 'quick-date-price-range',
-                    start: END,
-                    end: START,
-                    up: { stroke: RED, fill: GREEN, fillOpacity: 0.4 },
-                    down: { stroke: BLUE, fill: GREEN, fillOpacity: 0.1 },
                 },
                 body: LINE_BODY,
             },
@@ -2688,14 +2687,132 @@ describe('Annotations', () => {
             await compare();
         });
 
-        it('lets the theme switch off the labels and shading of a selected parallel channel', async () => {
-            const off = { axisLabel: { enabled: false }, axisShading: { enabled: false } };
+        // The colours are the type's own options, which the annotation's own colours do not change.
+        it('takes the colours of the axis labels and shading from the options of the annotation type', async () => {
             await prepareChart(
-                { annotations: [PARALLEL_CHANNEL] },
-                { ...withAxes(), theme: { overrides: { common: { annotations: { 'parallel-channel': off } } } } }
+                { annotations: [LINE] },
+                withAxes(
+                    'bottom',
+                    'left',
+                    {},
+                    {
+                        line: {
+                            axisLabel: { fill: GREEN, color: 'black' },
+                            axisShading: { fill: BLUE, fillOpacity: 0.5 },
+                        },
+                    }
+                )
             );
 
-            await clickDatum(CHANNEL_BODY.x, CHANNEL_BODY.y);
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+
+            await compare();
+        });
+
+        // The top-level `visible` is the default of each type that sets none of its own.
+        it('shows the axis labels and shading as `visible` sets, whether or not the annotation is selected', async () => {
+            const cross: AgAnnotation = { type: 'horizontal-line', value: 90 };
+            const cases: Array<{
+                annotations: AgAnnotationsOptions;
+                themed: AgAnnotationsThemeableOptions;
+                select: boolean;
+            }> = [
+                // Only the channel is labelled and shaded, and the cross-line keeps its label.
+                {
+                    annotations: { axisLabel: { visible: 'always' } },
+                    themed: { line: { axisLabel: { visible: 'never' } } },
+                    select: false,
+                },
+                // Nothing, not even the cross-line's label, though the line is selected.
+                { annotations: { axisLabel: { visible: 'never' } }, themed: {}, select: true },
+                // Only the cross-line, which sets its own `visible`.
+                {
+                    annotations: { axisLabel: { visible: 'never' } },
+                    themed: { 'horizontal-line': { axisLabel: { visible: 'always' } } },
+                    select: true,
+                },
+            ];
+
+            const [first, ...rest] = cases;
+            await prepareChart(
+                { annotations: [LINE, PARALLEL_CHANNEL, cross] },
+                withAxes('bottom', 'left', first.annotations, first.themed)
+            );
+            await compare();
+
+            // The mock canvas is bound to the first chart, so the others are updates of it.
+            for (const { annotations, themed, select } of rest) {
+                await chart.update(
+                    prepareEnterpriseTestOptions({
+                        ...withAxes('bottom', 'left', annotations, themed),
+                        initialState: undefined,
+                    }) as never
+                );
+                if (select) await clickDatum(LINE_BODY.x, LINE_BODY.y);
+                await waitForChartStability(chart);
+                await compare();
+            }
+        });
+
+        it('shows the label of a cross-line when it is selected, and by default always', async () => {
+            await prepareChart(
+                { annotations: [{ type: 'horizontal-line', value: 60 }] },
+                withAxes('bottom', 'left', {})
+            );
+            expect(visibleAxisLabels()).toHaveLength(1);
+
+            await chart.update(
+                prepareEnterpriseTestOptions({
+                    ...withAxes('bottom', 'left', {}, { 'horizontal-line': { axisLabel: { visible: 'selected' } } }),
+                    initialState: undefined,
+                }) as never
+            );
+            await waitForChartStability(chart);
+            expect(visibleAxisLabels()).toHaveLength(0);
+
+            await clickDatum(50, 60);
+            expect(visibleAxisLabels()).toHaveLength(1);
+
+            await clickDatum(EMPTY.x, EMPTY.y);
+            expect(visibleAxisLabels()).toHaveLength(0);
+        });
+
+        it('keeps `visible`, the shading and the label styles out of the saved state', async () => {
+            await prepareChart(
+                { annotations: [LINE, { type: 'horizontal-line', value: 60 }] },
+                withAxes(
+                    'bottom',
+                    'left',
+                    { axisLabel: { visible: 'always' } },
+                    { line: { axisLabel: { fill: GREEN }, axisShading: { fill: BLUE } } }
+                )
+            );
+
+            const [line, cross] = chart.getState().annotations as Array<Record<string, any>>;
+            expect(line.axisLabel).toBeUndefined();
+            expect(line.axisShading).toBeUndefined();
+            expect(cross.axisLabel.visible).toBeUndefined();
+        });
+
+        // A single point has one label per axis and nothing to shade between. The callout's is at its pointer's tip.
+        it('shows one axis label per axis and no shading for annotations of a single point', async () => {
+            const point = (x: number, y: number) => ({ x: day(x), y });
+            const annotations = [
+                { type: 'text', text: 'Text', ...point(10, 15) },
+                { type: 'comment', text: 'Comment', ...point(25, 30) },
+                { type: 'note', text: 'Note', ...point(40, 45) },
+                { type: 'callout', text: 'Callout', start: point(55, 60), end: point(70, 90) },
+                { type: 'arrow-up', ...point(80, 75) },
+                { type: 'arrow-down', ...point(95, 20) },
+            ] as AgAnnotation[];
+            await prepareChart({ annotations }, withAxes('bottom', 'left', { axisLabel: { visible: 'always' } }));
+
+            // The y axis's labels are numbers and the x axis's are dates.
+            const yTexts = visibleAxisLabels()
+                .map((group) => String([...(group as Group).children()].find((child) => child instanceof Text)?.text))
+                .filter((text) => /^\d+$/.test(text));
+            expect(visibleAxisLabels()).toHaveLength(12);
+            expect([...yTexts].sort((a, b) => Number(a) - Number(b))).toEqual(['15', '20', '30', '45', '60', '75']);
 
             await compare();
         });
@@ -2761,17 +2878,6 @@ describe('Annotations', () => {
             await prepareChart({ annotations: [{ type: 'horizontal-line', value: 60 }] }, withAxes());
 
             await clickDatum(50, 60);
-
-            await compare();
-        });
-
-        it.each([
-            ['labels only', { axisShading: { enabled: false } }],
-            ['shading only', { axisLabel: { enabled: false } }],
-        ])('draws the shading and the labels independently of each other: %s', async (_, styles) => {
-            await prepareChart({ annotations: [{ ...LINE, ...styles }] }, withAxes());
-
-            await clickDatum(LINE_BODY.x, LINE_BODY.y);
 
             await compare();
         });
@@ -2870,7 +2976,8 @@ describe('Annotations', () => {
             await compare();
         });
 
-        it('shades out to the further edge of the tick labels and axis labels, and stops short of the axis titles', async () => {
+        // The depth is that of the ticks and tick labels, or of the axis labels if deeper, and only grows while selected.
+        it('shades the axes to a depth that covers the axis labels, and does not shrink as a handle is dragged', async () => {
             const { axes, ...options } = withAxes();
             await prepareChart(
                 { annotations: [LINE] },
@@ -2883,9 +2990,176 @@ describe('Annotations', () => {
                 }
             );
 
-            await clickDatum(50, 50);
+            const shading = () =>
+                findSceneNodes(
+                    chart,
+                    (node) => node.name === 'AnnotationSelectionAxisShading' && node.visible
+                ) as any[];
+            // The y axis's shading is the narrower of the two.
+            const yDepth = () => Math.min(...shading().map((node) => node.width));
+            const { x: left, y: top, width, height } = getSeriesRect(chart);
 
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+            expect(shading()).toHaveLength(2);
             await compare();
+
+            // Dragging the end handle from 75 labels it with values of many digits, such as 43.2171.
+            const end = { x: left + width * 0.8, y: top + height * 0.25 };
+            await mouseDownAction(end.x, end.y)(chart);
+            const depths = [yDepth()];
+            const labelWidths = [yAxisLabelWidths()];
+            for (const dy of [7, 33, 61, 12, 90]) {
+                await hoverAction(end.x, end.y + dy)(chart);
+                await waitForChartStability(chart);
+                depths.push(yDepth());
+
+                labelWidths.push(yAxisLabelWidths());
+
+                // The labels of the y axis fit within its shading.
+                for (const rect of yAxisLabelRects()) {
+                    expect(rect.x).toBeGreaterThanOrEqual(Math.min(...shading().map((node) => node.x)) - 0.5);
+                }
+            }
+            await mouseUpAction(end.x, end.y + 90)(chart);
+
+            expect(depths.every((depth, i) => i === 0 || depth >= depths[i - 1])).toBe(true);
+            expect(depths.at(-1)).toBeGreaterThan(depths[0]);
+
+            // Each label is no narrower than it was, and the one that is dragged is wider for its longer text.
+            expect(labelWidths.every((widths) => widths.length === 2)).toBe(true);
+            for (const [i, widths] of labelWidths.entries()) {
+                expect(i === 0 || widths.every((w, j) => w >= labelWidths[i - 1][j])).toBe(true);
+            }
+            expect(Math.max(...labelWidths.at(-1)!)).toBeGreaterThan(Math.max(...labelWidths[0]));
+            await compare();
+        });
+
+        // The depth and label width grow only while the annotation is selected: unselected, they follow the text.
+        it('redraws and shrinks the labels and shading of an annotation that is always shown, when the axis formats differently', async () => {
+            // The same options throughout, so that only the layout tells the labels that the values format differently.
+            let decimals = 6;
+            const { axes, ...options } = withAxes('bottom', 'left', { axisLabel: { visible: 'always' } });
+            const formatter = ({ value }: { value: unknown }) => Number(value).toFixed(decimals);
+            const sameOptions = { ...options, axes: { ...axes, y: { ...axes.y, label: { formatter } } } };
+            await prepareChart({ annotations: [LINE] }, sameOptions);
+
+            const yLabels = () =>
+                visibleAxisLabels()
+                    .map((group) => String([...(group as Group).children()].find((c) => c instanceof Text)?.text))
+                    .filter((text) => /^\d+(\.\d+)?$/.test(text))
+                    .sort((a, b) => a.localeCompare(b));
+            const yDepth = () =>
+                Math.min(
+                    ...(
+                        findSceneNodes(
+                            chart,
+                            (node) => node.name === 'AnnotationSelectionAxisShading' && node.visible
+                        ) as any[]
+                    ).map((node) => node.width as number)
+                );
+
+            expect(yLabels()).toEqual(['25.000000', '75.000000']);
+            const wide = yDepth();
+
+            decimals = 0;
+            await chart.update(prepareEnterpriseTestOptions({ ...sameOptions, initialState: undefined }) as never);
+            await waitForChartStability(chart);
+
+            expect(yLabels()).toEqual(['25', '75']);
+            expect(yDepth()).toBeLessThan(wide);
+            await compare();
+        });
+
+        // Every annotation updates on every pre-render, such as each pointer move; an unchanged one is not redrawn.
+        it('redraws the labels of an annotation that is always shown only when something about it changes', async () => {
+            await prepareChart(
+                { annotations: [LINE] },
+                withAxes('bottom', 'left', { axisLabel: { visible: 'always' } })
+            );
+            const update = vi.spyOn(SelectionAxesScene.prototype, 'update');
+            const redraw = vi.spyOn(AxisLabelScene.prototype, 'update');
+            try {
+                const { x, y, width, height } = getSeriesRect(chart);
+                await hoverAction(x + (width * EMPTY.x) / 100, y + (height * (100 - EMPTY.y)) / 100)(chart);
+                await waitForChartStability(chart);
+                expect(update).toHaveBeenCalled();
+                expect(redraw).not.toHaveBeenCalled();
+
+                await clickDatum(LINE_BODY.x, LINE_BODY.y);
+                expect(redraw).toHaveBeenCalled();
+            } finally {
+                update.mockRestore();
+                redraw.mockRestore();
+            }
+        });
+
+        it('measures the ends of an axis once for the annotations that share label styles', async () => {
+            const lines = [0, 10, 20].map((dy): AgAnnotation => ({
+                type: 'line',
+                start: { x: day(20), y: 25 + dy },
+                end: { x: day(80), y: 75 - dy },
+            }));
+            let decimals = 6;
+            const { axes, ...options } = withAxes('bottom', 'left', { axisLabel: { visible: 'always' } });
+            const formatter = ({ value }: { value: unknown }) => Number(value).toFixed(decimals);
+            const sameOptions = { ...options, axes: { ...axes, y: { ...axes.y, label: { formatter } } } };
+            await prepareChart({ annotations: lines }, sameOptions);
+
+            const update = vi.spyOn(AxisLabelScene.prototype, 'update');
+            try {
+                decimals = 0;
+                await chart.update(prepareEnterpriseTestOptions({ ...sameOptions, initialState: undefined }) as never);
+                await waitForChartStability(chart);
+                // The y axis spans 0 to 100, and only the probes at its ends read these values.
+                const probes = update.mock.calls.filter(([{ value }]) => value === 0 || value === 100);
+                expect(probes).toHaveLength(2);
+            } finally {
+                update.mockRestore();
+            }
+        });
+
+        it('keeps the labels of an annotation that is always shown when it is deselected, at the width of their text', async () => {
+            await prepareChart(
+                { annotations: [LINE] },
+                withAxes('bottom', 'left', { axisLabel: { visible: 'always' } })
+            );
+            const { x: left, y: top, width, height } = getSeriesRect(chart);
+
+            // Dragging the end handle away and back leaves its label as wide as its longest text was.
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+            const end = { x: left + width * 0.8, y: top + height * 0.25 };
+            await mouseDownAction(end.x, end.y)(chart);
+            await hoverAction(end.x, end.y + 33)(chart);
+            await hoverAction(end.x, end.y)(chart);
+            await mouseUpAction(end.x, end.y)(chart);
+            await waitForChartStability(chart);
+            const held = Math.max(...yAxisLabelWidths());
+
+            await clickDatum(EMPTY.x, EMPTY.y);
+            expect(visibleAxisLabels()).toHaveLength(4);
+            expect(Math.max(...yAxisLabelWidths())).toBeLessThan(held);
+        });
+
+        // These types have no axis label state, so a restore warns about it and keeps the annotation.
+        it('ignores the axis label and shading options that saved state holds for lines and channels', async () => {
+            const axisLabel = { enabled: true, fill: RED };
+            await prepareChart({
+                annotations: [
+                    { ...LINE, axisLabel, axisShading: { fill: RED } },
+                    { ...PARALLEL_CHANNEL, axisLabel },
+                ],
+            } as never);
+
+            expectWarningsCalls().toEqual([
+                ['AG Charts - Unknown option `annotations[0][type=line].axisLabel`, ignoring.'],
+                ['AG Charts - Unknown option `annotations[0][type=line].axisShading`, ignoring.'],
+                ['AG Charts - Unknown option `annotations[1][type=parallel-channel].axisLabel`, ignoring.'],
+            ]);
+            const [line, channel] = chart.getState().annotations as Array<Record<string, any>>;
+            expect(line).toMatchObject({ type: 'line' });
+            expect(channel).toMatchObject({ type: 'parallel-channel' });
+            expect(line.axisLabel).toBeUndefined();
+            expect(channel.axisLabel).toBeUndefined();
         });
 
         it('writes the state of a selected annotation back so that it restores unchanged', async () => {

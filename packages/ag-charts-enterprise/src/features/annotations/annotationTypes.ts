@@ -2,6 +2,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import type { BBox, Logger, Point } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import type { SelectionAxisStyles } from './annotationFields';
 import type { PointType } from './utils/scale';
 
 export type Constructor<T = object> = new (...args: any[]) => T;
@@ -117,8 +118,12 @@ export interface AnnotationContext {
     logger: Logger;
     localeManager: _ModuleSupport.LocaleManager;
     seriesRect: BBox;
+    /** Increases each time the chart lays out, so that what is derived from the axes can be kept until then. */
+    layoutVersion: number;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
+    /** When an annotation type shows axis labels and shading on the axes, and their styles. */
+    getSelectionAxes(type: string): SelectionAxisStyles;
     isRtl: boolean;
     getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
     /**

@@ -307,7 +307,7 @@ export class ChartTheme {
     protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
         return {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            annotationColor: this.getDefaultColors().fills.BLUE,
+            annotationColor: { $ref: 'foregroundColor' },
             annotationTextColor: DEFAULT_FILLS.BLUE,
             annotationHandleColor: DEFAULT_BACKGROUND_FILL,
             annotationTextboxTextColor: '#000',

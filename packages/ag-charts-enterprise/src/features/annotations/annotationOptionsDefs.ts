@@ -23,8 +23,9 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
+    AgAnnotationAxes,
     AgAnnotationAxisLabel,
-    AgAnnotationAxisShading,
+    AgAnnotationAxisLabelVisibility,
     AgAnnotationHandleStyles,
     AgAnnotationOptionsToolbarButton,
     AgAnnotationOptionsToolbarSwitch,
@@ -94,15 +95,22 @@ export const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> =
     ...lineDashOptionsDef,
 };
 
-export const annotationAxisShadingOptionsDef: OptionsDefs<AgAnnotationAxisShading> = {
-    enabled: boolean,
-    ...fillOptionsDef,
-};
+const axisVisibility = union('always', 'never', 'selected');
 
-/** The axis labels and shading shown while an annotation with two or more points is selected. */
-const selectionAxesDefs = {
-    axisLabel: annotationAxisLabelOptionsDef,
-    axisShading: annotationAxisShadingOptionsDef,
+const annotationAxisLabelVisibilityDef: OptionsDefs<AgAnnotationAxisLabelVisibility> = { visible: axisVisibility };
+
+/** The axis labels and shading of an annotation's points, which are set for an annotation type and not saved. */
+const annotationAxesDefs: OptionsDefs<AgAnnotationAxes> = {
+    axisLabel: {
+        ...annotationAxisLabelVisibilityDef,
+        cornerRadius: positiveNumber,
+        padding: padding,
+        ...fontOptionsDef,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    axisShading: fillOptionsDef,
 };
 
 const annotationChannelMiddleDefs: OptionsDefs<AgChannelAnnotationMiddle> = {
@@ -134,7 +142,6 @@ export const annotationLineStyleDefs: OptionsDefs<AgLineAnnotationStyles> = {
     extendEnd: boolean,
     handle: annotationHandleStylesDefs,
     text: annotationLineTextDefs,
-    ...selectionAxesDefs,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -167,7 +174,6 @@ export const annotationChannelStyleDefs: OptionsDefs<AgChannelAnnotationStyles> 
     handle: annotationHandleStylesDefs,
     text: annotationChannelTextDefs,
     background: fillOptionsDef,
-    ...selectionAxesDefs,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -231,7 +237,6 @@ export const annotationMeasurerStylesDefs: OptionsDefs<AgMeasurerAnnotationStyle
     text: annotationLineTextDefs,
     background: fillOptionsDef,
     statistics: annotationMeasurerStatisticsOptionsDefs,
-    ...selectionAxesDefs,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -240,11 +245,11 @@ export const annotationQuickMeasurerStylesDefs: OptionsDefs<AgQuickMeasurerAnnot
     visible: boolean,
     up: annotationQuickMeasurerDirectionStylesDefs,
     down: annotationQuickMeasurerDirectionStylesDefs,
-    ...selectionAxesDefs,
 };
 
 export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     enabled: boolean,
+    axisLabel: annotationAxisLabelVisibilityDef,
     axesButtons: {
         enabled: boolean,
         axes: union('x', 'y', 'xy'),
@@ -353,24 +358,29 @@ function withThemeTextAlign<T>(defs: OptionsDefs<T>): OptionsDefs<T> {
     return { ...defs, textAlign: undocumented(textAlign) };
 }
 
+const crossLineThemeDefs = {
+    ...annotationCrossLineStyleDefs,
+    axisLabel: { ...annotationAxisLabelOptionsDef, ...annotationAxisLabelVisibilityDef },
+};
+
 export const annotationThemeOptionsDef: OptionsDefs<AgAnnotationsThemeableOptions> = {
     ...annotationOptionsDef,
-    line: annotationLineStyleDefs,
-    'horizontal-line': annotationCrossLineStyleDefs,
-    'vertical-line': annotationCrossLineStyleDefs,
-    'disjoint-channel': annotationDisjointChannelStyleDefs,
-    'parallel-channel': annotationParallelChannelStyleDefs,
-    'fibonacci-retracement': annotationFibonacciStylesDefs,
-    'fibonacci-retracement-trend-based': annotationFibonacciStylesDefs,
-    callout: withThemeTextAlign(annotationCalloutStylesDefs),
-    comment: withThemeTextAlign(annotationCommentStylesDefs),
-    note: withThemeTextAlign(annotationNoteStylesDefs),
-    text: withThemeTextAlign(annotationTextStylesDef),
-    arrow: annotationLineStyleDefs,
-    'arrow-up': annotationShapeStylesDefs,
-    'arrow-down': annotationShapeStylesDefs,
-    'date-range': annotationMeasurerStylesDefs,
-    'price-range': annotationMeasurerStylesDefs,
-    'date-price-range': annotationMeasurerStylesDefs,
-    'quick-date-price-range': annotationQuickMeasurerStylesDefs,
+    line: { ...annotationLineStyleDefs, ...annotationAxesDefs },
+    'horizontal-line': crossLineThemeDefs,
+    'vertical-line': crossLineThemeDefs,
+    'disjoint-channel': { ...annotationDisjointChannelStyleDefs, ...annotationAxesDefs },
+    'parallel-channel': { ...annotationParallelChannelStyleDefs, ...annotationAxesDefs },
+    'fibonacci-retracement': { ...annotationFibonacciStylesDefs, ...annotationAxesDefs },
+    'fibonacci-retracement-trend-based': { ...annotationFibonacciStylesDefs, ...annotationAxesDefs },
+    callout: { ...withThemeTextAlign(annotationCalloutStylesDefs), ...annotationAxesDefs },
+    comment: { ...withThemeTextAlign(annotationCommentStylesDefs), ...annotationAxesDefs },
+    note: { ...withThemeTextAlign(annotationNoteStylesDefs), ...annotationAxesDefs },
+    text: { ...withThemeTextAlign(annotationTextStylesDef), ...annotationAxesDefs },
+    arrow: { ...annotationLineStyleDefs, ...annotationAxesDefs },
+    'arrow-up': { ...annotationShapeStylesDefs, ...annotationAxesDefs },
+    'arrow-down': { ...annotationShapeStylesDefs, ...annotationAxesDefs },
+    'date-range': { ...annotationMeasurerStylesDefs, ...annotationAxesDefs },
+    'price-range': { ...annotationMeasurerStylesDefs, ...annotationAxesDefs },
+    'date-price-range': { ...annotationMeasurerStylesDefs, ...annotationAxesDefs },
+    'quick-date-price-range': { ...annotationQuickMeasurerStylesDefs, ...annotationAxesDefs },
 };

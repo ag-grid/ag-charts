@@ -26,7 +26,7 @@ import type {
 
 import type { DialogCloseOutcome } from '../../components/dialog/dialog';
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
-import type { FontFields } from './annotationDatum';
+import type { FontFields, SelectionAxisStyles } from './annotationDatum';
 import { annotationDatums, getDefaultColor, isHoverable } from './annotationDatums';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
@@ -65,6 +65,7 @@ import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
 import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
+import { resolveSelectionAxes } from './utils/selectionAxes';
 import { isEphemeralType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
@@ -135,7 +136,7 @@ export class Annotations extends AbstractModuleInstance {
      * annotation state or its history, cannot be selected or cleared, and is not replaced by `setState`.
      */
     private readonly lastPriceLineContainer = new Group({ name: 'last-price-line' });
-    private readonly lastPriceLineScene = new CrossLineScene();
+    private readonly lastPriceLineScene = new CrossLineScene(true);
     private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)
@@ -159,6 +160,8 @@ export class Annotations extends AbstractModuleInstance {
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
+    private layoutVersion = 0;
+    private readonly selectionAxesCache = new Map<string, { source?: object; styles: SelectionAxisStyles }>();
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
@@ -875,6 +878,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
+        this.layoutVersion++;
 
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
@@ -1161,6 +1165,17 @@ export class Annotations extends AbstractModuleInstance {
         return Object.assign(datum, { value, locked: true, readOnly: true });
     }
 
+    // Runs for every annotation on every pre-render, so the styles are resolved again only when the theme changes.
+    private readonly getSelectionAxes = (type: string) => {
+        const source = this.ctx.annotationManager?.getStatelessAnnotationStyles(type);
+        const cached = this.selectionAxesCache.get(type);
+        if (cached != null && cached.source === source) return cached.styles;
+
+        const styles = resolveSelectionAxes(type, source);
+        this.selectionAxesCache.set(type, { source, styles });
+        return styles;
+    };
+
     private getAnnotationContext(): AnnotationContext | undefined {
         const { seriesRect, xAxis, yAxis, ctx } = this;
         if (!seriesRect || !xAxis || !yAxis) return;
@@ -1170,6 +1185,8 @@ export class Annotations extends AbstractModuleInstance {
             logger: ctx.logger,
             localeManager: ctx.localeManager,
             seriesRect,
+            layoutVersion: this.layoutVersion,
+            getSelectionAxes: this.getSelectionAxes,
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
             magnet: this.magnetOffset,
