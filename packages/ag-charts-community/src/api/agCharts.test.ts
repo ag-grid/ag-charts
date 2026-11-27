@@ -316,28 +316,24 @@ describe('AgCharts', () => {
             expect(warnCount(CHANGED(false))).toBe(0);
         });
 
-        it('keeps a static mode when the update asks for the other one, warning once', async () => {
-            chart = await createChart(barOptions({ injectStyles: false }));
-            const before = styleCount();
+        it.each([
+            { pinned: false, requested: true },
+            { pinned: true, requested: false },
+        ])(
+            'keeps a chart pinned to $pinned when updates ask for $requested, warning once',
+            async ({ pinned, requested }) => {
+                chart = await createChart(barOptions(pinned ? undefined : { injectStyles: false }));
+                const before = styleCount();
 
-            await chart.update(pieOptions({ injectStyles: true }));
-            await chart.update(pieOptions({ injectStyles: true }));
-            await chart.updateDelta({ injectStyles: true });
+                await chart.update(pieOptions({ injectStyles: requested }));
+                await chart.update(pieOptions({ injectStyles: requested }));
+                await chart.updateDelta({ injectStyles: requested });
 
-            expect(modeOf(chart)).toBe(false);
-            expect(styleCount()).toBe(before);
-            expect(warnCount(CHANGED(false))).toBe(1);
-        });
-
-        it('keeps an injecting mode when the update asks for static, warning once', async () => {
-            chart = await createChart(barOptions());
-
-            await chart.update(pieOptions({ injectStyles: false }));
-            await chart.updateDelta({ injectStyles: false });
-
-            expect(modeOf(chart)).toBe(true);
-            expect(warnCount(CHANGED(true))).toBe(1);
-        });
+                expect(modeOf(chart)).toBe(pinned);
+                if (!pinned) expect(styleCount()).toBe(before);
+                expect(warnCount(CHANGED(pinned))).toBe(1);
+            }
+        );
 
         it.each([
             { pinned: false, requested: true },

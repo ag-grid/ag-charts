@@ -1963,8 +1963,14 @@ describe('DOMManager', () => {
                 expect(warn).not.toHaveBeenCalled();
             });
 
-            it('does not warn when the marker is present', () => {
-                const { warn, create, settle } = setup({ '--ag-charts-css-loaded': '1' });
+            it.each<[string, Record<string, string>]>([
+                ['the marker is present', { '--ag-charts-css-loaded': '1' }],
+                [
+                    'the stylesheet is the same version',
+                    { '--ag-charts-css-loaded': '1', '--ag-charts-css-version': `"${TEST_VERSION}"` },
+                ],
+            ])('does not warn when %s', (_name, markers) => {
+                const { warn, create, settle } = setup(markers);
                 create();
                 settle();
                 expect(warn).not.toHaveBeenCalled();
@@ -1998,24 +2004,6 @@ describe('DOMManager', () => {
                 );
             });
 
-            it('stays silent for a stylesheet of the same version', () => {
-                const { warn, create, settle } = setup({
-                    '--ag-charts-css-loaded': '1',
-                    '--ag-charts-css-version': `"${TEST_VERSION}"`,
-                });
-                create();
-                settle();
-                expect(warn).not.toHaveBeenCalled();
-            });
-
-            it('never checks with skipCss', () => {
-                const { warn, create, settle, getComputedStyle } = setup({}, true);
-                create();
-                settle();
-                expect(warn).not.toHaveBeenCalled();
-                expect(getComputedStyle).not.toHaveBeenCalled();
-            });
-
             it('checks each shadow root of one document on its own, and a root once', () => {
                 const { rootDocument, warn, create, settle } = setup({});
                 const shadowRoot = () => {
@@ -2044,9 +2032,12 @@ describe('DOMManager', () => {
                 expect(warn).toHaveBeenCalledTimes(3);
             });
 
-            it('never checks a container that is not connected', () => {
-                const { warn, create, settle, getComputedStyle } = setup({});
-                create(false);
+            it.each([
+                { description: 'with skipCss', skipCss: true, connected: true },
+                { description: 'a container that is not connected', skipCss: false, connected: false },
+            ])('never checks $description', ({ skipCss, connected }) => {
+                const { warn, create, settle, getComputedStyle } = setup({}, skipCss);
+                create(connected);
                 settle();
                 expect(warn).not.toHaveBeenCalled();
                 expect(getComputedStyle).not.toHaveBeenCalled();

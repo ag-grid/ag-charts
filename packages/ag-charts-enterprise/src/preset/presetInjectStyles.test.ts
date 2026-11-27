@@ -50,18 +50,16 @@ describe('preset injectStyles', () => {
             { description: 'true', options: { injectStyles: true }, injects: true },
             { description: 'false', options: { injectStyles: false }, injects: false },
             { description: 'false in the theme', options: { theme: THEME }, injects: false },
+            {
+                description: 'true over false in the theme',
+                options: { injectStyles: true, theme: THEME },
+                injects: true,
+            },
         ])('with injectStyles $description', async ({ options, injects }) => {
             const container = await create(name, options);
 
             expect(injectStylesMode(chart!)).toBe(injects);
             expectStyles(name, container, injects);
-        });
-
-        it('lets the chart option win over the theme', async () => {
-            const container = await create(name, { injectStyles: true, theme: THEME });
-
-            expect(injectStylesMode(chart!)).toBe(true);
-            expectStyles(name, container, true);
         });
     });
 });
