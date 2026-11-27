@@ -84,6 +84,7 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     color?: string;
     strokeWidth?: number;
     isMultiColor?: boolean;
+    keyboardOnly?: boolean;
 }
 
 // Appended whenever the toolbar opens from the keyboard, whatever the `buttons` options say, since a keyboard user has
@@ -226,7 +227,7 @@ export class AnnotationOptionsToolbar {
         if (index >= 0) this.toolbar.getButtonWidget(index)?.focus();
     }
 
-    /** `keyboard` appends the buttons that only a keyboard user needs, such as moving the annotation. */
+    /** `keyboard` shows the `keyboardOnly` buttons and appends Move Annotation. */
     public updateButtons(datum: AnnotationDatum, keyboard = false) {
         if (!this.enabled) return;
 
@@ -242,7 +243,9 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.Delete]: true,
             [AnnotationOptions.Move]: false,
         };
-        this.visibleButtons = this.buttons.filter((button) => visible[button.value]);
+        this.visibleButtons = this.buttons.filter(
+            (button) => visible[button.value] && (keyboard || !button.keyboardOnly)
+        );
         if (keyboard) {
             this.visibleButtons.push(...KEYBOARD_ONLY_BUTTONS);
         }
