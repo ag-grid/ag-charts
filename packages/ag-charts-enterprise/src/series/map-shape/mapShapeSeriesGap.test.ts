@@ -990,10 +990,12 @@ describe('MapShapeSeries gap', () => {
 
         it('hands the one index to every map-shape series (DR2-3)', async () => {
             await create(timeZoneOptions({ gaps: allGaps(4) }));
-            const indexes = new Set(
-                ZONES.map((_, i) => (mapSeries(chart!, i) as unknown as { gapNeighbours: unknown }).gapNeighbours)
-            );
-            expect(indexes.size).toBe(1);
+            const [first, ...rest] = ZONES.map((_, i) => mapSeries(chart!, i).gapNeighbours);
+            expect(first, 'the chart hands one out').toBeInstanceOf(MapShapeGapNeighbours);
+            expect(rest).toHaveLength(ZONES.length - 1);
+            for (const neighbours of rest) {
+                expect(neighbours).toBe(first);
+            }
         });
 
         describe('rows without a colour value (V20, DR2-4)', () => {
