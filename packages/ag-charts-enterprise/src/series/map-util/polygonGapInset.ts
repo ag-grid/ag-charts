@@ -406,6 +406,40 @@ function hasThreeDistinctVertices(ring: readonly Position[]): boolean {
     return distinct >= 3;
 }
 
+/** A hole that is too small to inset still opens a gap: its kept vertices' bounding box grown by `d`, wound as the hole. */
+function grownBoundingBox(points: readonly Position[], d: number, orientation: 1 | -1): Position[] {
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    for (const [x, y] of points) {
+        x0 = Math.min(x0, x);
+        y0 = Math.min(y0, y);
+        x1 = Math.max(x1, x);
+        y1 = Math.max(y1, y);
+    }
+    x0 -= d;
+    y0 -= d;
+    x1 += d;
+    y1 += d;
+    const box: Position[] =
+        orientation > 0
+            ? [
+                  [x0, y0],
+                  [x1, y0],
+                  [x1, y1],
+                  [x0, y1],
+              ]
+            : [
+                  [x0, y0],
+                  [x0, y1],
+                  [x1, y1],
+                  [x1, y0],
+              ];
+    box.push([x0, y0]);
+    return box;
+}
+
 /**
  * Insets one polygon's rings in screen space by `d` on their moved edges. `ringInfo` is aligned with `projectedRings`:
  * a ring without an entry has no moved edge and is returned as the same array.
@@ -443,6 +477,8 @@ export function insetPolygonRings(
             drawn.push(inset.ring);
         } else if (r === 0) {
             return undefined;
+        } else {
+            drawn.push(grownBoundingBox(simplified.points, d, info.orientation));
         }
     }
 

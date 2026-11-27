@@ -332,6 +332,23 @@ describe('insetPolygonRings', () => {
             ]);
         });
 
+        it('opens a gap box around an enclave too small to inset, wound like the hole', () => {
+            const enclave = rect(10, 10, 10.2, 10.2);
+            const host = [rect(0, 0, 30, 30), reverseRing(enclave)];
+            const index = indexOf([true, host], [true, [enclave]]);
+
+            expect(inset(index, [enclave], 2)).toBeUndefined();
+            const drawn = inset(index, host, 2)!;
+            expect(drawn).toHaveLength(2);
+            expectRing(reverseRing(drawn[1]), [
+                [8, 8],
+                [12, 8],
+                [12, 12],
+                [8, 12],
+            ]);
+            expect(signedArea(drawn[1])).toBeCloseTo(-16, 9);
+        });
+
         it('collapses a host whose holes grow to fill it', () => {
             const enclave = rect(10, 10, 20, 20);
             const host = [rect(0, 0, 30, 30), reverseRing(enclave)];
@@ -788,6 +805,7 @@ function sweep(topology: GapTopology, zoom: number, d: number): SweepResult {
                 drawnKeys.add(keyOf(point));
             }
         }
+        if (drawn.length !== polygon.length) report(p, 'a hole was dropped');
         if (Math.abs(signedArea(drawn[0])) > Math.abs(signedArea(polygon[0])) + 1e-6) report(p, 'the area grew');
         if (signedArea(drawn[0]) * signedArea(polygon[0]) <= 0) report(p, 'the exterior ring flipped');
         // DR2-7: the polygon's signed area, exterior plus holes (holes wind the other way), never grows.
@@ -869,14 +887,12 @@ describe('gap sweep: both sides of a border', () => {
                 const info = index.getRingInfo(fixed[p][r]);
                 if (info == null) continue;
                 const simplified = simplifyGapRing(screen[p][r], info)!;
-                // Fewer than 3 kept vertices is a collapsed ring (a sub-pixel enclave), with no outline to compare.
-                if (simplified.points.length < 3) continue;
                 const { points, moved } = simplified;
+                const keys = new Set<string>();
                 for (let k = 0; k < points.length; k += 1) {
-                    if (moved[k] === 0) continue;
-                    const key = edgeKey(points[k], points[(k + 1) % points.length]);
-                    owners.set(key, (owners.get(key) ?? 0) + 1);
+                    if (moved[k] === 1) keys.add(edgeKey(points[k], points[(k + 1) % points.length]));
                 }
+                for (const key of keys) owners.set(key, (owners.get(key) ?? 0) + 1);
             }
         }
 
@@ -984,12 +1000,15 @@ describe('gap on real topologies', () => {
         const mainland = Array.from({ length: italy.count }, (_, i) => italy.first + i).find(
             (p) => screen[p].length > 1
         )!;
-        const holeAreas = screen[mainland].slice(1).map((ring) => Math.abs(signedArea(ring)));
+        const holes = screen[mainland].slice(1);
         const drawn = insetPolygonRings(screen[mainland], index.getPolygonRingInfo(fixed[mainland])!, 4)!;
 
-        // The sub-pixel Vatican City hole is dropped; San Marino's hole grows by the inset on every side.
-        expect(drawn).toHaveLength(2);
-        expect(Math.abs(signedArea(drawn[1]))).toBeGreaterThan(Math.max(...holeAreas));
+        // Each hole is drawn grown, wound like the original, even where its enclave is not drawn.
+        expect(drawn).toHaveLength(screen[mainland].length);
+        for (const [i, hole] of holes.entries()) {
+            expect(signedArea(drawn[i + 1]) * signedArea(hole)).toBeGreaterThan(0);
+            expect(Math.abs(signedArea(drawn[i + 1]))).toBeGreaterThan(Math.abs(signedArea(hole)));
+        }
     });
 
     it('insets the borders of Indonesia, Timor-Leste and Papua New Guinea and not their other coasts', () => {
