@@ -6,16 +6,21 @@ import type { ChartRegistry } from '../../module/moduleContext';
 
 type AnnotationsMemento = AgAnnotation[];
 
+/** Separates the styles of an annotation type that are not part of an annotation's state from those that are. */
+export type AnnotationStyleSplitter = (type: string, styles: object) => { styles: object; stateless?: object };
+
 export class AnnotationManager implements MementoOriginator<AnnotationsMemento> {
     public mementoOriginatorKey = 'annotations' as const;
 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
+    private readonly statelessStyles = new Map<string, object>();
     private editingProbe?: () => boolean;
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
-        private readonly stateDefs: OptionsDefs<AgAnnotation>
+        private readonly stateDefs: OptionsDefs<AgAnnotation>,
+        private readonly splitStyles?: AnnotationStyleSplitter
     ) {}
 
     public setEditingProbe(probe: () => boolean) {
@@ -77,13 +82,33 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     }
 
     public setAnnotationStyles(styles: AgAnnotationsThemeableOptions) {
-        this.styles = styles;
+        const { splitStyles, statelessStyles } = this;
+        statelessStyles.clear();
+        if (!splitStyles) {
+            this.styles = styles;
+            return;
+        }
+
+        const stateful: Record<string, unknown> = { ...styles };
+        for (const type of Object.keys(styles)) {
+            const typeStyles = (styles as Record<string, unknown>)[type];
+            if (!isPlainObject(typeStyles)) continue;
+            const split = splitStyles(type, typeStyles);
+            stateful[type] = split.styles;
+            if (split.stateless) statelessStyles.set(type, split.stateless);
+        }
+        this.styles = stateful;
+    }
+
+    /** The styles of an annotation type that are not applied to its annotations, so that they are not saved. */
+    public getStatelessAnnotationStyles(type: string) {
+        return this.statelessStyles.get(type);
     }
 
     public getAnnotationTypeStyles(
         type: keyof Omit<
             AgAnnotationsThemeableOptions,
-            'axesButtons' | 'axisLabel' | 'enabled' | 'optionsToolbar' | 'toolbar' | 'snap' | 'xAxis' | 'yAxis'
+            'axesButtons' | 'axisLabel' | 'enabled' | 'optionsToolbar' | 'toolbar' | 'snap'
         >
     ) {
         return this.styles?.[type];

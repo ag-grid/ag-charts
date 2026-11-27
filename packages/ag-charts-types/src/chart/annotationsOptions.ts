@@ -18,34 +18,34 @@ import type { CssColor, PixelSize } from './types';
 
 export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     // Lines
-    line?: AgLineAnnotationStyles;
-    'horizontal-line'?: AgCrossLineAnnotationStyles;
-    'vertical-line'?: AgCrossLineAnnotationStyles;
+    line?: AgLineAnnotationStyles & AgAnnotationAxes;
+    'horizontal-line'?: AgCrossLineAnnotationStyles & AgCrossLineAxisLabelVisibility;
+    'vertical-line'?: AgCrossLineAnnotationStyles & AgCrossLineAxisLabelVisibility;
 
     // Channels
-    'disjoint-channel'?: AgDisjointChannelAnnotationStyles;
-    'parallel-channel'?: AgParallelChannelAnnotationStyles;
+    'disjoint-channel'?: AgDisjointChannelAnnotationStyles & AgAnnotationAxes;
+    'parallel-channel'?: AgParallelChannelAnnotationStyles & AgAnnotationAxes;
 
     // Fibonaccis
-    'fibonacci-retracement'?: AgFibonacciAnnotationStyles;
-    'fibonacci-retracement-trend-based'?: AgFibonacciAnnotationStyles;
+    'fibonacci-retracement'?: AgFibonacciAnnotationStyles & AgAnnotationAxes;
+    'fibonacci-retracement-trend-based'?: AgFibonacciAnnotationStyles & AgAnnotationAxes;
 
     // Texts
-    callout?: AgCalloutAnnotationStyles;
-    comment?: AgCommentAnnotationStyles;
-    note?: AgNoteAnnotationStyles;
-    text?: AgTextAnnotationStyles;
+    callout?: AgCalloutAnnotationStyles & AgAnnotationAxes;
+    comment?: AgCommentAnnotationStyles & AgAnnotationAxes;
+    note?: AgNoteAnnotationStyles & AgAnnotationAxes;
+    text?: AgTextAnnotationStyles & AgAnnotationAxes;
 
     // Shapes
-    arrow?: AgLineAnnotationStyles;
-    'arrow-up'?: AgShapeAnnotationStyles;
-    'arrow-down'?: AgShapeAnnotationStyles;
+    arrow?: AgLineAnnotationStyles & AgAnnotationAxes;
+    'arrow-up'?: AgShapeAnnotationStyles & AgAnnotationAxes;
+    'arrow-down'?: AgShapeAnnotationStyles & AgAnnotationAxes;
 
     // Measurers
-    'date-range'?: AgMeasurerAnnotationStyles;
-    'price-range'?: AgMeasurerAnnotationStyles;
-    'date-price-range'?: AgMeasurerAnnotationStyles;
-    'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles;
+    'date-range'?: AgMeasurerAnnotationStyles & AgAnnotationAxes;
+    'price-range'?: AgMeasurerAnnotationStyles & AgAnnotationAxes;
+    'date-price-range'?: AgMeasurerAnnotationStyles & AgAnnotationAxes;
+    'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles & AgAnnotationAxes;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -165,16 +165,8 @@ export interface AgAnnotationMagnet extends Toggleable {
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
-    /**
-     * Configuration for the axis labels shown at the points of an annotation, on both axes. Each annotation shows
-     * them while it is selected, unless `visible` is set. Horizontal and vertical lines have their own axis labels,
-     * which this does not apply to.
-     */
-    axisLabel?: AgAnnotationSelectionAxisLabel;
-    /** Configuration for the labels and shading shown on the x axis, which overrides `axisLabel` for it. */
-    xAxis?: AgAnnotationAxisOptions;
-    /** Configuration for the labels and shading shown on the y axis, which overrides `axisLabel` for it. */
-    yAxis?: AgAnnotationAxisOptions;
+    /** Configuration for when annotations show their axis labels and shading. Applies to every annotation type that does not set its own `axisLabel.visible`. */
+    axisLabel?: AgAnnotationAxisLabelVisibility;
     /** Configuration for snapping annotation points to the values of the nearest datum. */
     magnet?: AgAnnotationMagnet;
     /** Configuration for the toolbar for creating annotations. */
@@ -482,28 +474,33 @@ export interface AgAnnotationAxisLabelStyles extends FillOptions, StrokeOptions,
 export interface AgAnnotationAxisLabel extends Toggleable, AgAnnotationAxisLabelStyles {}
 
 /**
- * When the axis labels or shading of an annotation are shown: `'selected'` while it is selected or being drawn,
+ * When the axis labels and shading of an annotation are shown: `'selected'` while it is selected or being drawn,
  * `'always'` whether or not it is selected, or `'never'`.
  */
 export type AgAnnotationAxisVisibility = 'always' | 'never' | 'selected';
 
-/** Configuration for the axis labels shown at the points of annotations. */
-export interface AgAnnotationSelectionAxisLabel extends AgAnnotationAxisLabelStyles {
-    /** When the axis labels are shown. Default: `'selected'` */
+/** Whether annotations show their axis labels and shading. */
+export interface AgAnnotationAxisLabelVisibility {
+    /** When the axis labels and shading are shown. Default: `'always'` for horizontal and vertical lines, `'selected'` for other annotations */
     visible?: AgAnnotationAxisVisibility;
 }
 
-/** Configuration for the shading drawn over an axis between the points of annotations. */
-export interface AgAnnotationAxisShading extends FillOptions {
-    /** When the shading is shown. Default: `'selected'` */
-    visible?: AgAnnotationAxisVisibility;
+/** Configuration for the axis label of a horizontal or vertical line, which sets when it is shown. */
+export interface AgCrossLineAxisLabelVisibility {
+    axisLabel?: AgAnnotationAxisLabelVisibility;
 }
 
-/** Configuration for the labels and shading that annotations show on one axis. */
-export interface AgAnnotationAxisOptions {
-    /** Configuration for the axis labels. Overrides the `axisLabel` set for all annotations. */
+/** Configuration for the axis labels shown at the points of an annotation. */
+export interface AgAnnotationSelectionAxisLabel extends AgAnnotationAxisLabelStyles, AgAnnotationAxisLabelVisibility {}
+
+/** Configuration for the shading drawn over an axis between the points of an annotation. */
+export interface AgAnnotationAxisShading extends FillOptions {}
+
+/** The axis labels and shading of an annotation's points, which are not part of its state. */
+export interface AgAnnotationAxes {
+    /** Configuration for the axis label of each point, on both axes. */
     axisLabel?: AgAnnotationSelectionAxisLabel;
-    /** Configuration for the shading. */
+    /** Configuration for the shading between the points, on both axes. Annotations of a single point have none. */
     axisShading?: AgAnnotationAxisShading;
 }
 

@@ -24,7 +24,6 @@ export type {
     FillFields,
     FontFields,
     LineStyleFields,
-    SelectionAxesStyles,
     SelectionAxisLabelStyles,
     SelectionAxisShadingStyles,
     SelectionAxisStyles,

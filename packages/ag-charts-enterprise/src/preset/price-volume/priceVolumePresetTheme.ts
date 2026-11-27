@@ -43,8 +43,6 @@ const font: WithThemeParams<TextOptions> = {
 
 const background = { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 } as const;
 
-const axisShading = { ...background } as const;
-
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
     strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
@@ -198,11 +196,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             },
         },
     },
-    // The labels and shading that annotations show at their points use the annotation colour, as the axis labels of
-    // the lines do.
-    axisLabel: { color: 'white', fill: { $ref: 'annotationColor' } },
-    xAxis: { axisShading: { ...axisShading } },
-    yAxis: { axisShading: { ...axisShading } },
     axesButtons: {
         enabled: true,
     },

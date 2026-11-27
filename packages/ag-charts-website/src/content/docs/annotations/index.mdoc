@@ -117,30 +117,29 @@ Holding {% kbd "^ Ctrl"/%} or {% kbd "⌘ Cmd"/%} whilst creating a drawing or d
 
 A drawing or annotation shows an axis label for each of its points, on both axes, while it is selected. Drawings with two or more points also shade each axis between their points. Annotations of a single point, such as text and arrows, show one axis label per axis and no shading. A callout's labels are those of the point it points at.
 
-Set `visible` to `'always'` to show the labels or shading whether or not the annotation is selected, or to `'never'` to hide them. It defaults to `'selected'`, and is set separately for `axisLabel` and for the `axisShading` of each axis. The labels take the options of `annotations.axisLabel`, which `xAxis.axisLabel` and `yAxis.axisLabel` override for one axis:
+Set `annotations.axisLabel.visible` to `'always'` to show the labels and shading whether or not the annotation is selected, or to `'never'` to hide them. It defaults to `'selected'`, and to `'always'` for horizontal and vertical lines. To set it for one type of annotation, use the `axisLabel.visible` option of that type in a [theme override](/themes-api/#reference-AgChartTheme-overrides-common-annotations):
 
 ```js format="snippet"
 {
     annotations: {
         enabled: true,
-        axisLabel: {
-            visible: 'always',
-            fill: '#1f77b4',
-        },
-        yAxis: {
-            axisLabel: { visible: 'never' },
-            axisShading: { fill: '#1f77b4', fillOpacity: 0.1 },
-        },
-        xAxis: {
-            axisShading: { visible: 'never' },
+        axisLabel: { visible: 'always' },
+    },
+    theme: {
+        overrides: {
+            common: {
+                annotations: {
+                    line: { axisLabel: { visible: 'never' } },
+                },
+            },
         },
     },
 }
 ```
 
-The labels and shading do not follow the colours of the annotation. They use the foreground colour of the theme, with the shading at `0.075` opacity, unless `fill` is set. The shading covers the ticks and tick labels of the axis, but not its title.
+The labels and shading use the default colour of the annotation, and do not follow the colours that the user picks. Set the `fill` of the `axisLabel` and `axisShading` of a type in a theme override to change them. The shading covers the ticks and tick labels of the axis, but not its title.
 
-The horizontal and vertical line annotations have an axis label of their own, which is set by their `axisLabel` option. The Financial Charts preset takes these options as a [theme override](/themes-api/#reference-AgChartTheme-overrides-common-annotations).
+The horizontal and vertical lines have one position, so they have a label and no shading. Their label takes the colour of the line, and the `enabled` option of their `axisLabel` turns it off.
 
 ## Keyboard Shortcuts
 

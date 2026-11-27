@@ -4,7 +4,7 @@ import type { Node, Point } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { Handle } from './handle';
-import { SelectionAxesScene, isAlways } from './selectionAxesScene';
+import { SelectionAxesScene, isShown } from './selectionAxesScene';
 
 export abstract class AnnotationScene<D = unknown> extends Group<D> {
     static isCheck(value: unknown, type: string) {
@@ -18,7 +18,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
     public abstract activeHandle?: string;
 
     private selectionAxes?: SelectionAxesScene;
-    private selected = false;
+    protected selected = false;
     private axesVisible = true;
     private axesOpacity = 1;
 
@@ -40,10 +40,16 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
     }
 
     /** The datum is `undefined` for an annotation that has no selection axes, such as a horizontal line. */
-    public updateSelectionAxes(datum: unknown, context: AnnotationContext) {
+    public updateSelectionAxes(datum: { type: string } | undefined, context: AnnotationContext) {
         // Runs for every annotation on every pre-render, so the common unselected case returns first.
-        const { x, y } = context.selectionAxes;
-        if (!this.visible || !this.axesVisible || datum == null || !(this.selected || isAlways(x) || isAlways(y))) {
+        if (datum == null || !this.visible || !this.axesVisible) {
+            this.selectionAxes?.hide();
+            return;
+        }
+
+        // The scene's own `type` groups several annotation types, such as the measurers.
+        const styles = context.getSelectionAxes(datum.type);
+        if (!isShown(styles.visible, this.selected)) {
             this.selectionAxes?.hide();
             return;
         }
@@ -54,7 +60,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
         }
         this.selectionAxes.update({
             points: this.getSelectionPoints(datum, context),
-            styles: context.selectionAxes,
+            styles,
             selected: this.selected,
             seriesRect: context.seriesRect,
             xAxis: context.xAxis,

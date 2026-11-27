@@ -1,6 +1,8 @@
 import {
+    type AgAnnotationAxes,
     type AgAnnotationAxisLabel,
     type AgAnnotationAxisLabelStyles,
+    type AgAnnotationAxisVisibility,
     type AgAnnotationHandleStyles,
     type AgAnnotationMagnet,
     type AgAnnotationOptionsToolbar,
@@ -59,7 +61,22 @@ const axisLabelStyles: WithThemeParams<AgAnnotationAxisLabelStyles> = {
     lineHeight: themeLineHeight('lineHeight'),
 };
 
-const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = { ...axisLabelStyles, enabled: true };
+// Defers to the top-level `visible`, and falls back to the default of the annotation type.
+const axisVisible = (fallback: AgAnnotationAxisVisibility) => ({
+    $path: ['/annotations/axisLabel/visible', fallback] as [string, AgAnnotationAxisVisibility],
+});
+
+const axisLabel: WithThemeParams<AgAnnotationAxisLabel & { visible?: AgAnnotationAxisVisibility }> = {
+    ...axisLabelStyles,
+    enabled: true,
+    visible: axisVisible('always'),
+};
+
+// The labels and shading use the annotation colour, not the colours that a user picks for an annotation.
+const axes: WithThemeParams<AgAnnotationAxes> = {
+    axisLabel: { ...axisLabelStyles, fill: { $ref: 'annotationColor' }, visible: axisVisible('selected') },
+    axisShading: { fill: { $ref: 'annotationColor' }, fillOpacity: 0.2 },
+};
 
 const text = {
     ...font,
@@ -98,12 +115,6 @@ export const MEASURER_STATISTICS_THEME: WithThemeParams<AgMeasurerAnnotationStat
 export const QUICK_MEASURER_DIVIDER_THEME = { stroke: '#fff', strokeWidth: 1, strokeOpacity: 0.5 };
 
 const background = { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.075 } as const;
-
-const axisShading = {
-    visible: 'selected',
-    fill: { $ref: 'foregroundColor' },
-    fillOpacity: background.fillOpacity,
-} as const;
 
 const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
     ...stroke,
@@ -220,6 +231,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     // Lines
     line: {
+        ...axes,
         ...stroke,
         handle: { ...handle },
         text: { ...lineText },
@@ -239,12 +251,14 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     // Channels
     'disjoint-channel': {
+        ...axes,
         ...stroke,
         background: { ...background },
         handle: { ...handle },
         text: { ...channelText },
     },
     'parallel-channel': {
+        ...axes,
         ...stroke,
         middle: {
             lineDash: [6, 5],
@@ -256,12 +270,13 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
 
     // Fibonnaccis
-    'fibonacci-retracement': { ...fibonacci },
+    'fibonacci-retracement': { ...fibonacci, ...axes },
 
-    'fibonacci-retracement-trend-based': { ...fibonacci },
+    'fibonacci-retracement-trend-based': { ...fibonacci, ...axes },
 
     // Texts
     callout: {
+        ...axes,
         ...stroke,
         ...text,
         color: { $ref: 'textColor' },
@@ -270,12 +285,14 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         fillOpacity: 0.075,
     },
     comment: {
+        ...axes,
         ...text,
         fontWeight: 700,
         handle: { ...handle },
         fill: { $ref: 'foregroundColor' },
     },
     note: {
+        ...axes,
         ...text,
         color: { $ref: 'annotationTextboxTextColor' },
         fill: { $ref: 'annotationColor' },
@@ -290,6 +307,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
     },
     text: {
+        ...axes,
         ...text,
         color: { $ref: 'textColor' },
         handle: { ...handle },
@@ -297,30 +315,37 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
 
     // Shapes
     arrow: {
+        ...axes,
         ...stroke,
         handle: { ...handle },
         text: { ...lineText },
     },
     'arrow-up': {
+        ...axes,
         fill: { $palette: 'up.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
     'arrow-down': {
+        ...axes,
         fill: { $palette: 'down.fill' },
         handle: { ...handle, stroke: { $ref: 'foregroundColor' } },
     },
 
     // Measurers
     'date-range': {
+        ...axes,
         ...measurer,
     },
     'price-range': {
+        ...axes,
         ...measurer,
     },
     'date-price-range': {
+        ...axes,
         ...measurer,
     },
     'quick-date-price-range': {
+        ...axes,
         up: {
             ...stroke,
             fill: { $ref: 'annotationColor' },
@@ -353,11 +378,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         },
     },
 
-    // The labels and shading of an annotation's points do not follow its colours, as a horizontal or vertical line's
-    // axis label does not. The labels are those of a horizontal or vertical line, except for when they show.
-    axisLabel: { ...axisLabelStyles, visible: 'selected' },
-    xAxis: { axisShading: { ...axisShading } },
-    yAxis: { axisShading: { ...axisShading } },
     axesButtons: {},
     magnet: { ...MAGNET_THEME },
     // Toolbars

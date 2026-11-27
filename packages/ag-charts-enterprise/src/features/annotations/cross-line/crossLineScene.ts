@@ -6,6 +6,7 @@ import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
+import { isShown } from '../scenes/selectionAxesScene';
 import { magnetTranslation, translate } from '../utils/coords';
 import { isWriteable } from '../utils/datum';
 import { getLineCap, getLineDash } from '../utils/line';
@@ -60,7 +61,7 @@ export class CrossLineScene extends AnnotationScene<never> {
         this.updateLine(datum, coords);
         this.updateHandle(datum, coords);
         this.updateText(datum, coords);
-        this.updateAxisLabel(datum, axisContext, coords);
+        this.updateAxisLabel(datum, axisContext, coords, context);
     }
 
     private updateLine(datum: CrossLineDatum, coords: Bounds4) {
@@ -117,12 +118,17 @@ export class CrossLineScene extends AnnotationScene<never> {
         return axisLabel;
     }
 
-    private updateAxisLabel(datum: CrossLineDatum, axisContext: AnnotationAxisContext, coords: Bounds4) {
+    private updateAxisLabel(
+        datum: CrossLineDatum,
+        axisContext: AnnotationAxisContext,
+        coords: Bounds4,
+        context: AnnotationContext
+    ) {
         this.axisLabel ??= this.createAxisLabel(axisContext);
 
         const { axisLabel, seriesRect } = this;
         const { direction, position } = axisContext;
-        if (datum.axisLabel.enabled) {
+        if (datum.axisLabel.enabled && isShown(context.getSelectionAxes(datum.type).visible, this.selected)) {
             axisLabel.visible = this.visible;
 
             const labelCorner = position === 'left' || position === 'top' ? Vec4.start(coords) : Vec4.end(coords);

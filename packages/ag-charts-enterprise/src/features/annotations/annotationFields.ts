@@ -41,23 +41,14 @@ export interface AxisLabelDatum extends StrokeFields, LineStyleFields, FillField
     padding?: Padding;
 }
 
-/** The axis labels of an annotation's points, which `annotations.axisLabel` and its per-axis overrides configure. */
-export interface SelectionAxisLabelStyles extends Omit<AxisLabelDatum, 'enabled'> {
-    visible: AgAnnotationAxisVisibility;
-}
+/** The styles of the axis labels at an annotation's points. */
+export type SelectionAxisLabelStyles = Omit<AxisLabelDatum, 'enabled'>;
 
-export interface SelectionAxisShadingStyles extends FillFields {
-    visible: AgAnnotationAxisVisibility;
-}
+export type SelectionAxisShadingStyles = FillFields;
 
-/** The labels and shading that annotations show on one axis. */
+/** When an annotation type shows axis labels and shading, and their styles, which are not saved in its state. */
 export interface SelectionAxisStyles {
+    visible: AgAnnotationAxisVisibility;
     axisLabel: SelectionAxisLabelStyles;
     axisShading: SelectionAxisShadingStyles;
-}
-
-/** The labels and shading that annotations show on each axis, which are not options of the annotations themselves. */
-export interface SelectionAxesStyles {
-    x: SelectionAxisStyles;
-    y: SelectionAxisStyles;
 }

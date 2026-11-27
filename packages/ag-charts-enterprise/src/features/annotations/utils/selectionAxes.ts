@@ -1,31 +1,39 @@
-import type { AgAnnotationAxisOptions, AgAnnotationsOptions } from 'ag-charts-types';
+import { type SelectionAxisStyles, createAxisLabelDatum } from '../annotationDatum';
 
-import {
-    type SelectionAxesStyles,
-    type SelectionAxisLabelStyles,
-    type SelectionAxisShadingStyles,
-    type SelectionAxisStyles,
-    createAxisLabelDatum,
-} from '../annotationDatum';
+type StatelessAxisStyles = Partial<{
+    axisLabel: Partial<SelectionAxisStyles['axisLabel']> & { visible?: string };
+    axisShading: object;
+}>;
 
-function resolveAxis(
-    { axisLabel }: Pick<AgAnnotationsOptions, 'axisLabel'>,
-    axis: AgAnnotationAxisOptions | undefined
-): SelectionAxisStyles {
-    // The options have been through the theme by now, so they hold no colour references, which the types allow.
-    const label = { ...createAxisLabelDatum(), ...axisLabel, ...axis?.axisLabel } as SelectionAxisLabelStyles;
-    const shading = { ...axis?.axisShading } as SelectionAxisShadingStyles;
-    return {
-        axisLabel: { ...label, visible: label.visible ?? 'selected' },
-        axisShading: { ...shading, visible: shading.visible ?? 'selected' },
-    };
+function isCrossLine(type: string) {
+    return type === 'horizontal-line' || type === 'vertical-line';
 }
 
 /**
- * The labels and shading that annotations show on each axis: the `axisLabel` that is set for both, overridden by the
- * options of the axis. Horizontal and vertical lines have axis labels of their own, which these do not apply to.
+ * Separates the axis styles of an annotation type, which are not applied to its annotations, from its other styles.
+ * A horizontal or vertical line's axis label is saved in its state, except for when it shows.
  */
-export function resolveSelectionAxes(options: AgAnnotationsOptions | undefined): SelectionAxesStyles {
-    const { xAxis, yAxis } = options ?? {};
-    return { x: resolveAxis(options ?? {}, xAxis), y: resolveAxis(options ?? {}, yAxis) };
+export function splitSelectionAxisStyles(type: string, styles: object) {
+    const { axisLabel, axisShading, ...rest } = styles as StatelessAxisStyles & Record<string, unknown>;
+    if (axisLabel == null && axisShading == null) return { styles };
+
+    if (isCrossLine(type)) {
+        const { visible, ...label } = axisLabel ?? {};
+        return {
+            styles: Object.keys(label).length > 0 ? { ...rest, axisLabel: label } : rest,
+            stateless: { axisLabel: { visible } },
+        };
+    }
+    return { styles: rest, stateless: { axisLabel, axisShading } };
+}
+
+export function resolveSelectionAxes(type: string, stateless: object | undefined): SelectionAxisStyles {
+    const { axisLabel, axisShading } = (stateless ?? {}) as StatelessAxisStyles;
+    const { visible, ...label } = axisLabel ?? {};
+    return {
+        visible: (visible as SelectionAxisStyles['visible'] | undefined) ?? (isCrossLine(type) ? 'always' : 'selected'),
+        // The options have been through the theme by now, so they hold no colour references, which the types allow.
+        axisLabel: { ...createAxisLabelDatum(), ...label },
+        axisShading: { ...axisShading },
+    };
 }
