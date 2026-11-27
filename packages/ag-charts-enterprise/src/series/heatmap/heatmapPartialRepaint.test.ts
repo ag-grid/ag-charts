@@ -5,7 +5,9 @@ import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
     deproxy,
+    expectNonBlank,
     expectSamePixels,
+    expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -14,21 +16,11 @@ import {
 import { BBox, Group, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
+import { getHeatmapCellBatch, getHeatmapNodeDataValues } from '../../test/enterpriseSeriesAccessors';
+import { type GridCell, gridCells } from '../../test/seriesHelpers';
 import { createEnterpriseChart } from '../../test/utils';
 import { HeatmapCellBatch } from './heatmapCellBatch';
 import { HeatmapSeries } from './heatmapSeries';
-
-type GridCell = { id: string; x: string; y: string; v: number };
-
-function gridCells(columns: number, rows: number): GridCell[] {
-    const cells: GridCell[] = [];
-    for (let x = 0; x < columns; x++) {
-        for (let y = 0; y < rows; y++) {
-            cells.push({ id: `${x}:${y}`, x: `X${x}`, y: `Y${y}`, v: x * rows + y });
-        }
-    }
-    return cells;
-}
 
 describe('HeatmapSeries partial repaint', () => {
     setupMockConsole();
@@ -47,20 +39,19 @@ describe('HeatmapSeries partial repaint', () => {
     const ROWS = 10;
     const GRID = gridCells(COLUMNS, ROWS);
 
+    const heatmapSeries = (series: Record<string, unknown> = {}) => ({
+        type: 'heatmap',
+        xKey: 'x',
+        yKey: 'y',
+        colorKey: 'v',
+        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+        ...series,
+    });
     const options = (data: GridCell[], series: Record<string, unknown> = {}, chartOptions: object = {}) =>
         ({
             data,
             dataIdKey: 'id',
-            series: [
-                {
-                    type: 'heatmap',
-                    xKey: 'x',
-                    yKey: 'y',
-                    colorKey: 'v',
-                    colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
-                    ...series,
-                },
-            ],
+            series: [heatmapSeries(series)],
             legend: { enabled: false },
             ...chartOptions,
         }) as AgChartOptions;
@@ -74,6 +65,15 @@ describe('HeatmapSeries partial repaint', () => {
     const column = (x: number, v: (y: number) => number, cells = GRID) =>
         cells.filter((cell) => cell.x === `X${x}`).map((cell) => ({ ...cell, v: v(Number(cell.y.slice(1))) }));
 
+    const updateData = (data: GridCell[]) => chart.publicApi!.updateDelta({ data });
+    const hoverCell = async (datumIndex: number) => {
+        const series = heatmap();
+        const { point } = series.getNodeData()!.find((n) => n.datumIndex === datumIndex)!;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, point.x, point.y);
+        await hoverAction(canvasX, canvasY)(chart);
+        await waitForChartStability(chart);
+    };
+
     async function transact(update: GridCell[]) {
         await chart.publicApi!.applyTransaction({ update });
         await waitForChartStability(chart);
@@ -81,10 +81,15 @@ describe('HeatmapSeries partial repaint', () => {
 
     /** The regions that layers repainted in part since the spy was last cleared. */
     const partialRegions = () => spy.mock.results.map((result) => result.value).filter((region) => region != null);
+    /** The layers that repainted in part since the spy was last cleared. */
+    const partialLayers = () =>
+        spy.mock.contexts.filter(
+            (layer, index): layer is Group => layer instanceof Group && spy.mock.results[index].value != null
+        );
 
     /** Repaints every layer whole, and returns what that painted. */
     function repaintWhole() {
-        heatmap().contentGroup.markDirty();
+        for (const series of chart.series) series.contentGroup.markDirty();
         chart.ctx.scene.render();
         return ctx.snapshot();
     }
@@ -98,13 +103,15 @@ describe('HeatmapSeries partial repaint', () => {
         expectSamePixels(frame, repaintWhole());
     }
 
-    it('repaints only the region of the updated column, and matches a whole repaint', async () => {
+    it('repaints only the region of the updated column in the series layer and the series root, and matches a whole repaint', async () => {
         await create();
 
         await transact(column(3, (y) => 150 + y));
 
+        expect(partialLayers()).toContain(chart.seriesRoot);
         const regions = partialRegions();
-        expect(regions).toHaveLength(1);
+        expect(regions).toHaveLength(2);
+        expect(regions[1]).toEqual(regions[0]);
         const [{ width, height }] = regions;
         // One of twenty columns, and all of the rows.
         expect(width / ctx.nodeCanvas.width).toBeLessThan(0.15);
@@ -189,7 +196,7 @@ describe('HeatmapSeries partial repaint', () => {
     });
 
     it('matches a whole repaint when an itemStyler gives cells a fill opacity', async () => {
-        const itemStyler = ({ datum }: { datum: GridCell }) => ({ fillOpacity: datum.v % 3 === 0 ? 0.35 : 1 });
+        const itemStyler = ({ datum }: { datum: GridCell }) => ({ fillOpacity: Number(datum.v) % 3 === 0 ? 0.35 : 1 });
         await create(GRID, { itemStyler });
 
         await transact(column(3, (y) => 100 + y));
@@ -216,19 +223,6 @@ describe('HeatmapSeries partial repaint', () => {
 
         await transact(column(8, (y) => 70 + y));
         expectFrameToMatchWholeRepaint(true);
-    });
-
-    it('repaints in full when the cells are zoomed', async () => {
-        await create(
-            GRID,
-            {},
-            { zoom: { enabled: true, axes: 'x' }, initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } } }
-        );
-        spy.mockClear();
-
-        await transact(column(8, (y) => 100 + y));
-
-        expectFrameToMatchWholeRepaint(false);
     });
 
     it('repaints in full, and matches a whole repaint, when cells with labels are updated', async () => {
@@ -287,9 +281,10 @@ describe('HeatmapSeries partial repaint', () => {
         await transact(column(3, (y) => 150 + y));
 
         const { seriesRoot } = chart.modulesManager.getModule<any>('navigator').miniChart;
-        const partialLayers = spy.mock.contexts.filter((_, index) => spy.mock.results[index].value != null);
-        // Only the main chart's series layer repaints in part; the mini chart's takes an ordinary mark.
-        expect(partialLayers).toHaveLength(1);
+        const layers = partialLayers();
+        // Only the main chart's layers repaint in part; the mini chart's take an ordinary mark.
+        expect(layers).toHaveLength(2);
+        expect(layers.every((layer) => [...layer.traverseUp(true)].includes(chart.seriesRoot))).toBe(true);
         expect(spy.mock.contexts).not.toContain(seriesRoot);
     });
 
@@ -300,14 +295,295 @@ describe('HeatmapSeries partial repaint', () => {
 
         expectFrameToMatchWholeRepaint(false);
     });
+
+    const copyOf = (cells: GridCell[]) => cells.map((cell) => ({ ...cell }));
+    const withCell = (cells: GridCell[], index: number, change: Partial<GridCell>) =>
+        cells.map((cell, i) => (i === index ? { ...cell, ...change } : { ...cell }));
+
+    const paintsOf = (renders: number) => {
+        if (renders === 0) return 'none';
+        return partialRegions().length > 0 ? 'partial' : 'whole';
+    };
+
+    it.each([
+        { name: 'the same data again', update: () => updateData(copyOf(GRID)), paints: 'none' },
+        {
+            name: 'an empty transaction',
+            update: () => chart.publicApi!.applyTransaction({ update: [] }),
+            paints: 'none',
+        },
+        {
+            name: 'a transaction of unchanged cells',
+            update: () => chart.publicApi!.applyTransaction({ update: column(3, (y) => 3 * ROWS + y) }),
+            paints: 'none',
+        },
+        {
+            name: 'new data with one changed cell',
+            update: () => updateData(withCell(GRID, 34, { v: 120 })),
+            paints: 'whole',
+        },
+        {
+            name: 'a transaction of one changed cell',
+            update: () => chart.publicApi!.applyTransaction({ update: [{ ...GRID[34], v: 120 }] }),
+            paints: 'partial',
+        },
+    ])('paints $paints of the cells for $name', async ({ update, paints }) => {
+        await create();
+        expect(getHeatmapCellBatch(chart).visible).toBe(true);
+        const render = vi.spyOn(HeatmapCellBatch.prototype, 'render');
+        spy.mockClear();
+
+        let renders: number;
+        try {
+            await update();
+            await waitForChartStability(chart);
+            renders = render.mock.calls.length;
+        } finally {
+            render.mockRestore();
+        }
+        expect(paintsOf(renders)).toBe(paints);
+        expectFrameToMatchWholeRepaint();
+    });
+
+    it('repaints in part for a transaction straight after a redraw of the same data', async () => {
+        await create();
+        await updateData(copyOf(GRID));
+        await waitForChartStability(chart);
+        spy.mockClear();
+
+        await transact(column(3, (y) => 150 + y));
+
+        expect(partialLayers()).toHaveLength(2);
+        expectFrameToMatchWholeRepaint(true);
+    });
+
+    describe('the series root around the series layer', () => {
+        const HOVERED = 3 * ROWS + 4;
+        const translucent = { itemStyler: () => ({ fillOpacity: 0.5 }) };
+        const cases: {
+            name: string;
+            series?: Record<string, unknown>;
+            chartOptions?: object;
+            before?: () => Promise<unknown>;
+            update: GridCell[];
+            rootPartial: boolean;
+            partialLayers: number;
+        }[] = [
+            { name: 'by default', update: column(3, (y) => 150 + y), rootPartial: true, partialLayers: 2 },
+            {
+                name: 'when it is not a layer',
+                chartOptions: { highlight: { drawingMode: 'overlay' } },
+                update: column(3, (y) => 150 + y),
+                rootPartial: false,
+                partialLayers: 1,
+            },
+            {
+                name: 'when the series glows',
+                series: { glow: { enabled: true } },
+                update: column(3, (y) => 150 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'while another cell is hovered',
+                before: () => hoverCell(HOVERED),
+                update: column(8, (y) => 70 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'while a cell with a highlight glow is hovered',
+                series: { highlight: { highlightedItem: { glow: { enabled: true } } } },
+                before: () => hoverCell(HOVERED),
+                update: column(8, (y) => 70 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'while the updated cell is hovered',
+                before: () => hoverCell(HOVERED),
+                update: [{ ...GRID[HOVERED], v: 120 }],
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'when the cells are zoomed',
+                chartOptions: {
+                    zoom: { enabled: true, axes: 'x' },
+                    initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } },
+                },
+                update: column(8, (y) => 100 + y),
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'with a second series over the first',
+                chartOptions: { series: [heatmapSeries(translucent), heatmapSeries(translucent)] },
+                update: column(3, (y) => 150 + y),
+                rootPartial: true,
+                partialLayers: 3,
+            },
+            {
+                name: 'when the region covers most of the layer',
+                // Two cells in opposite corners, within the extremes of the colour scale.
+                update: [
+                    { ...GRID[ROWS], v: 15 },
+                    { ...GRID[(COLUMNS - 1) * ROWS - 1], v: 185 },
+                ],
+                rootPartial: false,
+                partialLayers: 0,
+            },
+            {
+                name: 'straight after a whole repaint',
+                before: () => updateData(withCell(GRID, 34, { v: 150 })),
+                update: column(3, (y) => 150 + y),
+                rootPartial: true,
+                partialLayers: 2,
+            },
+        ];
+
+        it.each(cases)(
+            'repaints in part or whole, and matches a whole repaint, $name',
+            async ({ series, chartOptions, before, update, rootPartial, partialLayers: layers }) => {
+                await create(GRID, series, chartOptions);
+                await before?.();
+                await waitForChartStability(chart);
+                spy.mockClear();
+
+                await transact(update);
+
+                expect(partialLayers().includes(chart.seriesRoot)).toBe(rootPartial);
+                expect(partialLayers()).toHaveLength(layers);
+                expectFrameToMatchWholeRepaint();
+            }
+        );
+    });
+
+    describe('after a change the cells may or may not show', () => {
+        const ZOOM = { zoom: { enabled: true, axes: 'x' } };
+        const setZoom = (start: number, end: number) =>
+            chart.publicApi!.setState({ ...chart.publicApi!.getState(), zoom: { ratioX: { start, end } } });
+        const updateTo = (data: GridCell[], series: Record<string, unknown> = {}, chartOptions: object = {}) =>
+            chart.publicApi!.update(options(data, series, chartOptions));
+        const setPixelRatio = (pixelRatio: number) => {
+            const { scene } = chart.ctx;
+            scene.resize(scene.width, scene.height, pixelRatio);
+            scene.render();
+            expect(scene.pixelRatio).toBe(pixelRatio);
+        };
+
+        type Step = (data: GridCell[]) => unknown;
+        const cases: { name: string; chartOptions?: object; steps: Step[]; warnings?: number }[] = [
+            { name: 'one cell changed by a data update', steps: [() => updateData(withCell(GRID, 34, { v: 150 }))] },
+            {
+                name: 'a cell mutated in the data array',
+                steps: [
+                    (data) => {
+                        data[34].v = 150;
+                        return updateData(data);
+                    },
+                ],
+            },
+            {
+                name: 'a colour range change',
+                steps: [(data) => updateTo(data, { colorScale: { fills: [{ color: 'green' }, { color: 'yellow' }] } })],
+            },
+            {
+                name: 'a fill opacity change',
+                steps: [(data) => updateTo(data, { itemStyler: () => ({ fillOpacity: 0.4 }) })],
+            },
+            {
+                name: 'a highlight, and its end',
+                steps: [
+                    async () => {
+                        await hoverCell(45);
+                        expect(chart.ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(45);
+                    },
+                    async () => {
+                        await hoverAction(1, 1)(chart);
+                        await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                        expect(chart.ctx.highlightManager.getActiveHighlight()).toBeUndefined();
+                    },
+                ],
+            },
+            { name: 'a resize', steps: [() => chart.publicApi!.updateDelta({ width: 500, height: 350 })] },
+            {
+                name: 'a zoom that turns crisp off, and back on',
+                chartOptions: ZOOM,
+                steps: [() => setZoom(0.2, 0.8), () => setZoom(0, 1)],
+            },
+            { name: 'a pixel ratio change', steps: [() => setPixelRatio(2), () => setPixelRatio(1)] },
+            {
+                name: 'the last cell removed, and added back',
+                steps: [() => updateData(copyOf(GRID.slice(0, -1))), () => updateData(copyOf(GRID))],
+            },
+            {
+                name: 'a cell whose x becomes null',
+                steps: [() => updateData(withCell(GRID, 34, { x: null }))],
+                warnings: 1,
+            },
+            {
+                name: 'a switch to Rects, and back to the batch',
+                steps: [(data) => updateTo(data, { cornerRadius: 2 }), (data) => updateTo(data)],
+            },
+            {
+                name: 'the series hidden, and shown',
+                steps: [(data) => updateTo(data, { visible: false }), (data) => updateTo(data)],
+            },
+        ];
+
+        it.each(cases)('matches a whole repaint after $name', async ({ chartOptions, steps, warnings = 0 }) => {
+            const data = copyOf(GRID);
+            await create(data, {}, chartOptions);
+            expect(getHeatmapCellBatch(chart).visible).toBe(true);
+            expectNonBlank(ctx.snapshot());
+
+            for (const step of steps) {
+                await step(data);
+                await waitForChartStability(chart);
+                expectFrameToMatchWholeRepaint();
+            }
+            expectWarningsCalls().toHaveLength(warnings);
+        });
+    });
+
+    describe.each([
+        ['reorders the cells', [...GRID].reverse()],
+        ['drops the last column', GRID.filter((cell) => cell.x !== `X${COLUMNS - 1}`)],
+    ])('a transaction after new data that %s', (_name, cells) => {
+        it.each([
+            { name: 'after the new data is drawn', queued: false },
+            { name: 'queued behind the new data', queued: true },
+        ])('builds the node data a fresh chart does $name, and matches a whole repaint', async ({ queued }) => {
+            await create();
+            const dataUpdated = updateData(copyOf(cells));
+            if (!queued) {
+                await dataUpdated;
+                await waitForChartStability(chart);
+            }
+            const update = column(3, (y) => 150 + y, cells);
+
+            await transact(update);
+
+            expectFrameToMatchWholeRepaint(!queued);
+            const updated = new Map(update.map((cell) => [cell.id, cell]));
+            const fresh = await createEnterpriseChart(options(cells.map((cell) => updated.get(cell.id) ?? cell)));
+            const expected = getHeatmapNodeDataValues(fresh);
+            fresh.destroy();
+            expect(getHeatmapNodeDataValues(chart)).toEqual(expected);
+        });
+    });
 });
 
 describe('HeatmapCellBatch dirty region', () => {
     const CELL = 10;
-    const batchOf = (columns: number) => {
+    const rewriteAll = (batch: HeatmapCellBatch, opacity = 1, stroke?: string) => {
+        for (let x = 0; x < batch.size; x++) batch.set(x, x * CELL, 0, CELL, CELL, `fill${x}`, opacity, 1, stroke);
+    };
+    const batchOf = (columns: number, opacity = 1) => {
         const batch = new HeatmapCellBatch();
         batch.resize(columns);
-        for (let x = 0; x < columns; x++) batch.set(x, x * CELL, 0, CELL, CELL, `fill${x}`, 1, 1, undefined);
+        rewriteAll(batch, opacity);
         return batch;
     };
     const rewrite = (batch: HeatmapCellBatch, index: number, x = index * CELL, fill = `new${index}`) =>
@@ -382,6 +658,54 @@ describe('HeatmapCellBatch dirty region', () => {
         rewrite(batch, 1);
 
         expect(batch.getDirtyRegion()).toBeUndefined();
+    });
+
+    it.each([
+        {
+            name: 'an identical rewrite',
+            opacity: 1,
+            change: (batch: HeatmapCellBatch) => rewriteAll(batch),
+            dirty: false,
+        },
+        {
+            name: 'a NaN opacity written over a NaN opacity',
+            opacity: Number.NaN,
+            change: (batch: HeatmapCellBatch) => rewriteAll(batch, Number.NaN),
+            dirty: false,
+        },
+        {
+            name: 'a stroke-only change',
+            opacity: 1,
+            change: (batch: HeatmapCellBatch) => rewriteAll(batch, 1, 'black'),
+            dirty: true,
+        },
+        {
+            name: 'a resize that drops the last cell',
+            opacity: 1,
+            change: (batch: HeatmapCellBatch) => {
+                batch.resize(4);
+                rewriteAll(batch);
+            },
+            dirty: true,
+        },
+        {
+            name: 'a crisp change',
+            opacity: 1,
+            change: (batch: HeatmapCellBatch) => {
+                batch.crisp = false;
+                rewriteAll(batch);
+            },
+            dirty: true,
+        },
+    ])('marks itself dirty on commit after $name: $dirty', ({ opacity, change, dirty }) => {
+        const batch = batchOf(5, opacity);
+        paint(batch);
+        const markDirty = vi.spyOn(batch, 'markDirty');
+
+        change(batch);
+        batch.commit();
+
+        expect(markDirty.mock.calls.length > 0).toBe(dirty);
     });
 
     it('paints the cells that reach the region in order, and skips the rest', () => {

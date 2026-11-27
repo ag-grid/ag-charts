@@ -12,9 +12,16 @@ function readUint(value: string, start: number, length: number): number {
     return n;
 }
 
+function isDigit(charCode: number): boolean {
+    return charCode >= 48 && charCode <= 57;
+}
+
 /** True only for valid ISO 8601 date / date-time strings, validated against the real calendar. */
 export function isISO8601(value: unknown): value is string {
-    if (typeof value !== 'string' || !ISO_8601.test(value)) return false;
+    // OPTIMIZATION: the regex needs `YYYY-MM-DD` at the start, so a short or non-digit-led string never runs it.
+    if (typeof value !== 'string' || value.length < 10 || !isDigit(value.charCodeAt(0)) || !ISO_8601.test(value)) {
+        return false;
+    }
     const month = readUint(value, 5, 2);
     if (month < 1 || month > 12) return false;
     const year = readUint(value, 0, 4);

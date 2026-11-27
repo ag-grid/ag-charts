@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { BBox, Group, Node, Scene, TranslatableGroup } from 'ag-charts-core';
+import { BBox, Group, Node, ScalableGroup, Scene, TranslatableGroup } from 'ag-charts-core';
 import type { RenderContext } from 'ag-charts-core';
 
 import { expectSamePixels } from '../chart/test/expectSamePixels';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
+import { box as rectOf, redHalfShadow } from '../util/test/shadowPixels';
 
 const WIDTH = 200;
 const HEIGHT = 120;
@@ -107,7 +108,16 @@ describe('partial layer repaint of a scene', () => {
         activeScene = undefined;
     });
 
-    function mount(opts: { pixelRatio: number; translation: [number, number]; nested?: boolean; halo?: number }) {
+    function mount(opts: {
+        pixelRatio: number;
+        translation: [number, number];
+        nested?: boolean;
+        halo?: number;
+        /** Makes the outer layer a shadow root, with a group below it that casts through it. */
+        sharedCaster?: boolean;
+        /** Scales the inner layer, which it can't repaint in part under. */
+        innerScale?: number;
+    }) {
         const canvasElement = document.createElement('canvas');
         const scene = new Scene({ canvasElement, pixelRatio: opts.pixelRatio });
         activeScene = scene;
@@ -117,21 +127,32 @@ describe('partial layer repaint of a scene', () => {
         const shifted = new TranslatableGroup({ name: 'shifted' });
         shifted.translationX = opts.translation[0];
         shifted.translationY = opts.translation[1];
-        const layer = new Group({ name: 'layer', renderToOffscreenCanvas: true });
+        const layer = new Group({ name: 'layer', renderToOffscreenCanvas: true, shadowRoot: opts.sharedCaster });
         const background = new PatchNode(BACKGROUND);
         const first = new PatchNode([patch(20.3, 20.6, 30.4, 25.2, 'rgba(220, 40, 60, 0.6)')], opts.halo);
         const second = new PatchNode([patch(40.8, 30.2, 30.6, 25.9, 'rgba(30, 160, 80, 0.6)')]);
         const innerLayer = new Group({ name: 'inner', renderToOffscreenCanvas: true });
         const third = new PatchNode([patch(110.5, 60.5, 20.5, 20.5, 'rgba(120, 40, 200, 0.6)')]);
+        const neighbour = new PatchNode([patch(104.5, 58.5, 9.5, 28.5, 'rgba(20, 20, 20, 0.5)')]);
 
         root.appendChild(shifted);
         shifted.appendChild(layer);
         layer.appendChild(background);
         layer.appendChild(first);
         layer.appendChild(second);
+        if (opts.sharedCaster) {
+            const casters = new Group({ name: 'casters', batchShadows: 'shared' });
+            casters.appendChild(rectOf(160, 10, 20, 20, { fillShadow: redHalfShadow(6, 4) }));
+            layer.appendChild(casters);
+        }
         if (opts.nested) {
-            layer.appendChild(innerLayer);
+            const scaled = new ScalableGroup({ name: 'scaled' });
+            scaled.scalingX = opts.innerScale ?? 1;
+            scaled.scalingY = opts.innerScale ?? 1;
+            layer.appendChild(scaled);
+            scaled.appendChild(innerLayer);
             innerLayer.appendChild(third);
+            innerLayer.appendChild(neighbour);
         }
         scene.setRoot(root);
         scene.render();
@@ -156,9 +177,10 @@ describe('partial layer repaint of a scene', () => {
             return {
                 pixels: readPixels(),
                 partial: spy!.mock.results.some((result) => result.value != null),
+                partialLayers: spy!.mock.contexts.filter((_, index) => spy!.mock.results[index].value != null),
             };
         };
-        return { scene, root, shifted, layer, innerLayer, first, second, third, frame, wholeRepaint };
+        return { scene, root, shifted, layer, innerLayer, first, second, third, neighbour, frame, wholeRepaint };
     }
 
     describe.each([1, 1.5, 2])('at a pixel ratio of %s', (pixelRatio) => {
@@ -205,15 +227,33 @@ describe('partial layer repaint of a scene', () => {
             });
 
             it('paints what a whole repaint paints when the node is in a layer within the layer', () => {
-                const { frame, wholeRepaint, third, first } = mount({ pixelRatio, translation, nested: true });
+                const { frame, wholeRepaint, third, first, layer, innerLayer } = mount({
+                    pixelRatio,
+                    translation,
+                    nested: true,
+                });
 
                 const inner = frame(() => third.update([patch(112.25, 62.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')]));
-                expect(inner.partial).toBe(true);
+                expect(inner.partialLayers).toEqual([layer, innerLayer]);
                 expectSamePixels(inner.pixels, wholeRepaint());
 
                 const outer = frame(() => first.update([patch(24.5, 24.5, 30.5, 25.5, 'rgba(220, 40, 60, 0.6)')]));
-                expect(outer.partial).toBe(true);
+                expect(outer.partialLayers).toEqual([layer]);
                 expectSamePixels(outer.pixels, wholeRepaint());
+            });
+
+            it('paints what a whole repaint paints when only the outer layer repaints in part', () => {
+                const { frame, wholeRepaint, third, layer } = mount({
+                    pixelRatio,
+                    translation,
+                    nested: true,
+                    innerScale: 1.1,
+                });
+
+                const result = frame(() => third.update([patch(112.25, 62.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')]));
+
+                expect(result.partialLayers).toEqual([layer]);
+                expectSamePixels(result.pixels, wholeRepaint());
             });
         });
 
@@ -283,6 +323,43 @@ describe('partial layer repaint of a scene', () => {
                 const next = frame(() => first.update([patch(27.1, 24.9, 30.4, 25.2, 'rgba(220, 40, 60, 0.6)')]));
                 expect(next.partial).toBe(true);
                 expectSamePixels(next.pixels, wholeRepaint());
+            });
+
+            it('paints what a whole repaint paints after a render error in a layer within the layer, and then repaints in part again', () => {
+                const { frame, wholeRepaint, third, neighbour, layer, innerLayer } = mount({
+                    pixelRatio,
+                    translation,
+                    nested: true,
+                });
+                // The neighbour is left out of the failed frame's region, part of which the next region doesn't reach.
+                neighbour.failNextRender = true;
+                frame(() => third.update([patch(112.25, 62.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')]));
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                vi.mocked(console.warn).mockClear();
+
+                const recovered = frame(() =>
+                    third.update([patch(113.5, 63.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')])
+                );
+                expectSamePixels(recovered.pixels, wholeRepaint());
+                expect(recovered.partial).toBe(false);
+
+                const next = frame(() => third.update([patch(114.5, 64.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')]));
+                expect(next.partialLayers).toEqual([layer, innerLayer]);
+                expectSamePixels(next.pixels, wholeRepaint());
+            });
+
+            it('paints what a whole repaint paints when the outer layer is a shadow root that casts for a group in it', () => {
+                const { frame, wholeRepaint, third, innerLayer } = mount({
+                    pixelRatio,
+                    translation,
+                    nested: true,
+                    sharedCaster: true,
+                });
+
+                const result = frame(() => third.update([patch(112.25, 62.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')]));
+
+                expect(result.partialLayers).toEqual([innerLayer]);
+                expectSamePixels(result.pixels, wholeRepaint());
             });
         });
     });

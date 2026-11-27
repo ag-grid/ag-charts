@@ -61,6 +61,12 @@ function hasDraggableAxes(ctx: DynamicContext<ChartRegistry>): boolean {
     return !!(options?.zoom?.enabled && options.zoom.enableAxisDragging);
 }
 
+function setFlag(map: Map<string, boolean>, source: string, value: boolean): boolean {
+    if (map.get(source) === value) return false;
+    map.set(source, value);
+    return true;
+}
+
 function needsTabStop(chartService: ChartService, axisCtx: AxisContext): boolean {
     return hasAxisListener(chartService, axisCtx, false);
 }
@@ -161,13 +167,16 @@ export class AxisInteraction extends AbstractModuleInstance {
     private onUpdate(event: AxisInteractionUpdateEvent) {
         const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
-        this.enabled.set(source, enabled);
-        this.enableDoubleClick.set(source, enableDoubleClick);
-        this.enableDragging.set(source, enableDragging);
-        this.enableScrolling.set(source, enableScrolling);
-        this.enableContextMenu.set(source, enableContextMenu);
+        const enabledChanged = setFlag(this.enabled, source, enabled);
+        const doubleClickChanged = setFlag(this.enableDoubleClick, source, enableDoubleClick);
+        const draggingChanged = setFlag(this.enableDragging, source, enableDragging);
+        const scrollingChanged = setFlag(this.enableScrolling, source, enableScrolling);
+        const contextMenuChanged = setFlag(this.enableContextMenu, source, enableContextMenu);
 
-        this.refresh();
+        // Requesters emit from `layout:complete`, whose `onLayoutComplete` refresh covers unchanged flags.
+        if (enabledChanged || doubleClickChanged || draggingChanged || scrollingChanged || contextMenuChanged) {
+            this.refresh();
+        }
     }
 
     private needsProxies() {

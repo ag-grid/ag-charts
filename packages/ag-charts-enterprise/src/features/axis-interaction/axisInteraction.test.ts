@@ -10,10 +10,11 @@ import {
     deproxy,
     doubleClickAction,
     setupMockCanvas,
+    spyOnAxisA11YTickData,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
-import type { AgChartInstance } from 'ag-charts-types';
+import type { AgChartInstance, AgContextMenuOptions, AgZoomOptions } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -1019,6 +1020,88 @@ describe('AxisInteraction', () => {
                 .sort((a, b) => a.localeCompare(b));
             expect(userKeys).toEqual(['x', 'y', 'y2']);
             expect(axisElements()).toHaveLength(3);
+        });
+    });
+
+    // Animations stay off: settling an animation re-measures the axes to check whether they moved.
+    describe('proxy refresh', () => {
+        const MONTHS = ['Jan', 'Feb', 'Mar'].map((month, units) => ({ month, units }));
+
+        const visibleAxisProxies = () =>
+            Array.from(document.querySelectorAll<HTMLElement>('.ag-charts-proxy-axis')).filter(
+                (el) => el.style.display !== 'none'
+            );
+
+        type Interactions = { zoom?: AgZoomOptions; contextMenu?: AgContextMenuOptions };
+
+        const ZOOM_OFF: AgZoomOptions = {
+            enabled: false,
+            enableDoubleClickToReset: false,
+            enableAxisDragging: false,
+            enableAxisScrolling: false,
+        };
+
+        const interactions = ({ zoom = ZOOM_OFF, contextMenu = { enabled: false } }: Interactions) => ({
+            zoom,
+            contextMenu,
+        });
+
+        const barOptions = (options: Interactions): AgCartesianChartOptions => ({
+            data: MONTHS,
+            series: [{ type: 'bar', xKey: 'month', yKey: 'units' }],
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            ...interactions(options),
+        });
+
+        it('measures each axis once per data update', async () => {
+            chart = await createEnterpriseChart(
+                barOptions({ zoom: { enabled: true }, contextMenu: { enabled: true } })
+            );
+            expect(visibleAxisProxies()).toHaveLength(2);
+            const bottom = spyOnAxisA11YTickData(chart, 'bottom');
+            const left = spyOnAxisA11YTickData(chart, 'left');
+
+            await chart.updateDelta({ data: MONTHS.map(({ month, units }) => ({ month, units: units + 1 })) });
+            await waitForChartStability(chart);
+
+            expect(bottom).toHaveBeenCalledTimes(1);
+            expect(left).toHaveBeenCalledTimes(1);
+        });
+
+        // Each row's flag is the only reason the axes need proxies, so the proxies show exactly when it is set.
+        it.each<{ flag: string; off: Interactions; on: Interactions }>([
+            {
+                flag: 'enabled',
+                off: { zoom: { ...ZOOM_OFF, enableDoubleClickToReset: true } },
+                on: { zoom: { ...ZOOM_OFF, enabled: true, enableDoubleClickToReset: true } },
+            },
+            {
+                flag: 'enableDoubleClick',
+                off: { zoom: { ...ZOOM_OFF, enabled: true } },
+                on: { zoom: { ...ZOOM_OFF, enabled: true, enableDoubleClickToReset: true } },
+            },
+            {
+                flag: 'enableDragging',
+                off: { zoom: { ...ZOOM_OFF, enabled: true } },
+                on: { zoom: { ...ZOOM_OFF, enabled: true, enableAxisDragging: true } },
+            },
+            {
+                flag: 'enableScrolling',
+                off: { zoom: { ...ZOOM_OFF, enabled: true } },
+                on: { zoom: { ...ZOOM_OFF, enabled: true, enableAxisScrolling: true } },
+            },
+            { flag: 'enableContextMenu', off: {}, on: { contextMenu: { enabled: true } } },
+        ])('shows and hides the axis proxies with one update of $flag', async ({ off, on }) => {
+            chart = await createEnterpriseChart(barOptions(off));
+            expect(visibleAxisProxies()).toHaveLength(0);
+
+            await chart.updateDelta(interactions(on));
+            await waitForChartStability(chart);
+            expect(visibleAxisProxies()).toHaveLength(2);
+
+            await chart.updateDelta(interactions(off));
+            await waitForChartStability(chart);
+            expect(visibleAxisProxies()).toHaveLength(0);
         });
     });
 });

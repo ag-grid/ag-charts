@@ -353,7 +353,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         super.markDirty(property);
     }
 
-    /** Only the nearest layer owner records the source; anything that can't repaint in part takes an ordinary mark. */
+    /** Each layer owner records the source; anything that can't repaint in part takes an ordinary mark. */
     override markDirtyRegionOf(source: Node): void {
         if (this.batchLevel > 0) {
             super.markDirtyRegionOf(source);
@@ -376,7 +376,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.regionSources.add(source);
         this.dirty = true;
         this.cachedBBox = undefined;
-        this.parentNode?.markDirty();
+        // A layer above may clip to the same region only if this one's bitmap is valid: repainted in part or whole, it
+        // then changes nothing outside the region, while ordinary marks reach every layer above anyway.
+        if (this.layerValid) {
+            this.parentNode?.markDirtyRegionOf(source);
+        } else {
+            this.parentNode?.markDirty();
+        }
     }
 
     protected override invalidateLayerOnRenderError(): void {
@@ -501,7 +507,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         if (fullDirty || layerResized || pixelRatioChanged) return 'full';
         if (!dirty) return 'clean';
-        return layer != null && this.layerValid && (this.regionSources?.size ?? 0) > 0 ? 'partial' : 'full';
+        return layer != null && this.layerValid && (this.regionSources?.size ?? 0) > 0 && !this.castsThroughRoot()
+            ? 'partial'
+            : 'full';
+    }
+
+    /** Whether a shadow root casts, or stops casting, for the groups below it, which can paint outside any region. */
+    private castsThroughRoot(): boolean {
+        return this.shadowRoot && (this.getSharedCasterCount() > 0 || (this.sharedShadowCover?.size ?? 0) > 0);
     }
 
     /** The device-pixel region to repaint when the sources bound everything that changed, else `undefined`. */
@@ -631,15 +644,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 // Detaching from the scene destroys the layer, so a clean group can arrive here with
                 // a fresh, empty one - it has to be rendered into before it is composited.
                 if (this.layer != null) {
-                    this.dirty = true;
-                    this.fullDirty = true;
                     this.layerValid = false;
+                    // The layers above composite this group differently, so none of them can repaint in part.
+                    this.invalidateUpTo();
                 }
             }
         } else if (this.layer != null) {
             this.layerManager?.removeLayer(this.layer);
             this.layer = undefined;
             this.layerValid = false;
+            this.invalidateUpTo();
         }
 
         return counts;
@@ -845,7 +859,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    private invalidateUpTo(root: Group) {
+    private invalidateUpTo(root?: Group) {
         for (let node: Node | undefined = this; node != null && node !== root; node = node.parentNode) {
             if (node instanceof Group) {
                 node.dirty = true;

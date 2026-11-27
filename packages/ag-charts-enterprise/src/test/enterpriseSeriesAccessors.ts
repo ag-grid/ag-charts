@@ -15,6 +15,7 @@ import { Caster, classCast } from 'ag-charts-test';
 import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../series/flow-proportion/flowProportionSeries';
 import { FunnelConnector } from '../series/funnel/funnelConnector';
+import { HeatmapCellBatch } from '../series/heatmap/heatmapCellBatch';
 import { HeatmapSeries } from '../series/heatmap/heatmapSeries';
 import type { HierarchyHighlightState, HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { HlcSeries } from '../series/hlc/hlcSeries';
@@ -356,17 +357,37 @@ export function getLegendItemSuppressHighlight(item: LegendTestItemNode): true |
     return suppressHighlight;
 }
 
+/** The node that paints a heatmap's cells in one pass while they are batched; asserts the series has one. */
+export function getHeatmapCellBatch(chartOrProxy: ChartOrProxy<any>, index = 0): HeatmapCellBatch {
+    const { contentGroup } = getSeriesInstance(chartOrProxy, HeatmapSeries, index);
+    return defined(
+        [...contentGroup.descendants()].find((node): node is HeatmapCellBatch => node instanceof HeatmapCellBatch)
+    );
+}
+
+/** Copies of `data` without the series each datum points back to, so the data of two charts compare equal. */
+function withoutSeries(data: ReadonlyArray<{ series: unknown }>): object[] {
+    return data.map(({ series: _series, ...values }) => values);
+}
+
+/** A heatmap's node and label data, comparable with another chart's. */
+export function getHeatmapNodeDataValues(chartOrProxy: ChartOrProxy<any>, index = 0) {
+    const { nodeData, labelData } = getSeriesContextNodeData<{ series: unknown }>(chartOrProxy, index);
+    return { nodeData: withoutSeries(nodeData), labelData: withoutSeries(labelData) };
+}
+
 /** The heatmap per-cell methods that tests count to tell an incremental update from a rebuild. */
-export type HeatmapCellMethod = 'getItemStyle' | 'updateNodeDatum';
+export type HeatmapCellMethod = 'getItemStyle' | 'updateNodeDatum' | 'createSkeletonNodeDatum';
 
 /** The heatmap prototype as far as `vi.spyOn` needs it. */
 export type HeatmapCellMethods = Record<HeatmapCellMethod, (...args: never[]) => unknown>;
 
-/** The heatmap prototype, typed to expose the non-public per-cell methods `vi.spyOn` rejects; asserts both exist. */
+/** The heatmap prototype, typed to expose the non-public per-cell methods `vi.spyOn` rejects; asserts each exists. */
 export function getHeatmapCellMethods(): HeatmapCellMethods {
     const prototype = new Caster(HeatmapSeries.prototype);
     prototype.accessProperty('getItemStyle').cast(Function);
     prototype.accessProperty('updateNodeDatum').cast(Function);
+    prototype.accessProperty('createSkeletonNodeDatum').cast(Function);
     return prototype.value as unknown as HeatmapCellMethods;
 }
 
