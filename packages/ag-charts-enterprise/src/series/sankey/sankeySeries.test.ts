@@ -1008,10 +1008,14 @@ describe('SankeySeries', () => {
             ['ag-accessible', 'ag-accessible'],
             ['ag-accessible-dark', 'ag-accessible-dark'],
         ] as const)('should colour every node and link from the palette of %s', async (_name, theme) => {
-            // `createEnterpriseChart` replaces a named theme with the test theme, so use the stock-theme helper.
+            // `createEnterpriseChart` replaces a named theme with the test theme, so use the stock-theme helper, which
+            // needs the font pinned: the default stack resolves per platform.
             chart = deproxy(
                 typeof theme === 'string'
-                    ? await createStockThemedChart(sankeyOptions, theme)
+                    ? await createStockThemedChart(sankeyOptions, {
+                          baseTheme: theme,
+                          params: { fontFamily: 'Verdana, sans-serif' },
+                      })
                     : await createEnterpriseChart({ ...sankeyOptions, theme })
             );
 
