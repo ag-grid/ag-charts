@@ -549,11 +549,12 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     private setPaintedByStroke(x: number, y: number, width: number, height: number) {
         const painted = this.paintedByStrokeRect;
+        this.coveredByStroke = true;
+        if (painted.x === x && painted.y === y && painted.width === width && painted.height === height) return;
         painted.x = x;
         painted.y = y;
         painted.width = width;
         painted.height = height;
-        this.coveredByStroke = true;
         this.paintedByStrokeStale = true;
     }
 

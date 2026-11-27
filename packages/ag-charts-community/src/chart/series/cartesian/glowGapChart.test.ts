@@ -190,10 +190,11 @@ describe('glow gap in a chart', () => {
         it.each([
             { width: 10, strokeWidth: 12, paintedEdge: 0 },
             { width: 0.5, strokeWidth: 4, paintedEdge: 0.5 },
+            { direction: 'horizontal', width: 0.5, strokeWidth: 4, paintedEdge: 0 },
         ])(
             'should grow the glow a gap and a spread past the painted edge of a bar $width wide with a stroke of $strokeWidth',
-            async ({ width, strokeWidth, paintedEdge }) => {
-                await create(bars({ ...STROKED, glow: BAND_GLOW, width, strokeWidth }));
+            async ({ paintedEdge, ...bar }) => {
+                await create(bars({ ...STROKED, glow: BAND_GLOW, ...bar }));
 
                 expectGlowBand(rightOfFirstItem(), paintedEdge);
             }
