@@ -172,9 +172,8 @@ function insetPolygon(
 }
 
 /**
- * The drawn copy of `projected`, with every polygon inset by `d` along its shared borders. `source` is the same geometry
- * at the fixed scale, whose rings the index knows. Returns `projected` itself when nothing moves, and the same polygon arrays for
- * polygons that have no moved edge.
+ * The drawn copy of `projected`, inset by `d` along shared borders; `source` is its fixed-scale twin.
+ * Parts with no moved edge come back as the same objects.
  */
 export function insetGeometry(
     source: Geometry,
