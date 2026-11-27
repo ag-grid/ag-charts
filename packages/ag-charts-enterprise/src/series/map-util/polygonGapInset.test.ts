@@ -8,25 +8,29 @@ import {
     circle,
     coastArm,
     collinearBorder,
+    fullyNeighbouredChamfer,
     microBorder,
+    narrowCoastTip,
     nearCollinearCoast,
+    pinnedEnclave,
     rampBetweenBorders,
     rect,
     region,
     reverseRing,
+    rotateRing,
     scaleRing,
     sideBySide,
     thinNotch,
     tooth,
     tripoint,
 } from '../map-test/gapSyntheticRings';
-import { type GapTopology, SWEEP_TOPOLOGIES, createScene } from '../map-test/gapTestUtil';
+import { type GapTopology, SWEEP_TOPOLOGIES, createScene, rotateTopology } from '../map-test/gapTestUtil';
 import indonesiaTimorTopology from '../map-test/indonesiaTimorTopology.json';
 import southernAfricaItalyTopology from '../map-test/southernAfricaItalyTopology.json';
 import worldTopology from '../map-test/worldTopology.json';
 import { lineStringDistance } from './lineStringUtil';
 import { MapShapeGapIndex } from './mapShapeGapIndex';
-import { insetGapRing, insetPolygonRings, simplifyGapRing } from './polygonGapInset';
+import { type GapInsetEdge, insetGapRing, insetPolygonRings, simplifyGapRing } from './polygonGapInset';
 
 function indexOf(...regions: [boolean, Ring[]][]): MapShapeGapIndex {
     const index = new MapShapeGapIndex();
@@ -245,15 +249,16 @@ describe('insetPolygonRings', () => {
             expect(ramp).toBeGreaterThanOrEqual(0);
 
             for (const d of [0.2, 0.5, 1, 2, 3]) {
-                const drawn = insetGapRing(simplified.points, simplified.moved, d, true)!;
-                const edge = drawn.edges.find((e) => e.edge === ramp);
+                const edges: GapInsetEdge[] = [];
+                expect(insetGapRing(simplified.points, simplified.moved, d, true, edges)).toBeDefined();
+                const edge = edges.find((e) => e.edge === ramp);
                 expect(edge).toBeDefined();
                 const dot = (edge!.x1 - edge!.x0) * -1 + (edge!.y1 - edge!.y0) * -1;
                 expect(dot).toBeGreaterThanOrEqual(0);
             }
         });
 
-        it('shortens a ramp by the slides at both ends when it is long enough for them', () => {
+        it('slides both ends of a ramp that is long enough for them, and keeps its length', () => {
             const { a, b, c } = rampBetweenBorders();
             const index = indexRings(a, b, c);
 
@@ -265,6 +270,40 @@ describe('insetPolygonRings', () => {
                 [9.3, 9.8],
                 [0, 9.8],
             ]);
+        });
+    });
+
+    describe('two slides on one short coast edge (DR2-1)', () => {
+        it('never lets the slides at both ends of a 1-long coast tip add up to more than the tip', () => {
+            const { a, b, c } = narrowCoastTip();
+            const index = indexRings(a, b, c);
+            const simplified = simplifyGapRing(a, index.getRingInfo(a)!)!;
+            const tip = simplified.points.findIndex(([x, y]) => x === 14 && y === 4);
+            expect(simplified.moved[tip]).toBe(0);
+
+            for (const d of [0.75, 1, 2]) {
+                const edges: GapInsetEdge[] = [];
+                expect(insetGapRing(simplified.points, simplified.moved, d, true, edges)).toBeDefined();
+                const drawn = edges.find((e) => e.edge === tip)!;
+                // The tip runs from (14, 4) up to (14, 5): it is never drawn downwards, whatever the two ends ask for.
+                expect(drawn.y1 - drawn.y0).toBeGreaterThanOrEqual(0);
+                // Past the cap the slides give way to a step at the tip's own end: the top side starts from (14, 5).
+                expect(drawn.x0).toBe(14);
+                expect(drawn.x1).toBe(14);
+                expect(drawn.y1).toBe(5);
+            }
+        });
+
+        it('slides both ends of the tip when it is long enough for them', () => {
+            const { a, b, c } = narrowCoastTip();
+            const index = indexRings(a, b, c);
+            const simplified = simplifyGapRing(a, index.getRingInfo(a)!)!;
+            const tip = simplified.points.findIndex(([x, y]) => x === 14 && y === 4);
+            const edges: GapInsetEdge[] = [];
+
+            insetGapRing(simplified.points, simplified.moved, 0.25, true, edges);
+            const drawn = edges.find((e) => e.edge === tip)!;
+            expect([drawn.y0, drawn.y1]).toEqual([4.25, 4.75]);
         });
     });
 
@@ -311,6 +350,86 @@ describe('insetPolygonRings', () => {
         });
     });
 
+    describe('start vertex', () => {
+        const starts = [0, 1, 2, 3, 4];
+
+        it.each([0.2, 2, 4])(
+            'draws a ring whose every edge is shared as the same ring from every start vertex, at d = %d',
+            (d) => {
+                const { a, neighbours } = fullyNeighbouredChamfer();
+                const drawn = starts.map((shift) => {
+                    const rotated = rotateRing(a, shift);
+                    return exterior(indexRings(rotated, ...neighbours), rotated, d);
+                });
+
+                for (const ring of drawn) {
+                    expect(vertices(ring)).toEqual(vertices(drawn[0]));
+                }
+                // The chamfer is shorter than the offset at d = 2 and longer at d = 0.2.
+                expect(vertices(drawn[0])).toHaveLength(d === 0.2 ? 5 : 4);
+            }
+        );
+
+        it.each([
+            {
+                name: 'a spike on a pentagon',
+                d: 0.5,
+                ring: [
+                    [7, 6],
+                    [2, 0],
+                    [4, 2],
+                    [5, 2],
+                    [7, 2],
+                ],
+            },
+            {
+                name: 'a notch on a hexagon',
+                d: 0.5,
+                ring: [
+                    [1, 1],
+                    [3, 3],
+                    [2, 2],
+                    [4, 4],
+                    [7, 2],
+                    [1, 7],
+                ],
+            },
+        ])('removes the reversed edges of $name the same whichever edge the ring starts at (D-14)', ({ ring, d }) => {
+            const points = ring as Position[];
+            const moved = new Uint8Array(points.length).fill(1);
+            const drawn = starts.slice(0, points.length).map((shift) => {
+                const rotated = [...points.slice(shift), ...points.slice(0, shift)];
+                return insetGapRing(rotated, moved, d, true);
+            });
+
+            expect(drawn[0]).toBeDefined();
+            for (const result of drawn) {
+                expect(vertices(result)).toEqual(vertices(drawn[0]));
+            }
+        });
+
+        it.each([2.5, 4, 5])(
+            'draws a closed enclave and the hole it fills the same from every start vertex, at d = %d',
+            (d) => {
+                const enclave = rect(10, 10, 20, 20);
+                const results = starts.map((shift) => {
+                    const rotated = rotateRing(enclave, shift);
+                    const host = [rect(0, 0, 30, 30), reverseRing(rotateRing(enclave, (shift + 2) % 4))];
+                    const index = indexOf([true, host], [true, [rotated]]);
+                    const drawn = exterior(index, rotated, d);
+                    return {
+                        enclave: drawn && vertices(drawn),
+                        host: inset(index, host, d)?.map((ring) => vertices(ring)),
+                    };
+                });
+
+                for (const result of results) {
+                    expect(result).toEqual(results[0]);
+                }
+            }
+        );
+    });
+
     describe('enclaves and holes', () => {
         it('insets an enclave and grows the hole it fills in its host', () => {
             const enclave = rect(10, 10, 20, 20);
@@ -348,6 +467,32 @@ describe('insetPolygonRings', () => {
                 [8, 12],
             ]);
             expect(signedArea(drawn[1])).toBeCloseTo(-16, 9);
+        });
+
+        it('draws the grown box for a hole whose inset ring has fewer than 3 distinct vertices (D-15)', () => {
+            // A self-crossing hole: its one shared edge, (0, 0) to (0, 1), is offset by 2 to the opposite side of the
+            // lobe that wins on net winding, and the surviving edges only ever visit 2 distinct points.
+            const hole: Ring = [
+                [1, 2],
+                [0, 0],
+                [0, 1],
+                [3, 4],
+                [1, 2],
+            ];
+            const host = [rect(-50, -50, 50, 50), hole];
+            const neighbour = rect(-5, 0, 0, 1);
+            const index = indexOf([true, host], [true, [neighbour]]);
+
+            const drawn = inset(index, host, 2)!;
+            expect(drawn).toHaveLength(2);
+            expect(index.getRingInfo(hole)).toMatchObject({ hole: true, orientation: -1 });
+            expectRing(reverseRing(drawn[1]), [
+                [-2, -2],
+                [5, -2],
+                [5, 6],
+                [-2, 6],
+            ]);
+            expect(signedArea(drawn[1])).toBeCloseTo(-56, 9);
         });
 
         it('collapses a host whose holes grow to fill it', () => {
@@ -487,6 +632,32 @@ describe('insetPolygonRings', () => {
                 const a = new Set(onEnclave.points.map(([x, y]) => keyOf([round(x / scale), round(y / scale)])));
                 const b = new Set(onHole.points.map(([x, y]) => keyOf([round(x / scale), round(y / scale)])));
                 expect(b).toEqual(a);
+                sizes.push(a.size);
+            }
+            expect(sizes[0]).toBeLessThan(80);
+            expect(sizes[2]).toBe(80);
+        });
+
+        it('drops the same vertices from both rings of an enclave pinned at one vertex by a third ring', () => {
+            const { enclave, host, touching, pin } = pinnedEnclave();
+            const hole = host[1];
+            const index = indexOf([true, host], [true, [enclave]], [true, [touching]]);
+
+            for (const ring of [enclave, hole]) {
+                const info = index.getRingInfo(ring)!;
+                expect(info.runs).toHaveLength(1);
+                expect(info.runs[0].length).toBe(info.vertexCount);
+                expect(ring[info.runs[0].start]).toEqual(pin);
+            }
+
+            const sizes: number[] = [];
+            for (const scale of [1, 1.25, 4]) {
+                const onEnclave = simplifyGapRing(scaleRing(enclave, scale), index.getRingInfo(enclave)!)!;
+                const onHole = simplifyGapRing(scaleRing(hole, scale), index.getRingInfo(hole)!)!;
+                const a = new Set(onEnclave.points.map(([x, y]) => keyOf([round(x / scale), round(y / scale)])));
+                const b = new Set(onHole.points.map(([x, y]) => keyOf([round(x / scale), round(y / scale)])));
+                expect(b).toEqual(a);
+                expect(a.has(keyOf(pin))).toBe(true);
                 sizes.push(a.size);
             }
             expect(sizes[0]).toBeLessThan(80);
@@ -881,9 +1052,9 @@ function sweep(topology: GapTopology, zoom: number, d: number): SweepResult {
                 }
             }
 
-            const trace = insetGapRing(points, moved, d, fillLeft);
-            if (trace == null) continue;
-            for (const e of trace.edges) {
+            const trace: GapInsetEdge[] = [];
+            if (insetGapRing(points, moved, d, fillLeft, trace) == null) continue;
+            for (const e of trace) {
                 const [x0, y0] = points[e.edge];
                 const [x1, y1] = points[(e.edge + 1) % m];
                 const length = Math.hypot(x1 - x0, y1 - y0);
@@ -921,6 +1092,47 @@ describe('gap sweep', () => {
         expect(first.moved).toBeGreaterThan(0);
         expect(sweep(topology, zoom, d)).toEqual(first);
     });
+});
+
+/** What a topology draws, per polygon: `null` for a collapsed one, else the signed area of each drawn ring. */
+function outlines(topology: GapTopology, zoom: number, d: number): (number[] | null)[] {
+    const { index, fixed, screen } = createScene(topology, zoom);
+    return screen.map((polygon, p) => {
+        const drawn = insetPolygonRings(polygon, index.getPolygonRingInfo(fixed[p]) ?? [], d);
+        return drawn == null ? null : drawn.map((ring) => signedArea(ring));
+    });
+}
+
+describe('gap sweep: start vertex', () => {
+    const cases = SWEEP_TOPOLOGIES.flatMap(([name, topology]) =>
+        [1, 16].flatMap((zoom) => [2.5, 4].map((d) => ({ name, topology, zoom, d })))
+    );
+
+    it.each(cases)(
+        '$name at zoom $zoom with d = $d draws the same whichever vertex every ring starts at',
+        ({ topology, zoom, d }) => {
+            const expected = outlines(topology, zoom, d);
+            expect(expected.some((areas) => areas != null)).toBe(true);
+
+            for (const shift of [1, 3]) {
+                const actual = outlines(rotateTopology(topology, shift), zoom, d);
+                const differing: string[] = [];
+                for (const [p, areas] of expected.entries()) {
+                    const other = actual[p];
+                    const same =
+                        areas == null || other == null
+                            ? areas === other
+                            : areas.length === other.length &&
+                              areas.every((area, r) => Math.abs(area - other[r]) <= 1e-6 * Math.max(1, Math.abs(area)));
+                    if (!same)
+                        differing.push(
+                            `polygon ${p} shift ${shift}: ${JSON.stringify(areas)} vs ${JSON.stringify(other)}`
+                        );
+                }
+                expect(differing.slice(0, 5)).toEqual([]);
+            }
+        }
+    );
 });
 
 describe('gap sweep: both sides of a border', () => {

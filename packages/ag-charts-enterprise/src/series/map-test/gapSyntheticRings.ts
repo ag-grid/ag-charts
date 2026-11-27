@@ -19,6 +19,15 @@ export function reverseRing(ring: Ring): Ring {
     return ring.map(([x, y]): Position => [x, y]).reverse();
 }
 
+/** The same closed ring, starting `shift` vertices later. */
+export function rotateRing(ring: Ring, shift: number): Ring {
+    const open = ring.slice(0, -1);
+    const k = shift % open.length;
+    const rotated = [...open.slice(k), ...open.slice(0, k)].map(([x, y]): Position => [x, y]);
+    rotated.push([rotated[0][0], rotated[0][1]]);
+    return rotated;
+}
+
 export function scaleRing(ring: Ring, scale: number): Ring {
     return ring.map(([x, y]): Position => [x * scale, y * scale]);
 }
@@ -287,4 +296,76 @@ export function circle(count: number, radius: number, start = 0): Ring {
     }
     ring.push([ring[0][0], ring[0][1]]);
     return ring;
+}
+
+/**
+ * `a` has a 1-wide tooth. Its top and bottom sides are shared with `b` and `c`, and its 1-long tip is coast. At any
+ * `d > 0.5` the slides that both ends of the tip ask for add up to more than the tip is long.
+ */
+export function narrowCoastTip(): { a: Ring; b: Ring; c: Ring } {
+    return {
+        a: [
+            [0, 0],
+            [10, 0],
+            [10, 4],
+            [14, 4],
+            [14, 5],
+            [10, 5],
+            [10, 10],
+            [0, 10],
+            [0, 0],
+        ],
+        b: [
+            [10, 5],
+            [14, 5],
+            [30, 5],
+            [30, 10],
+            [10, 10],
+            [10, 5],
+        ],
+        c: [
+            [10, 0],
+            [30, 0],
+            [30, 4],
+            [14, 4],
+            [10, 4],
+            [10, 0],
+        ],
+    };
+}
+
+/**
+ * `chamferedCorner`'s `a` with a neighbour on every side, so none of its 5 edges is coast, and the chamfer is a moved
+ * edge that reverses once its neighbours are offset.
+ */
+export function fullyNeighbouredChamfer(): { a: Ring; neighbours: Ring[] } {
+    const { a, right, top, corner } = chamferedCorner();
+    return {
+        a,
+        neighbours: [right, top, corner, rect(0, -10, 10, 0), rect(-10, 0, 0, 10)],
+    };
+}
+
+/**
+ * A lumpy circular enclave in a host's hole. A third region sits in a second hole of the host and touches the enclave at
+ * one vertex, `(radius, 0)`, so the enclave's run round the hole is closed and has exactly one pinned vertex. The lumps
+ * make the walk direction matter: a round enclave is the same either way.
+ */
+export function pinnedEnclave(radius = 5): { enclave: Ring; host: Ring[]; touching: Ring; pin: Position } {
+    const enclave = circle(80, radius).map(([x, y], i): Position => {
+        const lump = i === 0 || i === 80 ? 1 : 1 + 0.05 * Math.sin(i * i);
+        return [x * lump, y * lump];
+    });
+    const touching: Ring = [
+        [radius, 0],
+        [radius + 3, -1],
+        [radius + 3, 1],
+        [radius, 0],
+    ];
+    return {
+        enclave,
+        host: [rect(-20, -20, 20, 20), reverseRing(rotateRing(enclave, 17)), reverseRing(touching)],
+        touching,
+        pin: [radius, 0],
+    };
 }

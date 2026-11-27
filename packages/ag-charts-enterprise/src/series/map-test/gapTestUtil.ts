@@ -2,6 +2,7 @@ import type { Position } from 'ag-charts-core';
 
 import { type GapIndexRegion, MapShapeGapIndex } from '../map-util/mapShapeGapIndex';
 import { MercatorScale } from '../map-util/mercatorScale';
+import { rotateRing } from './gapSyntheticRings';
 import londonBoroughTopology from './londonBoroughTopology.json';
 import usTopology from './usTopology.json';
 import worldTopology from './worldTopology.json';
@@ -34,6 +35,29 @@ export function featurePolygons(feature: TestFeature): Polygon[] {
         default:
             return [];
     }
+}
+
+/** The same topology with every ring starting `shift` vertices later. The geometry is unchanged. */
+export function rotateTopology(topology: GapTopology, shift: number): GapTopology {
+    const rotatePolygon = (polygon: Polygon): Polygon => polygon.map((ring) => rotateRing(ring, shift));
+    return {
+        features: topology.features.map((feature) => {
+            switch (feature.geometry.type) {
+                case 'Polygon':
+                    return {
+                        ...feature,
+                        geometry: { ...feature.geometry, coordinates: rotatePolygon(feature.geometry.coordinates) },
+                    };
+                case 'MultiPolygon':
+                    return {
+                        ...feature,
+                        geometry: { ...feature.geometry, coordinates: feature.geometry.coordinates.map(rotatePolygon) },
+                    };
+                default:
+                    return feature;
+            }
+        }),
+    };
 }
 
 export function topologyRegions(topology: GapTopology, hasGap = true): GapIndexRegion[] {
