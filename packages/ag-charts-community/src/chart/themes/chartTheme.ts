@@ -17,9 +17,11 @@ import {
     deepFreeze,
     getSequentialColors,
     groupBy,
+    isSolidFill,
     mergeDefaults,
     mergeDefaultsShallowOperations,
     nestAtOptionsPath,
+    solidFillColour,
     themeBorderColor,
 } from 'ag-charts-core';
 import type {
@@ -88,6 +90,8 @@ export class ChartTheme {
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
     readonly params: AgChartAllThemeParams;
+    /** The params the user's theme sets, which `params` cannot tell from the defaults it merges them with. */
+    readonly userParams: AgChartThemeParams;
     readonly isDark: boolean = false;
 
     public static getDefaultColors(): DefaultColors {
@@ -236,6 +240,7 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
+            legendBackgroundColor: { $ref: 'chartBackgroundColor' },
             legendBorder: false,
             legendBorderRadius: { $ref: 'borderRadius' },
             legendItemHorizontalPadding: 8,
@@ -328,17 +333,26 @@ export class ChartTheme {
         }
 
         const { fills, strokes, sequentialColors, ...otherColors } = this.getDefaultColors();
+        const defaultFills = Object.values(fills);
+        if (palette?.fills) {
+            // A palette colour has no `fillOpacity` beside it, and every colour derived from it expects a string.
+            palette.fills = palette.fills.map((fill, index) =>
+                isSolidFill(fill) ? (solidFillColour(fill) ?? defaultFills[index % defaultFills.length]) : fill
+            );
+        }
         this.palette = deepFreeze(
             mergeDefaults(palette, {
-                fills: Object.values(fills),
+                fills: defaultFills,
                 strokes: Object.values(strokes),
                 markerShapes: ['circle'],
+                lineDashes: ['solid'],
                 sequentialColors: Object.values(sequentialColors),
                 ...otherColors,
             })
         );
         this.paletteType = paletteType(palette);
 
+        this.userParams = params ?? {};
         this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
         const { config, chartDefaults } = this.getFrozenDefaultsConfig(presetName, moduleRegistry);

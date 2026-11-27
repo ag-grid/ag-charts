@@ -30,6 +30,8 @@ export type AgIconName =
     | 'locked'
     | 'magnet'
     | 'measurer-drawing'
+    | 'move'
+    | 'no-magnet'
     | 'note-annotation'
     | 'ohlc-series'
     | 'pan-end'

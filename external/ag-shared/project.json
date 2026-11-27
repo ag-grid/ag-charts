@@ -7,7 +7,7 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package"],
-      "inputs": [],
+      "inputs": ["production", "^production"],
       "outputs": [],
       "configurations": {
         "watch": {},
@@ -24,18 +24,7 @@
     "build:types": {
       "executor": "@nx/js:tsc",
       "dependsOn": ["^build:types"],
-      "inputs": [
-        "{projectRoot}/package.json",
-        "{projectRoot}/src/**/*",
-        "{projectRoot}/tsconfig.*.json",
-        "{projectRoot}/scripts/**/*.ts",
-        "tsDeclarations",
-        "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
+      "inputs": ["tsSources", "{projectRoot}/scripts/**/*.ts", { "externalDependencies": ["npm:typescript"] }],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "{projectRoot}/dist/types",
@@ -54,7 +43,7 @@
     "test": {
       "executor": "nx:noop",
       "dependsOn": ["test:vitest"],
-      "inputs": [],
+      "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": [],
       "configurations": {
         "ci": {},

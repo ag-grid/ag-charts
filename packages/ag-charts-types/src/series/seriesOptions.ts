@@ -10,11 +10,15 @@ export interface AgMultiSeriesHighlightOptions<
 > extends AgHighlightOptions<ItemHighlightStyleOptions> {
     /** Options for the highlighted series. */
     highlightedSeries?: SeriesHighlightStyleOptions;
-    /** Options for the un-highlighted series when there is an active highlight. */
+    /**
+     * Options for the un-highlighted series when there is an active highlight.
+     *
+     * Default: `{ opacity: 0.5 }`. `0.3` for line, area, scatter, bubble, candlestick, OHLC, HLC, range area, radar line, radar area and map marker; `0.2` for map line; unset for waterfall, heatmap and the funnel family
+     */
     unhighlightedSeries?: SeriesHighlightStyleOptions;
     /** Show this series in front when highlighted.
      *
-     * Default: `true`
+     * Default: `true`. `false` for nightingale and map shape
      */
     bringToFront?: boolean;
 }
@@ -37,14 +41,18 @@ export interface AgShadowHighlightStyleOptions {
      *
      * Default: the `shadow` of the series
      */
-    shadow?: Omit<AgDropShadowOptions, 'color'>;
+    shadow?: AgDropShadowOptions;
 }
 
 /** Highlight options for a series whose items can cast a `glow`, and whose highlighted item can cast a `shadow`. */
 export interface AgGlowHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> extends AgHighlightOptions<
     ItemHighlightStyleOptions & AgGlowHighlightStyleOptions
 > {
-    /** Options for the highlighted item. */
+    /**
+     * Options for the highlighted item.
+     *
+     * Default: `{ glow: { enabled: true } }`. The item does not glow for cone funnel, sankey and chord
+     */
     highlightedItem?: ItemHighlightStyleOptions & AgGlowHighlightStyleOptions & AgShadowHighlightStyleOptions;
 }
 
@@ -56,16 +64,29 @@ export interface AgMultiSeriesGlowHighlightOptions<
     ItemHighlightStyleOptions & AgGlowHighlightStyleOptions,
     SeriesHighlightStyleOptions & AgGlowHighlightStyleOptions
 > {
-    /** Options for the highlighted item. */
+    /**
+     * Options for the highlighted item.
+     *
+     * Default: `{ glow: { enabled: true } }`. The item does not glow for cone funnel, sankey and chord
+     */
     highlightedItem?: ItemHighlightStyleOptions & AgGlowHighlightStyleOptions & AgShadowHighlightStyleOptions;
 }
 
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
     /** Set to `false` to disable highlighting. */
     enabled?: boolean;
-    /** Options for the highlighted item.  */
+    /**
+     * Options for the highlighted item.
+     *
+     * Default: unset. `{ stroke: <the theme's accent colour>, strokeWidth: 2 }` for organization
+     */
     highlightedItem?: ItemHighlightStyleOptions;
-    /** Options for the un-highlighted items when there is an active highlight. */
+    /**
+     * Options for the un-highlighted items when there is an active highlight.
+     *
+     * Default: `{ opacity: 1 }`. `0.5` for pie and donut; `0.3` for sankey and chord; `0.6` for map line; unset for map shape, sunburst, treemap and organization.
+     * When `highlight.mode` is `'shared'`, the opacity of `unhighlightedSeries` for every series that has that option except map shape
+     */
     unhighlightedItem?: ItemHighlightStyleOptions;
 }
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}

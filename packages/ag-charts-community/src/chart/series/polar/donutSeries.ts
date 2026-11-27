@@ -1,6 +1,7 @@
 import type {
     DynamicContext,
     GradientParams,
+    LabelFitDescriptor,
     NormalisedCollisionFreeSeriesLabelOptions,
     NormalisedColorType,
     NormalisedDonutInnerLabelOptions,
@@ -39,6 +40,7 @@ import {
     TranslatableGroup,
     type WrapOptions,
     addSectorDatum,
+    areLineBoxesInSector,
     boxCrossesSegment,
     boxOverlapsSector,
     canRenderTextOffscreen,
@@ -53,7 +55,6 @@ import {
     formatValue,
     gridCellSize,
     insetChord,
-    isBoxInSector,
     isFullSweep,
     isGradientFill,
     isStringFillArray,
@@ -65,6 +66,7 @@ import {
     placedPolarLabel,
     polarLabelDatum,
     polarSectorObstacles,
+    resolveAlwaysLabelFit,
     resolveLabelFit,
     sectorBox,
     sectorEdgeInset,
@@ -95,6 +97,7 @@ import type {
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
+import { seriesCountChartAriaLabel } from '../../chartAriaLabel';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -2245,9 +2248,10 @@ export class DonutSeries extends PolarSeries<
         data: PointLabelDatum[],
         label: PolarLabelDatum,
         style: PolarLabelStyle,
-        fitTarget?: PolarFitTarget
+        fitTarget?: PolarFitTarget,
+        fit?: LabelFitDescriptor
     ) {
-        data.push(polarLabelDatum(label, style, this.centerX, this.centerY, undefined, fitTarget));
+        data.push(polarLabelDatum(label, style, this.centerX, this.centerY, undefined, fitTarget, fit));
         this.labelTargets.push({ label });
     }
 
@@ -2272,13 +2276,16 @@ export class DonutSeries extends PolarSeries<
         if (!sectorLabel.enabled) return;
 
         const { positionOffset, positionRatio } = sectorLabel;
-        // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
-        // full and hides if it overruns the wedge.
-        const policy = resolveLabelFit(sectorLabel, false);
+        const policy = resolveAlwaysLabelFit(sectorLabel);
+        const boxedPolicy = { ...policy, boxed: true };
+        const unboxedPolicy = { ...policy, boxed: false };
         // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
         const boxPadding = expandLabelBoxExtent(sectorLabel);
         const innerRadius = this.radiusScale.convert(0);
         const centred = innerRadius <= 0 && this.visibleSectorCount() === 1;
+        // Only an itemStyler restyles a label by highlight or selection state, which redraws it without a re-fit.
+        const drawnAsFitted = sectorLabel.itemStyler == null;
+        const { centerX, centerY } = this;
 
         for (const datum of this.nodeData) {
             const { outerRadius, startAngle, endAngle } = datum;
@@ -2289,12 +2296,12 @@ export class DonutSeries extends PolarSeries<
             const x = centred ? 0 : datum.midCos * labelRadius;
             const y = centred ? 0 : datum.midSin * labelRadius;
             let fitPolicy = policy;
-            let fitTarget: PolarFitTarget | undefined;
-            if (policy != null && centred) {
+            let fitTarget: PolarFitTarget;
+            if (centred) {
                 // A centred single-sector label fits the square inscribed in the pie, like the inner label.
                 const holeExtent = outerRadius * Math.SQRT2;
                 fitTarget = { container: { width: holeExtent, height: holeExtent } };
-            } else if (policy != null) {
+            } else {
                 const sector = {
                     startAngle,
                     endAngle,
@@ -2302,8 +2309,8 @@ export class DonutSeries extends PolarSeries<
                     outerRadius,
                     radialEdgeInset: this.getSideInset(datum, 0),
                 };
-                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
-                fitPolicy = { ...policy, boxed: labelHasBox(font) };
+                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, centerX, centerY, drawnAsFitted);
+                fitPolicy = labelHasBox(font) ? boxedPolicy : unboxedPolicy;
                 fitTarget = { place };
             }
 
@@ -2315,17 +2322,8 @@ export class DonutSeries extends PolarSeries<
                 textBaseline: 'middle',
             };
             sectorLabels.set(datum.datumIndex, label);
-            const fit =
-                fitPolicy == null
-                    ? undefined
-                    : (text: NormalisedTextOrSegments) => ({
-                          text,
-                          policy: fitPolicy,
-                          font,
-                          boxPadding,
-                          boundByRegion: true,
-                      });
-            this.pushLabel(data, label, { font, boxPadding, fit }, fitTarget);
+            const fit = { text: label.text, policy: fitPolicy, font, boxPadding, boundByRegion: true };
+            this.pushLabel(data, label, { font, boxPadding }, fitTarget, fit);
         }
     }
 
@@ -2433,7 +2431,7 @@ export class DonutSeries extends PolarSeries<
                     outerRadius,
                     radialEdgeInset: this.getSideInset(datum, 0),
                 };
-                text.visible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
+                text.visible = areLineBoxesInSector(text.getLineBoxes(), sectorBounds);
             });
 
         updateSelection(this.labelSelection);
@@ -2846,8 +2844,8 @@ export class DonutSeries extends PolarSeries<
         return `${datumIndex}`;
     }
 
-    override getChartAriaLabel(_caption: string, series: readonly UnknownSeries[]) {
-        return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: series.length });
+    override getChartAriaLabel(caption: string, series: readonly UnknownSeries[]) {
+        return seriesCountChartAriaLabel(this.ctx.localeManager, caption, series.length);
     }
 
     protected override hasItemStylers(): boolean {

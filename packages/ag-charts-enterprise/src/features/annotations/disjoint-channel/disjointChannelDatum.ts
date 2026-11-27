@@ -1,8 +1,7 @@
-import type { Logger } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { defineAnnotationDatum } from '../annotationDatum';
-import { AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import {
     type ChannelTypeDatum,
     createChannelTypeDatum,
@@ -26,6 +25,6 @@ export const disjointChannelDatum = defineAnnotationDatum<DisjointChannelDatum>(
     }
 );
 
-export function getDisjointChannelBottom(datum: DisjointChannelDatum, logger: Logger) {
-    return getChannelBottom(datum, datum.startHeight, datum.endHeight, logger);
+export function getDisjointChannelBottom(datum: DisjointChannelDatum, context: AnnotationContext) {
+    return getChannelBottom(datum, datum.startHeight, datum.endHeight, context);
 }

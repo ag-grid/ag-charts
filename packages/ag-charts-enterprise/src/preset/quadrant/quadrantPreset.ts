@@ -40,37 +40,6 @@ const DEFAULT_LABEL_POSITION: AgQuadrantRegionLabelPosition = 'inside-outer-oute
 const DEFAULT_LABEL_SPACING = 10;
 const DEFAULT_SERIES_ID = 'quadrant';
 
-type AxisDirection = -1 | 0 | 1;
-
-interface LabelDirection {
-    x: AxisDirection;
-    y: AxisDirection;
-}
-
-const REGION_DIRECTIONS: Record<Region, { x: -1 | 1; y: -1 | 1 }> = {
-    topLeft: { x: -1, y: -1 },
-    topRight: { x: 1, y: -1 },
-    bottomLeft: { x: -1, y: 1 },
-    bottomRight: { x: 1, y: 1 },
-};
-
-// Multipliers of the region's outward direction, so that spacing moves a label away from the edges its
-// position aligns it to.
-const LABEL_SPACING_DIRECTIONS: Record<AgQuadrantRegionLabelPosition, LabelDirection> = {
-    'outside-outer': { x: -1, y: 1 },
-    'outside-center': { x: 0, y: 1 },
-    'outside-inner': { x: 1, y: 1 },
-    'inside-outer-outer': { x: -1, y: -1 },
-    'inside-outer-center': { x: 0, y: -1 },
-    'inside-outer-inner': { x: 1, y: -1 },
-    'inside-center-outer': { x: -1, y: 0 },
-    'inside-center': { x: 0, y: 0 },
-    'inside-center-inner': { x: 1, y: 0 },
-    'inside-inner-outer': { x: -1, y: 1 },
-    'inside-inner-center': { x: 0, y: 1 },
-    'inside-inner-inner': { x: 1, y: 1 },
-};
-
 type RegionLabelPositions = Record<Region, AgSeriesAreaBackgroundRegionLabelPosition>;
 
 const perRegion = (
@@ -96,26 +65,17 @@ const LABEL_POSITIONS: Record<AgQuadrantRegionLabelPosition, RegionLabelPosition
     'inside-inner-inner': perRegion('inside-bottom-right', 'inside-bottom-left', 'inside-top-right', 'inside-top-left'),
 };
 
-function labelOffset(spacing: number, direction: AxisDirection, outward: -1 | 1) {
-    return direction === 0 ? 0 : spacing * direction * outward;
-}
+type QuadrantRegionLabel = AgSeriesAreaBackgroundRegionLabel & { spacing?: number };
 
 function createRegionLabel(
     region: Region,
     shared: AgQuadrantRegionsLabelOptions | undefined,
     label: AgQuadrantRegionLabelOptions | undefined
-): AgSeriesAreaBackgroundRegionLabel {
+): QuadrantRegionLabel {
     const position = label?.position ?? shared?.position ?? DEFAULT_LABEL_POSITION;
-    const { spacing = DEFAULT_LABEL_SPACING, xOffset = 0, yOffset = 0, ...style } = mergeDefaults(label, shared) ?? {};
-    const outward = REGION_DIRECTIONS[region];
-    const direction = LABEL_SPACING_DIRECTIONS[position];
+    const { spacing = DEFAULT_LABEL_SPACING, ...style } = mergeDefaults(label, shared) ?? {};
 
-    return {
-        ...style,
-        position: LABEL_POSITIONS[position][region],
-        xOffset: labelOffset(spacing, direction.x, outward.x) + xOffset,
-        yOffset: labelOffset(spacing, direction.y, outward.y) + yOffset,
-    };
+    return { ...style, position: LABEL_POSITIONS[position][region], spacing };
 }
 
 function getRegionMetaForValues(
@@ -164,6 +124,7 @@ export function createQuadrant(
         'formatter',
         'height',
         'initialState',
+        'injectStyles',
         'keyboard',
         'listeners',
         'loadGoogleFonts',

@@ -180,6 +180,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         tooltip,
         context,
         styleNonce,
+        injectStyles,
         suppressFieldDotNotation,
         ...seriesOptions
     } = opts as AgSparklineOptions & SparklineUndocumentedProperties;
@@ -198,6 +199,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         padding,
         width,
         styleNonce,
+        injectStyles,
         suppressFieldDotNotation,
     };
 

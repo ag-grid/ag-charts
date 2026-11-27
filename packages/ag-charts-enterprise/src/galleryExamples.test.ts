@@ -6,6 +6,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     type TestCase,
     compareImageSnapshot,
+    getChartAriaLabel,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -123,5 +124,27 @@ describe('Gallery Examples', () => {
                 });
             });
         }
+    });
+
+    describe('accessible name', () => {
+        setupMockCanvas();
+
+        it.each(['SIMPLE_SANKEY_EXAMPLE', 'SIMPLE_CHORD_EXAMPLE'] as const)(
+            'names %s by its series count when it has no captions',
+            async (exampleName) => {
+                const { options } = GALLERY_EXAMPLES[exampleName];
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        ...options,
+                        title: undefined,
+                        subtitle: undefined,
+                        footnote: undefined,
+                    })
+                );
+                await waitForChartStability(chart);
+
+                expect(getChartAriaLabel(chart)).toBe('chart, 1 series');
+            }
+        );
     });
 });

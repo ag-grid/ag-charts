@@ -3,10 +3,10 @@ import {
     BASE_FONT_SIZE,
     COMMON_SERIES_THEME_DEFAULTS,
     FONT_SIZE_RATIO,
-    SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     UNSET_LINE_DASH_THEME_DEFAULT,
     lineDashThemeDefault,
+    seriesSelectionTheme,
     themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -85,7 +85,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
             },
         },
-        selection: SERIES_SELECTION_THEME,
+        selection: seriesSelectionTheme(0.6, 0.2),
         layout: {
             linkIndentation: { $if: [{ $eq: [{ $path: '../direction' }, 'horizontal'] }, 18, 26] },
             nodeIndentation: 26,

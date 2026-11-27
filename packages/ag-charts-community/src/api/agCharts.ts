@@ -335,13 +335,19 @@ class AgChartsInternal {
             licenseManager,
             processedOverrides = proxy?.chart?.chartOptions.processedOverrides ?? {},
             specialOverrides = proxy?.chart?.chartOptions.specialOverrides ?? {},
-            optionsMetadata = proxy?.chart?.chartOptions.optionMetadata ?? {},
+            optionsMetadata: callerOptionsMetadata = proxy?.chart?.chartOptions.optionMetadata ?? {},
             deltaOptions,
             data,
             stripSymbols = false,
             apiStartTime,
         } = opts;
         let { optionsArgumentIssue: argumentIssue } = opts;
+        // Every `ChartOptions` after the first carries the pinned mode, so no later update or theme can switch it.
+        const pinnedInjectStyles = proxy?.injectStyles;
+        const optionsMetadata =
+            pinnedInjectStyles == null
+                ? callerOptionsMetadata
+                : { ...callerOptionsMetadata, injectStyles: pinnedInjectStyles };
         const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
         const moduleScope =
@@ -373,7 +379,10 @@ class AgChartsInternal {
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
-        const pool = this.getPool(optionsMetadata, moduleScope);
+        // Before theme overrides exist, so a theme that sets the mode is only found out after the options are processed.
+        const rawInjectStyles =
+            pinnedInjectStyles ?? (mutableOptions as { injectStyles?: boolean } | undefined)?.injectStyles !== false;
+        const pool = this.getPool(optionsMetadata, moduleScope, rawInjectStyles);
         let create = false;
         let poolResult;
         let chart = proxy?.chart;
@@ -426,13 +435,22 @@ class AgChartsInternal {
             throw e;
         }
 
+        // Only a create can disagree: an update's options carry the pinned mode.
+        let previousReleasedToPool = false;
+        const stylesModeChanged = chart != null && chart.ctx.domManager.injectStyles !== chartOptions.injectStyles;
         if (
             chart == null ||
+            stylesModeChanged ||
             detectChartType(chartOptions.processedOptions, chartOptions.moduleRegistry) !==
                 detectChartType(chart.chartOptions.processedOptions, chart.chartOptions.moduleRegistry)
         ) {
+            previousReleasedToPool = poolResult != null;
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
-            poolResult = this.getPool(chartOptions.optionMetadata, chartOptions.moduleRegistry)?.obtain(chartOptions);
+            poolResult = this.getPool(
+                chartOptions.optionMetadata,
+                chartOptions.moduleRegistry,
+                chartOptions.injectStyles
+            )?.obtain(chartOptions);
             if (poolResult) {
                 chart = poolResult.item;
             } else {
@@ -442,7 +460,28 @@ class AgChartsInternal {
         }
 
         // A pooled chart keeps its own Logger, so adopt it to keep console output and `warnOnce` dedup unified.
-        chartOptions.adopt(chart.ctx);
+        chartOptions.adopt(chart.ctx, previousReleasedToPool);
+
+        // Another mode has no effect and warns, unless the update only omits the option (which resolves to `true`).
+        if (
+            pinnedInjectStyles != null &&
+            chartOptions.requestedInjectStyles !== pinnedInjectStyles &&
+            (!chartOptions.requestedInjectStyles ||
+                (deltaOptions as { injectStyles?: unknown } | undefined)?.injectStyles === true ||
+                (options as { injectStyles?: unknown }).injectStyles === true)
+        ) {
+            chart.ctx.logger.warnOnce(
+                `injectStyles cannot be changed after the chart is created; it stays ${pinnedInjectStyles}.`
+            );
+        }
+        if (
+            !chartOptions.injectStyles &&
+            (chartOptions.processedOptions as { loadGoogleFonts?: boolean }).loadGoogleFonts
+        ) {
+            chart.ctx.logger.warnOnce(
+                "loadGoogleFonts has no effect when injectStyles is false. Load the fonts from the page's own stylesheet."
+            );
+        }
 
         // After `adopt`, so the report goes to the Logger the chart actually keeps.
         if (argumentIssue != null) {
@@ -491,6 +530,7 @@ class AgChartsInternal {
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            proxy.injectStyles = chartOptions.injectStyles;
             studioCharts.set(proxy, withinStudio);
             proxy.licenseManager = licenseManager;
             proxy.releaseChart = poolResult?.release;
@@ -606,14 +646,20 @@ class AgChartsInternal {
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    // A chart's context binds its module scope at construction, so pooled charts are keyed by module set too.
-    private static getPool(optionMetadata: ChartInternalOptionMetadata, moduleScope: ModuleScope) {
+    // A chart's module scope and `injectStyles` mode are fixed at construction, so pooled charts are keyed by both.
+    private static getPool(
+        optionMetadata: ChartInternalOptionMetadata,
+        moduleScope: ModuleScope,
+        injectStyles: boolean
+    ) {
         if (optionMetadata.pool !== true) return;
 
         const scopeKey = ModuleRegistry.getModuleScopeKey(moduleScope);
         const presetType = optionMetadata.presetType ?? 'default';
         return Pool.getPool<Chart, ChartOptions>(
-            scopeKey === '' ? presetType : `${presetType}|${scopeKey}`,
+            [presetType, scopeKey === '' ? undefined : scopeKey, injectStyles ? undefined : 'static']
+                .filter((part) => part != null)
+                .join('|'),
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,

@@ -7,11 +7,13 @@ import {
     deproxy,
     expectWarningsCalls,
     getAxisCoordinate,
+    getSeriesAt,
     getSeriesNodeData,
     getSeriesOptions,
     getSeriesRect,
     getSwapChainText,
     hoverAction,
+    hoverDatum,
     isTooltipVisible,
     prepareFinancialTestOptions,
     pressKey,
@@ -62,6 +64,8 @@ const EXAMPLES: Record<string, AgFinancialChartOptions> = {
             typeof params.value === 'number' ? `$${params.value.toFixed(0)}` : undefined,
     },
 };
+
+const CHART_TYPES = ['candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'] as const;
 
 setupEnterpriseModules();
 
@@ -172,11 +176,11 @@ describe('priceVolumePreset', () => {
     });
 
     it.each([
-        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, mode: 'weak', range: 20 } },
+        { name: 'themes the magnet defaults', theme: undefined, expected: { enabled: false, range: 20 } },
         {
             name: 'applies a theme override of the magnet',
-            theme: { overrides: { common: { annotations: { magnet: { enabled: true, mode: 'strong' } } } } },
-            expected: { enabled: true, mode: 'strong', range: 20 },
+            theme: { overrides: { common: { annotations: { magnet: { enabled: true, range: 'nearest' } } } } },
+            expected: { enabled: true, range: 'nearest' },
         },
     ] as const)('$name', async ({ theme, expected }) => {
         chart = AgCharts.createFinancialChart(
@@ -322,6 +326,68 @@ describe('priceVolumePreset', () => {
 
                 chart = AgCharts.createFinancialChart(options);
                 await compareImageDataUrl();
+            }
+        );
+    });
+
+    describe('hover', () => {
+        // The line and hlc price series draw a hovered marker only when their markers are on.
+        const MARKERS_THEME = {
+            overrides: {
+                line: { series: { marker: { enabled: true } } },
+                hlc: { series: { marker: { enabled: true } } },
+            },
+        };
+
+        const createChart = async (chartType: (typeof CHART_TYPES)[number], theme: AgChartTheme<any, never>) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ chartType, data: getStockData().slice(0, 40), theme })
+            );
+            await waitForChartStability(chart);
+        };
+
+        const seriesIndexOf = (id: string) => deproxy(chart).series.findIndex((series) => series.id === id);
+
+        const highlightedShapes = () =>
+            deproxy(chart).series.flatMap((_, index) =>
+                collectShapes(getSeriesAt(chart, index).highlightGroup).filter((shape) => shape.visible)
+            );
+
+        const glowCount = () => highlightedShapes().filter((shape) => shape.getCastShadow('glow') != null).length;
+
+        it.each(CHART_TYPES)('casts no glow on hovering a price item or a volume bar of %s', async (chartType) => {
+            await createChart(chartType, MARKERS_THEME);
+
+            for (const id of ['price', 'volume']) {
+                await hoverDatum(chart, seriesIndexOf(id), 10);
+                expect(highlightedShapes().length, id).toBeGreaterThan(0);
+                expect(glowCount(), id).toBe(0);
+            }
+        });
+
+        it.each<[(typeof CHART_TYPES)[number], AgChartTheme<any, never>]>([
+            ['candlestick', { overrides: { candlestick: { series: { glow: { enabled: true } } } } }],
+            ['line', { overrides: { line: { series: { marker: { enabled: true, glow: { enabled: true } } } } } }],
+            [
+                'hlc',
+                {
+                    overrides: {
+                        hlc: {
+                            series: {
+                                marker: { enabled: true },
+                                highlight: { highlightedItem: { glow: { enabled: true } } },
+                            },
+                        },
+                    },
+                },
+            ],
+        ])(
+            'casts a glow on the hovered %s item when a theme override turns the glow back on',
+            async (chartType, theme) => {
+                await createChart(chartType, theme);
+
+                await hoverDatum(chart, seriesIndexOf('price'), 10);
+                expect(glowCount()).toBeGreaterThan(0);
             }
         );
     });
@@ -795,16 +861,6 @@ describe('priceVolumePreset', () => {
             expect(labels.map((l) => l.priceTop)).toEqual(HOVER_YS.map((y) => `${y}px`));
         });
 
-        const CHART_TYPES = [
-            'candlestick',
-            'hollow-candlestick',
-            'ohlc',
-            'line',
-            'step-line',
-            'hlc',
-            'high-low',
-        ] as const;
-
         it.each(CHART_TYPES.flatMap((chartType) => [true, false].map((volume) => [chartType, volume] as const)))(
             'shows date and price crosshair labels by default for %s with volume %s',
             async (chartType, volume) => {
@@ -1110,9 +1166,14 @@ describe('priceVolumePreset', () => {
             expect(presetButtons({ common: {} })).toHaveLength(7);
         });
 
-        it('includes the magnet button by default, before the clear button', () => {
-            const values = presetButtons()?.map((button) => button.value);
-            expect(values?.slice(-2)).toEqual(['magnet', 'clear']);
+        it('includes the magnet switch by default, before the clear button', () => {
+            const buttons = presetButtons();
+            expect(buttons?.map((button) => button.value).slice(-2)).toEqual(['magnet', 'clear']);
+            expect(buttons?.at(-2)).toMatchObject({
+                type: 'switch',
+                icon: 'no-magnet',
+                checkedOverrides: { icon: 'magnet' },
+            });
         });
     });
 });

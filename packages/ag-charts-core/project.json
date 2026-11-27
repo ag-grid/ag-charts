@@ -7,7 +7,6 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package"],
-      "inputs": [],
       "outputs": [],
       "configurations": {
         "watch": {},

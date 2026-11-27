@@ -27,6 +27,8 @@ export default [
             '**/.angular',
             '**/benchmarkHarness.ts',
             '**/benchmarkUtils.ts',
+            '**/shadowRootCases.ts',
+            '**/shadowRootData.ts',
         ],
     },
     {
@@ -83,7 +85,7 @@ export default [
         // TODO: Remove these
         ignores: [
             '*.mjs',
-            'public/example-runner/**/*.{js,ts}',
+            'public/example-runner/**/*.{js,mjs,ts}',
             'e2e/fixture.ts',
             'e2e/generated/**',
             'tools/compare-gallery-thumbnails.js',

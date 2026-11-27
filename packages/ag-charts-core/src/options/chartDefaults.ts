@@ -46,7 +46,6 @@ import {
     type ToolbarButton,
 } from 'ag-charts-types';
 
-import { without } from '../data/object';
 import { isObject } from '../data/typeGuards';
 import { isValidNumberFormat } from '../format/numberFormat';
 import {
@@ -68,6 +67,7 @@ import {
     textWrap,
     themeOperator,
 } from './optionsDefaults';
+import { HOVER_GLOW_PART_DEFAULTS } from './themeUtil';
 import {
     ErrorType,
     type OptionsDefs,
@@ -88,7 +88,6 @@ import {
     constant,
     date,
     defined,
-    deprecated,
     greaterThan,
     htmlElement,
     lessThan,
@@ -103,6 +102,7 @@ import {
     required,
     strictUnion,
     string,
+    themeComputed,
     typeUnion,
     undocumented,
     undocumentedDefs,
@@ -353,6 +353,8 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'locked',
         'magnet',
         'measurer-drawing',
+        'move',
+        'no-magnet',
         'note-annotation',
         'ohlc-series',
         'pan-end',
@@ -643,6 +645,7 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
         },
     },
     styleNonce: string,
+    injectStyles: boolean,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
     ...undocumentedDefs({
@@ -704,7 +707,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     spread: positiveNumber,
     fill: colorOrRef,
     fillOpacity: ratio,
-    color: deprecated(colorOrRef, 'Use `fill` instead.'),
+    ...undocumentedDefs({ _fillOpacitySet: themeComputed('_fillOpacitySet', boolean) }),
 };
 
 export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
@@ -715,9 +718,6 @@ export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     fill: colorOrRef,
     fillOpacity: ratio,
 };
-
-/** The `shadow` of a highlighted item, which has no deprecated `color`: a new option takes `fill`. */
-const highlightedItemShadowOptionsDefs = without(shadowOptionsDefs, ['color']);
 
 /** Validates an item styler's `shadow` or `glow` against `defs`, dropping the whole object if any field is invalid. */
 const itemCastOf = <T>(defs: OptionsDefs<T>): Validator => {
@@ -732,19 +732,41 @@ const itemCastOf = <T>(defs: OptionsDefs<T>): Validator => {
 
 /** What an item styler may return beyond the style of an item: the `shadow` and `glow` that the item casts. */
 export const itemStylerCastDefs = {
-    shadow: itemCastOf(highlightedItemShadowOptionsDefs),
+    shadow: itemCastOf(shadowOptionsDefs),
     glow: itemCastOf(glowOptionsDefs),
 } as const satisfies OptionsDefs<AgItemShadowStyle>;
 
 /** The item buckets of a series that can cast a `glow`: only `highlightedItem` can also cast a `shadow`. */
 function glowItemHighlightDefs<I extends object>(itemHighlightOptionsDef: I) {
     const unhighlightedItem = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
-    return { highlightedItem: { ...unhighlightedItem, shadow: highlightedItemShadowOptionsDefs }, unhighlightedItem };
+    return { highlightedItem: { ...unhighlightedItem, shadow: shadowOptionsDefs }, unhighlightedItem };
 }
+
+/** One entry for each part of the series with the most parts that glow, the three of a waterfall; only the theme sets it. */
+const HOVER_GLOW_PART_DEFAULTS_DEFS = themeComputed(
+    HOVER_GLOW_PART_DEFAULTS,
+    attachDescription(
+        (value: unknown, context: ValidatorContext) =>
+            typeof value === 'object' &&
+            value != null &&
+            Object.keys(value).every((part) => {
+                const glows = (value as Record<string, unknown>)[part];
+                return (
+                    ['part0', 'part1', 'part2'].includes(part) &&
+                    (typeof glows === 'boolean' || themeOperator(glows, context))
+                );
+            }),
+        'an object with a boolean for each of part0, part1 and part2 that the series has'
+    )
+);
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    return { ...highlightOptionsDef(undefined), ...glowItemHighlightDefs(itemHighlightOptionsDef) };
+    return {
+        ...highlightOptionsDef(undefined),
+        ...glowItemHighlightDefs(itemHighlightOptionsDef),
+        ...undocumentedDefs({ [HOVER_GLOW_PART_DEFAULTS]: HOVER_GLOW_PART_DEFAULTS_DEFS }),
+    };
 }
 
 /** As {@link glowHighlightOptionsDef}, for a series that also has highlighted-series and unhighlighted-series slots. */
@@ -755,6 +777,7 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     return {
         ...multiSeriesHighlightOptionsDef(undefined, { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }),
         ...glowItemHighlightDefs(itemHighlightOptionsDef),
+        ...undocumentedDefs({ [HOVER_GLOW_PART_DEFAULTS]: HOVER_GLOW_PART_DEFAULTS_DEFS }),
     };
 }
 
@@ -803,6 +826,8 @@ const collideWithOptionsDef: OptionsDefs<AgSeriesLabelCollideWithOptions> = {
     labels: boolean,
     seriesArea: boolean,
     axisLabels: boolean,
+    crossLineLabels: boolean,
+    regionLabels: boolean,
 };
 
 export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {

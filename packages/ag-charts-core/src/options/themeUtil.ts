@@ -359,6 +359,13 @@ export const FILL_PATTERN_KEYED_DEFAULTS = (
     },
 });
 
+/** A solid fill's defaults: the colour a pattern takes for its stroke, which is the palette colour for a plain fill. */
+export const fillSolidDefaults = (pattern: { stroke: unknown }) => ({
+    type: 'solid',
+    fill: pattern.stroke,
+    fillOpacity: 1,
+});
+
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {
     type: 'image',
     backgroundFill: { $palette: 'fillFallback' },
@@ -626,39 +633,49 @@ export const BAR_LABEL_COLLISION_THEME = {
     collideWith: { shapes: false },
 };
 
-export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedItem: {
-        opacity: 0.6,
-    },
-    unhighlightedSeries: {
-        opacity: 0.2,
-    },
-};
+/** The `unhighlightedItem` opacity of a series, which in `highlight.mode: 'shared'` is that of `unhighlightedSeries`. */
+function sharedModeOpacity(singleModeOpacity: number): Operation {
+    return {
+        $if: [
+            { $eq: [{ $circular: { $path: '/highlight/mode' } }, 'shared'] },
+            { $path: '/series/$index/highlight/unhighlightedSeries/opacity' },
+            singleModeOpacity,
+        ],
+    };
+}
 
-export const MARKER_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedSeries: {
-        opacity: 0.2,
-    },
-};
+/**
+ * The highlight style of a series with series states, whose other series dim to `unhighlightedSeries` opacity. The
+ * other items of the hovered series dim to `unhighlightedItem` in `'single'` mode, and with the other series in `'shared'`.
+ */
+export function multiSeriesHighlightStyle(
+    unhighlightedSeries: number,
+    unhighlightedItem = 1
+): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: { $circular: { $path: '/highlight/enabled' } },
+        unhighlightedItem: { opacity: sharedModeOpacity(unhighlightedItem) },
+        unhighlightedSeries: { opacity: unhighlightedSeries },
+    };
+}
 
-export const PART_WHOLE_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedItem: {
-        opacity: 0.2,
-    },
-    unhighlightedSeries: {
-        opacity: 0.2,
-    },
-};
+export const MULTI_SERIES_HIGHLIGHT_STYLE = multiSeriesHighlightStyle(0.5);
 
-export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: { $circular: { $path: '/highlight/enabled' } },
-    unhighlightedItem: {
-        opacity: 0.2,
-    },
-};
+export const MARKER_SERIES_HIGHLIGHT_STYLE = multiSeriesHighlightStyle(0.3);
+
+export const PART_WHOLE_HIGHLIGHT_STYLE = multiSeriesHighlightStyle(0.5, 0.5);
+
+/** The highlight style of a series without series states, whose other items dim to `unhighlightedItem` opacity. */
+export function singleSeriesHighlightStyle(
+    unhighlightedItem = 1
+): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        enabled: { $circular: { $path: '/highlight/enabled' } },
+        unhighlightedItem: { opacity: unhighlightedItem },
+    };
+}
+
+export const SINGLE_SERIES_HIGHLIGHT_STYLE = singleSeriesHighlightStyle();
 
 /** Interaction defaults for series whose public options omit `showInLegend`. */
 export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
@@ -681,6 +698,17 @@ export const STROKE_STYLE_THEME_DEFAULTS = {
     lineDashOffset: 0,
 };
 
+/**
+ * A `lineDash` default whose set values (user, theme override or styler) layer over solid instead of the `defaultDash`,
+ * so that no element of the default shows through a shorter array, as it would by index.
+ */
+export function solidLayeredLineDashThemeDefault(defaultDash: AgLineDashName | number[] | Operation) {
+    return { $applyLineDash: [defaultDash, SIBLING_STROKE_WIDTH, 'solid'] } satisfies Operation;
+}
+
+/** A series stroke's `lineDash` default: the palette's pattern at the series index. */
+export const PALETTE_LINE_DASH_THEME_DEFAULT = solidLayeredLineDashThemeDefault({ $palette: 'lineDash' });
+
 /** {@link STROKE_STYLE_THEME_DEFAULTS} resolved, for styles built outside the theme. */
 export const SOLID_STROKE_STYLE = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
 
@@ -692,12 +720,28 @@ export const FONT_THEME_DEFAULTS = {
     fontWeight: { $ref: 'fontWeight' },
 } as const;
 
-/** A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone. */
-function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: Operation) {
+/**
+ * The fallback opacity goes with the fallback `fill` alone.
+ * `_fillOpacitySet` is true for a user `fillOpacity`, and a `fill` alone leaves it at `fallbackFillOpacitySet`.
+ */
+function shadowFillTheme(
+    fallbackFill: Operation | string,
+    fallbackFillOpacity: Operation,
+    fallbackFillOpacitySet?: Operation
+) {
     return {
-        fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
-        fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
-    } as const satisfies Record<string, Operation>;
+        fill: fallbackFill,
+        fillOpacity: { $isUserOption: ['./fill', 1, fallbackFillOpacity] },
+        _fillOpacitySet: {
+            $isUserOption: [
+                './fillOpacity',
+                true,
+                fallbackFillOpacitySet == null
+                    ? undefined
+                    : { $isUserOption: ['./fill', undefined, fallbackFillOpacitySet] },
+            ],
+        },
+    } as const satisfies Record<string, Operation | string>;
 }
 
 /**
@@ -705,7 +749,11 @@ function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: 
  * `seriesShadowPath`, the theme values included.
  */
 export function inheritedShadowFillTheme(seriesShadowPath: string) {
-    return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
+    return shadowFillTheme(
+        { $path: `${seriesShadowPath}/fill` },
+        { $path: `${seriesShadowPath}/fillOpacity` },
+        { $path: `${seriesShadowPath}/_fillOpacitySet` }
+    );
 }
 
 /** The `glow` of a part of a series, every field taken from the `glow` of the series at `seriesGlowPath`. */
@@ -732,9 +780,20 @@ export const SHADOW_THEME_DEFAULTS = {
 /** Disabled glow. It has no `fill`, as it takes the fill of the item that it surrounds. */
 export const GLOW_THEME_DEFAULTS = {
     enabled: false,
-    fillOpacity: 0.4,
-    blur: 2,
-    spread: 4,
+    fillOpacity: 0.6,
+    blur: 1,
+    spread: 2,
+    gap: 1,
+} as const;
+
+/** {@link GLOW_THEME_DEFAULTS} for items that sit against each other: a neutral `fill`, as a glow of the item's would be lost. */
+export const NEUTRAL_GLOW_THEME_DEFAULTS = {
+    enabled: false,
+    fill: { $foregroundBackgroundMix: 0.6 },
+    fillOpacity: 1,
+    blur: 0,
+    spread: 1,
+    gap: 0,
 } as const;
 
 /** The `lineDash` default of a style that falls back to the series' when unset, such as a highlight bucket. */
@@ -777,23 +836,46 @@ export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] 
 
 /**
  * Gives each of the `buckets` of a highlight theme, keeping what they hold, a `glow` whose `enabled` follows the series-level
- * `glow` at `seriesGlowPath`, so that its other options come from there. For a series whose highlight styles have no
- * `lineDash` for {@link withGlowThemeDefaults} to default, such as treemap and sunburst.
+ * `glow` at `seriesGlowPath`, so that its other options come from there. The `highlightedItem` glows unless the user sets
+ * the `glow` of the `highlightedBranch`, if it is among `buckets`, or the series, which `glowOnHover: false` leaves to
+ * follow it too. For a series whose highlight styles have no `lineDash` for {@link withGlowThemeDefaults} to default,
+ * such as treemap and sunburst, whose `highlight` is beside the `glow`.
  */
 export function withFollowedGlowThemeDefaults<T extends object>(
     highlight: T,
     buckets: readonly string[],
-    seriesGlowPath: string
+    seriesGlowPath: string,
+    { glowOnHover = true }: Pick<GlowThemePaths, 'glowOnHover'> = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
-    for (const bucket of buckets) {
-        result[bucket] = {
-            ...(result[bucket] as object | undefined),
-            glow: { enabled: { $path: `${seriesGlowPath}/enabled` } },
-        };
+    const seriesEnabled = { $path: `${seriesGlowPath}/enabled` };
+    const follow = (bucket: string, enabled: Operation) => {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: { enabled } };
+    };
+    for (const bucket of buckets) follow(bucket, seriesEnabled);
+    if (glowOnHover) {
+        const seriesOrDefault: Operation = { $isUserOption: [seriesEnabled.$path, seriesEnabled, true] };
+        const branchPath = buckets.includes('highlightedBranch')
+            ? `${seriesGlowPath.replace(/glow$/, 'highlight')}/highlightedBranch/glow/enabled`
+            : undefined;
+        follow(
+            'highlightedItem',
+            branchPath == null
+                ? seriesOrDefault
+                : { $isUserOption: [branchPath, { $path: branchPath }, seriesOrDefault] }
+        );
     }
     return result as T;
 }
+
+/**
+ * The undocumented `highlight` key that holds, for each part of a series with a `glow` on several parts, keyed by its
+ * position among the parts, whether the part's hovered item glows unless its `glow` sets otherwise. Only the theme
+ * computes it: the leading underscore marks it as internal, and a value from the user is dropped as an unknown option.
+ */
+export const HOVER_GLOW_PART_DEFAULTS = '_hoverGlowDefaults';
+
+export const hoverGlowPartKey = (index: number) => `part${index}`;
 
 /** Where the `glow` that a highlight falls back to is in the theme. */
 export interface GlowThemePaths {
@@ -802,6 +884,15 @@ export interface GlowThemePaths {
      * the links and nodes of a flow, lists them all: a bucket's `enabled` is then left unset unless the user sets its `glow`.
      */
     readonly glow?: string | readonly string[];
+    /** The `glow` that the parts of a multi-part `glow` inherit from, such as `marker.glow`. A user's `enabled` there turns off the default hover glow. */
+    readonly inheritedGlow?: string;
+    /**
+     * Whether the highlighted item glows unless the user sets the series-level `glow`. Set to `false` for a series whose
+     * highlighted item glows only when the series does.
+     *
+     * Default: `true`
+     */
+    readonly glowOnHover?: boolean;
 }
 
 /**
@@ -818,7 +909,7 @@ export interface GlowThemePaths {
 export function withGlowThemeDefaults<T extends object>(
     highlight: T,
     buckets: readonly string[],
-    { glow = '/series/$index/glow' }: GlowThemePaths = {}
+    { glow = '/series/$index/glow', inheritedGlow, glowOnHover = true }: GlowThemePaths = {}
 ): T {
     const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
     const glowPaths = typeof glow === 'string' ? [glow] : glow;
@@ -835,10 +926,32 @@ export function withGlowThemeDefaults<T extends object>(
     for (const bucket of buckets) {
         if (!ITEM_GLOW_BUCKETS.includes(bucket as (typeof ITEM_GLOW_BUCKETS)[number])) follow(bucket, seriesEnabled);
     }
-    const itemEnabled = buckets.includes('highlightedSeries')
-        ? { $path: '/series/$index/highlight/highlightedSeries/glow/enabled' }
-        : seriesEnabled;
+    const seriesBucketPath = buckets.includes('highlightedSeries')
+        ? '/series/$index/highlight/highlightedSeries/glow/enabled'
+        : undefined;
+    const itemEnabled = seriesBucketPath == null ? seriesEnabled : { $path: seriesBucketPath };
     for (const bucket of ITEM_GLOW_BUCKETS) follow(bucket, itemEnabled);
+    if (glowOnHover && perPart) {
+        // A part's hover default is lost where the user sets its `enabled`, or the `enabled` it inherits.
+        const partDefault = (path: string): Operation => {
+            const inherited: Operation | true =
+                inheritedGlow == null ? true : { $if: [{ $isUserOption: `${inheritedGlow}/enabled` }, false, true] };
+            return { $if: [{ $isUserOption: `${path}/enabled` }, false, inherited] };
+        };
+        // An object, not an array: `$index` in a path would resolve to the position in an array.
+        result[HOVER_GLOW_PART_DEFAULTS] = Object.fromEntries(
+            glowPaths.map((path, i) => [hoverGlowPartKey(i), partDefault(path)])
+        );
+    } else if (glowOnHover) {
+        const userSet: Operation =
+            seriesBucketPath == null
+                ? { $isUserOption: enabledPaths[0].$path }
+                : { $or: [{ $isUserOption: seriesBucketPath }, { $isUserOption: enabledPaths[0].$path }] };
+        result.highlightedItem = {
+            ...(result.highlightedItem as object),
+            glow: { enabled: { $if: [userSet, itemEnabled, true] } },
+        };
+    }
     return result as T;
 }
 
@@ -925,18 +1038,20 @@ export function fillThemeTemplate(gradient: unknown, defaultFill: unknown = { $p
             ['gradient', gradient],
             ['image', FILL_IMAGE_DEFAULTS],
             ['pattern', FILL_PATTERN_DEFAULTS],
+            ['solid', fillSolidDefaults(FILL_PATTERN_DEFAULTS)],
         ],
     };
 }
 
 /** Per-item {@link fillThemeTemplate} for an `$applyCycle` over palette `fills`, where `$1` is the cycled colour. */
-export function cycledFillThemeTemplate(gradient: unknown, pattern: unknown = FILL_PATTERN_DEFAULTS) {
+export function cycledFillThemeTemplate(gradient: unknown, pattern: { stroke: unknown } = FILL_PATTERN_DEFAULTS) {
     return {
         $applySwitch: [
             { $path: ['/type', undefined, { $value: '$1' }] },
             { $value: '$1' },
             ['gradient', gradient],
             ['pattern', pattern],
+            ['solid', fillSolidDefaults(pattern)],
             ['image', FILL_IMAGE_DEFAULTS],
         ],
     };
@@ -958,21 +1073,42 @@ export function interpolationThemeTemplate(defaultType: unknown = 'linear') {
     };
 }
 
-export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> = {
-    enabled: { $path: ['/selection/enabled', false] },
-    containment: { $path: ['/selection/containment', 'any'] },
-    selectedItem: {
-        strokeWidth: 2,
-        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
-    },
-    unselectedItem: {
-        opacity: 0.6,
-        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
-    },
-    unselectedSeries: {
-        opacity: 0.2,
-        lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
-    },
+/** The selection style of a series: unselected items dim to `unselectedItem` opacity, series to `unselectedSeries`; a `null` `selectedItemOpacity` leaves it unset. */
+export function seriesSelectionTheme(
+    unselectedItem: number,
+    unselectedSeries = unselectedItem,
+    selectedItemOpacity: number | null = 1
+): WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> {
+    return {
+        enabled: { $path: ['/selection/enabled', false] },
+        containment: { $path: ['/selection/containment', 'any'] },
+        selectedItem: {
+            strokeWidth: 2,
+            ...(selectedItemOpacity == null ? undefined : { opacity: selectedItemOpacity }),
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+        },
+        unselectedItem: {
+            opacity: unselectedItem,
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+        },
+        unselectedSeries: {
+            opacity: unselectedSeries,
+            lineDash: UNSET_LINE_DASH_THEME_DEFAULT,
+        },
+    };
+}
+
+export const SERIES_SELECTION_THEME = seriesSelectionTheme(0.5);
+
+export const MARKER_SERIES_SELECTION_THEME = seriesSelectionTheme(0.3);
+
+/** A floating legend is filled by default; one that is not floating is only once `legendBackgroundColor` is set. */
+export const LEGEND_BACKGROUND_FILL: Operation = {
+    $if: [
+        { $or: [{ $path: ['./position/floating', false] }, { $isUserParam: 'legendBackgroundColor' }] },
+        { $ref: 'legendBackgroundColor' },
+        'transparent',
+    ],
 };
 
 export const LEGEND_CONTAINER_THEME: any = {
@@ -988,7 +1124,11 @@ export const LEGEND_CONTAINER_THEME: any = {
     padding: {
         $if: [
             {
-                $or: [{ $eq: [{ $path: './border/enabled' }, true] }, { $isUserOption: ['./fill', true, false] }],
+                $or: [
+                    { $eq: [{ $path: './border/enabled' }, true] },
+                    { $isUserOption: ['./fill', true, false] },
+                    { $isUserParam: 'legendBackgroundColor' },
+                ],
             },
             { $ref: 'legendPadding' },
             0,
@@ -1024,7 +1164,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 ],
             },
             strokeOpacity: { $path: '../../../strokeOpacity' },
-            lineDash: lineDashThemeDefault({ $path: '../../../lineDash' }),
+            lineDash: solidLayeredLineDashThemeDefault({ $path: '../../../lineDash' }),
             lineDashOffset: { $path: '../../../lineDashOffset' },
         },
     },

@@ -11,18 +11,21 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
+    PALETTE_LINE_DASH_THEME_DEFAULT,
     SEGMENTATION_DEFAULTS,
     SERIES_GLOW_BUCKETS,
-    SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillSolidDefaults,
     fillThemeTemplate,
     inheritedGlowTheme,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
     lineDashThemeDefault,
+    solidLayeredLineDashThemeDefault,
     themeLineHeight,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
@@ -30,7 +33,7 @@ import {
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
 
 const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemOptions]> = {
-    lineDash: lineDashThemeDefault({ $path: '/series/$index/lineDash' }),
+    lineDash: solidLayeredLineDashThemeDefault({ $path: '/series/$index/lineDash' }),
     lineDashOffset: {
         $path: '/series/$index/lineDashOffset',
     },
@@ -57,6 +60,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                                 { $isGradient: { $path: '/series/$index/marker/fill' } },
                                 { $isImage: { $path: '/series/$index/marker/fill' } },
                                 { $isPattern: { $path: '/series/$index/marker/fill' } },
+                                { $isSolid: { $path: '/series/$index/marker/fill' } },
                             ],
                         },
                         {
@@ -69,6 +73,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                                         ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
                                         ['image', FILL_IMAGE_DEFAULTS],
                                         ['pattern', FILL_PATTERN_DEFAULTS],
+                                        ['solid', fillSolidDefaults(FILL_PATTERN_DEFAULTS)],
                                     ],
                                 },
                             ],
@@ -130,12 +135,14 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
                 { $palette: 'fill' },
                 ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
                 ['pattern', FILL_PATTERN_DEFAULTS],
+                ['solid', fillSolidDefaults(FILL_PATTERN_DEFAULTS)],
             ],
         },
         fillOpacity: 0.7,
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        lineDash: PALETTE_LINE_DASH_THEME_DEFAULT,
         marker: {
             enabled: false,
             shadow: SHADOW_THEME_DEFAULTS,
@@ -176,9 +183,10 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             SERIES_GLOW_BUCKETS,
             {
                 glow: ['low', 'high'].map((item) => `/series/$index/item/${item}/marker/glow`),
+                inheritedGlow: '/series/$index/marker/glow',
             }
         ),
-        selection: SERIES_SELECTION_THEME,
+        selection: MARKER_SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {
             enabled: false,
@@ -189,6 +197,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
                     ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
                     ['image', FILL_IMAGE_DEFAULTS],
                     ['pattern', FILL_PATTERN_DEFAULTS],
+                    ['solid', fillSolidDefaults(FILL_PATTERN_DEFAULTS)],
                 ],
             },
             fillOpacity: { $path: '../fillOpacity' },

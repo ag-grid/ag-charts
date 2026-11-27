@@ -393,8 +393,8 @@ export type NormalisedBandHighlightOptions = Normalised<
 /** How a cross-line label behaves when it does not fit the space available. Undocumented. */
 export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 
-// `overflow` and `reserveSpace` are undocumented extensions, validated in `axesOptionsDefs.ts` and
-// themed in `crossLinesModule.ts`, so they are absent from the public label options.
+// `overflow` is an undocumented extension, validated in `axesOptionsDefs.ts` and
+// themed in `crossLinesModule.ts`, so it is absent from the public label options.
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
     'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'spacing' | 'color' | 'cornerRadius',
@@ -403,7 +403,6 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     // The fit options apply to cartesian cross lines only.
     NormalisedLabelFitOptions & {
         overflow?: CrossLineLabelOverflow;
-        reserveSpace?: boolean;
         /** Cartesian cross lines only. */
         placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
         /** Cartesian cross lines only. */

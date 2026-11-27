@@ -22,6 +22,7 @@ import {
     dragAction,
     expectSceneSamplesMatch,
     expectWarningsCalls,
+    getChartAriaLabel,
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesRect,
@@ -2649,7 +2650,7 @@ describe('OrganizationSeries', () => {
                 title: { key: 'name', lineHeight },
             });
             expect(titleOf((await render(node())).texts)).toContain('\n');
-            expect(titleOf((await render(node(60))).texts)).toBe('Alexandra…');
+            expect(titleOf((await render(node(60))).texts)).toBe('Alexandra Montgomer…');
         });
 
         it('should default to truncate: true on every tier', async () => {
@@ -4011,6 +4012,17 @@ describe('OrganizationSeries', () => {
             for (const frame of trajectory) {
                 expectSceneSamplesMatch(frame, trajectory[0]);
             }
+        });
+    });
+
+    describe('chart accessible name', () => {
+        it.each([
+            ['without captions', NUMERIC_ID_ORG_CHART, 'chart, 1 series'],
+            ['with a title', { ...NUMERIC_ID_ORG_CHART, title: { text: 'Staff' } }, 'chart, Staff'],
+        ])('names an organization chart %s', async (_name, options, expected) => {
+            chart = await createEnterpriseChart(options);
+
+            expect(getChartAriaLabel(chart)).toBe(expected);
         });
     });
 });

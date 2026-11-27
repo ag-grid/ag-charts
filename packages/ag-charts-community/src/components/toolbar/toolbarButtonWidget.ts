@@ -10,6 +10,7 @@ import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
     AgAnnotationsToolbarButtonValue,
+    AgAnnotationsToolbarSwitchValue,
     AgIconName,
     AgIconPosition,
     AgRangesButtonValue,
@@ -21,7 +22,9 @@ import type { LocaleManager } from '../../locale/localeManager';
 
 type ButtonValue =
     | 'menu'
+    | 'move'
     | AgAnnotationsToolbarButtonValue
+    | AgAnnotationsToolbarSwitchValue
     | AgAnnotationOptionsToolbarButtonValue
     | AgAnnotationOptionsToolbarSwitchValue
     | AgZoomButtonValue
@@ -49,6 +52,8 @@ export interface ToolbarButtonInteractionOptions {
 
 const DEFAULT_BUTTON_SIZE = 34;
 const ICON_SIZE = 20;
+/** Declared in `toolbar.css`: the timing function of the button's `z-index` transition. */
+const Z_INDEX_TIMING_PROPERTY = '--toolbar-button-z-index-timing';
 
 export function getToolbarIconSize(buttonSize: number, defaultButtonSize: number = DEFAULT_BUTTON_SIZE): number {
     const size = Math.round(buttonSize);
@@ -90,6 +95,7 @@ const ARIA_HASPOPUP = {
     lock: 'false',
     magnet: 'false',
     menu: 'menu',
+    move: 'false',
     note: 'false',
     reset: 'false',
     settings: 'dialog',
@@ -162,14 +168,19 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (opensWithArrowKey) {
             this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
         }
+        this.addListener('blur', this.onBlur);
     }
 
     public update(options: ToolbarButtonWidgetOptions, interactionOptions: ToolbarButtonInteractionOptions) {
         const { localeManager } = this;
 
         const tooltip = options.tooltip == null ? undefined : localeManager.t(options.tooltip);
-        if (tooltip != null && tooltip !== this.lastTooltip) {
-            this.elem.title = tooltip;
+        if (tooltip !== this.lastTooltip) {
+            if (tooltip == null) {
+                this.elem.removeAttribute('title');
+            } else {
+                this.elem.title = tooltip;
+            }
             this.lastTooltip = tooltip;
         }
 
@@ -184,6 +195,8 @@ export class ToolbarButtonWidget extends ButtonWidget {
 
         this.setAriaRole(options.checked == null ? undefined : 'switch');
         this.setAriaChecked(options.checked);
+        // The tooltip can follow the switch state, which aria-checked already announces.
+        this.setAriaDescription(options.checked == null ? undefined : '');
 
         const haspopup = getAriaHasPopupOfValue(options.value);
         this.opensDialog = haspopup === 'dialog';
@@ -233,6 +246,33 @@ export class ToolbarButtonWidget extends ButtonWidget {
         this.lastButtonSize = buttonSize;
         this.lastIconSize = iconSize;
         setToolbarSizeProperties(this.elem, buttonSize, iconSize);
+    }
+
+    /**
+     * Enabling raises the button's stacking order, which must not wait for the border colours to fade. The stylesheet
+     * cannot tell it from lowering back to the default state, so it names the immediate timing for that one change.
+     */
+    public override setEnabled(enabled: boolean) {
+        const raising = enabled && this.isDisabled();
+        if (raising) this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');
+        super.setEnabled(enabled);
+        if (raising) this.flushZIndexTiming();
+    }
+
+    /**
+     * Chrome restyles inside `focus()`, after the old button blurs and before the new one is focused, so the sibling
+     * rules in the stylesheet cannot see the new focus yet. The old button would then keep the focus ring's stacking
+     * order over the new button's ring for the transition, so its drop is made immediate.
+     */
+    private readonly onBlur = () => {
+        this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');
+        this.flushZIndexTiming();
+    };
+
+    /** The transition takes its timing from the style recalculated here, before the override is removed. */
+    private flushZIndexTiming() {
+        this.elem.ownerDocument.defaultView?.getComputedStyle(this.elem).getPropertyValue('z-index');
+        this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, null);
     }
 
     /** Reports whether the dialog this button opens is open. Ignored by buttons that do not open a dialog. */

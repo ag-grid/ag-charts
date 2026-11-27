@@ -18,6 +18,7 @@ import {
     isObjectLike,
     isPatternFill,
     isPlainObject,
+    isSolidFill,
     isString,
     isThemeOriginOperator,
     rescaleLineDash,
@@ -260,6 +261,7 @@ enum ColorOperation {
     IsGradient = '$isGradient',
     IsImage = '$isImage',
     IsPattern = '$isPattern',
+    IsSolid = '$isSolid',
     IsTransparent = '$isTransparent',
     Mix = '$mix',
     Opacity = '$opacity',
@@ -272,6 +274,7 @@ const colorOperations: Record<ColorOperation, OperationFns> = {
     $isGradient: isGradientOperation,
     $isImage: isImageOperation,
     $isPattern: isPatternOperation,
+    $isSolid: isSolidOperation,
     $isTransparent: isTransparentOperation,
     $mix: mixOperation,
     $opacity: opacityOperation,
@@ -348,6 +351,12 @@ function isImageOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
     return isImageFill(value);
 }
 
+function isSolidOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    return isSolidFill(value);
+}
+
 function isPatternOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
@@ -385,6 +394,22 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     if (typeof colorA === 'string') {
         try {
             return Color.mix(Color.fromString(colorA), Color.fromString(colorB), ratio).toString();
+        } catch {
+            Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
+            return;
+        }
+    }
+
+    if (isSolidFill(colorA)) {
+        if (typeof colorA.fill !== 'string') {
+            Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
+            return;
+        }
+        try {
+            return {
+                ...colorA,
+                fill: Color.mix(Color.fromString(colorA.fill), Color.fromString(colorB), ratio).toString(),
+            };
         } catch {
             Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
             return;
@@ -670,11 +695,22 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     return graph.resolveVertexValue(vertex, defaultValueVertex);
 }
 
+/**
+ * The first operand index from which an operator reads its operands as raw values (`getVertexValue`) and grafts the
+ * one it selects when it resolves. The graph keeps those operands as single vertices rather than building their
+ * subgraphs, which would never be resolved.
+ */
+export const RAW_OPERANDS_FROM: Partial<Record<Operation, number>> = {
+    $switch: 2,
+    $applySwitch: 2,
+};
+
 // --- LOCATION ---
 
 export enum LocationOperation {
     Circular = '$circular',
     IsUserOption = '$isUserOption',
+    IsUserParam = '$isUserParam',
     MapPalette = '$mapPalette',
     Palette = '$palette',
     Path = '$path',
@@ -686,6 +722,7 @@ export enum LocationOperation {
 const locationOperations: Record<LocationOperation, OperationFns> = {
     $circular: circularOperation,
     $isUserOption: isUserOptionOperation,
+    $isUserParam: isUserParamOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
     $path: {
@@ -748,6 +785,11 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     return !infersEnablement && graph.hasThemeOverride(path);
 }
 
+function isUserParamOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [value] = values;
+    return graph.hasUserParam(graph.getVertexValue(value) as string);
+}
+
 /** The palette array a per-item `$palette`/`$mapPalette` key reads at the item's index. */
 function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
     switch (key) {
@@ -760,6 +802,8 @@ function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
             return graph.palette.strokes;
         case 'markerShape':
             return graph.palette.markerShapes;
+        case 'lineDash':
+            return graph.palette.lineDashes;
         case 'gradient':
             return graph.palette.sequentialColors;
     }
@@ -1049,10 +1093,11 @@ function resolveLineDashDefault(
 
 /**
  * Resolves a named `lineDash` to its array, scaled by the stroke width (the second value, e.g. `./strokeWidth`). A name
- * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled.
+ * replaces lower priority arrays rather than merging by index; an array is in pixels and never scaled. A set array
+ * merges over the third value, when given, in place of the default.
  */
 function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [defaultVertex, widthVertex] = values;
+    const [defaultVertex, widthVertex, setBaseVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
@@ -1076,7 +1121,8 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
         return scaleLineDashName(winner, width);
     }
 
-    const resolvedDefault = resolveLineDashDefault(graph, vertex, defaultVertex);
+    const isSet = userOption != null || overrideOption != null;
+    const resolvedDefault = resolveLineDashDefault(graph, vertex, (isSet ? setBaseVertex : undefined) ?? defaultVertex);
     const defaultDash = isLineDashName(resolvedDefault)
         ? scaleLineDashName(resolvedDefault, width)
         : (resolvedDefault as number[] | undefined);
@@ -1090,8 +1136,9 @@ function applyLineDashOperation(graph: OptionsGraphInterface, vertex: VertexInte
     }
     const base = overrideBase ?? defaultDash ?? [];
 
-    // Nothing to layer: keep the default as it stands, so that an unset option still falls back.
-    if (base.length === 0 && userOption == null && overrideOption == null) return defaultDash;
+    // Nothing to layer: keep the default as it stands, so that an unset option still falls back. A default with a set
+    // base is not grafted either, so that none of its elements show through a styler's array layered over that base.
+    if (!isSet && (base.length === 0 || setBaseVertex != null)) return defaultDash && [...defaultDash];
 
     // On the defaults edge, so the base cannot clobber a styler's partial values during its resolution.
     graph.graftObject(vertex, base, undefined, DEFAULTS_EDGE);

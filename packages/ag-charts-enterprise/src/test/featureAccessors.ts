@@ -1,6 +1,14 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { type ChartOrProxy, deproxy, findAxis, getAxisLayoutState, getSeriesAt } from 'ag-charts-community-test';
-import type { BBox, DynamicContext, Group, Node, Rect } from 'ag-charts-core';
+import {
+    type BBox,
+    type BoxBounds,
+    type DynamicContext,
+    type Group,
+    type Node,
+    type Rect,
+    Transformable,
+} from 'ag-charts-core';
 
 import type { MiniChart } from '../features/navigator/miniChart';
 import type { Navigator } from '../features/navigator/navigator';
@@ -14,8 +22,15 @@ function assertPresent<T>(value: T, what: string): asserts value is NonNullable<
 
 // `Ranges.dropdownMinWidth` is private: the width the dropdown toolbar was last sized to, reset when the button size
 // changes.
+interface RangesToolbarHost {
+    getBounds(): BoxBounds;
+    setBounds(bounds: Partial<BoxBounds>): void;
+}
+
 interface RangesHost {
     dropdownMinWidth?: number;
+    buttonsToolbar?: RangesToolbarHost;
+    dropdownToolbar?: RangesToolbarHost;
 }
 
 function getRanges(chartOrProxy: ChartOrProxy<any>): RangesHost {
@@ -32,6 +47,15 @@ export function getRangesDropdownMinWidth(chartOrProxy: ChartOrProxy<any>): numb
 /** Overwrites the dropdown's minimum width, to see whether a later update resets it. */
 export function setRangesDropdownMinWidth(chartOrProxy: ChartOrProxy<any>, width: number | undefined): void {
     getRanges(chartOrProxy).dropdownMinWidth = width;
+}
+
+/** Sets the width of both ranges toolbars, as a layout does, to see whether a later layout re-measures them. */
+export function setRangesToolbarWidths(chartOrProxy: ChartOrProxy<any>, width: number): void {
+    const { buttonsToolbar, dropdownToolbar } = getRanges(chartOrProxy);
+    for (const toolbar of [buttonsToolbar, dropdownToolbar]) {
+        assertPresent(toolbar, 'ranges toolbar');
+        toolbar.setBounds({ ...toolbar.getBounds(), width });
+    }
 }
 
 // `Series.moduleMap` is protected, and the error bar module keeps the group it draws into private.
@@ -102,7 +126,6 @@ interface AnnotationsHost {
         enabled?: boolean;
         events: {
             emit(event: 'pressed-create-annotation', data: { annotation: string }): void;
-            emit(event: 'pressed-magnet', data: null): void;
         };
     };
     magnetEnabled: boolean;
@@ -135,11 +158,6 @@ export function getAnnotationsModuleContext(chartOrProxy: ChartOrProxy<any>) {
 /** Starts drawing an annotation of `type`, as pressing its button in the annotation toolbar does. */
 export function pressAnnotationToolbarCreate(chartOrProxy: ChartOrProxy<any>, type: string): void {
     getAnnotations(chartOrProxy).toolbar.events.emit('pressed-create-annotation', { annotation: type });
-}
-
-/** Switches the magnet on or off, as pressing its button in the annotation toolbar does. */
-export function pressAnnotationMagnetButton(chartOrProxy: ChartOrProxy<any>): void {
-    getAnnotations(chartOrProxy).toolbar.events.emit('pressed-magnet', null);
 }
 
 /** Whether the magnet is on, before Ctrl or Cmd inverts it. */
@@ -460,4 +478,27 @@ export function getAxesGridLinesVisible(chartOrProxy: ChartOrProxy<any>): boolea
         assertPresent(gridLineGroup, `axis ${axis.id} gridline group`);
         return gridLineGroup.visible;
     });
+}
+
+// `BackgroundRegions.regions` is private.
+interface BackgroundRegionsHost {
+    regions: { instance: _ModuleSupport.BackgroundRegion }[];
+}
+
+function getBackgroundRegion(chartOrProxy: ChartOrProxy<any>, index: number) {
+    const host = deproxy(chartOrProxy).modulesManager.getModule<BackgroundRegionsHost>('background-regions');
+    assertPresent(host, 'background regions module');
+    const region = host.regions[index];
+    assertPresent(region, `background region ${index}`);
+    return region.instance;
+}
+
+/** The drawn label box of the background region at `index`, `undefined` when it shows no label. */
+export function getBackgroundRegionLabelBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox | undefined {
+    return getBackgroundRegion(chartOrProxy, index).getLabelBox();
+}
+
+/** The canvas box of the background region at `index`. */
+export function getBackgroundRegionBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox {
+    return Transformable.toCanvas(getBackgroundRegion(chartOrProxy, index).regionGroup);
 }

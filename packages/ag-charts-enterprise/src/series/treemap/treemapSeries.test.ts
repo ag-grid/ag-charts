@@ -28,6 +28,7 @@ import {
     expectSceneTrajectory,
     expectWarningMessages,
     expectWarningsCalls,
+    getChartAriaLabel,
     getSeriesAt,
     getSeriesOptions,
     getSeriesRect,
@@ -1928,6 +1929,27 @@ describe('TreemapSeries', () => {
             await renderRects(shadowOptions({ group: shadow, tile: shadow }));
             await compare();
         });
+
+        it('casts the tile shadow as with no styler where the itemStyler spreads the shadow it was given', async () => {
+            // The theme's fill and fillOpacity, so that no fillOpacity is set by the user.
+            const themeShadow = { enabled: true, xOffset: 8, yOffset: 8, blur: 8 };
+            const castOf = async (itemStyler?: (params: { shadow?: object }) => object) => {
+                const options = shadowOptions({ tile: themeShadow as typeof shadow });
+                (options.series![0] as { itemStyler?: unknown }).itemStyler = itemStyler;
+                const { leaves } = await renderRects(options);
+                chart.destroy();
+                return leaves.map(({ rect }) => rect.fillShadow);
+            };
+
+            const unstyled = await castOf();
+            const spread = await castOf(({ shadow: given }) => ({ shadow: { ...given } }));
+
+            expect(unstyled.length).toBeGreaterThan(0);
+            // An unset flag casts as a flag of false, which is what a styler's merge writes.
+            expect(unstyled.every((cast) => cast?._fillOpacitySet !== true)).toBe(true);
+            expect(spread.every((cast) => cast?._fillOpacitySet !== true)).toBe(true);
+            expect(spread).toMatchObject(unstyled);
+        });
     });
 
     describe('AG-15448', () => {
@@ -2362,6 +2384,22 @@ describe('TreemapSeries', () => {
                 before,
                 prepareEnterpriseTestOptions(treemapOptions(reversed(ORG_DATA)))
             );
+        });
+    });
+
+    describe('chart accessible name', () => {
+        const options: AgChartOptions = {
+            data: [{ name: 'Group A', children: [{ name: 'X', value: 5 }] }],
+            series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value' }],
+        };
+
+        it.each([
+            ['without captions', options, 'hierarchy chart'],
+            ['with a title', { ...options, title: { text: 'Budget' } }, 'hierarchy chart, Budget'],
+        ])('names a treemap %s', async (_name, chartOptions, expected) => {
+            chart = await createEnterpriseChart(chartOptions);
+
+            expect(getChartAriaLabel(chart)).toBe(expected);
         });
     });
 });

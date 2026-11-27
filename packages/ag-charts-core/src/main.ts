@@ -47,6 +47,7 @@ export * from './state/stateMachine';
 export * from './async/async';
 export * from './async/deferredExecutor';
 export * from './async/functions';
+export * from './async/gestureDeferredRefresh';
 export * from './async/mutex';
 
 // modules
@@ -136,8 +137,11 @@ export * from './geometry/distance';
 export * from './geometry/fill';
 export * from './geometry/fitRegion';
 export * from './geometry/labelPlacement';
+export * from './geometry/labelRoom';
 export * from './geometry/labelStack';
 export * from './geometry/lineInterpolation';
+export * from './geometry/markerLabelRect';
+export * from './geometry/markerOutline';
 export * from './geometry/panToBBox';
 export * from './geometry/placement';
 export * from './geometry/scaling';
@@ -300,6 +304,7 @@ export * from './chart/circleLayout';
 export * from './chart/crossLine';
 export * from './chart/gapUtil';
 export * from './chart/legendUtil';
+export * from './chart/markerPathCache';
 export * from './chart/markerShapes';
 export * from './rendering/lineDash';
 export * from './chart/markerUtil';

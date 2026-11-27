@@ -50,7 +50,14 @@ export function createTask(
     srcRelativeInputPath: string,
     projectRoot: string
 ): Record<string, TargetConfiguration> {
-    const baseInputs = ['{projectRoot}/**', '{workspaceRoot}/plugins/ag-charts-generate-example-files/{dist,src}/**/*'];
+    const baseInputs = [
+        '{projectRoot}/**',
+        '{workspaceRoot}/plugins/ag-charts-generate-example-files/{dist,src}/**/*',
+        // Concatenated into each example's `ag-example-styles.css` by the generator's `getStyleFiles`.
+        '{workspaceRoot}/external/ag-website-shared/src/components/example-runner/styles/**',
+        // This plugin defines the task, so a change to it can change what the task does.
+        '{workspaceRoot}/plugins/ag-charts-task-autogen/src/**/*',
+    ];
 
     // Add symlink targets as additional inputs
     const symlinkTargets = findSymlinkTargets(projectRoot);

@@ -2372,6 +2372,46 @@ describe('BarSeries', () => {
             const placements = upper.map(({ label: placed }) => (placed?.hidden ? 'hidden' : placed?.placement));
             expect(new Set(placements)).toEqual(new Set(['inside-center']));
         });
+
+        // The shorter bar's first choice crosses the taller bar's top, where the taller bar's label would ignore it.
+        it('never trades two labels onto each other', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'a', y: 64 },
+                    { x: 'b', y: 17 },
+                    { x: 'b', y: 15.4 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            placement: ['outside-end', 'inside-end'],
+                            collision: { collideWith: { shapes: true } },
+                        },
+                    },
+                ],
+            });
+            const boxes = getVisibleLabelTextNodes(chart).map((node) => [node.text, node.getBBox()] as const);
+            const [taller, shorter] = boxes.filter(([text]) => text !== '64').map(([, box]) => box);
+
+            expect(boxes.map(([text]) => text)).toEqual(['64', '17', '15.4']);
+            expect(shorter.y).toBeGreaterThanOrEqual(taller.y + taller.height);
+        });
+
+        // The taller bar covers every slot of the shorter one's label, so no trade can place both.
+        it.each([
+            ['shorter bar first', [16, 17], '16'],
+            ['taller bar first', [17, 16], '17'],
+        ])('keeps the first-placed label of two overlapping bars (%s)', async (_, values, kept) => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 64 }, ...values.map((y) => ({ x: 'b', y }))],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { placement: ['outside-end', 'inside-end'] } }],
+            });
+
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(['64', kept]);
+        });
     });
 
     describe('item styler', () => {
@@ -3151,6 +3191,44 @@ describe('BarSeries', () => {
             };
 
             chart = await createChart(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should paint curved pattern shapes solid out to the outer edge of a wide stroke', async () => {
+            const patterns = ['circles', 'polka-dots', 'hearts'] as const;
+            const options: AgCartesianChartOptions = {
+                data: [{ x: 'A', p0: 40, p1: 40, p2: 40 }],
+                series: patterns.map((pattern, index) => ({
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: `p${index}`,
+                    fill: {
+                        type: 'pattern',
+                        pattern,
+                        width: 20,
+                        height: 20,
+                        scale: 5,
+                        fill: 'green',
+                        stroke: 'red',
+                        strokeWidth: 20,
+                    },
+                    strokeWidth: 0,
+                })),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            chart = await createChart(options);
+            const internal = deproxy(chart);
+            const { pixelRatio } = internal.ctx.scene.canvas;
+            const [bar] = getSeriesContextNodeData<{ x: number; y: number; width: number }>(internal).nodeData;
+            expect(bar.width).toBeGreaterThan(100);
+            // One 100px tile is anchored at the bar's corner; this point is inside its circle's stroke but outside its fill.
+            const x = internal.seriesRect!.x + bar.x + 50;
+            const y = internal.seriesRect!.y + bar.y + 25;
+            expect(chartPixelAt(chart, x * pixelRatio, y * pixelRatio)).toEqual([255, 0, 0, 255]);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 

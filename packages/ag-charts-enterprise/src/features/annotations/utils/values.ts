@@ -3,8 +3,8 @@ import type { Point } from 'ag-charts-core';
 import type { AnnotationAxisContext, AnnotationContext, DataPoint } from '../annotationTypes';
 import { getGrouping } from './scale';
 
-export function convertLine(datum: { start: DataPoint; end: DataPoint }, context: AnnotationContext) {
-    if (datum.start == null || datum.end == null) return;
+export function convertLine(datum: { start: DataPoint; end: DataPoint } | undefined, context: AnnotationContext) {
+    if (datum?.start == null || datum.end == null) return;
 
     const start = convertPoint(datum.start, context);
     const end = convertPoint(datum.end, context);

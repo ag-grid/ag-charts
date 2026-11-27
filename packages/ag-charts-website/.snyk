@@ -7,21 +7,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T15:11:05.902Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:11:05.897Z
-    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:11:05.890Z
-    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:11:05.884Z
     - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
         reason: >-
             Used in build & dev - not included in final production build
@@ -73,21 +58,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T15:10:41.588Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:10:41.583Z
-    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:10:41.579Z
-    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:10:41.575Z
     - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
         reason: >-
             Used in build & dev - not included in final production build
@@ -139,21 +109,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T15:10:09.310Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:10:09.307Z
-    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:10:09.303Z
-    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:10:09.300Z
     - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
         reason: >-
             Used in build & dev - not included in final production build
@@ -205,21 +160,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T15:09:34.140Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:09:34.138Z
-    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:09:34.135Z
-    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:09:34.133Z
     - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
         reason: >-
             Used in build & dev - not included in final production build
@@ -271,21 +211,6 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-11-16T15:09:05.671Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:09:05.666Z
-    - astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:09:05.661Z
-    - astro@7.3.4 > unifont@0.7.5 > undici@8.11.2:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-11-16T15:09:05.656Z
     - vite-plugin-mkcert@2.1.0 > undici@8.11.2:
         reason: >-
             Used in build & dev - not included in final production build
@@ -364,27 +289,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-PICOMATCH-21248802:
-    - '@astrojs/check@0.9.10 > @astrojs/language-server@2.17.1 > tinyglobby@0.2.17 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@astrojs/markdoc@2.0.9 > @astrojs/internal-helpers@0.11.0 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@astrojs/react@7.0.0 > @astrojs/internal-helpers@0.11.0 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > picomatch@4.0.7':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
@@ -422,36 +327,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > tinyglobby@0.2.14 > picomatch@4.0.7':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > @astrojs/internal-helpers@0.11.0 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > tinyglobby@0.2.15 > picomatch@4.0.7':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unstorage@1.17.5 > anymatch@3.1.3 > picomatch@2.3.1':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tinyglobby@0.2.17 > picomatch@4.0.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > picomatch@4.0.7':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'sass@1.105.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
@@ -505,18 +380,7 @@ ignore:
             Only exploitable via qs.stringify with arrayFormat 'comma', which instantsearch.js never uses
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
-  SNYK-JS-SHARP-21347772:
-    - 'astro@7.3.4 > sharp@0.35.4':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181005:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -540,16 +404,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -583,11 +437,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181009:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -611,16 +460,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -654,11 +493,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181011:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -682,16 +516,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -725,11 +549,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181013:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -753,16 +572,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -796,11 +605,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181015:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -824,16 +628,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -867,11 +661,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181017:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -895,16 +684,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -938,11 +717,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21181019:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -966,16 +740,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -1009,11 +773,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
   SNYK-JS-UNDICI-21185768:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
@@ -1037,16 +796,6 @@ ignore:
     - 'ag-charts-test@0.0.0-use.local > ag-charts-core@0.0.0-use.local > vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > undici@8.11.2':
         reason: >-
             Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > unifont@0.7.5 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > undici@8.11.2':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-23T10:11:14.000Z
     - 'cheerio@1.2.0 > undici@7.29.1':
@@ -1116,22 +865,11 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:18:44.632Z
-    - astro@7.3.4 > zod@4.6.5:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-12T11:18:44.621Z
     - '@astrojs/sitemap@3.7.4 > zod@4.3.6':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T11:18:44.618Z
-  SNYK-JS-SHARP-20552492:
-    - astro@7.3.4 > sharp@0.35.4:
-        reason: >-
-            Used in build & dev - not included in final production build
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-12T11:16:56.016Z
   SNYK-JS-BRACES-19963945:
     - 'sass@1.106.1 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3':
         reason: >-
@@ -1176,16 +914,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.489Z
   SNYK-JS-TAR-17909152:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - 'vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
@@ -1242,16 +970,6 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.487Z
   SNYK-JS-TAR-17909068:
-    - '@astrojs/react@7.0.0 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
-    - 'astro@7.3.4 > vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
-        reason: >-
-            Docs website build tooling - the site is built statically, so this runs at build time only
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-10-23T10:11:14.000Z
     - 'vite@8.3.4 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
         reason: >-
             Docs website build tooling - the site is built statically, so this runs at build time only
@@ -1319,33 +1037,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.480Z
   SNYK-JS-SMOLTOML-19643959:
-    - astro@7.3.4 > @astrojs/internal-helpers@0.11.0 > smol-toml@1.6.0:
-        reason: >-
-            The website is a static site, so server-side vulns are not relevant
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-09-24T14:43:49.462Z
-    - '@astrojs/react@7.0.0 > @astrojs/internal-helpers@0.11.0 > smol-toml@1.6.0':
-        reason: >-
-            The website is a static site, so server-side vulns are not relevant
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-09-24T14:43:49.460Z
     - '@astrojs/markdoc@2.0.9 > @astrojs/internal-helpers@0.11.0 > smol-toml@1.6.0':
         reason: >-
             The website is a static site, so server-side vulns are not relevant
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-24T14:43:49.431Z
-  SNYK-JS-HTTPCACHESEMANTICS-19964068:
-    - astro@7.3.4 > http-cache-semantics@4.2.0:
-        reason: >-
-            The website is a static site, so server-side vulns are not relevant
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-09-24T14:43:00.909Z
-  SNYK-JS-HTTPCACHESEMANTICS-19964064:
-    - astro@7.3.4 > http-cache-semantics@4.2.0:
-        reason: >-
-            The website is a static site, so server-side vulns are not relevant
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-09-24T14:42:37.865Z
   SNYK-JS-EXTRACTZIP-19653641:
     - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > extract-zip@2.0.1:
         reason: >-
@@ -1580,11 +1276,6 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-01T11:06:41.675Z
-  SNYK-JS-AJV-15274295:
-    - '@astrojs/check@0.9.10 > @astrojs/language-server@2.17.1 > volar-service-yaml@0.0.71 > yaml-language-server@1.23.0 > ajv@8.17.1':
-        reason: Used in build & dev - not included in final production build
-        expires: 2027-03-02T00:00:00.000Z
-        created: 2026-04-24T14:12:34.212Z
   SNYK-JS-BASICFTP-16094986:
     - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
         reason: Used in build & dev - not included in final production build
@@ -1630,11 +1321,6 @@ ignore:
             Local workspace package - its dependencies are scanned and triaged in its own project
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-10-12T10:58:41.496Z
-    - astro@7.3.4 > unstorage@1.17.5 > anymatch@3.1.3 > picomatch@2.3.1:
-        reason: >-
-            The website is a static site, so server-side vulns are not relevant
-        expires: '2027-03-02T00:00:00.000Z'
-        created: 2026-09-24T14:43:16.183Z
     - '@astrojs/check@0.9.8 > @astrojs/language-server@2.16.6 > tinyglobby@0.2.15 > picomatch@4.0.3':
         reason: 'The website is a static site, so server-side vulns are not relevant'
         expires: 2027-03-02T00:00:00.000Z

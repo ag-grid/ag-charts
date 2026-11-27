@@ -23,6 +23,7 @@ import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ChartRegistry } from '../module/moduleContext';
+import { VERSION } from '../version';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';
@@ -53,6 +54,8 @@ export interface ChartContextVars {
     agDocument: AgDocument;
     styleContainer?: HTMLElement;
     styleNonce?: string;
+    /** `false` for static mode: no `<style>` element is ever created. */
+    injectStyles?: boolean;
     skipCss?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
@@ -85,7 +88,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         vars.styleContainer,
         vars.skipCss,
         vars.domMode,
-        vars.cssVariables
+        vars.cssVariables,
+        vars.injectStyles === false ? { logger: vars.logger, version: VERSION } : undefined
     );
     const canvasElement = domManager.addChild(
         'canvas',
@@ -118,7 +122,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', (c) => new StateManager(c.logger))
-        .service('labelManager', () => new LabelManager())
+        .service('labelManager', (c) => new LabelManager(c))
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', (c) => new OptionsGraphService(c.logger))
         .service('chartTypeOriginator', (c) => new ChartTypeOriginator(chart, c.logger))

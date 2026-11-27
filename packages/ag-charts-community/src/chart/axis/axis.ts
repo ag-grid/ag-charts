@@ -71,6 +71,7 @@ import type {
 
 import type { AxisLayout } from '../../core/eventsHub';
 import type {
+    AxisA11YFocusRotation,
     AxisA11YTickData,
     AxisBandDatum,
     AxisBandMeasurement,
@@ -78,6 +79,7 @@ import type {
     AxisFormattableLabel,
     AxisValuePick,
     AxisValueTickSize,
+    CrossLineLabelRoom,
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -187,6 +189,11 @@ type TickLayoutCacheKey<D, TickLayoutMeta> = Omit<
     TickLayoutCache<D, TickLayoutMeta>,
     'tickLayout' | 'domainIsPrimitive'
 >;
+
+function isQuarterTurn(rotation: number) {
+    const turns = rotation / (Math.PI / 2);
+    return Math.abs(turns - Math.round(turns)) < 1e-6;
+}
 
 /** Whether `value` is immutable, so a domain of such values compared by identity can't have changed in place. */
 function isPrimitiveCategory(value: unknown) {
@@ -355,6 +362,8 @@ export abstract class Axis<
      * The distance between the grid ticks and the axis ticks.
      */
     gridPadding = 0;
+
+    labelRoom: CrossLineLabelRoom | undefined = undefined;
 
     /**
      * Is used to avoid collisions between axis labels and series.
@@ -1441,6 +1450,9 @@ export abstract class Axis<
             get range() {
                 return axis.range;
             },
+            get labelRoom() {
+                return axis.labelRoom;
+            },
             get seriesAreaVisible() {
                 return axis.seriesAreaVisible;
             },
@@ -1518,9 +1530,12 @@ export abstract class Axis<
             }
         }
 
-        const labels = new Map<string, { text: string; bbox: BBox }>();
+        const labels = new Map<
+            string,
+            { text: string; bbox: BBox; rotated?: { bbox: BBox; rotation: AxisA11YFocusRotation } }
+        >();
         if (this.tickLabelGroup.visible) {
-            const { a11yTempText } = this;
+            const { a11yTempText, tickLabelGroup } = this;
             for (const node of this.tickLabelGroupSelection.nodes()) {
                 const { datum } = node;
                 if (datum == null || !node.visible || !datum.visible) continue;
@@ -1533,7 +1548,10 @@ export abstract class Axis<
                 if (bbox == null) continue;
                 labels.set(datum.tickId, {
                     text: datum.textUntruncated ?? toPlainText(datum.text),
-                    bbox: Transformable.toCanvas(this.tickLabelGroup, bbox),
+                    bbox: Transformable.toCanvas(tickLabelGroup, bbox),
+                    rotated: isQuarterTurn(datum.rotation)
+                        ? undefined
+                        : this.getA11YRotatedLabel(datum, a11yTempText.computeBBoxWithoutTransforms()),
                 });
             }
         }
@@ -1576,7 +1594,17 @@ export abstract class Axis<
             let focusBounds = vertical
                 ? new BBox(crossStart, alongStart, crossSize, alongSize)
                 : new BBox(alongStart, crossStart, alongSize, crossSize);
-            if (label != null) {
+            let focusRotation: AxisA11YFocusRotation | undefined;
+            // An axis-aligned box around a slanted label overlaps its neighbours, so outline the label itself.
+            if (label?.rotated != null) {
+                const { bbox, rotation } = label.rotated;
+                focusBounds = bbox.clone();
+                focusRotation = {
+                    angle: rotation.angle,
+                    originX: rotation.originX - axisBounds.x,
+                    originY: rotation.originY - axisBounds.y,
+                };
+            } else if (label != null) {
                 focusBounds = BBox.merge([focusBounds, label.bbox]);
             }
             focusBounds.translate(-axisBounds.x, -axisBounds.y);
@@ -1592,9 +1620,25 @@ export abstract class Axis<
                 groupPercentage,
                 ariaLabel,
                 focusBounds,
+                focusRotation,
             });
         }
         return result;
+    }
+
+    /** A label's un-rotated box and its rotation, both in canvas space. */
+    private getA11YRotatedLabel(datum: LabelNodeDatum, localBBox: BBox | undefined) {
+        if (localBBox == null) return undefined;
+        const { tickLabelGroup } = this;
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(
+            tickLabelGroup,
+            datum.rotationCenterX,
+            datum.rotationCenterY
+        );
+        return {
+            bbox: Transformable.toCanvas(tickLabelGroup, localBBox),
+            rotation: { angle: datum.rotation, originX: canvasX, originY: canvasY },
+        };
     }
 
     /** Canvas bounds of the axis title at its laid-out position, if the axis shows one. */

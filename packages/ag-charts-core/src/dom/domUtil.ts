@@ -2,7 +2,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ClientPoint } from '../types/scene';
-import { getWindow } from './globalsProxy';
+import { getWindow, isNode } from './globalsProxy';
 
 type StyledElement = new () => { style: CSSStyleDeclaration };
 
@@ -81,6 +81,12 @@ export function focusCursorAtEnd(element: HTMLElement) {
 export function isFocused(element: Element): boolean {
     const root = element.getRootNode();
     return 'activeElement' in root && root.activeElement === element;
+}
+
+/** Whether the focus is on `element` or a descendant of it, inside a shadow root too. */
+export function containsFocus(element: Element): boolean {
+    const root = element.getRootNode();
+    return 'activeElement' in root && isNode(root.activeElement) && element.contains(root.activeElement);
 }
 
 export function isInputPending() {

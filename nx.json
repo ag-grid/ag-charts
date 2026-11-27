@@ -14,6 +14,14 @@
     ],
     "buildOutputExcludes": ["!{projectRoot}/dist/**"],
     "production": ["default", "defaultExcludes"],
+    "tsSources": [
+      "{projectRoot}/package.json",
+      "{projectRoot}/src/**/*",
+      "{projectRoot}/tsconfig.*.json",
+      "tsDeclarations",
+      "sharedGlobals",
+      "defaultExcludes"
+    ],
     "tsDeclarations": [
       {
         "dependentTasksOutputFiles": "**/*.d.ts",
@@ -189,7 +197,7 @@
       }
     },
     "lint": {
-      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*"],
+      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*", "^production"],
       "outputs": [],
       "cache": true
     },
@@ -231,7 +239,8 @@
         "{projectRoot}/eslint.*",
         "{workspaceRoot}/tsconfig.base.json",
         "{projectRoot}/tsconfig.json",
-        "{projectRoot}/tsconfig.lint.*"
+        "{projectRoot}/tsconfig.lint.*",
+        "tsDeclarations"
       ],
       "outputs": [],
       "configurations": {
@@ -254,11 +263,6 @@
       "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "cache": true
     },
-    "nx:noop": {
-      "cache": true,
-      "inputs": [],
-      "outputs": []
-    },
     "nx:run-script": {
       "cache": true,
       "inputs": ["production"],
@@ -278,8 +282,5 @@
   "defaultProject": "all",
   "defaultBase": "latest",
   "cacheDirectory": ".nx/cache",
-  "affected": {
-    "legacy": true
-  },
   "analytics": false
 }

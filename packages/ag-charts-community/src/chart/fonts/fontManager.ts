@@ -108,6 +108,9 @@ export class FontManager {
     }
 
     private loadFonts(fonts: Set<string>) {
+        // Google's stylesheet is an injected `<style>` with a cross-origin `@import`, which static mode never adds.
+        if (!this.ctx.domManager.injectStyles) return;
+
         const fontStrings = Array.from(fonts).map((font) => encodeURIComponent(font));
         const fontStyle = ':wght@100;200;300;400;500;600;700;800;900';
         const joinString = `${fontStyle}&family=`;

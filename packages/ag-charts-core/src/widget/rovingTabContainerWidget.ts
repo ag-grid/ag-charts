@@ -21,6 +21,9 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
     private focusedChildIndex = 0;
     private rovingTabIndex: 0 | -1 = 0;
 
+    /** Swap ArrowLeft and ArrowRight in RTL. Disable for children whose visual order does not mirror in RTL. */
+    public mirrorHorizontalKeysInRtl = true;
+
     public get orientation(): RovingDirection {
         return getAttribute(this.elem, 'aria-orientation') ?? 'both';
     }
@@ -116,7 +119,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
 
     private readonly onChildKeyDown = (event: KeyboardWidgetEvent, child: RovingChildWidgets): void => {
         const rovingOrientation = this.orientation;
-        const isRtl = isDirectionRtl(this.elem);
+        const isRtl = this.mirrorHorizontalKeysInRtl && isDirectionRtl(this.elem);
         let primaryKeys: RovingKeys;
         let secondaryKeys: RovingKeys | undefined;
         if (rovingOrientation === 'both') {

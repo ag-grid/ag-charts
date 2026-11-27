@@ -191,6 +191,8 @@ export interface ChartInternalOptionMetadata {
     presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'quadrant' | 'volume-profile';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
+    /** The mode the proxy pinned on creation, so a chart rebuilt on a chart-type change keeps it. */
+    injectStyles?: boolean;
     withDragInterpretation?: boolean;
     /** Modules registered for this chart only, additive over the global registry. */
     modules?: AgChartModule[];
@@ -338,6 +340,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     /** The subscriber this pass reported through: the chart's own, or a provisional stand-in. */
     validations: ChartValidations;
+
+    /** What the options resolve to: the chart option, else the theme's, else `true`. */
+    get requestedInjectStyles(): boolean {
+        return (this.processedOptions as { injectStyles?: boolean }).injectStyles !== false;
+    }
+
+    /** The mode a chart built from these options uses: the proxy's pinned one, else the one the options resolve to. */
+    get injectStyles(): boolean {
+        return this.optionMetadata.injectStyles ?? this.requestedInjectStyles;
+    }
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -896,10 +908,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * resolved and the pool consulted. `validations` stays the instance that handled the pass, so the chart
      * can tell what it already reported.
      */
-    adopt(runtime: ValidationsRuntime) {
+    adopt(runtime: ValidationsRuntime, previousReleasedToPool = false) {
         this.logger = runtime.logger;
-        // The chart keeps the provisional Logger, so its stand-in subscriber must stop listening or both report.
-        if (this.validations !== runtime.validations) this.validations.destroy();
+        // The chart keeps its own Logger, so the previous subscriber must stop listening or both report. One
+        // belonging to a chart released to a pool stays: that chart is reused and still needs it.
+        if (!previousReleasedToPool && this.validations !== runtime.validations) this.validations.destroy();
         runtime.validations.configure(getValidations(this.processedOptions));
     }
 

@@ -90,6 +90,16 @@ export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(
     return chart;
 }
 
+/** Like `createEnterpriseChart`, but without the test theme, so the stock `theme` reaches the series unchanged. */
+export async function createStockThemedChart(
+    options: AgChartOptions,
+    theme: NonNullable<AgChartOptions['theme']>
+): Promise<AgChartInstance> {
+    const chart = AgCharts.create({ width: 600, height: 400, animation: { enabled: false }, ...options, theme });
+    await waitForChartStability(chart);
+    return chart;
+}
+
 // Call at most once per test: the mock canvas only tracks the first chart created per test.
 export async function renderEnterpriseChartImage(
     ctx: Parameters<typeof extractImageData>[0],

@@ -15,6 +15,7 @@ import {
     type ChartOrProxy,
     GALLERY_EXAMPLES,
     MIN_TOOLTIP_HIDE_DELAY,
+    PATTERN_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
@@ -45,6 +46,7 @@ import {
     SMALL_SHADOW,
     collectShapes,
     createEnterpriseChart,
+    createStockThemedChart,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
 } from '../../test/utils';
@@ -984,6 +986,41 @@ describe('SankeySeries', () => {
             };
             chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
+        });
+    });
+
+    describe('patterned palette', () => {
+        const sankeyOptions = GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options as AgChartOptions;
+
+        const MIXED_PALETTE_THEME: AgChartOptions['theme'] = {
+            palette: {
+                fills: [
+                    'green',
+                    { type: 'pattern', pattern: 'forward-slanted-lines', fill: 'red', stroke: 'blue' },
+                    // Without a fill or stroke, these take the default pattern colour for their palette index.
+                    { type: 'pattern', pattern: 'polka-dots' },
+                    { type: 'pattern', pattern: 'backward-slanted-lines' },
+                ],
+            },
+        };
+
+        it.each([
+            ['a colour mixed with patterns', MIXED_PALETTE_THEME],
+            ['ag-accessible', 'ag-accessible'],
+            ['ag-accessible-dark', 'ag-accessible-dark'],
+        ] as const)('should colour every node and link from the palette of %s', async (_name, theme) => {
+            // `createEnterpriseChart` replaces a named theme with the test theme, so use the stock-theme helper, which
+            // needs the font pinned: the default stack resolves per platform.
+            chart = deproxy(
+                typeof theme === 'string'
+                    ? await createStockThemedChart(sankeyOptions, {
+                          baseTheme: theme,
+                          params: { fontFamily: 'Verdana, sans-serif' },
+                      })
+                    : await createEnterpriseChart({ ...sankeyOptions, theme })
+            );
+
+            await compareImageSnapshot(chart, ctx, PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 

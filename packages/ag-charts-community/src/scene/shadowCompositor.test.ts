@@ -1673,9 +1673,9 @@ describe('Group shadow compositor', () => {
                                 // Only the item, at half strength, where the glow is cut out of it.
                                 expect(cut.slice(0, 3)).toEqual([0, 0, 255]);
                                 expect(Math.abs(cut[3] - 128)).toBeLessThanOrEqual(1);
-                                // The alpha of the colour applies to the glow once in its colour and once in its strength.
+                                // The alpha of the colour is the item's fill alpha, so the glow takes the colour at its own strength.
                                 expect(ring.slice(0, 3)).toEqual([0, 0, 255]);
-                                expect(Math.abs(ring[3] - 64)).toBeLessThanOrEqual(2);
+                                expect(Math.abs(ring[3] - 255)).toBeLessThanOrEqual(1);
                                 expect(beyond[3]).toBe(0);
                             }
                             for (let i = 0; i < tinted.length; i++) {
@@ -2402,7 +2402,7 @@ describe('Group shadow compositor', () => {
             // A kept cast holds a canvas as large as its shadows reach, and a scene holds no more pixels in them than its budget.
             describe.each([
                 ['small casters', 3000, 3000, {}, 2],
-                ['casters as large as the layer', 2000, 2000, { width: 2000, height: 2000 }, 1],
+                ['casters as large as the layer', 2800, 2800, { width: 2800, height: 2800 }, 1],
                 ['small casters', 4200, 4100, {}, 0],
             ])('%s on a layer of %i x %i', (_name, width, height, size, expectedKept) => {
                 it(`should keep the shadows of ${expectedKept} of its 2 casts, and draw the same either way`, () => {
@@ -2586,7 +2586,7 @@ describe('Group shadow compositor', () => {
 
         // A cast that was refused room does not measure its casters, or ask for a canvas, until it could be given one.
         describe('a cast that was refused room', () => {
-            const SIZE = 2000;
+            const SIZE = 2800;
             // Each caster is as large as the layer, so that the kept shadows of one fill most of the budget and a second would not fit.
             // They differ in x, which is how a cast that blurred again shows itself.
             const makeLayers = () => {
@@ -2949,9 +2949,21 @@ describe('Group shadow compositor', () => {
                     );
                 };
 
-                it.each(PAINTS)('should make a mask for each colour of items with %s', (name, paint) => {
-                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, 1))).toBe(1);
-                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(COLOURS.length);
+                it.each(PAINTS.filter(([name]) => name !== 'a gradient fill'))(
+                    'should make a mask for each colour of items with %s',
+                    (name, paint) => {
+                        expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, 1))).toBe(1);
+                        expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(COLOURS.length);
+                    }
+                );
+
+                // A glow casts at its own strength, so over a gradient that fades out it casts a solid silhouette.
+                it('should share a mask between the colours of items with a gradient fill that fades out', () => {
+                    const [name, paint] = PAINTS[1];
+                    const alone = blitsOf(paintedNodes(name, paint, NO_SPREAD, 1));
+
+                    expect(alone).toBeGreaterThan(0);
+                    expect(blitsOf(paintedNodes(name, paint, NO_SPREAD, COLOURS.length))).toBe(alone);
                 });
 
                 // A gap dilates the silhouette as a spread does, so the mask is a solid silhouette that any colour can tint.
@@ -2984,7 +2996,7 @@ describe('Group shadow compositor', () => {
             describe('translucent items', () => {
                 afterEach(() => overrideTintableShadows());
 
-                // The colour of an item has an alpha of a half, which applies to the colour of its glow and to its strength.
+                // The colour of an item has an alpha of a half, which a glow leaves out: it takes the colour, and casts at its own strength.
                 const translucent = (fillShadow: Shape['fillShadow']) => [
                     box(20, 60, 40, 40, { fill: 'rgba(255, 0, 0, 0.5)', fillShadow }),
                 ];
@@ -2993,14 +3005,19 @@ describe('Group shadow compositor', () => {
                     renderNodes(translucent(fillShadow));
                     return at(20 + 20, 60 - 4);
                 };
-                const EXPLICIT = { ...GLOW, fill: 'rgba(255, 0, 0, 0.5)' };
+                const EXPLICIT = { ...GLOW, fill: 'rgb(255, 0, 0)' };
 
-                it('should cast the alpha of the colour once in the colour and once in the strength', () => {
-                    // A half of a half.
+                it('should cast the colour of the item at the strength of the glow, whatever the alpha of the colour', () => {
                     const [red, green, blue, alpha] = glowPixel(GLOW, true);
 
                     expect([red, green, blue]).toEqual([255, 0, 0]);
-                    expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                    expect(Math.abs(alpha - 255)).toBeLessThanOrEqual(1);
+                });
+
+                it('should scale the glow of such an item by its own fillOpacity alone', () => {
+                    const [, , , alpha] = glowPixel({ ...GLOW, fillOpacity: 0.5 }, true);
+
+                    expect(Math.abs(alpha - 128)).toBeLessThanOrEqual(2);
                 });
 
                 it.each([true, false])(
@@ -3056,7 +3073,7 @@ describe('Group shadow compositor', () => {
                             [40, 104],
                         ]) {
                             const [, , , outside] = pixelAtOf(gapped, x, y);
-                            expect(Math.abs(outside - 64)).toBeLessThanOrEqual(2);
+                            expect(Math.abs(outside - 255)).toBeLessThanOrEqual(1);
                             expect(outside).toBe(pixelAtOf(ungapped, x, y)[3]);
                         }
                         expect(pixelAtOf(gapped, 40, 40)[3]).toBe(0);
@@ -3122,7 +3139,7 @@ describe('Group shadow compositor', () => {
                     expect(at(20 + 20, 60 - 12)).toEqual(CLEAR);
                 });
 
-                it('should cast the glow of each translucent item at the strength of its alpha', () => {
+                it('should cast the glow of each translucent item at its own strength, not that of its alpha', () => {
                     renderNodes(
                         COLOURS.slice(0, 2).map((colour, i) =>
                             box(20 + i * 70, 60, 40, 40, {
@@ -3134,10 +3151,10 @@ describe('Group shadow compositor', () => {
 
                     const [red, green, blue, alpha] = at(20 + 20, 60 - 4);
                     expect([red, green, blue]).toEqual([255, 0, 0]);
-                    expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                    expect(Math.abs(alpha - 255)).toBeLessThanOrEqual(1);
                     const second = at(20 + 70 + 20, 60 - 4);
                     expect([second[0], second[1], second[2]]).toEqual([0, 255, 0]);
-                    expect(Math.abs(second[3] - 64)).toBeLessThanOrEqual(2);
+                    expect(Math.abs(second[3] - 255)).toBeLessThanOrEqual(1);
                 });
             });
         });
@@ -3810,7 +3827,7 @@ describe('Group shadow compositor', () => {
                                 { matrix: [1, 0, 0, 1, 150, 100], alpha: 1, clips: [] },
                                 { matrix: [1, 0, 0, 1, 230, 160], alpha: 0.5, clips: [] },
                             ];
-                            return [{ ...shadowKey(casters), frames }];
+                            return [{ ...shadowKey(casters), clip: undefined, frames, clips: [] }];
                         },
                         held: { width: 120, height: 90 },
                     };
@@ -3818,7 +3835,8 @@ describe('Group shadow compositor', () => {
                 });
 
                 // A key of 512 casters or more at different strengths is cast as a mask of each strength, and each is cut to the
-                // extent of all the casters, which the parts are the superset of.
+                // extent of all the casters, which the parts are the superset of. A glow casts at its own strength, which only the
+                // opacity of the item changes, not its fillOpacity.
                 it('should draw the pixels of the whole mask for an overlay glow split by strength', () => {
                     const glow = { ...BLURRED_GLOW, spread: 3, blur: 4 };
                     const scenario: Scenario = {
@@ -3828,7 +3846,7 @@ describe('Group shadow compositor', () => {
                             for (let i = 0; i < 520; i++) {
                                 const x = 24 + (i % 40) * 9;
                                 const y = 60 + Math.floor(i / 40) * 9;
-                                casters.push(box(x, y, 6, 6, { fillOpacity: i % 2 === 0 ? 1 : 0.5, fillGlow: glow }));
+                                casters.push(box(x, y, 6, 6, { opacity: i % 2 === 0 ? 1 : 0.5, fillGlow: glow }));
                             }
                             return [{ ...glowKeyOf(casters[0], glow), casters }];
                         },
@@ -3913,11 +3931,11 @@ describe('Group shadow compositor', () => {
                         keys: () => [
                             shadowKey([
                                 box(10, 10, 40, 30, { fillShadow: BLURRED }),
-                                box(2350, 1760, 40, 30, { fillShadow: BLURRED }),
+                                box(3350, 2460, 40, 30, { fillShadow: BLURRED }),
                             ]),
                         ],
-                        held: { width: 2380, height: 1780 },
-                        layer: { width: 2400, height: 1800 },
+                        held: { width: 3380, height: 2480 },
+                        layer: { width: 3400, height: 2500 },
                         casts: 5,
                     };
                     const bounded = castScenario(scenario, false, true);

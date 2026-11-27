@@ -440,13 +440,14 @@ describe('fitLabelTextAutoSize turned', () => {
 
 describe('wrapTextOrSegments edge whitespace', () => {
     const base = { fontSize: 10, fontFamily: 'sans-serif' } as const;
-    const wrap = (segments: object[], maxWidth: number, overflow: 'hide' | 'ellipsis') =>
+    const wrap = (segments: object[], maxWidth: number, overflow: 'hide' | 'ellipsis', avoidOrphans?: boolean) =>
         textOf(
             wrapTextOrSegments(segments as NormalisedContentSegment[], {
                 font: base,
                 maxWidth,
                 textWrap: 'on-space',
                 overflow,
+                avoidOrphans,
             })
         );
 
@@ -461,12 +462,19 @@ describe('wrapTextOrSegments edge whitespace', () => {
         }
     });
 
-    it('starts the next segment on a new line after a trailing space that did not fit', () => {
-        const segments = [
-            { text: 'ab cdefg hi ', fontSize: 9 },
-            { text: 'j ', fontSize: 14 },
-            { text: 'k', fontSize: 14 },
-        ];
-        expect(wrap(segments, 128, 'hide')).toMatch(/^ab cdefg hi j\s*\nk$/);
-    });
+    it.each([
+        // The one-word last line takes 'j' from across the segment edge.
+        { avoidOrphans: undefined, expected: /^ab cdefg hi\s*\nj k$/ },
+        { avoidOrphans: false, expected: /^ab cdefg hi j\s*\nk$/ },
+    ])(
+        'starts the next segment on a new line after a trailing space that did not fit (avoidOrphans: $avoidOrphans)',
+        ({ avoidOrphans, expected }) => {
+            const segments = [
+                { text: 'ab cdefg hi ', fontSize: 9 },
+                { text: 'j ', fontSize: 14 },
+                { text: 'k', fontSize: 14 },
+            ];
+            expect(wrap(segments, 128, 'hide', avoidOrphans)).toMatch(expected);
+        }
+    );
 });

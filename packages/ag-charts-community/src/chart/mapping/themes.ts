@@ -14,6 +14,7 @@ import {
     fontWeight,
     gradientStrict,
     isObject,
+    lineDash,
     mergeDefaults,
     number,
     object,
@@ -38,6 +39,8 @@ import type {
 } from 'ag-charts-types';
 
 import { themeOverridesOptionsDefs } from '../factory/themeOverridesOptionsDefs';
+import { AccessibleDark } from '../themes/accessibleDark';
+import { AccessibleLight } from '../themes/accessibleLight';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { FinancialDark } from '../themes/financialDark';
@@ -102,6 +105,9 @@ export const themes: ThemeMap = {
     'ag-financial-dark': memoizeByRegistry(
         (presetName, moduleRegistry) => new FinancialDark({}, presetName, moduleRegistry)
     ),
+    'ag-accessible-dark': memoizeByRegistry(
+        (presetName, moduleRegistry) => new AccessibleDark({}, presetName, moduleRegistry)
+    ),
 
     // lightThemes,
     'ag-default': lightTheme,
@@ -113,6 +119,9 @@ export const themes: ThemeMap = {
     'ag-material': memoizeByRegistry((presetName, moduleRegistry) => new MaterialLight({}, presetName, moduleRegistry)),
     'ag-financial': memoizeByRegistry(
         (presetName, moduleRegistry) => new FinancialLight({}, presetName, moduleRegistry)
+    ),
+    'ag-accessible': memoizeByRegistry(
+        (presetName, moduleRegistry) => new AccessibleLight({}, presetName, moduleRegistry)
     ),
 };
 
@@ -344,6 +353,7 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         crosshairLabelTextColor: colorOrRefNoOperator,
         crosshairLabelVerticalPadding: positiveNumber,
 
+        legendBackgroundColor: colorOrRefNoOperator,
         legendBorder: or(boolean, themeParamBorder),
         legendBorderRadius: positiveNumber,
         legendItemHorizontalPadding: positiveNumber,
@@ -404,6 +414,7 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         fills: arrayOf(simpleColorUnion),
         strokes: arrayOf(color),
         markerShapes: arrayOf(shapeValidator),
+        lineDashes: arrayOf(lineDash),
         up: { fill: or(color, gradientStrict), stroke: color },
         down: { fill: or(color, gradientStrict), stroke: color },
         neutral: { fill: or(color, gradientStrict), stroke: color },
@@ -422,7 +433,9 @@ const themeNameValidator = union(
     'ag-material',
     'ag-material-dark',
     'ag-financial',
-    'ag-financial-dark'
+    'ag-financial-dark',
+    'ag-accessible',
+    'ag-accessible-dark'
 );
 
 function validateStructure(value: unknown, logger: Logger) {

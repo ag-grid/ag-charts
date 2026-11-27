@@ -31,6 +31,7 @@ import {
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasSettings, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
+import { withSwitchState } from './utils/switch';
 import { isFibonacciType, isTextType } from './utils/types';
 
 type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
@@ -55,6 +56,8 @@ interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
     'pressed-lock': { locked: boolean };
+    'pressed-move': null;
+    'pressed-escape': { sourceEvent: KeyboardEvent };
     'hid-overlays': null;
     'saved-color': {
         type: HasColorAnnotationType;
@@ -82,7 +85,14 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     color?: string;
     strokeWidth?: number;
     isMultiColor?: boolean;
+    keyboardOnly?: boolean;
 }
+
+// Appended whenever the toolbar opens from the keyboard, whatever the `buttons` options say, since a keyboard user has
+// no other way to move an annotation.
+const KEYBOARD_ONLY_BUTTONS: AnnotationOptionsButtonOptions[] = [
+    { type: 'button', value: AnnotationOptions.Move, icon: 'move', tooltip: 'toolbarAnnotationsMove' },
+];
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     public constructor(localeManager: _ModuleSupport.LocaleManager) {
@@ -145,6 +155,9 @@ export class AnnotationOptionsToolbar {
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
 
+    /** Whether the colour picker and settings dialog show Apply and Cancel buttons. */
+    public showActionButtons = false;
+
     private openOverlay?: AnnotationOptions;
     private openOverlayAtPointerDown?: AnnotationOptions;
 
@@ -164,6 +177,9 @@ export class AnnotationOptionsToolbar {
             attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
                 this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
             }),
+            this.toolbar.addListener('keydown', ({ sourceEvent }) => {
+                if (sourceEvent.key === 'Escape') this.events.emit('pressed-escape', { sourceEvent });
+            }),
             () => {
                 this.colorPicker.destroy();
                 this.toolbar.destroy();
@@ -178,6 +194,7 @@ export class AnnotationOptionsToolbar {
     public applyOptions(options: AgAnnotationOptionsToolbar & { enabled: boolean }) {
         this.enabled = options.enabled;
         this.toolbar.setButtonSize(options.buttonSize);
+        this.showActionButtons = options.showActionButtons ?? false;
         this.buttons = (options.buttons ?? []).map((button) => ({
             ...button,
             type: button.type ?? 'button',
@@ -185,16 +202,34 @@ export class AnnotationOptionsToolbar {
         }));
     }
 
+    public isEnabled() {
+        return this.enabled;
+    }
+
     public show() {
         if (!this.enabled) return;
-        this.toolbar.show();
+        this.toolbar.show({ role: 'dialog', ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationOptionsToolbar') });
     }
 
     public hide() {
         this.toolbar.hide();
     }
 
-    public updateButtons(datum: AnnotationDatum) {
+    public containsFocus() {
+        return this.toolbar.containsFocus();
+    }
+
+    public focusFirstButton() {
+        this.toolbar.getButtonWidget(0)?.focus();
+    }
+
+    public focusButton(value: AnnotationOptions) {
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        if (index >= 0) this.toolbar.getButtonWidget(index)?.focus();
+    }
+
+    /** `keyboard` shows the `keyboardOnly` buttons and appends Move Annotation. */
+    public updateButtons(datum: AnnotationDatum, keyboard = false) {
         if (!this.enabled) return;
 
         const visible = {
@@ -207,8 +242,14 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.Settings]: hasSettings(datum),
             [AnnotationOptions.Lock]: true,
             [AnnotationOptions.Delete]: true,
+            [AnnotationOptions.Move]: false,
         };
-        this.visibleButtons = this.buttons.filter((button) => visible[button.value]);
+        this.visibleButtons = this.buttons.filter(
+            (button) => visible[button.value] && (keyboard || !button.keyboardOnly)
+        );
+        if (keyboard) {
+            this.visibleButtons.push(...KEYBOARD_ONLY_BUTTONS);
+        }
 
         this.toolbar.clearButtons();
         this.toolbar.updateButtons(this.visibleButtons);
@@ -374,6 +415,7 @@ export class AnnotationOptionsToolbar {
                     color: getDefaultColor(datum, button.value),
                     opacity: getDefaultOpacity(datum, button.value),
                     sourceEvent: event.sourceEvent,
+                    showActionButtons: this.showActionButtons,
                     hasMultiColorOption: isFibonacciType(datum),
                     isMultiColor: isFibonacciType(datum) && datum.isMultiColor,
                     onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
@@ -420,6 +462,11 @@ export class AnnotationOptionsToolbar {
                 this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.events.emit('pressed-settings', event);
+                break;
+            }
+
+            case AnnotationOptions.Move: {
+                this.events.emit('pressed-move', null);
                 break;
             }
         }
@@ -485,7 +532,6 @@ export class AnnotationOptionsToolbar {
 
         const fontSize = item.value;
         this.events.emit('updated-font-size', { type: datum.type, fontSize });
-        this.textSizeMenu.hide();
         this.updateFontSize(fontSize);
     }
 
@@ -494,7 +540,6 @@ export class AnnotationOptionsToolbar {
 
         const type = item.value;
         this.events.emit('updated-line-style', { type: datum.type, lineStyleType: type });
-        this.lineStyleTypeMenu.hide();
         this.updateLineStyleType(item);
     }
 
@@ -505,7 +550,6 @@ export class AnnotationOptionsToolbar {
 
         const strokeWidth = item.value;
         this.events.emit('updated-line-width', { type: datum.type, strokeWidth });
-        this.lineStrokeWidthMenu.hide();
         this.updateStrokeWidth(item);
     }
 
@@ -515,7 +559,7 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
+                this.updateButtonByIndex(index, withSwitchState(button, locked));
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }

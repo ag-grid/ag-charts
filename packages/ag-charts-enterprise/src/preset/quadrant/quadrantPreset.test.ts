@@ -530,6 +530,7 @@ describe('Quadrant Preset', () => {
             },
             CENTRED_ON_ONE_AXIS: regionLabelOptions('inside-outer-center', undefined, { spacing: 40 }),
             NONE: regionLabelOptions('inside-inner-inner', undefined, { spacing: 0 }),
+            NEGATIVE: regionLabelOptions('inside-inner-inner', undefined, { spacing: -10 }),
             PER_REGION: regionLabelOptions('inside-inner-inner', { bottomRight: { spacing: 40 } }),
         };
 
@@ -549,7 +550,7 @@ describe('Quadrant Preset', () => {
         // The resolved regions are emitted in region order.
         const REGION_ORDER = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
 
-        const resolveOffsets = (options: AgQuadrantChartOptions) => {
+        const resolveLabels = (options: AgQuadrantChartOptions) => {
             const cartesianOptions = createQuadrant(
                 options,
                 undefined,
@@ -562,61 +563,36 @@ describe('Quadrant Preset', () => {
             expect(regions).toHaveLength(REGION_ORDER.length);
 
             return Object.fromEntries(
-                REGION_ORDER.map((region, index) => [
-                    region,
-                    { x: regions![index].label?.xOffset, y: regions![index].label?.yOffset },
-                ])
-            ) as Record<(typeof REGION_ORDER)[number], { x?: number; y?: number }>;
+                REGION_ORDER.map((region, index) => {
+                    const label: { xOffset?: number; yOffset?: number; spacing?: number } = regions![index].label!;
+                    return [region, { x: label.xOffset, y: label.yOffset, spacing: label.spacing }];
+                })
+            ) as Record<(typeof REGION_ORDER)[number], { x?: number; y?: number; spacing?: number }>;
         };
 
-        // `spacing` is region-relative, so opposite regions get equal magnitudes with opposite signs.
-        it('leaves the spacing-derived offsets untouched when no offset is set', () => {
-            const offsets = resolveOffsets(regionLabelOptions('inside-outer-outer', undefined, { spacing: 40 }));
+        // The region applies `spacing` along the label's own direction, so the preset passes it through.
+        it('passes the spacing through and leaves the offsets unset when none is set', () => {
+            const labels = resolveLabels(regionLabelOptions('inside-outer-outer', undefined, { spacing: 40 }));
 
-            expect(offsets.topLeft).toEqual({ x: 40, y: 40 });
-            expect(offsets.bottomRight).toEqual({ x: -40, y: -40 });
+            for (const region of REGION_ORDER) {
+                expect(labels[region]).toEqual({ x: undefined, y: undefined, spacing: 40 });
+            }
         });
 
-        // The offset is absolute, so it shifts both labels the same way while `spacing` mirrors them.
-        it('adds a per-region offset on top of the spacing-derived offset, unmirrored', () => {
-            const offsets = resolveOffsets(
-                regionLabelOptions(
-                    'inside-outer-outer',
-                    { topLeft: { yOffset: -10 }, bottomRight: { yOffset: -10 } },
-                    {
-                        spacing: 40,
-                    }
-                )
+        it.each([
+            ['a positive offset', { xOffset: 0, yOffset: -10 }],
+            ['a negative offset, unclamped', { xOffset: -100, yOffset: -100 }],
+            ['an offset on an axis the spacing does not move', { xOffset: 12, yOffset: 0 }],
+        ])('passes %s through beside the spacing', (_, { xOffset, yOffset }) => {
+            const labels = resolveLabels(
+                regionLabelOptions('inside-outer-center', { topLeft: { xOffset, yOffset } }, { spacing: 40 })
             );
 
-            expect(offsets.topLeft).toEqual({ x: 40, y: 30 });
-            expect(offsets.bottomRight).toEqual({ x: -40, y: -50 });
-        });
-
-        it('applies a negative offset without clamping it', () => {
-            const offsets = resolveOffsets(
-                regionLabelOptions(
-                    'inside-outer-outer',
-                    { topLeft: { xOffset: -100, yOffset: -100 } },
-                    {
-                        spacing: 40,
-                    }
-                )
-            );
-
-            expect(offsets.topLeft).toEqual({ x: -60, y: -60 });
-        });
-
-        it('applies an offset on an axis whose spacing contribution is zero', () => {
-            const offsets = resolveOffsets(
-                regionLabelOptions('inside-outer-center', { topLeft: { xOffset: 12 } }, { spacing: 40 })
-            );
-
-            expect(offsets.topLeft).toEqual({ x: 12, y: 40 });
+            expect(labels.topLeft).toEqual({ x: xOffset, y: yOffset, spacing: 40 });
         });
 
         it('offsets each region independently', () => {
-            const offsets = resolveOffsets(
+            const labels = resolveLabels(
                 regionLabelOptions(
                     'inside-outer-outer',
                     { topLeft: { yOffset: -10 }, bottomRight: { yOffset: 25 } },
@@ -624,10 +600,10 @@ describe('Quadrant Preset', () => {
                 )
             );
 
-            expect(offsets.topLeft.y).toBe(30);
-            expect(offsets.bottomRight.y).toBe(-15);
-            expect(offsets.topRight).toEqual({ x: -40, y: 40 });
-            expect(offsets.bottomLeft).toEqual({ x: 40, y: -40 });
+            expect(labels.topLeft.y).toBe(-10);
+            expect(labels.bottomRight.y).toBe(25);
+            expect(labels.topRight).toEqual({ x: undefined, y: undefined, spacing: 40 });
+            expect(labels.bottomLeft).toEqual({ x: undefined, y: undefined, spacing: 40 });
         });
 
         // Per-region only, so the shared level must reject them — as it already does for `text`.

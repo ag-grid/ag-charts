@@ -140,7 +140,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial', 'ag-financial-dark', 'ag-accessible' or 'ag-accessible-dark' or an object, ignoring.",
   ],
 ]
 `);
@@ -261,16 +261,21 @@ describe('themes.ts', () => {
         });
 
         it.each([
-            { markerShapes: ['blob'], warns: true },
-            { markerShapes: ['square'], warns: false },
-        ])('validates palette.markerShapes $markerShapes', async ({ markerShapes, warns }) => {
+            { palette: { markerShapes: ['blob'] }, warns: true },
+            { palette: { markerShapes: ['square'] }, warns: false },
+            { palette: { lineDashes: [[4, -2]] }, warns: true },
+            { palette: { lineDashes: ['wiggle'] }, warns: true },
+            { palette: { lineDashes: [[4, 2], 'dot', []] }, warns: false },
+            { palette: { lineDashes: [] }, warns: false },
+        ])('validates palette $palette', async ({ palette, warns }) => {
             const chart = AgCharts.create({
                 ...opts,
-                theme: { palette: { markerShapes } as unknown as AgChartThemePalette },
+                theme: { palette: palette as unknown as AgChartThemePalette },
             });
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toEqual(warns ? [[expect.stringContaining('theme.palette.markerShapes')]] : []);
+            const [key] = Object.keys(palette);
+            expectWarningsCalls().toEqual(warns ? [[expect.stringContaining(`theme.palette.${key}`)]] : []);
         });
 
         it('accepts theme operators in overrides only', async () => {
@@ -338,8 +343,16 @@ describe('themes.ts', () => {
         setupMockConsole();
         setupMockCanvas();
 
-        it.each(Object.keys(themes) as AgChartThemeName[])('%s defaults palette.markerShapes to circle', (name) => {
+        const cycledMarkerThemes: AgChartThemeName[] = ['ag-accessible', 'ag-accessible-dark'];
+        const circleMarkerThemes = (Object.keys(themes) as AgChartThemeName[]).filter(
+            (name) => !cycledMarkerThemes.includes(name)
+        );
+        it.each(circleMarkerThemes)('%s defaults palette.markerShapes to circle', (name) => {
             expect(themes[name]?.().palette.markerShapes).toEqual(['circle']);
+        });
+
+        it.each(Object.keys(themes) as AgChartThemeName[])('%s defaults palette.lineDashes to solid', (name) => {
+            expect(themes[name]?.().palette.lineDashes).toEqual(['solid']);
         });
 
         it.each(['ag-default', 'ag-vivid-dark'] as AgChartThemeName[])(
@@ -586,7 +599,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+                  "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial', 'ag-financial-dark', 'ag-accessible' or 'ag-accessible-dark' or an object, ignoring.",
                 ],
               ]
             `);

@@ -45,6 +45,9 @@ const FLOW_DATA = [
     { from: 'B', to: 'D', size: 7 },
 ];
 
+/** What a glow with no fields of its own casts on a hierarchy tile: flush, with no blur, in the neutral colour (Defaults sheet). */
+const TILE_THEME_GLOW = { ...THEME_GLOW, fillOpacity: 1, blur: 0, spread: 1, gap: 0 };
+
 const hierarchyRoot = (chart: AgChartInstance): HierarchyNode => {
     const root = getHierarchyRootNode(chart);
     if (root == null) throw new Error('the hierarchy series has no root node');
@@ -86,6 +89,8 @@ interface Case {
     oneSlot: boolean;
     /** Whether the series has a series-level `glow` option; the hierarchy series take a glow from their highlight styles only. */
     seriesGlow: boolean;
+    /** What a glow with no fields of its own casts for this series. */
+    themeGlow: typeof THEME_GLOW;
 }
 
 const visible = (shapes: Iterable<Shape>, kind: abstract new (...args: never[]) => Shape) =>
@@ -109,6 +114,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: THEME_GLOW,
         isFirst: (params) => params.datum.from === 'A' && params.datum.to === 'C',
         hover: (chart) => getFlowLinkData(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -133,6 +139,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: TILE_THEME_GLOW,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -153,6 +160,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: TILE_THEME_GLOW,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -246,7 +254,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
                 // Option normalisation strips every field of an option object that has `enabled: false`.
                 const { inPlace } = await create({ glow: { ...SERIES_GLOW, enabled: false }, first: { glow: {} } });
 
-                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(THEME_GLOW));
+                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(testCase.themeGlow));
                 for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
             }
         );
@@ -254,7 +262,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         it('keeps the theme glow for the fields that a partial glow leaves unset, with no series glow', async () => {
             const { inPlace } = await create({ first: { glow: { blur: 7 } } });
 
-            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...testCase.themeGlow, blur: 7 }));
             for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
         });
 
@@ -500,66 +508,51 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
             expect(others.length).toBeGreaterThan(1);
             for (const itemParams of others) {
-                expect(itemParams.glow).toEqual(testCase.seriesGlow ? SERIES_GLOW : undefined);
+                expect(itemParams.glow).toEqual(
+                    testCase.seriesGlow ? { ...SERIES_GLOW, gap: testCase.themeGlow.gap } : undefined
+                );
                 expect(itemParams.glow).toBe(others[0].glow);
             }
         });
     });
 
-    describe('with the deprecated shadow color', () => {
-        // `color` is accepted on a series `shadow`, but not in the `shadow` that a styler returns.
-        const COLORED_SHADOW = { enabled: true, color: 'red', blur: 3 } as AgDropShadowOptions;
-        // The one warning allowed: the option is deprecated. The styler's own `unknown property` warning is not.
-        const DEPRECATED_COLOR_WARNING = expect.stringContaining('shadow.color` is deprecated');
+    describe('with a series shadow fill', () => {
+        // A `fillOpacity` makes the theme set `_fillOpacitySet`, which the styler params must not carry back to it.
+        const FILLED_SHADOW: AgDropShadowOptions = { enabled: true, fill: 'red', fillOpacity: 0.5, blur: 3 };
 
         it('gives the styler a shadow that it can spread into the shadow it returns, with no warning of its own', async () => {
             const { inPlace } = await create({
-                shadow: COLORED_SHADOW,
+                shadow: FILLED_SHADOW,
                 styler: (params) => (testCase.isFirst(params) ? { shadow: { ...params.shadow, blur: 9 } } : {}),
             });
 
             expect(inPlace.length).toBeGreaterThan(1);
             expect(inPlace[0].fillShadow).toMatchObject({ fill: 'red', blur: 9 });
             for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
-            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+            expectWarningMessages([]);
         });
 
         it('gives the styler a shadow that it can return as it is, in the hovered state too', async () => {
             const { inPlace } = await create({
-                shadow: COLORED_SHADOW,
+                shadow: FILLED_SHADOW,
                 hover: true,
                 styler: (params) => ({ shadow: params.shadow }),
             });
 
             expect(inPlace.length).toBeGreaterThan(1);
             for (const shape of inPlace) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
-            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
-        });
-
-        it('gives every call a shadow with the color as its fill, and no color, in each highlight state', async () => {
-            const { byState, styler } = recordParamsByHighlightState();
-            await create({ shadow: COLORED_SHADOW, hover: true, styler });
-
-            expect([...byState.keys()]).toContain('highlighted-item');
-            // The leaves: a group of a treemap has a shadow of its own.
-            const leaves = [...byState.values()].flat().filter((itemParams) => itemParams.datum.children == null);
-            expect(leaves.length).toBeGreaterThan(1);
-            for (const itemParams of leaves) {
-                expect(itemParams.shadow).toMatchObject({ fill: 'red', blur: 3 });
-                expect(itemParams.shadow).not.toHaveProperty('color');
-            }
-            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+            expectWarningMessages([]);
         });
 
         it('gives every leaf in a state the same shadow object', async () => {
             const { byState, styler } = recordParamsByHighlightState();
-            await create({ shadow: COLORED_SHADOW, hover: true, styler });
+            await create({ shadow: FILLED_SHADOW, hover: true, styler });
 
             // The leaves: a group of a treemap has a shadow of its own.
             const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
             expect(others.length).toBeGreaterThan(1);
             for (const itemParams of others) expect(itemParams.shadow).toBe(others[0].shadow);
-            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+            expectWarningMessages([]);
         });
     });
 
@@ -740,7 +733,7 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 
-        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...TILE_THEME_GLOW, blur: 7 }));
         expect(tile?.fillGlow?.fill).not.toBe(HIGHLIGHT_GLOW.fill);
     });
 

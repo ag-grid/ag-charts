@@ -313,7 +313,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -325,12 +325,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -377,10 +378,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fill": "#3d7ab0",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -409,13 +411,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -450,7 +453,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -462,12 +465,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -514,10 +518,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fill": "#b03d65",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -546,13 +551,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -587,7 +593,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -599,12 +605,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -651,10 +658,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fill": "#80b03d",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -683,13 +691,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -1113,17 +1122,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -1135,13 +1145,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -1191,13 +1201,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -1247,17 +1258,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -1269,13 +1281,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -1325,13 +1337,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -1381,7 +1394,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -1393,12 +1406,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -1445,10 +1459,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fill": "#80a0c3",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -1477,13 +1492,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -1846,7 +1862,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -1859,6 +1875,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -1911,10 +1928,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#f3622d",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -1943,13 +1961,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -1984,7 +2003,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -1997,6 +2016,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2049,10 +2069,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#fba71b",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -2081,13 +2102,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -2122,7 +2144,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -2135,6 +2157,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2187,10 +2210,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#57b757",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -2219,13 +2243,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -2260,7 +2285,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -2273,6 +2298,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2325,10 +2351,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#41a9c9",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -2357,13 +2384,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -2398,7 +2426,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -2411,6 +2439,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2463,10 +2492,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#4258c9",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -2495,13 +2525,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -2536,7 +2567,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -2549,6 +2580,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2601,10 +2633,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#9a42c8",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -2633,13 +2666,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -2674,7 +2708,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -2687,6 +2721,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2739,10 +2774,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fill": "#c84164",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -2771,13 +2807,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -3139,17 +3176,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3161,13 +3199,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -3217,13 +3255,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -3274,17 +3313,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3296,13 +3336,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -3352,13 +3392,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -3409,17 +3450,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3431,13 +3473,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -3487,13 +3529,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -3544,17 +3587,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3566,13 +3610,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -3622,13 +3666,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -3679,17 +3724,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3701,13 +3747,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -3757,13 +3803,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -3814,17 +3861,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3836,13 +3884,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -3892,13 +3940,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -3949,17 +3998,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -3971,13 +4021,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -4027,13 +4077,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -4084,17 +4135,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -4106,13 +4158,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -4162,13 +4214,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -4536,17 +4589,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "fill": "#5090dc",
       "fillOpacity": 0.7,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -4558,13 +4612,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "itemStyler": [Function],
@@ -4612,13 +4666,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -5012,7 +5067,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -5024,12 +5079,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -5076,10 +5132,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fill": "#5BC0EB",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -5108,13 +5165,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -5149,7 +5207,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -5161,12 +5219,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -5213,10 +5272,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fill": "#FDE74C",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -5245,13 +5305,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -5286,7 +5347,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -5298,12 +5359,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -5350,10 +5412,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fill": "#9BC53D",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -5382,13 +5445,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -5423,7 +5487,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -5435,12 +5499,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -5487,10 +5552,11 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fill": "#E55934",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -5519,13 +5585,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -5888,7 +5955,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -5901,6 +5968,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -5953,10 +6021,11 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fill": "#FA7921",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -5985,13 +6054,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -6036,7 +6106,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -6049,6 +6119,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6101,10 +6172,11 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fill": "#5BC0EB",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -6133,13 +6205,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -6184,7 +6257,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -6197,6 +6270,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6249,10 +6323,11 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fill": "#9BC53D",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -6281,13 +6356,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -6332,7 +6408,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -6345,6 +6421,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6397,10 +6474,11 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fill": "#E55934",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -6429,13 +6507,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -6480,7 +6559,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -6493,6 +6572,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6545,10 +6625,11 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fill": "#FDE74C",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -6577,13 +6658,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -6952,17 +7034,18 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -6974,13 +7057,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -7030,13 +7113,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -7412,10 +7496,11 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
@@ -7423,7 +7508,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "highlightedItem": {
           "fill": "#0ab9ff",
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -7435,13 +7520,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -7493,13 +7578,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -7879,17 +7965,18 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "fill": "#cc5b58",
       "fillOpacity": 0.85,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -7901,13 +7988,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "label": {
@@ -7954,13 +8041,14 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -8332,17 +8420,18 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "fill": "#5090dc",
       "fillOpacity": 0.5,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -8354,13 +8443,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "label": {
@@ -8409,13 +8498,14 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -8790,17 +8880,18 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -8812,7 +8903,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -8868,13 +8959,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -8922,17 +9014,18 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -8944,7 +9037,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -9000,13 +9093,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -9380,17 +9474,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -9403,7 +9498,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -9459,13 +9554,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -9515,17 +9611,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -9538,7 +9635,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -9594,13 +9691,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -9977,17 +10075,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10001,7 +10100,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10057,13 +10156,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -10112,17 +10212,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10136,7 +10237,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10192,13 +10293,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -10247,17 +10349,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10271,7 +10374,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10327,13 +10430,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -10382,17 +10486,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10406,7 +10511,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10462,13 +10567,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -10517,17 +10623,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10541,7 +10648,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10597,13 +10704,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -10652,17 +10760,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10676,7 +10785,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10732,13 +10841,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -10787,17 +10897,18 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -10811,7 +10922,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -10867,13 +10978,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -11252,7 +11364,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -11265,6 +11377,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11317,10 +11430,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#0b1791",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -11349,13 +11463,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -11390,7 +11505,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -11403,6 +11518,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11455,10 +11571,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#be2a2c",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -11487,13 +11604,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -11528,7 +11646,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -11541,6 +11659,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11593,10 +11712,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#f6d24a",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -11625,13 +11745,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -11666,7 +11787,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -11679,6 +11800,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11731,10 +11853,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#ce1126",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -11763,13 +11886,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -11804,7 +11928,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -11817,6 +11941,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11869,10 +11994,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#002d62",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -11901,13 +12027,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -11942,7 +12069,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -11955,6 +12082,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12007,10 +12135,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#1b4e9e",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12039,13 +12168,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12080,7 +12210,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12093,6 +12223,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12145,10 +12276,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#f6d24a",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12177,13 +12309,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12218,7 +12351,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12231,6 +12364,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12283,10 +12417,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#0073cf",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12315,13 +12450,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12356,7 +12492,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12369,6 +12505,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12421,10 +12558,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#e88532",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12453,13 +12591,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12494,7 +12633,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12507,6 +12646,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12559,10 +12699,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#000000",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12591,13 +12732,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12632,7 +12774,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12645,6 +12787,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12697,10 +12840,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#006847",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12729,13 +12873,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12770,7 +12915,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12783,6 +12928,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12835,10 +12981,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#c22b38",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -12867,13 +13014,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -12908,7 +13056,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -12921,6 +13069,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12973,10 +13122,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#042279",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -13005,13 +13155,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -13046,7 +13197,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -13059,6 +13210,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13111,10 +13263,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#4997d0",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -13143,13 +13296,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -13184,7 +13338,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -13197,6 +13351,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13249,10 +13404,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#ffffff",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -13281,13 +13437,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -13322,7 +13479,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -13335,6 +13492,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13387,10 +13545,11 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fill": "#459945",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -13419,13 +13578,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -13782,7 +13942,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -13794,12 +13954,13 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -13846,10 +14007,11 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -13878,13 +14040,14 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -14247,7 +14410,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -14260,6 +14423,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14312,10 +14476,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -14345,13 +14510,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -14403,7 +14569,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -14416,6 +14582,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14468,10 +14635,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#ffa03a",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -14501,13 +14669,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -14559,7 +14728,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -14572,6 +14741,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14624,10 +14794,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#459d55",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -14657,13 +14828,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -14715,7 +14887,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -14728,6 +14900,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14780,10 +14953,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#34bfe1",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -14813,13 +14987,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -14871,7 +15046,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -14884,6 +15059,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14936,10 +15112,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#e1cc00",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -14969,13 +15146,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -15027,7 +15205,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -15040,6 +15218,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15092,10 +15271,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#9669cb",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -15125,13 +15305,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -15183,7 +15364,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -15196,6 +15377,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15248,10 +15430,11 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fill": "#b5b5b5",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -15281,13 +15464,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -15665,17 +15849,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -15688,7 +15873,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15745,13 +15930,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -15801,17 +15987,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -15824,7 +16011,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15881,13 +16068,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -15937,17 +16125,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -15960,7 +16149,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -16017,13 +16206,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -16400,17 +16590,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -16422,7 +16613,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -16479,13 +16670,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -16535,17 +16727,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -16557,7 +16750,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -16614,13 +16807,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -16670,17 +16864,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -16692,7 +16887,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -16749,13 +16944,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -16805,17 +17001,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -16827,7 +17024,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -16884,13 +17081,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -16940,17 +17138,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -16962,7 +17161,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -17019,13 +17218,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -17075,17 +17275,18 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -17097,7 +17298,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -17154,13 +17355,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -17567,7 +17769,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -17579,12 +17781,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -17631,10 +17834,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -17663,13 +17867,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -17714,7 +17919,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -17726,12 +17931,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -17778,10 +17984,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fill": "#ffa03a",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -17810,13 +18017,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -17861,7 +18069,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -17873,12 +18081,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -17925,10 +18134,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fill": "#459d55",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -17957,13 +18167,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -18008,7 +18219,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -18020,12 +18231,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "interpolation": {
@@ -18072,10 +18284,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fill": "#34bfe1",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -18104,13 +18317,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -18480,17 +18694,18 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -18502,13 +18717,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "label": {
@@ -18560,13 +18775,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -18921,10 +19137,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
       ],
       "gap": 1,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "hideZeroValueSectorsInLegend": false,
       "highlight": {
@@ -18933,7 +19150,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "highlightedItem": {
           "fillOpacity": 0,
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "stroke": "#535455",
           "strokeWidth": 1,
@@ -18947,13 +19164,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "innerLabels": [
@@ -19019,13 +19236,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "shadow": {
@@ -19439,7 +19657,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -19452,6 +19670,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -19504,10 +19723,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fill": "#01c185",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -19536,13 +19756,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -19576,7 +19797,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -19589,6 +19810,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -19641,10 +19863,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fill": "#000000",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -19673,13 +19896,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -20018,10 +20242,11 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
       ],
       "gap": 1,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "hideZeroValueSectorsInLegend": false,
       "highlight": {
@@ -20030,7 +20255,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "highlightedItem": {
           "fillOpacity": 0,
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "stroke": "#535455",
           "strokeWidth": 1,
@@ -20044,13 +20269,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "lineDash": [
@@ -20083,13 +20308,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "shadow": {
@@ -20464,17 +20690,18 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "fill": "#002D72",
       "fillOpacity": 0.5,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -20486,13 +20713,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "label": {
@@ -20537,13 +20764,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {
@@ -20942,7 +21170,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -20954,6 +21182,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -21006,10 +21235,11 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fill": "#5BC0EB",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -21038,13 +21268,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -21096,7 +21327,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -21108,6 +21339,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -21160,10 +21392,11 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fill": "#FDE74C",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -21192,13 +21425,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -21250,7 +21484,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -21262,6 +21496,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -21314,10 +21549,11 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fill": "#9BC53D",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -21346,13 +21582,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -21404,7 +21641,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -21416,6 +21653,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -21468,10 +21706,11 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fill": "#E55934",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -21500,13 +21739,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -21558,7 +21798,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -21570,6 +21810,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -21622,10 +21863,11 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fill": "#FA7921",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -21654,13 +21896,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -21712,7 +21955,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -21724,6 +21967,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -21776,10 +22020,11 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fill": "#fa3081",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -21808,13 +22053,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "seriesGrouping": {
@@ -22191,17 +22437,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -22214,7 +22461,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -22270,13 +22517,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -22326,17 +22574,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -22349,7 +22598,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -22405,13 +22654,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -22461,17 +22711,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -22484,7 +22735,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -22540,13 +22791,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -22596,17 +22848,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -22619,7 +22872,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -22675,13 +22928,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -23059,17 +23313,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -23082,7 +23337,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -23138,13 +23393,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -23194,17 +23450,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -23217,7 +23474,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -23273,13 +23530,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -23329,17 +23587,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -23352,7 +23611,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -23408,13 +23667,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -23464,17 +23724,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -23487,7 +23748,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -23543,13 +23804,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -23599,17 +23861,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
           "strokeWidth": 1,
         },
@@ -23622,7 +23885,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
@@ -23678,13 +23941,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -24087,17 +24351,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -24109,13 +24374,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "id": "sparkline",
@@ -24168,13 +24433,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -24591,17 +24857,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -24613,13 +24880,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "id": "sparkline",
@@ -24670,13 +24937,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -25095,17 +25363,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       "fillOpacity": 1,
       "gap": 0,
       "glow": {
-        "blur": 2,
+        "blur": 1,
         "enabled": false,
-        "fillOpacity": 0.4,
-        "spread": 4,
+        "fillOpacity": 0.6,
+        "gap": 1,
+        "spread": 2,
       },
       "highlight": {
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -25117,13 +25386,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.6,
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "id": "sparkline",
@@ -25174,13 +25443,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.5,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.5,
         },
       },
       "seriesGrouping": {
@@ -25596,7 +25866,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -25608,12 +25878,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "id": "sparkline",
@@ -25661,10 +25932,11 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "itemStyler": [Function],
         "lineDash": [
@@ -25694,13 +25966,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -26100,7 +26373,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -26112,12 +26385,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "id": "sparkline",
@@ -26165,10 +26439,11 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -26197,13 +26472,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -26603,7 +26879,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -26615,12 +26891,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "id": "sparkline",
@@ -26668,10 +26945,11 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "lineDash": [
           0,
@@ -26700,13 +26978,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "showInLegend": true,
@@ -27108,7 +27387,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "enabled": true,
         "highlightedItem": {
           "glow": {
-            "enabled": false,
+            "enabled": true,
           },
         },
         "highlightedSeries": {
@@ -27120,12 +27399,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
           "glow": {
             "enabled": false,
           },
+          "opacity": 1,
         },
         "unhighlightedSeries": {
           "glow": {
             "enabled": false,
           },
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "id": "sparkline",
@@ -27173,10 +27453,11 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "fill": "#5090dc",
         "fillOpacity": 1,
         "glow": {
-          "blur": 2,
+          "blur": 1,
           "enabled": false,
-          "fillOpacity": 0.4,
-          "spread": 4,
+          "fillOpacity": 0.6,
+          "gap": 1,
+          "spread": 2,
         },
         "itemStyler": [Function],
         "lineDash": [
@@ -27206,13 +27487,14 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "containment": "any",
         "enabled": false,
         "selectedItem": {
+          "opacity": 1,
           "strokeWidth": 2,
         },
         "unselectedItem": {
-          "opacity": 0.6,
+          "opacity": 0.3,
         },
         "unselectedSeries": {
-          "opacity": 0.2,
+          "opacity": 0.3,
         },
       },
       "shadow": {

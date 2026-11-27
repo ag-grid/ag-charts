@@ -10,6 +10,7 @@ import {
     canvasImage,
     deproxy,
     differingBytes,
+    dominantRedStrength,
     endHover,
     getSeriesAt,
     getSeriesHasChangesOnHighlight,
@@ -67,6 +68,25 @@ const COUNTED: Record<string, Partial<SeriesCase>> = {
     'treemap group': { hoverable: false },
     sunburst: { hoverable: false },
 };
+
+/**
+ * What a glow with no fields of its own casts for the series whose theme glow differs from the common `THEME_GLOW`
+ * (Defaults sheet): financial series that glow fainter or flush, a box plot at full opacity, and the neutral-fill series
+ * that glow flush with no blur. A cone funnel keeps its own glow numbers and sets no gap.
+ */
+const NEUTRAL_THEME_GLOW = { fill: expect.any(String), fillOpacity: 1, blur: 0, spread: 1, gap: 0 };
+const THEME_GLOW_OF: Record<string, object> = {
+    'box-plot': { ...THEME_GLOW, fillOpacity: 1 },
+    candlestick: { ...THEME_GLOW, fillOpacity: 0.5, gap: 0 },
+    ohlc: { ...THEME_GLOW, fillOpacity: 0.5, gap: 0 },
+    'cone funnel': { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 },
+    heatmap: { ...THEME_GLOW, ...NEUTRAL_THEME_GLOW },
+    nightingale: { ...THEME_GLOW, ...NEUTRAL_THEME_GLOW },
+    'map-shape': { ...THEME_GLOW, ...NEUTRAL_THEME_GLOW },
+    sunburst: { ...THEME_GLOW, ...NEUTRAL_THEME_GLOW },
+    'treemap tile': { ...THEME_GLOW, ...NEUTRAL_THEME_GLOW },
+};
+const themeGlowOf = (name: string): { gap?: number } & object => THEME_GLOW_OF[name] ?? THEME_GLOW;
 
 /** The community series that are also run through an enterprise chart. */
 const COMMUNITY_SERIES = new Set(['bubble', 'histogram', 'area markers', 'pie', 'donut']);
@@ -169,16 +189,18 @@ describe('series-level glow (enterprise series)', () => {
 
             const shapes = glowing();
             expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) expect(shape.fillGlow).toMatchObject(glowShadow(THEME_GLOW));
+            for (const shape of shapes) expect(shape.fillGlow).toMatchObject(glowShadow(themeGlowOf(testCase.name)));
         });
 
         // The markers of HLC and range area read the glow through a theme path for each of its options, `gap` among them.
+        // A gap that is not set is the theme's gap for the series.
         it.each([undefined, 0, 4])('casts a gap of %s from every shape that glows', async (gap) => {
             await create(testCase, { ...SERIES_GLOW, gap });
 
             const shapes = glowing();
             expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) expect(shape.fillGlow?.gap).toBe(gap);
+            const expected = gap ?? themeGlowOf(testCase.name).gap;
+            for (const shape of shapes) expect(shape.fillGlow?.gap).toBe(expected);
         });
 
         it.each([
@@ -392,7 +414,10 @@ describe('series-level glow (enterprise series)', () => {
                 data: testCase.data,
                 animation: { enabled: false },
                 legend: { enabled: false },
-                series: [testCase.series(glow, common)],
+                // The hovered item glows by default, in every part of it, which these tests of the part's own glow leave out.
+                series: [
+                    { ...testCase.series(glow, common), highlight: { highlightedItem: { glow: { enabled: false } } } },
+                ],
             } as AgChartOptions);
             await waitForChartStability(chart);
             const parts = () =>
@@ -593,6 +618,8 @@ describe('series-level glow (enterprise series)', () => {
         hovered: (chart: AgChartInstance) => HighlightNodeDatum;
         partOf: (shape: Shape) => string | undefined;
         part: string;
+        /** The theme lights the hovered item of the series by default (`highlightedItem.glow`), part or no part. */
+        litByTheme?: boolean;
     }
 
     const BUCKETS: BucketCase[] = [
@@ -626,6 +653,7 @@ describe('series-level glow (enterprise series)', () => {
             hovered: waterfallDatum('negative'),
             partOf: ITEM_PART,
             part: 'negative',
+            litByTheme: true,
         },
     ];
 
@@ -659,7 +687,8 @@ describe('series-level glow (enterprise series)', () => {
         });
 
         it('leaves the part dark where the bucket has no glow, and where it is disabled', async () => {
-            expect(await hoveredGlows({})).toHaveLength(0);
+            // A series whose theme lights the hovered item lights the part with no bucket glow too.
+            expect(await hoveredGlows({})).toHaveLength(testCase.litByTheme ? 1 : 0);
             expect(await hoveredGlows({ highlightedItem: { glow: { enabled: false, fill: 'red' } } })).toHaveLength(0);
         });
     });
@@ -848,5 +877,53 @@ describe('series-level glow (enterprise series)', () => {
                 });
             }
         );
+    });
+});
+
+describe('the strength of the glow of translucent flow links', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    // The links are see-through by default, and their glow is red over a white chart, with no blur, so that the green
+    // channel of a pixel in it is 255 * (1 - strength). The glow is cut out of the links, and the nodes are blue.
+    const glowStrength = async (type: 'sankey' | 'chord', glow: object, link: object = {}) => {
+        chart = await createEnterpriseChart({
+            data: FLOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type,
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    node: { fill: '#0000ff', fillOpacity: 1 },
+                    link: {
+                        fill: '#0000ff',
+                        stroke: undefined,
+                        glow: { enabled: true, fill: 'red', blur: 0, spread: 6, ...glow },
+                        ...link,
+                    },
+                },
+            ],
+        } as AgChartOptions);
+        return dominantRedStrength(canvasImage(chart).data);
+    };
+
+    it.each(['sankey', 'chord'] as const)(
+        'should cast a %s link glow with no fillOpacity at 0.6, not 0.3',
+        async (type) => {
+            expect(await glowStrength(type, {})).toBeCloseTo(0.6, 1);
+        }
+    );
+
+    it.each(['sankey', 'chord'] as const)('should cast a %s link glow with a fillOpacity of 1 as set', async (type) => {
+        expect(await glowStrength(type, { fillOpacity: 1 })).toBe(1);
     });
 });

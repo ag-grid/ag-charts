@@ -11,13 +11,13 @@ import { describe, expect, test } from 'vitest';
 
 import { getTranspilerOptions } from './BrowserTranspiler';
 
-const CLIENT_PATH = join(__dirname, '../../../../../public/example-runner/example-runner.js');
+const CLIENT_PATH = join(__dirname, '../../../../../public/example-runner/example-runner.mjs');
 const clientSource = readFileSync(CLIENT_PATH, 'utf8');
 
-describe('example-runner.js runTranspiled', () => {
+describe('example-runner.mjs runTranspiled', () => {
     test('carries the same enum map the options are named against', () => {
         const match = clientSource.match(/const COMPILER_OPTION_ENUMS = \{([^}]*)\};/);
-        expect(match, 'COMPILER_OPTION_ENUMS not found in example-runner.js').not.toBeNull();
+        expect(match, 'COMPILER_OPTION_ENUMS not found in example-runner.mjs').not.toBeNull();
 
         const inClient = Object.fromEntries(
             Array.from(match![1].matchAll(/(\w+): '([^']*)'/g), ([, name, value]) => [name, value])

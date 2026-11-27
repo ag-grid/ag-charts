@@ -1,8 +1,8 @@
 import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
-import { EllipsisChar, Transformable, boxOverlapsSector } from 'ag-charts-core';
-import type { BBox, Line, Sector, Shape, Text } from 'ag-charts-core';
+import { EllipsisChar, Text, Transformable, boxOverlapsSector } from 'ag-charts-core';
+import type { BBox, Line, Sector, Shape } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
     AgChartOptions,
@@ -1458,6 +1458,225 @@ describe('DonutSeries', () => {
             const labels = await drawnLabels({ fontSize: 12, lineHeight: 60, minimumFontSize: 6 });
             expect(labels).toHaveLength(6);
             expect(Math.max(...labels.map((node) => node.fontSize))).toBeLessThanOrEqual(8);
+        });
+    });
+
+    describe('sectorLabel in a wedge too thin for a line at its own style', () => {
+        // A 1° sliver pointing right is far shorter than a 12px line, so the label is hidden as fitted.
+        const sliverLabelNode = async (sectorLabel: object) => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Sliver label', size: 1 },
+                        { name: 'Big', size: 359 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'size', sectorLabelKey: 'name', rotation: 90, sectorLabel }],
+                })
+            );
+            const nodes = getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection');
+            return nodes.find((node) => node.datum?.datumIndex === 0)!;
+        };
+
+        it('places nothing for a label always drawn in the style it is fitted in', async () => {
+            const node = await sliverLabelNode({ fontSize: 12 });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBeUndefined();
+        });
+
+        // The highlight redraws the label in its restyled font without a re-fit, so it needs the placement to judge.
+        it('places a label a state-dependent style may redraw smaller, for the visibility gate to judge', async () => {
+            const node = await sliverLabelNode({
+                fontSize: 12,
+                itemStyler: ({ highlightState }: { highlightState?: string }) =>
+                    highlightState === 'highlighted-item' ? { fontSize: 4 } : {},
+            });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBe('Sliver label');
+        });
+
+        it('places nothing for rich text always drawn in the style it is fitted in', async () => {
+            const node = await sliverLabelNode({
+                fontSize: 12,
+                formatter: () => [{ text: 'Sliver ' }, { text: 'label', fontSize: 10, fontWeight: 'bold' }],
+            });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBeUndefined();
+        });
+
+        // The four thinnest slivers lie flat at 3 o'clock, shorter than any line, so their labels are never laid out.
+        it('lays out no rich text label in the slivers too thin for any of its lines', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Desktop', size: 180 },
+                        { name: 'Mobile', size: 120 },
+                        { name: 'Tablet', size: 40 },
+                        { name: 'Console', size: 12 },
+                        { name: 'Watch', size: 3 },
+                        { name: 'TV', size: 2 },
+                        { name: 'Car', size: 1.5 },
+                        { name: 'Fridge', size: 1 },
+                        { name: 'Glasses', size: 0.5 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.5,
+                            rotation: 90,
+                            sectorLabel: {
+                                fontSize: 12,
+                                formatter: ({ datum }: { datum: { name: string; size: number } }) => [
+                                    { text: datum.name, fontWeight: 'bold' },
+                                    { text: ` ${datum.size}`, fontSize: 10 },
+                                ],
+                            },
+                        },
+                    ],
+                })
+            );
+            const nodes = getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection');
+            const placed = nodes.filter((node) => node.text != null).map((node) => node.datum?.datumIndex);
+            const shown = nodes.filter((node) => node.visible).map((node) => node.datum?.datumIndex);
+            expect(placed).toEqual([0, 1, 2, 3, 4]);
+            expect(shown).toEqual([1, 2, 3]);
+        });
+
+        // A 3° sliver holds no 12px line, but the label drawn 4px tall on highlight fits where the full fit put it.
+        it('shows a label once a highlight restyles it to fit a wedge that holds none of its lines as fitted', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Hi', size: 3 },
+                        { name: 'Big', size: 357 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            rotation: 90,
+                            sectorLabel: {
+                                fontSize: 12,
+                                wrapping: 'never',
+                                truncate: false,
+                                itemStyler: ({ highlightState }) =>
+                                    highlightState === 'highlighted-item' ? { fontSize: 4 } : {},
+                            },
+                        },
+                    ],
+                })
+            );
+            const sliverLabels = () =>
+                getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection')
+                    .filter((node) => node.datum?.datumIndex === 0)
+                    .map((node) => node.visible);
+            expect(sliverLabels()).toEqual([false]);
+
+            const sliver = classCast(chart.series[0], DonutSeries).getNodeData()![0];
+            chart.ctx.highlightManager.updateHighlight(chart.id, sliver);
+            await waitForChartStability(chart);
+
+            expect(sliverLabels()).toEqual([true]);
+        });
+    });
+
+    describe('sectorLabel fitted without fit options', () => {
+        const sectorOptions = (name: string, count: number, innerRadiusRatio: number, sectorLabel: object) => ({
+            ...options,
+            data: [{ name, size: 8 }, ...Array.from({ length: count - 1 }, () => ({ name, size: 1 }))],
+            series: [
+                { type: 'donut' as const, angleKey: 'size', sectorLabelKey: 'name', innerRadiusRatio, sectorLabel },
+            ],
+        });
+
+        it.each([
+            { case: 'whole where it fits', ratio: 0.5, count: 3, fontSize: 12, drawn: 3, text: 'North America' },
+            {
+                case: 'wrapped where only that fits',
+                ratio: 0.75,
+                count: 20,
+                fontSize: 12,
+                drawn: 8,
+                text: 'North\nAmerica',
+            },
+            { case: 'nothing where it fits no way', ratio: 0.9, count: 6, fontSize: 18, drawn: 0, text: '' },
+        ])('draws $case', async ({ ratio, count, fontSize, drawn, text }) => {
+            chart = deproxy(await createChart(sectorOptions('North America', count, ratio, { fontSize })));
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(Array(drawn).fill(text));
+        });
+
+        it('wraps labels to their wedges', async () => {
+            chart = deproxy(await createChart(sectorOptions('North America', 20, 0.75, { fontSize: 12 })));
+            await compare();
+        });
+    });
+
+    describe('sectorLabel alone in a pie', () => {
+        const NAME = 'Alpha Bravo Charlie Delta Echo Foxtrot Golf';
+        const alonePie = async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ name: NAME, size: 1 }],
+                    series: [{ type: 'pie', angleKey: 'size', sectorLabelKey: 'name', sectorLabel: { fontSize: 20 } }],
+                })
+            );
+            const [label] = getVisibleLabelTextNodes(chart);
+            const [sector] = getSeriesSelectionNodes<Sector>(chart, 'itemSelection');
+            const font = { fontSize: label.fontSize, fontFamily: label.fontFamily, fontWeight: label.fontWeight };
+            const sourceWidth = Text.measureBBox(NAME, 0, 0, {
+                font,
+                textAlign: 'center',
+                textBaseline: 'middle',
+            }).width;
+            return { label, radius: sector.outerRadius, sourceWidth };
+        };
+
+        it('wraps a label wider than the square inscribed in the pie but narrower than the pie', async () => {
+            const { label, radius, sourceWidth } = await alonePie();
+            expect(sourceWidth).toBeGreaterThan(radius * Math.SQRT2);
+            expect(sourceWidth).toBeLessThan(radius * 2);
+            expect(String(label.text)).toContain('\n');
+            expect(String(label.text).replaceAll('\n', ' ')).toBe(NAME);
+            expect(label.getBBox().width).toBeLessThanOrEqual(radius * Math.SQRT2);
+        });
+
+        it('fits the label to the square inscribed in the pie', async () => {
+            await alonePie();
+            await compare();
+        });
+    });
+
+    describe('sectorLabel image segments', () => {
+        const image = { type: 'image', url: 'https://example.com/logo.png', width: 16, height: 16 } as const;
+
+        it.each([
+            { case: 'without fit options', count: 2, sectorLabel: {} },
+            { case: 'with wrapping', count: 2, sectorLabel: { wrapping: 'on-space' } },
+            { case: 'with truncate', count: 2, sectorLabel: { truncate: true } },
+            { case: 'alone in a pie', count: 1, sectorLabel: { truncate: true } },
+        ])('renders a sector label that is only an image $case', async ({ count, sectorLabel }) => {
+            chart = deproxy(
+                await createChart({
+                    data: Array.from({ length: count }, (_, i) => ({ name: `Item ${i}`, size: 1 })),
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: count === 1 ? 0 : undefined,
+                            sectorLabel: { ...sectorLabel, formatter: () => [image] },
+                        },
+                    ],
+                } as AgChartOptions)
+            );
+
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(
+                Array(count).fill([expect.objectContaining(image)])
+            );
         });
     });
 

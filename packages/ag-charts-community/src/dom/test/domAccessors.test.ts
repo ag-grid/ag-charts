@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
 import { DOMManager } from '../domManager';
 import {
     applyContainerSize,
+    captureSizeCallbacks,
     clearInjectedHeadStyles,
     getManagerElement,
     getManagerSizeMonitor,
@@ -29,6 +30,18 @@ describe('domAccessors', () => {
 
     it('getManagerSizeMonitor returns the monitor the manager observes with', () => {
         expect(getManagerSizeMonitor(createManager())).toBeDefined();
+    });
+
+    it('captureSizeCallbacks hands a size to every callback the monitor was asked to observe with', () => {
+        const deliverSize = captureSizeCallbacks();
+        const dm = createManager();
+        const received = vi.fn();
+        getManagerSizeMonitor(dm).observe(doc.createElement('div'), received);
+
+        deliverSize({ width: 3, height: 4 });
+
+        expect(received).toHaveBeenCalledWith({ width: 3, height: 4 });
+        vi.restoreAllMocks();
     });
 
     it('hasDeferredProxy follows addDeferredProxyChild and removeChild', () => {

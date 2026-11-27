@@ -147,6 +147,7 @@ const themeParams = [
     'footnoteFontFamily',
     'footnoteColor',
     'groupedCategoryLineColor',
+    'legendBackgroundColor',
     'legendBorder',
     'legendBorderRadius',
     'legendItemHorizontalPadding',
@@ -393,6 +394,10 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
         fit: union('stretch', 'contain', 'cover', 'none'),
         repeat: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
         rotation: number,
+    },
+    solid: {
+        fill: colorOrRef,
+        fillOpacity: ratio,
     },
 };
 const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObjectDefs as any, 'a color object');
