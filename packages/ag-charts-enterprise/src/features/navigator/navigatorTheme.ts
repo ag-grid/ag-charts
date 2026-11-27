@@ -207,7 +207,7 @@ function lineDashPaths(type: string) {
 
 /** `resolveLineDash` is for the series that the user sets here, as the main series that the others copy resolved its names. */
 function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineDash = false) {
-    // A copied dash would merge by index over the rescaled one that the `lineDash` default supplies.
+    // A copied dash would replace the rescaled one that the `lineDash` default supplies.
     const ignored = (type: string, ignoredProperties: readonly string[]) =>
         resolveLineDash ? [...ignoredProperties, ...lineDashPaths(type)] : ignoredProperties;
 

@@ -1010,7 +1010,7 @@ describe('ChartOptions', () => {
             expect(warnings()).toEqual([]);
         });
 
-        it('resolves a theme override operator to the dash it stands for', () => {
+        it('resolves a theme override to the dash it stands for, which a user array replaces outright', () => {
             const resolve = (lineDash: unknown, seriesDash?: number[]) =>
                 optionAt(
                     prepareOptions<AgCartesianChartOptions>({
@@ -1023,17 +1023,6 @@ describe('ChartOptions', () => {
             expect(resolve({ $if: [true, [9, 9], [1, 1]] })).toEqual([9, 9]);
             // A series line is 2px wide by default.
             expect(resolve({ $if: [true, 'dash', 'dot'] })).toEqual([6, 4]);
-        });
-
-        it('replaces the theme dash beneath a user array outright, rather than merging by index', () => {
-            const resolve = (lineDash: unknown, seriesDash: number[]) =>
-                optionAt(
-                    prepareOptions<AgCartesianChartOptions>({
-                        series: [{ ...SERIES[0], lineDash: seriesDash } as never],
-                        theme: { overrides: { line: { series: { lineDash } } } } as never,
-                    }),
-                    'series[0].lineDash'
-                );
 
             const beneath = [
                 'dash-dot',

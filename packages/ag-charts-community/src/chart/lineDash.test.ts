@@ -16,6 +16,15 @@ const NAMES = Object.keys(LINE_DASH_PATTERNS) as AgLineDashName[];
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr'];
 
+const line = (yKey: string, yName: string, options: Partial<AgLineSeriesOptions>): AgLineSeriesOptions => ({
+    type: 'line',
+    xKey: 'month',
+    yKey,
+    yName,
+    marker: { enabled: false },
+    ...options,
+});
+
 describe('named line dash patterns', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
@@ -56,15 +65,6 @@ describe('named line dash patterns', () => {
     });
 
     it('should scale a named dash with strokeWidth, and not an array, on lines, a styler and a bar stroke', async () => {
-        const line = (yKey: string, yName: string, options: Partial<AgLineSeriesOptions>): AgLineSeriesOptions => ({
-            type: 'line',
-            xKey: 'month',
-            yKey,
-            yName,
-            marker: { enabled: false },
-            ...options,
-        });
-
         chart = await createChart({
             data: MONTHS.map((month, i) => ({
                 month,
@@ -111,16 +111,6 @@ describe('named line dash patterns', () => {
     });
 
     it('should draw a user or styler array as it is over a theme dash name, never merged with it', async () => {
-        const line = (yKey: string, yName: string, options: Partial<AgLineSeriesOptions>): AgLineSeriesOptions => ({
-            type: 'line',
-            xKey: 'month',
-            yKey,
-            yName,
-            strokeWidth: 2,
-            marker: { enabled: false },
-            ...options,
-        });
-
         chart = await createChart({
             data: MONTHS.map((month, i) => ({
                 month,
