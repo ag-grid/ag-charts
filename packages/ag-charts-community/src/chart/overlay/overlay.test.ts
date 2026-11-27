@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, describe, expect } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
@@ -565,6 +567,32 @@ HTMLCollection [
             const spinner = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay--loading');
             expect(spinner).not.toBeNull();
             expect(spinner!.querySelector('style')).toBeNull();
+        });
+
+        // D-12: the spinner names two animations, and the community stylesheet has to define both now that no
+        // `<style>` carries them. A renamed keyframe on either side would silently stop the animation.
+        it('names only animations that the community stylesheet defines', async () => {
+            chart = deproxy(
+                await createChart({
+                    loading: true,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
+
+            const spinner = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay--loading')!;
+            const inlineStyles = [spinner, ...Array.from(spinner.querySelectorAll('*'))]
+                .map((el) => el.getAttribute('style') ?? '')
+                .join(';');
+            const animationNames = Array.from(inlineStyles.matchAll(/animation:\s*(ag-charts-[\w-]+)/g), (m) => m[1]);
+            expect(animationNames.sort()).toEqual(['ag-charts-loading', 'ag-charts-loading-matrix']);
+
+            const here = (file: string) => readFileSync(join(__dirname, file), 'utf8');
+            const spinnerCss = here('loadingSpinner.css');
+            for (const name of animationNames) {
+                expect(spinnerCss).toMatch(new RegExp(`@keyframes ${name}\\s*\\{`));
+            }
+            expect(here('../../styles.css')).toContain('@import url(./chart/overlay/loadingSpinner.css);');
         });
     });
 });
