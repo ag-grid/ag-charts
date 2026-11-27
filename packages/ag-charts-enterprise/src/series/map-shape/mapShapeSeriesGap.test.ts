@@ -41,9 +41,7 @@ import { MapShapeGapNeighbours, collectPolygons, findDrawnPolygon } from '../map
 import { polygonDistance } from '../map-util/polygonUtil';
 import { type MapShapeNodeDatum, MapShapeSeries } from './mapShapeSeries';
 
-// ---------------------------------------------------------------------------------------------------------------------
 // Fixtures and helpers
-// ---------------------------------------------------------------------------------------------------------------------
 
 type Zone = 'pacific' | 'mountain' | 'central' | 'eastern';
 const ZONES: Zone[] = ['pacific', 'mountain', 'central', 'eastern'];
@@ -346,9 +344,7 @@ const expectStrip = (actual: number, expected: number, what: string) => {
     ).toBeLessThanOrEqual(0.5);
 };
 
-// ---------------------------------------------------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------------------------------------------------
 
 describe('MapShapeSeries gap', () => {
     setupMockConsole();
@@ -589,9 +585,7 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
-    // -----------------------------------------------------------------------------------------------------------------
     // Synthetic topologies: squares in degrees, so every border is exactly straight and exactly shared.
-    // -----------------------------------------------------------------------------------------------------------------
 
     const feature = (name: string, ...polygons: Position[][][]) => ({
         type: 'Feature',
@@ -820,9 +814,8 @@ describe('MapShapeSeries gap', () => {
             const hovered = stripAcross(chart!, readPixels(chart!), 'Utah', 'Colorado');
 
             expect(nodeOf(chart!, 'Utah').projectedGeometry).toBe(utahBefore);
-            // The glow is the neutral grey of the default theme. The reading counts it as chart background where it is a
-            // lighter grey than the outline, so it shows as the gap losing less than `spread` (1px): the outline
-            // centred on the fill edge hides the inner half of it, so 0.5px of it lies in the gap.
+            // The glow's grey reads as background where it is lighter than the outline, which hides its inner half:
+            // so the gap loses about 0.5px of the 1px `spread`.
             expect(resting.background - hovered.background).toBeGreaterThan(0.2);
             expect(resting.background - hovered.background).toBeLessThanOrEqual(1);
         });
@@ -892,9 +885,7 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
-    // -----------------------------------------------------------------------------------------------------------------
     // Neighbours follow the chart
-    // -----------------------------------------------------------------------------------------------------------------
 
     describe('neighbours follow the chart (D-3, D-3a, DR2-3, DR2-4, V13, V21)', () => {
         /** `h + s`: half of a 4px gap and half of a 1px outline. */
@@ -1099,9 +1090,7 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
-    // -----------------------------------------------------------------------------------------------------------------
     // A region narrower than its share of the gap
-    // -----------------------------------------------------------------------------------------------------------------
 
     /** Degrees wide: about 3px on the chart, well under the 5px the two sides ask for. */
     const SLIVER = 0.1;
@@ -1205,9 +1194,8 @@ describe('MapShapeSeries gap', () => {
             expect(seen.menus).toEqual(['Sliver']);
         });
 
-        // `pickNodes` tries an exact shape match before it measures distance, so a point inside the region is found by
-        // containment whatever the range. A point beyond the coast is not, and there the distance is to the undrawn
-        // region: a collapsed one has no drawn distance at all.
+        // `pickNodes` tries an exact match first, so only a point outside every undrawn region reaches `distanceSquared`:
+        // beyond the coast, where a collapsed region has no drawn distance at all.
         it.each(['nearest', 10] as const)(
             'is the nearest region to a point just beyond the coast it ends at, with a %s range (D-17, V8)',
             async (range) => {
@@ -1325,9 +1313,7 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
-    // -----------------------------------------------------------------------------------------------------------------
     // A region that is a GeometryCollection: user GeoJSON may hold one, and its polygons sit inside nested members.
-    // -----------------------------------------------------------------------------------------------------------------
 
     /** `Coll` is a `Polygon` sliver then a `MultiPolygon` of a second sliver and a big part: three polygons, one drawn. */
     const collectionOptions = (series: Record<string, unknown> = {}) =>
@@ -1571,9 +1557,8 @@ describe('MapShapeSeries gap', () => {
             );
         });
 
-        // `Left` has `gap: 8` and `Right` has `gap: 0`, so Left's corner at the coast is drawn 4.5px in from the border and
-        // Right's 0.5px. A point 1px to Left's side of the border and 4px past the coast is 4px from Left and 4.1px from
-        // Right by the undrawn geometry, but 5.3px from Left's drawn corner and 4.3px from Right's.
+        // Left (`gap: 8`) and Right (`gap: 0`) draw their coast corners 4.5px and 0.5px in. A point 1px to Left's side and 4px
+        // past the coast is nearer Left undrawn (4 against 4.1px) but nearer Right drawn (4.3 against 5.3px).
         describe.each(['nearest', 10] as const)(
             'beyond the coast where the halves of a gap differ, with a %s range',
             (range) => {
@@ -1632,9 +1617,7 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
-    // -----------------------------------------------------------------------------------------------------------------
     // Labels
-    // -----------------------------------------------------------------------------------------------------------------
 
     describe('labels stay inside the drawn region (AC6, D-20, D-21, V11)', () => {
         /** The label nodes a series drew: map-shape keeps them in its content group, next to the shapes. */
@@ -1766,9 +1749,8 @@ describe('MapShapeSeries gap', () => {
         });
 
         describe('a polygon that is still drawn but whose centroid falls in a grown hole (D-20)', () => {
-            // `Host` is a square with `Enclave` set into its left side. The centroid of the host's exterior ring is the
-            // middle of the square, 1px right of the enclave's edge, so inside the host. Gapped, the hole grows by 2.5px
-            // and covers it. A fit there would be measured from inside the hole and put the label over the enclave.
+            // The centroid of Host's exterior is 1px outside Enclave's edge, so inside Host; the grown hole covers it.
+            // Fitting from inside the hole would put the label over the enclave.
             const hostOptions = () =>
                 syntheticOptions(
                     [
@@ -1805,9 +1787,7 @@ describe('MapShapeSeries gap', () => {
         });
     });
 
-    // -----------------------------------------------------------------------------------------------------------------
     // Other fixtures and snapshots
-    // -----------------------------------------------------------------------------------------------------------------
 
     describe('Indonesia, Timor-Leste and Papua New Guinea (V10)', () => {
         const topology = indonesiaTimorTopology as unknown as { features: TopologyFeature[] };

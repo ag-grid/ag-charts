@@ -62,10 +62,7 @@ const WHITE: RGB = [255, 255, 255];
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const minus = (a: RGB, b: RGB): RGB => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 
-/**
- * How much of one pixel is background, outline and fill: the least-squares mix of the three colours, as each antialiased
- * pixel on the strip's edge is a blend of at most those. Two of the unknowns are solved; the third is what is left of 1.
- */
+/** The least-squares mix of background, outline and fill in a pixel, as an antialiased edge is a blend of at most those. */
 function mixOf(pixel: RGB, fill: RGB, stroke: RGB, background: RGB): { background: number; stroke: number } {
     const a = minus(background, stroke);
     const b = minus(fill, stroke);
@@ -90,10 +87,8 @@ function mixOf(pixel: RGB, fill: RGB, stroke: RGB, background: RGB): { backgroun
 }
 
 /**
- * Reads a window of pixels along one row (`axis: 'x'`) or column (`axis: 'y'`) through (`x`, `y`), across a border, and
- * adds up how much of it is background and how much is outline. A pixel left of (above) the centre is mixed with the
- * `before` fill, one right of (below) it with the `after` fill. Pick a point on the border's middle, away from where it
- * meets another border, so the window holds one strip only.
+ * Sums background and outline pixels along a row (`axis: 'x'`) or column through (`x`, `y`) across a border, with the
+ * `before` fill ahead of the centre and `after` behind it. Use a border's middle, clear of where it meets another.
  */
 export function measureStrip(
     pixels: Pixels,
