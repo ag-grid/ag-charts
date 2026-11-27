@@ -21,10 +21,15 @@ export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
     @SceneObjectChangeDetection({ equals: objectsEqual })
     projectedGeometry: Geometry | undefined = undefined;
 
+    /** The undrawn geometry, tested for picking in place of `projectedGeometry` when the drawn one is inset. */
+    @SceneObjectChangeDetection({ equals: objectsEqual })
+    pickGeometry: Geometry | undefined = undefined;
+
     @SceneChangeDetection()
     renderMode: GeoGeometryRenderMode = GeoGeometryRenderMode.All;
 
     private bbox: BBox | undefined;
+    private pickBBox: BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
     private readonly strokePath = new ExtendedPath2D();
 
@@ -34,16 +39,29 @@ export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
             this.dirtyPath = false;
         }
 
-        return this.bbox?.clone();
+        return (this.bbox ?? this.pickBBox)?.clone();
+    }
+
+    /** The bounds of the undrawn geometry, or of the drawn one when there is no undrawn geometry. */
+    getPickBBox(): BBox | undefined {
+        this.updatePathIfDirty();
+        return (this.pickBBox ?? this.bbox)?.clone();
+    }
+
+    /** Whether every part of the drawn geometry collapsed, leaving only the undrawn geometry. */
+    isDrawnEmpty(): boolean {
+        this.updatePathIfDirty();
+        return this.bbox == null && this.pickBBox != null;
     }
 
     override updatePath(): void {
-        const { projectedGeometry } = this;
+        const { projectedGeometry, pickGeometry } = this;
 
         this.strokePath.clear();
         this.path.clear();
 
         this.bbox = projectedGeometry == null ? undefined : this.drawGeometry(projectedGeometry, undefined);
+        this.pickBBox = pickGeometry == null ? undefined : this.geometryBBox(pickGeometry, undefined);
     }
 
     override drawPath(ctx: any, logger: Logger) {
@@ -53,18 +71,21 @@ export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
     }
 
     override containsPoint(x: number, y: number): boolean {
-        const { projectedGeometry } = this;
-        if (projectedGeometry == null) return false;
+        const geometry = this.pickGeometry ?? this.projectedGeometry;
+        if (geometry == null) return false;
 
-        if (!this.getBBox().containsPoint(x, y)) return false;
+        // Reads the bounds in place: this runs for every node on each pointer move, so it must not clone.
+        this.updatePathIfDirty();
+        const bounds = this.pickBBox ?? this.bbox;
+        if (!bounds?.containsPoint(x, y)) return false;
 
-        return this.geometryDistance(projectedGeometry, x, y) <= 0;
+        return this.geometryDistance(geometry, x, y) <= 0;
     }
 
     override distanceSquared(x: number, y: number): number {
-        const { projectedGeometry } = this;
-        if (projectedGeometry == null) return Infinity;
-        const distance = this.geometryDistance(projectedGeometry, x, y);
+        const geometry = this.pickGeometry ?? this.projectedGeometry;
+        if (geometry == null) return Infinity;
+        const distance = this.geometryDistance(geometry, x, y);
         return distance > 0 ? distance * distance : 0;
     }
 
@@ -115,6 +136,44 @@ export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
 
     private shouldDrawLines(): boolean {
         return (this.renderMode & GeoGeometryRenderMode.Lines) !== 0;
+    }
+
+    /** Bounds of the polygons' exterior rings, which is what `drawGeometry` measures too. */
+    private geometryBBox(geometry: Geometry, bbox: BBox | undefined): BBox | undefined {
+        switch (geometry.type) {
+            case 'GeometryCollection':
+                for (const g of geometry.geometries) {
+                    bbox = this.geometryBBox(g, bbox);
+                }
+                return bbox;
+            case 'MultiPolygon':
+                for (const polygon of geometry.coordinates) {
+                    bbox = this.polygonBBox(polygon, bbox);
+                }
+                return bbox;
+            case 'Polygon':
+                return this.polygonBBox(geometry.coordinates, bbox);
+            default:
+                return bbox;
+        }
+    }
+
+    private polygonBBox(polygon: Position[][], bbox: BBox | undefined): BBox | undefined {
+        if (!this.shouldDrawPolygons() || polygon.length < 1) return bbox;
+
+        for (const [x, y] of polygon[0]) {
+            if (bbox == null) {
+                bbox = new BBox(x, y, 0, 0);
+                continue;
+            }
+            const x1 = bbox.x + bbox.width;
+            const y1 = bbox.y + bbox.height;
+            bbox.x = Math.min(bbox.x, x);
+            bbox.y = Math.min(bbox.y, y);
+            bbox.width = Math.max(x1, x) - bbox.x;
+            bbox.height = Math.max(y1, y) - bbox.y;
+        }
+        return bbox;
     }
 
     private drawGeometryCollection(geometries: Geometry[], bbox: BBox | undefined): BBox | undefined {

@@ -40,7 +40,7 @@ const scenarios = [
     {
         name: 'Mixed modules E',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        srcLimit: '305 kB',
+        srcLimit: '306 kB',
         distLimit: '306 kB',
     },
 ];

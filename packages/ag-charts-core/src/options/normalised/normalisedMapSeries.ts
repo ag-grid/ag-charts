@@ -75,6 +75,7 @@ export type NormalisedMapShapeSeriesOwnOptions = Normalised<
     | 'fillOpacity'
     | TopologyStrokeRequiredKeys
     | 'padding'
+    | 'gap'
     | 'label'
     | 'colorScale'
     | 'shadow',

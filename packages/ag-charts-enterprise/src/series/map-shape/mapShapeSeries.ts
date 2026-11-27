@@ -23,11 +23,13 @@ import type {
     ZIndex,
 } from 'ag-charts-core';
 import {
+    BBox,
     ColorScale,
     Group,
     PointerEvents,
     Selection,
     Text,
+    Transformable,
     configureColorScale,
     datumKeyReader,
     findDiscreteColorBinLabel,
@@ -56,12 +58,21 @@ import type {
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
 import { LonLatBBox } from '../map-util/lonLatBbox';
+import type { GapIndexRegion } from '../map-util/mapShapeGapIndex';
+import {
+    type MapShapeGapNeighbours,
+    type MapShapeGapSource,
+    collectPolygons,
+    findDrawnPolygon,
+    fixedScaleGeometry,
+    insetGeometry,
+} from '../map-util/mapShapeGapNeighbours';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { MercatorScale } from '../map-util/mercatorScale';
 import { polygonFitRegion, preferredLabelCenter } from '../map-util/polygonLabelUtil';
-import { polygonCentroid } from '../map-util/polygonUtil';
+import { polygonCentroid, polygonDistance } from '../map-util/polygonUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
@@ -95,7 +106,14 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;
     readonly legendItemName: string | undefined;
+    /** The geometry as projected, which is where the region picks, anchors its tooltip and finds its label. */
     readonly projectedGeometry: Geometry | undefined;
+    /** The geometry as drawn: `projectedGeometry` itself unless a gap moves one of its edges. */
+    readonly drawnGeometry: Geometry | undefined;
+    /** The geometry at the fixed scale, kept while a gap is in use so a restyled node can inset again. */
+    readonly sourceGeometry: Geometry | undefined;
+    /** The distance `drawnGeometry` was inset by: half the gap plus half the stroke width. */
+    readonly insetDistance: number;
     style: AgMapShapeSeriesStyle & AgItemShadowStyle;
 }
 
@@ -110,8 +128,10 @@ interface MapShapeNodeDataContext extends _ModuleSupport.DataModelSeriesNodeData
 
 interface MapShapeLabelTarget {
     readonly layout: LabelLayout;
-    /** The shape's largest polygon, as drawn. */
+    /** The shape's largest polygon, as projected. */
     readonly polygon: Position[][];
+    /** The same polygon as drawn: no rings once it collapsed, and `polygon` itself when no gap moves it. */
+    readonly drawnPolygon: Position[][];
     readonly datumIndex: number;
     readonly idValue: string;
     /** Solves that other sources trigger reuse the last fit while the inputs match. */
@@ -195,7 +215,7 @@ export class MapShapeSeries
         MapShapeNodeLabelDatum,
         MapShapeNodeDataContext
     >
-    implements ITopology
+    implements ITopology, MapShapeGapSource
 {
     static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;
@@ -203,6 +223,11 @@ export class MapShapeSeries
     scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
+
+    /** Set by the chart on each layout, as one index serves every `map-shape` series in it. */
+    public gapNeighbours: MapShapeGapNeighbours | undefined;
+
+    private gapVersion = 0;
 
     private _chartTopology?: FeatureCollection = undefined;
 
@@ -212,6 +237,49 @@ export class MapShapeSeries
 
     private get topology() {
         return this.options.topology ?? this._chartTopology;
+    }
+
+    get hasGap(): boolean {
+        return this.options.gap > 0;
+    }
+
+    get gapDataVersion(): number {
+        return this.gapVersion;
+    }
+
+    get gapTopology(): unknown {
+        return this.topology;
+    }
+
+    get dropsMissingColor(): boolean {
+        const { colorKey, colorScale } = this.options;
+        return colorKey != null && colorScale.missingDataFill == null;
+    }
+
+    requestGapRefresh(): void {
+        this.nodeDataRefresh = true;
+    }
+
+    getGapRegions(): GapIndexRegion[] {
+        const { processedData, hasGap } = this;
+        if (this.dataModel == null || processedData == null || !this.visible) return [];
+
+        const columns = this.resolveShapeDataColumns(processedData);
+        const regions: GapIndexRegion[] = [];
+        for (const [datumIndex, feature] of columns.featureValues.entries()) {
+            if (feature?.geometry == null || !this.isRowDrawn(columns.colorValues?.[datumIndex])) continue;
+
+            const polygons = collectPolygons(fixedScaleGeometry(feature.geometry));
+            if (polygons.length > 0) {
+                regions.push({ hasGap, polygons });
+            }
+        }
+        return regions;
+    }
+
+    /** Rows without a colour value are dropped, unless `missingDataFill` draws them. */
+    private isRowDrawn(colorValue: number | undefined): boolean {
+        return colorValue != null || !this.dropsMissingColor;
     }
 
     override get hasData() {
@@ -267,6 +335,12 @@ export class MapShapeSeries
     protected override contentZIndex(zIndex: number): ZIndex {
         return [MapZIndexMap.ShapeLine, zIndex];
     }
+
+    /** Highlight and selection can change the stroke width, so their nodes inset from the projected geometry again. */
+    private readonly restyledInsets = new WeakMap<
+        GeoGeometry<MapShapeNodeDatum>,
+        { projectedGeometry: Geometry; distance: number; drawnGeometry: Geometry }
+    >();
 
     private highlightFront: boolean | undefined;
 
@@ -335,6 +409,8 @@ export class MapShapeSeries
                     : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
+
+        this.gapVersion += 1;
 
         const featureValues = dataModel.resolveColumnById<Feature | undefined>(
             this,
@@ -442,7 +518,7 @@ export class MapShapeSeries
     // keeps the single-line anchor; anything else is also tried at the squarer one and the fuller result wins.
     // The winner then moves as near the centroid as it can while still fitting as well.
     private placeLabel(
-        { layout: labelLayout, polygon }: MapShapeLabelTarget,
+        { layout: labelLayout, polygon, drawnPolygon }: MapShapeLabelTarget,
         { text: labelText, policy: fit, font }: LabelFitDescriptor,
         inset: LabelFitting['inset']
     ): PlacedFit | undefined {
@@ -451,7 +527,11 @@ export class MapShapeSeries
 
         const fitAt = (fixedX: number, fixedY: number) => {
             const [x, y] = scale.convert(fixedScale.invert([fixedX, fixedY]));
-            const region = insetFitRegion(polygonFitRegion(polygon, x, y), inset.x, inset.y);
+            // The anchor search ran on the undrawn polygon, so an anchor can land in the gap or on a collapsed part.
+            if (drawnPolygon !== polygon && polygonDistance(drawnPolygon, x, y) >= 0) {
+                return { fixedX, fixedY, x, y, fitted: { text: '', offsetX: 0, offsetY: 0 }, kept: 0 };
+            }
+            const region = insetFitRegion(polygonFitRegion(drawnPolygon, x, y), inset.x, inset.y);
             const fitted = fitLabelTextToRegionAutoSize(labelText, withFitRegion(fit, region), font);
             const kept = keptCharacters(fitted.text);
             return { fixedX, fixedY, x: x + fitted.offsetX, y: y + fitted.offsetY, fitted, kept };
@@ -513,6 +593,31 @@ export class MapShapeSeries
         this.ctx.logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
+    /** The neighbours every inset reads, built up to date, or `undefined` while no visible `map-shape` series has a gap. */
+    private ensureGapNeighbours(): MapShapeGapNeighbours | undefined {
+        const { gapNeighbours } = this;
+        if (!gapNeighbours?.active) return undefined;
+
+        gapNeighbours.ensure();
+        return gapNeighbours;
+    }
+
+    /** Fills are pulled in by half the gap plus half the stroke, as the stroke is centred on the moved edge. */
+    private getInsetDistance(style: AgMapShapeSeriesStyle): number {
+        const stroke = style.stroke == null ? 0 : (style.strokeWidth ?? 0) / 2;
+        return this.options.gap / 2 + stroke;
+    }
+
+    private drawnPolygonFor(
+        projectedGeometry: Geometry | undefined,
+        drawnGeometry: Geometry | undefined,
+        polygon: Position[][]
+    ): Position[][] {
+        if (projectedGeometry == null || drawnGeometry == null || drawnGeometry === projectedGeometry) return polygon;
+
+        return findDrawnPolygon(projectedGeometry, drawnGeometry, polygon) ?? [];
+    }
+
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     private appliedPlacedLabels: PlacedLabel<unknown>[] | undefined = undefined;
     override createNodeData() {
@@ -528,6 +633,7 @@ export class MapShapeSeries
         }
 
         const columns = this.resolveShapeDataColumns(processedData);
+        const gapNeighbours = this.ensureGapNeighbours();
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
@@ -566,10 +672,28 @@ export class MapShapeSeries
 
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
+            const style = this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false);
+            const insetDistance = this.getInsetDistance(style);
+            const sourceGeometry =
+                gapNeighbours != null && geometry != null && projectedGeometry != null
+                    ? fixedScaleGeometry(geometry)
+                    : undefined;
+            const drawnGeometry =
+                gapNeighbours != null && sourceGeometry != null && projectedGeometry != null
+                    ? insetGeometry(sourceGeometry, projectedGeometry, gapNeighbours, insetDistance)
+                    : projectedGeometry;
+
             const polygon =
                 labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
             if (labelLayout != null && polygon != null) {
-                labelTargets.push({ layout: labelLayout, polygon, datumIndex, idValue: dataValues.idValue });
+                const drawnPolygon = this.drawnPolygonFor(projectedGeometry, drawnGeometry, polygon);
+                labelTargets.push({
+                    layout: labelLayout,
+                    polygon,
+                    drawnPolygon,
+                    datumIndex,
+                    idValue: dataValues.idValue,
+                });
             }
 
             nodeData.push({
@@ -578,8 +702,11 @@ export class MapShapeSeries
                 datumIndex,
                 ...dataValues,
                 projectedGeometry,
+                drawnGeometry,
+                sourceGeometry,
+                insetDistance,
                 legendItemName,
-                style: this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false),
+                style,
             });
         }
 
@@ -872,11 +999,15 @@ export class MapShapeSeries
             if (projectedGeometry == null) {
                 geoGeometry.visible = false;
                 geoGeometry.projectedGeometry = undefined;
+                geoGeometry.pickGeometry = undefined;
                 return;
             }
 
+            const drawnGeometry = this.resolveDrawnGeometry(geoGeometry, nodeDatum);
             geoGeometry.visible = true;
-            geoGeometry.projectedGeometry = projectedGeometry;
+            geoGeometry.projectedGeometry = drawnGeometry;
+            // Each region picks over its undrawn shape, so it owns its half of every gap.
+            geoGeometry.pickGeometry = drawnGeometry === projectedGeometry ? undefined : projectedGeometry;
 
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
@@ -907,6 +1038,27 @@ export class MapShapeSeries
             const bringToFront = !_ModuleSupport.isUnselected(selectionState);
             geoGeometry.zIndex = bringToFront ? 1 : 0;
         });
+    }
+
+    /** The datum's drawn geometry, inset again when this node's stroke width differs from the one it was built with. */
+    private resolveDrawnGeometry(
+        geoGeometry: GeoGeometry<MapShapeNodeDatum>,
+        nodeDatum: MapShapeNodeDatum
+    ): Geometry | undefined {
+        const { drawnGeometry, projectedGeometry, sourceGeometry, insetDistance } = nodeDatum;
+        const { gapNeighbours } = this;
+        if (sourceGeometry == null || projectedGeometry == null || gapNeighbours == null) return drawnGeometry;
+
+        const distance = this.getInsetDistance(nodeDatum.style);
+        if (distance === insetDistance) return drawnGeometry;
+
+        const cached = this.restyledInsets.get(geoGeometry);
+        if (cached?.projectedGeometry === projectedGeometry && cached.distance === distance)
+            return cached.drawnGeometry;
+
+        const restyled = insetGeometry(sourceGeometry, projectedGeometry, gapNeighbours, distance);
+        this.restyledInsets.set(geoGeometry, { projectedGeometry, distance, drawnGeometry: restyled });
+        return restyled;
     }
 
     private updateLabelSelection(opts: {
@@ -1170,9 +1322,14 @@ export class MapShapeSeries
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): Path | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | Path | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
-        return geometry?.projectedGeometry == null ? undefined : geometry;
+        if (geometry?.projectedGeometry == null) return undefined;
+
+        if (!geometry.isDrawnEmpty()) return geometry;
+
+        const bbox = geometry.getPickBBox();
+        return bbox == null ? undefined : Transformable.toCanvas(this.contentGroup, bbox);
     }
 
     protected override hasItemStylers(): boolean {
