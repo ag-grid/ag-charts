@@ -1,0 +1,41 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+
+const { VERSION_PLACEHOLDER } = require('../../esbuild.config.css.cjs');
+const { buildCss } = require('./build-css');
+
+const COMMUNITY = 'packages/ag-charts-community';
+const ENTERPRISE = 'packages/ag-charts-enterprise';
+const ROOT = path.resolve(__dirname, '../..');
+const read = (projectRoot, name) => fs.readFileSync(path.join(ROOT, projectRoot, 'dist/css', `${name}.css`), 'utf8');
+const version = /'([^']+)'/.exec(
+    fs.readFileSync(path.join(ROOT, COMMUNITY, 'src/version.ts'), 'utf8').split('VERSION')[1]
+)[1];
+
+test.before(async () => {
+    await buildCss(COMMUNITY);
+    await buildCss(ENTERPRISE);
+});
+
+test('the community stylesheet carries its marker and the JS version', () => {
+    const css = read(COMMUNITY, 'ag-charts-community');
+    assert.match(css, /--ag-charts-css-loaded:\s*1/);
+    assert.ok(css.includes(`--ag-charts-css-version: "${version}"`));
+    assert.ok(!css.includes(VERSION_PLACEHOLDER));
+    assert.ok(!css.includes('--ag-charts-enterprise-css-loaded'));
+});
+
+test('the enterprise stylesheet is the community one, a newline, then its own rules', () => {
+    const community = read(COMMUNITY, 'ag-charts-community');
+    const enterprise = read(ENTERPRISE, 'ag-charts-enterprise');
+    assert.ok(enterprise.startsWith(`${community}\n`));
+    assert.match(enterprise.slice(community.length), /--ag-charts-enterprise-css-loaded:\s*1/);
+});
+
+test('the loading spinner keyframes are in the community stylesheet', () => {
+    const css = read(COMMUNITY, 'ag-charts-community');
+    assert.match(css, /@keyframes ag-charts-loading\b/);
+    assert.match(css, /@keyframes ag-charts-loading-matrix\b/);
+});

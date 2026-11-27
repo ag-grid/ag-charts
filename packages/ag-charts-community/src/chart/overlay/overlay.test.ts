@@ -551,13 +551,8 @@ HTMLCollection [
         });
     });
 
-    // The spinner injects a <style> element for its keyframes, so it needs the same nonce as every
-    // other style AG Charts adds — otherwise a nonce-only `style-src` blocks the animation.
     describe('#loading', () => {
-        const spinnerStyleElement = () =>
-            chart.ctx.agDocument.body.querySelector<HTMLStyleElement>('.ag-charts-overlay--loading style');
-
-        it('carries the configured style nonce on the spinner keyframes', async () => {
+        it('has no <style> element, as its keyframes live in the stylesheet', async () => {
             chart = deproxy(
                 await createChart({
                     loading: true,
@@ -567,21 +562,9 @@ HTMLCollection [
                 })
             );
 
-            expect(spinnerStyleElement()?.getAttribute('nonce')).toBe('416d1177');
-        });
-
-        it('omits the nonce attribute when none is configured', async () => {
-            chart = deproxy(
-                await createChart({
-                    loading: true,
-                    data: [{ x: 'a', y: 1 }],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                })
-            );
-
-            const styleElement = spinnerStyleElement();
-            expect(styleElement).not.toBeNull();
-            expect(styleElement!.hasAttribute('nonce')).toBe(false);
+            const spinner = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay--loading');
+            expect(spinner).not.toBeNull();
+            expect(spinner!.querySelector('style')).toBeNull();
         });
     });
 });

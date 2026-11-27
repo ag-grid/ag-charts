@@ -78,6 +78,24 @@ describe('checkPackage', () => {
         ]);
     });
 
+    describe('stylesheet exports', () => {
+        const cssExports = {
+            ...STANDARD_EXPORTS,
+            exports: { ...STANDARD_EXPORTS.exports, './css/*.css': './dist/css/*.css' },
+        };
+
+        it('asks no minified twin of a stylesheet', () => {
+            const pkgDir = createPackage(cssExports, [...STANDARD_FILES, 'dist/css/pkg.css']);
+            assert.deepEqual(checkPackage(pkgDir, { release: true }), []);
+        });
+
+        it('reports a stylesheet export that matches no file', () => {
+            assert.deepEqual(summarise(checkPackage(createPackage(cssExports, STANDARD_FILES))), [
+                'no-match dist/css/*.css',
+            ]);
+        });
+    });
+
     it('reports a bundle that no export references', () => {
         const files = [...STANDARD_FILES, 'dist/package/scene.cjs.js'];
         assert.deepEqual(summarise(checkPackage(createPackage(STANDARD_EXPORTS, files))), [

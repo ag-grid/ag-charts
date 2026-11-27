@@ -3,6 +3,10 @@
     --align-items: center;
     --justify-content: center;
 
+    /* Read by `injectStyles: false` charts to check that this stylesheet is loaded, and that it matches the JS. */
+    --ag-charts-css-loaded: 1;
+    --ag-charts-css-version: '__AG_CHARTS_VERSION__';
+
     position: relative;
     user-select: none;
     -webkit-user-select: none;

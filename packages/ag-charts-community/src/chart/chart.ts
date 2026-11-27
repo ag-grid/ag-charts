@@ -418,8 +418,7 @@ export class Chart implements ModuleInstance, ChartService, ChartTypeHost {
                 getLoadingSpinner(
                     ctx.agDocument,
                     this.overlays.loading.getText(ctx.localeManager),
-                    ctx.animationManager.defaultDuration,
-                    ctx.domManager.styleNonce
+                    ctx.animationManager.defaultDuration
                 ),
             validation: () =>
                 getValidationOverlay({

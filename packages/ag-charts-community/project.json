@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types", "build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:umd", "build:css"],
       "outputs": [],
       "configurations": {
         "watch": {},
@@ -14,6 +14,7 @@
       }
     },
     "build:types": {},
+    "build:css": {},
     "build:test": {},
     "build:package": {
       "options": {
@@ -100,7 +101,9 @@
         "{workspaceRoot}/tools/package/dist-artefacts.js"
       ],
       "options": {
-        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
+        "commands": [
+          "node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package --allowed-ext css"
+        ]
       }
     },
     "test:validate-size": {
