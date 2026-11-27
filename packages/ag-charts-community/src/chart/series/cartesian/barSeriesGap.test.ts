@@ -614,7 +614,10 @@ describe('bar series gap', () => {
             await open(
                 stackOptions({
                     gaps: [4, 4, 4],
-                    series: { highlight: { highlightedItem: { fill: '#ffff00', fillOpacity: 1 } } },
+                    // The highlight glows by default, which would paint into the gap and split the runs being measured.
+                    series: {
+                        highlight: { highlightedItem: { fill: '#ffff00', fillOpacity: 1, glow: { enabled: false } } },
+                    },
                 })
             );
             const base = runsThrough('vertical', 0);
