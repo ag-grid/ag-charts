@@ -5,11 +5,12 @@ import {
     GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    MARKER_SERIES_SELECTION_THEME,
     NEAREST_TOOLTIP_THEME,
+    PALETTE_LINE_DASH_THEME_DEFAULT,
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_GLOW_BUCKETS,
-    SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -23,6 +24,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        lineDash: PALETTE_LINE_DASH_THEME_DEFAULT,
         connectMissingData: false,
         label: {
             ...LABEL_BOXING_DEFAULTS,
@@ -52,7 +54,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
                 glow: '/series/$index/marker/glow',
             }
         ),
-        selection: SERIES_SELECTION_THEME,
+        selection: MARKER_SERIES_SELECTION_THEME,
         tooltip: NEAREST_TOOLTIP_THEME,
     },
     axes: {

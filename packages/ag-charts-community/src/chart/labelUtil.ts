@@ -46,6 +46,7 @@ import {
     isRotatable,
     labelBoxCentreOffset,
     lineHeightAtSize,
+    markerLabelRect,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
@@ -79,7 +80,6 @@ import {
     resolvePlacementLabelBoxExtent,
     resolvePlacementLabelStyle,
 } from './label';
-import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -186,7 +186,7 @@ export function fitLabelToContainerAutoSize(
  * and the container. Returns `fit` unchanged when there is no fit or no container. Series with an
  * invariant container should call this once at context-build time rather than per datum.
  */
-export function boundLabelFit(
+function boundLabelFit(
     fit: LabelFit | undefined,
     container: { width: number; height: number } | undefined
 ): LabelFit | undefined {
@@ -197,25 +197,6 @@ export function boundLabelFit(
         ...fit,
         maxWidth: Math.min(fit.maxWidth ?? Infinity, container.width),
         maxHeight: Math.min(fit.maxHeight ?? Infinity, container.height),
-    };
-}
-
-/**
- * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
- * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). `threshold`
- * shrinks that rectangle on every side so the label clears the marker walls by that many pixels. Pair
- * with {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not
- * be marker-centred.
- */
-export function insideMarkerContainer(
-    markerSize: number,
-    shape?: AgMarkerShape,
-    threshold = 0
-): { width: number; height: number } {
-    const rect = markerLabelRect(shape);
-    return {
-        width: Math.max(0, markerSize * rect.width - 2 * threshold),
-        height: Math.max(0, markerSize * rect.height - 2 * threshold),
     };
 }
 
@@ -446,13 +427,22 @@ export function barLabelObstaclesFor<TParams, TElement>(
     nodeData: readonly RectObstacleSource[] | undefined,
     labelData: Iterable<TElement> | undefined,
     includeBaked: boolean,
-    pick: (element: TElement) => BakedBarLabel | undefined
+    pick: (element: TElement) => BakedBarLabel | undefined,
+    sourceId: string,
+    stackId?: number
 ) {
     const box = expandPlacementLabelBoxExtent(label);
-    return barLabelObstacles(nodeData, labelData, includeBaked, (element) => {
-        const picked = pick(element);
-        return { label: picked, config: fontWithSize(label, picked?.fittedFontSize), box };
-    });
+    return barLabelObstacles(
+        nodeData,
+        labelData,
+        includeBaked,
+        (element) => {
+            const picked = pick(element);
+            return { label: picked, config: fontWithSize(label, picked?.fittedFontSize), box };
+        },
+        sourceId,
+        stackId
+    );
 }
 
 /** Adds an obstacle for every whisker and cap drawn over the series' shapes to `obstacles`. */

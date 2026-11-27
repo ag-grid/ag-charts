@@ -1,5 +1,10 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelFitOptions,
@@ -55,6 +60,7 @@ export type AgPieSeriesItemStylerParams<TDatum = DatumDefault, TContext = Contex
     HighlightState
 > &
     ContextCallbackParams<TContext> &
+    AgItemShadowStylerParams &
     AgPieSeriesOptionsKeys<TDatum> &
     Required<Omit<AgPieSeriesStyle, 'lineDash'>> &
     ResolvedLineDash;
@@ -137,8 +143,12 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
-    /** The spacing between Pie sectors. */
-    sectorSpacing?: PixelSize;
+    /**
+     * The gap, in pixels, between neighbouring sectors. The outer edge of the pie stays where it is.
+     *
+     * __Note:__ A sector that is narrower than its share of the gap is not drawn.
+     */
+    gap?: PixelSize;
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the pie sectors. */

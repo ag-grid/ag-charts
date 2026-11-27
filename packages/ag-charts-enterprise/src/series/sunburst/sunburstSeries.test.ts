@@ -1,5 +1,5 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -40,6 +40,8 @@ import {
     getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
+    iconSvg,
+    preloadImages,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -61,6 +63,36 @@ import {
 } from '../../test/utils';
 import type { HierarchyNode } from '../hierarchy/hierarchySeries';
 import { SunburstSeries } from './sunburstSeries';
+
+/** The corners of a text's box, in drawing order, on the canvas. */
+function canvasCorners(text: TransformableText) {
+    const { x, y, width, height } = text.computeBBoxWithoutTransforms()!;
+    return [
+        [x, y],
+        [x + width, y],
+        [x + width, y + height],
+        [x, y + height],
+    ].map(([cx, cy]) => Transformable.toCanvasPoint(text, cx, cy));
+}
+
+/** How far the segment from `a` to `b` comes to the origin. */
+function distanceToSegment(a: { x: number; y: number }, b: { x: number; y: number }) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const t = Math.min(1, Math.max(0, -(a.x * dx + a.y * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(a.x + t * dx, a.y + t * dy);
+}
+
+/** Which placement, and which half of the circle, a label drawn at `rotation` on `sector` takes. */
+function labelPlacementOf(sector: Sector, rotation: number) {
+    if (sector.endAngle - sector.startAngle >= 2 * Math.PI) return 'centre-circle';
+    const midAngle = (sector.startAngle + sector.endAngle) / 2;
+    // Parallel text turns square to the mid-angle; perpendicular text runs along it.
+    if (Math.abs(Math.sin(rotation - midAngle)) > 0.5) {
+        return Math.sin(midAngle) >= 0 ? 'parallel (top half)' : 'parallel (bottom half)';
+    }
+    return Math.cos(midAngle) >= 0 ? 'perpendicular (right half)' : 'perpendicular (left half)';
+}
 
 describe('SunburstSeries', () => {
     setupMockConsole();
@@ -246,6 +278,21 @@ describe('SunburstSeries', () => {
                 await compare();
             });
         }
+
+        it('keeps the wider line of a wrapped label when narrowing to its sector would drop more', async () => {
+            const wrapping = { wrapping: 'on-space' } as const;
+            chart = await createEnterpriseChart({
+                ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
+                theme: { overrides: { sunburst: { series: { label: wrapping, secondaryLabel: wrapping } } } },
+            });
+            const texts = getSeriesSelectionNodes<Group>(chart, 'labelSelection').flatMap((group) =>
+                Selection.selectByClass(group, TransformableText)
+                    .filter((text) => text.visible)
+                    .map((text) => text.text)
+            );
+            expect(texts).toEqual(expect.arrayContaining(['Telecom…', 'Application…']));
+            await compare();
+        });
     });
 
     describe('Label itemStyler', () => {
@@ -1057,32 +1104,194 @@ describe('SunburstSeries', () => {
             });
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
+
+        const parallelStackSeries: AgSunburstSeriesOptions = {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'gdp',
+            secondaryLabelKey: 'gdpChange',
+            label: { fill: 'olive', fontSize: 24, wrapping: 'on-space' },
+            secondaryLabel: { fill: 'blue', fontSize: 24 },
+        };
+        const parallelStackOptions: AgChartOptions = { data, series: [parallelStackSeries] };
+
+        it("keeps a sector's labels beside a parallel label stack in the ring inside it", async () => {
+            chart = await createEnterpriseChart(parallelStackOptions);
+            const visibleTexts = (name: string) => {
+                const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(
+                    chart,
+                    'labelSelection'
+                ).find((node) => node.datum?.datum?.name === name)!;
+                return Selection.selectByClass(group, TransformableText)
+                    .filter((text) => text.visible)
+                    .map((text) => text.text);
+            };
+            expect(visibleTexts('EU')).toEqual(['EU', '0.08']);
+            expect(visibleTexts('Germany')).toEqual(['Germany', '0.09']);
+        });
+
+        it('renders large labels beside a parallel label stack in the ring inside it', async () => {
+            chart = await createEnterpriseChart(parallelStackOptions);
+            await compare();
+        });
+
+        const centreData = [{ name: 'Worldwide', gdpChange: 0.07, children: data }];
+        const leftPadding = { left: 24, right: 0 };
+        it.each([
+            {
+                placement: 'parallel',
+                form: 'parallel',
+                data,
+                name: 'United States',
+                expected: ['United States', '0.06'],
+            },
+            {
+                placement: 'centre-circle',
+                form: 'centre-circle',
+                data: centreData,
+                name: 'Worldwide',
+                expected: ['Worldwide', '0.07'],
+            },
+            {
+                placement: 'left-padded parallel',
+                form: 'parallel',
+                padding: leftPadding,
+                data,
+                name: 'United States',
+                expected: ['United States', '0.06'],
+            },
+            {
+                placement: 'left-padded centre-circle',
+                form: 'centre-circle',
+                padding: leftPadding,
+                data: centreData,
+                name: 'Worldwide',
+                expected: ['Worldwide', '0.07'],
+            },
+            {
+                placement: 'unevenly padded perpendicular',
+                form: 'perpendicular',
+                padding: { top: 0, bottom: 16, left: 24, right: 0 },
+                data,
+                name: 'Germany',
+                expected: ['Germany', '0.09'],
+            },
+        ])('keeps every $placement label box inside its sector', async (testCase) => {
+            const { form, padding, data: sectorData, name, expected } = testCase;
+            const label = { ...parallelStackSeries.label, padding };
+            chart = await createEnterpriseChart({ data: sectorData, series: [{ ...parallelStackSeries, label }] });
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const labelGroups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const named = labelGroups.find((group) => group.datum?.datum?.name === name)!;
+            const namedTexts = Selection.selectByClass(named, TransformableText).filter((text) => text.visible);
+            expect(namedTexts.map((text) => text.text)).toEqual(expected);
+            const namedSector = sectors.find((node) => node.datum === named.datum)!;
+            const midAngle = (namedSector.startAngle + namedSector.endAngle) / 2;
+            // Centre-circle text stays level; ring text turns square to (parallel) or along (perpendicular) the mid-angle.
+            expect(
+                namedTexts.map((text) =>
+                    form === 'centre-circle' ? text.rotation : Math.abs(Math.sin(text.rotation - midAngle))
+                )
+            ).toEqual(namedTexts.map(() => expect.closeTo(form === 'parallel' ? 1 : 0)));
+            const overruns: Array<{ text: string; overrun: number }> = [];
+            for (const group of labelGroups) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const centre = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY);
+                const inner = sector.innerRadius + sector.innerEdgeInset;
+                const outer = sector.outerRadius - sector.outerEdgeInset;
+                const full = sector.endAngle - sector.startAngle >= 2 * Math.PI;
+                const [start, end] = [sector.startAngle, sector.endAngle].map((angle) => ({
+                    x: Math.cos(angle),
+                    y: Math.sin(angle),
+                }));
+                for (const text of Selection.selectByClass(group, TransformableText).filter((node) => node.visible)) {
+                    const corners = canvasCorners(text).map(({ canvasX, canvasY }) => ({
+                        x: canvasX - centre.canvasX,
+                        y: canvasY - centre.canvasY,
+                    }));
+                    // The nearest point of the box can lie mid-edge; the farthest is always a corner.
+                    const nearest = Math.min(
+                        ...corners.map((a, i) => distanceToSegment(a, corners[(i + 1) % corners.length]))
+                    );
+                    // Square to each straight edge; every sector here but the centre is narrower than half a turn.
+                    const edgeClearances = corners.map(({ x, y }) =>
+                        full ? Infinity : Math.min(start.x * y - start.y * x, end.y * x - end.x * y)
+                    );
+                    const overrun = Math.max(
+                        inner - nearest,
+                        ...corners.map(({ x, y }) => Math.hypot(x, y) - outer),
+                        ...edgeClearances.map((clearance) => sector.radialEdgeInset - clearance)
+                    );
+                    if (overrun > 1e-6) overruns.push({ text: String(text.text), overrun });
+                }
+            }
+            expect(overruns).toEqual([]);
+        });
+
+        /** Each visible label box's canvas centre, keyed by datum and line, with the placement and half it sits in. */
+        const labelBoxCentres = async (padding: { top?: number; right?: number; bottom?: number; left?: number }) => {
+            const label = { ...parallelStackSeries.label, padding };
+            chart = await createEnterpriseChart({ data: centreData, series: [{ ...parallelStackSeries, label }] });
+            const sectors = getSeriesSelectionNodes<Sector>(chart, 'datumSelection');
+            const groups = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection');
+            const centres = new Map<string, { x: number; y: number; at: string }>();
+            for (const group of groups) {
+                const sector = sectors.find((node) => node.datum === group.datum)!;
+                const texts = Selection.selectByClass(group, TransformableText).filter((text) => text.visible);
+                for (const [line, text] of texts.entries()) {
+                    const corners = canvasCorners(text);
+                    const x = corners.reduce((sum, { canvasX }) => sum + canvasX, 0) / corners.length;
+                    const y = corners.reduce((sum, { canvasY }) => sum + canvasY, 0) / corners.length;
+                    const at = labelPlacementOf(sector, text.rotation);
+                    centres.set(`${group.datum?.datum?.name}/${line}/${String(text.text)}`, { x, y, at });
+                }
+            }
+            chart.destroy();
+            chart = undefined;
+            return centres;
+        };
+
+        // Any placement or half that shifted its box the wrong way would part it from the evenly padded one.
+        const everyPlacement = [
+            'centre-circle',
+            'parallel (top half)',
+            'parallel (bottom half)',
+            'perpendicular (right half)',
+            'perpendicular (left half)',
+        ];
+        it.each([
+            { side: 'left', padding: { left: 24, right: 0 }, even: { left: 12, right: 12 } },
+            { side: 'right', padding: { left: 0, right: 24 }, even: { left: 12, right: 12 } },
+            { side: 'top', padding: { top: 4, bottom: 0 }, even: { top: 2, bottom: 2 } },
+            { side: 'bottom', padding: { top: 0, bottom: 4 }, even: { top: 2, bottom: 2 } },
+        ])('centres a $side-padded label box where an evenly padded one sits', async ({ padding, even }) => {
+            const evenCentres = await labelBoxCentres(even);
+            const centres = await labelBoxCentres(padding);
+            expect([...centres.keys()]).toEqual([...evenCentres.keys()]);
+            expect(new Set([...centres.values()].map(({ at }) => at))).toEqual(new Set(everyPlacement));
+            const shifts = [...centres].map(([key, { x, y }]) => ({
+                key,
+                dx: x - evenCentres.get(key)!.x,
+                dy: y - evenCentres.get(key)!.y,
+            }));
+            expect(shifts).toEqual(shifts.map(({ key }) => ({ key, dx: expect.closeTo(0), dy: expect.closeTo(0) })));
+        });
     });
 
     describe('block-leading image segments (treemap parity)', () => {
         // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the slice label, text beside it.
-        const iconSvg = (letter: string) =>
-            `data:image/svg+xml;utf8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">` +
-                    `<circle cx="14" cy="14" r="12" fill="#1f77b4"/>` +
-                    `<text x="14" y="19" text-anchor="middle" font-family="Verdana" font-size="13"` +
-                    ` fill="white" font-weight="bold">${letter}</text></svg>`
-            )}`;
         const ICONS: Record<string, string> = {
-            Solar: iconSvg('S'),
-            Earth: iconSvg('E'),
-            Mars: iconSvg('M'),
-            'Gas Giants': iconSvg('G'),
-            Jupiter: iconSvg('J'),
+            Solar: iconSvg('#1f77b4'),
+            Earth: iconSvg('#ff7f0e'),
+            Mars: iconSvg('#2ca02c'),
+            'Gas Giants': iconSvg('#d62728'),
+            Jupiter: iconSvg('#9467bd'),
         };
 
         let preloaded: Record<string, SkiaImage> = {};
         beforeAll(async () => {
-            const entries = await Promise.all(
-                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
-            );
-            preloaded = Object.fromEntries(entries);
+            preloaded = await preloadImages(Object.values(ICONS));
         });
 
         it('renders a block-leading image segment in sunburst labels', async () => {
@@ -1121,6 +1330,140 @@ describe('SunburstSeries', () => {
             // plain text the stubbed image would not render and the baseline would diff.
             await compare();
         });
+
+        it('keeps the image of a label taller than its thin sector is wide at the inner edge', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Information Technology Services',
+                        children: [
+                            { name: 'Cloud Infrastructure Platforms', size: 30, note: 'Hyperscalers' },
+                            { name: 'Enterprise Software Licensing', size: 20, note: 'Subscriptions' },
+                            { name: 'Managed Security Operations', size: 12, note: 'Outsourced' },
+                            { name: 'Data Center Hardware', size: 8, note: 'Servers' },
+                        ],
+                    },
+                    {
+                        name: 'Telecommunications Networks',
+                        children: [
+                            { name: 'Wireless Carrier Services', size: 25, note: 'Mobile' },
+                            { name: 'Fiber Broadband Providers', size: 10, note: 'Fixed line' },
+                            { name: 'Satellite Communications', size: 6, note: 'Orbital' },
+                        ],
+                    },
+                    {
+                        name: 'Consumer Electronics Manufacturing',
+                        children: [
+                            { name: 'Smartphones', size: 18, note: 'Handsets' },
+                            { name: 'Wearable Devices', size: 9, note: 'Watches' },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        secondaryLabelKey: 'note',
+                        sizeKey: 'size',
+                        label: {
+                            wrapping: 'on-space',
+                            collision: { alwaysShow: true },
+                            formatter: ({ value }) => [
+                                { type: 'image', url: ICONS.Solar, width: 24, height: 24, block: true },
+                                { text: String(value) },
+                            ],
+                        },
+                        secondaryLabel: { wrapping: 'on-space', collision: { alwaysShow: true } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart, preloaded);
+            await compare();
+            const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(chart, 'labelSelection').find(
+                (node) => node.datum?.datum?.name === 'Satellite Communications'
+            )!;
+            const texts = Selection.selectByClass(group, TransformableText)
+                .filter((text) => text.visible)
+                .map((text) =>
+                    Array.isArray(text.text)
+                        ? text.text.map((segment) => (segment.type === 'image' ? 'image' : segment.text))
+                        : text.text
+                );
+            expect(texts).toEqual([['image', 'Satellite\n', 'Communications'], 'Orbital']);
+        });
+
+        const renderSectorLabel = async (name: string, data: unknown[], series: Partial<AgSunburstSeriesOptions>) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', ...series }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart, preloaded);
+            await waitForChartStability(chart);
+            type Named = { datum?: { datum?: { name?: string } } };
+            const named = (node: Named) => node.datum?.datum?.name === name;
+            const sector = getSeriesSelectionNodes<Sector & Named>(chart, 'datumSelection').find(named)!;
+            const group = getSeriesSelectionNodes<Group & Named>(chart, 'labelSelection').find(named)!;
+            const [text] = Selection.selectByClass(group, TransformableText).filter((node) => node.visible);
+            const across = text.rotation - (sector.startAngle + sector.endAngle) / 2;
+            const form = Math.abs(Math.sin(across)) < 1e-6 ? 'perpendicular' : 'parallel';
+            const centre = Math.hypot(text.translationX, text.translationY);
+            return { sector, text, form, centre };
+        };
+
+        it('keeps a tall label stack in a full-ring sector parallel', async () => {
+            const { form } = await renderSectorLabel(
+                'Ring',
+                [{ name: 'Ring', children: [{ name: 'Leaf', size: 1 }] }],
+                {
+                    innerRadiusRatio: 0.5,
+                    label: {
+                        formatter: ({ value }) => (value === 'Ring' ? [...'TALLSTACK'].join('\n') : String(value)),
+                        collision: { alwaysShow: true },
+                    },
+                }
+            );
+            expect(form).toBe('parallel');
+        });
+
+        it.each([12, 48])(
+            'spills an overflowing perpendicular image %ipx tall equally past both arcs of its thin sector',
+            async (height) => {
+                const { sector, text, form, centre } = await renderSectorLabel(
+                    'Thin',
+                    [
+                        {
+                            name: 'Root',
+                            children: [
+                                { name: 'Wide', size: 20 },
+                                { name: 'Thin', size: 1 },
+                            ],
+                        },
+                    ],
+                    {
+                        label: {
+                            formatter: ({ value }) =>
+                                value === 'Thin'
+                                    ? [{ type: 'image', url: ICONS.Solar, width: 180, height, block: true }]
+                                    : String(value),
+                            collision: { alwaysShow: true },
+                        },
+                    }
+                );
+                const halfWidth = text.computeBBoxWithoutTransforms()!.width / 2;
+                const overhang = {
+                    inner: sector.innerRadius + sector.innerEdgeInset - (centre - halfWidth),
+                    outer: centre + halfWidth - (sector.outerRadius - sector.outerEdgeInset),
+                };
+                expect(form).toBe('perpendicular');
+                expect(overhang.inner).toBeGreaterThan(0);
+                expect(overhang.outer).toBeCloseTo(overhang.inner);
+            }
+        );
     });
 
     describe('bigint values (AG-16608)', () => {
@@ -2202,6 +2545,143 @@ describe('SunburstSeries', () => {
                 expect(series.innerLabelsSelection.nodes()).toHaveLength(0);
                 expectWarningsCalls().toEqual([]);
             });
+        });
+    });
+
+    describe('AG-18209 gap', () => {
+        const gap = 8;
+        const renderSectors = async (data: object[]) => {
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data,
+                    series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', gap, strokeWidth: 0 }],
+                    animation: { enabled: false },
+                })
+            );
+            const sectors = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(chart, 'datumSelection');
+            return (name: string) => sectors.find((s) => s.datum?.datum?.name === name)!;
+        };
+
+        it('separates every ring from the next, leaving only the outermost ring at full radius', async () => {
+            const sector = await renderSectors([
+                { name: 'Branch', children: [{ name: 'Leaf', size: 10, children: [{ name: 'Empty', size: 0 }] }] },
+                { name: 'Root leaf', size: 6 },
+                { name: 'Own-size parent', size: 5, children: [{ name: 'Tiny child', size: 0.0001 }] },
+            ]);
+            const arcInsets = (name: string) => [sector(name).innerEdgeInset, sector(name).outerEdgeInset];
+
+            expect(arcInsets('Branch')).toEqual([0, gap / 2]);
+            expect(arcInsets('Root leaf')).toEqual([0, gap / 2]);
+            expect(arcInsets('Own-size parent')).toEqual([0, gap / 2]);
+            expect(arcInsets('Leaf')).toEqual([gap / 2, 0]);
+            expect(sector('Tiny child').path.isEmpty()).toBe(true);
+            expect(sector('Root leaf').radialEdgeInset).toBe(gap / 2);
+        });
+
+        const longLabel = 'N0 has a label too long for its wedge';
+        it.each([
+            {
+                wedge: 'narrower than a half turn',
+                gap: 16,
+                sizes: Array.from({ length: 30 }, () => 1),
+                text: longLabel,
+                fontSize: undefined,
+                placement: 'perpendicular',
+            },
+            { wedge: 'of a half turn', gap: 20, sizes: [1, 1], text: 'W', fontSize: 280, placement: 'perpendicular' },
+            { wedge: 'of a half turn', gap: 20, sizes: [1, 1], text: 'Word', fontSize: 200, placement: 'parallel' },
+            {
+                wedge: 'of a half turn under a wide gap',
+                gap: 240,
+                sizes: [1, 1],
+                text: 'W',
+                fontSize: 10,
+                placement: 'parallel',
+            },
+            {
+                wedge: 'wider than a half turn',
+                gap: 20,
+                sizes: [3, 1],
+                text: 'W',
+                fontSize: 240,
+                placement: 'perpendicular',
+            },
+        ])(
+            'fits $placement labels in a wedge $wedge inside its drawn edges',
+            async ({ gap: wedgeGap, sizes, text: label, fontSize, placement }) => {
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: sizes.map((size, i) => ({ name: i === 0 ? label : `N${i}${longLabel.slice(2)}`, size })),
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                gap: wedgeGap,
+                                padding: 0,
+                                strokeWidth: 0,
+                                label: { fontSize },
+                            },
+                        ],
+                        animation: { enabled: false },
+                    })
+                );
+                const isFirst = (node: { datum?: { datum?: { name: string } } }) => node.datum?.datum?.name === label;
+                const wedge = getSeriesSelectionNodes<Sector<{ datum?: { name: string } }>>(
+                    chart,
+                    'datumSelection'
+                ).find(isFirst)!;
+                const group = getSeriesSelectionNodes<Group<{ datum?: { name: string } }>>(
+                    chart,
+                    'labelSelection'
+                ).find(isFirst)!;
+                const text = Selection.selectByClass(group, TransformableText).find((node) => node.tag === 0)!;
+                expect(text.visible).toBe(true);
+
+                const toCanvas = (x: number, y: number) => Transformable.toCanvasPoint(wedge, x, y);
+                const centre = toCanvas(wedge.centerX, wedge.centerY);
+                const direction = (angle: number) => {
+                    const { canvasX, canvasY } = toCanvas(
+                        wedge.centerX + Math.cos(angle),
+                        wedge.centerY + Math.sin(angle)
+                    );
+                    return { x: canvasX - centre.canvasX, y: canvasY - centre.canvasY };
+                };
+                const sweep = wedge.endAngle - wedge.startAngle;
+                const start = direction(wedge.startAngle);
+                const end = direction(wedge.endAngle);
+                const bisector = direction(wedge.startAngle + sweep / 2);
+                expect(Math.abs(Math.sin(text.rotation - Math.atan2(bisector.y, bisector.x)))).toBeCloseTo(
+                    placement === 'parallel' ? 1 : 0
+                );
+
+                for (const { canvasX, canvasY } of canvasCorners(text)) {
+                    const dx = canvasX - centre.canvasX;
+                    const dy = canvasY - centre.canvasY;
+                    // Square to each straight edge, positive inside; from half a turn up the cut-out lies behind the centre.
+                    const clearance =
+                        sweep < Math.PI
+                            ? Math.min(start.x * dy - start.y * dx, end.y * dx - end.x * dy)
+                            : bisector.x * dx + bisector.y * dy;
+                    expect(clearance).toBeGreaterThanOrEqual(wedgeGap / 2 - 1e-6);
+                    expect(Math.hypot(dx, dy)).toBeLessThanOrEqual(wedge.outerRadius + 1e-6);
+                }
+            }
+        );
+
+        it('gives no side gap to a sector that fills its ring alone', async () => {
+            const sector = await renderSectors([
+                {
+                    name: 'Only',
+                    children: [
+                        { name: 'First', size: 1 },
+                        { name: 'Second', size: 1 },
+                    ],
+                },
+            ]);
+
+            expect(sector('Only').radialEdgeInset).toBe(0);
+            expect(sector('First').radialEdgeInset).toBe(gap / 2);
         });
     });
 });

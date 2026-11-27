@@ -93,8 +93,10 @@ export class ZoomToolbar {
         private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {
+        // TODO: Phase 3 "Common Widget Ancestor" - DOMManager mounts this container from its raw element.
         this.container = new NativeWidget(createElement('div'));
         this.container.addClass('ag-charts-zoom-buttons');
+        // eslint-disable-next-line aglint/widget-boundary -- DOMManager.addChild() takes a raw element (Phase 3).
         ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
 
         this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx, 'ariaLabelZoomToolbar', 'horizontal');
@@ -103,6 +105,7 @@ export class ZoomToolbar {
         this.container.addChild(this.toolbar);
 
         // Initially translate by an estimated offset to prevent flash on load
+        // eslint-disable-next-line aglint/widget-boundary -- zoom toolbar: Widget has no translateY transform setter.
         this.toolbar.getElement().style.transform = `translateY(54px)`;
         this.toolbar.setHidden(!this.enabled);
 
@@ -150,6 +153,7 @@ export class ZoomToolbar {
         this.buttonSize = buttonSize;
 
         const { container, toolbar } = this;
+        // eslint-disable-next-line aglint/widget-boundary -- zoom toolbar: not yet moved to setCSSVariable(), which already covers this.
         const element = container.getElement();
         container.toggleClass('ag-charts-zoom-buttons--sized', buttonSize != null);
         if (buttonSize == null) {
@@ -165,6 +169,7 @@ export class ZoomToolbar {
 
     private resetContainerHeight() {
         this.cachedContainerHeight = undefined;
+        // eslint-disable-next-line aglint/widget-boundary -- zoom toolbar fast path: clears the cached inline height.
         this.container.getElement().style.height = '';
         this.lastBottomY = undefined;
     }
@@ -223,6 +228,7 @@ export class ZoomToolbar {
         this.cachedContainerHeight = height;
         // Write the measured height as inline style so future getElementBBox() calls take the
         // style fast-path instead of falling back to offsetHeight (which forces a sync reflow).
+        // eslint-disable-next-line aglint/widget-boundary -- zoom toolbar fast path: caches the measured height inline.
         this.container.getElement().style.height = `${height}px`;
         return height;
     }
@@ -240,6 +246,7 @@ export class ZoomToolbar {
             sourceEvent: { target },
         } = event;
 
+        // eslint-disable-next-line aglint/widget-boundary -- zoom toolbar: hover detection reads offsetTop and compares the event target.
         const element = container.getElement();
         const detectionY = element.offsetTop - detectionRange;
         const visible = (currentY > detectionY && currentY < scene.canvas.element.offsetHeight) || target === element;
@@ -258,6 +265,7 @@ export class ZoomToolbar {
         this.shown = visible;
         toolbar.toggleClass('ag-charts-zoom-buttons__toolbar--hidden', !visible);
 
+        // eslint-disable-next-line aglint/widget-boundary -- zoom toolbar: Widget has no transition-duration or translateY transform setter.
         const element = toolbar.getElement();
         element.style.transitionDuration = immediate ? '0s' : '';
         element.style.transform = visible

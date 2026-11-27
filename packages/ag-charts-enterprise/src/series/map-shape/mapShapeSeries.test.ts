@@ -17,6 +17,7 @@ import {
     deproxy,
     expectWarningMessages,
     expectWarningsCalls,
+    getSeriesOptions,
     getVisibleLabelNodes,
     hoverAction,
     resetMockConsole,
@@ -32,6 +33,7 @@ import {
     SMALL_SHADOW,
     collectShapes,
     createEnterpriseChart,
+    createStockThemedChart,
     prepareEnterpriseTestOptions,
     shadowedShapes,
 } from '../../test/utils';
@@ -199,11 +201,13 @@ describe('MapShapeSeries', () => {
                     enabled: true,
                     xOffset: 0,
                     yOffset: 0,
-                    blur: 2,
-                    spread: 4,
-                    fillOpacity: 0.4,
+                    blur: 0,
+                    spread: 1,
+                    fillOpacity: 1,
                 });
-                expect(highlighted.getCastShadow('glow')?.fill).toBe('blue');
+                // The default glow is neutral (foreground mixed 0.6 onto the background), no longer the fill's colour;
+                // the test name is kept as it keys the image baseline.
+                expect(highlighted.getCastShadow('glow')?.fill).toBe('#909090');
                 await compare();
             });
         });
@@ -926,5 +930,14 @@ describe('MapShapeSeries', () => {
             scopedWarnOnce.mockRestore();
             fallbackWarnOnce.mockRestore();
         });
+    });
+
+    it.each([
+        ['tints the palette fill', SIMPLIFIED_EXAMPLE, 0.2],
+        ['keeps a colour scale fill solid', HEATMAP_EXAMPLE, 1],
+    ])('ag-accessible %s', async (_name, options, fillOpacity) => {
+        chart = deproxy(await createStockThemedChart(options, 'ag-accessible'));
+
+        expect(getSeriesOptions<{ fillOpacity: number }>(chart).fillOpacity).toBe(fillOpacity);
     });
 });

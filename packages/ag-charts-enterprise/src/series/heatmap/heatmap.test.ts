@@ -1,4 +1,4 @@
-import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -30,7 +30,9 @@ import {
     getSeriesOptions,
     hoverAction,
     hoverLegendItem,
+    iconSvg,
     isTooltipVisible,
+    preloadImages,
     pressKey,
     setupMockCanvas,
     setupMockConsole,
@@ -1166,25 +1168,15 @@ describe('HeatmapSeries', () => {
     describe('block-leading image segments (treemap parity)', () => {
         // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the cell label, text beside it.
-        const iconSvg = (letter: string) =>
-            `data:image/svg+xml;utf8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">` +
-                    `<circle cx="14" cy="14" r="12" fill="#1f77b4"/>` +
-                    `<text x="14" y="19" text-anchor="middle" font-family="Verdana" font-size="13"` +
-                    ` fill="white" font-weight="bold">${letter}</text></svg>`
-            )}`;
         const ICONS: Record<string, string> = {
-            Florian: iconSvg('F'),
-            Julian: iconSvg('J'),
-            Martian: iconSvg('M'),
+            Florian: iconSvg('#1f77b4'),
+            Julian: iconSvg('#ff7f0e'),
+            Martian: iconSvg('#2ca02c'),
         };
 
         let preloaded: Record<string, SkiaImage> = {};
         beforeAll(async () => {
-            const entries = await Promise.all(
-                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
-            );
-            preloaded = Object.fromEntries(entries);
+            preloaded = await preloadImages(Object.values(ICONS));
         });
 
         it('renders a block-leading image segment in heatmap cell labels', async () => {
@@ -1390,6 +1382,42 @@ describe('HeatmapSeries', () => {
             chart = await createEnterpriseChart(buildOptions(SHADOW));
             await compare();
         });
+    });
+
+    it('names the padded cell a label sits in as its own shape obstacle', async () => {
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        itemPadding: 6,
+                        label: { enabled: true },
+                    },
+                ],
+            })
+        );
+        const series = getSeriesInstance(chart, HeatmapSeries);
+        const obstacles = series.getLabelObstacles() ?? [];
+
+        const ownCells = series.getLabelData().map(({ entityIndex, ownBox }) => {
+            const owned = obstacles.filter((o) => o.sourceId === series.id && o.entityIndex === entityIndex);
+            const cell = owned[0]?.box;
+            // The own box sits strictly inside the cell, so the two can never match by geometry.
+            const padded =
+                cell != null &&
+                ownBox != null &&
+                ownBox.x > cell.x &&
+                ownBox.y > cell.y &&
+                ownBox.x + ownBox.width < cell.x + cell.width &&
+                ownBox.y + ownBox.height < cell.y + cell.height;
+            return { owned: owned.length, padded };
+        });
+
+        expect(ownCells).toEqual(Array(9).fill({ owned: 1, padded: true }));
     });
 
     describe('label alignment', () => {
@@ -1653,16 +1681,31 @@ describe('HeatmapSeries', () => {
             expect(after).toEqual(await freshCellFills(rawOptions({ colorScale })));
         });
 
-        it.each([
-            { name: 'an explicit unhighlightedItem', highlight: { unhighlightedItem: { opacity: 0.4 } }, dimmed: 0.4 },
-            { name: 'the theme highlight', highlight: undefined, dimmed: 0.6 },
-        ])('dims the cells on hover with $name and restores them afterwards', async ({ highlight, dimmed }) => {
-            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
+        it('dims the cells on hover with an explicit unhighlightedItem and restores them afterwards', async () => {
+            const dimmed = 0.4;
+            chart = deproxy(
+                await createEnterpriseChart(
+                    rawOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: dimmed } } })
+                )
+            );
             const fills = cellFills(chart);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
 
             await hoverDatumByIndex(chart, 0, 0);
             expect(cellOpacities(chart)).toEqual([dimmed, dimmed, dimmed, dimmed]);
+            expect(cellFills(chart)).toEqual(fills);
+
+            await hoverAway();
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+            expect(cellFills(chart)).toEqual(fills);
+        });
+
+        it('does not dim the cells on hover with the theme highlight, which sets no unhighlightedItem opacity', async () => {
+            chart = deproxy(await createEnterpriseChart(rawOptions(NO_TOOLTIP)));
+            const fills = cellFills(chart);
+
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
             expect(cellFills(chart)).toEqual(fills);
 
             await hoverAway();
@@ -2426,7 +2469,11 @@ describe('HeatmapSeries', () => {
         });
 
         it('paints cells that a highlight strokes through their path and back to a direct fill once it ends', async () => {
-            const highlight = { unhighlightedItem: { stroke: 'black', strokeWidth: 3 } };
+            // The default hover glow draws the hovered cell on the highlight layer, which this test is not about.
+            const highlight = {
+                highlightedItem: { glow: { enabled: false } },
+                unhighlightedItem: { stroke: 'black', strokeWidth: 3 },
+            };
             const others = await nonCellRects(highlight);
             chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
             const fills = cellFills(chart);
@@ -2759,7 +2806,9 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds only the updated cells while a hover is held across transactions', async () => {
-            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, NO_TOOLTIP)));
+            // The theme does not dim, so the hover is made visible with an explicit unhighlightedItem opacity.
+            const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.6 } } };
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
             await hoverDatumByIndex(chart, 0, 0);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.6));
 
@@ -2768,7 +2817,7 @@ describe('HeatmapSeries', () => {
             await transactIncrementally([UPDATED('2:2', 5)]);
 
             const reference = deproxy(
-                await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP))
+                await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), series))
             );
             await hoverDatumByIndex(reference, 0, 0);
             const expected = cells(reference);
@@ -3495,6 +3544,20 @@ describe('HeatmapSeries', () => {
                 expect(isBatched(chart)).toBe(true);
                 expect(rectCellCount(chart)).toBe(0);
                 expect(cellShapes(chart)).toHaveLength(GRID.length);
+            });
+
+            // Nothing in the pixels tells this apart, as the series glow repaints the cells on a hover anyway. What it decides is
+            // whether the cells are restyled on each hover, which is when they may leave the batch, or return to it.
+            it.each([
+                ['no glow is set', {}, false],
+                [
+                    'the series glow stays on and the other items do not glow',
+                    { glow: { enabled: true }, highlight: { unhighlightedItem: { glow: { enabled: false } } } },
+                    true,
+                ],
+            ])('restyles the cells on a hover only when %s', async (_name, series, restyles) => {
+                await create(series);
+                expect((heatmap(chart) as unknown as { hasItemStylers(): boolean }).hasItemStylers()).toBe(restyles);
             });
 
             it.each(Object.keys(ineligible))('paints every cell as a Rect for %s', async (name) => {

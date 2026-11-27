@@ -1,9 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { DatalistWidget, type DynamicContext, EventEmitter } from 'ag-charts-core';
-import type { AgAnnotationFollowName } from 'ag-charts-types';
+import { DatalistWidget, type DynamicContext, EventEmitter, type Widget } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
-import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
+import { Dialog, type DialogCloseOutcome, type DialogOptions } from '../../../components/dialog/dialog';
 import { getDefaultColor, getDefaultOpacity } from '../annotationDatums';
 import {
     type AnnotationContext,
@@ -16,9 +15,12 @@ import {
     type LineTextPosition,
 } from '../annotationTypes';
 import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type { LinearDialogDatumType } from '../annotationsSuperTypes';
-import { horizontalLineDatum } from '../cross-line/crossLineDatum';
-import { normaliseFollow } from '../cross-line/followValue';
+import type {
+    LinearDialogDatumType,
+    SettingsDialogDatumType,
+    ShapeDatumType,
+    TextualDatumType,
+} from '../annotationsSuperTypes';
 import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
 import {
     type CoordinateChangeProps,
@@ -35,9 +37,9 @@ import {
     parseCoordinate,
     resolveCoordinate,
 } from '../utils/coordinates';
-import { hasBackground, hasExtendable } from '../utils/has';
+import { hasBackground, hasExtendable, hasFillColor, hasLineColor } from '../utils/has';
 import { getLineStyle } from '../utils/line';
-import { isChannelType, isFibonacciType } from '../utils/types';
+import { isChannelType, isFibonacciType, isShapeType, isTextType } from '../utils/types';
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
@@ -45,6 +47,7 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeCoordinates: (props: CoordinateChangeProps) => void;
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
+    onChangeTextContent: (text: string) => void;
     onChangeFillColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideFillColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
@@ -54,7 +57,20 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeTextFontSize: (fontSize: number) => void;
+    /** Called as the dialog closes, with how it closed. */
+    onClose?: (outcome: DialogCloseOutcome) => void;
 }
+
+/** The options of `LinearSettingsDialogOptions` that are called when the user changes something; the colours mark it themselves. */
+const CHANGE_CALLBACKS = [
+    'onChangeCoordinates',
+    'onChangeLine',
+    'onChangeText',
+    'onChangeTextContent',
+    'onChangeLineStyleType',
+    'onChangeLineStyleWidth',
+    'onChangeTextFontSize',
+] as const satisfies Array<keyof LinearSettingsDialogOptions>;
 
 export interface LinearSettingsDialogLineChangeProps {
     extendStart?: boolean;
@@ -66,8 +82,6 @@ export interface LinearSettingsDialogLineChangeProps {
     reverse?: boolean;
     showFill?: boolean;
     bands?: FibonacciBands;
-    /** Make a horizontal line follow the first or last datum of a series, or `'none'` to stop it following. */
-    follow?: AgAnnotationFollowName | 'none';
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -78,6 +92,12 @@ export interface LinearSettingsDialogTextChangeProps {
 
 // Each label is a whole string of its own, as a translation cannot assume the order its parts read in.
 const COORDINATE_LABELS = {
+    point: {
+        x: 'dialogInputCoordinatesPointX',
+        y: 'dialogInputCoordinatesPointY',
+        xOffset: 'dialogInputCoordinatesPointOffsetX',
+        yOffset: 'dialogInputCoordinatesPointOffsetY',
+    },
     start: {
         x: 'dialogInputCoordinatesStartX',
         y: 'dialogInputCoordinatesStartY',
@@ -135,6 +155,18 @@ const COORDINATE_INPUT_TYPES = {
     offset: 'number',
 } as const satisfies Record<CoordinateKind, string>;
 
+function getCoordinateInputType({ kind, timePrecision }: CoordinateField) {
+    return timePrecision === 'day' ? 'date' : COORDINATE_INPUT_TYPES[kind];
+}
+
+const COLOR_PICKER_ALT_TEXT = {
+    'line-color': 'toolbarAnnotationsLineColor',
+    'fill-color': 'dialogInputFillColorPickerAltText',
+    'text-color': 'dialogInputColorPickerAltText',
+} as const satisfies Record<AnnotationOptionsColorPickerType, string>;
+
+type SettingsTabs = Record<string, { label: string; panel: Widget; onShow?: () => void }>;
+
 interface EventMap {
     hidden: null;
 }
@@ -143,6 +175,7 @@ export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
     private refreshCoordinateInputs?: () => void;
+    private onClose?: (outcome: DialogCloseOutcome) => void;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
@@ -150,8 +183,12 @@ export class AnnotationSettingsDialog extends Dialog {
 
     protected override onHide() {
         this.refreshCoordinateInputs = undefined;
-        this.events.emit('hidden', null);
+        // First, as closing a colour picker in the dialog reports its change.
         super.onHide();
+        const { onClose, closeOutcome } = this;
+        this.onClose = undefined;
+        onClose?.(closeOutcome);
+        this.events.emit('hidden', null);
     }
 
     /** Brings the Coordinates tab up to date with its annotation, which an undo, redo or drag changes while the dialog is open. */
@@ -159,7 +196,40 @@ export class AnnotationSettingsDialog extends Dialog {
         this.refreshCoordinateInputs?.();
     }
 
-    public show(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
+    public show(datum: SettingsDialogDatumType, passedOptions: LinearSettingsDialogOptions) {
+        const options = this.trackChanges(passedOptions);
+        this.onClose = options.onClose;
+        const tabsOptions: SettingsTabs =
+            isTextType(datum) || isShapeType(datum)
+                ? this.createTextualTabs(datum, options)
+                : this.createLinearTabs(datum, options);
+
+        const initial = options.initialSelectedTab in tabsOptions ? options.initialSelectedTab : undefined;
+        const { tabs, initialFocus } = this.createTabs(
+            'ariaLabelSettingsTabBar',
+            initial ?? Object.keys(tabsOptions)[0],
+            tabsOptions
+        );
+        options.initialFocus = initialFocus;
+
+        const popover = this.showWithChildren([tabs], options);
+        popover.addClass('ag-charts-dialog--annotation-settings');
+    }
+
+    /** Wraps the options' change callbacks so that any change enables Apply. */
+    private trackChanges(options: LinearSettingsDialogOptions): LinearSettingsDialogOptions {
+        const tracked = { ...options };
+        for (const key of CHANGE_CALLBACKS) {
+            const callback = options[key] as (...args: unknown[]) => void;
+            (tracked[key] as (...args: unknown[]) => void) = (...args) => {
+                this.markChanged();
+                callback(...args);
+            };
+        }
+        return tracked;
+    }
+
+    private createLinearTabs(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
@@ -177,7 +247,7 @@ export class AnnotationSettingsDialog extends Dialog {
         }
 
         const coordinatesTab = this.createCoordinatesTab(datum, options);
-        const tabsOptions = {
+        return {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -189,16 +259,81 @@ export class AnnotationSettingsDialog extends Dialog {
             },
             ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
         };
+    }
 
-        const { tabs, initialFocus } = this.createTabs(
-            'ariaLabelSettingsTabBar',
-            options.initialSelectedTab,
-            tabsOptions
+    private createTextualTabs(datum: TextualDatumType | ShapeDatumType, options: LinearSettingsDialogOptions) {
+        const textTab = isTextType(datum) ? this.createTextualTextTab(datum, options) : undefined;
+        const styleTab =
+            hasFillColor(datum) || hasLineColor(datum) ? this.createTextualStyleTab(datum, options) : undefined;
+        const coordinatesTab = this.createCoordinatesTab(datum, options);
+        return {
+            ...(textTab && { text: { label: 'dialogHeaderText', panel: textTab.panel, onShow: textTab.onShow } }),
+            ...(styleTab && { style: { label: 'dialogHeaderStyle', panel: styleTab } }),
+            ...(coordinatesTab && { coordinates: { label: 'dialogHeaderCoordinates', panel: coordinatesTab } }),
+        };
+    }
+
+    private createTextualTextTab(datum: TextualDatumType, options: LinearSettingsDialogOptions) {
+        const panel = this.createTabPanel();
+
+        const textArea = this.createTextArea({
+            placeholder: 'inputTextareaPlaceholder',
+            value: datum.text,
+            onChange: options.onChangeTextContent,
+        });
+        panel.addChild(textArea);
+
+        const inputGroupLine = this.createInputGroupLine();
+        inputGroupLine.addChild(this.createFontSizeSelect(datum.fontSize, options.onChangeTextFontSize));
+        inputGroupLine.addChild(
+            this.createColorPickerInput(
+                'text-color',
+                getDefaultColor(datum, 'text-color'),
+                getDefaultOpacity(datum, 'text-color'),
+                false,
+                false,
+                options.onChangeTextColor,
+                options.onChangeHideTextColor
+            )
         );
-        options.initialFocus = initialFocus;
+        panel.addChild(inputGroupLine);
 
-        const popover = this.showWithChildren([tabs], options);
-        popover.addClass('ag-charts-dialog--annotation-settings');
+        return { panel, onShow: () => textArea.focusCursorAtEnd() };
+    }
+
+    private createTextualStyleTab(datum: TextualDatumType | ShapeDatumType, options: LinearSettingsDialogOptions) {
+        const panel = this.createTabPanel();
+        const inputGroupLine = this.createInputGroupLine();
+
+        if (hasLineColor(datum)) {
+            inputGroupLine.addChild(
+                this.createColorPickerInput(
+                    'line-color',
+                    getDefaultColor(datum, 'line-color'),
+                    getDefaultOpacity(datum, 'line-color'),
+                    false,
+                    false,
+                    options.onChangeLineColor,
+                    options.onChangeHideLineColor
+                )
+            );
+        }
+        if (hasFillColor(datum)) {
+            inputGroupLine.addChild(
+                this.createColorPickerInput(
+                    'fill-color',
+                    getDefaultColor(datum, 'fill-color'),
+                    getDefaultOpacity(datum, 'fill-color'),
+                    false,
+                    false,
+                    options.onChangeFillColor,
+                    options.onChangeHideFillColor
+                )
+            );
+        }
+        panel.addChild(inputGroupLine);
+
+        return panel;
     }
 
     private createLinearLineTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
@@ -253,14 +388,6 @@ export class AnnotationSettingsDialog extends Dialog {
 
         panel.addChild(groupOne);
         panel.addChild(groupTwo);
-
-        if (horizontalLineDatum.is(datum)) {
-            panel.addChild(
-                this.createFollowSelect(normaliseFollow(datum.follow)?.follow ?? 'none', (follow) =>
-                    options.onChangeLine({ follow })
-                )
-            );
-        }
 
         if (isFibonacciType(datum)) {
             panel.addChild(
@@ -371,7 +498,7 @@ export class AnnotationSettingsDialog extends Dialog {
         return { panel, onShow: () => textArea.focusCursorAtEnd() };
     }
 
-    private createCoordinatesTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
+    private createCoordinatesTab(datum: SettingsDialogDatumType, options: LinearSettingsDialogOptions) {
         const context = options.getContext();
         if (!context) {
             return;
@@ -391,9 +518,9 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const refreshes = new Map<string, (next: CoordinateField) => void>();
         const panel = this.createTabPanel();
-        // A single value or offset has its label alongside; an offset is on a row of its own, and a height has its label above.
+        // A single value, offset or height has its label alongside; an offset is on a row of its own.
         const addRow = (rowFields: CoordinateField[], follows = false) => {
-            const inline = rowFields.length === 1 && !isHeightRow(rowFields[0].row);
+            const inline = rowFields.length === 1;
             const widgets = rowFields.map((field) => {
                 const { widget, refresh } = this.createCoordinateInput(field, inline, options);
                 refreshes.set(getCoordinateLabelKey(field), refresh);
@@ -428,9 +555,10 @@ export class AnnotationSettingsDialog extends Dialog {
         let committed = field.value;
         const input = this.createInput({
             ariaLabel,
-            type: COORDINATE_INPUT_TYPES[field.kind],
+            type: getCoordinateInputType(field),
             value: displayCoordinate(field.value, field.fractionDigits),
             step: field.step,
+            range: field.range,
             list: suggestions?.id,
             onChange: (text) => {
                 const context = options.getContext();
@@ -443,7 +571,7 @@ export class AnnotationSettingsDialog extends Dialog {
                 }
 
                 // A value that resolves to the one already set, such as a date snapped to the same bar, is not a change.
-                const formatted = formatCoordinate(resolved, field.kind);
+                const formatted = formatCoordinate(resolved, field.kind, field.timePrecision);
                 input.value = displayCoordinate(formatted, field.fractionDigits);
                 if (formatted !== committed) {
                     committed = formatted;
@@ -456,9 +584,11 @@ export class AnnotationSettingsDialog extends Dialog {
         const refresh = (next: CoordinateField) => {
             field = next;
             committed = next.value;
-            if (next.step != null) {
-                input.setStep(next.step);
+            const type = getCoordinateInputType(next);
+            if (type === 'date' || type === 'datetime-local') {
+                input.setType(type);
             }
+            input.setStep(next.step);
             if (!input.isFocused()) {
                 input.value = displayCoordinate(committed, field.fractionDigits);
             }
@@ -482,8 +612,7 @@ export class AnnotationSettingsDialog extends Dialog {
         onChangeHide: Required<ColorPickerOptions>['onChangeHide']
     ) {
         const label = colorType === 'fill-color' ? 'dialogInputFillColorPicker' : 'dialogInputColorPicker';
-        const altText =
-            colorType === 'fill-color' ? 'dialogInputFillColorPickerAltText' : 'dialogInputColorPickerAltText';
+        const altText = COLOR_PICKER_ALT_TEXT[colorType];
         return this.createColorPicker({
             label,
             altText,
@@ -513,24 +642,6 @@ export class AnnotationSettingsDialog extends Dialog {
             options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(bands),
             onChange: (value) => onChange(Number(value) as FibonacciBands),
-        });
-    }
-
-    private createFollowSelect(
-        follow: AgAnnotationFollowName | 'none',
-        onChange: (value: AgAnnotationFollowName | 'none') => void
-    ) {
-        const { localeManager } = this.ctx;
-        return this.createSelect({
-            label: 'dialogInputFollow',
-            altText: 'dialogInputFollowAltText',
-            options: [
-                { label: localeManager.t('dialogInputFollowNone'), value: 'none' },
-                { label: localeManager.t('dialogInputFollowFirst'), value: 'first' },
-                { label: localeManager.t('dialogInputFollowLast'), value: 'last' },
-            ],
-            value: follow,
-            onChange: (value) => onChange(value as AgAnnotationFollowName | 'none'),
         });
     }
 

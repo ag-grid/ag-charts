@@ -20,6 +20,7 @@ import type {
     Point,
     PointLabelDatum,
     Position,
+    ZIndex,
 } from 'ag-charts-core';
 import {
     ColorScale,
@@ -263,11 +264,29 @@ export class MapShapeSeries
         }
     }
 
+    protected override contentZIndex(zIndex: number): ZIndex {
+        return [MapZIndexMap.ShapeLine, zIndex];
+    }
+
+    private highlightFront: boolean | undefined;
+
+    // A `bringToFront` update leaves the series index alone while nothing is hovered, so force the z-index to follow it.
+    override setSeriesIndex(index: number, forceUpdate = false): boolean {
+        return super.setSeriesIndex(index, forceUpdate || this.highlightFront !== this.highlightBringsToFront());
+    }
+
+    private highlightBringsToFront() {
+        return this.options.highlight?.bringToFront !== false;
+    }
+
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.ShapeLine, zIndex];
-        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, zIndex];
+        // Above the series' own shapes, but under later series and the markers, unless it is to come to the front.
+        this.highlightFront = this.highlightBringsToFront();
+        this.highlightGroup.zIndex = this.highlightFront
+            ? [MapZIndexMap.ShapeLineHighlight, zIndex]
+            : [MapZIndexMap.ShapeLine, zIndex, 1];
 
         return true;
     }
@@ -801,7 +820,8 @@ export class MapShapeSeries
         const { idKey, labelKey, colorKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightState = _ModuleSupport.toHighlightString(castState);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -812,6 +832,8 @@ export class MapShapeSeries
             idKey,
             labelKey,
             colorKey,
+            shadow: this.getStylerShadow(this.options.shadow, castState),
+            glow: this.getStylerGlow(this.options.glow, castState),
             highlightState,
             selectionState,
             candidateState,

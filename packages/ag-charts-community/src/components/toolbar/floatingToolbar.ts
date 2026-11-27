@@ -166,10 +166,12 @@ export abstract class FloatingToolbar<
     }
 }
 
+// TODO: Phase 3 "Common Widget Ancestor" - a plain container on the NativeWidget fallback; ContainerWidget fits.
 class DragHandleWidget extends NativeWidget {
     constructor(title: string) {
         super(createElement('div', 'ag-charts-floating-toolbar__drag-handle'));
 
+        // TODO: Phase 3 "Common Widget Ancestor" - a decorative icon on the NativeWidget fallback; IconWidget fits.
         const icon = new NativeWidget<HTMLElement>(
             createElement('span', `${getIconClassNames('drag-handle')} ag-charts-toolbar__icon`)
         );

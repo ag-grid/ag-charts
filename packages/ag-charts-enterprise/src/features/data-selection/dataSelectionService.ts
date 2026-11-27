@@ -186,6 +186,19 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         }
     }
 
+    /** Runs `change`, then tells each series it emptied or filled the selection of, so its raise follows at once. */
+    private notifyEmptiedOrFilled(change: () => void): void {
+        const selected = new Set<string>();
+        for (const [seriesId, selection] of this.selections) {
+            if (selection.getSelectedCount() > 0) selected.add(seriesId);
+        }
+        change();
+        for (const series of this.ctx?.chartService.series ?? []) {
+            const nowSelected = (this.selections.get(series.id)?.getSelectedCount() ?? 0) > 0;
+            if (nowSelected !== selected.has(series.id)) series.events.emit('data-selection-change', null);
+        }
+    }
+
     // IDataSelectionService implementation.
 
     /**
@@ -196,7 +209,10 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
         this.candidacy.clear();
         if (this.selections.size === 0) return;
+        this.notifyEmptiedOrFilled(() => this.transferSelections(newDataSet, oldDataSet));
+    }
 
+    private transferSelections<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
         const oldIds = oldDataSet.getIdArray();
         if (!oldIds) {
             if (oldDataSet.data.length === newDataSet.data.length) {
@@ -244,9 +260,11 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     onDataChange(changeDescription: DataChangeDescription): void {
         this.candidacy.clear();
         if (this.selections.size > 0) {
-            for (const sel of this.selections.values()) {
-                sel.applyDataChange(changeDescription);
-            }
+            this.notifyEmptiedOrFilled(() => {
+                for (const sel of this.selections.values()) {
+                    sel.applyDataChange(changeDescription);
+                }
+            });
         }
         // The `data:update` event fires before transactions are committed, so its recount
         // sees stale per-series counts. Recount again here, once the commit has applied.

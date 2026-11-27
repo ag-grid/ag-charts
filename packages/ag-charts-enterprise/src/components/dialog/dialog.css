@@ -79,6 +79,15 @@
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
+/* Apply and Cancel */
+.ag-charts-dialog__actions {
+    display: flex;
+    gap: calc(var(--ag-charts-spacing) * 2);
+    justify-content: flex-end;
+    margin: 0 calc(var(--ag-charts-spacing) * 4);
+    padding-bottom: calc(var(--ag-charts-spacing) * 4);
+}
+
 /* Tab panel */
 .ag-charts-dialog__tab-panel {
     display: none;
@@ -151,6 +160,12 @@
     flex-direction: row;
 }
 
+/* The last input of a row ends at its edge, so its label adds no margin to the width. */
+.ag-charts-dialog__labelled-input:last-child:not(.ag-charts-dialog__labelled-input--inline)
+    > .ag-charts-dialog__input-group-label {
+    margin-inline-end: 0;
+}
+
 .ag-charts-dialog__input {
     background: var(--ag-charts-input-background-color);
     border-color: var(--ag-charts-input-border-color);
@@ -198,10 +213,12 @@
     --color: #000;
 
     background: var(--color);
-    border: none;
+    border-color: var(--ag-charts-input-border-color);
+    border-style: solid;
+    border-width: var(--ag-charts-input-border-width);
     color: transparent;
     height: 26px;
-    width: 26px;
+    width: 52px;
 }
 
 .ag-charts-dialog__color-picker-button:hover {

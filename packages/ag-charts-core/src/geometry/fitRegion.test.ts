@@ -3,8 +3,9 @@ import { describe, expect, test, vi } from 'vitest';
 import {
     type FitRegion,
     type FitRegionMask,
+    InsetMaskFitRegion,
+    ReusableInsetRegion,
     insetFitRegion,
-    maskFitRegion,
     probedFitRegion,
     regionTextCapacity,
     regionWidthAt,
@@ -117,6 +118,18 @@ describe('probedFitRegion over a shape with a hole', () => {
         expect(left).toBeCloseTo(-50, 1);
     });
 
+    test('reports the same spans for fewer containment tests when the shape vouches for its columns', () => {
+        const probe = (holdsColumn?: () => boolean) => {
+            const contains = vi.fn(inCircle(100));
+            const region = probedFitRegion({ x: 20, y: 10 }, contains, 200, holdsColumn);
+            return { span: region.spanAt(-15, 25), calls: contains.mock.calls.length };
+        };
+        const sampled = probe();
+        const vouched = probe(() => true);
+        expect(vouched.span).toEqual(sampled.span);
+        expect(vouched.calls).toBeLessThan(sampled.calls);
+    });
+
     test('stops at the hole rather than reporting the room beyond it', () => {
         // Anchored on the left arm, the reach to the right leaves the annulus at the hole and enters it
         // again 100px further on: the room reported is the near arm's, not the far one's.
@@ -156,6 +169,20 @@ describe('insetFitRegion', () => {
         expect(regionWidthAt(region, 0, 10)).toBe(regionWidthAt(trapezoidFitRegion(stage(), 50), -10, 20));
     });
 
+    test('a reusable inset answers like insetFitRegion and forgets its bands once released', () => {
+        const base = rect(120, 40);
+        const spanAt = vi.spyOn(base, 'spanAt');
+        const reusable = new ReusableInsetRegion().reset(base, 10, 5);
+        expect(reusable.spanAt(-3, 8)).toEqual(insetFitRegion(base, 10, 5).spanAt(-3, 8));
+        expect([reusable.extentAbove, reusable.extentBelow]).toEqual([15, 15]);
+        spanAt.mockClear();
+        reusable.spanAt(-3, 8);
+        expect(spanAt).not.toHaveBeenCalled();
+        reusable.release();
+        reusable.reset(base, 10, 5).spanAt(-3, 8);
+        expect(spanAt).toHaveBeenCalledTimes(1);
+    });
+
     test('bottoms out at nothing rather than going negative', () => {
         const region = insetFitRegion(rect(10, 10), 20, 20);
         expect(regionWidthAt(region, 0, 1)).toBe(0);
@@ -164,7 +191,7 @@ describe('insetFitRegion', () => {
     });
 });
 
-describe('maskFitRegion', () => {
+describe('InsetMaskFitRegion', () => {
     // Three rows of a shape pinching in the middle, sampled over a unit shape anchored at its centre.
     const mask: FitRegionMask = {
         rows: [
@@ -175,7 +202,7 @@ describe('maskFitRegion', () => {
         top: -0.5,
         rowHeight: 1 / 3,
     };
-    const region = () => maskFitRegion(mask, 30, { x: 0, y: 0 });
+    const region = () => new InsetMaskFitRegion().set(mask, 30, 0, 0, 0);
 
     test('scales the unit mask onto the drawn shape', () => {
         expect(region().extentAbove).toBe(15);
@@ -194,11 +221,28 @@ describe('maskFitRegion', () => {
     });
 
     test('offers nothing where the shape has no row', () => {
-        const empty = maskFitRegion({ rows: [undefined, [-0.5, 0.5]], top: -0.5, rowHeight: 0.5 }, 30, {
-            x: 0,
-            y: 0,
-        });
+        const empty = new InsetMaskFitRegion().set(
+            { rows: [undefined, [-0.5, 0.5]], top: -0.5, rowHeight: 0.5 },
+            30,
+            0,
+            0,
+            0
+        );
         expect(regionWidthAt(empty, -15, -10)).toBe(0);
+    });
+
+    test('insets exactly as insetFitRegion does', () => {
+        const composed = insetFitRegion(new InsetMaskFitRegion().set(mask, 30, 2, -3, 0), 1.5, 1.5);
+        const reused = new InsetMaskFitRegion().set(mask, 30, 2, -3, 1.5);
+        expect([reused.extentAbove, reused.extentBelow]).toEqual([composed.extentAbove, composed.extentBelow]);
+        for (const [top, bottom] of [
+            [-12, -8],
+            [-1, 1],
+            [4, 11],
+            [-20, 20],
+        ]) {
+            expect(reused.spanAt(top, bottom)).toEqual(composed.spanAt(top, bottom));
+        }
     });
 });
 

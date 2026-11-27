@@ -22,7 +22,9 @@ import {
     type SizedPoint,
     StateMachine,
     Text,
+    type ZIndex,
     applySizeMode,
+    applyStyledMarker,
     configureColorScale,
     datumKeyReader,
     findDiscreteColorBinLabel,
@@ -84,6 +86,8 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly legendItemName: string | undefined;
     readonly point: Readonly<SizedPoint>;
     style: AgMapMarkerSeriesStyle & AgItemShadowStyle;
+    /** The label placed at this marker, stamped with the marker as drawn. */
+    label: MapMarkerNodeLabelDatum | undefined;
 }
 
 interface MapMarkerNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -150,7 +154,7 @@ export class MapMarkerSeries
         new Group({ name: 'markerGroup', batchShadows: 'shared' })
     );
 
-    private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text, false);
+    private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text);
     private highlightLabelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
         this.highlightLabelGroup,
         Text,
@@ -244,10 +248,13 @@ export class MapMarkerSeries
         }
     }
 
+    protected override contentZIndex(zIndex: number): ZIndex {
+        return [MapZIndexMap.Marker, zIndex];
+    }
+
     override setZIndex(zIndex: number): boolean {
         super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.Marker, zIndex];
         this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, zIndex];
 
         return true;
@@ -399,6 +406,7 @@ export class MapMarkerSeries
             point: { x: point.x, y: point.y, size: point.size },
             label: { width, height, text: fittedText },
             anchor,
+            markerShape: shape,
             placement,
             // An inside label rides with its marker, so only directional placements can spill out.
             region: placement === 'inside' ? undefined : labelRegion,
@@ -488,6 +496,7 @@ export class MapMarkerSeries
                 { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
                 false
             ),
+            label: undefined,
         };
     }
 
@@ -512,6 +521,7 @@ export class MapMarkerSeries
         const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
         const label = this.getLabelDatum(node, dataValues.labelValue, labelFit, labelStyle, labelRegion) ?? undefined;
+        node.label = label;
 
         return { node, label };
     }
@@ -537,6 +547,7 @@ export class MapMarkerSeries
 
             const label = this.getLabelDatum(node, dataValues.labelValue, labelFit, labelStyle, labelRegion);
             if (label) {
+                node.label = label;
                 labels.push(label);
             }
         }
@@ -911,7 +922,8 @@ export class MapMarkerSeries
         const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightState = _ModuleSupport.toHighlightString(castState);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -925,6 +937,8 @@ export class MapMarkerSeries
             colorKey,
             latitudeKey,
             longitudeKey,
+            shadow: this.getStylerShadow(this.options.shadow, castState),
+            glow: this.getStylerGlow(this.options.glow, castState),
             highlightState,
             selectionState,
             candidateState,
@@ -943,10 +957,18 @@ export class MapMarkerSeries
 
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        // State restyles markers without rebuilding node data, so labels are stamped from the marker as drawn.
+        const stampLabels = !isHighlight && this.restylesMarkers();
+        const { shape: seriesShape, itemStyler } = this.options;
+        const itemStyled = itemStyler != null;
+        let labelMarkersChanged = false;
 
         markerSelection.each((marker, markerDatum) => {
-            const { datum, point } = markerDatum;
+            const { datum, point, label } = markerDatum;
             const style = this.getMarkerItemStyle(markerDatum, isHighlight);
+            if (stampLabels && label != null) {
+                labelMarkersChanged = applyStyledMarker(label, style, seriesShape, itemStyled) || labelMarkersChanged;
+            }
 
             marker.shape = style.shape;
             marker.size = style.size;
@@ -984,6 +1006,7 @@ export class MapMarkerSeries
 
             marker.drawingMode = drawingMode;
         });
+        if (labelMarkersChanged) this.invalidateLabelPlacement();
     }
 
     override isProcessedDataAnimatable() {

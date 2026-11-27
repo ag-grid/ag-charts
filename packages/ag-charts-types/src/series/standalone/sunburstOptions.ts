@@ -5,7 +5,12 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -45,11 +50,19 @@ export interface AgSunburstSeriesHighlightOptions {
     enabled?: boolean;
     /** Style for nodes within the hovered branch. */
     highlightedBranch?: AgSunburstSeriesHighlightStyle;
-    /** Style for the directly hovered node. */
+    /**
+     * Style for the directly hovered node.
+     *
+     * Default: `{ glow: { enabled: true } }`
+     */
     highlightedItem?: AgSunburstSeriesHighlightStyle;
     /** Style for other nodes within the hovered branch. */
     unhighlightedItem?: AgSunburstSeriesHighlightStyle;
-    /** Style for nodes outside of the hovered branch. */
+    /**
+     * Style for nodes outside of the hovered branch.
+     *
+     * Default: `{ opacity: 0.5 }`
+     */
     unhighlightedBranch?: AgSunburstSeriesHighlightStyle;
 }
 
@@ -97,6 +110,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the sectors. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the sectors. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
     innerRadiusRatio?: Ratio;
     /** The size in pixels of the hole carved at the centre of the series, measured outwards from the centre. Must be greater than zero, and is added to any hole `innerRadiusRatio` carves. It is not capped: a value that reaches the series radius leaves the sectors no room, so nothing is rendered. */
@@ -105,8 +120,12 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     innerCircle?: AgSunburstInnerCircle;
     /** Configuration for the labels at the centre of the series. Has no effect unless `innerRadiusRatio` or `innerRadiusSize` is set. */
     innerLabels?: AgSunburstInnerLabelThemeOptions;
-    /** Spacing between the sectors. */
-    sectorSpacing?: PixelSize;
+    /**
+     * The gap, in pixels, between neighbouring sectors, both within a ring and between one ring and the next. The edge of the hole and the outer edge of the outermost ring stay where they are.
+     *
+     * __Note:__ A sector that is narrower than its share of the gap is not drawn.
+     */
+    gap?: PixelSize;
     /** Minimum distance between text and the edges of the sectors. */
     padding?: PixelSize;
     /** The colours to cycle through for the fills of the sectors. An array of colour strings, or fill objects for gradients, patterns, or images. */
@@ -169,6 +188,7 @@ export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = ContextDefa
     extends
         DatumCallbackParams<TDatum, AgSunburstHighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgSunburstSeriesOptionsKeys<TDatum>,
         Required<AgSunburstSeriesStyle> {
     /** The depth of the datum in the hierarchy. */

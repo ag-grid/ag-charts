@@ -767,11 +767,19 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             return;
         }
 
-        if (this.hasItemStylers()) {
+        if (this.restylesMarkers()) {
             this.updateDatumStyles({ datumSelection, isHighlight: false });
+            // State restyles markers without rebuilding node data, so only a changed marker re-solves the labels.
+            if (this.stampLabelMarkers()) this.invalidateLabelPlacement();
         }
 
-        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight || this.hasChangesOnSelection;
+        const { highlightRedraw } = this;
+        this.highlightRedraw = undefined;
+        const redrawAll =
+            this.strokewidthChange() ||
+            highlightRedraw === true ||
+            this.hasChangesOnHighlight ||
+            this.hasChangesOnSelection;
         this.hasChangesOnSelection = false;
 
         if (nodeRefresh || redrawAll) {
@@ -781,7 +789,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                     this.updateLabelNodes({ labelSelection, isHighlight: false });
                 });
             }
+        } else if (highlightRedraw instanceof Set) {
+            const highlightedSelection = selectItemsAt(datumSelection, highlightRedraw);
+            this.updateDatumNodes({ datumSelection: highlightedSelection, isHighlight: false, drawingMode: 'overlay' });
         }
+    }
+
+    protected override redrawsHighlightedItemsOnly(): boolean {
+        return true;
     }
 
     protected getHighlightData(
@@ -1515,6 +1530,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         // Override point for sub-classes.
     }
 
+    /** Stamps each label datum with the marker its style resolved; returns whether any marker's size or shape changed. */
+    protected stampLabelMarkers(): boolean {
+        return false;
+    }
+
     protected updatePaths(opts: { itemId?: string; contextData: ContextOf<TTypes>; paths: Path[] }): void {
         // Override point for sub-classes.
         for (const p of opts.paths) {
@@ -1799,4 +1819,23 @@ function clippedRangeIndices(
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
+}
+
+/** A view of `selection` whose `each` visits only the nodes of the items at `indices`. */
+function selectItemsAt<TDatum extends { datumIndex: number }, TNode extends Node<TDatum>>(
+    selection: Selection<TDatum, TNode>,
+    indices: Set<number>
+): Selection<TDatum, TNode> {
+    const view = Object.create(selection) as Selection<TDatum, TNode>;
+    view.each = function eachItemAt(iterate) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function selectionEachItemAt() {
+            for (let index = 0; index < nodes.length; index++) {
+                const datum = nodes[index].unsafeNonNullDatum;
+                if (indices.has(datum.datumIndex)) iterate(nodes[index], datum, index);
+            }
+        });
+        return view;
+    };
+    return view;
 }

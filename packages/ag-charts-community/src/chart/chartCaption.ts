@@ -108,7 +108,6 @@ export class ChartCaption implements CaptionLike {
     private truncated = false;
     private proxyText?: BoundedTextWidget;
     private lastProxyTextContent?: string;
-    private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
@@ -222,16 +221,7 @@ export class ChartCaption implements CaptionLike {
             this.lastProxyTextContent = textContent;
         }
 
-        const { lastProxyBBox } = this;
-        if (
-            bbox.x !== lastProxyBBox?.x ||
-            bbox.y !== lastProxyBBox?.y ||
-            bbox.width !== lastProxyBBox?.width ||
-            bbox.height !== lastProxyBBox?.height
-        ) {
-            this.proxyText.setBounds(bbox);
-            this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
-        }
+        this.proxyText.setBounds(bbox);
     }
 
     private getEffectiveTooltipVisible(): 'auto' | 'always' | 'never' {
@@ -347,6 +337,5 @@ export class ChartCaption implements CaptionLike {
         this.proxyText.destroy();
         this.proxyText = undefined;
         this.lastProxyTextContent = undefined;
-        this.lastProxyBBox = undefined;
     }
 }

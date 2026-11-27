@@ -42,6 +42,8 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly classList: string[];
     readonly ariaLabel: TranslationKey | undefined;
     readonly role?: BaseAttributeTypeMap['role'];
+    /** Where to insert the container relative to the series area, rather than at the end of the canvas proxy. */
+    readonly where?: 'beforebegin' | 'afterend';
 };
 
 type ProxyMeta = {
@@ -95,6 +97,8 @@ type ProxyMeta = {
     };
 };
 
+const SERIES_AREA_BOUNDS_QUERY = '.ag-charts-series-area-bounds';
+
 type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch' | 'region' | 'axis';
 type ProxyContainerType = 'toolbar' | 'group' | 'list';
 
@@ -114,6 +118,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
     } else if ('list' === type) {
         return new ListWidget();
     } else if ('region' === type) {
+        // TODO: Phase 3 "Common Widget Ancestor" - a plain region has no Widget subclass of its own yet.
         return new NativeWidget<HTMLDivElement>(createElement('div'));
     } else if ('axis' === type) {
         return new AxisWidget();
@@ -129,7 +134,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
 function allocateMeta<T extends keyof ProxyMeta>(ctx: ChartRegistry, params: ProxyMeta[T]['params']): ProxyMeta[T] {
     const meta = { params, result: undefined } as unknown as ProxyMeta[T];
     meta.result = allocateResult(meta.params.type);
-    // TODO: AG−18361 Phase 3 "Common Widget Ancestor" - set result as a descendant of the DOM Manager root.
+    // TODO: Phase 3 "Common Widget Ancestor" - set result as a descendant of the DOM Manager root.
     meta.result.setCanvasOrigin(ctx.domManager);
     return meta;
 }
@@ -155,7 +160,14 @@ export class ProxyInteractionService {
         const meta: ProxyMeta[T] = allocateMeta(this.ctx, args);
         const { params, result } = meta;
 
-        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement());
+        const insert = params.where == null ? undefined : { where: params.where, query: SERIES_AREA_BOUNDS_QUERY };
+        // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should adopt the Widget rather than its element.
+        // eslint-disable-next-line aglint/widget-boundary -- DOMManager.addChild() takes a raw element (Phase 3).
+        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, result.getElement(), insert);
+        result.destroyListener = () => {
+            this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);
+            result.destroyListener = undefined;
+        };
         result.addClass(...params.classList, 'ag-charts-proxy-container');
         result.setAriaRole(params.role ?? params.type);
 
@@ -259,7 +271,9 @@ export class ProxyInteractionService {
         if ('parent' in params) {
             params.parent?.addChild(element);
         } else {
-            const insert = { where: params.where, query: '.ag-charts-series-area-bounds' };
+            const insert = { where: params.where, query: SERIES_AREA_BOUNDS_QUERY };
+            // TODO: Phase 3 "Common Widget Ancestor" - DOMManager should adopt the Widget rather than its element.
+            // eslint-disable-next-line aglint/widget-boundary -- DOMManager.addChild() takes a raw element (Phase 3).
             this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
             element.destroyListener = () => {
                 this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);

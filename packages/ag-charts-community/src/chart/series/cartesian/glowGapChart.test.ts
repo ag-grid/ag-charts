@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { visibleItems } from '../../test/glowRender';
 import {
     type Chart,
+    chartPixelAt,
     createChart,
     deproxy,
     expectWarningMessages,
@@ -20,24 +19,22 @@ import {
 // and ends 10px further out.
 const glow = (gap?: number) => ({ blur: 0, spread: 10, fill: 'red', fillOpacity: 1, gap });
 
-// The item is half-opaque blue on a white chart, and a glow is cast at the strength of its item, so it is pink beside it. Where
-// the glow is beneath the item, the item is purple over it, with less green than the lavender of the item over white.
+// The item is half-opaque blue on a white chart, and a glow with a `fillOpacity` of 1 is solid red beside it. Where the glow is
+// beneath the item, the item is purple over it, with less green than the lavender of the item over white.
 const WHITE = [255, 255, 255, 255];
-/** The glow beside the item: red at the strength of the item. */
-const GLOW_PINK = [255, 127, 127, 255];
+/** The glow beside the item: red at the strength that it is set to. */
+const GLOW_RED = [255, 0, 0, 255];
 const TRANSLUCENT_ITEM = { fill: 'blue', fillOpacity: 0.5, strokeWidth: 0 };
 const LAVENDER_GREEN = 128;
 
-/** Whether the pixel is pink: a glow is cast on it. */
+/** Whether the pixel is reddened: a glow is cast on it. */
 const isGlowing = (pixel: number[]) => pixel[0] === 255 && pixel[1] < 255;
-/** Whether the item is over a glow, which makes it darker than over white, as a translucent item shows a glow through it. */
-const showsGlow = (pixel: number[]) => pixel[1] < LAVENDER_GREEN - 30;
 /** Whether the item is over white, as a glow that is cut out of the footprint of the item leaves it. */
 const isClear = (pixel: number[]) => Math.abs(pixel[1] - LAVENDER_GREEN) <= 2 && pixel[2] === 255;
 
 describe('glow gap in a chart', () => {
     setupMockConsole();
-    const canvas = setupMockCanvas();
+    setupMockCanvas();
 
     let chart: Chart | undefined;
 
@@ -56,16 +53,9 @@ describe('glow gap in a chart', () => {
         return created;
     };
 
-    const pixelAt = (x: number, y: number) => {
-        const { data, width } = canvas.snapshot();
-        const i = (Math.round(y) * width + Math.round(x)) * 4;
-        return Array.from(data.slice(i, i + 4));
-    };
+    const pixelAt = (x: number, y: number) => chartPixelAt(chart!, x, y);
 
-    const firstItem = () => {
-        const [node] = getSeriesSelectionNodes<Node>(chart!, 'datumSelection').filter((n) => n.visible);
-        return Transformable.toCanvas(node);
-    };
+    const firstItem = () => visibleItems(chart!)[0];
 
     /** The pixel `distance` to the right of the first item, along the line across its middle, which is inside it if negative. */
     const rightOfFirstItem = () => {
@@ -113,24 +103,23 @@ describe('glow gap in a chart', () => {
             });
         }
 
-        // The glow of the highlight copy is beneath the item, which shows it through, but the glow of the series is cast in an
-        // overlay above the series, which cuts the footprint of the item that glows out of it.
-        it('should cast a glow with no gap like a shadow, and show it through the translucent item only if hovered', async () => {
+        // With no gap set, the glow takes the theme's gap of 1, which cuts the item's footprint out of the glow in the highlight
+        // copy, as in the overlay that the series casts its glow in, so a translucent item does not show it through.
+        it('should cast a glow with the theme gap, and keep it out of the translucent item', async () => {
             const at = await createAndHover();
 
             expect(isGlowing(at(3))).toBe(true);
-            expect(at(3)).toEqual(GLOW_PINK);
-            expect(at(8)).toEqual(GLOW_PINK);
-            if (hovered) expect(showsGlow(at(-10))).toBe(true);
-            else expect(isClear(at(-10))).toBe(true);
+            expect(at(3)).toEqual(GLOW_RED);
+            expect(at(8)).toEqual(GLOW_RED);
+            expect(isClear(at(-10))).toBe(true);
         });
 
         it('should keep the glow out of the item with a gap of 0, and cast it as far out as with no gap', async () => {
             const at = await createAndHover(0);
 
             expect(isClear(at(-10))).toBe(true);
-            expect(at(3)).toEqual(GLOW_PINK);
-            expect(at(8)).toEqual(GLOW_PINK);
+            expect(at(3)).toEqual(GLOW_RED);
+            expect(at(8)).toEqual(GLOW_RED);
             expect(at(15)).toEqual(WHITE);
         });
 
@@ -147,13 +136,71 @@ describe('glow gap in a chart', () => {
 
     describe('around the hovered item, cast by its highlight copy', () => {
         it.each([
-            ['let a highlight gap of 0 clear a series gap', { gap: 0 }, GLOW_PINK],
+            ['let a highlight gap of 0 clear a series gap', { gap: 0 }, GLOW_RED],
             ['inherit the series gap where the bucket sets none', { blur: 0 }, WHITE],
         ])('should %s', async (_name, bucket, expected) => {
             await create(bars({ glow: glow(5), highlight: { highlightedItem: { glow: bucket } } }));
             await hoverFirst();
 
             expect(rightOfFirstItem()(2)).toEqual(expected);
+        });
+    });
+
+    describe('around a marker with a wide stroke', () => {
+        const GAP = 1;
+        const SPREAD = 8;
+        const strokedMarkers = (stroke: object) =>
+            markers({
+                fill: 'blue',
+                fillOpacity: 1,
+                stroke: 'darkslategray',
+                glow: { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 },
+                ...stroke,
+            });
+
+        it.each([
+            { strokeWidth: 6 },
+            { strokeWidth: 12 },
+            { strokeWidth: 18 },
+            { strokeWidth: 24 },
+            { strokeWidth: 24, strokeOpacity: 0 },
+        ])(
+            'should grow the glow a gap and a spread past the outer edge of a stroke of $strokeWidth',
+            async (stroke) => {
+                await create(strokedMarkers(stroke));
+                const at = rightOfFirstItem();
+                const outerEdge = stroke.strokeWidth / 2;
+
+                expect(at(outerEdge + GAP + 1)).toEqual(GLOW_RED);
+                expect(at(outerEdge + GAP + SPREAD - 2)).toEqual(GLOW_RED);
+                expect(at(outerEdge + GAP + SPREAD + 2)).toEqual(WHITE);
+            }
+        );
+
+        it('should blur a glow with no spread or gap from the outer edge of a stroke of 24', async () => {
+            const strokeWidth = 24;
+            await create(strokedMarkers({ strokeWidth, glow: { blur: 8, spread: 0, fill: 'red', fillOpacity: 1 } }));
+            const at = rightOfFirstItem();
+
+            expect(isGlowing(at(strokeWidth / 2 + 2))).toBe(true);
+            expect(at(strokeWidth / 2 + 40)).toEqual(WHITE);
+        });
+
+        it('should keep the default hover glow visible past a stroke of 6', async () => {
+            const strokeWidth = 6;
+            await create(
+                markers({
+                    stroke: 'darkslategray',
+                    strokeWidth,
+                    highlight: { highlightedItem: { glow: { fill: 'red' } } },
+                })
+            );
+            await hoverFirst();
+            const pixel = rightOfFirstItem()(strokeWidth / 2 + GAP + 1);
+
+            expect(pixel[0]).toBe(255);
+            // The default glow is red at an opacity of 0.6, which takes most of the green out of the white beneath it.
+            expect(pixel[1]).toBeLessThanOrEqual(160);
         });
     });
 

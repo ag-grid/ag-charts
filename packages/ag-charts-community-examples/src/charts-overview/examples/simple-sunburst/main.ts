@@ -15,7 +15,7 @@ const options: AgChartOptions = {
             colorScale: {
                 fills: [{ color: '#cb4b3f' }, { color: '#6acb64' }],
             },
-            sectorSpacing: 1,
+            gap: 1,
             secondaryLabel: {
                 formatter(params) {
                     return params.value.toFixed(2) + '%';

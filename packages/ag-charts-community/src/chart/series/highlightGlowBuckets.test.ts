@@ -164,7 +164,10 @@ describe.each(SERIES)(
 
             it('keeps the base shadow where the state glow is disabled', async () => {
                 const { inPlace, highlighted } = await hover(
-                    { highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } } },
+                    {
+                        highlightedItem: { glow: { enabled: false } },
+                        highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } },
+                    },
                     SERIES_SHADOW
                 );
 
@@ -215,7 +218,7 @@ describe('glow when the hover moves between series', () => {
         await waitForChartStability(chart);
     };
 
-    it('redraws only the series whose redrawn item changes when the hover moves between items', async () => {
+    it('redraws no whole series when the hover moves between items', async () => {
         const highlight = { unhighlightedItem: { glow: HIGHLIGHT_GLOW } };
         await create(
             ['v', 'w', 'x'].map((yKey) => ({ type: 'bar', xKey: 'x', yKey, shadow: SERIES_SHADOW, highlight }))
@@ -223,7 +226,7 @@ describe('glow when the hover moves between series', () => {
         await hoverDatum(0, 0);
         await hoverDatum(0, 1);
 
-        expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(true);
+        expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(false);
         expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(false);
         expect(getSeriesHasChangesOnHighlight(chart, 2)).toBe(false);
     });
@@ -294,7 +297,11 @@ describe('glow on rings linked through legendItemKey', () => {
     // The highlight layer's copy casts the glow of the `Item` state, which `highlightedSeries.glow` falls back to.
     it.each([
         ['highlightedSeries', { highlightedSeries: { glow: HIGHLIGHT_GLOW } }, GLOW_SHADOW],
-        ['unhighlightedItem', { unhighlightedItem: { glow: HIGHLIGHT_GLOW } }, undefined],
+        [
+            'unhighlightedItem',
+            { highlightedItem: { glow: { enabled: false } }, unhighlightedItem: { glow: HIGHLIGHT_GLOW } },
+            undefined,
+        ],
     ])(
         "keeps the linked ring's in-place sector shadow beneath its highlight copy with %s.glow",
         async (_name, highlight, copyGlow) => {

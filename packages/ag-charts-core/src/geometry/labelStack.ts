@@ -10,10 +10,10 @@ import {
     findLargestFittingStep,
     fitLabelText,
     fontWithSize,
-    hasRealChars,
     isErased,
     keptCharacters,
     resolveMinimumFontSize,
+    showsContent,
 } from '../text/textWrapper';
 import type { FontOptions } from '../types/text';
 import { type FitRegion, regionWidthAt } from './fitRegion';
@@ -180,8 +180,9 @@ function fitStackAtSizes(
     const { blocks, spacing } = stack;
     const maxHeight = container?.height ?? Infinity;
     let maxWidth = container?.width ?? Infinity;
+    let estimate = Infinity;
     if (shape != null) {
-        let estimate = spacing * (included.length - 1);
+        estimate = spacing * (included.length - 1);
         for (let i = 0; i < included.length; i++) {
             const { fit } = blocks[included[i]];
             const font = fontWithSize(fit.font, sizes[i]);
@@ -190,24 +191,61 @@ function fitStackAtSizes(
         }
         maxWidth = Math.min(maxWidth, shapeWidthAt(shape, shapeAlign, estimate));
     }
-    const fitted = fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, maxHeight);
+    const fitted = fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, maxHeight, false);
     // An overflowing block already overruns its room, so the shape cannot bound it.
     if (fitted == null || shape == null || fitted.overflows) return fitted;
     // A wrapped block can make the stack taller than the estimate, and a shape narrower where it ends.
     const width = shapeWidthAt(shape, shapeAlign, fitted.height);
     if (fitted.width <= width) return fitted;
-    const refitted = fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight);
-    if (refitted == null || refitted.overflows) return refitted;
-    return refitted.width > shapeWidthAt(shape, shapeAlign, refitted.height) ? undefined : refitted;
+    const narrowed = withinShape(
+        fitBlocksToWidth(stack, included, sizes, atFloor, width, maxHeight, false),
+        shape,
+        shapeAlign
+    );
+    // Above the floor nothing truncates, and a room no taller than the estimate holds the stack no tighter, so a
+    // held fit could only repeat the fit the shape already rejected.
+    if (!atFloor || estimate >= maxHeight) return narrowed;
+    if (narrowed != null && !narrowed.overflows && narrowed.dropped === 0) return narrowed;
+    // Narrowing can truncate more than holding the stack to its estimated height on the wider line.
+    const held = withinShape(
+        fitBlocksToWidth(stack, included, sizes, atFloor, maxWidth, estimate, true),
+        shape,
+        shapeAlign
+    );
+    if (held == null) return narrowed;
+    // Returning nothing lets the caller drop an optional block rather than keep it beside an overrun.
+    if (narrowed == null) return held.overflows ? undefined : held;
+    if (narrowed.overflows !== held.overflows) return narrowed.overflows ? held : narrowed;
+    // `dropped` counts characters only, so the held fit must not win by losing an image.
+    return held.dropped < narrowed.dropped && keptImages(held) >= keptImages(narrowed) ? held : narrowed;
 }
 
+function keptImages(fit: StackFit): number {
+    let count = 0;
+    for (const block of fit.blocks) {
+        if (!isArray(block?.text)) continue;
+        for (const segment of block.text) {
+            if (segment.type === 'image') count++;
+        }
+    }
+    return count;
+}
+
+/** `undefined` when the fit is wider than the shape where it ends; an overflowing fit is not bounded by it. */
+function withinShape(fit: StackFit | undefined, shape: FitRegion, align: RegionAlign): StackFit | undefined {
+    if (fit == null || fit.overflows) return fit;
+    return fit.width > shapeWidthAt(shape, align, fit.height) ? undefined : fit;
+}
+
+/** `holdToLine` keeps each block to its one-line share of the estimate, so a wrapped block leaves the next its line. */
 function fitBlocksToWidth(
     stack: LabelStack,
     included: readonly number[],
     sizes: readonly number[],
     atFloor: boolean,
     maxWidth: number,
-    maxHeight: number
+    maxHeight: number,
+    holdToLine: boolean
 ): StackFit | undefined {
     const { blocks, spacing } = stack;
     const fitted: (FittedLabelBlock | undefined)[] = blocks.map(() => undefined);
@@ -225,7 +263,11 @@ function fitBlocksToWidth(
         const padding = fit.boxPadding ?? ZERO_PADDING;
         const font = fontWithSize(fit.font, sizes[i]);
         const glyphWidth = Math.min(policy.maxWidth ?? Infinity, maxWidth - boxWidth(padding));
-        const glyphHeight = Math.min(policy.maxHeight ?? Infinity, remaining - boxHeight(padding));
+        const glyphHeight = Math.min(
+            policy.maxHeight ?? Infinity,
+            remaining - boxHeight(padding),
+            holdToLine ? drawnLineHeight(font) : Infinity
+        );
         // Truncating is the last resort, once every block is at its minimum size.
         const overflowStrategy = atFloor ? policy.overflowStrategy : 'hide';
         const blockFit: LabelFit = {
@@ -264,10 +306,6 @@ function fitBlocksToWidth(
         if (fitted[index] == null) dropped += keptCharacters(blocks[index].fit.text);
     }
     return { blocks: fitted, width, height, dropped: Math.max(0, dropped), area, overflows: anyOverflows };
-}
-
-function showsContent(text: NormalisedTextOrSegments): boolean {
-    return hasRealChars(text) || (isArray(text) && text.some((segment) => segment.type === 'image'));
 }
 
 function shapeWidthAt(shape: FitRegion, align: RegionAlign, height: number): number {

@@ -17,6 +17,7 @@ import {
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
+    waitForUpdateQueueDrain,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -116,6 +117,23 @@ describe('LinearGaugeSeries', () => {
             const finalCalls = formatter.mock.calls.filter(([{ value }]) => value === options.value);
             expect(formatter.mock.calls.length).toBeGreaterThan(finalCalls.length);
             expect(finalCalls).toHaveLength(1);
+        });
+
+        it('can be destroyed while its value label is still counting up', async () => {
+            const formatter = vi.fn(({ value }: { value: number }) => `${value}`);
+            const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, label: { enabled: true, formatter } };
+            prepareEnterpriseTestOptions(options);
+
+            const proxy = AgCharts.createGauge(options);
+            chart = deproxy(proxy);
+            await frames.captureAnimationFrames(proxy, () => undefined, { frames: 3, duration: 300 });
+            const [{ value }] = formatter.mock.calls.at(-1)!;
+            expect(value).toBeGreaterThan(0);
+            expect(value).toBeLessThan(options.value);
+
+            chart.destroy();
+            // Teardown is queued and logs its errors, which the mock console then fails on.
+            await waitForUpdateQueueDrain(chart);
         });
     });
 

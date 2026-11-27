@@ -3,6 +3,8 @@ import { expect, it, vi } from 'vitest';
 import { Group, Shape } from 'ag-charts-core';
 import type { AgDropShadowOptions, AgGlowOptions, AgItemShadowStyle, AgMarkerShapeFn } from 'ag-charts-types';
 
+import { Series } from '../series/series';
+
 /** The shadow the marker shadow tests turn on. */
 export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
 
@@ -76,8 +78,34 @@ export async function countCastMerges(series: object, action: () => Promise<void
     }
 }
 
+/**
+ * Counts the merges that every series builds from now on, creation included, until `restore`. Use it where a series
+ * does not exist yet when the count has to start, or where the point is that it merges nothing at all.
+ */
+export function spyOnCastMerges() {
+    const merge = vi.spyOn(Series.prototype as unknown as { mergeItemCast: () => void }, 'mergeItemCast');
+    return { count: () => merge.mock.calls.length, restore: () => merge.mockRestore() };
+}
+
+/** An item styler that returns nothing and records the params of each call by the highlight state it was called in. */
+export function recordParamsByHighlightState() {
+    const byState = new Map<string, any[]>();
+    const styler = (params: any) => {
+        byState.set(params.highlightState, [...(byState.get(params.highlightState) ?? []), params]);
+        return {};
+    };
+    return { byState, styler };
+}
+
+/** Asserts that the styler was called in `state`, and that every one of those calls had params matching `expected`. */
+export function expectParamsInState(byState: Map<string, any[]>, state: string, expected: object) {
+    const calls = byState.get(state) ?? [];
+    expect(calls.length).toBeGreaterThan(0);
+    for (const params of calls) expect(params).toMatchObject(expected);
+}
+
 /** What a glow with no fields of its own casts, from the glow theme defaults. */
-export const THEME_GLOW = { enabled: true, fillOpacity: 0.4, blur: 2, spread: 4 };
+export const THEME_GLOW = { enabled: true, fillOpacity: 0.6, blur: 1, spread: 2, gap: 1 };
 
 /** What a shadow with no fields of its own casts: black, at the theme's opacity (0.5, or 1 in the dark theme). */
 export const themeShadow = (opacity: number) => ({

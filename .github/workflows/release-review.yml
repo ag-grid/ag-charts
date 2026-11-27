@@ -123,7 +123,8 @@ jobs:
     docs-review:
         name: Documentation review
         if: github.event_name == 'workflow_dispatch' && (inputs.review == 'docs' || inputs.review == 'both')
-        runs-on: ubuntu-latest
+        # Pinned to ubuntu-24.04: the Nx cache is saved there; matching the image avoids the Nx cache miss before cache adoption (ubuntu-latest is now 26.04).
+        runs-on: ubuntu-24.04
         timeout-minutes: 120
         permissions:
             # Job-level permissions replace the workflow-level ones, so restate them.
@@ -177,7 +178,8 @@ jobs:
     options-review:
         name: Options (API) review
         if: github.event_name == 'workflow_dispatch' && (inputs.review == 'options' || inputs.review == 'both')
-        runs-on: ubuntu-latest
+        # Pinned to ubuntu-24.04: the Nx cache is saved there; matching the image avoids the Nx cache miss before cache adoption (ubuntu-latest is now 26.04).
+        runs-on: ubuntu-24.04
         timeout-minutes: 60
         permissions:
             # Job-level permissions replace the workflow-level ones, so restate them.

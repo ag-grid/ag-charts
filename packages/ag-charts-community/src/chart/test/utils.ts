@@ -1,7 +1,7 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
-import type { Image as SkiaImage } from 'skia-canvas';
+import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 import {
@@ -109,7 +109,7 @@ export interface StandaloneTestCase extends ChartTestCase {
 }
 
 const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
-/** Single highlighting with the shared tooltip a 2-3-series cartesian chart defaults to, for tests not about either mode. */
+/** Single highlighting with a shared tooltip, for tests not about either mode. */
 export const SINGLE_HIGHLIGHT_SHARED_TOOLTIP = {
     highlight: { mode: 'single' },
     tooltip: { mode: 'shared' },
@@ -2672,6 +2672,23 @@ function getLegendItemCentre(chartOrProxy: ChartOrProxy<any>, index: number): [n
  */
 export function stubChartImageLoader(chartOrProxy: ChartOrProxy<any>, images: Record<string, SkiaImage>): void {
     deproxy(chartOrProxy).ctx.scene.imageLoader.loadImage = (uri: string) => images[uri] as unknown as HTMLImageElement;
+}
+
+/** An SVG badge drawn from shapes only: SVG text would rasterise with whatever fonts the machine has installed. */
+export function iconSvg(fill: string, shape: 'circle' | 'square' = 'circle'): string {
+    const badge =
+        shape === 'circle'
+            ? `<circle cx="16" cy="16" r="14" fill="${fill}"/>`
+            : `<rect x="2" y="2" width="28" height="28" rx="6" fill="${fill}"/>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">${badge}` +
+            `<rect x="9" y="9" width="14" height="5" rx="2" fill="white"/></svg>`
+    )}`;
+}
+
+export async function preloadImages(urls: string[]): Promise<Record<string, SkiaImage>> {
+    const entries = await Promise.all(urls.map(async (url) => [url, await skiaLoadImage(url)] as const));
+    return Object.fromEntries(entries);
 }
 
 export function getCursor(chart: Chart | AgChartProxy): string {

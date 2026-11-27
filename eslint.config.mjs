@@ -9,6 +9,7 @@ import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change
 import noUnscopedLogger from './libraries/ag-charts-eslint-rules/rules/no-unscoped-logger.mjs';
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
+import widgetBoundary, { widgetBoundaryDirectives } from './libraries/ag-charts-eslint-rules/rules/widget-boundary.mjs';
 
 // The complete set of files that log without a chart, plus the deliberate re-export sites that
 // publish the ambient emitters. Each one is here because no chart context reaches it — not because
@@ -251,6 +252,18 @@ export const sonarjsConfig = [
     ...needsReviewAfterSonarjs4Upgrade,
 ];
 
+// Outside the widget module, a raw element is reached only through an allowed escape. Each one is listed where it
+// happens as `eslint-disable-next-line aglint/widget-boundary -- <reason>`, so the allowance fails lint once the escape
+// goes. Tests and test helpers inspect the DOM freely. Globs are relative to the package config that spreads this in.
+export const widgetBoundaryConfig = {
+    files: ['src/**/*.ts'],
+    ignores: ['src/widget/**', '**/*.{test,spec}.ts', '**/test/**', '**/__mocks__/**'],
+    rules: {
+        'aglint/widget-boundary': 2,
+        'aglint/widget-boundary-directives': 2,
+    },
+};
+
 /** @type {import('eslint').Linter.Config[]} */
 export default [
     { files: ['**/*.{js,mjs,cjs,ts}'], linterOptions: { reportUnusedDisableDirectives: 'error' } },
@@ -300,6 +313,8 @@ export default [
                     'require-shared-renderer': requireSharedRenderer,
                     'change-detection': lintChangeDetection,
                     'no-unscoped-logger': noUnscopedLogger,
+                    'widget-boundary': widgetBoundary,
+                    'widget-boundary-directives': widgetBoundaryDirectives,
                 },
             },
             unicorn,

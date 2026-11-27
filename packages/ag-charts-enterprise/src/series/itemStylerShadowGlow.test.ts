@@ -12,18 +12,20 @@ import {
     THEME_GLOW,
     countCastMerges,
     countCastSerialisations,
-    deproxy,
+    endHover,
+    expectParamsInState,
     expectWarningMessages,
     getSeriesAt,
-    getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
+    hoverDatum,
+    hoverNode,
     isOn,
+    recordParamsByHighlightState,
     resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
     themeShadow,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 import { Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
@@ -42,6 +44,9 @@ const FLOW_DATA = [
     { from: 'B', to: 'C', size: 5 },
     { from: 'B', to: 'D', size: 7 },
 ];
+
+/** What a glow with no fields of its own casts on a hierarchy tile: flush, with no blur, in the neutral colour (Defaults sheet). */
+const TILE_THEME_GLOW = { ...THEME_GLOW, fillOpacity: 1, blur: 0, spread: 1, gap: 0 };
 
 const hierarchyRoot = (chart: AgChartInstance): HierarchyNode => {
     const root = getHierarchyRootNode(chart);
@@ -71,6 +76,8 @@ interface Case {
         itemStyler: (params: any) => object;
     }) => object;
     data: object[];
+    /** For the series that read their glow from a cascade shared by the slot: `count` leaves, named `L0`, `L1`, and so on. */
+    leaves?: (count: number) => object[];
     /** Whether the styler is called for the item whose result the test sets. */
     isFirst: (params: any) => boolean;
     /** The datum to hover: the first item. */
@@ -78,12 +85,12 @@ interface Case {
     layers: (chart: AgChartInstance) => Layers;
     /** The slot of a shape that holds the glow it casts: the glow slot, or the shadow slot of a series with one slot per item. */
     glowSlot: 'fillGlow' | 'fillShadow';
-    /** The slot that holds the glow of the highlight layer's copy, if it is not `glowSlot`: a hierarchy casts it as a shadow. */
-    highlightGlowSlot?: 'fillGlow' | 'fillShadow';
     /** A series with one slot per item shows its glow in place of its shadow; others cast both. */
     oneSlot: boolean;
     /** Whether the series has a series-level `glow` option; the hierarchy series take a glow from their highlight styles only. */
     seriesGlow: boolean;
+    /** What a glow with no fields of its own casts for this series. */
+    themeGlow: typeof THEME_GLOW;
 }
 
 const visible = (shapes: Iterable<Shape>, kind: abstract new (...args: never[]) => Shape) =>
@@ -93,11 +100,11 @@ const hierarchyLayers =
     (kind: abstract new (...args: never[]) => Shape) =>
     (chart: AgChartInstance): Layers => {
         // Leaves only: a group of a treemap is a shape of the same kind in the same selection.
-        const leaves = (name: 'datumSelection' | 'highlightSelection') =>
+        const leaves = (name: 'datumSelection' | 'highlightGlowSelection') =>
             visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name), kind).filter(
                 (shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren
             );
-        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightSelection') };
+        return { inPlace: leaves('datumSelection'), highlighted: leaves('highlightGlowSelection') };
     };
 
 const CASES: Case[] = [
@@ -107,6 +114,7 @@ const CASES: Case[] = [
         glowSlot: 'fillGlow',
         oneSlot: false,
         seriesGlow: true,
+        themeGlow: THEME_GLOW,
         isFirst: (params) => params.datum.from === 'A' && params.datum.to === 'C',
         hover: (chart) => getFlowLinkData(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -125,17 +133,20 @@ const CASES: Case[] = [
     {
         name: 'treemap tile',
         data: HIERARCHY_SHADOW_DATA,
+        leaves: (count) => [
+            { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
+        ],
         glowSlot: 'fillGlow',
-        highlightGlowSlot: 'fillShadow',
-        oneSlot: true,
-        seriesGlow: false,
+        oneSlot: false,
+        seriesGlow: true,
+        themeGlow: TILE_THEME_GLOW,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
-        series: ({ shadow, highlight, itemStyler }) => ({
+        series: ({ shadow, glow, highlight, itemStyler }) => ({
             type: 'treemap',
             labelKey: 'name',
             sizeKey: 'size',
-            tile: { shadow, highlight },
+            tile: { shadow, glow, highlight },
             itemStyler,
         }),
         layers: hierarchyLayers(Rect),
@@ -143,10 +154,13 @@ const CASES: Case[] = [
     {
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
+        leaves: (count) => [
+            { name: 'Root', children: Array.from({ length: count }, (_, id) => ({ name: `L${id}`, size: 10 })) },
+        ],
         glowSlot: 'fillGlow',
-        highlightGlowSlot: 'fillShadow',
-        oneSlot: true,
-        seriesGlow: false,
+        oneSlot: false,
+        seriesGlow: true,
+        themeGlow: TILE_THEME_GLOW,
         isFirst: (params) => params.datum.name === 'A1',
         hover: (chart) => leavesOf(chart)[0],
         series: ({ shadow, glow, highlight, itemStyler }) => ({
@@ -180,28 +194,27 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             hover?: boolean;
             first?: ItemCast;
             styler?: (params: any) => object;
+            data?: object[];
         } = {}
     ) => {
         const { first = {} } = opts;
         const itemStyler = opts.styler ?? ((params: any) => (testCase.isFirst(params) ? first : {}));
         chart = await createEnterpriseChart({
-            data: testCase.data,
+            data: opts.data ?? testCase.data,
             animation: { enabled: false },
             legend: { enabled: false },
             series: [testCase.series({ ...opts, itemStyler })],
         } as AgChartOptions);
 
         if (opts.hover) {
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
-            await waitForChartStability(chart);
+            await hoverNode(chart, testCase.hover(chart));
         }
         return testCase.layers(chart);
     };
 
     // A series with one slot per item holds the glow where it would hold the shadow; the shadow is cast where it has no glow.
     const glowOf = (shape: Shape) => shape[testCase.glowSlot];
-    const highlightGlowOf = (shape: Shape) => shape[testCase.highlightGlowSlot ?? testCase.glowSlot];
+    const highlightGlowOf = (shape: Shape) => shape[testCase.glowSlot];
 
     describe('override', () => {
         it('casts the shadow that the styler returns for an item, and the series shadow for the others', async () => {
@@ -241,7 +254,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
                 // Option normalisation strips every field of an option object that has `enabled: false`.
                 const { inPlace } = await create({ glow: { ...SERIES_GLOW, enabled: false }, first: { glow: {} } });
 
-                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(THEME_GLOW));
+                expect(glowOf(inPlace[0])).toMatchObject(glowShadow(testCase.themeGlow));
                 for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
             }
         );
@@ -249,7 +262,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
         it('keeps the theme glow for the fields that a partial glow leaves unset, with no series glow', async () => {
             const { inPlace } = await create({ first: { glow: { blur: 7 } } });
 
-            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+            expect(glowOf(inPlace[0])).toMatchObject(glowShadow({ ...testCase.themeGlow, blur: 7 }));
             for (const shape of inPlace.slice(1)) expect(isOn(glowOf(shape))).toBe(false);
         });
 
@@ -353,13 +366,8 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             const merged = [inPlace[0].fillShadow, glowOf(inPlace[0])];
 
             // Hovering then leaving makes the items update in each state once, and leaving returns to the first.
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
-            await waitForChartStability(chart);
-            const castsSerialised = await countCastSerialisations(async () => {
-                ctx.highlightManager.updateHighlight(id);
-                await waitForChartStability(chart);
-            });
+            await hoverNode(chart, testCase.hover(chart));
+            const castsSerialised = await countCastSerialisations(() => endHover(chart));
             expect(castsSerialised).toBe(0);
             const after = testCase.layers(chart).inPlace[0];
             expect(after.fillShadow).toBe(merged[0]);
@@ -372,12 +380,9 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             const cast: ItemCast = { shadow: { ...ITEM_SHADOW }, glow: { ...ITEM_GLOW } };
             await create({ shadow: SHADOW, styler: () => cast });
 
-            const { ctx, id } = deproxy(chart);
             const hoverAndLeave = async () => {
-                ctx.highlightManager.updateHighlight(id, testCase.hover(chart));
-                await waitForChartStability(chart);
-                ctx.highlightManager.updateHighlight(id);
-                await waitForChartStability(chart);
+                await hoverNode(chart, testCase.hover(chart));
+                await endHover(chart);
             };
             await hoverAndLeave();
 
@@ -398,7 +403,7 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(inPlace[0].fillShadow).toMatchObject(ITEM_SHADOW);
         });
 
-        it('casts the glow of the styler from the highlight copy, with every field the styler sets', async () => {
+        it('casts the glow of the styler from the glow-only copy, with every field the styler sets', async () => {
             const { highlighted } = await create({
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
@@ -475,25 +480,210 @@ describe.each(CASES)('itemStyler shadow and glow ($name)', (testCase) => {
             expect(inPlace[0].fillShadow).toMatchObject(ITEM_SHADOW);
         });
 
-        it('gives the styler params neither a shadow nor a glow, in any highlight state', async () => {
-            const params: object[] = [];
+        it('gives the styler params the shadow and glow that the highlight state casts', async () => {
+            const { byState, styler } = recordParamsByHighlightState();
             await create({
                 shadow: SHADOW,
                 glow: testCase.seriesGlow ? SERIES_GLOW : undefined,
                 highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW }, unhighlightedItem: { glow: HIGHLIGHT_GLOW } },
                 hover: true,
-                styler: (itemParams) => {
-                    params.push(itemParams);
-                    return {};
-                },
+                styler,
             });
 
-            expect(params.length).toBeGreaterThan(testCase.data.length);
-            for (const itemParams of params) {
-                expect(itemParams).not.toHaveProperty('shadow');
-                expect(itemParams).not.toHaveProperty('glow');
+            expect([...byState.values()].flat().length).toBeGreaterThan(testCase.data.length);
+            expectParamsInState(byState, 'highlighted-item', { shadow: SHADOW, glow: HIGHLIGHT_GLOW });
+        });
+
+        it('gives the styler params the glow of the state they are called in, and the series glow, or none, before the hover', async () => {
+            const { byState, styler } = recordParamsByHighlightState();
+            await create({
+                glow: testCase.seriesGlow ? SERIES_GLOW : undefined,
+                highlight: { highlightedItem: { glow: HIGHLIGHT_GLOW } },
+                hover: true,
+                styler,
+            });
+
+            expectParamsInState(byState, 'highlighted-item', { glow: HIGHLIGHT_GLOW });
+            // The leaves: a group of a treemap has a glow of its own.
+            const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
+            expect(others.length).toBeGreaterThan(1);
+            for (const itemParams of others) {
+                expect(itemParams.glow).toEqual(
+                    testCase.seriesGlow ? { ...SERIES_GLOW, gap: testCase.themeGlow.gap } : undefined
+                );
+                expect(itemParams.glow).toBe(others[0].glow);
             }
         });
+    });
+
+    describe('with the deprecated shadow color', () => {
+        // `color` is accepted on a series `shadow`, but not in the `shadow` that a styler returns.
+        const COLORED_SHADOW = { enabled: true, color: 'red', blur: 3 } as AgDropShadowOptions;
+        // The one warning allowed: the option is deprecated. The styler's own `unknown property` warning is not.
+        const DEPRECATED_COLOR_WARNING = expect.stringContaining('shadow.color` is deprecated');
+
+        it('gives the styler a shadow that it can spread into the shadow it returns, with no warning of its own', async () => {
+            const { inPlace } = await create({
+                shadow: COLORED_SHADOW,
+                styler: (params) => (testCase.isFirst(params) ? { shadow: { ...params.shadow, blur: 9 } } : {}),
+            });
+
+            expect(inPlace.length).toBeGreaterThan(1);
+            expect(inPlace[0].fillShadow).toMatchObject({ fill: 'red', blur: 9 });
+            for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
+            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+        });
+
+        it('gives the styler a shadow that it can return as it is, in the hovered state too', async () => {
+            const { inPlace } = await create({
+                shadow: COLORED_SHADOW,
+                hover: true,
+                styler: (params) => ({ shadow: params.shadow }),
+            });
+
+            expect(inPlace.length).toBeGreaterThan(1);
+            for (const shape of inPlace) expect(shape.fillShadow).toMatchObject({ fill: 'red', blur: 3 });
+            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+        });
+
+        it('gives every call a shadow with the color as its fill, and no color, in each highlight state', async () => {
+            const { byState, styler } = recordParamsByHighlightState();
+            await create({ shadow: COLORED_SHADOW, hover: true, styler });
+
+            expect([...byState.keys()]).toContain('highlighted-item');
+            // The leaves: a group of a treemap has a shadow of its own.
+            const leaves = [...byState.values()].flat().filter((itemParams) => itemParams.datum.children == null);
+            expect(leaves.length).toBeGreaterThan(1);
+            for (const itemParams of leaves) {
+                expect(itemParams.shadow).toMatchObject({ fill: 'red', blur: 3 });
+                expect(itemParams.shadow).not.toHaveProperty('color');
+            }
+            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+        });
+
+        it('gives every leaf in a state the same shadow object', async () => {
+            const { byState, styler } = recordParamsByHighlightState();
+            await create({ shadow: COLORED_SHADOW, hover: true, styler });
+
+            // The leaves: a group of a treemap has a shadow of its own.
+            const others = (byState.get('none') ?? []).filter((itemParams) => itemParams.datum.children == null);
+            expect(others.length).toBeGreaterThan(1);
+            for (const itemParams of others) expect(itemParams.shadow).toBe(others[0].shadow);
+            expectWarningMessages([DEPRECATED_COLOR_WARNING]);
+        });
+    });
+
+    describe.runIf(testCase.leaves != null)('the cap on distinct casts', () => {
+        const CAP = 16;
+        const nameOf = (shape: Shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name as string;
+        const blurOf = (id: number) => glowShadow({ ...SERIES_GLOW, blur: id + 1 });
+        /** A styler that casts a glow whose blur is `blurFor(id)` on the leaf `L<id>`, recording the leaves in the order it first sees them. */
+        const blurBy = (blurFor: (id: number) => number) => {
+            const seen: string[] = [];
+            const styler = (params: any) => {
+                const name: string = params.datum.name;
+                if (!/^L\d+$/.test(name)) return {};
+                if (!seen.includes(name)) seen.push(name);
+                return { glow: { blur: blurFor(Number(name.slice(1))) } };
+            };
+            return { seen, styler };
+        };
+        const warnsOfTheCap = () => [
+            expect.stringContaining(`series '${getSeriesAt(chart).id}' has more than ${CAP} distinct`),
+        ];
+
+        it('casts every distinct glow up to the cap, with no warning', async () => {
+            const { styler } = blurBy((id) => id + 1);
+            const { inPlace } = await create({ data: testCase.leaves!(CAP), glow: SERIES_GLOW, styler });
+
+            expect(inPlace).toHaveLength(CAP);
+            for (const shape of inPlace) {
+                expect(glowOf(shape)).toMatchObject(blurOf(Number(nameOf(shape).slice(1))));
+            }
+            expectWarningMessages([]);
+        });
+
+        it('casts the series glow from the 17th distinct glow, and warns once for the series', async () => {
+            const { seen, styler } = blurBy((id) => id + 1);
+            const { inPlace } = await create({ data: testCase.leaves!(CAP + 4), glow: SERIES_GLOW, styler });
+
+            expect(inPlace).toHaveLength(CAP + 4);
+            // Each leaf has a glow of its own, so the leaves past the 16th that the styler reached fall back.
+            const within = new Set(seen.slice(0, CAP));
+            for (const shape of inPlace) {
+                const name = nameOf(shape);
+                expect(glowOf(shape)).toMatchObject(
+                    within.has(name) ? blurOf(Number(name.slice(1))) : glowShadow(SERIES_GLOW)
+                );
+            }
+            expect(inPlace.filter((shape) => !within.has(nameOf(shape)))).toHaveLength(4);
+            expectWarningMessages(warnsOfTheCap());
+        });
+
+        it('counts equal glows once, however many leaves return them', async () => {
+            const { styler } = blurBy((id) => (id % CAP) + 1);
+            const { inPlace } = await create({ data: testCase.leaves!(CAP * 3), glow: SERIES_GLOW, styler });
+
+            expect(inPlace).toHaveLength(CAP * 3);
+            for (const shape of inPlace) {
+                expect(glowOf(shape)).toMatchObject(blurOf(Number(nameOf(shape).slice(1)) % CAP));
+            }
+            expectWarningMessages([]);
+        });
+    });
+});
+
+describe('itemStyler glow params of a treemap tile', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it('are the glow the tile casts, with a group highlighted', async () => {
+        const seen = new Map<string, any>();
+        chart = await createEnterpriseChart({
+            data: HIERARCHY_SHADOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    tile: {
+                        glow: { enabled: true, blur: 3 },
+                        highlight: {
+                            highlightedItem: { glow: { enabled: true, blur: 9 } },
+                            highlightedBranch: { glow: { enabled: true, blur: 9 } },
+                        },
+                    },
+                    itemStyler: (params: any) => {
+                        if (params.depth > 1) seen.set(params.datum.name, params.glow);
+                        return {};
+                    },
+                },
+            ],
+        } as AgChartOptions);
+
+        const [group] = hierarchyRoot(chart).children;
+        seen.clear();
+        await hoverNode(chart, group);
+
+        // The glow of a tile in the hovered group is cast by its glow-only copy, not by the tile drawn in place.
+        const tiles = visible(
+            getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'highlightGlowSelection'),
+            Rect
+        ).filter((shape) => !(shape as Shape<HierarchyNode>).datum?.hasChildren);
+        expect(tiles.length).toBeGreaterThan(1);
+        for (const tile of tiles) {
+            const name = (tile as Shape<{ datum: { name: string } }>).datum?.datum?.name ?? '';
+            expect(seen.get(name)?.blur).toBe(3);
+            expect((tile.fillGlow as { blur?: number }).blur).toBe(3);
+        }
     });
 });
 
@@ -550,18 +740,17 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
         } as AgChartOptions);
 
         // A tile in a hovered group inherits only the group's opacities, so no highlight glow is under the styler's.
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(
-            id,
+        await hoverNode(
+            chart,
             [...hierarchyRoot(chart)].find((node) => node.datum?.name === 'A')
         );
-        await waitForChartStability(chart);
 
-        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'datumSelection'), Rect).find(
+        // The glow of a tile in the hovered group is cast by its glow-only copy.
+        const tile = visible(getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, 'highlightGlowSelection'), Rect).find(
             (shape) => (shape as Shape<HierarchyNode>).datum?.datum?.name === 'A1'
         );
 
-        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...THEME_GLOW, blur: 7 }));
+        expect(tile?.fillGlow).toMatchObject(glowShadow({ ...TILE_THEME_GLOW, blur: 7 }));
         expect(tile?.fillGlow?.fill).not.toBe(HIGHLIGHT_GLOW.fill);
     });
 
@@ -600,9 +789,7 @@ describe('itemStyler shadow and glow (nodes with their own paths)', () => {
             const cells = await create({}, { shadow: ITEM_SHADOW });
             expect(cells).toHaveLength(0);
 
-            const { ctx, id } = deproxy(chart);
-            ctx.highlightManager.updateHighlight(id, getSeriesNodeData<HighlightNodeDatum & { datum: any }>(chart)[0]);
-            await waitForChartStability(chart);
+            await hoverDatum(chart);
 
             const nodes = getSeriesSelectionNodes<Shape<{ datum: { c: number } }>>(chart, 'datumSelection');
             expect(nodes).toHaveLength(4);

@@ -7,8 +7,11 @@
     --toolbar-button-border-color: var(--ag-charts-button-border-color);
     --toolbar-button-border-width: var(--ag-charts-button-border-width);
     --toolbar-button-gap: 0;
+    --toolbar-button-overlap: 0px;
     --toolbar-button-padding: 6px;
     --toolbar-button-text-color: var(--ag-charts-button-text-color);
+    /* Lowering a button's stacking order waits for its colour transition; the rules that raise it do not. */
+    --toolbar-button-z-index-timing: step-end;
 
     --toolbar-button-background-color--active: var(--ag-charts-button-active-background-color);
     --toolbar-button-border-color--active: var(--ag-charts-button-active-border-color);
@@ -32,6 +35,13 @@
     position: absolute;
 }
 
+/* A button being hovered or focused rises at once, and its neighbours lower at once, or they cover its shared edges. */
+.ag-charts-toolbar__button:is(:hover, :focus-visible),
+.ag-charts-toolbar__button:has(+ .ag-charts-toolbar__button:is(:hover, :focus-visible)),
+.ag-charts-toolbar__button:is(:hover, :focus-visible) + .ag-charts-toolbar__button {
+    --toolbar-button-z-index-timing: step-start;
+}
+
 /* Button */
 
 .ag-charts-toolbar__button {
@@ -49,14 +59,17 @@
     font-weight: var(--ag-charts-chrome-font-weight);
     justify-content: center;
     min-height: var(--toolbar-size);
-    min-width: var(--toolbar-size);
+    min-width: calc(var(--toolbar-size) + var(--toolbar-button-overlap));
     padding: var(--toolbar-button-padding);
     position: relative;
     transition:
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
-        color 0.25s ease-in-out;
+        color 0.25s ease-in-out,
+        z-index 0.25s var(--toolbar-button-z-index-timing);
     white-space: nowrap;
+    /* On an edge shared with a neighbour, the stacking order is disabled, default, hover, active. */
+    z-index: 1;
 }
 
 .ag-charts-toolbar__button:hover {
@@ -64,13 +77,7 @@
     background: var(--toolbar-button-background-color--hover);
     border-color: var(--toolbar-button-border-color--hover);
     color: var(--toolbar-button-text-color--hover);
-    z-index: 1;
-}
-
-.ag-charts-toolbar__button:focus-visible {
-    outline: var(--ag-charts-focus-border);
-    box-shadow: var(--ag-charts-focus-border-shadow);
-    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
+    z-index: 2;
 }
 
 .ag-charts-toolbar__button--active,
@@ -78,10 +85,11 @@
 .ag-charts-toolbar__button[aria-pressed='true'],
 .ag-charts-toolbar__button[aria-pressed='true']:hover {
     --toolbar-button-border-width: var(--toolbar-button-border-width--active);
+    --toolbar-button-z-index-timing: step-start;
     background: var(--toolbar-button-background-color--active);
     border-color: var(--toolbar-button-border-color--active);
     color: var(--toolbar-button-text-color--active);
-    z-index: 2;
+    z-index: 3;
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
@@ -90,52 +98,37 @@
     border-color: var(--toolbar-button-border-color--disabled);
     color: var(--toolbar-button-text-color--disabled);
     cursor: default;
+    z-index: 0;
+}
+
+.ag-charts-toolbar__button:focus-visible {
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
 /* Orientation */
 
 .ag-charts-toolbar--horizontal {
+    /* Each button draws a complete border and overlaps the next by the toolbar's border width, so
+       adjacent buttons share an edge. Buttons grow by the overlap to keep the row's width. */
+    --toolbar-button-overlap: var(--toolbar-button-border-width);
+
     flex-direction: row;
 
     .ag-charts-toolbar__button {
-        border-inline-end-width: 0;
+        margin-inline-end: calc(-1 * var(--toolbar-button-overlap));
     }
 
     .ag-charts-toolbar__button--first {
         border-end-start-radius: var(--toolbar-border-radius);
         border-start-start-radius: var(--toolbar-border-radius);
-        margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
+        --toolbar-button-overlap: 0px;
         border-end-end-radius: var(--toolbar-border-radius);
         border-start-end-radius: var(--toolbar-border-radius);
-        border-inline-end-width: var(--toolbar-button-border-width);
-        margin-inline-end: 0;
-    }
-
-    /* Draw dividers on the next button's inline-start border: growing a button's own
-       inline-end border is absorbed by min-width clamping, so the row shifts. A button that starts
-       a group is not adjacent to the previous one and draws its own border, so it is excluded. */
-    .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true'])
-        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, .ag-charts-toolbar__button--first) {
-        border-inline-start-color: var(--toolbar-button-border-color--hover);
-        border-inline-start-width: var(--toolbar-button-border-width--hover);
-    }
-
-    .ag-charts-toolbar__button[aria-disabled='true']
-        + .ag-charts-toolbar__button:not(
-            .ag-charts-toolbar__button--active,
-            .ag-charts-toolbar__button--first,
-            :hover
-        ) {
-        border-inline-start-color: var(--toolbar-button-border-color--disabled);
-        border-inline-start-width: var(--toolbar-button-border-width--disabled);
-    }
-
-    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--first) {
-        border-inline-start-color: var(--toolbar-button-border-color--active);
-        border-inline-start-width: var(--toolbar-button-border-width--active);
     }
 }
 
@@ -213,7 +206,7 @@
 .ag-charts-toolbar .ag-charts-toolbar__button--sized {
     height: var(--toolbar-button-size);
     min-height: var(--toolbar-button-size);
-    min-width: var(--toolbar-button-size);
+    min-width: calc(var(--toolbar-button-size) + var(--toolbar-button-overlap));
     padding-bottom: 0;
     padding-top: 0;
 }
@@ -222,7 +215,7 @@
     max-width: none;
     padding-left: 0;
     padding-right: 0;
-    width: var(--toolbar-button-size);
+    width: calc(var(--toolbar-button-size) + var(--toolbar-button-overlap));
 }
 
 .ag-charts-toolbar__button--sized .ag-charts-toolbar__icon,

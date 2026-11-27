@@ -1,8 +1,4 @@
-import type {
-    AgStateSerializableBigInt,
-    AgStateSerializableGroupingValueType,
-    AgStateSerializableValueType,
-} from '../api/stateTypes';
+import type { AgStateSerializableGroupingValueType, AgStateSerializableValueType } from '../api/stateTypes';
 import type {
     FillOptions,
     LineDashOptions,
@@ -157,17 +153,15 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 // ***********
 
 /**
- * How strongly annotation points snap to the values of the nearest datum, measured along the y-axis.
- * - `'weak'` snaps only when the pointer is within `range` pixels of a value.
- * - `'strong'` always snaps to the nearest value.
+ * How close the pointer must be to a value of a datum for annotation points to snap to it.
+ * - A number is the distance in pixels, from a value of a datum at its position, within which points snap to it.
+ * - `'nearest'` always snaps to the nearest value, from any distance.
  */
-export type AgAnnotationMagnetMode = 'weak' | 'strong';
+export type AgAnnotationMagnetRange = 'nearest' | PixelSize;
 
 export interface AgAnnotationMagnet extends Toggleable {
-    /** How strongly annotation points snap to the position and values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts whether the magnet is enabled. Default: `'weak'` */
-    mode?: AgAnnotationMagnetMode;
-    /** The distance in pixels from a value of a datum, at its position, within which a `'weak'` magnet snaps to it. Default: `20` */
-    range?: PixelSize;
+    /** The range within which annotation points snap to the position and values of the nearest datum, such as the open, high, low and close of a candlestick. Holding Ctrl or Cmd while drawing or dragging inverts whether the magnet is enabled. Default: `20` */
+    range?: AgAnnotationMagnetRange;
 }
 
 export interface AgAnnotationsOptions extends Toggleable {
@@ -221,32 +215,9 @@ export interface AgLineAnnotation
     text?: AgLineAnnotationText;
 }
 
-/** A named datum of a series that a horizontal-line annotation can follow. */
-export type AgAnnotationFollowName = 'first' | 'last';
-
-export interface AgAnnotationFollowOptions {
-    /** The named datum to follow. */
-    follow: AgAnnotationFollowName;
-    /** The `id` of the series to follow. If not set, the first visible series bound to the y-axis is used. */
-    seriesId?: string;
-}
-
-export type AgAnnotationFollow = AgAnnotationFollowName | AgAnnotationFollowOptions;
-
-export interface AgHorizontalLineAnnotation extends Omit<AgCrossLineAnnotation, 'value'> {
+export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
-    /** Position of the annotation specified in terms of the y-axis value. Required unless `follow` is set. */
-    value?: AgAnnotationValue;
-    /**
-     * Make the annotation follow the `'first'` or `'last'` datum of a series, so it moves when the data changes. A
-     * followed annotation cannot be dragged and `value` is ignored.
-     *
-     * The series' value is its `yKey`, or its `closeKey` for financial series. Pass an object to choose the series
-     * with `seriesId`, which must be bound to the y-axis the annotation is on. A series chosen this way is followed
-     * even while it is hidden.
-     */
-    follow?: AgAnnotationFollow;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
 }
@@ -558,8 +529,8 @@ interface AnnotationLinePoints {
 export interface AgAnnotationPoint {
     /** The x-value of the point. */
     x: AgAnnotationValue;
-    /** The y-value of the point. A number, or a serialised value object. */
-    y: number | AgStateSerializableBigInt;
+    /** The y-value of the point. */
+    y: AgAnnotationValue;
 }
 
 interface Writeable {
@@ -600,16 +571,31 @@ export type AgAnnotationValue = AgStateSerializableValueType | AgStateSerializab
 
 export interface AgAnnotationsToolbar extends Toggleable {
     /** The buttons to show in the toolbar. */
-    buttons?: AgAnnotationsToolbarButton[];
+    buttons?: AgAnnotationsToolbarItem[];
     /** Padding in pixels around the toolbar. */
     padding?: number;
     /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
     buttonSize?: PixelSize;
 }
 
+export type AgAnnotationsToolbarItem = AgAnnotationsToolbarButton | AgAnnotationsToolbarSwitch;
+
 export interface AgAnnotationsToolbarButton extends ToolbarButton {
+    /**
+     * The type of toolbar item.
+     *
+     * Default: `'button'`
+     */
+    type?: 'button';
     /** The action to perform when the button is clicked. */
     value: AgAnnotationsToolbarButtonValue;
+}
+
+export interface AgAnnotationsToolbarSwitch extends ToolbarSwitch {
+    /** The type of toolbar item. */
+    type: 'switch';
+    /** The action to perform when the switch is toggled. */
+    value: AgAnnotationsToolbarSwitchValue;
 }
 
 export type AgAnnotationsToolbarButtonValue =
@@ -629,8 +615,9 @@ export type AgAnnotationsToolbarButtonValue =
     | 'comment'
     | 'callout'
     | 'note'
-    | 'magnet'
     | 'clear';
+
+export type AgAnnotationsToolbarSwitchValue = 'magnet';
 
 // *******************
 // * Options Toolbar *
@@ -643,6 +630,13 @@ export interface AgAnnotationOptionsToolbar extends Toggleable {
     buttons?: AgAnnotationOptionsToolbarItem[];
     /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
     buttonSize?: PixelSize;
+    /**
+     * Whether to show Apply and Cancel buttons on the colour picker and settings dialog opened from this toolbar.
+     * In the colour picker Enter always applies and Escape always cancels; in the dialog they do so only with the buttons.
+     *
+     * Default: `false`
+     */
+    showActionButtons?: boolean;
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {

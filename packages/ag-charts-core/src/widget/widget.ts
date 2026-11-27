@@ -2,7 +2,7 @@ import type { TextAlign } from 'ag-charts-types';
 
 import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
 import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
-import { getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
+import { containsFocus, getElementBBox, isFocused, setElementBBox } from '../dom/domUtil';
 import { isNode } from '../dom/globalsProxy';
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ElementID } from '../identity/idBranding';
@@ -27,10 +27,29 @@ export type BeforeWidget<T extends IWidget<HTMLElement>> = T & { domIndex: numbe
 
 abstract class WidgetBounds<TElement extends HTMLElement> {
     protected elemContainer?: HTMLDivElement;
+    // OPTIMIZATION: callers set bounds on every render, so bounds equal to the last ones skip the style writes.
+    private lastBounds?: Partial<BoxBounds>;
+
     constructor(protected readonly elem: TElement) {}
 
     setBounds(bounds: Partial<BoxBounds>): void {
+        const { lastBounds } = this;
+        if (
+            lastBounds != null &&
+            lastBounds.x === bounds.x &&
+            lastBounds.y === bounds.y &&
+            lastBounds.width === bounds.width &&
+            lastBounds.height === bounds.height
+        ) {
+            return;
+        }
+        this.lastBounds = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height };
         setElementBBox(this.elemContainer ?? this.elem, bounds);
+    }
+
+    /** Makes the next `setBounds()` write its bounds, after the styles it writes were changed some other way. */
+    protected invalidateBounds() {
+        this.lastBounds = undefined;
     }
 
     getBounds(): BoxBounds {
@@ -39,6 +58,7 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
 
     /** Removes the inline width that `setBounds()` wrote, so `getBounds()` reports the rendered width. */
     clearWidth(): void {
+        this.invalidateBounds();
         setElementStyle(this.elemContainer ?? this.elem, 'width', undefined);
     }
 
@@ -46,6 +66,7 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
         const currentBounds = widget.getBounds();
         setElementBBox(elemContainer, currentBounds);
         setElementStyles(widget.elem, { width: '100%', height: '100%' });
+        widget.invalidateBounds();
         widget.elem.remove();
         widget.elemContainer = elemContainer;
         widget.elemContainer.replaceChildren(widget.elem);
@@ -73,8 +94,16 @@ export abstract class Widget<
 
     protected abstract destructor(): void;
 
+    private setAttributeIfChanged<A extends keyof BaseAttributeTypeMap>(
+        name: A,
+        value: BaseAttributeTypeMap[A] | undefined
+    ) {
+        const next = value == null || value === '' ? null : value.toString();
+        if (this.elem.getAttribute(name) !== next) setAttribute(this.elem, name, value);
+    }
+
     set id(elementId: ElementID | undefined) {
-        setAttribute(this.elem, 'id', elementId);
+        this.setAttributeIfChanged('id', elementId);
     }
 
     get id(): ElementID | undefined {
@@ -164,7 +193,10 @@ export abstract class Widget<
     }
 
     setTextContent(textContent: string | undefined) {
-        this.elem.textContent = textContent ?? null;
+        const text = textContent ?? '';
+        // Writing `textContent` also replaces child elements, so only text-only content can skip the write.
+        if (this.elem.childElementCount === 0 && this.elem.textContent === text) return;
+        this.elem.textContent = text;
     }
 
     getTextContent(): string {
@@ -189,48 +221,52 @@ export abstract class Widget<
     }
 
     setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
-        setAttribute(this.elem, 'role', role);
+        this.setAttributeIfChanged('role', role);
     }
 
     setAriaDescribedBy(ariaDescribedBy: BaseAttributeTypeMap['aria-describedby'] | undefined) {
-        setAttribute(this.elem, 'aria-describedby', ariaDescribedBy);
+        this.setAttributeIfChanged('aria-describedby', ariaDescribedBy);
     }
 
     setAriaHidden(ariaHidden: BaseAttributeTypeMap['aria-hidden'] | undefined) {
-        setAttribute(this.elem, 'aria-hidden', ariaHidden);
+        this.setAttributeIfChanged('aria-hidden', ariaHidden);
     }
 
     setAriaLabel(ariaLabel: BaseAttributeTypeMap['aria-label'] | undefined) {
-        setAttribute(this.elem, 'aria-label', ariaLabel);
+        this.setAttributeIfChanged('aria-label', ariaLabel);
     }
 
     setAriaExpanded(ariaExpanded: BaseAttributeTypeMap['aria-expanded'] | undefined) {
-        setAttribute(this.elem, 'aria-expanded', ariaExpanded);
+        this.setAttributeIfChanged('aria-expanded', ariaExpanded);
     }
 
     setAriaControls(ariaControls: BaseAttributeTypeMap['aria-controls'] | undefined) {
-        setAttribute(this.elem, 'aria-controls', ariaControls);
+        this.setAttributeIfChanged('aria-controls', ariaControls);
     }
 
     setAriaHasPopup(ariaHasPopup: BaseAttributeTypeMap['aria-haspopup'] | undefined) {
-        setAttribute(this.elem, 'aria-haspopup', ariaHasPopup);
+        this.setAttributeIfChanged('aria-haspopup', ariaHasPopup);
     }
 
     setAriaChecked(ariaChecked: BaseAttributeTypeMap['aria-checked'] | undefined) {
-        setAttribute(this.elem, 'aria-checked', ariaChecked);
+        this.setAttributeIfChanged('aria-checked', ariaChecked);
+    }
+
+    setAriaCurrent(ariaCurrent: BaseAttributeTypeMap['aria-current'] | undefined) {
+        setAttribute(this.elem, 'aria-current', ariaCurrent);
     }
 
     setAriaSelected(ariaSelected: BaseAttributeTypeMap['aria-selected'] | undefined) {
-        setAttribute(this.elem, 'aria-selected', ariaSelected);
+        this.setAttributeIfChanged('aria-selected', ariaSelected);
     }
 
     setAriaLabelledBy(ariaLabelledBy: BaseAttributeTypeMap['aria-labelledby'] | undefined) {
-        setAttribute(this.elem, 'aria-labelledby', ariaLabelledBy);
+        this.setAttributeIfChanged('aria-labelledby', ariaLabelledBy);
     }
 
     /** Sets the `title` attribute (the native tooltip), or removes it when `undefined` or empty. */
     setTitle(title: BaseAttributeTypeMap['title'] | undefined) {
-        setAttribute(this.elem, 'title', title);
+        this.setAttributeIfChanged('title', title);
     }
 
     /**
@@ -250,6 +286,21 @@ export abstract class Widget<
         this.elem.style.transform = `translate(${x}px, ${y}px)`;
     }
 
+    /**
+     * Rotates the element clockwise by `angle` radians about (`originX`, `originY`), in CSS pixels from its top-left
+     * corner, or removes the rotation when `angle` is `undefined`. Replaces any transform from `setTranslate()`.
+     */
+    setRotation(angle: number | undefined, originX = 0, originY = 0) {
+        const { style } = this.elemContainer ?? this.elem;
+        if (angle == null) {
+            style.removeProperty('transform');
+            style.removeProperty('transform-origin');
+        } else {
+            style.transform = `rotate(${angle}rad)`;
+            style.transformOrigin = `${originX}px ${originY}px`;
+        }
+    }
+
     /** Sets the CSS `border-radius` in CSS pixels, or removes it when `undefined`. */
     setBorderRadius(radius: number | undefined) {
         this.elem.style.borderRadius = radius == null ? '' : `${radius}px`;
@@ -261,6 +312,7 @@ export abstract class Widget<
      */
     setCssOffset(position: Partial<Point>) {
         const { style } = this.elem;
+        this.invalidateBounds();
         style.setProperty('right', 'unset');
         style.setProperty('bottom', 'unset');
         if (position.x != null) style.setProperty('left', `${position.x}px`);
@@ -278,6 +330,7 @@ export abstract class Widget<
 
     /** Sets the inline `width` in CSS pixels, or removes it when `undefined`. */
     setWidth(width: number | undefined) {
+        this.invalidateBounds();
         if (width == null) {
             this.elem.style.removeProperty('width');
         } else {
@@ -360,6 +413,11 @@ export abstract class Widget<
         return isFocused(this.elem);
     }
 
+    /** Whether the focus is on this widget's element or one of its descendants. */
+    containsFocus(): boolean {
+        return containsFocus(this.elem);
+    }
+
     /** Whether the pointer is over this widget's element (the CSS `:hover` state). */
     isHovered(): boolean {
         return this.elem.matches(':hover');
@@ -396,15 +454,15 @@ export abstract class Widget<
     }
 
     setFocusOverride(focus: boolean | undefined) {
-        setAttribute(this.elem, 'data-focus-override', focus);
+        this.setAttributeIfChanged('data-focus-override', focus);
     }
 
     setPreventsDefault(preventDefault: boolean) {
-        setAttribute(this.elem, 'data-preventdefault', preventDefault);
+        this.setAttributeIfChanged('data-preventdefault', preventDefault);
     }
 
     setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
-        setAttribute(this.elem, 'tabindex', tabIndex);
+        this.setAttributeIfChanged('tabindex', tabIndex);
     }
 
     addChild(child: TChildWidget) {

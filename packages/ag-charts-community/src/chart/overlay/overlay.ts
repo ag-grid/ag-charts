@@ -106,6 +106,7 @@ export class Overlay {
             this.defaultContent = content;
             // TODO: Phase 3 "Common Widget Ancestor" - the overlay is mounted through DOMElementProxy, which takes a
             // raw element, and shares its removal path with user-rendered elements.
+            // eslint-disable-next-line aglint/widget-boundary -- DOMElementProxy mounts a raw element (Phase 3).
             this.content = content.getElement();
 
             animationManager?.animate({

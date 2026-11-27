@@ -1,4 +1,4 @@
-import type { AgGradientColor, AgImageFill, AgPatternColor } from '../series/cartesian/commonOptions';
+import type { AgGradientColor, AgImageFill, AgPatternColor, AgSolidColor } from '../series/cartesian/commonOptions';
 import type { AgChartAllThemeParams } from './themeParamsOptions';
 import type { AgLineDashName } from './types';
 
@@ -16,7 +16,8 @@ export type Operation =
 type Leaf<T extends ExcludeLeaves | object> = Operation | T;
 type AnyLeaf = Leaf<ExcludeLeaves>;
 
-type ExcludeLeaves = string | symbol | number | boolean | undefined | AgGradientColor | AgPatternColor | AgImageFill;
+type ExcludeLeaves =
+    string | symbol | number | boolean | undefined | AgSolidColor | AgGradientColor | AgPatternColor | AgImageFill;
 
 /**
  * Modify a type T by extending it's leaves with the type V, excluding any leaf that extends E.
@@ -83,6 +84,8 @@ type PaletteParam =
     | 'stroke'
     | 'markerShapes'
     | 'markerShape'
+    | 'lineDashes'
+    | 'lineDash'
     | 'gradients'
     | 'gradient'
     | 'sequentialColors'
@@ -117,6 +120,7 @@ type ColorOperation =
     | { $isGradient: AnyLeaf } // Target vertex
     | { $isImage: AnyLeaf } // Target vertex
     | { $isPattern: AnyLeaf } // Target vertex
+    | { $isSolid: AnyLeaf } // Target vertex
     | { $isTransparent: AnyLeaf } // Target vertex, true for a colour with zero alpha
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] } // Colour A | Colour B | Ratio of Colour B (0 to 1)
     | { $opacity: [Leaf<string>, Leaf<number>] }; // Colour A | Opacity of Colour A (0 to 1)
@@ -162,18 +166,23 @@ type LogicOperation =
 
 type NumericOperation =
     | { $even: Leaf<number> } // Number
-    | { $multiply: [Leaf<number>, Leaf<number>] }; // Number | Number — the unrounded product
+    | { $multiply: [Leaf<number>, Leaf<number>] } // Number | Number — the unrounded product
+    | { $rescaleLineDash: [Leaf<number[]>, Leaf<number>, Leaf<number>] }; // Dash | Stroke width it was resolved at | Stroke width it is drawn at
 
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied
     | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
-    | { $applyLineDash: [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>] } // Default dash | Stroke width a name scales by
+    | {
+          $applyLineDash:
+              | [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>]
+              | [Leaf<number[]> | AgLineDashName | undefined, Leaf<number>, AgLineDashName];
+      } // Default dash | Stroke width a name scales by | Dash a set value layers over in place of the default
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
     | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge
-    | { $omit: [Leaf<string[]>, Leaf<object>] } // Array of keys to omit | Object from which to omit keys
+    | { $omit: [Leaf<string[]>, Leaf<object>] } // Array of keys to omit, a dotted key being nested | Object from which to omit keys
     | { $size: AnyLeaf } // Target vertex
     | { $shallow: Leaf<Array<any>> } // Array value to treat as a shallow value in the graph
     | { $shallowSimple: Leaf<Array<any>> } // Array value to treat as a shallow value in the graph, use when default children are simple objects

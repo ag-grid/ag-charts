@@ -1395,6 +1395,21 @@ describe('OptionsGraph', () => {
             });
         });
 
+        it.each(['$switch', '$applySwitch'])('should not build a graph for the cases of `%s`', (operator) => {
+            const deepCase = { first: { second: [{ third: 1 }, { third: 2 }] } };
+            const themeConfig = (caseValue: unknown) => ({
+                line: {
+                    one: { [operator]: [{ $path: '/two' }, {}, [['case-a', 'case-b'], caseValue]] },
+                    two: 'case-a',
+                },
+            });
+            const shallowGraph = new OptionsGraph(themeConfig({}), prepareOptions({}));
+            const deepGraph = new OptionsGraph(themeConfig(deepCase), prepareOptions({}));
+
+            expect(deepGraph.getVertexCount()).toBe(shallowGraph.getVertexCount());
+            expect(deepGraph.resolve(testLogger).one).toStrictEqual(deepCase);
+        });
+
         it('should resolve `$every` operations', () => {
             const themeConfig = {
                 line: {
@@ -1910,6 +1925,20 @@ describe('OptionsGraph', () => {
                     five: 'five-value',
                     six: 'six-value',
                 },
+                axes: expect.any(Object),
+                series: expect.any(Array),
+            });
+        });
+
+        it('should omit a nested key that a dotted `$omit` key names', () => {
+            const two = { three: { four: 'four-value', other: 'other-value' }, five: 'five-value' };
+            const themeConfig = {
+                line: { one: { $omit: [['three.four', 'five.six', 'seven.eight'], { $path: '/two' }] }, two },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
+            expect(options).toStrictEqual({
+                one: { three: { other: 'other-value' }, five: 'five-value' },
+                two,
                 axes: expect.any(Object),
                 series: expect.any(Array),
             });

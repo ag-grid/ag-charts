@@ -39,6 +39,9 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaDescriptionToggleNode: 'Press Space or Enter to expand or collapse this node',
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
+    // Screen reader description for an annotation while the arrow keys move it
+    ariaDescriptionMoveAnnotation:
+        'Use the arrow keys to move the annotation, hold Shift for larger steps, and press Escape when done',
     // Screen reader for the '+' horizontal line button on the Y-axis
     ariaLabelAddHorizontalLine: 'Add Horizontal Line',
     // Screen reader text for annotations toolbar
@@ -47,6 +50,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for annotation-settings dialog
     ariaLabelAnnotationSettingsDialog: 'Annotation Settings',
+    // Screen reader text for the list of annotations that the keyboard can select
+    ariaLabelAnnotationsList: 'Annotations',
+    // Screen reader text for an annotation in the list of annotations, such as '20.2, Horizontal Line annotation'
+    ariaLabelAnnotation: '${description}, ${type} annotation',
+    // Screen reader text for the position of an annotation between two points
+    ariaLabelAnnotationRange: '${start} to ${end}',
+    // Screen reader text for an annotation that the arrow keys move, before the first move
+    ariaLabelMovingAnnotation: 'Moving annotation',
     // Screen reader text for the color-code label in the picker dialog
     ariaLabelColor: 'Color',
     // Screen reader text for the color picker dialog
@@ -237,6 +248,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDelete: 'Delete',
     // Text for the annotation toolbar's drag handle
     toolbarAnnotationsDragHandle: 'Drag Toolbar',
+    // Text for the annotation toolbar's move annotation button, which only shows when it is opened with the keyboard
+    toolbarAnnotationsMove: 'Move Annotation',
     // Text for the annotation toolbar's line drawings menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's Fibonacci drawings menu button
@@ -311,10 +324,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarZoomPanEnd: 'Pan to the end',
     // Text for the zoom toolbar's pan reset button
     toolbarZoomReset: 'Reset the zoom',
-    // Text for the color picker's cancel button, which reverts the colour to what it was before the picker opened
-    colorPickerCancel: 'Cancel',
-    // Text for the color picker's confirm button, which keeps the chosen colour and closes the picker
-    colorPickerConfirm: 'Confirm',
+    // Text for the annotations cancel button, on the color picker and settings dialog, which discards the changes made since opening
+    annotationsCancel: 'Cancel',
+    // Text for the annotations apply button, on the color picker and settings dialog, which keeps the changes made since opening
+    annotationsApply: 'Apply',
     // Text for the context menu's download button
     contextMenuDownload: 'Download',
     // Text for the context menu's toggle series visibility button
@@ -343,6 +356,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderText: 'Text',
     // Text for the annotation dialog's header coordinates tab label
     dialogHeaderCoordinates: 'Coordinates',
+    // Text for the annotation dialog's header style tab label, which holds the colours of a text or arrow marker annotation
+    dialogHeaderStyle: 'Style',
+    // Label and alt text for the annotation dialog's x coordinate input of an annotation anchored at a single point, e.g. a text or arrow marker annotation
+    dialogInputCoordinatesPointX: 'X',
+    // Label and alt text for the annotation dialog's y coordinate input of an annotation anchored at a single point, e.g. a text or arrow marker annotation
+    dialogInputCoordinatesPointY: 'Y',
+    // Label and alt text for the annotation dialog's input for the position of the x coordinate of an annotation anchored at a single point within its category, time band or bar, as a percentage, e.g. 'Offset: X (%)'
+    dialogInputCoordinatesPointOffsetX: 'Offset: X (%)',
+    // Label and alt text for the annotation dialog's input for the position of the y coordinate of an annotation anchored at a single point within its category, time band or bar, as a percentage, e.g. 'Offset: Y (%)'
+    dialogInputCoordinatesPointOffsetY: 'Offset: Y (%)',
     // Text for the annotation dialog's single value coordinate label, used by horizontal and vertical lines
     dialogInputCoordinatesValue: 'Value',
     // Text for the annotation dialog's channel height label
@@ -359,30 +382,30 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputCoordinatesEndX: 'End: X',
     // Label and alt text for the annotation dialog's end point y coordinate input, e.g. 'End: Y'
     dialogInputCoordinatesEndY: 'End: Y',
-    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point x coordinate input, e.g. 'Retracement end: X'
-    dialogInputCoordinatesEndRetracementX: 'Retracement end: X',
-    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point y coordinate input, e.g. 'Retracement end: Y'
-    dialogInputCoordinatesEndRetracementY: 'Retracement end: Y',
+    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point x coordinate input, e.g. 'Retracement: X'
+    dialogInputCoordinatesEndRetracementX: 'Retracement: X',
+    // Label and alt text for the annotation dialog's trend based fibonacci retracement end point y coordinate input, e.g. 'Retracement: Y'
+    dialogInputCoordinatesEndRetracementY: 'Retracement: Y',
     // Alt text for the annotation dialog's single value x coordinate input, e.g. 'Value: X'
     dialogInputCoordinatesValueX: 'Value: X',
     // Alt text for the annotation dialog's single value y coordinate input, e.g. 'Value: Y'
     dialogInputCoordinatesValueY: 'Value: Y',
-    // Label and alt text for the annotation dialog's input for the position of the start point x coordinate within its category, time band or bar, as a percentage, e.g. 'Start offset: X (%)'
-    dialogInputCoordinatesStartOffsetX: 'Start offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the start point y coordinate within its category, time band or bar, as a percentage, e.g. 'Start offset: Y (%)'
-    dialogInputCoordinatesStartOffsetY: 'Start offset: Y (%)',
-    // Label and alt text for the annotation dialog's input for the position of the end point x coordinate within its category, time band or bar, as a percentage, e.g. 'End offset: X (%)'
-    dialogInputCoordinatesEndOffsetX: 'End offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the end point y coordinate within its category, time band or bar, as a percentage, e.g. 'End offset: Y (%)'
-    dialogInputCoordinatesEndOffsetY: 'End offset: Y (%)',
-    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point x coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement end offset: X (%)'
-    dialogInputCoordinatesEndRetracementOffsetX: 'Retracement end offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point y coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement end offset: Y (%)'
-    dialogInputCoordinatesEndRetracementOffsetY: 'Retracement end offset: Y (%)',
-    // Label and alt text for the annotation dialog's input for the position of the single value x coordinate within its category, time band or bar, as a percentage, e.g. 'Value offset: X (%)'
-    dialogInputCoordinatesValueOffsetX: 'Value offset: X (%)',
-    // Label and alt text for the annotation dialog's input for the position of the single value y coordinate within its category, time band or bar, as a percentage, e.g. 'Value offset: Y (%)'
-    dialogInputCoordinatesValueOffsetY: 'Value offset: Y (%)',
+    // Label and alt text for the annotation dialog's input for the position of the start point x coordinate within its category, time band or bar, as a percentage, e.g. 'Start: X offset %'
+    dialogInputCoordinatesStartOffsetX: 'Start: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the start point y coordinate within its category, time band or bar, as a percentage, e.g. 'Start: Y offset %'
+    dialogInputCoordinatesStartOffsetY: 'Start: Y offset %',
+    // Label and alt text for the annotation dialog's input for the position of the end point x coordinate within its category, time band or bar, as a percentage, e.g. 'End: X offset %'
+    dialogInputCoordinatesEndOffsetX: 'End: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the end point y coordinate within its category, time band or bar, as a percentage, e.g. 'End: Y offset %'
+    dialogInputCoordinatesEndOffsetY: 'End: Y offset %',
+    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point x coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement: X offset %'
+    dialogInputCoordinatesEndRetracementOffsetX: 'Retracement: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the trend based fibonacci retracement end point y coordinate within its category, time band or bar, as a percentage, e.g. 'Retracement: Y offset %'
+    dialogInputCoordinatesEndRetracementOffsetY: 'Retracement: Y offset %',
+    // Label and alt text for the annotation dialog's input for the position of the single value x coordinate within its category, time band or bar, as a percentage, e.g. 'Value: X offset %'
+    dialogInputCoordinatesValueOffsetX: 'Value: X offset %',
+    // Label and alt text for the annotation dialog's input for the position of the single value y coordinate within its category, time band or bar, as a percentage, e.g. 'Value: Y offset %'
+    dialogInputCoordinatesValueOffsetY: 'Value: Y offset %',
     // Alt text for the annotation dialog's channel height input, e.g. 'Height: Y'
     dialogInputCoordinatesHeightY: 'Height: Y',
     // Alt text for the annotation dialog's disjoint channel start height input, e.g. 'Start height: Y'
@@ -435,16 +458,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputFibonacciBands: 'Bands',
     // Text for the annotation dialog's Fibonacci bands label
     dialogInputFibonacciBandsAltText: 'Fibonacci Bands',
-    // Text for the annotation dialog's follow select box label; makes a horizontal line follow a datum of a series
-    dialogInputFollow: 'Follow',
-    // Text for the annotation dialog's follow select box alt text
-    dialogInputFollowAltText: 'Follow a series value',
-    // Text for the annotation dialog's follow select box option that leaves the line at a fixed value
-    dialogInputFollowNone: 'None',
-    // Text for the annotation dialog's follow select box option that makes the line follow the first datum of the series
-    dialogInputFollowFirst: 'First value',
-    // Text for the annotation dialog's follow select box option that makes the line follow the last datum of the series
-    dialogInputFollowLast: 'Last value',
     // Text for text area input placeholders
     inputTextareaPlaceholder: 'Add Text',
     // Text for the measurer statistics date range bars value

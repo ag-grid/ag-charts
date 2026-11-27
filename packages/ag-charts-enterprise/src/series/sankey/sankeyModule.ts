@@ -8,12 +8,12 @@ import {
     ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
-    SAFE_FILLS_OPERATION,
-    SERIES_SELECTION_THEME,
+    SAFE_FILL_OPERATION,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    seriesSelectionTheme,
     themeLineHeight,
     undocumentedThemeOptions,
     withGlowThemeDefaults,
@@ -49,10 +49,10 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 enabled: { $path: ['/highlight/enabled', true] },
                 ...withGlowThemeDefaults(
                     {
-                        unhighlightedItem: { opacity: 0.5 },
+                        unhighlightedItem: { opacity: 0.3 },
                     },
                     ITEM_GLOW_BUCKETS,
-                    { glow: ['/series/$index/node/glow', '/series/$index/link/glow'] }
+                    { glow: ['/series/$index/node/glow', '/series/$index/link/glow'], glowOnHover: false }
                 ),
             },
             tooltip: SERIES_TOOLTIP_THEME,
@@ -90,12 +90,13 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 glow: GLOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
-                selection: SERIES_SELECTION_THEME,
+                selection: seriesSelectionTheme(0.6, 0.2),
                 fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
                 fillImageDefaults: FILL_IMAGE_DEFAULTS,
                 defaultColorRange: { $palette: 'gradients' },
-                defaultPatternFills: SAFE_FILLS_OPERATION,
+                // Per fill, as a palette can mix colours with patterns; the option accepts only solid colours.
+                defaultPatternFills: { $map: [SAFE_FILL_OPERATION, { $palette: 'fills' }] },
             }),
         },
         legend: {

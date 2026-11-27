@@ -174,7 +174,11 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
 
             registered.push(propertyName);
             bindings.chartProperties[id] = propertyName;
-            bindings.properties.push({ name: propertyName, value: code });
+            bindings.properties.push({
+                name: propertyName,
+                value: code,
+                typeInfo: extractTypeInfoForVariable(tsTree, propertyName),
+            });
         },
     });
 
@@ -270,6 +274,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
             properties: [],
             chartProperties: {},
             chartModules: chartParams.modules,
+            chartCreateArgs: chartParams.createArgs,
             externalEventHandlers: [],
             instanceMethods: [],
             globals: [],
@@ -334,11 +339,16 @@ function findTopLevelInitializer(tsTree: ts.SourceFile, name: string): ts.Expres
  */
 function collectChartParams(tsTree: ts.SourceFile, dirPath: string) {
     const modules: Record<string, string> = {};
+    const createArgs: Record<string, string> = {};
     const paramsVariables: string[] = [];
 
     const visit = (node: ts.Node) => {
         if (tsNodeIsAgChartsCreateCall(node)) {
             const [optionsArg, paramsArg] = node.arguments;
+            // `AgCharts.create(options as AgChartOptions)` types the chart instance with the cast
+            if (ts.isAsExpression(optionsArg) && ts.isIdentifier(optionsArg.expression)) {
+                createArgs[optionsArg.expression.text] = tsGenerate(optionsArg, tsTree);
+            }
             if (paramsArg == null) return;
 
             let params: ts.Expression | undefined = paramsArg;
@@ -363,5 +373,5 @@ function collectChartParams(tsTree: ts.SourceFile, dirPath: string) {
     };
     visit(tsTree);
 
-    return { modules, paramsVariables };
+    return { modules, createArgs, paramsVariables };
 }

@@ -1,8 +1,8 @@
 import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
-import { Transformable, boxOverlapsSector } from 'ag-charts-core';
-import type { BBox, Line, Sector, Shape, Text } from 'ag-charts-core';
+import { EllipsisChar, Text, Transformable, boxOverlapsSector } from 'ag-charts-core';
+import type { BBox, Line, Sector, Shape } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
     AgChartOptions,
@@ -26,6 +26,7 @@ import { getLegendItemNodes, getSeriesSelectionNodes } from '../../test/seriesAc
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    chartPixelAt,
     clickAction,
     compareImageSnapshot,
     createChart,
@@ -1460,6 +1461,325 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('sectorLabel in a wedge too thin for a line at its own style', () => {
+        // A 1° sliver pointing right is far shorter than a 12px line, so the label is hidden as fitted.
+        const sliverLabelNode = async (sectorLabel: object) => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Sliver label', size: 1 },
+                        { name: 'Big', size: 359 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'size', sectorLabelKey: 'name', rotation: 90, sectorLabel }],
+                })
+            );
+            const nodes = getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection');
+            return nodes.find((node) => node.datum?.datumIndex === 0)!;
+        };
+
+        it('places nothing for a label always drawn in the style it is fitted in', async () => {
+            const node = await sliverLabelNode({ fontSize: 12 });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBeUndefined();
+        });
+
+        // The highlight redraws the label in its restyled font without a re-fit, so it needs the placement to judge.
+        it('places a label a state-dependent style may redraw smaller, for the visibility gate to judge', async () => {
+            const node = await sliverLabelNode({
+                fontSize: 12,
+                itemStyler: ({ highlightState }: { highlightState?: string }) =>
+                    highlightState === 'highlighted-item' ? { fontSize: 4 } : {},
+            });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBe('Sliver label');
+        });
+
+        it('places nothing for rich text always drawn in the style it is fitted in', async () => {
+            const node = await sliverLabelNode({
+                fontSize: 12,
+                formatter: () => [{ text: 'Sliver ' }, { text: 'label', fontSize: 10, fontWeight: 'bold' }],
+            });
+            expect(node.visible).toBe(false);
+            expect(node.text).toBeUndefined();
+        });
+
+        // The four thinnest slivers lie flat at 3 o'clock, shorter than any line, so their labels are never laid out.
+        it('lays out no rich text label in the slivers too thin for any of its lines', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Desktop', size: 180 },
+                        { name: 'Mobile', size: 120 },
+                        { name: 'Tablet', size: 40 },
+                        { name: 'Console', size: 12 },
+                        { name: 'Watch', size: 3 },
+                        { name: 'TV', size: 2 },
+                        { name: 'Car', size: 1.5 },
+                        { name: 'Fridge', size: 1 },
+                        { name: 'Glasses', size: 0.5 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.5,
+                            rotation: 90,
+                            sectorLabel: {
+                                fontSize: 12,
+                                formatter: ({ datum }: { datum: { name: string; size: number } }) => [
+                                    { text: datum.name, fontWeight: 'bold' },
+                                    { text: ` ${datum.size}`, fontSize: 10 },
+                                ],
+                            },
+                        },
+                    ],
+                })
+            );
+            const nodes = getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection');
+            const placed = nodes.filter((node) => node.text != null).map((node) => node.datum?.datumIndex);
+            const shown = nodes.filter((node) => node.visible).map((node) => node.datum?.datumIndex);
+            expect(placed).toEqual([0, 1, 2, 3, 4]);
+            expect(shown).toEqual([1, 2, 3]);
+        });
+
+        // A 3° sliver holds no 12px line, but the label drawn 4px tall on highlight fits where the full fit put it.
+        it('shows a label once a highlight restyles it to fit a wedge that holds none of its lines as fitted', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Hi', size: 3 },
+                        { name: 'Big', size: 357 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            rotation: 90,
+                            sectorLabel: {
+                                fontSize: 12,
+                                wrapping: 'never',
+                                truncate: false,
+                                itemStyler: ({ highlightState }) =>
+                                    highlightState === 'highlighted-item' ? { fontSize: 4 } : {},
+                            },
+                        },
+                    ],
+                })
+            );
+            const sliverLabels = () =>
+                getSeriesSelectionNodes<Text<{ datumIndex: number }>>(chart, 'labelSelection')
+                    .filter((node) => node.datum?.datumIndex === 0)
+                    .map((node) => node.visible);
+            expect(sliverLabels()).toEqual([false]);
+
+            const sliver = classCast(chart.series[0], DonutSeries).getNodeData()![0];
+            chart.ctx.highlightManager.updateHighlight(chart.id, sliver);
+            await waitForChartStability(chart);
+
+            expect(sliverLabels()).toEqual([true]);
+        });
+    });
+
+    describe('sectorLabel fitted without fit options', () => {
+        const sectorOptions = (name: string, count: number, innerRadiusRatio: number, sectorLabel: object) => ({
+            ...options,
+            data: [{ name, size: 8 }, ...Array.from({ length: count - 1 }, () => ({ name, size: 1 }))],
+            series: [
+                { type: 'donut' as const, angleKey: 'size', sectorLabelKey: 'name', innerRadiusRatio, sectorLabel },
+            ],
+        });
+
+        it.each([
+            { case: 'whole where it fits', ratio: 0.5, count: 3, fontSize: 12, drawn: 3, text: 'North America' },
+            {
+                case: 'wrapped where only that fits',
+                ratio: 0.75,
+                count: 20,
+                fontSize: 12,
+                drawn: 8,
+                text: 'North\nAmerica',
+            },
+            { case: 'nothing where it fits no way', ratio: 0.9, count: 6, fontSize: 18, drawn: 0, text: '' },
+        ])('draws $case', async ({ ratio, count, fontSize, drawn, text }) => {
+            chart = deproxy(await createChart(sectorOptions('North America', count, ratio, { fontSize })));
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(Array(drawn).fill(text));
+        });
+
+        it('wraps labels to their wedges', async () => {
+            chart = deproxy(await createChart(sectorOptions('North America', 20, 0.75, { fontSize: 12 })));
+            await compare();
+        });
+    });
+
+    describe('sectorLabel alone in a pie', () => {
+        const NAME = 'Alpha Bravo Charlie Delta Echo Foxtrot Golf';
+        const alonePie = async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ name: NAME, size: 1 }],
+                    series: [{ type: 'pie', angleKey: 'size', sectorLabelKey: 'name', sectorLabel: { fontSize: 20 } }],
+                })
+            );
+            const [label] = getVisibleLabelTextNodes(chart);
+            const [sector] = getSeriesSelectionNodes<Sector>(chart, 'itemSelection');
+            const font = { fontSize: label.fontSize, fontFamily: label.fontFamily, fontWeight: label.fontWeight };
+            const sourceWidth = Text.measureBBox(NAME, 0, 0, {
+                font,
+                textAlign: 'center',
+                textBaseline: 'middle',
+            }).width;
+            return { label, radius: sector.outerRadius, sourceWidth };
+        };
+
+        it('wraps a label wider than the square inscribed in the pie but narrower than the pie', async () => {
+            const { label, radius, sourceWidth } = await alonePie();
+            expect(sourceWidth).toBeGreaterThan(radius * Math.SQRT2);
+            expect(sourceWidth).toBeLessThan(radius * 2);
+            expect(String(label.text)).toContain('\n');
+            expect(String(label.text).replaceAll('\n', ' ')).toBe(NAME);
+            expect(label.getBBox().width).toBeLessThanOrEqual(radius * Math.SQRT2);
+        });
+
+        it('fits the label to the square inscribed in the pie', async () => {
+            await alonePie();
+            await compare();
+        });
+    });
+
+    describe('sectorLabel image segments', () => {
+        const image = { type: 'image', url: 'https://example.com/logo.png', width: 16, height: 16 } as const;
+
+        it.each([
+            { case: 'without fit options', count: 2, sectorLabel: {} },
+            { case: 'with wrapping', count: 2, sectorLabel: { wrapping: 'on-space' } },
+            { case: 'with truncate', count: 2, sectorLabel: { truncate: true } },
+            { case: 'alone in a pie', count: 1, sectorLabel: { truncate: true } },
+        ])('renders a sector label that is only an image $case', async ({ count, sectorLabel }) => {
+            chart = deproxy(
+                await createChart({
+                    data: Array.from({ length: count }, (_, i) => ({ name: `Item ${i}`, size: 1 })),
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: count === 1 ? 0 : undefined,
+                            sectorLabel: { ...sectorLabel, formatter: () => [image] },
+                        },
+                    ],
+                } as AgChartOptions)
+            );
+
+            expect(getVisibleLabelTextNodes(chart).map((node) => node.text)).toEqual(
+                Array(count).fill([expect.objectContaining(image)])
+            );
+        });
+    });
+
+    describe('AG-18765 sectorLabel in a ring shorter than it', () => {
+        test('hides a label that does not truncate rather than ending it in an ellipsis', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Delta Echo Foxtrot', size: 2 },
+                        { name: 'Golf', size: 4 },
+                        { name: 'Alpha Bravo Charlie', size: 1 },
+                        { name: 'Revenue', size: 6 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.88,
+                            sectorLabel: { fontSize: 14, wrapping: 'on-space', truncate: false },
+                        },
+                    ],
+                })
+            );
+            const texts = getVisibleLabelTextNodes(chart).map((node) => String(node.text));
+            expect(texts).toContain('Golf');
+            expect(texts.filter((text) => /Delta|Alpha/.test(text))).toEqual([]);
+            expect(texts.filter((text) => text.includes(EllipsisChar))).toEqual([]);
+            await compare();
+        });
+
+        test('hangs a boxed label too tall for its wedge from the top, where it is drawn whole', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'Quarterly revenue from the northern region', size: 5 },
+                        { name: 'Operating costs and overheads', size: 3 },
+                        { name: 'Marketing', size: 2 },
+                        { name: 'Research and development spend', size: 4 },
+                        { name: 'Other', size: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.88,
+                            sectorLabel: {
+                                fontSize: 12,
+                                wrapping: 'on-space',
+                                truncate: false,
+                                padding: 6,
+                                fill: '#eee',
+                                border: { enabled: true, stroke: 'black', strokeWidth: 1 },
+                            },
+                        },
+                    ],
+                    legend: { enabled: false },
+                })
+            );
+            // Centred on its anchor the boxed block would be hidden; hung, it is drawn whole above the anchor.
+            const labels = getVisibleLabelTextNodes(chart);
+            expect(labels.map((node) => String(node.text))).toEqual(['Other']);
+            const other = getSeriesSelectionNodes<Sector<{ datumIndex: number }>>(chart, 'itemSelection').find(
+                (node) => node.datum?.datumIndex === 4
+            )!;
+            const midAngle = (other.startAngle + other.endAngle) / 2;
+            const anchorY = Math.sin(midAngle) * ((other.innerRadius + other.outerRadius) / 2);
+            expect(labels[0].y).toBeLessThan(anchorY - 1);
+            await compare();
+        });
+
+        test('centres a label too tall for its wedge where hanging it would hide it', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { name: 'One two three four five six seven eight nine ten', size: 20 },
+                        { name: 'A B C D E F G H I J K L', size: 10 },
+                        { name: 'x', size: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'size',
+                            sectorLabelKey: 'name',
+                            innerRadiusRatio: 0.3,
+                            sectorLabel: { fontSize: 28, wrapping: 'on-space', truncate: false, positionRatio: 0.85 },
+                        },
+                    ],
+                    legend: { enabled: false },
+                })
+            );
+            const label = getVisibleLabelTextNodes(chart).find((node) => String(node.text).startsWith('One two'));
+            expect(String(label?.text).replaceAll('\n', ' ')).toBe('One two three four five six seven eight nine ten');
+            // Centred on the wedge's widest band, through the series centre; hung, it would drop to its room's top.
+            expect(label!.y).toBeCloseTo(0, 3);
+            await compare();
+        });
+    });
+
     describe('sectorLabel layout', () => {
         const layoutOptions: AgChartOptions = {
             data: Array.from({ length: 4 }, (_, i) => ({ name: `Item ${i}`, size: 1 + i })),
@@ -1781,6 +2101,198 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-18209 gap', () => {
+        const sectorFor = (datumIndex: number) =>
+            getSeriesSelectionNodes<Sector<{ datumIndex: number }>>(chart, 'itemSelection').find(
+                (sector) => sector.datum?.datumIndex === datumIndex
+            )!;
+
+        /**
+         * The run of background pixels through the top of the series, `distance` above its centre, and whether a
+         * sector ends it on both sides.
+         */
+        const gapAbove = (distance: number, gap: number) => {
+            const sector = sectorFor(0);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(sector, sector.centerX, sector.centerY - distance);
+            const background = chartPixelAt(chart, 1, 1);
+            const isBackground = (x: number) =>
+                chartPixelAt(chart, x, canvasY).every((channel, i) => channel === background[i]);
+            const reach = 3 * gap;
+            if (!isBackground(canvasX)) return { width: 0, bounded: true };
+            let left = 0;
+            let right = 0;
+            while (left < reach && isBackground(canvasX - left - 1)) left++;
+            while (right < reach && isBackground(canvasX + right + 1)) right++;
+            return { width: left + right + 1, bounded: left < reach && right < reach };
+        };
+        const paintedGapAbove = (distance: number, gap: number) => gapAbove(distance, gap).width;
+
+        const createDonuts = async (data: object[], ...series: Partial<AgDonutSeriesOptions>[]) => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data,
+                    series: series.map(
+                        (s) =>
+                            ({ type: 'donut', angleKey: 'value', legendItemKey: 'name', ...s }) as AgDonutSeriesOptions
+                    ),
+                })
+            );
+        };
+
+        it('separates the sides only, leaving touching donuts at their full ring width', async () => {
+            const data = [
+                { name: 'a', value: 1 },
+                { name: 'b', value: 2 },
+                { name: 'c', value: 3 },
+            ];
+            const ring = { gap: 10, stroke: 'white', strokeWidth: 4 };
+            await createDonuts(
+                data,
+                { ...ring, innerRadiusRatio: 0.5, outerRadiusRatio: 0.75 },
+                { ...ring, innerRadiusRatio: 0.75 }
+            );
+
+            for (const seriesIndex of [0, 1]) {
+                for (const sector of getSeriesSelectionNodes<Sector>(chart, 'itemSelection', seriesIndex)) {
+                    expect(sector.innerEdgeInset).toBe(2);
+                    expect(sector.outerEdgeInset).toBe(2);
+                    expect(sector.radialEdgeInset).toBe(7);
+                }
+            }
+        });
+
+        it('paints the same gap whatever the stroke width', async () => {
+            const gap = 10;
+            const paintedGap = async (strokeWidth: number) => {
+                chart?.destroy();
+                await createDonuts(
+                    [
+                        { name: 'a', value: 1 },
+                        { name: 'b', value: 1 },
+                    ],
+                    { gap, strokeWidth, fills: ['#ff0000', '#0000ff'], strokes: ['#00ff00', '#00ff00'] }
+                );
+                const { innerRadius, outerRadius } = sectorFor(0);
+                return paintedGapAbove((innerRadius + outerRadius) / 2, gap);
+            };
+
+            const withoutStroke = await paintedGap(0);
+            const withStroke = await paintedGap(6);
+            expect(Math.abs(withoutStroke - gap)).toBeLessThanOrEqual(1);
+            expect(withStroke).toBe(withoutStroke);
+        });
+
+        const nearCentre = (gap: number) => 1.5 * gap;
+        const besideHole = () => sectorFor(0).innerRadius + 2;
+        const midRing = () => (sectorFor(0).innerRadius + sectorFor(0).outerRadius) / 2;
+        const tinyHole = { innerRadiusRatio: 0, innerRadiusOffset: 10 };
+        it.each([
+            { where: 'near the centre of a pie cut in halves', type: 'pie', values: [1, 1], at: nearCentre },
+            { where: 'near the centre of a pie cut 1:3', type: 'pie', values: [1, 3], at: nearCentre },
+            { where: 'beside a small hole', innerRadiusRatio: 0.1, values: [1, 1], at: besideHole },
+            { where: 'around a 10px hole (halves)', ...tinyHole, values: [1, 1], at: nearCentre },
+            { where: 'around a 10px hole (1:3)', ...tinyHole, values: [1, 3], at: nearCentre },
+            { where: 'beside rounded corners', innerRadiusRatio: 0.5, cornerRadius: 20, values: [1, 1], at: midRing },
+            {
+                where: 'beside corners too big for a wedge wider than a half turn',
+                type: 'pie',
+                cornerRadius: 1000,
+                values: [1, 3],
+                at: nearCentre,
+                gapWidens: true,
+            },
+            {
+                where: 'between rings no thicker than their stroke',
+                innerRadiusRatio: 1,
+                innerRadiusOffset: -4,
+                strokeWidth: 4,
+                values: [1, 1],
+                at: midRing,
+                gapWidens: true,
+            },
+        ])('keeps the full gap $where', async ({ type = 'donut', values, at, gapWidens = false, ...series }) => {
+            const gap = 30;
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: values.map((value, i) => ({ name: `n${i}`, value })),
+                    series: [{ type, angleKey: 'value', legendItemKey: 'name', gap, strokeWidth: 0, ...series }],
+                } as AgChartOptions)
+            );
+
+            const { width, bounded } = gapAbove(at(gap), gap);
+            expect(bounded).toBe(true);
+            expect(width).toBeGreaterThanOrEqual(gap - 1);
+            expect(width).toBeLessThanOrEqual(gapWidens ? 2 * gap : gap + 1);
+        });
+
+        it('does not draw a sector narrower than the gap, but keeps its neighbours inset and its pick area', async () => {
+            const gap = 20;
+            const clicked: string[] = [];
+            await createDonuts(
+                [
+                    { name: 'a', value: 50 },
+                    { name: 'tiny', value: 0.01 },
+                    { name: 'b', value: 50 },
+                ],
+                { gap, strokeWidth: 0, listeners: { seriesNodeClick: (event) => clicked.push(event.datum.name) } }
+            );
+
+            const [before, tiny, after] = [0, 1, 2].map(sectorFor);
+            expect(tiny.path.isEmpty()).toBe(true);
+            expect(before.path.isEmpty()).toBe(false);
+            expect(after.path.isEmpty()).toBe(false);
+            expect(before.radialEdgeInset).toBe(gap / 2);
+            expect(after.radialEdgeInset).toBe(gap / 2);
+
+            const angle = (tiny.startAngle + tiny.endAngle) / 2;
+            const radius = (tiny.innerRadius + tiny.outerRadius) / 2;
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                tiny,
+                tiny.centerX + radius * Math.cos(angle),
+                tiny.centerY + radius * Math.sin(angle)
+            );
+            await clickAction(canvasX, canvasY)(chart);
+            expect(clicked).toEqual(['tiny']);
+        });
+
+        it.each([
+            { absent: 'a zero-value sector', value: 0, hideInLegend: false },
+            { absent: 'a sector hidden in the legend', value: 1, hideInLegend: true },
+        ])('closes up to a single gap around $absent', async ({ value, hideInLegend }) => {
+            const gap = 10;
+            await createDonuts(
+                [
+                    { name: 'a', value: 1 },
+                    { name: 'absent', value },
+                    { name: 'b', value: 1 },
+                ],
+                { gap, strokeWidth: 0 }
+            );
+            if (hideInLegend) {
+                const legendItem = [...iterLegendMarkerLabels(chart)].find(({ text }) => text === 'absent')!;
+                await clickAction(legendItem.x, legendItem.y)(chart);
+                await waitForChartStability(chart);
+            }
+
+            expect(sectorFor(0).endAngle).toBeCloseTo(sectorFor(2).startAngle, 10);
+            expect(sectorFor(0).radialEdgeInset + sectorFor(2).radialEdgeInset).toBe(gap);
+        });
+
+        it('gives no side gap to a lone sector', async () => {
+            await createDonuts(
+                [
+                    { name: 'only', value: 1 },
+                    { name: 'zero', value: 0 },
+                ],
+                { gap: 10, strokeWidth: 4, strokes: ['white'] }
+            );
+
+            expect(sectorFor(0).radialEdgeInset).toBe(2);
+        });
+    });
+
     describe('inner circle with rounded corners', () => {
         const data = [
             { asset: 'Stocks', amount: 30 },
@@ -1817,8 +2329,8 @@ describe('DonutSeries', () => {
         const paintedRadii = () => {
             const [sector] = sectorNodes();
             return {
-                innerRadius: sector.innerRadius + sector.concentricEdgeInset,
-                outerRadius: sector.outerRadius - sector.concentricEdgeInset,
+                innerRadius: sector.innerRadius + sector.innerEdgeInset,
+                outerRadius: sector.outerRadius - sector.outerEdgeInset,
             };
         };
         const expectCircleToReach = (series: DonutSeries, radius: number) => {
@@ -1831,6 +2343,21 @@ describe('DonutSeries', () => {
             const series = await createDonut({ cornerRadius, innerCircle: { fill: '#c9fdc9' } });
 
             expectCircleToReach(series, paintedRadii().innerRadius + cornerRadius);
+        });
+
+        it('does not grow the inner circle where the gap keeps the sides off the hole', async () => {
+            const gap = 30;
+            const series = await createDonut({
+                cornerRadius: 20,
+                gap,
+                innerRadiusRatio: 0.06,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+
+            const { innerRadius } = paintedRadii();
+            const widestSweep = Math.max(...sectorNodes().map((s) => s.endAngle - s.startAngle));
+            expect(innerRadius * Math.sin(widestSweep / 2)).toBeLessThan(gap / 2);
+            expectCircleToReach(series, innerRadius);
         });
 
         test('never grows the inner circle past the sectors mid-line', async () => {
@@ -1862,7 +2389,8 @@ describe('DonutSeries', () => {
                 expect(cutout.endAngle).toBe(sector.endAngle);
                 expect(cutout.innerRadius).toBe(sector.innerRadius);
                 expect(cutout.outerRadius).toBe(sector.outerRadius);
-                expect(cutout.concentricEdgeInset).toBe(sector.concentricEdgeInset);
+                expect(cutout.innerEdgeInset).toBe(sector.innerEdgeInset);
+                expect(cutout.outerEdgeInset).toBe(sector.outerEdgeInset);
                 expect(cutout.radialEdgeInset).toBe(sector.radialEdgeInset);
                 expect(cutout.startOuterCornerRadius).toBe(sector.startOuterCornerRadius);
                 expect(cutout.endOuterCornerRadius).toBe(sector.endOuterCornerRadius);
@@ -1871,33 +2399,33 @@ describe('DonutSeries', () => {
             }
         });
 
-        test('carries the sector spacing inset into the cutouts', async () => {
-            const sectorSpacing = 6;
-            const series = await createDonut({ cornerRadius: 20, sectorSpacing, innerCircle: { fill: '#c9fdc9' } });
+        test('carries the gap inset into the cutouts', async () => {
+            const gap = 6;
+            const series = await createDonut({ cornerRadius: 20, gap, innerCircle: { fill: '#c9fdc9' } });
 
             const sectors = sectorNodes();
-            expect(sectors[0].radialEdgeInset).toBeCloseTo(sectorSpacing / 2, 5);
+            expect(sectors[0].radialEdgeInset).toBeCloseTo(gap / 2, 5);
             for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
                 expect(cutout.radialEdgeInset).toBe(sectors[index].radialEdgeInset);
             }
         });
 
-        test('aligns the inner circle with the sectors mid-line under sector spacing', async () => {
-            const sectorSpacing = 20;
+        it('keeps a thin ring at full width under a wide gap, and aligns the inner circle with its mid-line', async () => {
+            const gap = 20;
             const series = await createDonut({
                 cornerRadius: 20,
-                sectorSpacing,
+                gap,
                 innerRadiusRatio: 0.9,
                 innerCircle: { fill: '#c9fdc9' },
             });
 
             const { innerRadius, outerRadius } = paintedRadii();
+            expect(innerRadius).toBe(series.getInnerRadius());
+            expect(outerRadius).toBe(series.getOuterRadius());
+            expect(sectorNodes()[0].radialEdgeInset).toBe(gap / 2);
+
             const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
             expectCircleToReach(series, midLineRadius);
-            // The band the spacing carves out is thin enough that the sectors would otherwise sit
-            // entirely inside the fill.
-            expect(midLineRadius).toBeLessThan(outerRadius);
-            expect(midLineRadius).toBeGreaterThan(series.getInnerRadius());
         });
 
         test('leaves the inner circle alone when there are no rounded corners', async () => {

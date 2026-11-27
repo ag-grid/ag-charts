@@ -108,6 +108,7 @@ const options: AgCartesianChartOptions<DatumType, LocaleContext> & { series: { y
     context: makeLocaleContext(INITIAL_LOCALE),
     container: document.getElementById('myChart'),
     data: getData(),
+    tooltip: { mode: 'shared' },
     series: [
         {
             type: 'bar',

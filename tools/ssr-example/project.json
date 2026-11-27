@@ -6,6 +6,7 @@
     "test": {
       "executor": "nx:run-commands",
       "dependsOn": ["ag-charts-server-side:build", "ag-charts-community:build"],
+      "inputs": ["production", "^production"],
       "options": {
         "cwd": "examples/server-side-rendering",
         "commands": ["tsx examples/01-basic-render.ts", "tsx examples/02-jpeg-output.ts"]

@@ -4,13 +4,13 @@ import {
     createElement,
     getIconClassNames,
     hasNoModifiers,
-    setAttribute,
 } from 'ag-charts-core';
 import type { KeyboardClickBindingPredicate, KeyboardWidgetEvent } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
     AgAnnotationsToolbarButtonValue,
+    AgAnnotationsToolbarSwitchValue,
     AgIconName,
     AgIconPosition,
     AgRangesButtonValue,
@@ -22,7 +22,9 @@ import type { LocaleManager } from '../../locale/localeManager';
 
 type ButtonValue =
     | 'menu'
+    | 'move'
     | AgAnnotationsToolbarButtonValue
+    | AgAnnotationsToolbarSwitchValue
     | AgAnnotationOptionsToolbarButtonValue
     | AgAnnotationOptionsToolbarSwitchValue
     | AgZoomButtonValue
@@ -37,8 +39,8 @@ export interface ToolbarButtonWidgetOptions {
     tooltip?: string;
     value: ButtonValue;
     buttonSize?: number;
-    /** Whether a button that toggles a mode on and off is on, rather than starting an action. */
-    pressed?: boolean;
+    /** Makes the button a switch that is on when `true`; a command button when absent. */
+    checked?: boolean;
 }
 
 export interface ToolbarButtonInteractionOptions {
@@ -50,6 +52,8 @@ export interface ToolbarButtonInteractionOptions {
 
 const DEFAULT_BUTTON_SIZE = 34;
 const ICON_SIZE = 20;
+/** Declared in `toolbar.css`: the timing function of the button's `z-index` transition. */
+const Z_INDEX_TIMING_PROPERTY = '--toolbar-button-z-index-timing';
 
 export function getToolbarIconSize(buttonSize: number, defaultButtonSize: number = DEFAULT_BUTTON_SIZE): number {
     const size = Math.round(buttonSize);
@@ -91,6 +95,7 @@ const ARIA_HASPOPUP = {
     lock: 'false',
     magnet: 'false',
     menu: 'menu',
+    move: 'false',
     note: 'false',
     reset: 'false',
     settings: 'dialog',
@@ -151,6 +156,8 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private lastTooltip?: string;
     private lastButtonSize?: number;
     private lastIconSize?: number;
+    private opensDialog = false;
+    private dialogExpanded = false;
     private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(
@@ -161,14 +168,19 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (opensWithArrowKey) {
             this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
         }
+        this.addListener('blur', this.onBlur);
     }
 
     public update(options: ToolbarButtonWidgetOptions, interactionOptions: ToolbarButtonInteractionOptions) {
         const { localeManager } = this;
 
         const tooltip = options.tooltip == null ? undefined : localeManager.t(options.tooltip);
-        if (tooltip != null && tooltip !== this.lastTooltip) {
-            this.elem.title = tooltip;
+        if (tooltip !== this.lastTooltip) {
+            if (tooltip == null) {
+                this.elem.removeAttribute('title');
+            } else {
+                this.elem.title = tooltip;
+            }
             this.lastTooltip = tooltip;
         }
 
@@ -181,16 +193,18 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const ariaLabel = options.ariaLabel == null ? undefined : localeManager.t(options.ariaLabel);
         this.setAriaLabel(ariaLabel ?? tooltip ?? content.label);
 
-        setAttribute(this.elem, 'aria-pressed', options.pressed);
+        this.setAriaRole(options.checked == null ? undefined : 'switch');
+        this.setAriaChecked(options.checked);
 
         const haspopup = getAriaHasPopupOfValue(options.value);
+        this.opensDialog = haspopup === 'dialog';
         if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
             this.setAriaExpanded(undefined);
             this.arrowKeyPredicate = falsePredicate;
         } else {
             this.setAriaHasPopup(haspopup);
-            this.setAriaExpanded(false);
+            this.setAriaExpanded(this.opensDialog && this.dialogExpanded);
             this.arrowKeyPredicate = interactionOptions.isRtl ? isArrowLeftPredicate : isArrowRightPredicate;
         }
 
@@ -232,8 +246,42 @@ export class ToolbarButtonWidget extends ButtonWidget {
         setToolbarSizeProperties(this.elem, buttonSize, iconSize);
     }
 
-    public setChecked(checked: boolean) {
-        setAttribute(this.elem, 'aria-checked', checked);
+    /**
+     * Enabling raises the button's stacking order, which must not wait for the border colours to fade. The stylesheet
+     * cannot tell it from lowering back to the default state, so it names the immediate timing for that one change.
+     */
+    public override setEnabled(enabled: boolean) {
+        const raising = enabled && this.isDisabled();
+        if (raising) this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');
+        super.setEnabled(enabled);
+        if (raising) this.flushZIndexTiming();
+    }
+
+    /**
+     * Chrome restyles inside `focus()`, after the old button blurs and before the new one is focused, so the sibling
+     * rules in the stylesheet cannot see the new focus yet. The old button would then keep the focus ring's stacking
+     * order over the new button's ring for the transition, so its drop is made immediate.
+     */
+    private readonly onBlur = () => {
+        this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, 'step-start');
+        this.flushZIndexTiming();
+    };
+
+    /** The transition takes its timing from the style recalculated here, before the override is removed. */
+    private flushZIndexTiming() {
+        this.elem.ownerDocument.defaultView?.getComputedStyle(this.elem).getPropertyValue('z-index');
+        this.setCSSVariable(Z_INDEX_TIMING_PROPERTY, null);
+    }
+
+    /** Reports whether the dialog this button opens is open. Ignored by buttons that do not open a dialog. */
+    public setDialogExpanded(expanded: boolean) {
+        this.dialogExpanded = expanded;
+        if (this.opensDialog) this.setAriaExpanded(expanded);
+    }
+
+    /** Marks the button as the current one in its set, such as the selected range. */
+    public setCurrent(current: boolean) {
+        this.setAriaCurrent(current ? true : undefined);
     }
 }
 

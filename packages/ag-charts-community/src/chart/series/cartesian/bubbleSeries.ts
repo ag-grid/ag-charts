@@ -6,7 +6,7 @@ import type {
     DeepPartial,
     DomainWithMetadata,
     DynamicContext,
-    FitRegionMask,
+    InsideMarkerFit,
     LabelFit,
     LabelFitDescriptor,
     LabelPlacement,
@@ -33,7 +33,7 @@ import {
     PointerEvents,
     Text,
     applySizeMode,
-    applyStyledMarkerSize,
+    applyStyledMarker,
     cachedTextMeasurer,
     clamp,
     configureColorScale,
@@ -41,9 +41,10 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
-    insetFitRegion,
+    insideMarkerPolicy,
     lineHeightAtSize,
-    maskFitRegion,
+    markerLabelRect,
+    markerShapeAnalysis,
     measurePlacedLabel,
     placedLabelFit,
     rescaleVisibleRange,
@@ -54,7 +55,6 @@ import {
     toNumber,
     toPlainText,
     upsertNodeDatum,
-    withFitRegion,
     withoutCasts,
 } from 'ag-charts-core';
 import {
@@ -64,6 +64,7 @@ import {
     type AgBubbleSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgMarkerShape,
     type AgMarkerSizeMode,
     type AgNumericValue,
     type AgScatterSeriesOptionsKeys,
@@ -87,7 +88,6 @@ import {
     styledLabelTextOffset,
 } from '../../label';
 import {
-    boundLabelFit,
     compassCandidatePlacement,
     createCandidateStyleResolver,
     getLabelStyles,
@@ -103,7 +103,6 @@ import {
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
@@ -240,6 +239,9 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly fit: LabelFitDescriptor | undefined;
     /** Marker diameter a `marker.itemStyler` resolved; overrides `point.size` for the label's geometry. */
     markerSize?: number;
+    /** Marker shape, styled when a `marker.itemStyler` resolves one; labels avoid its outline. */
+    markerShape?: AgMarkerShape;
+    markerRestyled?: boolean;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
     readonly insideOffset: Point | undefined;
@@ -304,10 +306,8 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelsEnabled: boolean;
     readonly labelPlacement: LabelPlacement;
     readonly labelAnchor: Point;
+    readonly labelMarkerShape: AgMarkerShape | undefined;
     readonly labelInsideOffset: Point | undefined;
-    readonly labelInsideRect: MarkerLabelRect | undefined;
-    /** The marker outline the label's text is bounded by, rather than the rect inscribed in it. */
-    readonly labelInsideMask: FitRegionMask | undefined;
     readonly labelInsideSize: { width: number; height: number } | undefined;
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
@@ -318,6 +318,8 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
      * when the label must survive that, so leaving it unset keeps an erased label erased.
      */
     readonly labelFitOverflow: LabelFit | undefined;
+    /** How an `inside`-only label is fitted to its marker, per datum and for a marker a styler restyles. */
+    readonly labelInsideMarkerFit: InsideMarkerFit | undefined;
     /** The label's geometry is resolved per candidate placement by an `itemStyler`. */
     readonly labelStyled: boolean;
     readonly label: NormalisedBubbleScatterSeriesOptions['label'];
@@ -766,17 +768,20 @@ export abstract class BubbleScatterSeries<
             labelsEnabled: this.isLabelEnabled(),
             labelPlacement: placements[0],
             labelAnchor: Marker.anchor(marker.shape),
+            labelMarkerShape: marker.shape,
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
             // Truncation container applies only when `inside` is the sole placement; a mixed list
             // measures full text so directional fallbacks aren't constrained to the marker.
-            labelInsideRect: insideOnly ? insideRect : undefined,
-            labelInsideMask: insideOnly ? markerRowSpans(marker.shape) : undefined,
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
             labelTextDomain: [],
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
+            labelInsideMarkerFit:
+                insideOnly && labelFit != null
+                    ? { base: labelFit, threshold: label.collision.threshold ?? 0, masked: true }
+                    : undefined,
             // Keeps the label on a marker too small to hold even an ellipsis.
             labelFitOverflow: insideOnly && label.collision.alwaysShow ? labelFit : undefined,
             labelStyled: label.itemStyler != null,
@@ -1006,34 +1011,12 @@ export abstract class BubbleScatterSeries<
             }
         );
 
-        const rect = ctx.labelInsideRect;
-        const threshold = ctx.label.collision.threshold ?? 0;
-        const container = rect
-            ? {
-                  width: Math.max(0, markerSize * rect.width - 2 * threshold),
-                  height: Math.max(0, markerSize * rect.height - 2 * threshold),
-              }
-            : undefined;
-        const region =
-            ctx.labelInsideMask == null || rect == null
-                ? undefined
-                : insetFitRegion(
-                      maskFitRegion(ctx.labelInsideMask, markerSize, {
-                          x: rect.cx * markerSize,
-                          y: rect.cy * markerSize,
-                      }),
-                      threshold,
-                      threshold
-                  );
-        // The marker's outline bounds the width; the inscribed rect still bounds the height, anchors the
-        // label at its centre via `labelInsideOffset`, and carries the collision threshold's inset.
-        const boundedFit =
-            region == null
-                ? boundLabelFit(ctx.labelFit, container)
-                : withFitRegion(
-                      boundLabelFit(ctx.labelFit, { width: Infinity, height: container?.height ?? Infinity }),
-                      region
-                  );
+        // The marker's outline bounds the width; the inscribed rect still bounds the height and anchors the
+        // label at its centre via `labelInsideOffset`.
+        const { labelInsideMarkerFit } = ctx;
+        const boundedFit = labelInsideMarkerFit
+            ? insideMarkerPolicy(labelInsideMarkerFit, markerShapeAnalysis(ctx.labelMarkerShape), markerSize)
+            : ctx.labelFit;
         scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
@@ -1083,6 +1066,7 @@ export abstract class BubbleScatterSeries<
             label: { text: '', width: 0, height: 0 },
             fit: undefined,
             anchor: ctx.labelAnchor,
+            markerShape: ctx.labelMarkerShape,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
             region: ctx.plotRegion,
@@ -1119,7 +1103,11 @@ export abstract class BubbleScatterSeries<
         mutableNode.area = scratch.area;
         mutableNode.label = scratch.nodeLabel;
         mutableNode.fit = scratch.nodeLabelFit;
+        // Back to the series marker: a styler stamps its own on afterwards, and a removed one must not linger.
         mutableNode.anchor = ctx.labelAnchor;
+        mutableNode.markerShape = ctx.labelMarkerShape;
+        mutableNode.markerSize = undefined;
+        mutableNode.markerRestyled = undefined;
         mutableNode.insideOffset = ctx.labelInsideOffset;
         mutableNode.insideSize = ctx.labelInsideSize;
         mutableNode.region = ctx.plotRegion;
@@ -1141,15 +1129,18 @@ export abstract class BubbleScatterSeries<
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
-        // A marker itemStyler resolves its size after node data was built, so the styled size is stamped
-        // on here — the label's obstacles, gap and inside-marker rect all scale off the drawn marker.
-        if (this.marker.itemStyler != null) {
-            for (const datum of labelData) {
-                applyStyledMarkerSize(datum, datum.style?.size);
-            }
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    protected override stampLabelMarkers(): boolean {
+        if (!this.isLabelEnabled()) return false;
+        const { itemStyler, shape } = this.marker;
+        const itemStyled = itemStyler != null;
+        let changed = false;
+        for (const datum of this.contextNodeData?.labelData ?? []) {
+            changed = applyStyledMarker(datum, datum.style, shape, itemStyled) || changed;
         }
-        return labelData;
+        return changed;
     }
 
     override getLabelDefaults() {
@@ -1294,6 +1285,7 @@ export abstract class BubbleScatterSeries<
             { marker, params, isHighlight, colorScaleValid, colorKey },
             {
                 cacheable: colorKey == null,
+                hoveredItemShadow: marker.itemStyler != null,
                 compute: BubbleSeries.computePerDatumStylerStyle,
                 apply: BubbleSeries.applyPerDatumStyle,
             }

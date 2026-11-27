@@ -156,7 +156,11 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowDown');
-        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), '3rd-datum-2nd-series-focus.png');
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
+            '3rd-datum-2nd-series-focus-after-click.png'
+        );
 
         await page.mouse.move(547, 310);
         await expectChartScreenshot(
@@ -702,14 +706,16 @@ test.describe('keyboard-nav', () => {
             await page.mouse.click(400, 300);
             await expectChartScreenshot(page, page, 'AG-16523-init-focus-hidden.png');
 
-            // Blur the chart:
+            // Blur the chart, tabbing past the series area's annotation:
+            await page.keyboard.press('Tab');
             await page.keyboard.press('Tab');
             await expectChartScreenshot(page, page, 'AG-16523-blurred.png');
         });
 
         test('zoom-in', async ({ page }) => {
-            // Focus on chart series-area:
+            // Focus on chart series-area, tabbing back past its annotation:
             // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Shift+Tab');
             await page.keyboard.press('Shift+Tab');
             await expectChartScreenshot(page, page, 'AG-16523-init-focus-visible.png');
 

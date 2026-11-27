@@ -269,11 +269,13 @@ export type NormalisedBaseRadiusAxisOptions<
 
 // --- Concrete cartesian axes ---
 
+// `tickSize` is an undocumented extension, validated in `axesOptionsDefs.ts`, so it is absent from the public axis
+// options: the smallest step between values on the axis, where the data is not to be read for it.
 export type NormalisedNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgNumberAxisOptions<TContext>,
     CartesianAxisRequiredKeys,
     AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
->;
+> & { tickSize?: number };
 
 export type NormalisedInsetNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgInsetNumberAxisOptions<TContext>,
@@ -285,7 +287,7 @@ export type NormalisedLogAxisOptions<TContext = ContextDefault> = Normalised<
     AgLogAxisOptions<TContext>,
     CartesianAxisRequiredKeys,
     AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
->;
+> & { tickSize?: number };
 
 export type NormalisedCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgCategoryAxisOptions<TContext>,
@@ -299,7 +301,7 @@ export type NormalisedTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AxisLineTickGridLineMorph &
         AxisTitleMorph &
         TimeAxisParentLevelMorph<TContext> & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
->;
+> & { tickSize?: AgTimeInterval | AgTimeIntervalUnit | number };
 
 export type NormalisedUnitTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgUnitTimeAxisOptions<TContext>,
@@ -391,8 +393,8 @@ export type NormalisedBandHighlightOptions = Normalised<
 /** How a cross-line label behaves when it does not fit the space available. Undocumented. */
 export type CrossLineLabelOverflow = 'pad-chart' | 'realign-text' | 'clip-text';
 
-// `overflow` and `reserveSpace` are undocumented extensions, validated in `axesOptionsDefs.ts` and
-// themed in `crossLinesModule.ts`, so they are absent from the public label options.
+// `overflow` is an undocumented extension, validated in `axesOptionsDefs.ts` and
+// themed in `crossLinesModule.ts`, so it is absent from the public label options.
 export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
     'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'spacing' | 'color' | 'cornerRadius',
@@ -401,7 +403,6 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     // The fit options apply to cartesian cross lines only.
     NormalisedLabelFitOptions & {
         overflow?: CrossLineLabelOverflow;
-        reserveSpace?: boolean;
         /** Cartesian cross lines only. */
         placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
         /** Cartesian cross lines only. */

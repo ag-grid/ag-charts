@@ -29,7 +29,7 @@ export interface SeriesVisibilityState {
  * Yields to the event loop before waiting for the chart update,
  * ensuring dispatched events are processed.
  */
-async function waitForAsyncEventTriggeredUpdate(chart: AgChartInstance): Promise<void> {
+export async function waitForAsyncEventTriggeredUpdate(chart: AgChartInstance): Promise<void> {
     await new Promise((r) => setTimeout(r, 0));
     await chart.waitForUpdate();
 }

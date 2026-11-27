@@ -2,6 +2,7 @@ import type { PaddingOptions } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import { type LabelFit, type LabelFitDescriptor, type MeasuredLabel } from '../geometry/labelPlacement';
+import type { InsideMarkerFit } from '../geometry/markerLabelRect';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import type { FontOptions } from '../types/text';
@@ -17,6 +18,8 @@ export interface LabelMeasureContext {
      * Set only when the label must survive that, so leaving it unset keeps an erased label erased.
      */
     readonly labelFitOverflow?: LabelFit;
+    /** How {@link labelFit} was fitted to the series' marker, re-applied to a marker a styler reshapes or resizes. */
+    readonly labelInsideMarkerFit?: InsideMarkerFit;
     /**
      * The label's geometry is resolved per candidate placement by an `itemStyler`, so each datum carries
      * the inputs the engine re-measures with rather than relying on the up-front measurement below.
@@ -44,6 +47,7 @@ export function placedLabelFit(
         font,
         boxPadding: ctx.labelPadding,
         fitOverflow: ctx.labelFitOverflow,
+        insideMarker: ctx.labelInsideMarkerFit,
         // A point label's region is the plotting area, which contains it rather than truncating it: the
         // descriptor is here to re-measure under the styled font, not to introduce a new bound.
         boundByRegion: false,

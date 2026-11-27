@@ -650,10 +650,12 @@ jobs:
                   base_ref: ${{ github.event.pull_request.base.ref || needs.detect-changes.outputs.pr_base_ref || github.event.base_ref }}
                   free_disk_space: false
 
-            - name: nx run-many -t validate-examples
+            # validate-generated-examples type-checks the framework variants the generator writes, which
+            # validate-examples (the examples' source) does not see.
+            - name: nx run-many -t validate-examples,validate-generated-examples
               id: validate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples,validate-generated-examples --exclude all
 
     pr_preview:
         runs-on: ubuntu-24.04
@@ -798,6 +800,7 @@ jobs:
                   node-version: 24
 
             - name: Review translations
+              id: review
               env:
                   LOCALE_SRC_DIR: packages/ag-charts-locale/src
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -817,6 +820,8 @@ jobs:
                   node "$RUNNER_TEMP/review-translations.mjs"
 
             - name: Build L10n section
+              env:
+                  VERDICT: ${{ steps.review.outputs.verdict }}
               run: |
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
@@ -824,11 +829,17 @@ jobs:
                       # Keep the `<!-- l10n-translation-review -->` marker the generator leads with:
                       # the AI Workflow pipeline reads a section whose content starts with a review
                       # marker as that review. Prepend our section heading.
-                      # [warn]: the reviewer flagged translations to read before merge.
-                      { echo '## [warn] Translation review'; echo; cat l10n-review.md; } > "$out"
+                      # [ok] only on an explicit clean verdict; otherwise [warn]: the reviewer
+                      # flagged translations to read before merge.
+                      status=warn
+                      [ "$VERDICT" = clean ] && status=ok
+                      { echo "## [$status] Translation review"; echo; cat l10n-review.md; } > "$out"
+                  elif [ "$VERDICT" = skipped ]; then
+                      # [ok]: no translated locale files changed, so nothing to review.
+                      printf '## [ok] Translation review\n\nNo translated locale files changed.\n' > "$out"
                   else
-                      # [ok]: nothing to action.
-                      printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
+                      # [warn]: the review did not run, so nothing was checked.
+                      printf '## [warn] Translation review\n\nThe translation review did not run. See the L10n Review job log.\n' > "$out"
                   fi
 
             - name: Check the PR head is current
@@ -1399,13 +1410,13 @@ jobs:
                       reports/
                       packages/ag-charts-website/**/__scene_snapshots__/*
 
-    # Report-only axe-core accessibility scan of docs examples (e2e/a11y-axe.spec.ts). A job of its
-    # own so the PR carries the whole report in one artefact, rather than it landing on whichever
-    # `e2e` shard picked up the spec; the main config testIgnores the spec for that reason. The scan
-    # never fails on findings, and this job is not in the result-gating `needs` lists.
+    # axe-core accessibility scan of docs examples (e2e/a11y-axe.spec.ts). A job of its own so the PR
+    # carries the whole report in one artefact, rather than it landing on whichever `e2e` shard picked
+    # up the spec; the main config testIgnores the spec for that reason. The scan fails on a violation
+    # not in e2e/a11y/axe-allowlist.json (scan errors do not fail it), and `report` gates on this job.
     e2e_a11y:
         runs-on: ubuntu-latest
-        name: E2E Accessibility Report
+        name: E2E Accessibility Scan
         permissions:
             contents: read
             packages: read
@@ -1886,6 +1897,7 @@ jobs:
                 test,
                 e2e,
                 e2e_cross_browser,
+                e2e_a11y,
                 demos_e2e,
                 sonarqube,
                 fw_pkg_test,
@@ -2009,6 +2021,8 @@ jobs:
                   elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.e2e_cross_browser.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.e2e_a11y.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.demos_e2e.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
@@ -2285,6 +2299,7 @@ jobs:
                   TEST_RESULT: ${{ needs.test.result }}
                   E2E_RESULT: ${{ needs.e2e.result }}
                   E2E_CROSS_BROWSER_RESULT: ${{ needs.e2e_cross_browser.result }}
+                  E2E_A11Y_RESULT: ${{ needs.e2e_a11y.result }}
                   DEMOS_E2E_RESULT: ${{ needs.demos_e2e.result }}
                   FW_PKG_RESULT: ${{ needs.fw_pkg_test.result }}
                   PLAYWRIGHT_RESULT: ${{ needs.playwright_image.result }}
@@ -2308,6 +2323,7 @@ jobs:
                   [[ "$TEST_RESULT" == "failure" ]] && LINES+=("• Test")
                   [[ "$E2E_RESULT" == "failure" ]] && LINES+=("• E2E")
                   [[ "$E2E_CROSS_BROWSER_RESULT" == "failure" ]] && LINES+=("• E2E Cross-Browser")
+                  [[ "$E2E_A11Y_RESULT" == "failure" ]] && LINES+=("• E2E Accessibility")
                   [[ "$DEMOS_E2E_RESULT" == "failure" ]] && LINES+=("• Demos E2E")
                   [[ "$FW_PKG_RESULT" == "failure" ]] && LINES+=("• FW Pkg")
                   [[ "$PLAYWRIGHT_RESULT" == "failure" ]] && LINES+=("• Playwright Image")
@@ -2541,11 +2557,16 @@ jobs:
                   if git ls-remote --exit-code --heads origin "$SNAPSHOT_BRANCH" >/dev/null 2>&1 ; then
                     changed=true
                     echo "Snapshot branch $SNAPSHOT_BRANCH exists on origin."
-                  elif git diff --name-only "origin/${BASE_BRANCH}...HEAD" -- '*.png' | grep -q . ; then
-                    changed=true
-                    echo "PR diff touches committed PNG baselines."
                   else
-                    echo "No snapshot changes detected; skipping review installs."
+                    # Not `git diff --name-only | grep -q .`: grep exits on the first line, git then dies
+                    # of SIGPIPE on a long file list, and pipefail reads that as "no changes".
+                    png_rc=0
+                    git diff --quiet "origin/${BASE_BRANCH}...HEAD" -- '*.png' || png_rc=$?
+                    case "$png_rc" in
+                      0) echo "No snapshot changes detected; skipping review installs." ;;
+                      1) changed=true; echo "PR diff touches committed PNG baselines." ;;
+                      *) echo "::warning::Could not diff origin/${BASE_BRANCH}...HEAD (git exit ${png_rc}); skipping review installs." ;;
+                    esac
                   fi
                   echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 

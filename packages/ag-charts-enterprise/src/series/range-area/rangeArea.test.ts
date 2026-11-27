@@ -53,6 +53,7 @@ import { Group, type Shape, Transformable } from 'ag-charts-core';
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
     createEnterpriseChart,
+    createStockThemedChart,
     pixelAt,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
@@ -2009,5 +2010,33 @@ describe('RangeAreaSeries', () => {
                 expect(through[0]).toBeGreaterThan(local[0]);
             });
         });
+    });
+
+    it.each([
+        ['matches the area while markers are off', false],
+        ['is solid while markers are on', true],
+    ])('ag-accessible legend marker %s', async (_name, enabled) => {
+        chart = deproxy(
+            await createStockThemedChart(
+                {
+                    data: [
+                        { x: 'a', lo1: 1, hi1: 2, lo2: 2, hi2: 4 },
+                        { x: 'b', lo1: 2, hi1: 3, lo2: 3, hi2: 5 },
+                    ],
+                    series: ['1', '2'].map((n) => ({
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: `lo${n}`,
+                        yHighKey: `hi${n}`,
+                        marker: { enabled },
+                    })),
+                },
+                'ag-accessible'
+            )
+        );
+
+        const { fill, marker } = getSeriesOptions<{ fill: unknown; marker: { fill: unknown } }>(chart, 1);
+        expect(fill).toMatchObject({ type: 'pattern' });
+        expect(marker.fill).toEqual(enabled ? expect.stringMatching(/^#[0-9a-f]{6}$/) : fill);
     });
 });

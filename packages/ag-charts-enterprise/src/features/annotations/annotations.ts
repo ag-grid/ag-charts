@@ -1,11 +1,4 @@
-import {
-    type AgAnnotation,
-    type AgAnnotationFollow,
-    type AgAnnotationFollowName,
-    type AgAnnotationsEventSource,
-    type Direction,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgAnnotation, type AgAnnotationsEventSource, type Direction, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     BBox,
@@ -27,11 +20,11 @@ import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWi
 import type {
     AgAnnotationAxesButtons,
     AgAnnotationMagnet,
-    AgAnnotationMagnetMode,
+    AgAnnotationMagnetRange,
     AgNumericValue,
-    PixelSize,
 } from 'ag-charts-types';
 
+import type { DialogCloseOutcome } from '../../components/dialog/dialog';
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
 import type { FontFields } from './annotationDatum';
 import { annotationDatums, getDefaultColor, isHoverable } from './annotationDatums';
@@ -47,7 +40,8 @@ import type {
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
-import { LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
+import { AnnotationsDOMProxy, type AnnotationsDOMProxyItem } from './annotationsDOMProxy';
+import { AnnotationOptions, LINE_STYLE_TYPE_ITEMS, getAnnotationLabel } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type {
     AnnotationDatum,
@@ -58,17 +52,20 @@ import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { CalloutScene } from './callout/calloutScene';
 import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDatum';
-import { findFollowedSeries, isFollowing, normaliseFollow, readFollowedValue } from './cross-line/followValue';
+import { CrossLineScene } from './cross-line/crossLineScene';
+import { type LastPrice, readLastPrice } from './cross-line/lastPriceLine';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
-import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { applyAnnotationOptions, isWriteable, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
+import { describeAnnotation, describeAnnotationAxis } from './utils/describe';
+import { hasLineText, hasSettings } from './utils/has';
 import { getKeyboardCreateOffsets } from './utils/keyboardCreate';
-import { DEFAULT_MAGNET, applyMagnet, resolveMagnetMode } from './utils/magnet';
+import { DEFAULT_MAGNET, applyMagnet, resolveMagnetRange } from './utils/magnet';
 import { getMagnetPoints } from './utils/magnetSeries';
 import { getGroupingValue } from './utils/scale';
-import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
+import { isEphemeralType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
@@ -109,10 +106,9 @@ export class Annotations extends AbstractModuleInstance {
     private configuredMagnetEnabled?: boolean;
     /** Whether the magnet is on, as the options or the toolbar button have set it; holding Ctrl or Cmd inverts it. */
     private magnetEnabled = false;
-    private magnetStrength: AgAnnotationMagnetMode = DEFAULT_MAGNET.mode;
-    private magnetRange: PixelSize = DEFAULT_MAGNET.range;
+    private magnetRange: AgAnnotationMagnetRange = DEFAULT_MAGNET.range;
     /**
-     * Whether Ctrl or Cmd is held, which inverts the magnet mode. Every snap follows a pointer event that has set it
+     * Whether Ctrl or Cmd is held, which inverts the magnet. Every snap follows a pointer event that has set it
      * from its own modifiers, so it cannot stick when a `keyup` is missed.
      */
     private magnetInverted = false;
@@ -126,6 +122,7 @@ export class Annotations extends AbstractModuleInstance {
     // State
     private readonly state: AnnotationsStateMachine;
     private annotationData: AnnotationDatum[] = [];
+    private settingsTextDatum?: TextualDatumType;
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -133,18 +130,40 @@ export class Annotations extends AbstractModuleInstance {
     // Elements
     private seriesRect?: BBox;
     private readonly container = new Group({ name: 'static-annotations' });
+    /**
+     * The line the price preset's `lastPriceLine` draws. It is kept out of `annotationData`, so it is not part of the
+     * annotation state or its history, cannot be selected or cleared, and is not replaced by `setState`.
+     */
+    private readonly lastPriceLineContainer = new Group({ name: 'last-price-line' });
+    private readonly lastPriceLineScene = new CrossLineScene();
     private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)
     );
     private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
+    private readonly domProxy = new AnnotationsDOMProxy(this.ctx, {
+        onFocus: (id) => this.onKeyboardFocus(id),
+        onBlur: () => this.onKeyboardBlur(),
+        onActivate: (id) => this.openOptionsWithKeyboard(id),
+        onMoveKeyDown: (sourceEvent) => this.onMoveKeyDown(sourceEvent),
+        onMoveKeyUp: (sourceEvent) => this.onKeyUp({ sourceEvent }),
+        onMoveEnd: () => this.endMove(),
+        onMoveBlur: () => this.onMoveBlur(),
+    });
+
+    /** The id of the annotation that the arrow keys move after the Move Annotation button is pressed, if any. */
+    private movingId?: string;
+    /** The annotation whose list item, keyboard-opened toolbar or mover the keyboard is on, if any. */
+    private keyboardFocusId?: string;
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
     private postUpdateFns: Array<() => void> = [];
     private isRestoringMemento = false;
+    /** Whether a settings dialog with Apply and Cancel is open, so its changes are not yet recorded in the history. */
+    private holdsHistory = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -161,6 +180,8 @@ export class Annotations extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.annotationManager?.setEditingProbe(() => this.isEditing()),
+            // An undo or redo steps over the settings dialog's changes, so it applies them first, as one step.
+            this.ctx.historyManager.onBeforeStep(() => this.applySettingsDialog()),
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
@@ -177,42 +198,42 @@ export class Annotations extends AbstractModuleInstance {
                 this.xAxis?.button?.destroy();
                 this.yAxis?.button?.destroy();
                 this.textInput.destroy();
+                this.domProxy.destroy();
             }
         );
     }
 
-    private applyMagnetOptions({ enabled, mode, range }: Required<AgAnnotationMagnet>) {
-        this.magnetStrength = mode;
+    private applyMagnetOptions({ enabled, range }: Required<AgAnnotationMagnet>) {
         this.magnetRange = range;
         if (enabled === this.configuredMagnetEnabled) return;
 
         this.configuredMagnetEnabled = enabled;
         this.magnetEnabled = enabled;
-        this.toolbar.setMagnetPressed(enabled);
+        this.toolbar.setMagnetChecked(enabled);
     }
 
     private toggleMagnet() {
         this.magnetEnabled = !this.magnetEnabled;
-        this.toolbar.setMagnetPressed(this.magnetEnabled);
+        this.toolbar.setMagnetChecked(this.magnetEnabled);
     }
 
     private trackMagnetModifier(sourceEvent: Pick<MouseEvent, 'ctrlKey' | 'metaKey'> | undefined) {
         if (sourceEvent != null) this.magnetInverted = sourceEvent.ctrlKey || sourceEvent.metaKey;
     }
 
-    /** Snaps an offset in the series area to a value of the nearest datum, at the datum's position, as the magnet mode says. */
+    /** Snaps an offset in the series area to the nearest datum's position, as the magnet range allows. */
     private readonly magnetOffset = (offset: Point): Point => {
-        const mode = resolveMagnetMode(this.magnetEnabled, this.magnetStrength, this.magnetInverted);
+        const range = resolveMagnetRange(this.magnetEnabled, this.magnetRange, this.magnetInverted);
         const { xAxis, yAxis } = this;
         // The values of a category axis are bands, not positions to snap to.
-        if (mode == null || !xAxis || !yAxis?.context.continuous) return offset;
+        if (range == null || !xAxis || !yAxis?.context.continuous) return offset;
 
         const seriesIds = yAxis.context.seriesIds();
         const axes = { x: xAxis.context, y: yAxis.context };
         const points = this.ctx.chartService.series
             .filter((s) => s.visible && seriesIds.includes(s.id))
             .flatMap((s) => getMagnetPoints(s, offset, axes));
-        return applyMagnet(offset, points, mode, this.magnetRange);
+        return applyMagnet(offset, points, range);
     };
 
     private setupStateMachine() {
@@ -295,7 +316,11 @@ export class Annotations extends AbstractModuleInstance {
             select: (index?: number, previous?: number) => {
                 const { annotations, optionsToolbar } = this;
 
-                this.hideOverlays();
+                // Opening a toolbar menu hides the dialog and the reverse, so a visible dialog means no menu is open.
+                const keepsDialog = index != null && index === previous && this.settingsDialog.isVisible();
+                if (!keepsDialog) {
+                    this.hideOverlays();
+                }
                 if (!this.textInput.isVisible()) {
                     this.toolbar.clearActiveButton();
                     this.toolbar.resetButtonIcons();
@@ -322,7 +347,7 @@ export class Annotations extends AbstractModuleInstance {
                     selectedNode.toggleActive(true);
                     selectedNode.toggleSelected(true);
                     if (!isEphemeralType(selectedDatum)) {
-                        optionsToolbar.updateButtons(this.annotationData.at(index!)!);
+                        optionsToolbar.updateButtons(this.annotationData.at(index!)!, this.state.isKeyboardSelected());
                         this.postUpdateFns.push(() => {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
@@ -473,8 +498,9 @@ export class Annotations extends AbstractModuleInstance {
             showAnnotationSettings: (active: number, sourceEvent?: Event, initialTab: 'line' | 'text' = 'line') => {
                 const datum = this.annotationData.at(active);
 
-                if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
-                if (isEphemeralType(datum)) return;
+                if (!hasSettings(datum) || isEphemeralType(datum)) return;
+
+                this.settingsTextDatum = isTextType(datum) ? datum : undefined;
 
                 const onChangeColor =
                     (colorType: AnnotationOptionsColorPickerType) =>
@@ -488,17 +514,21 @@ export class Annotations extends AbstractModuleInstance {
                         cancelled
                     );
 
+                // With Apply and Cancel the dialog's changes are one history entry, made on Apply, or none, on Cancel.
+                const { showActionButtons } = this.optionsToolbar;
+                this.holdsHistory = showActionButtons;
+
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
+                    showActionButtons,
+                    onClose: (outcome) => this.endSettingsSession(datum.type, outcome),
+                    onHide: () => this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, false),
                     getContext: () => this.getAnnotationContext(),
                     onChangeCoordinates: (props) => this.state.transition('coordinates', props),
                     onChangeLine: (props) => {
-                        if (props.follow != null) {
-                            this.setFollow(datum, props.follow);
-                            return;
-                        }
+                        if (!hasLineText(datum)) return;
                         this.state.transition('lineProps', props);
                         if (props.bands != null)
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'bands', props.bands);
@@ -508,6 +538,7 @@ export class Annotations extends AbstractModuleInstance {
                             this.defaults.setDefaultFibonacciOptions(datum.type, 'showFill', props.showFill);
                     },
                     onChangeText: (props) => {
+                        if (!hasLineText(datum)) return;
                         this.state.transition('lineText', props);
                         if (props.alignment != null)
                             this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
@@ -519,11 +550,16 @@ export class Annotations extends AbstractModuleInstance {
                                 .join(', ')}`
                         );
                     },
+                    onChangeTextContent: (text) => {
+                        this.state.transition('textContent', text);
+                        this.recordActionAfterNextUpdate(`Change ${datum.type} text`);
+                    },
                     onChangeFillColor: onChangeColor('fill-color'),
                     onChangeHideFillColor: onChangeHideColor('fill-color'),
                     onChangeLineColor: onChangeColor('line-color'),
                     onChangeHideLineColor: onChangeHideColor('line-color'),
                     onChangeLineStyleType: (lineStyleType) => {
+                        if (!hasLineText(datum)) return;
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.optionsToolbar.updateLineStyleType(
                             LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
@@ -531,6 +567,7 @@ export class Annotations extends AbstractModuleInstance {
                         );
                     },
                     onChangeLineStyleWidth: (strokeWidth) => {
+                        if (!hasLineText(datum)) return;
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.optionsToolbar.updateStrokeWidth({
                             strokeWidth,
@@ -541,11 +578,13 @@ export class Annotations extends AbstractModuleInstance {
                     onChangeTextColor: onChangeColor('text-color'),
                     onChangeHideTextColor: onChangeHideColor('text-color'),
                     onChangeTextFontSize: (fontSize) => {
+                        if (!isTextType(datum) && !hasLineText(datum)) return;
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
                 };
 
                 this.settingsDialog.show(datum, options);
+                this.optionsToolbar.setDialogExpanded(AnnotationOptions.Settings, true);
             },
         });
     }
@@ -615,8 +654,14 @@ export class Annotations extends AbstractModuleInstance {
                 this.delete();
                 this.reset();
             }),
+            optionsToolbar.events.on('pressed-move', () => this.startMove()),
+            optionsToolbar.events.on('pressed-escape', ({ sourceEvent }) => this.onOptionsEscape(sourceEvent)),
             optionsToolbar.events.on('pressed-settings', ({ sourceEvent }) => {
-                this.state.transition('toolbarPressSettings', sourceEvent);
+                this.state.transition('toolbarPressSettings', {
+                    sourceEvent,
+                    textInputValue: this.textInput.getValue(),
+                    bbox: this.textInput.getBBox(),
+                });
             }),
             optionsToolbar.events.on('pressed-lock', ({ locked }) => {
                 this.recordActionAfterNextUpdate(locked ? 'Locked' : 'Unlocked');
@@ -647,6 +692,7 @@ export class Annotations extends AbstractModuleInstance {
             // Settings Dialog
             settingsDialog.events.on('hidden', () => {
                 this.optionsToolbar.clearActiveButton();
+                this.deleteTextClearedInSettings();
             })
         );
     }
@@ -654,11 +700,17 @@ export class Annotations extends AbstractModuleInstance {
     private setupDOM() {
         const { ctx, toolbar, optionsToolbar } = this;
 
-        this.cleanup.register(ctx.annotationManager!.attachNode(this.container), () => {
-            ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
-            toolbar.destroy();
-            optionsToolbar.destroy();
-        });
+        this.cleanup.register(
+            // Attached first, so that annotations are drawn over the line
+            ctx.annotationManager!.attachNode(this.lastPriceLineContainer),
+            ctx.annotationManager!.attachNode(this.container),
+            () => {
+                this.lastPriceLineScene.destroy();
+                ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+                toolbar.destroy();
+                optionsToolbar.destroy();
+            }
+        );
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -715,32 +767,6 @@ export class Annotations extends AbstractModuleInstance {
             this.defaults.applyDefaults(datum);
         }
 
-        this.update();
-    }
-
-    private readonly getFollowedValue = (follow: AgAnnotationFollow) => {
-        const normalised = normaliseFollow(follow);
-        if (normalised == null || this.yAxis == null) return;
-
-        const series = findFollowedSeries(normalised, this.ctx.chartService.series, this.yAxis.context.seriesIds());
-        return series && readFollowedValue(series, normalised.follow);
-    };
-
-    /** Make a horizontal line follow `follow`, or stop it following with `'none'`, leaving it where it was last drawn. */
-    private setFollow(datum: AnnotationDatum, follow: AgAnnotationFollowName | 'none') {
-        if (!horizontalLineDatum.is(datum)) return;
-
-        const current = datum.follow;
-        if (follow === 'none') {
-            if (current == null) return;
-            datum.value = this.getFollowedValue(current) ?? datum.value;
-            datum.follow = undefined;
-        } else {
-            const seriesId = normaliseFollow(current)?.seriesId;
-            datum.follow = seriesId == null ? follow : { follow, seriesId };
-        }
-
-        this.recordActionAfterNextUpdate(`Change ${datum.type} follow to ${follow}`);
         this.update();
     }
 
@@ -853,6 +879,7 @@ export class Annotations extends AbstractModuleInstance {
 
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
+        this.lastPriceLineContainer.setClipRect(seriesRect);
 
         this.xAxis = this.getAxis(event.axes[ChartAxisDirection.X], seriesRect, this.xAxis?.button);
         this.yAxis = this.getAxis(event.axes[ChartAxisDirection.Y], seriesRect, this.yAxis?.button);
@@ -881,7 +908,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private animateAnnotations({ from, to, phase }: { from: number; to: number; phase: 'trailing' | 'remove' }) {
-        const { annotations } = this;
+        const { annotations, lastPriceLineScene } = this;
         this.ctx.animationManager?.animate({
             from,
             to,
@@ -894,6 +921,8 @@ export class Annotations extends AbstractModuleInstance {
                     node.opacity = value;
                     node.setAxisLabelOpacity(value);
                 });
+                lastPriceLineScene.opacity = value;
+                lastPriceLineScene.setAxisLabelOpacity(value);
             },
             onStop() {
                 annotations.each((sceneNode) => {
@@ -901,12 +930,18 @@ export class Annotations extends AbstractModuleInstance {
                     node.opacity = to;
                     node.setAxisLabelOpacity(to);
                 });
+                lastPriceLineScene.opacity = to;
+                lastPriceLineScene.setAxisLabelOpacity(to);
             },
         });
     }
 
     private onPreRender() {
-        if (!(this.opts.enabled ?? true)) return;
+        if (!(this.opts.enabled ?? true)) {
+            this.domProxy.clear();
+            this.reconcileKeyboardFocus();
+            return;
+        }
         this.updateAnnotations();
         this.settingsDialog.refreshCoordinates();
         this.state.transition('render');
@@ -948,23 +983,52 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
-        const {
-            defaults,
-            ctx: { historyManager },
-            ctx,
-        } = this;
-        const annotationManager = ctx.annotationManager;
-        if (!annotationManager) return;
+        if (!this.ctx.annotationManager) return;
 
         // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
-        // would truncate the redo stack.
-        if (this.isRestoringMemento) return;
+        // would truncate the redo stack. Likewise, the changes of a settings dialog that has yet to be applied.
+        if (this.isRestoringMemento || this.holdsHistory) return;
+
+        this.postUpdateFns.push(() => this.recordNow(label, types));
+    }
+
+    private recordNow(label: string, types: Array<'annotations' | 'defaults'>) {
+        const { defaults, ctx } = this;
+        const { historyManager, annotationManager } = ctx;
+        if (!annotationManager) return;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
-        this.postUpdateFns.push(() => {
-            historyManager.record(label, ...originators);
-            annotationManager.fireChangedEvent('user-interaction');
-        });
+        historyManager.record(label, ...originators);
+        annotationManager.fireChangedEvent('user-interaction');
+    }
+
+    private endSettingsSession(type: AnnotationType, outcome: DialogCloseOutcome) {
+        const { defaults, ctx } = this;
+        if (!this.holdsHistory) return;
+
+        // While the history is still held, so the deletion of a cleared text is part of the record below.
+        if (outcome === 'applied') this.deleteTextClearedInSettings();
+        this.holdsHistory = false;
+        const { annotationManager } = ctx;
+        if (!annotationManager || outcome === 'unchanged') return;
+
+        if (outcome === 'applied') {
+            // At once, as an undo or redo that applied the dialog first goes on to step back over this record.
+            annotationManager.updateData(this.annotationData.map(serialiseAnnotation) as AgAnnotation[]);
+            this.recordNow(`Change ${type} settings`, ['annotations', 'defaults']);
+        } else {
+            ctx.historyManager.revert(defaults, annotationManager);
+        }
+    }
+
+    /** A move made with the settings dialog open is one of its changes. */
+    private markSettingsChanged() {
+        if (this.holdsHistory) this.settingsDialog.markChanged();
+    }
+
+    /** Applies the settings dialog, if it holds changes back, before an action that is not one of its own. */
+    private applySettingsDialog() {
+        if (this.holdsHistory) this.settingsDialog.apply();
     }
 
     private endColorPickerSession(label: string, cancelled: boolean) {
@@ -1038,10 +1102,64 @@ export class Annotations extends AbstractModuleInstance {
                 updateAnnotation(node, datum, context);
             });
 
+        this.updateLastPriceLine(context, showAnnotations);
+        this.updateDOMProxy(context, seriesRect, showAnnotations);
+
         for (const fn of this.postUpdateFns) {
             fn();
         }
         this.postUpdateFns = [];
+        this.reconcileKeyboardFocus();
+    }
+
+    private updateLastPriceLine(context: AnnotationContext, showAnnotations: boolean) {
+        const { lastPriceLineScene: scene, opts } = this;
+        const options = opts.lastPriceLine;
+        const series = options?.enabled
+            ? this.ctx.chartService.series.find((s) => s.id === options.seriesId)
+            : undefined;
+        const price = showAnnotations && options ? readLastPrice(series, options.closeKey, options.openKey) : undefined;
+
+        if (options == null || price == null) {
+            scene.visible = false;
+            scene.setAxisLabelVisible(false);
+            return;
+        }
+
+        // Attached when first drawn, so that a chart without a last price line has no node for it in the scene graph.
+        if (scene.parentNode == null) this.lastPriceLineContainer.append(scene);
+
+        // The scene hides the axis label itself while the line is out of range.
+        scene.setAxisLabelVisible(true);
+        scene.update(this.createLastPriceLineDatum(options, price), context);
+    }
+
+    private createLastPriceLineDatum(
+        {
+            enabled: _enabled,
+            seriesId: _seriesId,
+            closeKey: _closeKey,
+            openKey: _openKey,
+            up,
+            down,
+            ...styles
+        }: NonNullable<NormalisedAnnotationsOptions['lastPriceLine']>,
+        { value, up: isUp }: LastPrice
+    ) {
+        const datum = horizontalLineDatum.create();
+        const themeStyles = this.ctx.annotationManager?.getAnnotationTypeStyles(AnnotationType.HorizontalLine);
+        if (themeStyles) applyAnnotationOptions(datum, themeStyles);
+        applyAnnotationOptions(datum, styles);
+
+        // The colour of the last bar's direction is the default of the line and its axis label, unless they are set.
+        const colour = isUp ? up : down;
+        if (colour != null) {
+            applyAnnotationOptions(datum, {
+                stroke: styles.stroke ?? colour,
+                axisLabel: { fill: styles.axisLabel?.fill ?? colour },
+            });
+        }
+        return Object.assign(datum, { value, locked: true, readOnly: true });
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
@@ -1055,7 +1173,6 @@ export class Annotations extends AbstractModuleInstance {
             seriesRect,
             isRtl: ctx.domManager.isRtl,
             getVolume: this.getDatumRangeVolume,
-            getFollowedValue: this.getFollowedValue,
             magnet: this.magnetOffset,
             xAxis: {
                 ...xAxis.context,
@@ -1094,6 +1211,8 @@ export class Annotations extends AbstractModuleInstance {
 
         const context = this.getAnnotationContext();
         if (!context || event.device === 'keyboard') return;
+
+        this.keyboardFocusId = undefined;
 
         // The states finish an endpoint from the last hover, so it is refreshed to the click's own point and modifiers.
         if (!state.isIdle()) this.onHover(event);
@@ -1169,6 +1288,8 @@ export class Annotations extends AbstractModuleInstance {
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
+        this.keyboardFocusId = undefined;
+
         const context = this.getAnnotationContext();
         if (!context) return;
 
@@ -1180,6 +1301,7 @@ export class Annotations extends AbstractModuleInstance {
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
+        this.markSettingsChanged();
         this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
@@ -1233,6 +1355,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private onDelete() {
         if (this.textInput.isVisible()) return;
+        this.applySettingsDialog();
         this.cancel();
         this.delete();
         this.reset();
@@ -1263,27 +1386,10 @@ export class Annotations extends AbstractModuleInstance {
         const { shiftKey, ctrlKey, metaKey } = sourceEvent;
         this.trackMagnetModifier(sourceEvent);
         const ctrlMeta = ctrlKey || metaKey;
-        const ctrlShift = ctrlKey || shiftKey;
 
         state.transition('keyDown', { shiftKey, context });
 
-        const translation = { x: 0, y: 0 };
-
-        const xStep = Math.max(context?.xAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
-        const yStep = Math.max(context?.yAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
         switch (sourceEvent.key) {
-            case 'ArrowDown':
-                translation.y = yStep;
-                break;
-            case 'ArrowUp':
-                translation.y = -yStep;
-                break;
-            case 'ArrowLeft':
-                translation.x = -xStep;
-                break;
-            case 'ArrowRight':
-                translation.x = xStep;
-                break;
             case 'Escape':
                 this.onCancel();
                 return;
@@ -1293,7 +1399,9 @@ export class Annotations extends AbstractModuleInstance {
                 return;
         }
 
+        const translation = getKeyboardTranslation(sourceEvent, context);
         if (translation.x !== 0 || translation.y !== 0) {
+            this.markSettingsChanged();
             state.transition('translate', { translation });
             sourceEvent.preventDefault();
         }
@@ -1307,17 +1415,19 @@ export class Annotations extends AbstractModuleInstance {
                 state.transition('copy');
                 return;
             case 'x':
+                this.applySettingsDialog();
                 state.transition('cut');
                 this.recordActionAfterNextUpdate('Cut annotation');
                 return;
             case 'v':
+                this.applySettingsDialog();
                 state.transition('paste');
                 this.recordActionAfterNextUpdate('Paste annotation');
                 return;
         }
     }
 
-    private onKeyUp(event: KeyboardWidgetEvent<'keyup'>) {
+    private onKeyUp(event: Pick<KeyboardWidgetEvent<'keyup'>, 'sourceEvent'>) {
         const { shiftKey } = event.sourceEvent;
         this.trackMagnetModifier(event.sourceEvent);
         const context = this.getAnnotationContext();
@@ -1327,6 +1437,192 @@ export class Annotations extends AbstractModuleInstance {
 
         this.state.transition('keyUp', { shiftKey, context });
         this.state.transition('translateEnd');
+    }
+
+    private updateDOMProxy(context: AnnotationContext, seriesRect: BBox, showAnnotations: boolean) {
+        const { domProxy, optionsToolbar, movingId } = this;
+        if (!showAnnotations) {
+            domProxy.clear();
+            return;
+        }
+
+        const domainBBox = getDomainBBox(context);
+        const active = this.state.getActive();
+        const items: AnnotationsDOMProxyItem[] = [];
+        this.annotations.each((node, datum, index) => {
+            if (!node.visible) return;
+            // A pointer cannot select a read-only or ephemeral annotation, so the keyboard does not list it.
+            if (datum.readOnly === true || isEphemeralType(datum)) return;
+
+            // Pointer users cannot reach an annotation outside the domain, so neither does the keyboard. The
+            // intersection is inclusive, as a horizontal or vertical line has no height or width.
+            const bbox = node.getFocusBBox();
+            if (bbox.intersection(domainBBox) == null) return;
+
+            items.push({
+                id: datum.id,
+                label: describeAnnotation(datum, context),
+                bbox,
+                expanded: index === active && movingId == null,
+            });
+        });
+
+        domProxy.setHasPopup(optionsToolbar.isEnabled());
+        domProxy.update(items, seriesRect);
+    }
+
+    /** Keeps the keyboard on a listed annotation's control, and on one that can still move for the mover. */
+    private reconcileKeyboardFocus() {
+        const { keyboardFocusId: id, domProxy } = this;
+        if (id == null) return;
+
+        const datum = domProxy.isListed(id) ? this.annotationData.find((d) => d.id === id) : undefined;
+        const moving = this.movingId === id;
+        if (datum != null && (!moving || isWriteable(datum))) return;
+
+        this.keyboardFocusId = undefined;
+        // The mover had the focus, which hiding it loses.
+        const focusLost = moving || this.ctx.agDocument.hasNoFocus();
+        if (moving) this.stopMove();
+        this.cancel();
+        this.reset();
+        if (!focusLost) return;
+
+        if (datum == null) {
+            if (!domProxy.focusList()) this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
+        } else {
+            domProxy.focus(id);
+        }
+    }
+
+    private findIndexById(id: string) {
+        return this.annotationData.findIndex((datum) => datum.id === id);
+    }
+
+    /** Pans an annotation that the keyboard focuses into view, as keyboard navigation of the series does. */
+    private onKeyboardFocus(id: string) {
+        this.keyboardFocusId = id;
+        const context = this.getAnnotationContext();
+        const node = this.annotations.at(this.findIndexById(id));
+        if (context == null || node == null) return;
+
+        const target = node.getFocusBBox().intersection(getDomainBBox(context));
+        if (target == null) return;
+
+        const { seriesRect } = context;
+        const { x, y } = target.computeCenter();
+        if (!seriesRect.containsPoint(x, y)) {
+            this.ctx.zoomManager?.panToBBox(seriesRect, target);
+        }
+    }
+
+    /** Forgets the annotation once the focus leaves its controls, so that a later update leaves the focus alone. */
+    private onKeyboardBlur() {
+        // Chrome also blurs a removed or hidden item, so let `reconcileKeyboardFocus()` move the focus on first.
+        queueMicrotask(() => {
+            if (this.domProxy.containsFocus() || this.optionsToolbar.containsFocus()) return;
+            this.keyboardFocusId = undefined;
+        });
+    }
+
+    private openOptionsWithKeyboard(id: string) {
+        const index = this.findIndexById(id);
+        if (index < 0) return;
+
+        if (!this.state.isIdle()) {
+            this.cancel();
+            this.reset();
+        }
+
+        const wasActive = this.state.getActive() === index;
+        this.keyboardFocusId = id;
+        this.state.transition('selectWithKeyboard', index);
+
+        if (!this.optionsToolbar.isEnabled()) return;
+
+        if (wasActive) {
+            this.showOptionsToolbar(index);
+        }
+        this.postUpdateFns.push(() => this.optionsToolbar.focusFirstButton());
+        this.update();
+    }
+
+    private showOptionsToolbar(index: number) {
+        const datum = this.annotationData.at(index);
+        const node = this.annotations.at(index) as AnnotationSceneUnion | undefined;
+        if (datum == null || node == null) return;
+
+        this.optionsToolbar.updateButtons(datum, this.state.isKeyboardSelected());
+        this.optionsToolbar.show();
+        this.optionsToolbar.setAnchorScene(node);
+    }
+
+    /** Escape closes a toolbar opened from the keyboard and returns focus to the annotation's list item. */
+    private onOptionsEscape(sourceEvent: KeyboardEvent) {
+        // TODO: the design wants this for a toolbar opened by a pointer click too, which hands the annotation over
+        // to the keyboard. Decide whether to support that before extending it.
+        if (!this.state.isKeyboardSelected()) return;
+
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum == null) return;
+
+        sourceEvent.preventDefault();
+        this.cancel();
+        this.reset();
+        this.domProxy.focus(datum.id);
+    }
+
+    private startMove() {
+        const active = this.state.getActive();
+        const datum = active == null ? undefined : this.annotationData.at(active);
+        if (datum == null || !isWriteable(datum)) return;
+
+        this.movingId = datum.id;
+        this.keyboardFocusId = datum.id;
+        this.optionsToolbar.hide();
+        this.domProxy.startMove(datum.id);
+        this.update();
+    }
+
+    private onMoveKeyDown(sourceEvent: KeyboardEvent) {
+        const context = this.getAnnotationContext();
+        const active = this.state.getActive();
+        if (context == null || active == null) return;
+
+        const translation = getKeyboardTranslation(sourceEvent, context);
+        this.state.transition('translate', { translation });
+
+        const datum = this.annotationData.at(active);
+        const change = datum && describeAnnotationAxis(datum, context, translation.x === 0 ? 'y' : 'x');
+        if (change != null) {
+            this.domProxy.announceMove(change);
+        }
+    }
+
+    private stopMove() {
+        this.movingId = undefined;
+        this.domProxy.stopMove();
+        this.state.transition('translateEnd');
+    }
+
+    /** Escape ends the move, keeping it, and returns focus to the Move button of the toolbar. */
+    private endMove() {
+        const active = this.state.getActive();
+        this.stopMove();
+        if (active == null) return;
+
+        this.showOptionsToolbar(active);
+        this.optionsToolbar.focusButton(AnnotationOptions.Move);
+        this.update();
+    }
+
+    /** Leaving the annotation while it moves, such as with Tab, keeps the move and deselects the annotation. */
+    private onMoveBlur() {
+        this.keyboardFocusId = undefined;
+        this.stopMove();
+        this.cancel();
+        this.reset();
     }
 
     private clear() {
@@ -1345,6 +1641,22 @@ export class Annotations extends AbstractModuleInstance {
 
     private delete() {
         this.state.transition('delete');
+    }
+
+    /** As the inline editor does, deletes a text annotation left empty once the settings dialog closes. */
+    private deleteTextClearedInSettings() {
+        const datum = this.settingsTextDatum;
+        this.settingsTextDatum = undefined;
+        if (datum?.text !== '') return;
+
+        const index = this.annotationData.indexOf(datum);
+        if (index < 0) return;
+
+        const wasActive = this.state.isActive(index);
+        this.annotationData.splice(index, 1);
+        this.recordActionAfterNextUpdate(`Delete ${datum.type} annotation`);
+        if (wasActive) this.reset();
+        this.update();
     }
 
     private deleteAll() {
@@ -1377,8 +1689,6 @@ export class Annotations extends AbstractModuleInstance {
         const isHorizontal = horizontalLineDatum.is(datum);
         if (!isHorizontal && !verticalLineDatum.is(datum)) return;
         if (!datum.axisLabel.enabled) return;
-        // A followed line is not dragged, so there is no dragged value for its label to report
-        if (isFollowing(datum)) return;
 
         const axis = isHorizontal ? this.yAxis : this.xAxis;
         if (!axis) return;
@@ -1428,4 +1738,35 @@ export class Annotations extends AbstractModuleInstance {
     private update(type = ChartUpdateType.PRE_SCENE_RENDER) {
         this.ctx.eventsHub.emit('chart:request-update', { type });
     }
+}
+
+function getKeyboardTranslation(sourceEvent: KeyboardEvent, context: AnnotationContext): Point {
+    const { ctrlKey, shiftKey } = sourceEvent;
+    const ctrlShift = ctrlKey || shiftKey;
+    const xStep = Math.max(context.xAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
+    const yStep = Math.max(context.yAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
+    switch (sourceEvent.key) {
+        case 'ArrowDown':
+            return { x: 0, y: yStep };
+        case 'ArrowUp':
+            return { x: 0, y: -yStep };
+        case 'ArrowLeft':
+            return { x: -xStep, y: 0 };
+        case 'ArrowRight':
+            return { x: xStep, y: 0 };
+        default:
+            return { x: 0, y: 0 };
+    }
+}
+
+/** The canvas area that the axis domains span, which extends past the series area while the chart is zoomed. */
+function getDomainBBox({ seriesRect, xAxis, yAxis }: AnnotationContext) {
+    const [x1, x2] = xAxis.scale.range;
+    const [y1, y2] = yAxis.scale.range;
+    return new BBox(
+        seriesRect.x + Math.min(x1, x2),
+        seriesRect.y + Math.min(y1, y2),
+        Math.abs(x2 - x1),
+        Math.abs(y2 - y1)
+    );
 }

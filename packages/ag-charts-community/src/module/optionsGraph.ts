@@ -20,7 +20,14 @@ import {
 import { detectChartType } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
-import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
+import {
+    LocationOperation,
+    type Operation,
+    RAW_OPERANDS_FROM,
+    getOperation,
+    isOperation,
+    operations,
+} from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
     AUTO_ENABLE_VALUE_EDGE,
@@ -239,6 +246,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         'axesButtons',
         'data',
         'enabled',
+        'lastPriceLine',
         'magnet',
         'optionsToolbar',
         'snap',
@@ -1141,8 +1149,14 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     ) {
         const operationVertex = this.addVertex(operation.operation);
         this.addEdge(valueVertex, operationVertex, OPERATION_EDGE);
-        for (const operationValue of operation.values) {
-            this.buildGraphFromOperationValue(valueVertex, operationValue, edgeValue, pathArrayVertex);
+        const rawFrom = RAW_OPERANDS_FROM[operation.operation] ?? Infinity;
+        const { values } = operation;
+        for (let i = 0; i < values.length; i++) {
+            if (i >= rawFrom) {
+                this.addEdge(valueVertex, this.addVertex(values[i]), OPERATION_VALUE_EDGE);
+            } else {
+                this.buildGraphFromOperationValue(valueVertex, values[i], edgeValue, pathArrayVertex);
+            }
         }
     }
 

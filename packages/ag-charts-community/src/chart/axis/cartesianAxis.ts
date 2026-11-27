@@ -43,7 +43,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
-import type { AxisContext } from '../../module/axisContext';
+import type { AxisContext, AxisValueTickSize } from '../../module/axisContext';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
@@ -313,6 +313,11 @@ export abstract class CartesianAxis<
 
     protected override get userListeners() {
         return this.options.listeners;
+    }
+
+    /** The granularity of the data on a time axis, which other axes leave unset. */
+    protected override valueTickSize(): AxisValueTickSize | undefined {
+        return this.minimumTimeGranularity;
     }
 
     override createAxisContext(): AxisContext {

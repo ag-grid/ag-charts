@@ -7,6 +7,10 @@ export function boxCollides(b: BoxBounds, x: number, y: number, w: number, h: nu
     return x < b.x + b.width && x + w > b.x && y < b.y + b.height && y + h > b.y;
 }
 
+export function isFiniteBox({ x, y, width, height }: BoxBounds): boolean {
+    return Number.isFinite(x + y + width + height);
+}
+
 export function boxContains(b: BoxBounds, x: number, y: number, w: number = 0, h: number = 0): boolean {
     return x >= b.x && x + w <= b.x + b.width && y >= b.y && y + h <= b.y + b.height;
 }

@@ -8,10 +8,7 @@ export interface BindingImport {
     module: string;
     namedImport: string;
     imports: string[];
-    // Set when the import must be emitted as `import type { ... }`. Parsed imports leave this
-    // undefined (their type-only-ness is not tracked); it is set explicitly when a type-only
-    // import dropped by sucrase is restored for a TypeScript-output framework (see
-    // `mergeDroppedTypedImports`).
+    // Set when the import must be emitted as `import type { ... }`: the example wrote it that way.
     isTypeOnly?: boolean;
 }
 
@@ -328,11 +325,256 @@ export function extractTypeInfoForVariable(srcFile: ts.SourceFile, varName: stri
     return { typeStr, typeParts };
 }
 
+export const DEFAULT_OPTIONS_TYPE = 'AgChartOptions';
+
+/** The declared type of a chart's options variable, or `AgChartOptions` where the example declares none. */
+export function getPropertyOptionsType(property: { typeInfo?: { typeStr?: string } }): string {
+    return property.typeInfo?.typeStr ?? DEFAULT_OPTIONS_TYPE;
+}
+
+/** Whether any chart's options variable is typed with the `AgChartOptions` fallback. */
+export function usesDefaultOptionsType(bindings: {
+    chartProperties?: Record<string, string>;
+    properties: { name: string; typeInfo?: { typeStr?: string } }[];
+}): boolean {
+    const chartVariables = Object.values(bindings.chartProperties ?? {});
+    return bindings.properties.some((p) => chartVariables.includes(p.name) && !p.typeInfo?.typeStr);
+}
+
+/** The names a binding declares, looking through destructuring patterns. */
+function bindingNames(name: ts.BindingName): string[] {
+    if (ts.isIdentifier(name)) {
+        return [name.text];
+    }
+    return name.elements.flatMap((element) => (ts.isOmittedExpression(element) ? [] : bindingNames(element.name)));
+}
+
+/** Whether `scope` declares `name` itself, as a parameter or as a `const`/`let`/`var`/function directly in its body. */
+function declaresName(scope: ts.Node, name: string): boolean {
+    if (ts.isFunctionLike(scope) && scope.parameters.some((p) => bindingNames(p.name).includes(name))) {
+        return true;
+    }
+    const statements = ts.isSourceFile(scope) || ts.isBlock(scope) ? scope.statements : [];
+    return statements.some((statement) =>
+        ts.isVariableStatement(statement)
+            ? statement.declarationList.declarations.some((d) => bindingNames(d.name).includes(name))
+            : ts.isFunctionDeclaration(statement) && statement.name?.text === name
+    );
+}
+
+/** Whether `node`, an identifier, names something rather than reading a variable: `a.node`, `{ node: 1 }`, `const node`. */
+function isNameNotRead(node: ts.Identifier): boolean {
+    const parent = node.parent;
+    if (ts.isPropertyAccessExpression(parent) || ts.isQualifiedName(parent)) {
+        return (ts.isPropertyAccessExpression(parent) ? parent.name : parent.right) === node;
+    }
+    if (ts.isBindingElement(parent)) {
+        // `const { node } = x` and `const { node: y } = x` declare, or name a property of, the pattern; a default value reads.
+        return parent.name === node || parent.propertyName === node;
+    }
+    return (
+        (ts.isPropertyAssignment(parent) ||
+            ts.isMethodDeclaration(parent) ||
+            ts.isPropertyDeclaration(parent) ||
+            ts.isGetAccessorDeclaration(parent) ||
+            ts.isSetAccessorDeclaration(parent) ||
+            ts.isVariableDeclaration(parent) ||
+            ts.isParameter(parent) ||
+            ts.isFunctionLike(parent) ||
+            ts.isClassLike(parent) ||
+            ts.isLabeledStatement(parent) ||
+            ts.isBreakOrContinueStatement(parent)) &&
+        (parent as { name?: ts.Node; label?: ts.Node }).name === node
+    );
+}
+
+function isShadowed(node: ts.Identifier, root: ts.Node): boolean {
+    for (let scope = node.parent; scope && scope !== root.parent; scope = scope.parent) {
+        if (declaresName(scope, node.text)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Rewrites reads of the chart options variables named in `names` (e.g. `options.series` in a callback, or
+ * `...options1` in a second chart's options) to the framework's own reference to them, such as `this.options`.
+ * It works on the syntax tree, so a read inside a template literal's `${}` counts, and `{ options }` becomes
+ * `{ options: this.options }`. Member accesses (`other.options`), property keys, declarations, names that a
+ * function or block declares itself, types, and the contents of strings and comments are left alone.
+ */
+export function replaceOptionsReferences(code: string, names: string[], toReference: (name: string) => string): string {
+    if (names.length === 0) {
+        return code;
+    }
+
+    // The code is an expression (`{ ...options }`, a callback) or statements (`const { series } = options;`).
+    const parse = (text: string) => {
+        const source = ts.createSourceFile('x.ts', text, ts.ScriptTarget.Latest, true);
+        return { source, valid: (source as any).parseDiagnostics.length === 0 };
+    };
+    const prefix = 'const x = (';
+    const asExpression = parse(`${prefix}${code}\n)`);
+    const asStatements = asExpression.valid ? undefined : parse(code);
+    const { source } = asStatements ?? asExpression;
+    const offset = asStatements ? 0 : prefix.length;
+    const root: ts.Node = asStatements ? source : (source.statements[0] as ts.VariableStatement).declarationList;
+
+    const edits: { start: number; end: number; text: string }[] = [];
+    const visit = (node: ts.Node) => {
+        if (ts.isTypeNode(node)) {
+            return;
+        }
+        if (ts.isIdentifier(node) && names.includes(node.text) && !isNameNotRead(node) && !isShadowed(node, root)) {
+            const reference = toReference(node.text);
+            const shorthand = ts.isShorthandPropertyAssignment(node.parent) && node.parent.name === node;
+            if (reference !== node.text) {
+                const text = shorthand ? `${node.text}: ${reference}` : reference;
+                edits.push({ start: node.getStart(source) - offset, end: node.getEnd() - offset, text });
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(root);
+
+    return edits.reduceRight((result, { start, end, text }) => result.slice(0, start) + text + result.slice(end), code);
+}
+
+/**
+ * The other charts' options variables that a chart's options read (`{ ...options1 }`), dependencies first.
+ * Each chart becomes its own component in the Angular and Vue variants, so a component has to declare these
+ * itself.
+ */
+export function getReferencedOptions(bindings: any, property: { name: string; value: string }): any[] {
+    const all: any[] = bindings.properties.filter((p: any) =>
+        Object.values(bindings.chartProperties ?? {}).includes(p.name)
+    );
+    const ordered: any[] = [];
+    // Charts may read each other (`options1`'s callback reads `options2`, which spreads `options1`), so a chart is
+    // visited once, and `property` itself is never a dependency of its own.
+    const visited = new Set<string>([property.name]);
+    const visit = (current: { name: string; value: string }) => {
+        const others = all.filter((p) => p.name !== current.name);
+        const referenced = new Set<string>();
+        replaceOptionsReferences(
+            current.value,
+            others.map((p) => p.name),
+            (name) => {
+                referenced.add(name);
+                return name;
+            }
+        );
+        for (const dependency of others.filter((p) => referenced.has(p.name))) {
+            if (!visited.has(dependency.name)) {
+                visited.add(dependency.name);
+                visit(dependency);
+                ordered.push(dependency);
+            }
+        }
+    };
+    visit(property);
+    return ordered;
+}
+
+/** `value` with the bodies of its functions emptied, leaving only what is evaluated when `value` itself is. */
+function withoutFunctionBodies(value: string): string {
+    const prefix = 'const x = ';
+    const source = ts.createSourceFile('x.ts', `${prefix}${value}`, ts.ScriptTarget.Latest, true);
+    const ranges: [number, number, boolean][] = [];
+    const visit = (node: ts.Node) => {
+        if (ts.isFunctionLike(node) && 'body' in node && node.body) {
+            ranges.push([
+                node.body.getStart(source) - prefix.length,
+                node.body.getEnd() - prefix.length,
+                ts.isBlock(node.body),
+            ]);
+        } else {
+            ts.forEachChild(node, visit);
+        }
+    };
+    visit(source);
+
+    // Keep the body syntactically valid, and its length, so the result still parses with the same offsets.
+    let result = value;
+    for (const [start, end, isBlock] of ranges) {
+        const blank = isBlock ? `{${' '.repeat(end - start - 2)}}` : `0${' '.repeat(end - start - 1)}`;
+        result = result.slice(0, start) + blank + result.slice(end);
+    }
+    return result;
+}
+
+/**
+ * `getReferencedOptions`, split into those declared before `property`'s own options and those that follow them.
+ * A chart has to be declared before any chart whose options evaluate it (`options2 = { ...options1 }`), whereas a
+ * read inside a callback (`() => options2.series`) only needs it declared by the time the callback runs. So when
+ * charts read each other, which one comes first depends on which of the reads are in callbacks.
+ */
+export function splitReferencedOptions(
+    bindings: any,
+    property: { name: string; value: string }
+): { before: any[]; after: any[] } {
+    const charts = [...getReferencedOptions(bindings, property), property];
+    const ordered: any[] = [];
+    const visited = new Set<string>();
+    const visit = (chart: { name: string; value: string }) => {
+        visited.add(chart.name);
+        const evaluated = withoutFunctionBodies(chart.value);
+        for (const other of charts) {
+            if (visited.has(other.name)) {
+                continue;
+            }
+            let readsOther = false;
+            replaceOptionsReferences(evaluated, [other.name], (name) => {
+                readsOther = true;
+                return name;
+            });
+            if (readsOther) {
+                visit(other);
+            }
+        }
+        ordered.push(chart);
+    };
+    charts.forEach((chart) => !visited.has(chart.name) && visit(chart));
+
+    const index = ordered.indexOf(property);
+    return { before: ordered.slice(0, index), after: ordered.slice(index + 1) };
+}
+
+// Types that need no import: the DOM and TypeScript's own globals, and the generic parameters charts use.
+const NON_IMPORTED_TYPES = new Set([
+    'HTMLElement',
+    'Function',
+    'TData',
+    'TContext',
+    'TValue',
+    // TypeScript utility and built-in types
+    'Array',
+    'ReadonlyArray',
+    'Partial',
+    'Required',
+    'Readonly',
+    'Record',
+    'Pick',
+    'Omit',
+    'Exclude',
+    'Extract',
+    'NonNullable',
+    'Parameters',
+    'ConstructorParameters',
+    'ReturnType',
+    'InstanceType',
+    'Awaited',
+    'Promise',
+    'Map',
+    'Set',
+]);
+
 export function getTypes(node: ts.Node) {
     let typesToInclude = [];
     if (ts.isIdentifier(node)) {
         const typeName = node.getText();
-        if (!['HTMLElement', 'Function', 'Partial', 'TData', 'TContext', 'TValue'].includes(typeName)) {
+        if (!NON_IMPORTED_TYPES.has(typeName)) {
             typesToInclude.push(typeName);
         }
     }
@@ -393,6 +635,7 @@ export function extractImportStatements(srcFile: ts.SourceFile): BindingImport[]
                 isNamespaced,
                 namedImport,
                 imports,
+                isTypeOnly: moduleImports?.isTypeOnly === true,
             });
         }
     });
@@ -620,6 +863,27 @@ export function getPropertyInterfaces(properties) {
     return [...new Set(propTypesUsed)];
 }
 
+/** The name an import specifier brings into scope: `type Foo` and `Foo` both bind `Foo`. */
+export function getImportedName(specifier: string): string {
+    return specifier.replace(/^type\s+/, '');
+}
+
+/**
+ * Make sure `name` is imported from `module` (quoted, as in `bindings.imports`), unless some import
+ * of the example already brings it into scope.
+ */
+export function ensureNamedImport(bindingImports: BindingImport[], module: string, name: string) {
+    if (bindingImports.some((i) => i.imports.some((specifier) => getImportedName(specifier) === name))) {
+        return;
+    }
+    const existing = bindingImports.find((i) => i.module === module && !i.isNamespaced);
+    if (existing) {
+        existing.imports = [...existing.imports, name];
+    } else {
+        bindingImports.push({ module, isNamespaced: false, namedImport: undefined, imports: [name] });
+    }
+}
+
 /**
  *  Add the imports from the parsed file
  * We ignore any component files as those imports are generated for each framework.
@@ -733,7 +997,11 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
 export type ChartAPI = 'financial' | 'gauge' | 'quadrant' | 'sparkline' | 'vanilla' | 'volume-profile';
 
 export function chartApi(bindings: any): ChartAPI {
-    const typeStr = bindings.optionsTypeInfo?.typeStr;
+    // An example's charts need not be called `options`, so fall back to its first chart's declared type.
+    const firstChart = bindings.properties?.find(
+        (p: any) => p.name === Object.values(bindings.chartProperties ?? {})[0]
+    );
+    const typeStr = bindings.optionsTypeInfo?.typeStr ?? firstChart?.typeInfo?.typeStr;
     if (typeStr === 'AgFinancialChartOptions') {
         return 'financial';
     } else if (

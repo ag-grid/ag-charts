@@ -13,10 +13,12 @@ import {
     Group,
     type NearestResult,
     Path,
+    isLineDashName,
     mergeDefaults,
     nearestSquared,
     nearestSquaredInContainer,
     partialAssign,
+    scaleLineDashName,
 } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
@@ -47,7 +49,8 @@ export type NormalisedErrorBarStyles = {
 };
 
 type ErrorBarKey = 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey';
-type IgnoredSeriesKey = 'context' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
+type IgnoredSeriesKey =
+    'context' | 'shadow' | 'glow' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
 
 type ErrorBarItemStylerParams =
     | AgBarSeriesItemStylerParams<unknown, unknown>
@@ -135,7 +138,7 @@ function getItemStylerParams(
     const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
 
     return {
-        // A `lineDash` name was resolved to its array by the theme before it reaches here.
+        // The theme resolved a `lineDash` name to its array, and `resolveErrorBarStyles` does so for the `itemStyler`'s.
         ...(style as Required<Normalised<AgErrorBarThemeableOptions, never, NormalisedLineDash>>),
         datum: datum.datum,
         seriesId: datum.series.id,
@@ -149,6 +152,12 @@ function getItemStylerParams(
         selectionState,
         candidateState,
     } satisfies ErrorBarItemStylerParamsRules;
+}
+
+/** A stock `lineDash` name, which an `itemStyler` can return, as its array at the style's own `strokeWidth`. */
+function resolveLineDashName<T extends { lineDash?: unknown; strokeWidth?: unknown }>(style: T): T {
+    const { lineDash, strokeWidth } = style;
+    return isLineDashName(lineDash) ? { ...style, lineDash: scaleLineDashName(lineDash, strokeWidth) } : style;
 }
 
 /** The whisker and cap styles `datum` is drawn with, after its `itemStyler`. */
@@ -171,6 +180,9 @@ export function resolveErrorBarStyles(
         const result = caller.callWithContext<I, O, F>(options.itemStyler, params);
         whiskerStyle = mergeDefaults(result, whiskerStyle);
         capsStyle = mergeDefaults(result?.cap, result, capsStyle);
+        // Each line scales a name by its own width, so the cap's is not the whisker's.
+        whiskerStyle = resolveLineDashName(whiskerStyle);
+        capsStyle = resolveLineDashName(capsStyle);
     }
 
     // Colour refs are resolved at runtime before render, so the styles are concrete here.

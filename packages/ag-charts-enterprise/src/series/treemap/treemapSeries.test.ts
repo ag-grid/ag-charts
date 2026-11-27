@@ -186,7 +186,7 @@ describe('TreemapSeries', () => {
         const nodeAtPath = (path: number[]): HierarchyNode | undefined =>
             path.reduce<HierarchyNode | undefined>((node, idx) => node?.children[idx], getHierarchyRootNode(chart));
 
-        // Highlight selection holds only the active highlight node, so its fill reveals whether highlighting applied.
+        // The highlight selections hold only the active highlight node (a tile or a group), so its fill reveals whether highlighting applied.
         const highlightFill = (): unknown => getSeriesSelectionNodes<Rect>(chart, 'highlightSelection')[0]?.fill;
 
         const highlightNodeAndReadFill = async (path: number[]): Promise<unknown> => {
@@ -890,6 +890,23 @@ describe('TreemapSeries', () => {
                 await createEnterpriseChart(groupOptions({ maxHeight: 5, collision: { alwaysShow: true } }))
             );
             expect(groups()[0].label).toBeDefined();
+        });
+
+        it('keeps every group label alwaysShow would keep when it is off, however the header rounds', async () => {
+            const exampleOptions = (alwaysShow: boolean): AgChartOptions => ({
+                ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+                theme: { overrides: { treemap: { series: { group: { label: { collision: { alwaysShow } } } } } } },
+            });
+            const groupLabelTexts = () => groups().map(({ label }) => label?.text);
+
+            chart = deproxy(await createEnterpriseChart(exampleOptions(false)));
+            await compare();
+            const shown = groupLabelTexts();
+            expect(shown).toContain('HEALTHCARE');
+
+            chart.destroy();
+            chart = deproxy(await createEnterpriseChart(exampleOptions(true)));
+            expect(groupLabelTexts()).toEqual(shown);
         });
 
         it('keeps the group header within maxHeight when the label shrinks', async () => {
@@ -1910,6 +1927,27 @@ describe('TreemapSeries', () => {
         it('renders with group.shadow and tile.shadow enabled', async () => {
             await renderRects(shadowOptions({ group: shadow, tile: shadow }));
             await compare();
+        });
+
+        it('casts the tile shadow as with no styler where the itemStyler spreads the shadow it was given', async () => {
+            // The theme's fill and fillOpacity, so that no fillOpacity is set by the user.
+            const themeShadow = { enabled: true, xOffset: 8, yOffset: 8, blur: 8 };
+            const castOf = async (itemStyler?: (params: { shadow?: object }) => object) => {
+                const options = shadowOptions({ tile: themeShadow as typeof shadow });
+                (options.series![0] as { itemStyler?: unknown }).itemStyler = itemStyler;
+                const { leaves } = await renderRects(options);
+                chart.destroy();
+                return leaves.map(({ rect }) => rect.fillShadow);
+            };
+
+            const unstyled = await castOf();
+            const spread = await castOf(({ shadow: given }) => ({ shadow: { ...given } }));
+
+            expect(unstyled.length).toBeGreaterThan(0);
+            // An unset flag casts as a flag of false, which is what a styler's merge writes.
+            expect(unstyled.every((cast) => cast?._fillOpacitySet !== true)).toBe(true);
+            expect(spread.every((cast) => cast?._fillOpacitySet !== true)).toBe(true);
+            expect(spread).toMatchObject(unstyled);
         });
     });
 

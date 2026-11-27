@@ -27,7 +27,9 @@ test.describe('settings dialog', () => {
         await expect(page.getByRole('tab', { name: 'Text' })).toHaveAttribute('aria-selected', 'false');
         await expect(page.getByRole('tabpanel', { name: 'Line' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Text Color' })).toBeVisible();
+        await expect(
+            page.getByRole('tabpanel', { name: 'Line' }).getByRole('button', { name: 'Line Color' })
+        ).toBeVisible();
         await expect(page.getByRole('combobox', { name: 'Line Weight' })).toBeVisible();
         await expect(page.getByRole('radiogroup', { name: 'Dash' })).toBeVisible();
         await expect(page.getByRole('radio', { name: 'Solid' })).toHaveAttribute('aria-checked', 'true');
@@ -143,6 +145,35 @@ test.describe('settings dialog', () => {
 
         await page.getByRole('button', { name: 'Close' }).click();
         await expect(page.getByRole('tablist', { name: 'Settings' })).toHaveCount(0);
+    });
+
+    test('coordinates: a price steps by the tick size from any value, and a daily date has no time', async ({
+        page,
+    }) => {
+        await openTrendLineSettings(page, toExamplePageUrl('financial-charts-e2e', 'tick-size', 'vanilla').url);
+        await page.getByRole('tab', { name: 'Coordinates' }).click();
+        const panel = page.getByRole('tabpanel', { name: 'Coordinates' });
+        const date = page.getByLabel('Start: X');
+        const price = page.getByLabel('Start: Y');
+
+        await expect(date).toHaveAttribute('type', 'date');
+        await expect(date).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
+        await expect(price).toHaveAttribute('step', '0.5');
+        await expect(price).toHaveValue(/^\d+\.\d$/);
+
+        const drawn = Number(await price.inputValue());
+        await price.focus();
+        await page.keyboard.press('ArrowUp');
+        await expect(price).toHaveValue((drawn + 0.5).toFixed(1));
+
+        await price.fill('203.3');
+        await page.keyboard.press('Enter');
+        await expect(price).toHaveValue('203.3');
+        await page.keyboard.press('ArrowDown');
+        await expect(price).toHaveValue('202.8');
+        await expect(panel.locator('input:invalid')).toHaveCount(0);
+
+        await expect(panel).toHaveScreenshot('coordinates-tick-size.png');
     });
 
     test.describe('right-to-left', () => {

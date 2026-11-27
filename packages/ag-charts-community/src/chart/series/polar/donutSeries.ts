@@ -1,6 +1,7 @@
 import type {
     DynamicContext,
     GradientParams,
+    LabelFitDescriptor,
     NormalisedCollisionFreeSeriesLabelOptions,
     NormalisedColorType,
     NormalisedDonutInnerLabelOptions,
@@ -31,6 +32,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     Sector,
+    type SectorCornerRadii,
     SectorGlowRing,
     Selection,
     SpatialIndex,
@@ -38,9 +40,11 @@ import {
     TranslatableGroup,
     type WrapOptions,
     addSectorDatum,
+    areLineBoxesInSector,
     boxCrossesSegment,
     boxOverlapsSector,
     canRenderTextOffscreen,
+    clampSectorCornerRadii,
     clockwiseAngles,
     cycledValue,
     datumKeyReader,
@@ -50,7 +54,8 @@ import {
     fontWithSize,
     formatValue,
     gridCellSize,
-    isBoxInSector,
+    insetChord,
+    isFullSweep,
     isGradientFill,
     isStringFillArray,
     jsonDiff,
@@ -61,8 +66,10 @@ import {
     placedPolarLabel,
     polarLabelDatum,
     polarSectorObstacles,
+    resolveAlwaysLabelFit,
     resolveLabelFit,
     sectorBox,
+    sectorEdgeInset,
     sectorEdges,
     sectorLabelPlacer,
     toNumber,
@@ -112,7 +119,7 @@ import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import type { SeriesAreaLayout, UnknownSeries } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import { isUnselected } from '../seriesProperties';
+import { isUnselected, toHighlightString } from '../seriesProperties';
 import { HighlightState } from '../seriesTypes';
 import {
     pickByMatchingAngle,
@@ -128,6 +135,8 @@ import {
 } from './polarSeries';
 
 const twoPi = 2 * Math.PI;
+
+const innerCircleCorners: SectorCornerRadii = { startOuter: 0, endOuter: 0, startInner: 0, endInner: 0 };
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -274,13 +283,17 @@ export class DonutSeries extends PolarSeries<
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomGroup = this.contentGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: 'shared' })
+    );
     private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
     );
-    protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
+    protected phantomHighlightGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'phantom', zIndex: -1, batchShadows: true })
+    );
     private readonly phantomHighlightSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomHighlightGroup,
         () => this.nodeFactory(),
@@ -944,6 +957,12 @@ export class DonutSeries extends PolarSeries<
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.options;
 
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        const castState = this.getHighlightState(
+            this.ctx.highlightManager?.getActiveHighlight(),
+            isHighlight,
+            datumIndex
+        );
+        const { shadow, glow } = this.options;
 
         return {
             datum,
@@ -954,11 +973,9 @@ export class DonutSeries extends PolarSeries<
             legendItemKey,
             ...style,
             fill,
-            highlightState: this.getHighlightStateString(
-                this.ctx.highlightManager?.getActiveHighlight(),
-                isHighlight,
-                datumIndex
-            ),
+            shadow: this.getStylerShadow(shadow, castState),
+            glow: this.getStylerGlow(glow, castState),
+            highlightState: toHighlightString(castState),
             selectionState: this.getSelectionStateString(datumIndex),
             candidateState: this.getCandidateStateString(datumIndex),
             seriesId: this.id,
@@ -1207,21 +1224,29 @@ export class DonutSeries extends PolarSeries<
             const { cornerRadius = 0, stroke, strokeWidth = 0 } = datum.sectorFormat;
             if (cornerRadius <= 0) continue;
 
-            // `inset` pulls the sector's painted edges inwards from its radii.
-            const inset = Math.max((this.options.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
-            const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + inset : 0;
-            const paintedOuterRadius = Math.max(datum.outerRadius - inset, 0);
+            const strokeInset = this.getStrokeInset(stroke, strokeWidth);
+            const arcInset = sectorEdgeInset(this.options.gap, strokeInset, false);
+            const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + arcInset : 0;
+            const paintedOuterRadius = Math.max(datum.outerRadius - arcInset, 0);
             if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
 
-            // Mirrors the clamping `Sector` applies to its own corner radii: half the radial band,
-            // and half the chord between the sector's two inner corners.
             const { startAngle, endAngle } = clockwiseAngles(datum.startAngle, datum.endAngle);
-            const sweepAngle = endAngle - startAngle - (2 * inset) / paintedInnerRadius;
-            const cornerDistance = sweepAngle > 0 ? 2 * paintedInnerRadius * Math.sin(sweepAngle / 2) : 0;
-            const radialLength = paintedOuterRadius - paintedInnerRadius;
-            const appliedCornerRadius = Math.floor(Math.min(cornerRadius, cornerDistance / 2, radialLength / 2));
-
-            fillRadius = Math.max(fillRadius, paintedInnerRadius + appliedCornerRadius);
+            const sweepAngle = endAngle - startAngle;
+            const sideInset = this.getSideInset(datum, strokeInset);
+            innerCircleCorners.startOuter = cornerRadius;
+            innerCircleCorners.endOuter = cornerRadius;
+            innerCircleCorners.startInner = cornerRadius;
+            innerCircleCorners.endInner = cornerRadius;
+            clampSectorCornerRadii(
+                innerCircleCorners,
+                sweepAngle,
+                paintedInnerRadius,
+                paintedOuterRadius,
+                sideInset,
+                insetChord(paintedInnerRadius, sweepAngle, sideInset) > 0
+            );
+            const { startInner, endInner } = innerCircleCorners;
+            fillRadius = Math.max(fillRadius, paintedInnerRadius + Math.max(startInner, endInner));
         }
         return Math.min(fillRadius, this.getOuterRadius());
     }
@@ -1237,7 +1262,7 @@ export class DonutSeries extends PolarSeries<
     }
 
     // The grown circle reaches under the sectors, which a translucent sector would show through;
-    // erasing each sector's outline leaves only the crescents and spacing strips filled.
+    // erasing each sector's outline leaves only the crescents and gap strips filled.
     private updateInnerCircleCutoutSelection() {
         // Mirrors the predicate Group applies to `renderToOffscreenCanvas`: without that isolation
         // the cutout would erase the chart behind the series along with the circle.
@@ -1251,10 +1276,19 @@ export class DonutSeries extends PolarSeries<
         }
     }
 
-    private applySectorSpacing(sector: Sector, hasStroke: boolean, strokeWidth: number) {
-        const inset = Math.max((this.options.sectorSpacing + (hasStroke ? strokeWidth : 0)) / 2, 0);
-        sector.inset = inset;
-        sector.lineJoin = this.options.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+    private getStrokeInset(stroke: unknown, strokeWidth: number) {
+        return stroke == null ? 0 : strokeWidth / 2;
+    }
+
+    // Only the sides face a neighbouring sector, and a lone sector's sides meet each other.
+    private getSideInset({ startAngle, endAngle }: PieDonutNodeDatum, strokeInset: number) {
+        return sectorEdgeInset(this.options.gap, strokeInset, !isFullSweep(startAngle, endAngle));
+    }
+
+    private applyGap(sector: Sector, datum: PieDonutNodeDatum, strokeInset: number) {
+        sector.concentricEdgeInset = sectorEdgeInset(this.options.gap, strokeInset, false);
+        sector.radialEdgeInset = this.getSideInset(datum, strokeInset);
+        sector.lineJoin = 'miter';
     }
 
     private applySelectedOffset(sector: Sector, datumIndex: number) {
@@ -1352,7 +1386,7 @@ export class DonutSeries extends PolarSeries<
                 legendItemValues,
                 format.glow
             );
-            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applyGap(sector, datum, this.getStrokeInset(format.stroke, format.strokeWidth));
             this.applySelectedOffset(sector, datum.datumIndex);
         };
 
@@ -1367,7 +1401,11 @@ export class DonutSeries extends PolarSeries<
         } else {
             this.glowRing.release();
         }
-        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+        this.phantomSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, false, 'overlay');
+            // A phantom casts its shadow with the sectors', but no glow of its own.
+            node.fillGlow = undefined;
+        });
 
         this.innerCircleCutoutSelection.each((sector, datum) => {
             // Resolved exactly as the real sector's is, so the erased outline matches what is drawn.
@@ -1388,7 +1426,7 @@ export class DonutSeries extends PolarSeries<
             sector.drawingMode = 'cutout';
             sector.cornerRadius = format.cornerRadius;
 
-            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applyGap(sector, datum, this.getStrokeInset(format.stroke, format.strokeWidth));
             this.applySelectedOffset(sector, datum.datumIndex);
         });
 
@@ -1399,6 +1437,7 @@ export class DonutSeries extends PolarSeries<
         });
         this.phantomHighlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
+            node.fillGlow = undefined;
 
             node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
@@ -2208,9 +2247,10 @@ export class DonutSeries extends PolarSeries<
         data: PointLabelDatum[],
         label: PolarLabelDatum,
         style: PolarLabelStyle,
-        fitTarget?: PolarFitTarget
+        fitTarget?: PolarFitTarget,
+        fit?: LabelFitDescriptor
     ) {
-        data.push(polarLabelDatum(label, style, this.centerX, this.centerY, undefined, fitTarget));
+        data.push(polarLabelDatum(label, style, this.centerX, this.centerY, undefined, fitTarget, fit));
         this.labelTargets.push({ label });
     }
 
@@ -2235,13 +2275,16 @@ export class DonutSeries extends PolarSeries<
         if (!sectorLabel.enabled) return;
 
         const { positionOffset, positionRatio } = sectorLabel;
-        // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
-        // full and hides if it overruns the wedge.
-        const policy = resolveLabelFit(sectorLabel, false);
+        const policy = resolveAlwaysLabelFit(sectorLabel);
+        const boxedPolicy = { ...policy, boxed: true };
+        const unboxedPolicy = { ...policy, boxed: false };
         // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
         const boxPadding = expandLabelBoxExtent(sectorLabel);
         const innerRadius = this.radiusScale.convert(0);
         const centred = innerRadius <= 0 && this.visibleSectorCount() === 1;
+        // Only an itemStyler restyles a label by highlight or selection state, which redraws it without a re-fit.
+        const drawnAsFitted = sectorLabel.itemStyler == null;
+        const { centerX, centerY } = this;
 
         for (const datum of this.nodeData) {
             const { outerRadius, startAngle, endAngle } = datum;
@@ -2252,15 +2295,21 @@ export class DonutSeries extends PolarSeries<
             const x = centred ? 0 : datum.midCos * labelRadius;
             const y = centred ? 0 : datum.midSin * labelRadius;
             let fitPolicy = policy;
-            let fitTarget: PolarFitTarget | undefined;
-            if (policy != null && centred) {
+            let fitTarget: PolarFitTarget;
+            if (centred) {
                 // A centred single-sector label fits the square inscribed in the pie, like the inner label.
                 const holeExtent = outerRadius * Math.SQRT2;
                 fitTarget = { container: { width: holeExtent, height: holeExtent } };
-            } else if (policy != null) {
-                const sector = { startAngle, endAngle, innerRadius, outerRadius };
-                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
-                fitPolicy = { ...policy, boxed: labelHasBox(font) };
+            } else {
+                const sector = {
+                    startAngle,
+                    endAngle,
+                    innerRadius,
+                    outerRadius,
+                    radialEdgeInset: this.getSideInset(datum, 0),
+                };
+                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, centerX, centerY, drawnAsFitted);
+                fitPolicy = labelHasBox(font) ? boxedPolicy : unboxedPolicy;
                 fitTarget = { place };
             }
 
@@ -2272,17 +2321,8 @@ export class DonutSeries extends PolarSeries<
                 textBaseline: 'middle',
             };
             sectorLabels.set(datum.datumIndex, label);
-            const fit =
-                fitPolicy == null
-                    ? undefined
-                    : (text: NormalisedTextOrSegments) => ({
-                          text,
-                          policy: fitPolicy,
-                          font,
-                          boxPadding,
-                          boundByRegion: true,
-                      });
-            this.pushLabel(data, label, { font, boxPadding, fit }, fitTarget);
+            const fit = { text: label.text, policy: fitPolicy, font, boxPadding, boundByRegion: true };
+            this.pushLabel(data, label, { font, boxPadding }, fitTarget, fit);
         }
     }
 
@@ -2383,8 +2423,14 @@ export class DonutSeries extends PolarSeries<
                 text.setBoxing(style);
 
                 // A shape-fitted label overhangs its own block box by design, so each line answers for itself.
-                const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
-                text.visible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
+                const sectorBounds = {
+                    startAngle,
+                    endAngle,
+                    innerRadius,
+                    outerRadius,
+                    radialEdgeInset: this.getSideInset(datum, 0),
+                };
+                text.visible = areLineBoxesInSector(text.getLineBoxes(), sectorBounds);
             });
 
         updateSelection(this.labelSelection);

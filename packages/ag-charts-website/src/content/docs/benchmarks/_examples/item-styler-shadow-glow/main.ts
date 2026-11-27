@@ -3,15 +3,19 @@
 import { AgCartesianChartOptions, AgCharts, AgItemShadowStyle, VERSION } from 'ag-charts-community';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
+import { ChartRef, isReleaseBelow, performDatumHighlight, performInitialLoad } from './benchmarkUtils';
 
-// A distinct `blur` costs a blur pass per item, so a chart of 1,000 outlasts the update timeout: that case has fewer items.
-// Its test case also times a shared shadow and glow and no styler at that size, to compare with.
+// Without a cap on distinct casts, 1,000 distinct blurs can outlast the update timeout, so the `-distinct` case has fewer
+// items; `-distinct-1000` times the cap at the full size.
 const ITEMS = 1000;
 const DISTINCT_ITEMS = 100;
 
+// The first release whose item stylers return a shadow and a glow, and whose bar and scatter series take a glow.
+const MIN_VERSION = '15.0.0';
+const LIKE_FOR_LIKE_MODES: ReadonlySet<StylerMode> = new Set(['none', 'neither']);
+
 type SeriesType = 'bar' | 'scatter';
-type StylerMode = 'none' | 'neither' | 'shared' | 'sparse' | 'distinct';
+type StylerMode = 'none' | 'neither' | 'neitherSet' | 'shared' | 'sparse' | 'distinct';
 
 type Datum = { x: number; category: string; y: number; blur: number };
 
@@ -28,6 +32,7 @@ const STYLERS: Record<
     (params: { datum: Datum }) => AgItemShadowStyle & { fillOpacity?: number }
 > = {
     neither: () => ({ fillOpacity: 0.9 }),
+    neitherSet: () => ({ fillOpacity: 0.9 }),
     shared: () => ({
         shadow: { xOffset: 2, yOffset: 2, blur: 4, fill: 'rgba(0, 0, 0, 0.4)' },
         glow: { blur: 6, fill: 'rgba(255, 200, 0, 0.6)' },
@@ -43,6 +48,7 @@ const STYLERS: Record<
 const MODE_LABELS: Record<StylerMode, string> = {
     none: 'No styler',
     neither: 'Styler, no shadow or glow',
+    neitherSet: 'Styler, no shadow or glow, series shadow and glow set',
     shared: 'Styler, one shared shadow and glow',
     sparse: 'Styler, a glow on one item in ten',
     distinct: 'Styler, a different blur per item',
@@ -69,6 +75,11 @@ function buildOptions(
     container: HTMLElement
 ): AgCartesianChartOptions {
     const itemStyler = mode === 'none' ? undefined : STYLERS[mode];
+    // The styler params carry the series' `shadow` and `glow`, which the styler call's cache key serialises per item.
+    const seriesShadowGlow =
+        mode === 'neitherSet'
+            ? { shadow: { xOffset: 1, yOffset: 1, blur: 3 }, glow: { blur: 4, fill: 'rgba(255, 200, 0, 0.6)' } }
+            : undefined;
     return {
         ...options,
         container,
@@ -79,8 +90,8 @@ function buildOptions(
                 : { x: { type: 'number' }, y: { type: 'number', min: 0, max: 100 } },
         series: [
             seriesType === 'bar'
-                ? { type: 'bar', xKey: 'category', yKey: 'y', itemStyler }
-                : { type: 'scatter', xKey: 'x', yKey: 'y', itemStyler },
+                ? { type: 'bar', xKey: 'category', yKey: 'y', itemStyler, ...seriesShadowGlow }
+                : { type: 'scatter', xKey: 'x', yKey: 'y', itemStyler, ...seriesShadowGlow },
         ],
     };
 }
@@ -109,13 +120,14 @@ async function prepare(seriesType: SeriesType, mode: StylerMode, items: number) 
     await chartRef.current.waitForUpdate();
 }
 
-// A build that can't take a `shadow` or `glow` from an `itemStyler` ignores them: compare those variants only to one that can.
-
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
+    // An older release ignores these shadows and glows, so it would draw less than the head: skip all but 'none' and 'neither'.
+    const styled = !isReleaseBelow(VERSION, MIN_VERSION);
     const sizes: { suffix: string; items: number; modes: StylerMode[] }[] = [
-        { suffix: '', items: ITEMS, modes: ['none', 'neither', 'shared', 'sparse'] },
+        { suffix: '', items: ITEMS, modes: ['none', 'neither', 'neitherSet', 'shared', 'sparse'] },
         { suffix: '-distinct', items: DISTINCT_ITEMS, modes: ['none', 'shared', 'distinct'] },
+        { suffix: '-distinct-1000', items: ITEMS, modes: ['distinct'] },
     ];
     const testCases: BenchmarkConfig['testCases'] = [];
     for (const seriesType of ['bar', 'scatter'] as const) {
@@ -123,8 +135,10 @@ function getBenchmarkConfig(): BenchmarkConfig {
             const variants: BenchmarkConfig['testCases'][number]['variants'] = [];
             for (const mode of modes) {
                 const params = { Styler: MODE_LABELS[mode] };
+                const available = styled || LIKE_FOR_LIKE_MODES.has(mode);
                 variants.push({
                     params: { ...params, Operation: 'Chart Create' },
+                    available,
                     run: () =>
                         performInitialLoad(buildOptions(seriesType, mode, items, container), chartRef, (opts) => {
                             current = undefined;
@@ -133,6 +147,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 });
                 variants.push({
                     params: { ...params, Operation: 'Hover x10' },
+                    available,
                     run: async () => {
                         await prepare(seriesType, mode, items);
                         return performDatumHighlight(chartRef.current!, container, 10);
@@ -148,6 +163,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
     }
 
     return {
+        warnings: styled ? undefined : [`Skipped styler shadow and glow variants (requires >= ${MIN_VERSION})`],
         testCases,
         config: {
             updatesPerTest: 10,

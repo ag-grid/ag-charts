@@ -29,7 +29,7 @@ import {
     TEXT_SIZE_ITEMS,
 } from './annotationsMenuOptions';
 import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
-import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
+import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasSettings, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isFibonacciType, isTextType } from './utils/types';
 
@@ -55,6 +55,8 @@ interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
     'pressed-lock': { locked: boolean };
+    'pressed-move': null;
+    'pressed-escape': { sourceEvent: KeyboardEvent };
     'hid-overlays': null;
     'saved-color': {
         type: HasColorAnnotationType;
@@ -84,14 +86,11 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
     isMultiColor?: boolean;
 }
 
-// The checked state shows only what `checkedOverrides` sets; the unchecked button's own text and icon are cleared.
-const UNSET_TOOLBAR_BUTTON: ToolbarButton = {
-    icon: undefined,
-    iconPosition: undefined,
-    label: undefined,
-    ariaLabel: undefined,
-    tooltip: undefined,
-};
+// Appended whenever the toolbar opens from the keyboard, whatever the `buttons` options say, since a keyboard user has
+// no other way to move an annotation.
+const KEYBOARD_ONLY_BUTTONS: AnnotationOptionsButtonOptions[] = [
+    { type: 'button', value: AnnotationOptions.Move, icon: 'move', tooltip: 'toolbarAnnotationsMove' },
+];
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     public constructor(localeManager: _ModuleSupport.LocaleManager) {
@@ -154,6 +153,9 @@ export class AnnotationOptionsToolbar {
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
 
+    /** Whether the colour picker and settings dialog show Apply and Cancel buttons. */
+    public showActionButtons = false;
+
     private openOverlay?: AnnotationOptions;
     private openOverlayAtPointerDown?: AnnotationOptions;
 
@@ -169,8 +171,12 @@ export class AnnotationOptionsToolbar {
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             // Menus close on a window mousedown before the click lands, so capture what was open first.
+            // eslint-disable-next-line aglint/widget-boundary -- Widget listeners offer no 'pointerdown' event.
             attachListener(this.toolbar.getElement(), 'pointerdown', (event: PointerEvent) => {
                 this.openOverlayAtPointerDown = event.button === 0 ? this.getOpenOverlay() : undefined;
+            }),
+            this.toolbar.addListener('keydown', ({ sourceEvent }) => {
+                if (sourceEvent.key === 'Escape') this.events.emit('pressed-escape', { sourceEvent });
             }),
             () => {
                 this.colorPicker.destroy();
@@ -186,6 +192,7 @@ export class AnnotationOptionsToolbar {
     public applyOptions(options: AgAnnotationOptionsToolbar & { enabled: boolean }) {
         this.enabled = options.enabled;
         this.toolbar.setButtonSize(options.buttonSize);
+        this.showActionButtons = options.showActionButtons ?? false;
         this.buttons = (options.buttons ?? []).map((button) => ({
             ...button,
             type: button.type ?? 'button',
@@ -193,16 +200,34 @@ export class AnnotationOptionsToolbar {
         }));
     }
 
+    public isEnabled() {
+        return this.enabled;
+    }
+
     public show() {
         if (!this.enabled) return;
-        this.toolbar.show();
+        this.toolbar.show({ role: 'dialog', ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationOptionsToolbar') });
     }
 
     public hide() {
         this.toolbar.hide();
     }
 
-    public updateButtons(datum: AnnotationDatum) {
+    public containsFocus() {
+        return this.toolbar.containsFocus();
+    }
+
+    public focusFirstButton() {
+        this.toolbar.getButtonWidget(0)?.focus();
+    }
+
+    public focusButton(value: AnnotationOptions) {
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        if (index >= 0) this.toolbar.getButtonWidget(index)?.focus();
+    }
+
+    /** `keyboard` appends the buttons that only a keyboard user needs, such as moving the annotation. */
+    public updateButtons(datum: AnnotationDatum, keyboard = false) {
         if (!this.enabled) return;
 
         const visible = {
@@ -212,11 +237,15 @@ export class AnnotationOptionsToolbar {
             [AnnotationOptions.TextColor]: hasTextColor(datum),
             [AnnotationOptions.FillColor]: hasFillColor(datum),
             [AnnotationOptions.TextSize]: hasFontSize(datum),
-            [AnnotationOptions.Settings]: hasLineText(datum),
+            [AnnotationOptions.Settings]: hasSettings(datum),
             [AnnotationOptions.Lock]: true,
             [AnnotationOptions.Delete]: true,
+            [AnnotationOptions.Move]: false,
         };
         this.visibleButtons = this.buttons.filter((button) => visible[button.value]);
+        if (keyboard) {
+            this.visibleButtons.push(...KEYBOARD_ONLY_BUTTONS);
+        }
 
         this.toolbar.clearButtons();
         this.toolbar.updateButtons(this.visibleButtons);
@@ -251,6 +280,11 @@ export class AnnotationOptionsToolbar {
     public clearActiveButton() {
         this.openOverlay = undefined;
         this.toolbar.clearActiveButton();
+    }
+
+    public setDialogExpanded(value: AnnotationOptions, expanded: boolean) {
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        this.toolbar.setDialogExpandedByIndex(index, expanded);
     }
 
     private getOpenOverlay() {
@@ -372,10 +406,12 @@ export class AnnotationOptionsToolbar {
             case AnnotationOptions.TextColor: {
                 this.openOverlay = button.value;
                 this.toolbar.toggleActiveButtonByIndex(button.index);
+                this.setDialogExpanded(button.value, true);
                 this.colorPicker.show({
                     color: getDefaultColor(datum, button.value),
                     opacity: getDefaultOpacity(datum, button.value),
                     sourceEvent: event.sourceEvent,
+                    showActionButtons: this.showActionButtons,
                     hasMultiColorOption: isFibonacciType(datum),
                     isMultiColor: isFibonacciType(datum) && datum.isMultiColor,
                     onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
@@ -387,6 +423,7 @@ export class AnnotationOptionsToolbar {
                             cancelled,
                         });
                     }).bind(this, button.value),
+                    onHide: () => this.setDialogExpanded(button.value, false),
                 });
                 break;
             }
@@ -423,6 +460,11 @@ export class AnnotationOptionsToolbar {
                 this.events.emit('pressed-settings', event);
                 break;
             }
+
+            case AnnotationOptions.Move: {
+                this.events.emit('pressed-move', null);
+                break;
+            }
         }
     }
 
@@ -442,19 +484,19 @@ export class AnnotationOptionsToolbar {
 
             switch (button.value) {
                 case AnnotationOptions.LineStrokeWidth: {
-                    this.lineStrokeWidthMenuMinWidth = bounds.width + 1;
+                    this.lineStrokeWidthMenuMinWidth = bounds.width;
                     this.lineStrokeWidthMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
 
                 case AnnotationOptions.LineStyleType: {
-                    this.lineStyleTypeMenuMinWidth = bounds.width + 1;
+                    this.lineStyleTypeMenuMinWidth = bounds.width;
                     this.lineStyleTypeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
 
                 case AnnotationOptions.TextSize: {
-                    this.textSizeMenuMinWidth = bounds.width + 1;
+                    this.textSizeMenuMinWidth = bounds.width;
                     this.textSizeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
                 }
@@ -516,11 +558,7 @@ export class AnnotationOptionsToolbar {
         for (const [index, button] of this.visibleButtons.entries()) {
             if (button == null) continue;
             if (button.type === 'switch') {
-                this.toolbar.toggleSwitchCheckedByIndex(index, locked);
-                this.updateButtonByIndex(
-                    index,
-                    locked ? { ...UNSET_TOOLBAR_BUTTON, ...button.checkedOverrides } : button
-                );
+                this.updateButtonByIndex(index, locked ? { ...button, ...button.checkedOverrides } : button);
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }

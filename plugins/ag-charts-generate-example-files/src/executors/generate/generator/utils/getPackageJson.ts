@@ -23,12 +23,17 @@ function getFrameworkDependencies(internalFramework: InternalFramework) {
     if (internalFramework === 'angular') {
         frameworkDependencies['ag-charts-angular'] = getPackageJsonVersion('ag-charts-angular');
         frameworkDependencies['clone'] = '^2.1.2';
+        frameworkDependencies['@types/clone'] = '^2.1.4';
     } else if (internalFramework === 'reactFunctional' || internalFramework === 'reactFunctionalTs') {
         frameworkDependencies['ag-charts-react'] = getPackageJsonVersion('ag-charts-react');
         frameworkDependencies['clone'] = '^2.1.2';
+        if (internalFramework === 'reactFunctionalTs') {
+            frameworkDependencies['@types/clone'] = '^2.1.4';
+        }
     } else if (internalFramework === 'vue3') {
         frameworkDependencies['ag-charts-vue3'] = getPackageJsonVersion('ag-charts-vue3');
         frameworkDependencies['clone'] = '^2.1.2';
+        frameworkDependencies['@types/clone'] = '^2.1.4';
     }
 
     return frameworkDependencies;

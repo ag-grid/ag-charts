@@ -202,6 +202,20 @@ describe('HlcSeries', () => {
             expect(shadowed.map((shape) => shape.fillShadow?.spread)).toEqual(shadowed.map(() => 3));
         });
 
+        it.each([
+            ['sets the fillOpacity', { fillOpacity: 0.7 }, true],
+            ['sets only the fill', { fill: '#000000' }, false],
+        ])('passes on whether the marker shadow %s to the item markers', async (_name, set, expected) => {
+            const series = await renderSeries(
+                withSeries({ marker: { enabled: true, shadow: { enabled: true, blur: 0, ...set } } })
+            );
+            const shadowed = shadowedShapes(series.contentGroup);
+            expect(shadowed.length).toBeGreaterThan(0);
+            expect(shadowed.map((shape) => shape.fillShadow?._fillOpacitySet === true)).toEqual(
+                shadowed.map(() => expected)
+            );
+        });
+
         it.each(['xKey', 'highKey', 'lowKey', 'closeKey'])('reports a missing %s', async (key) => {
             const series: Record<string, unknown> = { ...HLC_SERIES };
             delete series[key];

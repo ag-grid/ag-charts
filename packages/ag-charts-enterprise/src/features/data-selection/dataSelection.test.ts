@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    type AgBarSeriesLabelPlacement,
     AgBubbleSeriesOptions,
     type AgCartesianChartOptions,
     type AgChartInstance,
@@ -28,6 +29,8 @@ import {
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
+    getVisibleLabelNodes,
+    hoverLegendItem,
     isTooltipVisible,
     keyDownAction,
     mouseDownAction,
@@ -990,6 +993,129 @@ describe('DataSelection', () => {
         });
     });
 
+    describe('bar labels over an overlapping bar', () => {
+        const label = {
+            placement: ['inside-center', 'outside-end'] as AgBarSeriesLabelPlacement[],
+            collision: { alwaysShow: true, threshold: 0, collideWith: { shapes: false, labels: false } },
+        };
+        const rows = [
+            { id: 'q1', x: 'Q1', back: 80, front: 40 },
+            { id: 'q2', x: 'Q2', back: 60, front: 30 },
+            { id: 'q3', x: 'Q3', back: 70, front: 35 },
+        ];
+        const options: AgCartesianChartOptions = {
+            dataIdKey: 'id',
+            data: rows,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', max: 100 },
+            },
+            series: [
+                { id: 'back', type: 'bar', xKey: 'x', yKey: 'back', grouped: false, label },
+                { id: 'front', type: 'bar', xKey: 'x', yKey: 'front', grouped: false, label },
+            ],
+            selection: { enabled: true },
+        };
+
+        const backPlacements = () =>
+            (getSeriesContextNodeData(chart, 0).nodeData as { label?: { placement?: string } }[]).map(
+                (node) => node.label?.placement
+            );
+
+        it('re-solves for a selection raising the back series over the front one, but not for a hover raise', async () => {
+            chart = await createEnterpriseChart(options);
+            // The back label would sit on the front bar drawn over it, so goes outside.
+            expect(backPlacements()).toEqual(['outside-end', 'outside-end', 'outside-end']);
+
+            await setChartSelectionArray([{ seriesId: 'back', itemId: 'q1' }]);
+            expect(backPlacements()).toEqual(['inside-center', 'inside-center', 'inside-center']);
+
+            // Hovering the front series draws it over the back one only while it is highlighted.
+            await hoverLegendItem(chart, 1);
+            await waitForChartStability(chart);
+            expect(backPlacements()).toEqual(['inside-center', 'inside-center', 'inside-center']);
+        });
+
+        it.each([
+            { drop: 'cleared', apply: () => clearChartSelection() },
+            { drop: 'removed by a transaction', apply: () => chart.applyTransaction({ remove: [{ id: 'q1' }] }) },
+            {
+                drop: 'dropped by a data update',
+                apply: () => chart.update(prepareEnterpriseTestOptions({ ...options, data: rows.slice(1) })),
+            },
+        ])('restores placement once the selection is $drop', async ({ apply }) => {
+            chart = await createEnterpriseChart(options);
+            await setChartSelectionArray([{ seriesId: 'back', itemId: 'q1' }]);
+            expect(backPlacements()).toContain('inside-center');
+
+            await apply();
+            await waitForChartStability(chart);
+
+            expect(new Set(backPlacements())).toEqual(new Set(['outside-end']));
+        });
+    });
+
+    describe('inside line labels over the markers of another series', () => {
+        // Each line label overlaps the marker of the scatter point just right of it.
+        const options: AgCartesianChartOptions = {
+            dataIdKey: 'id',
+            data: [
+                { id: 'a', x: 1, nearX: 1.05, y: 5, name: 'A' },
+                { id: 'b', x: 2, nearX: 2.05, y: 5, name: 'B' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                y: { type: 'number', position: 'left', min: 0, max: 10 },
+            },
+            series: [
+                {
+                    id: 'under',
+                    type: 'scatter',
+                    xKey: 'nearX',
+                    yKey: 'y',
+                    labelKey: 'nearX',
+                    size: 28,
+                    label: { enabled: true, placement: 'bottom' },
+                },
+                {
+                    id: 'line',
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { size: 36 },
+                    label: {
+                        enabled: true,
+                        formatter: ({ datum }) => datum.name,
+                        placement: 'inside',
+                        collision: { alwaysShow: false },
+                    },
+                },
+            ],
+            selection: { enabled: true },
+        };
+
+        const lineLabels = () => getVisibleLabelNodes(chart, 1).map((node) => node.text);
+
+        it('drops them once a selection raises the scatter over the line, but not for a hover raise', async () => {
+            const activeChange = vi.fn();
+            chart = await createEnterpriseChart({ ...options, listeners: { activeChange } });
+            expect(lineLabels()).toEqual(['A', 'B']);
+
+            await hoverLegendItem(chart, 0);
+            await waitForChartStability(chart);
+            expect(activeChange).toHaveBeenLastCalledWith(
+                expect.objectContaining({ activeItem: expect.objectContaining({ type: 'legend', seriesId: 'under' }) })
+            );
+            expect(lineLabels()).toEqual(['A', 'B']);
+
+            await setChartSelectionArray([{ seriesId: 'under', itemId: 'a' }]);
+            expect(lineLabels()).toEqual([]);
+
+            await clearChartSelection();
+            expect(lineLabels()).toEqual(['A', 'B']);
+        });
+    });
+
     describe('AG-17577 pie series selection are not shown in legend', () => {
         type D = AirGasesDatum;
         type C = unknown;
@@ -1357,8 +1483,7 @@ describe('DataSelection', () => {
         // Error bars express series-level dimming as group opacity, which a selection change must
         // maintain on its own rather than relying on the highlight-change handler.
         describe('CRT-1186 group opacity follows selection state', () => {
-            // The default theme sets selection.unselectedSeries.opacity = 0.2.
-            const DIMMED_OPACITY = 0.2;
+            // The default theme sets selection.unselectedSeries.opacity: 0.5 for bars and 0.3 for lines.
 
             const barSeries = (data: any[], yName: string): NonNullable<AgCartesianChartOptions['series']>[number] => ({
                 type: 'bar',
@@ -1381,9 +1506,9 @@ describe('DataSelection', () => {
                 await waitForChartStability(chart);
             }
 
-            for (const [seriesType, seriesFactory] of [
-                ['bar', (data: any[]) => barSeries(data, 'A')],
-                ['line', (data: any[]) => lineSeries(data, 'A', { stroke: 'steelblue', strokeWidth: 3 })],
+            for (const [seriesType, DIMMED_OPACITY, seriesFactory] of [
+                ['bar', 0.5, (data: any[]) => barSeries(data, 'A')],
+                ['line', 0.3, (data: any[]) => lineSeries(data, 'A', { stroke: 'steelblue', strokeWidth: 3 })],
             ] as const) {
                 it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
                     chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));

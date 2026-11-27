@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getSpatialIndexCellCount } from '../test/coreAccessors';
 import { type BoxBounds, boxCollides } from './boxBounds';
-import { SpatialIndex, anyOverlap } from './spatialIndex';
+import { SpatialIndex, anyOverlap, gridCellSize, gridCellsAcross } from './spatialIndex';
 
 function makeBoxes(count: number, bounds: BoxBounds): BoxBounds[] {
     // Deterministic pseudo-random spread so the test is reproducible.
@@ -58,12 +58,15 @@ describe('SpatialIndex', () => {
         expect(found).toBe(bruteForceCollides([stored], straddling));
     });
 
-    it('reuses backing storage across resets without leaking stale refs', () => {
+    it.each([
+        ['a reset', (index: SpatialIndex<string>) => index.reset(bounds, 30)],
+        ['a clear', (index: SpatialIndex<string>) => index.clear()],
+    ])('keeps no stale refs after %s', (_name, empty) => {
         const index = new SpatialIndex<string>();
         index.reset(bounds, 30);
         index.insert({ x: 0, y: 0, width: 10, height: 10 }, 'first');
 
-        index.reset(bounds, 30);
+        empty(index);
         const visited: string[] = [];
         index.query({ x: 0, y: 0, width: 10, height: 10 }, (ref) => {
             visited.push(ref);
@@ -86,6 +89,28 @@ describe('SpatialIndex', () => {
         expect(index.query(miss, (ref) => boxCollides(ref, miss.x, miss.y, miss.width, miss.height))).toBe(false);
     });
 
+    it.each([
+        { name: 'a NaN cell size', first: { x: 0, y: 0, width: 100, height: 100 }, cellSize: Number.NaN },
+        { name: 'NaN bounds', first: { x: 0, y: 0, width: Number.NaN, height: 100 }, cellSize: 10 },
+    ])('stays usable at a larger grid after a reset with $name', ({ first, cellSize }) => {
+        const index = new SpatialIndex<BoxBounds>();
+        index.reset(first, cellSize);
+        index.reset(bounds, 10);
+
+        const corner = { x: 700, y: 550, width: 5, height: 5 };
+        index.insert(corner, corner);
+        expect(index.query(corner, () => true)).toBe(true);
+    });
+
+    it.each(['x', 'y'] as const)('finds an overlap within bounds whose %s origin is NaN', (axis) => {
+        const index = new SpatialIndex<BoxBounds>();
+        index.reset({ x: 0, y: 0, width: 100, height: 100, [axis]: Number.NaN }, 10);
+
+        const stored = { x: 40, y: 40, width: 10, height: 10 };
+        index.insert(stored, stored);
+        expect(index.query(stored, () => true)).toBe(true);
+    });
+
     it('stops early when the visitor returns true', () => {
         const index = new SpatialIndex<number>();
         index.reset({ x: 0, y: 0, width: 100, height: 100 }, 50);
@@ -101,6 +126,99 @@ describe('SpatialIndex', () => {
         });
         expect(found).toBe(true);
         expect(visits).toBe(1);
+    });
+
+    it('queryDistinct visits what query visits, in the same order, without repeats', () => {
+        const wide = { x: bounds.x - 100, y: bounds.y - 100, width: bounds.width + 200, height: bounds.height + 200 };
+        const refs = makeBoxes(400, wide).map((box) => ({ box }));
+        const index = new SpatialIndex<{ box: BoxBounds }>();
+        index.reset(bounds, 30);
+        for (const ref of refs) {
+            index.insert(ref.box, ref);
+        }
+
+        let repeats = 0;
+        for (const q of makeBoxes(300, wide)) {
+            const all: object[] = [];
+            index.query(q, (ref) => {
+                all.push(ref);
+            });
+            const distinct: object[] = [];
+            index.queryDistinct(q, (ref) => {
+                distinct.push(ref);
+            });
+            const firsts = all.filter((ref, i) => all.indexOf(ref) === i);
+            repeats += all.length - firsts.length;
+            expect(distinct).toEqual(firsts);
+            expect(distinct.every((ref, i) => ref === firsts[i])).toBe(true);
+        }
+        expect(repeats).toBeGreaterThan(0);
+    });
+
+    describe('remove', () => {
+        // A 2x2 grid of 50px cells; `spanning` covers all four, the others one cell each.
+        const spanning = { x: 25, y: 25, width: 50, height: 50 };
+        const topLeft = { x: 0, y: 0, width: 10, height: 10 };
+        const bottomRight = { x: 90, y: 90, width: 10, height: 10 };
+        const whole = { x: 0, y: 0, width: 100, height: 100 };
+        const indexOf = (...refs: string[]) => {
+            const index = new SpatialIndex<string>();
+            index.reset(whole, 50);
+            const boxes: Record<string, BoxBounds> = { spanning, topLeft, bottomRight };
+            for (const ref of refs) index.insert(boxes[ref], ref);
+            return index;
+        };
+        const visits = (index: SpatialIndex<string>) => {
+            const seen: string[] = [];
+            index.query(whole, (ref) => {
+                seen.push(ref);
+            });
+            return seen;
+        };
+
+        it('takes a ref out of every cell its box spans and keeps the others in order', () => {
+            const index = indexOf('topLeft', 'spanning', 'bottomRight');
+            index.remove(spanning, 'spanning');
+            expect(visits(index)).toEqual(['topLeft', 'bottomRight']);
+        });
+
+        it('leaves the index unchanged for a ref it does not hold', () => {
+            const index = indexOf('topLeft', 'bottomRight');
+            index.remove(spanning, 'spanning');
+            expect(visits(index)).toEqual(['topLeft', 'bottomRight']);
+        });
+
+        it('leaves one entry per cell after a ref is inserted, removed and inserted again', () => {
+            const index = indexOf('topLeft', 'spanning');
+            index.remove(spanning, 'spanning');
+            index.insert(spanning, 'spanning');
+            expect(visits(index)).toEqual(['topLeft', 'spanning', 'spanning', 'spanning', 'spanning']);
+        });
+    });
+});
+
+describe('gridCellSize', () => {
+    it.each([
+        { extentSum: 40, extentCount: 4, expected: 10 },
+        { extentSum: 2, extentCount: 4, expected: 1 },
+        { extentSum: 0, extentCount: 0, expected: 1 },
+        { extentSum: Number.NaN, extentCount: 4, expected: 1 },
+    ])(
+        'sizes cells to the mean extent floored at 1 ($extentSum / $extentCount)',
+        ({ extentSum, extentCount, expected }) => {
+            expect(gridCellSize(extentSum, extentCount)).toBe(expected);
+        }
+    );
+});
+
+describe('gridCellsAcross', () => {
+    it.each([
+        { name: 'an infinite extent', origin: 0, extent: Infinity },
+        { name: 'a NaN extent', origin: 0, extent: Number.NaN },
+        { name: 'a NaN origin', origin: Number.NaN, extent: 100 },
+        { name: 'an infinite origin', origin: -Infinity, extent: 100 },
+    ])('collapses to one cell for $name', ({ origin, extent }) => {
+        expect(gridCellsAcross(origin, extent, 10)).toBe(1);
     });
 });
 
@@ -153,6 +271,22 @@ describe('anyOverlap', () => {
         expect(anyOverlap([hitA], [{ box: hitB, ref: hitB }], collidesExactly)).toBe(true);
         expect(anyOverlap([hitA], [{ box: far, ref: far }], collidesExactly)).toBe(false);
         expect(anyOverlap([hitA], [{ box: hitB, ref: hitB }], collidesExactly)).toBe(true);
+    });
+
+    it.each(['x', 'y'] as const)('finds a finite overlap and still prunes along %s beside a NaN obstacle', (axis) => {
+        const query: BoxBounds = { x: 0, y: 0, width: 10, height: 10 };
+        const hit: BoxBounds = { x: 5, y: 5, width: 10, height: 10 };
+        const invalid: BoxBounds = { ...query, [axis]: Number.NaN };
+        const distant = Array.from({ length: 20 }, (_, i): BoxBounds => ({ ...query, [axis]: 100 * (i + 1) }));
+        const obstacles = [invalid, ...distant, hit].map((box) => ({ box, ref: box }));
+
+        let exactCalls = 0;
+        const found = anyOverlap([query], obstacles, (a, b) => {
+            exactCalls++;
+            return collidesExactly(a, b);
+        });
+        expect(found).toBe(true);
+        expect(exactCalls).toBe(1);
     });
 
     it('only reports a collision the exact predicate confirms, not merely a cell co-residency', () => {

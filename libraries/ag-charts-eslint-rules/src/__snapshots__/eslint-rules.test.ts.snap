@@ -331,3 +331,40 @@ exports[`aglint/validate-module-registration-implied 1`] = `
 ",
 }
 `;
+
+exports[`aglint/widget-boundary 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-widget-boundary.data.ts
+   17:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   18:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   23:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   24:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   25:33  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   26:23  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   44:5   error  Give a reason for this exemption: \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`                                                                                                    aglint/widget-boundary-directives
+   46:5   error  Definition for rule 'aglint/widget-boundary --' was not found                                                                                                                                         aglint/widget-boundary --
+   46:5   error  Give a reason for this exemption: \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`                                                                                                    aglint/widget-boundary-directives
+   47:13  error  Do not reach through a Widget to its raw element. Use (or add) a Widget method instead. If the escape is unavoidable, allow it with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`  aglint/widget-boundary
+   48:5   error  Give a reason for this exemption: \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`                                                                                                    aglint/widget-boundary-directives
+   60:5   error  Unused eslint-disable directive (no problems were reported from 'aglint/widget-boundary')
+   65:1   error  Exempt one site at a time with \`// eslint-disable-next-line aglint/widget-boundary -- <reason>\`, not a block or file-wide disable                                                                     aglint/widget-boundary-directives
+   72:25  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   73:31  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   74:30  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   75:28  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   76:35  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   77:38  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   78:45  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   87:25  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+   99:26  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+  103:24  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+  109:32  error  \`NativeWidget\` is a fallback that Phase 3 removes. Put \`// TODO: Phase 3 "Common Widget Ancestor" - <why>\` directly before this statement, or before the class that extends it                        aglint/widget-boundary
+
+✖ 24 problems (24 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the \`--fix\` option.
+
+",
+}
+`;

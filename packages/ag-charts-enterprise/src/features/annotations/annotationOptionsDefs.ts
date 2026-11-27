@@ -2,8 +2,8 @@ import {
     type OptionsDefs,
     array,
     arrayOf,
-    arrayOfDefs,
     boolean,
+    buttonNameAdvisory,
     colorOrRef,
     fillOptionsDef,
     fontOptionsDef,
@@ -31,6 +31,7 @@ import type {
     AgAnnotationsOptions,
     AgAnnotationsThemeableOptions,
     AgAnnotationsToolbarButton,
+    AgAnnotationsToolbarSwitch,
     AgCalloutAnnotationStyles,
     AgChannelAnnotationMiddle,
     AgChannelAnnotationStyles,
@@ -39,6 +40,7 @@ import type {
     AgCrossLineAnnotationStyles,
     AgDisjointChannelAnnotationStyles,
     AgFibonacciAnnotationStyles,
+    AgLastPriceLineOptions,
     AgLineAnnotationStyles,
     AgLineAnnotationTextStyles,
     AgMeasurerAnnotationStatistics,
@@ -133,6 +135,14 @@ export const annotationLineStyleDefs: OptionsDefs<AgLineAnnotationStyles> = {
     handle: annotationHandleStylesDefs,
     text: annotationLineTextDefs,
     ...selectionAxesDefs,
+    ...annotationLineOptionsDef,
+    ...strokeOptionsDef,
+};
+
+/** The options of the price preset's `lastPriceLine`. */
+export const lastPriceLineStyleDefs: OptionsDefs<AgLastPriceLineOptions> = {
+    enabled: boolean,
+    axisLabel: annotationAxisLabelOptionsDef,
     ...annotationLineOptionsDef,
     ...strokeOptionsDef,
 };
@@ -242,67 +252,81 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     },
     magnet: {
         enabled: boolean,
-        mode: union('weak', 'strong'),
-        range: positiveNumber,
+        range: or(union('nearest'), positiveNumber),
     },
     toolbar: {
         enabled: boolean,
         padding: positiveNumber,
         buttonSize: positiveNumber,
-        buttons: arrayOfDefs<AgAnnotationsToolbarButton>(
-            {
-                ...toolbarButtonOptionsDefs,
-                value: union(
-                    'line-menu',
-                    'fibonacci-menu',
-                    'text-menu',
-                    'shape-menu',
-                    'measurer-menu',
-                    'line',
-                    'horizontal-line',
-                    'vertical-line',
-                    'parallel-channel',
-                    'disjoint-channel',
-                    'fibonacci-retracement',
-                    'fibonacci-retracement-trend-based',
-                    'text',
-                    'comment',
-                    'callout',
-                    'note',
-                    'magnet',
-                    'clear'
+        buttons: buttonNameAdvisory(
+            arrayOf(
+                or(
+                    optionsDefs<AgAnnotationsToolbarButton>({
+                        ...toolbarButtonOptionsDefs,
+                        type: union('button'),
+                        value: required(
+                            union(
+                                'line-menu',
+                                'fibonacci-menu',
+                                'text-menu',
+                                'shape-menu',
+                                'measurer-menu',
+                                'line',
+                                'horizontal-line',
+                                'vertical-line',
+                                'parallel-channel',
+                                'disjoint-channel',
+                                'fibonacci-retracement',
+                                'fibonacci-retracement-trend-based',
+                                'text',
+                                'comment',
+                                'callout',
+                                'note',
+                                'clear'
+                            )
+                        ),
+                    }),
+                    optionsDefs<AgAnnotationsToolbarSwitch>({
+                        ...toolbarButtonOptionsDefs,
+                        type: required(union('switch')),
+                        value: required(union('magnet')),
+                        checkedOverrides: toolbarButtonOptionsDefs,
+                    })
                 ),
-            },
-            'annotation toolbar buttons array'
+                'annotation toolbar buttons array'
+            )
         ),
     },
     optionsToolbar: {
         enabled: boolean,
         buttonSize: positiveNumber,
-        buttons: arrayOf(
-            or(
-                optionsDefs<AgAnnotationOptionsToolbarButton>({
-                    ...toolbarButtonOptionsDefs,
-                    type: union('button'),
-                    value: required(
-                        union(
-                            'line-stroke-width',
-                            'line-style-type',
-                            'line-color',
-                            'fill-color',
-                            'text-color',
-                            'text-size',
-                            'delete',
-                            'settings'
-                        )
-                    ),
-                }),
-                optionsDefs<AgAnnotationOptionsToolbarSwitch>({
-                    ...toolbarButtonOptionsDefs,
-                    type: required(union('switch')),
-                    value: required(union('lock')),
-                    checkedOverrides: toolbarButtonOptionsDefs,
-                })
+        showActionButtons: boolean,
+        buttons: buttonNameAdvisory(
+            arrayOf(
+                or(
+                    optionsDefs<AgAnnotationOptionsToolbarButton>({
+                        ...toolbarButtonOptionsDefs,
+                        type: union('button'),
+                        value: required(
+                            union(
+                                'line-stroke-width',
+                                'line-style-type',
+                                'line-color',
+                                'fill-color',
+                                'text-color',
+                                'text-size',
+                                'delete',
+                                'settings'
+                            )
+                        ),
+                    }),
+                    optionsDefs<AgAnnotationOptionsToolbarSwitch>({
+                        ...toolbarButtonOptionsDefs,
+                        type: required(union('switch')),
+                        value: required(union('lock')),
+                        checkedOverrides: toolbarButtonOptionsDefs,
+                    })
+                )
             )
         ),
     },
@@ -311,6 +335,15 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
         xKey: string,
         volumeKey: string,
         snap: boolean,
+        // Set by the price preset from its `lastPriceLine`, which draws a line at the close of the last bar of a series.
+        lastPriceLine: {
+            ...lastPriceLineStyleDefs,
+            seriesId: string,
+            closeKey: string,
+            openKey: string,
+            up: colorOrRef,
+            down: colorOrRef,
+        },
     }),
 };
 

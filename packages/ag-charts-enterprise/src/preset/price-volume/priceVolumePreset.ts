@@ -2,7 +2,7 @@ import { _Theme } from 'ag-charts-community';
 import { type Logger, datumKeyReader } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
-    AgAnnotationsToolbarButton,
+    AgAnnotationsToolbarItem,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
@@ -10,6 +10,7 @@ import type {
     AgChartSyncOptions,
     AgHlcSeriesOptions,
     AgInsetNumberAxisOptions,
+    AgLastPriceLineOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -31,6 +32,7 @@ import {
     createVolumeProfileSeries,
     createVolumeProfileStatusBarOptions,
     groupVolumeProfile,
+    resolveVolumeProfileTickSize,
 } from '../volume-profile/volumeProfile';
 import type { VolumeProfileDatum } from '../volume-profile/volumeProfileUtils';
 
@@ -40,7 +42,7 @@ const PRICE_AXIS_KEY = 'y';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 
-const toolbarButtons: AgAnnotationsToolbarButton[] = [
+const toolbarButtons: AgAnnotationsToolbarItem[] = [
     {
         icon: 'trend-line-drawing',
         tooltip: 'toolbarAnnotationsLineAnnotations',
@@ -67,8 +69,10 @@ const toolbarButtons: AgAnnotationsToolbarButton[] = [
         value: 'measurer-menu',
     },
     {
-        icon: 'magnet',
+        type: 'switch',
+        icon: 'no-magnet',
         tooltip: 'toolbarAnnotationsMagnet',
+        checkedOverrides: { icon: 'magnet' },
         value: 'magnet',
     },
     {
@@ -95,6 +99,7 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
+        lastPriceLine = false,
         volumeProfile: volumeProfileOptions,
         tickSize,
         rangeButtons = true,
@@ -115,9 +120,14 @@ export function priceVolume(
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
     const suppressFieldDotNotation = opts.suppressFieldDotNotation ?? false;
+    // The levels of a profile are tick sizes apart, so the price axis steps by the same.
+    const profileTickSize = volumeProfile
+        ? resolveVolumeProfileTickSize(volumeProfile.data, volumeProfile.priceKey, tickSize, suppressFieldDotNotation)
+        : tickSize;
     const profileLevels =
         volumeProfile &&
-        groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, suppressFieldDotNotation, logger);
+        groupVolumeProfile(volumeProfile.data, volumeProfile, profileTickSize, suppressFieldDotNotation, logger);
+    const priceTickSize = (profileLevels?.length ?? 0) > 0 ? profileTickSize : tickSize;
 
     return {
         animation: { enabled: false },
@@ -128,7 +138,7 @@ export function priceVolume(
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(volumeProfile),
+            ...createPriceAxis(volumeProfile, priceTickSize),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
@@ -138,7 +148,7 @@ export function priceVolume(
         highlight: { mode: 'single' },
         data,
         formatter,
-        ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
+        ...createAnnotationsOptions(toolbar, lastPriceLine, keys, themeOverrides, data, shownVolumeKey),
         ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
         ...createRangesOptions(rangeButtons, zoom),
         ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels, volumeProfile),
@@ -302,12 +312,14 @@ function createPriceVolumeProfileSeries(
     return createVolumeProfileSeries(getTheme, PRICE_AXIS_KEY, levels, undefined, volumeProfile, false);
 }
 
-function createPriceAxis(volumeProfile: AgVolumeProfileOptions | undefined) {
+function createPriceAxis(volumeProfile: AgVolumeProfileOptions | undefined, tickSize: number | undefined) {
     return {
         [PRICE_AXIS_KEY]: {
             type: 'number',
             position: 'right',
             spacing: 0,
+            // Spread in, as the axis's `tickSize` is outside the public axis types.
+            ...(tickSize == null ? undefined : { tickSize }),
             ...createTotalSegmentAxisOptions(
                 volumeProfile?.totalSegment,
                 volumeProfile?.placement === 'left' ? 'left' : 'right'
@@ -343,18 +355,32 @@ function createVolumeAxis(volume: boolean): Record<string, AgInsetNumberAxisOpti
     };
 }
 
+function createLastPriceLineOptions(
+    lastPriceLine: boolean | AgLastPriceLineOptions,
+    { openKey, closeKey }: PriceSeriesKeys
+) {
+    const styles = lastPriceLine === true ? {} : lastPriceLine;
+    if (styles === false || styles.enabled === false) return;
+
+    return { ...styles, enabled: true, seriesId: PRICE_SERIES_ID, closeKey, openKey };
+}
+
 function createAnnotationsOptions(
     toolbar: boolean,
+    lastPriceLine: boolean | AgLastPriceLineOptions,
+    keys: PriceSeriesKeys,
     themeOverrides: AgThemeOverrides | undefined,
     data: DatumDefault[] | undefined,
-    xKey: string,
     volumeKey: string | undefined
 ) {
     const buttons = themeOverrides?.common?.annotations?.toolbar?.buttons ?? toolbarButtons;
+    const lastPriceLineOptions = createLastPriceLineOptions(lastPriceLine, keys);
 
     return {
         annotations: {
-            enabled: toolbar,
+            // The last price line is drawn by the annotations module, which then runs without the toolbar
+            enabled: toolbar || lastPriceLineOptions != null,
+            ...(toolbar ? {} : { axesButtons: { enabled: false } }),
             optionsToolbar: {
                 enabled: toolbar,
             },
@@ -366,8 +392,9 @@ function createAnnotationsOptions(
                 padding: 0,
             },
             data,
-            xKey,
+            xKey: keys.xKey,
             volumeKey,
+            lastPriceLine: lastPriceLineOptions,
         } satisfies AgAnnotationsOptions,
     };
 }

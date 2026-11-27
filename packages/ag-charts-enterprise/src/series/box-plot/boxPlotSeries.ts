@@ -897,7 +897,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
         const datum = this.processedData?.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const castState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightStateString = _ModuleSupport.toHighlightString(castState);
         const selectionStateString = this.getSelectionStateString(datumIndex);
         const candidateStateString = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -911,6 +912,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             medianKey,
             q3Key,
             maxKey,
+            shadow: this.getStylerShadow(this.options.shadow, castState),
+            glow: this.getStylerGlow(this.options.glow, castState),
             highlightState: highlightStateString,
             selectionState: selectionStateString,
             candidateState: candidateStateString,
@@ -1005,6 +1008,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             const whiskerOpacity = style.whisker?.strokeOpacity ?? style.strokeOpacity;
 
             boxPlotNode.fill = style.fill;
+            boxPlotNode.styleOpacity = nodeOpacity;
             boxPlotNode.fillOpacity = style.fillOpacity * nodeOpacity;
             boxPlotNode.stroke = style.stroke;
             boxPlotNode.strokeWidth = style.strokeWidth;

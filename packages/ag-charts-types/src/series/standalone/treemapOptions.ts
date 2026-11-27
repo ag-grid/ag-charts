@@ -5,7 +5,12 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
-import type { AgDropShadowOptions, AgItemShadowStyle } from '../../chart/dropShadowOptions';
+import type {
+    AgDropShadowOptions,
+    AgGlowOptions,
+    AgItemShadowStyle,
+    AgItemShadowStylerParams,
+} from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -86,6 +91,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the groups. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the groups. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** The colours to cycle through for the fills of the groups, by their depth in the hierarchy. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** Highlight overrides for groups. */
@@ -154,11 +161,19 @@ export interface AgTreemapSeriesTileHighlightOptions {
     enabled?: boolean;
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
-    /** Style for the directly hovered tile. */
+    /**
+     * Style for the directly hovered tile.
+     *
+     * Default: `{ glow: { enabled: true } }`
+     */
     highlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
-    /** Style for tiles outside of the hovered branch. */
+    /**
+     * Style for tiles outside of the hovered branch.
+     *
+     * Default: `{ opacity: 0.5 }`
+     */
     unhighlightedBranch?: AgTreemapSeriesTileHighlightStyle;
 }
 
@@ -174,7 +189,11 @@ export interface AgTreemapSeriesGroupHighlightOptions {
      * Default: `true`
      */
     enabled?: boolean;
-    /** Style for the hovered group. */
+    /**
+     * Style for the hovered group.
+     *
+     * Default: `{ glow: { enabled: true } }`
+     */
     highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
     /** Style for groups that are not hovered when another group is active. */
     unhighlightedItem?: AgTreemapSeriesGroupHighlightStyle;
@@ -186,6 +205,8 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Configuration for the shadow used behind the tiles. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for the glow around the tiles. The `highlight` options override it, field by field. Off unless set: `glow: {}` turns it on. */
+    glow?: AgGlowOptions;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
     /** Selection overrides for tiles. */
@@ -250,6 +271,7 @@ export interface AgTreemapSeriesItemStylerParams<TDatum, TContext = ContextDefau
     extends
         DatumCallbackParams<TDatum, AgTreemapHighlightState>,
         ContextCallbackParams<TContext>,
+        AgItemShadowStylerParams,
         AgTreemapSeriesOptionsKeys<TDatum>,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */

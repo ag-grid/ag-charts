@@ -1,10 +1,10 @@
 import type {
     AgColorType,
+    AgGlowOptions,
     AgItemShadowStyle,
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
-    HighlightState as HighlightStateString,
     PixelSize,
     SelectionState as SelectionStateString,
     Styler,
@@ -14,9 +14,11 @@ import type {
     Callback,
     CallbackParam,
     CallbackParamRules,
+    DeepPartial,
     DynamicContext,
     InternalAgColorType,
     Normalised,
+    NormalisedDropShadowOptions,
     NormalisedLineDash,
     Resolved,
 } from 'ag-charts-core';
@@ -49,6 +51,8 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         readonly lineDash: number[];
         readonly lineDashOffset: number;
         readonly cornerRadius: number;
+        readonly shadow?: NormalisedDropShadowOptions;
+        readonly glow?: DeepPartial<AgGlowOptions>;
         readonly stackGroup?: string;
         readonly styler?: Styler<AgRadialSeriesStylerParams<unknown, unknown>, AgRadialSeriesStyle>;
         readonly itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle & AgItemShadowStyle>;
@@ -63,11 +67,13 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         datumIndex?: number,
         highlightState?: _ModuleSupport.HighlightState
     ): AgRadialSeriesStyle;
-    getHighlightStateString(
+    getHighlightState(
         datum: _ModuleSupport.HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: number
-    ): HighlightStateString;
+    ): _ModuleSupport.HighlightState;
+    getStylerShadow: _ModuleSupport.Series<any, any>['getStylerShadow'];
+    getStylerGlow: _ModuleSupport.Series<any, any>['getStylerGlow'];
     getSelectionStyle(
         datumIndex?: number,
         selectionState?: _ModuleSupport.SelectionState,
@@ -164,7 +170,7 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     const { angleKey, radiusKey } = options;
 
     const activeHighlight = series.ctx.highlightManager?.getActiveHighlight();
-    const highlightStateString = series.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+    const castState = series.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
     const selectionStateString = series.getSelectionStateString(nodeDatum.datumIndex);
     const candidateStateString = series.getCandidateStateString(nodeDatum.datumIndex);
     const fill = series.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -173,7 +179,9 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     return {
         seriesId,
         datum: nodeDatum.datum,
-        highlightState: highlightStateString,
+        shadow: series.getStylerShadow(options.shadow, castState),
+        glow: series.getStylerGlow(options.glow, castState),
+        highlightState: _ModuleSupport.toHighlightString(castState),
         selectionState: selectionStateString,
         candidateState: candidateStateString,
         angleKey,

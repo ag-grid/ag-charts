@@ -1084,21 +1084,19 @@ describe('ChartOptions', () => {
         });
 
         it.each([
-            ['1 bar series', bar(1), 'single'],
-            ['2 bar series', bar(2), 'shared'],
-            ['3 bar series', bar(3), 'shared'],
-            ['4 bar series', bar(4), 'single'],
-            ['5 bar series', bar(5), 'single'],
-            ['2 scatter series', scatter(2), 'single'],
-            ['1 pie series', pie(1), 'single'],
-            ['2 pie series', pie(2), 'shared'],
-            ['4 pie series', pie(4), 'single'],
-        ])('resolves both modes from the series count when neither is set: %s', (_, series, expected) => {
+            ['1 bar series', bar(1)],
+            ['2 bar series', bar(2)],
+            ['3 bar series', bar(3)],
+            ['4 bar series', bar(4)],
+            ['2 scatter series', scatter(2)],
+            ['1 pie series', pie(1)],
+            ['2 pie series', pie(2)],
+        ])('resolves both modes to single when neither is set: %s', (_, series) => {
             const options = prepareOptions({ series } as AgChartOptions);
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(optionAt(options, 'tooltip.mode')).toBe(expected);
-            expect(optionAt(options, 'highlight.mode')).toBe(expected);
+            expect(optionAt(options, 'tooltip.mode')).toBe('single');
+            expect(optionAt(options, 'highlight.mode')).toBe('single');
         });
 
         it.each([
@@ -1134,13 +1132,13 @@ describe('ChartOptions', () => {
             expect(optionAt(options, 'highlight.mode')).toBe(expected);
         });
 
-        it('follows an invalid tooltip.mode with the series-count default', () => {
+        it('falls back to single highlighting for an invalid tooltip.mode', () => {
             const options = prepareOptions({
                 series: bar(2),
                 tooltip: { mode: invalidOption('invalid') },
             } as AgChartOptions);
 
-            expect(optionAt(options, 'highlight.mode')).toBe('shared');
+            expect(optionAt(options, 'highlight.mode')).toBe('single');
         });
     });
 
@@ -1219,17 +1217,18 @@ describe('ChartOptions', () => {
                   "fill": "pink",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -1241,13 +1240,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -1297,13 +1296,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -1350,17 +1350,18 @@ describe('ChartOptions', () => {
                   "fill": "red",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -1372,13 +1373,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -1428,13 +1429,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -1481,17 +1483,18 @@ describe('ChartOptions', () => {
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -1503,13 +1506,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -1559,13 +1562,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -1612,17 +1616,18 @@ describe('ChartOptions', () => {
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -1634,13 +1639,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -1690,13 +1695,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -1744,7 +1750,7 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -1756,12 +1762,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "interpolation": {
@@ -1808,10 +1815,11 @@ describe('ChartOptions', () => {
                     "fill": "#e1cc00",
                     "fillOpacity": 1,
                     "glow": {
-                      "blur": 2,
+                      "blur": 1,
                       "enabled": false,
-                      "fillOpacity": 0.4,
-                      "spread": 4,
+                      "fillOpacity": 0.6,
+                      "gap": 1,
+                      "spread": 2,
                     },
                     "lineDash": [
                       0,
@@ -1840,13 +1848,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.3,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "showInLegend": true,
@@ -1879,7 +1888,7 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -1891,12 +1900,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "interpolation": {
@@ -1943,10 +1953,11 @@ describe('ChartOptions', () => {
                     "fill": "#9669cb",
                     "fillOpacity": 1,
                     "glow": {
-                      "blur": 2,
+                      "blur": 1,
                       "enabled": false,
-                      "fillOpacity": 0.4,
-                      "spread": 4,
+                      "fillOpacity": 0.6,
+                      "gap": 1,
+                      "spread": 2,
                     },
                     "lineDash": [
                       0,
@@ -1975,13 +1986,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.3,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "showInLegend": true,
@@ -2024,17 +2036,18 @@ describe('ChartOptions', () => {
                   "fill": "pink",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2046,13 +2059,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -2102,13 +2115,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -2155,17 +2169,18 @@ describe('ChartOptions', () => {
                   "fill": "red",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2177,13 +2192,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -2233,13 +2248,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -2286,17 +2302,18 @@ describe('ChartOptions', () => {
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2308,13 +2325,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -2364,13 +2381,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -2417,17 +2435,18 @@ describe('ChartOptions', () => {
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2439,13 +2458,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -2495,13 +2514,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -2549,7 +2569,7 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2561,12 +2581,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "interpolation": {
@@ -2613,10 +2634,11 @@ describe('ChartOptions', () => {
                     "fill": "#e1cc00",
                     "fillOpacity": 1,
                     "glow": {
-                      "blur": 2,
+                      "blur": 1,
                       "enabled": false,
-                      "fillOpacity": 0.4,
-                      "spread": 4,
+                      "fillOpacity": 0.6,
+                      "gap": 1,
+                      "spread": 2,
                     },
                     "lineDash": [
                       0,
@@ -2645,13 +2667,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.3,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "showInLegend": true,
@@ -2684,7 +2707,7 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2696,12 +2719,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "interpolation": {
@@ -2748,10 +2772,11 @@ describe('ChartOptions', () => {
                     "fill": "#9669cb",
                     "fillOpacity": 1,
                     "glow": {
-                      "blur": 2,
+                      "blur": 1,
                       "enabled": false,
-                      "fillOpacity": 0.4,
-                      "spread": 4,
+                      "fillOpacity": 0.6,
+                      "gap": 1,
+                      "spread": 2,
                     },
                     "lineDash": [
                       0,
@@ -2780,13 +2805,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.3,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "showInLegend": true,
@@ -2829,17 +2855,18 @@ describe('ChartOptions', () => {
                   "fill": "pink",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2851,13 +2878,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -2907,13 +2934,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -2960,17 +2988,18 @@ describe('ChartOptions', () => {
                   "fill": "red",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -2982,13 +3011,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -3038,13 +3067,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -3091,17 +3121,18 @@ describe('ChartOptions', () => {
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -3113,13 +3144,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -3169,13 +3200,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -3222,17 +3254,18 @@ describe('ChartOptions', () => {
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "glow": {
-                    "blur": 2,
+                    "blur": 1,
                     "enabled": false,
-                    "fillOpacity": 0.4,
-                    "spread": 4,
+                    "fillOpacity": 0.6,
+                    "gap": 1,
+                    "spread": 2,
                   },
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -3244,13 +3277,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.6,
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "label": {
@@ -3300,13 +3333,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.5,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.5,
                     },
                   },
                   "seriesGrouping": {
@@ -3354,7 +3388,7 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -3366,12 +3400,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "interpolation": {
@@ -3418,10 +3453,11 @@ describe('ChartOptions', () => {
                     "fill": "#e1cc00",
                     "fillOpacity": 1,
                     "glow": {
-                      "blur": 2,
+                      "blur": 1,
                       "enabled": false,
-                      "fillOpacity": 0.4,
-                      "spread": 4,
+                      "fillOpacity": 0.6,
+                      "gap": 1,
+                      "spread": 2,
                     },
                     "lineDash": [
                       0,
@@ -3450,13 +3486,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.3,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "showInLegend": true,
@@ -3489,7 +3526,7 @@ describe('ChartOptions', () => {
                     "enabled": true,
                     "highlightedItem": {
                       "glow": {
-                        "enabled": false,
+                        "enabled": true,
                       },
                     },
                     "highlightedSeries": {
@@ -3501,12 +3538,13 @@ describe('ChartOptions', () => {
                       "glow": {
                         "enabled": false,
                       },
+                      "opacity": 1,
                     },
                     "unhighlightedSeries": {
                       "glow": {
                         "enabled": false,
                       },
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "interpolation": {
@@ -3553,10 +3591,11 @@ describe('ChartOptions', () => {
                     "fill": "#9669cb",
                     "fillOpacity": 1,
                     "glow": {
-                      "blur": 2,
+                      "blur": 1,
                       "enabled": false,
-                      "fillOpacity": 0.4,
-                      "spread": 4,
+                      "fillOpacity": 0.6,
+                      "gap": 1,
+                      "spread": 2,
                     },
                     "lineDash": [
                       0,
@@ -3585,13 +3624,14 @@ describe('ChartOptions', () => {
                     "containment": "any",
                     "enabled": false,
                     "selectedItem": {
+                      "opacity": 1,
                       "strokeWidth": 2,
                     },
                     "unselectedItem": {
-                      "opacity": 0.6,
+                      "opacity": 0.3,
                     },
                     "unselectedSeries": {
-                      "opacity": 0.2,
+                      "opacity": 0.3,
                     },
                   },
                   "showInLegend": true,
