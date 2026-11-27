@@ -97,6 +97,63 @@ describe('MapShapeGapIndex', () => {
             expect(infos![1]).toBeUndefined();
         });
 
+        it('matches an edge walked in the same direction by both rings, and an edge in either order', () => {
+            const a = rect(0, 0, 10, 10);
+            const bClockwise = reverseRing(rect(10, 0, 20, 10));
+            const index = build(region(true, [a]), region(true, [bClockwise]));
+
+            expect(index.stats).toMatchObject({ sharedEdges: 1, movedEdges: 1 });
+            expect(moved(index, a)).toEqual([0, 1, 0, 0]);
+            expect(moved(index, bClockwise)).toEqual([1, 0, 0, 0]);
+        });
+
+        it('compares coordinates exactly: an edge off by 1e-9 is not shared (open question B)', () => {
+            const a = rect(0, 0, 10, 10);
+            const b = rect(10 + 1e-9, 0, 20, 10);
+            const index = build(region(true, [a]), region(true, [b]));
+
+            expect(index.getRingInfo(a)).toBeUndefined();
+            expect(index.getRingInfo(b)).toBeUndefined();
+            expect(index.stats.sharedEdges).toBe(0);
+        });
+
+        it('does not match regions that only touch at a vertex', () => {
+            const a = rect(0, 0, 10, 10);
+            const b = rect(10, 10, 20, 20);
+            const index = build(region(true, [a]), region(true, [b]));
+
+            expect(index.getRingInfo(a)).toBeUndefined();
+            expect(index.getRingInfo(b)).toBeUndefined();
+        });
+
+        it('moves no edge where only gap 0 regions share it, even next to a gapped region at a vertex', () => {
+            const a = rect(0, 0, 10, 10);
+            const b = rect(10, 0, 20, 10);
+            const touching = rect(20, 10, 30, 20);
+            const index = build(region(false, [a]), region(false, [b]), region(true, [touching]));
+
+            expect(index.getRingInfo(a)).toBeUndefined();
+            expect(index.getRingInfo(b)).toBeUndefined();
+            expect(index.getRingInfo(touching)).toBeUndefined();
+            expect(index.stats).toMatchObject({ sharedEdges: 1, movedEdges: 0 });
+        });
+
+        it('does not change the rings it is given', () => {
+            const { a, b } = sideBySide();
+            const before = JSON.stringify([a, b]);
+            build(region(true, [a]), region(true, [b]));
+
+            expect(JSON.stringify([a, b])).toBe(before);
+        });
+
+        it('has no info for a ring it was never given', () => {
+            const { a, b } = sideBySide();
+            const index = build(region(true, [a]), region(true, [b]));
+
+            expect(index.getRingInfo(rect(0, 0, 10, 10))).toBeUndefined();
+            expect(index.getPolygonRingInfo([rect(0, 0, 10, 10)])).toBeUndefined();
+        });
+
         it('rebuilds from scratch', () => {
             const { a, b } = sideBySide();
             const index = build(region(true, [a]), region(true, [b]));
@@ -135,6 +192,28 @@ describe('MapShapeGapIndex', () => {
             expect(moved(index, a)).toEqual([0, 1, 0, 0]);
             expect(moved(index, copy)).toEqual([0, 1, 0, 0]);
             expect(moved(index, b)).toEqual([0, 0, 0, 1]);
+        });
+
+        it('merges the same hole of a host drawn twice, and keeps it apart from an exterior with the same vertices', () => {
+            const enclave = rect(10, 10, 20, 20);
+            const hostA = [rect(0, 0, 30, 30), reverseRing(enclave)];
+            const hostB = [rect(0, 0, 30, 30), reverseRing(enclave)];
+            const index = build(region(true, hostA), region(true, hostB), region(true, [enclave]));
+
+            expect(index.stats.rings).toBe(3);
+            expect(index.getRingInfo(hostB[1])).toBe(index.getRingInfo(hostA[1]));
+            expect(index.getRingInfo(hostA[0])).toBeUndefined();
+        });
+
+        it('does not count duplicate copies as extra owners of a vertex (no tripoints from copies)', () => {
+            const { a, b } = sideBySide();
+            const copyA = rect(0, 0, 10, 10);
+            const copyB = rect(10, 0, 20, 10);
+            const index = build(region(true, [a]), region(true, [copyA]), region(true, [b]), region(true, [copyB]));
+
+            expect(Array.from(index.getRingInfo(a)!.pinned)).toEqual([0, 0, 0, 0]);
+            expect(Array.from(index.getRingInfo(copyB)!.pinned)).toEqual([0, 0, 0, 0]);
+            expect(index.stats).toMatchObject({ rings: 2, sharedEdges: 1, movedEdges: 1 });
         });
 
         it('treats the same ring as an exterior and as a hole as two rings', () => {
@@ -305,6 +384,49 @@ describe('MapShapeGapIndex', () => {
                 .filter((info) => info.runs.some((run) => run.length === info.vertexCount));
 
             expect(closed.length).toBeGreaterThanOrEqual(2);
+        });
+
+        it('finds a closed run on Lesotho, Vatican City and San Marino and on the host ring each one fills', () => {
+            const { index, fixed, features } = createScene(southernAfricaItalyTopology as GapTopology, 1);
+            const closedRun = (ring: readonly (readonly [number, number] | number[])[]) => {
+                const info = index.getRingInfo(ring as any);
+                return info?.runs.length === 1 && info.runs[0].length === info.vertexCount;
+            };
+
+            for (const name of ['Lesotho', 'Vatican City', 'San Marino']) {
+                const { first, count } = features.find((f) => f.name === name)!;
+                expect(count).toBe(1);
+                expect(closedRun(fixed[first][0])).toBe(true);
+            }
+
+            const closedHoles = fixed.flatMap((polygon) => polygon.slice(1)).filter((hole) => closedRun(hole));
+            expect(closedHoles).toHaveLength(3);
+        });
+
+        it.each(topologies)(
+            'indexes %s drawn twice from separate copies as once (V17)',
+            (_name, topology, sharedEdges) => {
+                const doubled = createScene({ features: [...topology.features, ...topology.features] }, 1);
+
+                expect(doubled.index.stats.sharedEdges).toBe(sharedEdges);
+                expect(doubled.index.stats.movedEdges).toBe(sharedEdges);
+                const half = doubled.fixed.length / 2;
+                for (let p = 0; p < half; p += 1) {
+                    for (let r = 0; r < doubled.fixed[p].length; r += 1) {
+                        expect(doubled.index.getRingInfo(doubled.fixed[p + half][r])).toBe(
+                            doubled.index.getRingInfo(doubled.fixed[p][r])
+                        );
+                    }
+                }
+            }
+        );
+
+        it('moves nothing when no region of a topology has a gap', () => {
+            const index = new MapShapeGapIndex();
+            index.build(topologyRegions(usTopology as GapTopology, false));
+
+            expect(index.stats.sharedEdges).toBe(582);
+            expect(index.stats.movedEdges).toBe(0);
         });
 
         it('finds the land border between Indonesia and Timor-Leste', () => {

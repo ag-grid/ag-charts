@@ -35,6 +35,12 @@ function indexOf(...regions: [boolean, Ring[]][]): MapShapeGapIndex {
     return index;
 }
 
+function indexRegions(...regions: ReturnType<typeof region>[]): MapShapeGapIndex {
+    const index = new MapShapeGapIndex();
+    index.build(regions);
+    return index;
+}
+
 function indexRings(...rings: Ring[]): MapShapeGapIndex {
     return indexOf(...rings.map((ring): [boolean, Ring[]] => [true, [ring]]));
 }
@@ -66,6 +72,12 @@ function vertices(ring: readonly Position[] | undefined): Position[] {
 
 function expectRing(actual: readonly Position[] | undefined, expected: Position[]): void {
     expect(vertices(actual)).toEqual(vertices([...expected, expected[0]]));
+}
+
+/** Like `expectRing` for a ring wound clockwise, whatever vertex it starts at. */
+function expectReversedRing(actual: readonly Position[] | undefined, expected: Position[]): void {
+    expect(actual).toBeDefined();
+    expectRing(reverseRing([...actual!]), expected);
 }
 
 function signedArea(ring: readonly Position[]): number {
@@ -485,6 +497,40 @@ describe('insetPolygonRings', () => {
             expect(4 - Math.min(...drawnA.map(([, y]) => y))).toBeLessThanOrEqual(d - width + 1e-9);
         });
 
+        it.each([2.5, 4])(
+            'reaches into a neighbour with a smaller inset by at most d - w - dN, at d = %s (V9)',
+            (d) => {
+                const { a, b, width } = tooth();
+                const index = indexRings(a, b);
+                const dN = 0.5;
+
+                const paintA = exterior(index, a, d)!.filter(([x, y]) => x > 5 && y > 0 && y < 10);
+                const boundaryB = exterior(index, b, dN)!.filter(([x, y]) => x > 11 && y > 0 && y < 10);
+                const [bLow, bHigh] = [
+                    Math.min(...boundaryB.map(([, y]) => y)),
+                    Math.max(...boundaryB.map(([, y]) => y)),
+                ];
+                expect([bLow, bHigh].map(round)).toEqual([4 - dN, 5 + dN]);
+
+                const allowed = Math.max(0, d - width - dN);
+                expect(bLow - Math.min(...paintA.map(([, y]) => y))).toBeLessThanOrEqual(allowed + 1e-9);
+                expect(Math.max(...paintA.map(([, y]) => y)) - bHigh).toBeLessThanOrEqual(allowed + 1e-9);
+            }
+        );
+
+        it('stays out of the neighbour entirely when both sides inset by the same distance', () => {
+            const { a, b } = tooth();
+            const index = indexRings(a, b);
+            const d = 2.5;
+
+            const paintA = exterior(index, a, d)!.filter(([x, y]) => x > 5 && y > 0 && y < 10);
+            const boundaryB = exterior(index, b, d)!.filter(([x, y]) => x > 11 && y > 0 && y < 10);
+            expect(Math.min(...paintA.map(([, y]) => y))).toBeGreaterThanOrEqual(
+                Math.min(...boundaryB.map(([, y]) => y))
+            );
+            expect(Math.max(...paintA.map(([, y]) => y))).toBeLessThanOrEqual(Math.max(...boundaryB.map(([, y]) => y)));
+        });
+
         it('draws a strip wider than the inset as a thinner strip', () => {
             const { a, b } = tooth();
             const index = indexRings(a, b);
@@ -509,6 +555,174 @@ describe('insetPolygonRings', () => {
             const arm = exterior(index, a, d)!.filter(([x, y]) => x > 5 && y > 0 && y < 10);
             expect(arm.length).toBeGreaterThan(0);
             expect(Math.min(...arm.map(([, y]) => y))).toBeGreaterThanOrEqual(4 - (d - width) - 1e-9);
+        });
+    });
+
+    describe('distances', () => {
+        it('moves each side of a border by its own distance (D-8: a gap 0 neighbour still moves by its stroke half)', () => {
+            const { a, b } = sideBySide();
+            const index = indexOf([true, [a]], [false, [b]]);
+
+            expectRing(exterior(index, a, 2.5), [
+                [0, 0],
+                [7.5, 0],
+                [7.5, 10],
+                [0, 10],
+            ]);
+            expectRing(exterior(index, b, 0.5), [
+                [10.5, 0],
+                [20, 0],
+                [20, 10],
+                [10.5, 10],
+            ]);
+        });
+
+        it('draws the same shape whatever the winding of the rings', () => {
+            const { a, b } = sideBySide();
+            const cwA = reverseRing(a);
+            const cwB = reverseRing(b);
+            const index = indexRings(cwA, cwB);
+
+            expect(index.getRingInfo(cwA)).toMatchObject({ orientation: -1, hole: false });
+            expectReversedRing(exterior(index, cwA, 2), [
+                [0, 0],
+                [8, 0],
+                [8, 10],
+                [0, 10],
+            ]);
+            expectReversedRing(exterior(index, cwB, 2), [
+                [12, 0],
+                [20, 0],
+                [20, 10],
+                [12, 10],
+            ]);
+        });
+
+        it('grows the hole of a host whose rings are wound the other way', () => {
+            const enclave = reverseRing(rect(10, 10, 20, 20));
+            const host = [reverseRing(rect(0, 0, 30, 30)), reverseRing(enclave)];
+            const index = indexOf([true, host], [true, [enclave]]);
+
+            const drawnHost = inset(index, host, 2)!;
+            expectRing(drawnHost[1], [
+                [8, 8],
+                [22, 8],
+                [22, 22],
+                [8, 22],
+            ]);
+            expectReversedRing(exterior(index, enclave, 2), [
+                [12, 12],
+                [18, 12],
+                [18, 18],
+                [12, 18],
+            ]);
+        });
+
+        it('moves a border by the same number of pixels wherever the chart is panned to', () => {
+            const { a, b } = sideBySide();
+            const index = indexRings(a, b);
+            const pan = 123456;
+            const panned = [scaleRing(a, 1).map(([x, y]): Position => [x + pan, y - pan])];
+            const drawn = insetPolygonRings(panned, index.getPolygonRingInfo([a])!, 2.5)!;
+
+            expect(Math.max(...drawn[0].map(([x]) => x))).toBeCloseTo(pan + 7.5, 6);
+            expect(Math.min(...drawn[0].map(([x]) => x))).toBe(pan);
+        });
+
+        it('does not change the rings it is given', () => {
+            const enclave = rect(10, 10, 20, 20);
+            const host = [rect(0, 0, 30, 30), reverseRing(enclave)];
+            const index = indexOf([true, host], [true, [enclave]]);
+            const screen = host.map((ring) => scaleRing(ring, 3));
+            const before = JSON.parse(JSON.stringify(screen));
+
+            insetPolygonRings(screen, index.getPolygonRingInfo(host)!, 2);
+            expect(screen).toEqual(before);
+        });
+    });
+
+    describe('multi-part regions', () => {
+        it('collapses one polygon without touching the other polygons of its region', () => {
+            const { a, b } = sideBySide();
+            const sliver = rect(0, 20, 3, 23);
+            const sliverNeighbour = rect(3, 20, 13, 23);
+            const index = indexRegions(region(true, [a], [sliver]), region(true, [b], [sliverNeighbour]));
+
+            expect(inset(index, [sliver], 3)).toBeUndefined();
+            expect(inset(index, [a], 3)).toBeDefined();
+            expect(inset(index, [sliverNeighbour], 3)).toBeDefined();
+            expectRing(exterior(index, a, 3), [
+                [0, 0],
+                [7, 0],
+                [7, 10],
+                [0, 10],
+            ]);
+            expect(inset(index, [sliver], 3)).toBeUndefined();
+        });
+
+        it('keeps an island of a region that has a neighbour as the same object', () => {
+            const { a, b } = sideBySide();
+            const island = [rect(100, 100, 100.1, 100.1)];
+            const index = indexRegions(region(true, [a], island), region(true, [b]));
+
+            expect(inset(index, [a], 2)).toBeDefined();
+            expect(insetPolygonRings(island, index.getPolygonRingInfo(island) ?? [], 4)).toBe(island);
+        });
+    });
+
+    describe('slides', () => {
+        it('slides a border end along the coast edge it meets by d, and steps square when the edge is shorter', () => {
+            const neighbour = rect(10, 0, 20, 10);
+            // The coast leaves the end of the border up and to the left at 45 degrees: the end slides along it by d.
+            const long: Ring = [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [0, 20],
+                [0, 0],
+            ];
+            const slid = exterior(indexRings(long, neighbour), long, 2)!;
+            expect(slid.some(([x, y]) => Math.abs(x - 8) < 1e-9 && Math.abs(y - 12) < 1e-9)).toBe(true);
+
+            // The same corner with a 0.7-long coast edge: the 2.8-long slide is past the edge, so the corner steps.
+            const short: Ring = [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [9.5, 10.5],
+                [0, 10.5],
+                [0, 0],
+            ];
+            const stepped = exterior(indexRings(short, neighbour), short, 2)!;
+            expect(stepped).toContainEqual([8, 10]);
+            expect(stepped).toContainEqual([10, 10]);
+        });
+    });
+
+    describe('near-parallel joins', () => {
+        it('offsets a vertex whose two moved edges are parallel within 1e-6 rad along the shared normal', () => {
+            const a: Ring = [
+                [0, 0],
+                [10, 0],
+                [10, 5],
+                [10 + 5e-8, 10],
+                [0, 10],
+                [0, 0],
+            ];
+            const b: Ring = [
+                [10, 0],
+                [20, 0],
+                [20, 10],
+                [10 + 5e-8, 10],
+                [10, 5],
+                [10, 0],
+            ];
+            const index = indexRings(a, b);
+            const drawn = exterior(index, a, 2)!;
+
+            expect(drawn.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y))).toBe(true);
+            expect(drawn.some(([x, y]) => Math.abs(x - 8) < 1e-6 && Math.abs(y - 5) < 1e-6)).toBe(true);
+            expect(Math.max(...drawn.map(([x]) => x))).toBeLessThan(8 + 1e-6);
         });
     });
 });
@@ -612,6 +826,63 @@ describe('gap sweep', () => {
         expect(first.moved).toBeGreaterThan(0);
         expect(sweep(topology, zoom, d)).toEqual(first);
     });
+});
+
+describe('gap sweep: both sides of a border', () => {
+    const edgeKey = ([x0, y0]: Position, [x1, y1]: Position): string =>
+        x0 < x1 || (x0 === x1 && y0 < y1) ? `${x0},${y0}|${x1},${y1}` : `${x1},${y1}|${x0},${y0}`;
+
+    const topologies: [string, GapTopology][] = [
+        ['US states', usTopology as GapTopology],
+        ['world countries', worldTopology as GapTopology],
+        ['London boroughs', londonBoroughTopology as GapTopology],
+    ];
+    const cases = topologies.flatMap(([name, topology]) => [1, 4, 16].map((zoom) => ({ name, topology, zoom })));
+
+    it.each(cases)('$name at zoom $zoom: both rings of a border keep the same edges (D-13)', ({ topology, zoom }) => {
+        const { index, fixed, screen } = createScene(topology, zoom);
+        const owners = new Map<string, number>();
+
+        for (let p = 0; p < fixed.length; p += 1) {
+            for (let r = 0; r < fixed[p].length; r += 1) {
+                const info = index.getRingInfo(fixed[p][r]);
+                if (info == null) continue;
+                const simplified = simplifyGapRing(screen[p][r], info)!;
+                // Fewer than 3 kept vertices is a collapsed ring (a sub-pixel enclave), with no outline to compare.
+                if (simplified.points.length < 3) continue;
+                const { points, moved } = simplified;
+                for (let k = 0; k < points.length; k += 1) {
+                    if (moved[k] === 0) continue;
+                    const key = edgeKey(points[k], points[(k + 1) % points.length]);
+                    owners.set(key, (owners.get(key) ?? 0) + 1);
+                }
+            }
+        }
+
+        expect(owners.size).toBeGreaterThan(0);
+        const unmatched = [...owners].filter(([, count]) => count !== 2).map(([key]) => key);
+        expect(unmatched.slice(0, 5)).toEqual([]);
+    });
+
+    it.each(topologies)(
+        '%s drawn twice from separate copies draws each copy exactly as one copy (V17)',
+        (_name, topology) => {
+            const single = createScene(topology, 1);
+            const doubled = createScene({ features: [...topology.features, ...topology.features] }, 1);
+            const half = doubled.fixed.length / 2;
+            expect(half).toBe(single.fixed.length);
+
+            const drawn = (scene: typeof single, p: number) =>
+                insetPolygonRings(scene.screen[p], scene.index.getPolygonRingInfo(scene.fixed[p]) ?? [], 2.5);
+            expect(doubled.index.stats.sharedEdges).toBe(single.index.stats.sharedEdges);
+            expect(doubled.index.stats.rings).toBe(single.index.stats.rings);
+            for (let p = 0; p < half; p += 1) {
+                const expected = drawn(single, p);
+                expect(drawn(doubled, p)).toEqual(expected);
+                expect(drawn(doubled, p + half)).toEqual(expected);
+            }
+        }
+    );
 });
 
 describe('gap on real topologies', () => {
