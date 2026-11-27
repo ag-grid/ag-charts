@@ -1,8 +1,7 @@
 import type { FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
 import type { AgAnnotationAxisVisibility, AgLineDashName, Padding, PixelSize } from 'ag-charts-types';
 
-// The field groups that datums are built from. They live apart from `annotationDatum` so that `annotationTypes` can
-// refer to them without a cycle.
+// Field groups that datums are built from, apart from `annotationDatum` so that `annotationTypes` can use them.
 
 export interface FillFields {
     fill?: string;

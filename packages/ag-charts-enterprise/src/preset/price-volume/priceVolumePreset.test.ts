@@ -958,9 +958,10 @@ describe('priceVolumePreset', () => {
 
     describe('annotation axes (AG-12118)', () => {
         const data = getStockData().slice(0, 40);
+        // Both dates are before the clocks change in London, so their labels carry no hour.
         const [start, end] = [
             { x: { __type: 'date' as const, value: data[5].date.toISOString() }, y: 130 },
-            { x: { __type: 'date' as const, value: data[30].date.toISOString() }, y: 138 },
+            { x: { __type: 'date' as const, value: data[14].date.toISOString() }, y: 138 },
         ];
 
         // The labels and shading take the annotation colour, which is blue in the financial themes.
@@ -1025,6 +1026,14 @@ describe('priceVolumePreset', () => {
                 'hidden when the close is out of the visible range',
                 { lastPriceLine: true, initialState: { zoom: { ratioX: { start: 0, end: 0.3 } } } },
             ],
+            // The line cannot be selected, so the visibility of the axis labels of annotations does not apply to it.
+            ...(['never', 'selected'] as const).map((visible): [string, AgFinancialChartOptions] => [
+                `the axis labels of annotations are '${visible}'`,
+                {
+                    lastPriceLine: true,
+                    theme: { overrides: { common: { annotations: { axisLabel: { visible } } } } },
+                },
+            ]),
         ])('draws a line at the last close when %s', async (_name, options) => {
             chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data, ...options }));
             await compare();

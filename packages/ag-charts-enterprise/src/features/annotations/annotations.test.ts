@@ -40,6 +40,7 @@ import {
 } from '../../test/featureAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { AxisLabelScene } from './scenes/axisLabelScene';
+import { SelectionAxesScene } from './scenes/selectionAxesScene';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
     compareAnnotationsSnapshot,
@@ -2515,8 +2516,7 @@ describe('Annotations', () => {
     });
 
     describe('selected annotation axes', () => {
-        // Both axes span 100 units (the x axis, 100 days from 2024-01-01), so a datum offset is also the fraction of the
-        // way along its axis.
+        // Both axes span 100 units (the x axis, 100 days), so a datum offset is also the percentage along its axis.
         const day = (offset: number) => ({
             __type: 'date' as const,
             value: new Date(Date.UTC(2024, 0, 1 + offset)).toISOString().slice(0, 10),
@@ -2595,8 +2595,7 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The labels and shading keep their own colours whatever the annotation's, so that they stay legible.
-        // Each case is snapshotted, as one annotation is selected at a time.
+        // The labels and shading keep their own colours, so they stay legible; each case is snapshotted.
         const selectedCases: Array<{ name: string; annotation: AgAnnotation; body: { x: number; y: number } }> = [
             {
                 name: 'a line with a white stroke',
@@ -2677,8 +2676,7 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The top-level `visible` is the default of every type that does not set its own. Cross-lines default to
-        // 'always' and the other types to 'selected'.
+        // The top-level `visible` is the default of each type that sets none of its own.
         it('shows the axis labels and shading as `visible` sets, whether or not the annotation is selected', async () => {
             const cross: AgAnnotation = { type: 'horizontal-line', value: 90 };
             const cases: Array<{
@@ -2942,8 +2940,7 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // The depth is that of the axis's ticks and tick labels, or of the axis labels if they are deeper. It and the
-        // width of the labels only grow while the annotation is selected, as following the text made them flicker.
+        // The depth is that of the ticks and tick labels, or of the axis labels if deeper, and only grows while selected.
         it('shades the axes to a depth that covers the axis labels, and does not shrink as a handle is dragged', async () => {
             const { axes, ...options } = withAxes();
             await prepareChart(
@@ -3045,24 +3042,39 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // Every annotation runs its update on every pre-render, such as each pointer move, so one that is unchanged is skipped.
+        // Every annotation updates on every pre-render, such as each pointer move; an unchanged one is not redrawn.
         it('redraws the labels of an annotation that is always shown only when something about it changes', async () => {
             await prepareChart(
                 { annotations: [LINE] },
                 withAxes('bottom', 'left', { axisLabel: { visible: 'always' } })
             );
+            const update = vi.spyOn(SelectionAxesScene.prototype, 'update');
             const redraw = vi.spyOn(AxisLabelScene.prototype, 'update');
             try {
                 const { x, y, width, height } = getSeriesRect(chart);
                 await hoverAction(x + (width * EMPTY.x) / 100, y + (height * (100 - EMPTY.y)) / 100)(chart);
                 await waitForChartStability(chart);
+                expect(update).toHaveBeenCalled();
                 expect(redraw).not.toHaveBeenCalled();
 
                 await clickDatum(LINE_BODY.x, LINE_BODY.y);
                 expect(redraw).toHaveBeenCalled();
             } finally {
+                update.mockRestore();
                 redraw.mockRestore();
             }
+        });
+
+        it('keeps the labels of an annotation that is always shown when it is deselected', async () => {
+            await prepareChart(
+                { annotations: [LINE] },
+                withAxes('bottom', 'left', { axisLabel: { visible: 'always' } })
+            );
+            await clickDatum(LINE_BODY.x, LINE_BODY.y);
+            expect(visibleAxisLabels()).toHaveLength(4);
+
+            await clickDatum(EMPTY.x, EMPTY.y);
+            expect(visibleAxisLabels()).toHaveLength(4);
         });
 
         // These types have no axis label state, so a restore warns about it and keeps the annotation.

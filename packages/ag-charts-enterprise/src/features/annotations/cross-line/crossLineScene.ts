@@ -6,12 +6,12 @@ import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
-import { isShown } from '../scenes/selectionAxesScene';
 import { magnetTranslation, translate } from '../utils/coords';
 import { isWriteable } from '../utils/datum';
 import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
 import { getGroupingValue } from '../utils/scale';
+import { isShown } from '../utils/selectionAxes';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineDatum, horizontalLineDatum } from './crossLineDatum';
 
@@ -36,7 +36,8 @@ export class CrossLineScene extends AnnotationScene<never> {
     };
     private isHorizontal = false;
 
-    constructor() {
+    /** `alwaysShowsAxisLabel` is for a line that cannot be selected, so the visibility options do not apply to it. */
+    constructor(private readonly alwaysShowsAxisLabel = false) {
         super();
         this.append([this.line, this.middle]);
     }
@@ -128,7 +129,8 @@ export class CrossLineScene extends AnnotationScene<never> {
 
         const { axisLabel, seriesRect } = this;
         const { direction, position } = axisContext;
-        if (datum.axisLabel.enabled && isShown(context.getSelectionAxes(datum.type).visible, this.selected)) {
+        const shown = this.alwaysShowsAxisLabel || isShown(context.getSelectionAxes(datum.type).visible, this.selected);
+        if (datum.axisLabel.enabled && shown) {
             axisLabel.visible = this.visible;
 
             const labelCorner = position === 'left' || position === 'top' ? Vec4.start(coords) : Vec4.end(coords);

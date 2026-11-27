@@ -165,7 +165,7 @@ export interface AgAnnotationMagnet extends Toggleable {
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
-    /** Configuration for when annotations show their axis labels and shading. Applies to every annotation type that does not set its own `axisLabel.visible`. */
+    /** When annotations show their axis labels and shading, for each type that sets no `axisLabel.visible` of its own. */
     axisLabel?: AgAnnotationAxisLabelVisibility;
     /** Configuration for snapping annotation points to the values of the nearest datum. */
     magnet?: AgAnnotationMagnet;
@@ -481,7 +481,11 @@ export type AgAnnotationAxisVisibility = 'always' | 'never' | 'selected';
 
 /** Whether annotations show their axis labels and shading. */
 export interface AgAnnotationAxisLabelVisibility {
-    /** When the axis labels and shading are shown. Default: `'always'` for horizontal and vertical lines, `'selected'` for other annotations */
+    /**
+     * When the axis labels and shading are shown.
+     *
+     * Default: `'always'` for horizontal and vertical lines, `'selected'` for other annotations
+     */
     visible?: AgAnnotationAxisVisibility;
 }
 

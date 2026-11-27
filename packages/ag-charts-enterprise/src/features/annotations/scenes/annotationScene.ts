@@ -3,8 +3,9 @@ import { Group, Transformable, ZIndexMap, isObject } from 'ag-charts-core';
 import type { Node, Point } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
+import { isShown } from '../utils/selectionAxes';
 import { Handle } from './handle';
-import { SelectionAxesScene, isShown } from './selectionAxesScene';
+import { SelectionAxesScene } from './selectionAxesScene';
 
 export abstract class AnnotationScene<D = unknown> extends Group<D> {
     static isCheck(value: unknown, type: string) {
@@ -31,7 +32,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
     public abstract getCursor(): string | undefined;
     public abstract getNodeAtCoords(x: number, y: number): string | undefined;
 
-    /** A selected annotation shows an axis label per handle, and shading between them, on both axes. */
+    /** Deselecting hides the axis labels and shading at once; the next update shows them again for an `'always'` type. */
     public toggleSelected(selected: boolean) {
         this.selected = selected;
         if (!selected) {
@@ -41,7 +42,7 @@ export abstract class AnnotationScene<D = unknown> extends Group<D> {
 
     /** The datum is `undefined` for an annotation that has no selection axes, such as a horizontal line. */
     public updateSelectionAxes(datum: { type: string } | undefined, context: AnnotationContext) {
-        // Runs for every annotation on every pre-render, so the common unselected case returns first.
+        // Runs for every annotation on every pre-render, so the cases that show nothing return first.
         if (datum == null || !this.visible || !this.axesVisible) {
             this.selectionAxes?.hide();
             return;

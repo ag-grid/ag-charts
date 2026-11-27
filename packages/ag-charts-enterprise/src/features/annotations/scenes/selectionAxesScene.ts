@@ -4,6 +4,7 @@ import type { Point } from 'ag-charts-core';
 import type { SelectionAxisStyles } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
 import { getGroupingValue } from '../utils/scale';
+import { isShown } from '../utils/selectionAxes';
 import { invert } from '../utils/values';
 import { AxisLabelScene } from './axisLabelScene';
 
@@ -32,13 +33,8 @@ function getAxisEdge({ x, y, width, height }: BBox, isX: boolean, position: Axis
     return { isX, origin: outward > 0 ? start + size : start, outward };
 }
 
-/** Whether axis labels and shading are shown, which depends on whether the annotation is selected. */
-export function isShown(visible: SelectionAxisStyles['visible'], selected: boolean) {
-    return visible === 'always' || (visible === 'selected' && selected);
-}
-
 /**
- * The labels and shading for one axis of a selected annotation. They are attached to the axis, as a horizontal or
+ * The labels and shading for one axis of an annotation. They are attached to the axis, as a horizontal or
  * vertical line's axis label is, so they draw over its ticks and tick labels.
  */
 class AxisSelectionOverlay {
@@ -79,8 +75,7 @@ class AxisSelectionOverlay {
         const shown = isShown(styles.visible, selected);
         this.updateLabels(inRange, styles.axisLabel, shown, selected, seriesRect, context, edge);
 
-        // The shading is as deep as the labels it sits behind. They are wider for values of more digits, so while the
-        // annotation is selected it only grows, rather than follow them as a handle is dragged.
+        // Wider labels deepen the shading, which only grows while selected, so that it does not flicker as a handle drags.
         const showShading = shown && positions.length >= 2;
         const reach = showShading
             ? this.measureLabelReach(inRange.length, styles.axisLabel, seriesRect, context, edge)

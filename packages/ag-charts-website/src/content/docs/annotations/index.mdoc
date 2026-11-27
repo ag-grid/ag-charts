@@ -115,7 +115,7 @@ Holding {% kbd "^ Ctrl"/%} or {% kbd "⌘ Cmd"/%} whilst creating a drawing or d
 
 ## Axis Labels and Shading
 
-A drawing or annotation shows an axis label for each of its points, on both axes, while it is selected. Drawings with two or more points also shade each axis between their points. Annotations of a single point, such as text and arrows, show one axis label per axis and no shading. A callout's labels are those of the point it points at.
+A drawing or annotation shows an axis label for each of its points, on both axes, while it is selected. Drawings with two or more points also shade each axis between their points. Annotations of a single point, such as text and arrow markers, show one axis label per axis and no shading. A callout's labels are those of the point it points at.
 
 Set `annotations.axisLabel.visible` to `'always'` to show the labels and shading whether or not the annotation is selected, or to `'never'` to hide them. It defaults to `'selected'`, and to `'always'` for horizontal and vertical lines. To set it for one type of annotation, use the `axisLabel.visible` option of that type in a [theme override](/themes-api/#reference-AgChartTheme-overrides-common-annotations):
 
@@ -137,7 +137,7 @@ Set `annotations.axisLabel.visible` to `'always'` to show the labels and shading
 }
 ```
 
-The labels and shading use the annotation colour of the theme, and do not follow the colours that the user picks. Set the `fill` of the `axisLabel` and `axisShading` of a type in a theme override to change them. The shading covers the ticks and tick labels of the axis, but not its title.
+The labels and shading are blue in the financial themes and the foreground colour of the chart otherwise, and do not follow the colours that the user picks. Set the `fill` of the `axisLabel` and `axisShading` of a type in a theme override to change them. The shading covers the ticks and tick labels of the axis, but not its title.
 
 The horizontal and vertical lines have one position, so they have a label and no shading. Their label takes the colour of the line, and the `enabled` option of their `axisLabel` turns it off.
 

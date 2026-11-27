@@ -136,7 +136,7 @@ export class Annotations extends AbstractModuleInstance {
      * annotation state or its history, cannot be selected or cleared, and is not replaced by `setState`.
      */
     private readonly lastPriceLineContainer = new Group({ name: 'last-price-line' });
-    private readonly lastPriceLineScene = new CrossLineScene();
+    private readonly lastPriceLineScene = new CrossLineScene(true);
     private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)

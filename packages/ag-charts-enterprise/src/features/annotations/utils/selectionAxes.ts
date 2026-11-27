@@ -5,6 +5,11 @@ type StatelessAxisStyles = Partial<{
     axisShading: object;
 }>;
 
+/** Whether axis labels and shading are shown, which depends on whether the annotation is selected. */
+export function isShown(visible: SelectionAxisStyles['visible'], selected: boolean) {
+    return visible === 'always' || (visible === 'selected' && selected);
+}
+
 function isCrossLine(type: string) {
     return type === 'horizontal-line' || type === 'vertical-line';
 }
