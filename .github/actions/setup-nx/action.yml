@@ -71,6 +71,20 @@ inputs:
         options:
             - 'true'
             - 'false'
+    nx_cache_scheme:
+        description: 'How the Nx cache is shared; see setup-nx-core. merged: jobs upload parts (nx-cache-part) that the nx-cache job in ci.yml merges and saves. Other workflows stay on legacy.'
+        required: false
+        default: 'legacy'
+        options:
+            - 'legacy'
+            - 'merged'
+    nx_cache_merge_base:
+        description: 'Merged only: merge the base branch cache in. The job that saves the cache sets false, so a PR saves only its own entries.'
+        required: false
+        default: 'true'
+        options:
+            - 'true'
+            - 'false'
 
 outputs:
     base:
@@ -94,9 +108,14 @@ runs:
               base_ref: ${{ inputs.base_ref || 'latest' }}
               cache_mode: ${{ inputs.cache_mode }}
               free_disk_space: ${{ inputs.free_disk_space }}
-              tidy_nx_cache: ${{ inputs.tidy_nx_cache }}
+              # Legacy only: there the rw job saves its own cache, so resetting it bounds what is
+              # saved. Under merged only nx-cache-save saves, and a reset just discards the job's
+              # restored cache.
+              tidy_nx_cache: ${{ inputs.nx_cache_scheme == 'merged' && 'false' || inputs.tidy_nx_cache }}
               tidy_nx_cache_pr_threshold_mb: ${{ inputs.tidy_nx_cache_pr_threshold_mb }}
               save_yarn_cache: ${{ inputs.save_yarn_cache }}
+              nx_cache_scheme: ${{ inputs.nx_cache_scheme }}
+              nx_cache_merge_base: ${{ inputs.nx_cache_merge_base }}
               node_modules_paths: |
                   .yarn/install-state.gz
                   node_modules/
