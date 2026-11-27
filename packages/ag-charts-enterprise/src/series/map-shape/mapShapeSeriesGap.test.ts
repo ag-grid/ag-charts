@@ -1195,6 +1195,48 @@ describe('MapShapeSeries gap', () => {
             expect(seen.menus).toEqual(['Sliver']);
         });
 
+        // `pickNodes` tries an exact shape match before it measures distance, so a point inside the region is found by
+        // containment whatever the range. A point beyond the coast is not, and there the distance is to the undrawn
+        // region: a collapsed one has no drawn distance at all.
+        it.each(['nearest', 10] as const)(
+            'is the nearest region to a point just beyond the coast it ends at, with a %s range (D-17, V8)',
+            async (range) => {
+                const clicks: string[] = [];
+                // Twice as wide as it is tall, so the chart leaves room above the coast.
+                await create(
+                    syntheticOptions(
+                        [
+                            feature('West', [rect(-10, -5, 0, 5)]),
+                            feature('Sliver', [rect(0, -5, SLIVER, 5)]),
+                            feature('East', [rect(SLIVER, -5, 10, 5)]),
+                        ],
+                        {
+                            nodeClickRange: range,
+                            tooltip: { range },
+                            listeners: {
+                                seriesNodeClick: ({ datum }: { datum: { name: string } }) => clicks.push(datum.name),
+                            },
+                        }
+                    )
+                );
+                expect(datumOf(chart!, 'Sliver', 0).drawnGeometry, 'the sliver collapsed').toEqual({
+                    type: 'Polygon',
+                    coordinates: [],
+                });
+                // 2px past the top of the sliver: 2px from it, but 2.8px from the corner of West and of East.
+                const [x, y] = [canvasPoint(chart!, middle).x, canvasPoint(chart!, [middle[0], 5]).y - 2];
+
+                await hoverAction(x, y)(chart!);
+                await waitForChartStability(chart!, MIN_TOOLTIP_HIDE_DELAY);
+                expect(hoveredName(chart!), 'hover').toBe('Sliver');
+                expect(isTooltipVisible(deproxy(chart!)), 'tooltip').toBe(true);
+
+                await clickAction(x, y)(chart!);
+                await waitForChartStability(chart!);
+                expect(clicks, 'click').toEqual(['Sliver']);
+            }
+        );
+
         it('keeps the tooltip anchor and tooltip content on the undrawn region, without throwing (D-15, D-16)', async () => {
             await create(collapsedOptions({ gap: 0 }));
             const base = datumOf(chart!, 'Sliver', 0);
@@ -1519,6 +1561,56 @@ describe('MapShapeSeries gap', () => {
             );
         });
 
+        // `Left` has `gap: 8` and `Right` has `gap: 0`, so Left's corner at the coast is drawn 4.5px in from the border and
+        // Right's 0.5px. A point 1px to Left's side of the border and 4px past the coast is 4px from Left and 4.1px from
+        // Right by the undrawn geometry, but 5.3px from Left's drawn corner and 4.3px from Right's.
+        describe.each(['nearest', 10] as const)(
+            'beyond the coast where the halves of a gap differ, with a %s range',
+            (range) => {
+                it('picks the region it is nearest as undrawn, not as drawn (D-17)', async () => {
+                    const clicks: string[] = [];
+                    await create({
+                        topology: {
+                            type: 'FeatureCollection',
+                            features: [feature('Left', [rect(-10, -5, 0, 5)]), feature('Right', [rect(0, -5, 10, 5)])],
+                        },
+                        legend: { enabled: false },
+                        series: [
+                            ['Left', 8],
+                            ['Right', 0],
+                        ].map(([name, gap]) => ({
+                            type: 'map-shape',
+                            data: [{ name }],
+                            idKey: 'name',
+                            fill: name === 'Left' ? '#ff0000' : '#0000ff',
+                            stroke: '#222222',
+                            strokeWidth: 1,
+                            gap,
+                            nodeClickRange: range,
+                            tooltip: { range },
+                            listeners: {
+                                seriesNodeClick: ({ datum }: { datum: { name: string } }) => clicks.push(datum.name),
+                            },
+                        })),
+                    } as AgChartOptions);
+                    const [left, right] = [datumOf(chart!, 'Left', 0), datumOf(chart!, 'Right', 1)];
+                    expect(extent(left.projectedGeometry).x1 - extent(left.drawnGeometry).x1).toBeCloseTo(4.5, 1);
+                    expect(extent(right.drawnGeometry).x0 - extent(right.projectedGeometry).x0).toBeCloseTo(0.5, 1);
+
+                    const border = canvasPoint(chart!, [0, 5]);
+                    const [x, y] = [border.x - 1, border.y - 4];
+                    await hoverAction(x, y)(chart!);
+                    await waitForChartStability(chart!, MIN_TOOLTIP_HIDE_DELAY);
+                    expect(hoveredName(chart!), 'hover').toBe('Left');
+                    expect(isTooltipVisible(deproxy(chart!)), 'tooltip').toBe(true);
+
+                    await clickAction(x, y)(chart!);
+                    await waitForChartStability(chart!);
+                    expect(clicks, 'click').toEqual(['Left']);
+                });
+            }
+        );
+
         it('picks no region beyond the coast it has, as without a gap (exact)', async () => {
             await create(
                 timeZoneOptions({ gaps: allGaps(4), series: { nodeClickRange: 'exact', tooltip: { range: 'exact' } } })
@@ -1661,6 +1753,45 @@ describe('MapShapeSeries gap', () => {
             const names = labelled(0).map((text) => (text.datum as { idValue?: string })?.idValue);
             expect(names).not.toContain('Thin');
             expect(names).toEqual(expect.arrayContaining(['West', 'East']));
+        });
+
+        describe('a polygon that is still drawn but whose centroid falls in a grown hole (D-20)', () => {
+            // `Host` is a square with `Enclave` set into its left side. The centroid of the host's exterior ring is the
+            // middle of the square, 1px right of the enclave's edge, so inside the host. Gapped, the hole grows by 2.5px
+            // and covers it. A fit there would be measured from inside the hole and put the label over the enclave.
+            const hostOptions = () =>
+                syntheticOptions(
+                    [
+                        feature('Host', [rect(-10, -10, 10, 10), reverseRing(rect(-9, -9, -0.03, 9))]),
+                        feature('Enclave', [rect(-9, -9, -0.03, 9)]),
+                    ],
+                    { labelKey: 'name', label: { enabled: true, fontSize: 12 } }
+                );
+
+            it('has a centroid inside the host undrawn, and inside the grown hole drawn (the fixture holds)', async () => {
+                await create(hostOptions());
+                const host = datumOf(chart!, 'Host', 0);
+                const [exterior, hole] = collectPolygons(host.drawnGeometry!)[0];
+                expect(exterior.length).toBeGreaterThan(0);
+                expect(hole.length).toBeGreaterThan(0);
+
+                const centre = canvasPoint(chart!, [0, 0]);
+                const holeEdge = canvasPoint(chart!, [-0.03, 0]).x;
+                expect(centre.x - holeEdge, 'the centroid is just beyond the hole').toBeGreaterThan(0);
+                expect(centre.x - holeEdge).toBeLessThan(2.5);
+            });
+
+            it('fits the label of the host in its drawn body, clear of the grown hole', async () => {
+                await create(hostOptions());
+                const hostLabel = labelled(0).filter(
+                    (text) => (text.datum as { idValue?: string })?.idValue === 'Host'
+                );
+                expect(hostLabel, "Host's label is drawn").toHaveLength(1);
+
+                const box = Transformable.toCanvas(hostLabel[0], hostLabel[0].getBBox());
+                expect(box.x, 'right of the enclave').toBeGreaterThan(canvasPoint(chart!, [-0.03, 0]).x + 2.5);
+                expect(expectLabelsInside([0])).toBe(2);
+            });
         });
     });
 
