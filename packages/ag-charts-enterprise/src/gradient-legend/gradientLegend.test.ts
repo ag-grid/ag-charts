@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
+import type { AgChartInstance, AgChartLegendPosition, AgChartOptions, AgChartTheme } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -11,7 +11,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
 describe('GradientLegend', () => {
     setupMockConsole();
@@ -157,6 +157,59 @@ describe('GradientLegend', () => {
             },
         };
         chart = await createEnterpriseChart(options);
+        await compare();
+    });
+
+    it('legendBackgroundColor fills a floating gradient legend by default, and every gradient legend once it is set', async () => {
+        const FLOATING: AgChartLegendPosition = { placement: 'right-top', floating: true, xOffset: -120, yOffset: 60 };
+        const CHART_BACKGROUND = '#d8e6f3';
+
+        // One chart updated per case: the mock canvas only captures the first chart a test creates.
+        const gradientLegendOf = async (
+            theme: AgChartTheme,
+            gradientLegend: NonNullable<AgChartOptions['gradientLegend']> = {}
+        ) => {
+            const options: AgChartOptions = {
+                data: EXAMPLE_OPTIONS.data,
+                series: EXAMPLE_OPTIONS.series,
+                theme,
+                gradientLegend: { gradient: { preferredLength: 200 }, ...gradientLegend },
+            };
+            if (chart == null) {
+                chart = await createEnterpriseChart(options);
+            } else {
+                await chart.update(prepareEnterpriseTestOptions(options));
+                await waitForChartStability(chart);
+            }
+            const { fill, padding } = deproxy(chart).chartOptions.processedOptions.gradientLegend!;
+            return { fill, padding };
+        };
+
+        const unset: AgChartTheme = { params: { chartBackgroundColor: CHART_BACKGROUND } };
+        expect(await gradientLegendOf(unset)).toEqual({ fill: 'transparent', padding: 0 });
+        expect(await gradientLegendOf(unset, { position: FLOATING })).toEqual({ fill: CHART_BACKGROUND, padding: 0 });
+        await compare();
+
+        const set: AgChartTheme = { params: { legendBackgroundColor: '#ffd9a8', legendPadding: 12 } };
+        expect(await gradientLegendOf(set)).toEqual({ fill: '#ffd9a8', padding: 12 });
+        await compare();
+        expect(await gradientLegendOf(set, { position: FLOATING })).toEqual({ fill: '#ffd9a8', padding: 12 });
+        await compare();
+
+        // A value equal to the default still counts as set.
+        const setToDefault: AgChartTheme = {
+            params: { chartBackgroundColor: CHART_BACKGROUND, legendBackgroundColor: CHART_BACKGROUND },
+        };
+        expect(await gradientLegendOf(setToDefault)).toEqual({ fill: CHART_BACKGROUND, padding: 5 });
+
+        expect(await gradientLegendOf(set, { fill: '#b7e4c7', position: FLOATING })).toEqual({
+            fill: '#b7e4c7',
+            padding: 12,
+        });
+        expect(await gradientLegendOf(set, { fill: '#b7e4c7' })).toEqual({ fill: '#b7e4c7', padding: 12 });
+
+        const dark = await gradientLegendOf({ baseTheme: 'ag-default-dark' }, { position: FLOATING });
+        expect(dark).toEqual({ fill: deproxy(chart).chartOptions.themeParameters.chartBackgroundColor, padding: 0 });
         await compare();
     });
 

@@ -4,10 +4,12 @@ import { Transformable } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartLegendItemOptions,
     AgChartLegendListeners,
     AgChartLegendPosition,
     AgChartOptions,
+    AgChartTheme,
     AgDonutSeriesOptions,
     AgLineSeriesOptions,
     AgMarkerShapeFnParams,
@@ -639,6 +641,77 @@ describe('Legend', () => {
                     padding: 8,
                 },
             });
+        });
+    });
+
+    describe('legendBackgroundColor theme param', () => {
+        const FLOATING: AgChartLegendPosition = { placement: 'right-top', floating: true, xOffset: -90, yOffset: 60 };
+        const CHART_BACKGROUND = '#d8e6f3';
+
+        it('fills a floating legend by default, and every legend once it is set', async () => {
+            let proxy: AgChartInstance | undefined;
+            // One chart updated per case: the mock canvas only captures the first chart a test creates.
+            const legendOf = async (theme: AgChartTheme, legend: AgCartesianChartOptions['legend'] = {}) => {
+                const options: AgCartesianChartOptions = {
+                    data: [
+                        { x: 'x1', a: 4, b: 5 },
+                        { x: 'x2', a: 5, b: 6 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'a' },
+                        { type: 'bar', xKey: 'x', yKey: 'b' },
+                    ],
+                    theme,
+                    legend,
+                };
+                if (proxy == null) {
+                    proxy = await createChart(options);
+                    chart = deproxy(proxy);
+                } else {
+                    await proxy.update(prepareTestOptions(options));
+                    await waitForChartStability(chart);
+                }
+                const { fill, padding } = (chart.chartOptions.processedOptions as AgCartesianChartOptions).legend!;
+                return { fill, padding };
+            };
+
+            const unset: AgChartTheme = { params: { chartBackgroundColor: CHART_BACKGROUND } };
+            expect(await legendOf(unset)).toEqual({ fill: 'transparent', padding: 0 });
+            expect(await legendOf(unset, { position: FLOATING })).toEqual({ fill: CHART_BACKGROUND, padding: 0 });
+            await compare(chart);
+            expect(await legendOf({ params: { backgroundColor: '#eee8d5' } }, { position: FLOATING })).toEqual({
+                fill: '#eee8d5',
+                padding: 0,
+            });
+
+            const set: AgChartTheme = { params: { legendBackgroundColor: '#ffd9a8', legendPadding: 12 } };
+            expect(await legendOf(set)).toEqual({ fill: '#ffd9a8', padding: 12 });
+            await compare(chart);
+            expect(await legendOf(set, { position: FLOATING })).toEqual({ fill: '#ffd9a8', padding: 12 });
+            await compare(chart);
+
+            // A value equal to the default still counts as set.
+            const setToDefault: AgChartTheme = {
+                params: { chartBackgroundColor: CHART_BACKGROUND, legendBackgroundColor: CHART_BACKGROUND },
+            };
+            expect(await legendOf(setToDefault)).toEqual({ fill: CHART_BACKGROUND, padding: 5 });
+
+            const setToRef: AgChartTheme = {
+                params: { accentColor: '#8a2be2', legendBackgroundColor: { ref: 'accentColor' } },
+            };
+            expect(await legendOf(setToRef)).toEqual({ fill: '#8a2be2', padding: 5 });
+            expect(await legendOf(setToRef, { position: FLOATING })).toEqual({ fill: '#8a2be2', padding: 5 });
+
+            expect(await legendOf(set, { fill: '#b7e4c7', position: FLOATING })).toEqual({
+                fill: '#b7e4c7',
+                padding: 12,
+            });
+            expect(await legendOf(set, { fill: '#b7e4c7' })).toEqual({ fill: '#b7e4c7', padding: 12 });
+            await compare(chart);
+
+            const dark = await legendOf({ baseTheme: 'ag-default-dark' }, { position: FLOATING });
+            expect(dark).toEqual({ fill: chart.chartOptions.themeParameters.chartBackgroundColor, padding: 0 });
+            await compare(chart);
         });
     });
 

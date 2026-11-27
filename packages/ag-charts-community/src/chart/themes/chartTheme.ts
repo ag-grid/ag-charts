@@ -238,6 +238,7 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
+            legendBackgroundColor: { $ref: 'chartBackgroundColor' },
             legendBorder: false,
             legendBorderRadius: { $ref: 'borderRadius' },
             legendItemHorizontalPadding: 8,
@@ -314,6 +315,7 @@ export class ChartTheme {
             shadowFillOpacity: 0.5,
             captionLayoutStyle: 'block',
             captionAlignment: 'center',
+            legendBackgroundColorSet: false,
         };
     }
 
@@ -349,7 +351,11 @@ export class ChartTheme {
         );
         this.paletteType = paletteType(palette);
 
-        this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
+        // These are the user's own params, so this is the only place a set param can be told from its default.
+        const userParams: AgChartPrivateThemeParams = {
+            legendBackgroundColorSet: params?.legendBackgroundColor != null,
+        };
+        this.params = mergeDefaults(userParams, params, this.getThemeParameters() as AgChartAllThemeParams);
 
         const { config, chartDefaults } = this.getFrozenDefaultsConfig(presetName, moduleRegistry);
         this.config = config;
