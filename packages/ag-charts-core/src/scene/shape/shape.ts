@@ -1138,21 +1138,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return false;
     }
 
-    /** Whether a glow's `spread` grows from the outer edge of the item's stroke, as its `gap` does, rather than from its path. */
-    protected glowGrowsFromStrokeEdge(): boolean {
-        return false;
-    }
-
     /** How much further a dilation of the fill alone grows, to reach as far past the stroke's outer edge as the `gap` cut does. */
     private getGlowStrokeGrowth(slot: ShadowSlot): number {
-        if (slot !== 'glow' || !this.glowGrowsFromStrokeEdge() || !this.hasStrokeOutline()) return 0;
+        if (slot !== 'glow' || !this.hasStrokeOutline()) return 0;
         const shadow = this.getSlot(slot);
         if (shadow == null || !dilatesShadow(shadow) || this.getShadowMode(slot) !== 'fill') return 0;
         return this.__strokeWidth / 2;
     }
 
     /** Whether the item has a stroke whose outline, with its own join, miter limit and cap, a glow's `gap` is kept clear of. */
-    private hasStrokeOutline(): boolean {
+    protected hasStrokeOutline(): boolean {
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0 } = this;
         return stroke != null && stroke !== 'none' && stroke !== '' && strokeWidth > 0;
     }

@@ -6,7 +6,7 @@ import type { AgChartOptions, AgGlowOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
-import { getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
+import { type SeriesSelectionName, getSeriesNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { legendHighlight } from './shadowFixtures';
 import { type ChartOrProxy, countChartPixels, deproxy, waitForChartStability } from './utils';
 
@@ -129,9 +129,9 @@ export function dominantRedStrength(data: ArrayLike<number>) {
     return strengthOfRed([255, green, green]);
 }
 
-/** The visible items of the first datum selection of a chart, in canvas coordinates. */
-export function visibleItems(chartOrProxy: ChartOrProxy<any>) {
-    return getSeriesSelectionNodes<Node>(deproxy(chartOrProxy), 'datumSelection')
+/** The visible items of the first series' `selection`, in canvas coordinates. */
+export function visibleItems(chartOrProxy: ChartOrProxy<any>, selection: SeriesSelectionName = 'datumSelection') {
+    return getSeriesSelectionNodes<Node>(deproxy(chartOrProxy), selection)
         .filter((n) => n.visible)
         .map((n) => Transformable.toCanvas(n));
 }

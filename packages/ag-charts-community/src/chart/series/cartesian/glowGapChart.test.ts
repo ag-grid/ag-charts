@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { visibleItems } from '../../test/glowRender';
+import type { SeriesSelectionName } from '../../test/seriesAccessors';
 import {
     type Chart,
     chartPixelAt,
@@ -55,11 +56,11 @@ describe('glow gap in a chart', () => {
 
     const pixelAt = (x: number, y: number) => chartPixelAt(chart!, x, y);
 
-    const firstItem = () => visibleItems(chart!)[0];
+    const firstItem = (selection?: SeriesSelectionName) => visibleItems(chart!, selection)[0];
 
     /** The pixel `distance` to the right of the first item, along the line across its middle, which is inside it if negative. */
-    const rightOfFirstItem = () => {
-        const { x, y, width, height } = firstItem();
+    const rightOfFirstItem = (selection?: SeriesSelectionName) => {
+        const { x, y, width, height } = firstItem(selection);
         return (distance: number) => pixelAt(x + width + distance, y + height / 2);
     };
 
@@ -146,34 +147,71 @@ describe('glow gap in a chart', () => {
         });
     });
 
-    describe('around a marker with a wide stroke', () => {
+    describe('around an item with a wide stroke', () => {
         const GAP = 1;
         const SPREAD = 8;
-        const strokedMarkers = (stroke: object) =>
-            markers({
-                fill: 'blue',
-                fillOpacity: 1,
-                stroke: 'darkslategray',
-                glow: { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 },
-                ...stroke,
-            });
+        const STROKED = { fill: 'blue', fillOpacity: 1, stroke: 'darkslategray' };
+        const wideGlow = { blur: 0, spread: SPREAD, gap: GAP, fill: 'red', fillOpacity: 1 };
+        const strokedMarkers = (stroke: object) => markers({ ...STROKED, glow: wideGlow, ...stroke });
 
+        const donut = (options: object): AgChartOptions => ({
+            data: [{ value: 1 }],
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'value',
+                    innerRadiusRatio: 0.5,
+                    fills: ['blue'],
+                    strokes: ['darkslategray'],
+                    ...options,
+                },
+            ],
+        });
+
+        // The outer edge of the stroke, past the item's bounds: a marker's stroke is centred on its outline, while a bar's and
+        // a donut sector's are drawn inside their bounds.
+        describe.each([
+            {
+                name: 'marker',
+                build: (style: object) => markers({ ...STROKED, ...style }),
+                outerEdge: (strokeWidth: number) => strokeWidth / 2,
+            },
+            { name: 'bar', build: (style: object) => bars({ ...STROKED, ...style }), outerEdge: () => 0 },
+            { name: 'donut sector', build: donut, outerEdge: () => 0, selection: 'itemSelection' as const },
+        ])('such as a $name', ({ build, outerEdge, selection }) => {
+            it.each([
+                { strokeWidth: 6 },
+                { strokeWidth: 12 },
+                { strokeWidth: 18 },
+                { strokeWidth: 24 },
+                { strokeWidth: 24, strokeOpacity: 0 },
+            ])(
+                'should grow the glow a gap and a spread past the outer edge of a stroke of $strokeWidth',
+                async (stroke) => {
+                    await create(build({ glow: wideGlow, ...stroke }));
+                    const at = rightOfFirstItem(selection);
+                    const edge = outerEdge(stroke.strokeWidth);
+
+                    expect(at(edge + GAP + 1)).toEqual(GLOW_RED);
+                    expect(at(edge + GAP + SPREAD - 2)).toEqual(GLOW_RED);
+                    expect(at(edge + GAP + SPREAD + 2)).toEqual(WHITE);
+                }
+            );
+        });
+
+        // The stroke covers a bar no wider than it, and a bar under a pixel wide is drawn as a pixel-wide line, faded by its width.
         it.each([
-            { strokeWidth: 6 },
-            { strokeWidth: 12 },
-            { strokeWidth: 18 },
-            { strokeWidth: 24 },
-            { strokeWidth: 24, strokeOpacity: 0 },
+            { width: 10, strokeWidth: 12, paintedEdge: 0 },
+            { width: 0.5, strokeWidth: 4, paintedEdge: 0.5 },
         ])(
-            'should grow the glow a gap and a spread past the outer edge of a stroke of $strokeWidth',
-            async (stroke) => {
-                await create(strokedMarkers(stroke));
+            'should grow the glow a gap and a spread past the painted edge of a bar $width wide with a stroke of $strokeWidth',
+            async ({ width, strokeWidth, paintedEdge }) => {
+                await create(bars({ ...STROKED, glow: wideGlow, width, strokeWidth }));
                 const at = rightOfFirstItem();
-                const outerEdge = stroke.strokeWidth / 2;
 
-                expect(at(outerEdge + GAP + 1)).toEqual(GLOW_RED);
-                expect(at(outerEdge + GAP + SPREAD - 2)).toEqual(GLOW_RED);
-                expect(at(outerEdge + GAP + SPREAD + 2)).toEqual(WHITE);
+                expect(isGlowing(at(paintedEdge + GAP + 1))).toBe(true);
+                expect(isGlowing(at(paintedEdge + GAP + SPREAD - 2))).toBe(true);
+                expect(at(paintedEdge + GAP + SPREAD + 2)).toEqual(WHITE);
             }
         );
 

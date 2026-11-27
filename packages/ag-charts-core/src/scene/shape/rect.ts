@@ -352,6 +352,10 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     private borderClipPath?: ExtendedPath2D;
 
+    /** What the stroke paints where it covers the rect and leaves no fill path, which its glow is cast from instead. */
+    private paintedByStroke?: ExtendedPath2D;
+    private coveredByStroke = false;
+
     private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
 
     /** The stroke width is written without marking the path dirty (see `setStyleProperties`), so check it here. */
@@ -412,6 +416,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             borderPath.clear();
         }
         this.plainRect = false;
+        this.coveredByStroke = false;
 
         if (w === 0 || h === 0) {
             this.effectiveStrokeWidth = 0;
@@ -472,6 +477,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 borderPath.lineTo(lx, y + h);
                 strokeWidth = pixelSize;
                 this.borderClipPath = undefined;
+                this.setPaintedByStroke(x, y, pixelSize, h);
             } else if (h < pixelSize) {
                 // Too narrow, draw a horizontal stroke
                 const ly = y + pixelSize / 2;
@@ -479,6 +485,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 borderPath.lineTo(x + w, ly);
                 strokeWidth = pixelSize;
                 this.borderClipPath = undefined;
+                this.setPaintedByStroke(x, y, w, pixelSize);
             } else if (strokeWidth < w && strokeWidth < h) {
                 const halfStrokeWidth = strokeWidth / 2;
                 x += halfStrokeWidth;
@@ -512,6 +519,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 this.borderClipPath.clear();
                 this.borderClipPath.rect(x, y, w, h);
                 borderPath.rect(x, y, w, h);
+                this.setPaintedByStroke(x, y, w, h);
             }
         } else {
             const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };
@@ -535,6 +543,18 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.effectiveStrokeWidth = strokeWidth;
         this.lastUpdatePathStrokeWidth = strokeWidth;
         this.microPixelEffectOpacity = microPixelEffectOpacity;
+    }
+
+    private setPaintedByStroke(x: number, y: number, w: number, h: number) {
+        this.paintedByStroke ??= new ExtendedPath2D();
+        this.paintedByStroke.clear();
+        this.paintedByStroke.rect(x, y, w, h);
+        this.coveredByStroke = true;
+    }
+
+    /** A stroke that covers the rect paints no outline past it, so a glow and its `gap` are measured from what it paints. */
+    protected override hasStrokeOutline(): boolean {
+        return !this.coveredByStroke && super.hasStrokeOutline();
     }
 
     protected override computeBBox(): BBox {
@@ -736,6 +756,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         if (this.fillsDirectly()) {
             // No path: `executeFill` fills the rect itself, and a plain rect has no stroke to draw.
             this.fillStroke(ctx, logger);
+        } else if (this.coveredByStroke && shadowPass.state === 'mask' && shadowPass.slot === 'glow') {
+            this.fillStroke(ctx, logger, this.paintedByStroke!.getPath2D());
         } else {
             super.drawPath(ctx, logger);
         }
