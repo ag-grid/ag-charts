@@ -116,7 +116,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
         const cornerRadius = (annotationLineHeight(datum) + verticalPadding) / 2;
 
         const { path } = this.shape;
-        path.clear();
+        path.clear(true);
 
         path.moveTo(x, y);
         path.lineTo(x, top + cornerRadius);
@@ -164,6 +164,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
         );
 
         path.closePath();
+        this.shape.checkPathDirty();
     }
 
     override containsPoint(x: number, y: number) {

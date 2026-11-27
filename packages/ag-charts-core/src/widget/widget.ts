@@ -253,7 +253,7 @@ export abstract class Widget<
     }
 
     setAriaCurrent(ariaCurrent: BaseAttributeTypeMap['aria-current'] | undefined) {
-        setAttribute(this.elem, 'aria-current', ariaCurrent);
+        this.setAttributeIfChanged('aria-current', ariaCurrent);
     }
 
     /** An empty string stops the `title` being announced as the description. */

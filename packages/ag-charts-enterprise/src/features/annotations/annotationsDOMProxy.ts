@@ -22,6 +22,8 @@ export interface AnnotationsDOMProxyItem {
     /** The annotation's bounds on the canvas. */
     readonly bbox: BBox;
     readonly expanded: boolean;
+    /** Signalled with `aria-current`, as without the Annotation Options Toolbar nothing else tells a selection apart. */
+    readonly selected: boolean;
 }
 
 export interface AnnotationsDOMProxyListener {
@@ -105,6 +107,7 @@ export class AnnotationsDOMProxy {
             button.setBounds(bounds);
             button.setAriaHasPopup(this.hasPopup ? 'dialog' : undefined);
             button.setAriaExpanded(this.hasPopup ? item.expanded : undefined);
+            button.setAriaCurrent(item.selected ? true : undefined);
 
             if (item.id === this.movingId) {
                 mover.setBounds(bounds);

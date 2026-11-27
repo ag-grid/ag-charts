@@ -31,9 +31,10 @@ export class ArrowCapScene extends CapScene {
         path.setProperties(rest);
         path.fillOpacity = 0;
 
-        path.path.clear();
+        path.path.clear(true);
         path.path.moveTo(leftEnd.x, leftEnd.y);
         path.path.lineTo(origin.x, origin.y);
         path.path.lineTo(rightEnd.x, rightEnd.y);
+        path.checkPathDirty();
     }
 }

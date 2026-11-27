@@ -238,7 +238,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
         ];
 
         const { path } = this.shape;
-        path.clear();
+        path.clear(true);
         path.moveTo(x, top + cornerRadius);
 
         for (const { coordinates, type } of pathParams) {
@@ -246,6 +246,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
         }
 
         path.closePath();
+        this.shape.checkPathDirty();
     }
 
     drawPath(path: ExtendedPath2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, type: PathType) {

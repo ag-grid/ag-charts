@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 
 import { getChartState, setChartState } from './agE2E';
 import { expect, test } from './fixture';
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForChartUpdate } from './util';
 
 // The series widget swaps between two elements; only the one currently exposed to assistive technology takes focus.
 const SWAPCHAIN = '.ag-charts-swapchain[aria-hidden="false"]';
@@ -32,6 +32,22 @@ async function tabToAnnotations(page: Page) {
     await page.keyboard.press('Tab');
 }
 
+async function setAnnotations(page: Page, annotations: object[]) {
+    const state = await getChartState(page);
+    await setChartState(page, { ...state, annotations: annotations as typeof state.annotations });
+}
+
+async function updateChart(page: Page, options: object) {
+    await page.evaluate((delta) => (window as any).agE2E.chart.updateDelta(delta), options);
+    await waitForChartUpdate(page.locator('.ag-charts-wrapper'));
+}
+
+/** Clicks the middle of the series area at a height given as a fraction of it, from the top. */
+async function clickSeriesArea(page: Page, fromTop: number) {
+    const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
+    await page.mouse.click(seriesArea!.x + seriesArea!.width / 2, seriesArea!.y + seriesArea!.height * fromTop);
+}
+
 async function openOptionsFromKeyboard(page: Page) {
     await tabToAnnotations(page);
     await page.keyboard.press('Enter');
@@ -39,10 +55,17 @@ async function openOptionsFromKeyboard(page: Page) {
 }
 
 async function clickFirstLine(page: Page) {
-    const seriesArea = await page.locator('.ag-charts-series-area').boundingBox();
     // The first line is at 30 on a 0 to 100 y axis.
-    await page.mouse.click(seriesArea!.x + seriesArea!.width / 2, seriesArea!.y + seriesArea!.height * 0.7);
+    await clickSeriesArea(page, 0.7);
     await expect(optionsToolbar(page)).toBeVisible();
+}
+
+/** Starts the Move Annotation flow on the first annotation, leaving the focus on the annotation's mover. */
+async function startMove(page: Page) {
+    await openOptionsFromKeyboard(page);
+    await optionsToolbar(page).getByRole('button', { name: 'Move Annotation' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator(':focus')).toHaveAccessibleName('Moving annotation');
 }
 
 test.describe('annotations keyboard navigation', () => {
@@ -183,6 +206,76 @@ test.describe('annotations keyboard navigation', () => {
 
         await expect(annotationItems(page)).toHaveCount(0);
         expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+    });
+
+    for (const { name, select } of [
+        {
+            name: 'the keyboard',
+            select: async (page: Page) => {
+                await tabToAnnotations(page);
+                await page.keyboard.press('ArrowDown');
+                await page.keyboard.press('Enter');
+            },
+        },
+        // The second line is at 60 on a 0 to 100 y axis.
+        { name: 'a pointer', select: (page: Page) => clickSeriesArea(page, 0.4) },
+    ]) {
+        test(`marks the annotation selected with ${name} as current until it is deselected`, async ({ page }) => {
+            await updateChart(page, { annotations: { optionsToolbar: { enabled: false } } });
+
+            await select(page);
+
+            await expect(annotationItems(page).first()).not.toHaveAttribute('aria-current');
+            await expect(annotationItems(page).nth(1)).toHaveAttribute('aria-current', 'true');
+
+            await clickSeriesArea(page, 0.1);
+
+            await expect(annotationItems(page).nth(1)).not.toHaveAttribute('aria-current');
+        });
+    }
+
+    for (const annotation of [
+        { type: 'comment', text: 'Note', x: 30, y: 50 },
+        { type: 'callout', text: 'Note', start: { x: 20, y: 20 }, end: { x: 30, y: 40 } },
+        { type: 'arrow', start: { x: 20, y: 20 }, end: { x: 40, y: 40 } },
+    ]) {
+        test(`the focus box of a moving ${annotation.type} annotation moves with it at the same size`, async ({
+            page,
+        }) => {
+            await setAnnotations(page, [annotation]);
+            await startMove(page);
+            const before = (await page.locator(':focus').boundingBox())!;
+
+            for (let i = 0; i < 3; i++) {
+                await page.keyboard.press('ArrowUp');
+            }
+
+            await expect.poll(async () => (await page.locator(':focus').boundingBox())!.y).toBeLessThan(before.y - 2);
+            const after = (await page.locator(':focus').boundingBox())!;
+            expect(after.x).toBeCloseTo(before.x, 0);
+            expect(after.width).toBeCloseTo(before.width, 0);
+            expect(after.height).toBeCloseTo(before.height, 0);
+        });
+    }
+
+    test('focusing an annotation longer than the viewport outside it pans to its nearest end', async ({ page }) => {
+        await updateChart(page, { zoom: { enabled: true } });
+        const state = await getChartState(page);
+        await setChartState(page, {
+            ...state,
+            zoom: { ratioX: { start: 0, end: 0.2 } },
+            annotations: [
+                { type: 'parallel-channel', start: { x: 50, y: 30 }, end: { x: 80, y: 60 }, height: 10 },
+            ] as typeof state.annotations,
+        });
+
+        await tabToAnnotations(page);
+
+        await expect(annotationItems(page).first()).toBeFocused();
+        // The channel spans 0.5 to 0.8 of the x axis, so the viewport pans to show its start.
+        await expect.poll(async () => (await getChartState(page)).zoom?.ratioX?.start).toBeCloseTo(0.5, 1);
+        const { start = 0, end = 0 } = (await getChartState(page)).zoom?.ratioX ?? {};
+        expect(end - start).toBeCloseTo(0.2);
     });
 
     test('annotations stay invisible under host button styles', async ({ page }) => {
