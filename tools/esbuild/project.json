@@ -4,7 +4,14 @@
   "root": "tools/esbuild",
   "targets": {
     "test": {
-      "inputs": ["default", "buildOutputExcludes"],
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/packages/ag-charts-community/src/**/*.css",
+        "{workspaceRoot}/packages/ag-charts-enterprise/src/**/*.css",
+        "{workspaceRoot}/packages/ag-charts-community/src/version.ts",
+        "{workspaceRoot}/esbuild.config.css.cjs"
+      ],
       "executor": "nx:run-commands",
       "options": {
         "command": "node --test tools/esbuild/*.test.js"

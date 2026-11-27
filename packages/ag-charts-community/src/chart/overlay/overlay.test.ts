@@ -569,8 +569,7 @@ HTMLCollection [
             expect(spinner!.querySelector('style')).toBeNull();
         });
 
-        // D-12: the spinner names two animations, and the community stylesheet has to define both now that no
-        // `<style>` carries them. A renamed keyframe on either side would silently stop the animation.
+        // A renamed keyframe on either side would silently stop the animation.
         it('names only animations that the community stylesheet defines', async () => {
             chart = deproxy(
                 await createChart({

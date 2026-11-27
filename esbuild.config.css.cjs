@@ -28,6 +28,10 @@ async function bundleCss(entry) {
         outdir: 'null',
         write: false,
     });
+    if (result.warnings.length > 0) {
+        const messages = await esbuild.formatMessages(result.warnings, { kind: 'warning' });
+        throw new Error(`Warnings bundling ${entry}:\n${messages.join('\n')}`);
+    }
     if (result.outputFiles.length !== 1) {
         throw new Error('Invalid CSS bundle');
     }

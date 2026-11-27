@@ -104,6 +104,7 @@
         "{workspaceRoot}/packages/ag-charts-community/src/**/*.css",
         "{workspaceRoot}/packages/ag-charts-community/src/version.ts",
         "{workspaceRoot}/tools/esbuild/build-css.js",
+        "{workspaceRoot}/esbuild.config.css.cjs",
         "sharedGlobals",
         {
           "externalDependencies": ["npm:esbuild"]

@@ -1,8 +1,3 @@
-/* Read by `injectStyles: false` charts to check that the enterprise stylesheet is loaded. */
-.ag-charts-wrapper {
-    --ag-charts-enterprise-css-loaded: 1;
-}
-
 /* Don't order alphabetically, Modules should be ordered after any other features they import. */
 @import url(./license/watermark.css);
 @import url(./components/dialog/dialog.css);
@@ -15,3 +10,8 @@
 @import url(./features/ranges/ranges.css);
 @import url(./features/zoom/zoom.css);
 @import url(./features/shared-toolbar/sharedToolbar.css);
+
+/* Read by `injectStyles: false` charts to check that this stylesheet is loaded. Keep it after the imports. */
+.ag-charts-wrapper {
+    --ag-charts-enterprise-css-loaded: 1;
+}
