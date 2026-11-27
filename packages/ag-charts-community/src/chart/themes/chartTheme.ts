@@ -90,6 +90,8 @@ export class ChartTheme {
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
     readonly params: AgChartAllThemeParams;
+    /** The params the user's theme sets, which `params` cannot tell from the defaults it merges them with. */
+    readonly userParams: AgChartThemeParams;
     readonly isDark: boolean = false;
 
     public static getDefaultColors(): DefaultColors {
@@ -238,6 +240,7 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
+            legendBackgroundColor: { $ref: 'chartBackgroundColor' },
             legendBorder: false,
             legendBorderRadius: { $ref: 'borderRadius' },
             legendItemHorizontalPadding: 8,
@@ -349,6 +352,7 @@ export class ChartTheme {
         );
         this.paletteType = paletteType(palette);
 
+        this.userParams = params ?? {};
         this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
         const { config, chartDefaults } = this.getFrozenDefaultsConfig(presetName, moduleRegistry);

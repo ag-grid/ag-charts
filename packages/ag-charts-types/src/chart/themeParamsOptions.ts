@@ -770,6 +770,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     gridLineColor?: AgCssColorOrRef;
     /**
+     * Background colour of the legend and the gradient legend. A floating legend uses it by default. A legend that is not floating stays transparent until this param is set, after which both use it and gain `legendPadding`. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chartBackgroundColor`
+     *
+     * @group Legend
+     */
+    legendBackgroundColor?: AgCssColorOrRef;
+    /**
      * Border around the legend and the gradient legend. `true` for the default border, `false` to disable it. An options-enabled border takes its colour and width from this param, falling back to `borderColor` and `borderWidth`.
      *
      * @group Legend
@@ -842,7 +850,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     legendMarkerSize?: PixelSize;
     /**
-     * Padding inside the legend and the gradient legend. Applied only when the legend has a border or a `fill` set in its options.
+     * Padding inside the legend and the gradient legend. Applied only when the legend has a border, a `fill` set in its options, or `legendBackgroundColor` set.
      *
      * @group Legend
      */

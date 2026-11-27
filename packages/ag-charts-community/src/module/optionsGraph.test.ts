@@ -985,6 +985,24 @@ describe('OptionsGraph', () => {
             });
         });
 
+        describe('$isUserParam', () => {
+            const overrides = {
+                common: { title: { text: { $if: [{ $isUserParam: 'legendBackgroundColor' }, 'set', 'unset'] } } },
+            };
+            const resolveTitleText = (theme: PlainObject) =>
+                createOptionsGraph(
+                    getChartTheme({ ...theme, overrides }),
+                    prepareOptions({ series: [{ type: 'line' }] })
+                ).resolve(testLogger).title.text;
+
+            it('should match only a param that the theme sets', () => {
+                expect(resolveTitleText({})).toBe('unset');
+                expect(resolveTitleText({ params: { legendPadding: 4 } })).toBe('unset');
+                expect(resolveTitleText({ params: { legendBackgroundColor: 'red' } })).toBe('set');
+                expect(resolveTitleText({ baseTheme: { params: { legendBackgroundColor: 'red' } } })).toBe('set');
+            });
+        });
+
         describe('$ref', () => {
             it('should resolve `$ref` operations', () => {
                 const options = new OptionsGraph({ line: { one: { $ref: 'key' } } }, prepareOptions({}), {
