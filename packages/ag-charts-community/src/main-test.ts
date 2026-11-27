@@ -11,9 +11,12 @@ export { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } 
 export * as CROSSLINE_EXAMPLES from './chart/crossline/test/examples';
 export { getCrossLineLabelNode, getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export {
+    type BarNodeDatum,
     type UndocumentedChartOptions,
     type UndocumentedSeriesOptions,
+    getBarSeriesContextNodeData,
     getSeriesLabelObstacles,
+    isBarSeriesAggregating,
     withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './chart/test/communitySeriesAccessors';

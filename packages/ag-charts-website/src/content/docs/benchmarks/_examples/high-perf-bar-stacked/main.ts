@@ -3,7 +3,7 @@
 import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performInitialLoad, performZoom } from './benchmarkUtils';
+import { ChartRef, isReleaseBelow, performDatumHighlight, performInitialLoad, performZoom } from './benchmarkUtils';
 import { getData } from './data';
 
 (window as any).agChartsDebug = 'scene:stats:verbose';
@@ -47,9 +47,63 @@ const container = document.getElementById('myChart')!;
 const seriesCount = options.series!.length;
 const data = getData();
 
+// The first release with the `gap` option.
+const GAP_MIN_VERSION = '14.3.0';
+const GAP = 4;
+// Below AGGREGATION_THRESHOLD (1,000), so the bars are drawn individually rather than aggregated.
+const UNAGGREGATED_POINTS = 900;
+const HOVER_POSITIONS = 20;
+// Each x key appears twice, so a group holds two datums per series and the stack total lookup can't assume one each.
+const DUPLICATE_KEY_POINTS = 100_000;
+
+const withGap = (source: AgCartesianChartOptions): AgCartesianChartOptions => ({
+    ...source,
+    series: source.series!.map((series) => ({ ...series, gap: GAP }) as typeof series),
+});
+const gapOptions = withGap(options);
+const unaggregatedOptions: AgCartesianChartOptions = { ...options, data: data.slice(0, UNAGGREGATED_POINTS) };
+const unaggregatedGapOptions = withGap(unaggregatedOptions);
+const duplicateKeyOptions: AgCartesianChartOptions = {
+    ...options,
+    data: data.slice(0, DUPLICATE_KEY_POINTS / 2).flatMap((row) => [row, { ...row }]),
+};
+const duplicateKeyGapOptions = withGap(duplicateKeyOptions);
+
+// The options the chart in `chartRef` was last built with.
+let builtWith: AgCartesianChartOptions = options;
+
+/** inScope */
+async function chartCreate(chartOptions: AgCartesianChartOptions): Promise<number> {
+    const elapsed = await performInitialLoad(chartOptions, chartRef, (opts) => AgCharts.create(opts));
+    builtWith = chartOptions;
+    return elapsed;
+}
+
+// Runs an operation on a chart built with the given options. A chart left by an earlier variant with other options
+// is rebuilt first, before the timed section, so each variant starts from the same state wherever it runs.
+/** inScope */
+async function onChart(chartOptions: AgCartesianChartOptions, run: () => Promise<number>): Promise<number> {
+    if (builtWith !== chartOptions) {
+        chartRef.current?.destroy();
+        chartRef.current = AgCharts.create(chartOptions);
+        builtWith = chartOptions;
+    }
+    await chartRef.current!.waitForUpdate();
+    return run();
+}
+
+/** inScope */
+function supportsGap(): boolean {
+    return !isReleaseBelow(VERSION, GAP_MIN_VERSION);
+}
+
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
+    // The gap variants are appended after the existing ones, so those keep their run position and starting state.
+    // A published base without the option draws no gap, so only its variants are skipped, not the example.
+    const gapAvailable = supportsGap();
     return {
+        warnings: gapAvailable ? undefined : [`Gap variants skipped (requires >= ${GAP_MIN_VERSION})`],
         testCases: [
             {
                 id: 'initial-load',
@@ -57,7 +111,12 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 variants: [
                     {
                         params: { Operation: 'Chart Create' },
-                        run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
+                        run: () => chartCreate(options),
+                    },
+                    {
+                        params: { Operation: 'Chart Create', Gap: `${GAP}px` },
+                        available: gapAvailable,
+                        run: () => chartCreate(gapOptions),
                     },
                 ],
             },
@@ -67,7 +126,69 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 variants: [
                     {
                         params: { Repetitions: '20x' },
-                        run: () => performZoom(options, chartRef, (opts) => AgCharts.create(opts), container, 20),
+                        run: () =>
+                            onChart(options, () =>
+                                performZoom(options, chartRef, (opts) => AgCharts.create(opts), container, 20)
+                            ),
+                    },
+                    {
+                        params: { Repetitions: '20x', Gap: `${GAP}px` },
+                        available: gapAvailable,
+                        run: () =>
+                            onChart(gapOptions, () =>
+                                performZoom(gapOptions, chartRef, (opts) => AgCharts.create(opts), container, 20)
+                            ),
+                    },
+                ],
+            },
+            {
+                id: 'initial-load-unaggregated',
+                label: `Initial Load (${UNAGGREGATED_POINTS} points, not aggregated)`,
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => chartCreate(unaggregatedOptions),
+                    },
+                    {
+                        params: { Operation: 'Chart Create', Gap: `${GAP}px` },
+                        available: gapAvailable,
+                        run: () => chartCreate(unaggregatedGapOptions),
+                    },
+                ],
+            },
+            {
+                id: 'hover',
+                label: 'Datum Highlight',
+                variants: [
+                    {
+                        params: { Positions: `${HOVER_POSITIONS}x` },
+                        run: () =>
+                            onChart(options, () =>
+                                performDatumHighlight(chartRef.current!, container, HOVER_POSITIONS)
+                            ),
+                    },
+                    {
+                        params: { Positions: `${HOVER_POSITIONS}x`, Gap: `${GAP}px` },
+                        available: gapAvailable,
+                        run: () =>
+                            onChart(gapOptions, () =>
+                                performDatumHighlight(chartRef.current!, container, HOVER_POSITIONS)
+                            ),
+                    },
+                ],
+            },
+            {
+                id: 'initial-load-duplicate-keys',
+                label: 'Initial Load (duplicate x keys, aggregated)',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => chartCreate(duplicateKeyOptions),
+                    },
+                    {
+                        params: { Operation: 'Chart Create', Gap: `${GAP}px` },
+                        available: gapAvailable,
+                        run: () => chartCreate(duplicateKeyGapOptions),
                     },
                 ],
             },

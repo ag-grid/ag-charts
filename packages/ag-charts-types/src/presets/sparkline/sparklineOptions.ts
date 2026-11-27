@@ -87,6 +87,7 @@ type AgSparklineSeriesOmit =
     | 'showInMiniChart'
     | 'grouped'
     | 'stacked'
+    | 'gap'
     | 'stackGroup'
     | 'tooltip'
     | 'listeners'

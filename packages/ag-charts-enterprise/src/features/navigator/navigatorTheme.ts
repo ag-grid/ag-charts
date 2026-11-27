@@ -63,9 +63,9 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'strokeWidth',
 ];
 
-// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow` and `glow`.
-function omitInheritedShadow(ignoredProperties: readonly string[]) {
-    return [...ignoredProperties, 'shadow', 'glow'];
+// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow`, `glow` and `gap`.
+function omitInheritedStyling(ignoredProperties: readonly string[]) {
+    return [...ignoredProperties, 'shadow', 'glow', 'gap'];
 }
 
 /**
@@ -272,22 +272,22 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineD
                     {
                         $switch: [
                             typePath,
-                            omitInheritedShadow(commonIgnoredMiniChartProperties),
-                            ['area', ignored('area', omitInheritedShadow(commonIgnoredMiniChartProperties))],
+                            omitInheritedStyling(commonIgnoredMiniChartProperties),
+                            ['area', ignored('area', omitInheritedStyling(commonIgnoredMiniChartProperties))],
                             [
                                 'candlestick',
-                                ignored('candlestick', omitInheritedShadow(commonIgnoredMiniChartProperties)),
+                                ignored('candlestick', omitInheritedStyling(commonIgnoredMiniChartProperties)),
                             ],
-                            ['ohlc', ignored('ohlc', omitInheritedShadow(commonIgnoredMiniChartProperties))],
-                            ['bar', ignored('bar', omitInheritedShadow(barIgnoredMiniChartProperties))],
-                            ['box-plot', ignored('box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties))],
-                            ['bubble', ignored('bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties))],
-                            ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
+                            ['ohlc', ignored('ohlc', omitInheritedStyling(commonIgnoredMiniChartProperties))],
+                            ['bar', ignored('bar', omitInheritedStyling(barIgnoredMiniChartProperties))],
+                            ['box-plot', ignored('box-plot', omitInheritedStyling(boxPlotIngnoredMiniChartProperties))],
+                            ['bubble', ignored('bubble', omitInheritedStyling(bubbleIgnoredMiniChartProperties))],
+                            ['heatmap', omitInheritedStyling(heatmapIgnoredMiniChartProperties)],
                             [
                                 'histogram',
-                                ignored('histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)),
+                                ignored('histogram', omitInheritedStyling(histogramIgnoredMiniChartProperties)),
                             ],
-                            ['hlc', ignored('hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties))],
+                            ['hlc', ignored('hlc', omitInheritedStyling(hlcIgnoredMiniChartProperties))],
                             // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow` and `glow`.
                             [
                                 'line',
@@ -298,13 +298,13 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object, resolveLineD
                             ],
                             [
                                 'range-area',
-                                ignored('range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)),
+                                ignored('range-area', omitInheritedStyling(rangeAreaIgnoredMiniChartProperties)),
                             ],
                             [
                                 'range-bar',
-                                ignored('range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)),
+                                ignored('range-bar', omitInheritedStyling(rangeBarIgnoredMiniChartProperties)),
                             ],
-                            ['scatter', ignored('scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties))],
+                            ['scatter', ignored('scatter', omitInheritedStyling(scatterIgnoredMiniChartProperties))],
                             ['waterfall', ignored('waterfall', waterfallIgnoredMiniChartProperties)],
                         ],
                     },
