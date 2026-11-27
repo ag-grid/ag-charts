@@ -436,6 +436,7 @@ class AgChartsInternal {
         }
 
         // Only a create can disagree: an update's options carry the pinned mode.
+        let previousReleasedToPool = false;
         const stylesModeChanged = chart != null && chart.ctx.domManager.injectStyles !== chartOptions.injectStyles;
         if (
             chart == null ||
@@ -443,6 +444,7 @@ class AgChartsInternal {
             detectChartType(chartOptions.processedOptions, chartOptions.moduleRegistry) !==
                 detectChartType(chart.chartOptions.processedOptions, chart.chartOptions.moduleRegistry)
         ) {
+            previousReleasedToPool = poolResult != null;
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
             poolResult = this.getPool(
                 chartOptions.optionMetadata,
@@ -458,7 +460,7 @@ class AgChartsInternal {
         }
 
         // A pooled chart keeps its own Logger, so adopt it to keep console output and `warnOnce` dedup unified.
-        chartOptions.adopt(chart.ctx);
+        chartOptions.adopt(chart.ctx, previousReleasedToPool);
 
         // Another mode has no effect and warns, unless the update only omits the option (which resolves to `true`).
         if (

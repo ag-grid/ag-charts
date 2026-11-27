@@ -339,24 +339,32 @@ describe('AgCharts', () => {
             expect(warnCount(CHANGED(true))).toBe(1);
         });
 
-        it('warns once for updateDelta() alone asking a static chart for injection', async () => {
-            chart = await createChart(barOptions({ injectStyles: false }));
+        it.each([
+            { pinned: false, requested: true },
+            { pinned: true, requested: false },
+        ])(
+            'warns once for updateDelta() alone asking a chart pinned to $pinned for $requested',
+            async ({ pinned, requested }) => {
+                chart = await createChart(barOptions(pinned ? undefined : { injectStyles: false }));
 
-            await chart.updateDelta({ injectStyles: true });
-            await chart.updateDelta({ injectStyles: true });
+                await chart.updateDelta({ injectStyles: requested });
+                await chart.updateDelta({ injectStyles: requested });
 
-            expect(modeOf(chart)).toBe(false);
-            expect(warnCount(CHANGED(false))).toBe(1);
-        });
+                expect(modeOf(chart)).toBe(pinned);
+                expect(warnCount(CHANGED(pinned))).toBe(1);
+            }
+        );
 
-        it('warns once for updateDelta() alone asking an injecting chart for static', async () => {
-            chart = await createChart(barOptions());
+        it('reports an issue once to the validations listener when a chart-type change follows an unawaited create', async () => {
+            const issueRaised = vi.fn();
+            const pending = AgCharts.create(barOptions({ validations: { issueRaised } } as any));
+            chart = pending as AgChartInstance<any>;
 
-            await chart.updateDelta({ injectStyles: false });
-            await chart.updateDelta({ injectStyles: false });
+            // Asks for the other mode, which warns while the old chart's teardown is still queued.
+            await chart.update(pieOptions({ injectStyles: false, validations: { issueRaised } } as any));
 
-            expect(modeOf(chart)).toBe(true);
             expect(warnCount(CHANGED(true))).toBe(1);
+            expect(issueRaised).toHaveBeenCalledTimes(1);
         });
 
         it('is silent when an update repeats the pinned value', async () => {

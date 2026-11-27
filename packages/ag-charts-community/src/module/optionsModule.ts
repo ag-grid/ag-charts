@@ -340,8 +340,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     /** The subscriber this pass reported through: the chart's own, or a provisional stand-in. */
     validations: ChartValidations;
-    /** Whether `validations` is a stand-in made here, as opposed to one a chart already owned. */
-    private readonly provisionalValidations: boolean;
 
     /** What the options resolve to: the chart option, else the theme's, else `true`. */
     get requestedInjectStyles(): boolean {
@@ -367,7 +365,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         apiStartTime?: number,
         runtime?: ValidationsRuntime
     ) {
-        this.provisionalValidations = runtime == null;
         runtime ??= createProvisionalRuntime(new Logger());
         this.logger = runtime.logger;
         this.validations = runtime.validations;
@@ -911,10 +908,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * resolved and the pool consulted. `validations` stays the instance that handled the pass, so the chart
      * can tell what it already reported.
      */
-    adopt(runtime: ValidationsRuntime) {
+    adopt(runtime: ValidationsRuntime, previousReleasedToPool = false) {
         this.logger = runtime.logger;
-        // Only a stand-in is ours to stop: one a chart owned stays with that chart, which may have been released to a pool.
-        if (this.provisionalValidations && this.validations !== runtime.validations) this.validations.destroy();
+        // The chart keeps its own Logger, so the previous subscriber must stop listening or both report. One
+        // belonging to a chart released to a pool stays: that chart is reused and still needs it.
+        if (!previousReleasedToPool && this.validations !== runtime.validations) this.validations.destroy();
         runtime.validations.configure(getValidations(this.processedOptions));
     }
 
