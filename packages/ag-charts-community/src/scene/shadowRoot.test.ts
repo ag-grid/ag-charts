@@ -1065,31 +1065,54 @@ describe('Shadow root', () => {
             scene.render();
             expectNearPixels(pixelsOf(scene), pixelsOf(draw(true, buildWith(RED_HALF))));
         });
+    });
 
-        it('should repaint a clean layer that a hidden root covered, when the root is shown again and cannot cast', () => {
-            const buildWith = (second: typeof RED_HALF) => () => {
-                const layer = group('shared', [square(120, 40, { fillShadow: RED_HALF })], {
-                    renderToOffscreenCanvas: true,
-                });
-                return [layer, group('shared', [square(40, 40, { fillShadow: second })])];
-            };
-            // The root is below the scene's own, as a scene whose root is hidden draws nothing and prepares nothing.
+    describe('when a hidden or detached root stops casting', () => {
+        const buildWith = (second: typeof RED_HALF) => () => {
+            const layer = group(false, [group('shared', [square(120, 40, { fillShadow: RED_HALF })])], {
+                renderToOffscreenCanvas: true,
+            });
+            // Hiding the root leaves the group above the layer clean, so nothing visits the layer and it keeps its canvas.
+            return [group(false, [layer]), group('shared', [square(40, 40, { fillShadow: second })])];
+        };
+
+        // The root is below the scene's own, as a scene whose root is hidden draws nothing and prepares nothing.
+        const renderCovered = () => {
             const outer = new TranslatableGroup({ name: 'outer' });
             const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
             for (const child of buildWith(RED_HALF)()) root.appendChild(child);
             outer.appendChild(root);
-            const other = [...root.children()][1] as Group;
+            const [wrapper, other] = [...root.children()] as Group[];
+            const layer = [...wrapper.children()][0] as Group;
+            const covered = [...layer.children()][0] as Group;
             const scene = newScene(outer);
             scene.render();
+            expect([covered.dirty, layer.dirty]).toEqual([false, false]);
+            return { scene, outer, root, layer, covered, caster: [...other.children()][0] as Rect };
+        };
+
+        it('should repaint a clean layer that a hidden root covered, when the root is shown again and cannot cast', () => {
+            const { scene, root, layer, covered, caster } = renderCovered();
 
             root.visible = false;
             scene.render();
-            ([...other.children()][0] as Rect).fillShadow = UNUSABLE;
+            expect([covered.dirty, layer.dirty]).toEqual([true, true]);
+
+            caster.fillShadow = UNUSABLE;
             root.visible = true;
             scene.render();
 
             // The layer was last drawn without the shadows that the root cast for it, so it must draw its own again.
             expectNearPixels(pixelsOf(scene), pixelsOf(draw(false, buildWith(UNUSABLE))));
+        });
+
+        it('should mark what a root covered dirty, when the root is removed from the scene and added again', () => {
+            const { outer, root, layer, covered } = renderCovered();
+
+            root.remove();
+            outer.appendChild(root);
+
+            expect([covered.dirty, layer.dirty]).toEqual([true, true]);
         });
     });
 
