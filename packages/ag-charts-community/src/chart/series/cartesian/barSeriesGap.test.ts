@@ -15,6 +15,7 @@ import {
     isBackgroundPixel,
     pixelRunsThrough,
 } from '../../test/pixelRuns';
+import { getSeriesAreaFocus } from '../../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -226,12 +227,11 @@ describe('bar series gap', () => {
 
     /**
      * What `runs` should become when each run's edges that touch a neighbour are pulled in by half that run's gap.
-     * Runs are in baseline-outwards order, and the first one touches a neighbour at the baseline when `axisNeighbour`.
-     * `outwardIsHigher` says whether outwards is towards higher pixels.
+     * Runs are in baseline-outwards order. `outwardIsHigher` says whether outwards is towards higher pixels.
      */
-    function insetRuns(runs: Run[], gaps: number[], outwardIsHigher: boolean, axisNeighbour: boolean): Run[] {
+    function insetRuns(runs: Run[], gaps: number[], outwardIsHigher: boolean): Run[] {
         return runs.map((run, i) => {
-            const inner = i > 0 || axisNeighbour ? gaps[i] / 2 : 0;
+            const inner = i > 0 ? gaps[i] / 2 : 0;
             const outer = i < runs.length - 1 ? gaps[i] / 2 : 0;
             return outwardIsHigher
                 ? { ...run, start: run.start + inner, end: run.end - outer }
@@ -241,25 +241,25 @@ describe('bar series gap', () => {
 
     /**
      * Asserts that a gapped render is the no-gap render with every neighbouring edge pulled in by half its segment's
-     * gap, so the end of the stack stays on its true value, and so does the baseline unless a segment on the other side
-     * of the axis is its neighbour (`axisNeighbour`).
+     * gap, so the baseline and the end of the stack stay on their true values.
      */
-    function expectInsetOf(
-        base: Run[],
-        gapped: Run[],
-        gaps: number[],
-        direction: Direction,
-        positive = true,
-        axisNeighbour = false
-    ) {
+    function expectInsetOf(base: Run[], gapped: Run[], gaps: number[], direction: Direction, positive = true) {
         const outwardIsHigher = (direction === 'vertical') !== positive;
-        const expected = insetRuns(
-            fromBaseline(base, direction, positive),
-            gaps,
-            outwardIsHigher,
-            axisNeighbour
-        ).filter((r) => r.end > r.start);
+        const expected = insetRuns(fromBaseline(base, direction, positive), gaps, outwardIsHigher).filter(
+            (r) => r.end > r.start
+        );
         expect(fromBaseline(gapped, direction, positive)).toEqual(expected);
+    }
+
+    /** Asserts the focus box spans `[start, end]` at `cross`: 2px inside each end is in it, 2px outside is not. */
+    function expectFocusSpan(direction: Direction, cross: number, [start, end]: [number, number], context: string) {
+        const at = (along: number) =>
+            direction === 'vertical' ? { canvasX: cross, canvasY: along } : { canvasX: along, canvasY: cross };
+        const inFocus = (along: number) => focusIndicatorContainsCanvasPoint(chart!, at(along));
+        expect(inFocus(start + 2), `${context}: inside the start`).toBe(true);
+        expect(inFocus(end - 2), `${context}: inside the end`).toBe(true);
+        expect(inFocus(start - 2), `${context}: outside the start`).toBe(false);
+        expect(inFocus(end + 2), `${context}: outside the end`).toBe(false);
     }
 
     /** The gaps in pixels between neighbouring runs. */
@@ -350,8 +350,20 @@ describe('bar series gap', () => {
         const sideOf = (runs: Run[], row: Record<string, unknown>, positive: boolean) =>
             runs.filter((r) => KEYS.some((k, i) => (row[k] as number) > 0 === positive && RGB[i] === r.rgb));
 
+        /** The gap of the series that drew each run, from the baseline outwards. */
+        const gapsOf = (side: Run[], gaps: number[], direction: Direction, positive: boolean) =>
+            fromBaseline(side, direction, positive).map((r) => gaps[RGB.indexOf(r.rgb)]);
+
+        /** The pixels between the segments either side of the axis, which touch when neither is inset at the axis. */
+        const axisGapOf = (runs: Run[], row: Record<string, unknown>) => {
+            const [above, below] = [true, false].map((positive) =>
+                runs.find((r) => r.rgb === RGB[KEYS.findIndex((k) => (row[k] as number) > 0 === positive)])!
+            );
+            return Math.max(above.start - below.end, below.start - above.end);
+        };
+
         it.each(['vertical', 'horizontal'] as const)(
-            '%s: a column with segments on both sides of the axis has a gap centred on the axis',
+            '%s: AC6 a column with segments on both sides of the axis has no gap at the axis',
             async (direction) => {
                 await open(stackOptions({ gaps: [0, 0, 0], direction, data: SIGNED_DATA }));
                 const base = [0, 1, 2, 3].map((c) => runsThrough(direction, c));
@@ -360,18 +372,21 @@ describe('bar series gap', () => {
                 await update(stackOptions({ gaps: [4, 4, 4], direction, data: SIGNED_DATA }));
                 for (const [category, row] of SIGNED_DATA.entries()) {
                     const gapped = runsThrough(direction, category);
-                    // Between every pair of neighbours, the axis included, there are 4px.
-                    expect(gapsBetween(gapped)).toEqual([4, 4]);
+                    // The only separation inside a side is its 4px; positive and negative segments meet at zero.
+                    expect(
+                        [...gapsBetween(gapped)].sort((a, b) => a - b),
+                        `column ${category}`
+                    ).toEqual([0, 4]);
+                    expect(axisGapOf(gapped, row), `column ${category}`).toBe(0);
                     for (const positive of [true, false]) {
-                        // Each side pulls its axis edge in by 2px and its far end stays on its true value.
+                        // Each side keeps its edge on the axis and its far end on its true value.
                         const side = sideOf(base[category], row, positive);
                         expectInsetOf(
                             side,
                             sideOf(gapped, row, positive),
                             side.map(() => 4),
                             direction,
-                            positive,
-                            true
+                            positive
                         );
                     }
                 }
@@ -379,12 +394,10 @@ describe('bar series gap', () => {
         );
 
         it.each(['vertical', 'horizontal'] as const)(
-            '%s: a gap of 4 beside a gap of 0 across the axis leaves 2px',
+            '%s: a gap of 4 beside a gap of 0 across the axis leaves no gap there',
             async (direction) => {
                 await open(stackOptions({ gaps: [0, 0, 0], direction, data: SIGNED_DATA }));
-                // The series next to the axis on each side, and so the pair that is separated across it.
-                const nextToAxis = (row: Record<string, unknown>) =>
-                    [true, false].map((positive) => KEYS.findIndex((k) => (row[k] as number) > 0 === positive));
+                const base = [0, 1, 2, 3].map((c) => runsThrough(direction, c));
 
                 for (const gaps of [
                     [4, 0, 0],
@@ -394,13 +407,18 @@ describe('bar series gap', () => {
                 ]) {
                     await update(stackOptions({ gaps, direction, data: SIGNED_DATA }));
                     for (const [category, row] of SIGNED_DATA.entries()) {
-                        const runs = runsThrough(direction, category);
-                        const [above, below] = nextToAxis(row).map((i) => runs.find((r) => r.rgb === RGB[i])!);
-                        const [a, b] = nextToAxis(row);
-                        expect(
-                            Math.max(above.start - below.end, below.start - above.end),
-                            `gaps ${gaps}, column ${category}`
-                        ).toBe((gaps[a] + gaps[b]) / 2);
+                        const gapped = runsThrough(direction, category);
+                        expect(axisGapOf(gapped, row), `gaps ${gaps}, column ${category}`).toBe(0);
+                        for (const positive of [true, false]) {
+                            const side = sideOf(base[category], row, positive);
+                            expectInsetOf(
+                                side,
+                                sideOf(gapped, row, positive),
+                                gapsOf(side, gaps, direction, positive),
+                                direction,
+                                positive
+                            );
+                        }
                     }
                 }
             }
@@ -439,14 +457,18 @@ describe('bar series gap', () => {
             }
         });
 
-        it('a normalised stack with segments on both sides of the axis has a gap centred on the axis', async () => {
+        it('a normalised stack with segments on both sides of the axis has no gap at the axis', async () => {
             await open(stackOptions({ gaps: [0, 0, 0], normalizedTo: 100, data: SIGNED_DATA }));
             const base = [0, 1, 2, 3].map((c) => runsThrough('vertical', c));
 
             await update(stackOptions({ gaps: [4, 4, 4], normalizedTo: 100, data: SIGNED_DATA }));
             for (const [category, row] of SIGNED_DATA.entries()) {
                 const gapped = runsThrough('vertical', category);
-                expect(gapsBetween(gapped), `column ${category}`).toEqual([4, 4]);
+                expect(
+                    [...gapsBetween(gapped)].sort((a, b) => a - b),
+                    `column ${category}`
+                ).toEqual([0, 4]);
+                expect(axisGapOf(gapped, row), `column ${category}`).toBe(0);
                 for (const positive of [true, false]) {
                     const side = sideOf(base[category], row, positive);
                     expectInsetOf(
@@ -454,8 +476,7 @@ describe('bar series gap', () => {
                         sideOf(gapped, row, positive),
                         side.map(() => 4),
                         'vertical',
-                        positive,
-                        true
+                        positive
                     );
                 }
             }
@@ -642,25 +663,28 @@ describe('bar series gap', () => {
     });
 
     describe('cross-filter bars at the axis', () => {
-        // Series a is above the axis and b below it, so each starts on the axis next to the other.
+        // Series a is above the axis and b below it, so each starts on the axis and neither has a neighbour.
         const SIGNED_CROSS_FILTER_DATA = [
             { k: 'A', a: 10, aF: 4, b: -20, bF: -20 },
             { k: 'B', a: 15, aF: 15, b: -15, bF: -5 },
         ];
 
-        it('the filtered bar and its phantom bar are pulled in at the axis edge and nowhere else', async () => {
+        it('the filtered bar and its phantom bar stay where they are, at the axis edge included', async () => {
             await open(crossFilterOptions(0, SIGNED_CROSS_FILTER_DATA, true));
             const base = readClipEdges();
             await update(crossFilterOptions(4, SIGNED_CROSS_FILTER_DATA, true));
             const gapped = readClipEdges();
 
-            for (const column of [0, 1]) {
-                // The positive series meets the axis at the bottom of its bar, the negative one at the top.
+            for (const [series, column] of [
+                [0, 0],
+                [0, 1],
+                [1, 0],
+                [1, 1],
+            ]) {
                 for (const kind of ['node', 'phantom'] as const) {
-                    const [aTop, aBottom] = base[0][column][kind];
-                    expect(gapped[0][column][kind], `a, column ${column}, ${kind}`).toEqual([aTop, aBottom - 2]);
-                    const [bTop, bBottom] = base[1][column][kind];
-                    expect(gapped[1][column][kind], `b, column ${column}, ${kind}`).toEqual([bTop + 2, bBottom]);
+                    expect(gapped[series][column][kind], `series ${series}, column ${column}, ${kind}`).toEqual(
+                        base[series][column][kind]
+                    );
                 }
             }
         });
@@ -691,7 +715,7 @@ describe('bar series gap', () => {
             expect(gapped[1].start).toBe(base[2].start);
         });
 
-        it('a segment on the other side of the axis that collapses still counts as a neighbour at the axis', async () => {
+        it('a segment on the other side of the axis that collapses leaves the axis edge where it is', async () => {
             // The only positive segment next to the axis is b, 1 unit (10px) of a 60 unit chart: too short for a gap of 20.
             const data = [
                 { k: 'A', a: -30, b: 1, c: 29 },
@@ -705,11 +729,12 @@ describe('bar series gap', () => {
 
             await update(options(20));
             const gapped = runsThrough('vertical', 0);
-            // b is not drawn; c (above the axis) and a (below it) each keep half the gap at the axis edge...
+            // b is not drawn and c, its neighbour above, keeps half the gap on that edge...
             expect(gapped.map((r) => r.rgb)).toEqual([RGB[2], RGB[0]]);
             expect(gapped[0].end).toBe(middle.start - 10);
-            expect(gapped[1].start).toBe(bottom.start + 10);
-            // ...and the far ends of the two stacks stay on their true values.
+            // ...but a, below the axis, stays on it: nothing is inset at the axis.
+            expect(gapped[1].start).toBe(bottom.start);
+            // The far ends of the two stacks stay on their true values.
             expect(gapped[0].start).toBe(top.start);
             expect(gapped[1].end).toBe(bottom.end);
         });
@@ -851,17 +876,6 @@ describe('bar series gap', () => {
     });
 
     describe('keyboard focus', () => {
-        /** Asserts the focus box spans `[start, end]` at `cross`: 2px inside each end is in it, 2px outside is not. */
-        function expectFocusSpan(direction: Direction, cross: number, [start, end]: [number, number], context: string) {
-            const at = (along: number) =>
-                direction === 'vertical' ? { canvasX: cross, canvasY: along } : { canvasX: along, canvasY: cross };
-            const inFocus = (along: number) => focusIndicatorContainsCanvasPoint(chart!, at(along));
-            expect(inFocus(start + 2), `${context}: inside the start`).toBe(true);
-            expect(inFocus(end - 2), `${context}: inside the end`).toBe(true);
-            expect(inFocus(start - 2), `${context}: outside the start`).toBe(false);
-            expect(inFocus(end + 2), `${context}: outside the end`).toBe(false);
-        }
-
         /** The drawn [top, bottom] canvas span of each bar in a vertical chart, by series then column. */
         const drawnSpans = () =>
             [0, 1].map((series) =>
@@ -1035,6 +1049,8 @@ describe('bar series gap', () => {
         const RUN_END = 2000;
         const SKEW_START = 2500;
         const SKEW_END = 2600;
+        /** Rows that repeat the key of the row before them in the 'isolatedDuplicateKeys' skew. */
+        const DUPLICATE_ROWS = [1200, 3000, 4200];
 
         /** What the rows RUN_START..RUN_END and SKEW_START..SKEW_END hold for the series above or below the others. */
         type Shape =
@@ -1048,7 +1064,7 @@ describe('bar series gap', () => {
             | 'zeroBottom'
             | 'negBottom';
         /** How the keys of the rows SKEW_START..SKEW_END break the one-datum-per-group pattern. */
-        type Skew = 'none' | 'duplicateKeys' | 'invalidKeys';
+        type Skew = 'none' | 'duplicateKeys' | 'invalidKeys' | 'isolatedDuplicateKeys';
 
         type Row = Record<string, unknown> & { a: number | null; b: number | null; c: number | null };
 
@@ -1070,12 +1086,19 @@ describe('bar series gap', () => {
                         row.t = new Date(T0 + (SKEW_START + Math.floor((i - SKEW_START) / 2)) * 60000);
                     if (skew === 'invalidKeys' && i < SKEW_START + 20) row.t = null;
                 }
+                // A few lone repeats shift the groups by a few places, never far enough to need the datum-to-group index.
+                if (skew === 'isolatedDuplicateKeys' && DUPLICATE_ROWS.includes(i))
+                    row.t = new Date(T0 + (i - 1) * 60000);
                 return row;
             });
         }
 
         function aggregatedOptions(shape: Shape, gap: number, skew: Skew = 'none'): AgCartesianChartOptions {
-            const options = stackOptions({ gaps: [gap, gap, gap], data: aggregatedRows(shape, skew) });
+            return optionsForRows(aggregatedRows(shape, skew), gap);
+        }
+
+        function optionsForRows(rows: Row[], gap: number): AgCartesianChartOptions {
+            const options = stackOptions({ gaps: [gap, gap, gap], data: rows });
             for (const s of options.series!) (s as AgBarSeriesOptions).xKey = 't';
             (options.axes as any).x = { ...(options.axes as any).x, type: 'unit-time' };
             return options;
@@ -1111,8 +1134,9 @@ describe('bar series gap', () => {
         }
 
         /**
-         * Expected start inset of a bucket's segment from the rows it covers; `undefined` where those rows disagree. A
-         * start has a neighbour below it in the stack, or, on the axis, a segment on the other side of it.
+         * Expected start inset of a bucket's segment from the rows it covers. A start has a neighbour when a series
+         * below it has a value of the same sign. The bucket's start is the lowest start of its rows, which sits on the
+         * baseline when any row has no neighbour.
          */
         function expectedStart(rows: Row[], xs: number[], series: number, node: ReturnType<typeof nodeInsets>[number]) {
             const sign = Math.sign(value(rows[node.datumIndex], series));
@@ -1122,15 +1146,12 @@ describe('bar series gap', () => {
                 if (inSpan && value(rows[r], series) * sign > 0) covered.push(rows[r]);
             }
             const hasNeighbour = (row: Row) =>
-                KEYS.some((_, i) => {
+                KEYS.slice(0, series).some((_, i) => {
                     const v = value(row, i);
-                    return Number.isFinite(v) && ((i < series && v * sign > 0) || v * sign < 0);
+                    return Number.isFinite(v) && v * sign > 0;
                 });
             const withNeighbour = covered.filter(hasNeighbour).length;
-            let inset: number | undefined;
-            if (withNeighbour === covered.length) inset = 2;
-            else if (withNeighbour === 0) inset = 0;
-            return { negative: sign < 0, inset };
+            return { negative: sign < 0, inset: withNeighbour === covered.length ? 2 : 0 };
         }
 
         const CASES: [Shape, Skew][] = [
@@ -1147,6 +1168,8 @@ describe('bar series gap', () => {
             ['nullTop', 'duplicateKeys'],
             ['nullBottom', 'duplicateKeys'],
             ['full', 'invalidKeys'],
+            ['full', 'isolatedDuplicateKeys'],
+            ['nullTop', 'isolatedDuplicateKeys'],
             ['nullMiddle', 'invalidKeys'],
         ];
 
@@ -1165,7 +1188,7 @@ describe('bar series gap', () => {
             }
             // The same for the start edge: where the neighbour below goes missing in the run, the series above has
             // its start at the baseline there (0) and next to a neighbour outside it (2).
-            const raised = { nullBottom: 1, zeroBottom: 1 } as Partial<Record<Shape, number>>;
+            const raised = { nullBottom: 1, zeroBottom: 1, negBottom: 1 } as Partial<Record<Shape, number>>;
             const above = raised[shape];
             if (above != null) {
                 expect(seen.has(`${above}:run:start:0`)).toBe(true);
@@ -1173,13 +1196,9 @@ describe('bar series gap', () => {
                 // The series above that one still has the series in between below it.
                 expect(seen.has('2:run:start:2')).toBe(true);
             }
-            // A segment on the other side of the axis is a neighbour at the axis: inside the run, where it is there, the
-            // start on the axis is inset; outside it, where the column has one sign, it is not.
-            const crossing = { negTop: [0], negBottom: [0, 1] } as Partial<Record<Shape, number[]>>;
-            for (const crossingSeries of crossing[shape] ?? []) {
-                expect(seen.has(`${crossingSeries}:run:start:2`)).toBe(true);
-            }
+            // The edge on the axis never moves: the bottom segment of a mixed-sign column has no start inset anywhere.
             if (shape === 'negTop' || shape === 'negBottom') {
+                expect(seen.has('0:run:start:0')).toBe(true);
                 expect(seen.has('0:rest:start:0')).toBe(true);
             }
             // A neighbour that is not directly above or below the series is still a neighbour.
@@ -1215,18 +1234,76 @@ describe('bar series gap', () => {
                         const inRun = datumIndex >= RUN_START && datumIndex < RUN_END;
                         seen.add(`${series}:${inRun ? 'run' : 'rest'}:end:${end.inset}`);
 
-                        // The rows of a skewed key range do not sit where their keys put them.
-                        if (skew !== 'none' && Math.abs(datumIndex - (SKEW_START + SKEW_END) / 2) < 100) continue;
                         const start = expectedStart(rows, xs, series, node);
-                        const startInset = start.negative ? top : bottom;
-                        if (start.inset == null) expect([0, 2], `${where}, start`).toContain(startInset);
-                        else expect(startInset, `${where}, start`).toBe(start.inset);
-                        if (start.inset != null) seen.add(`${series}:${inRun ? 'run' : 'rest'}:start:${start.inset}`);
+                        expect(start.negative ? top : bottom, `${where}, start`).toBe(start.inset);
+                        seen.add(`${series}:${inRun ? 'run' : 'rest'}:start:${start.inset}`);
                     }
                 }
                 expectEdgesSeen(shape, seen);
+
+                if (skew === 'isolatedDuplicateKeys') {
+                    // A bucket holds each repeated key, with both rows of its group, and is inset like any other.
+                    const buckets = nodeInsets(1);
+                    for (const duplicate of DUPLICATE_ROWS) {
+                        expect(
+                            buckets.some((n) => xs[duplicate] >= n.x - 1e-6 && xs[duplicate] <= n.x + n.width + 1e-6),
+                            `row ${duplicate}`
+                        ).toBe(true);
+                    }
+                    // The groups were found by their keys alone, so no series built the datum-to-group index.
+                    for (const series of [0, 1, 2])
+                        expect(holdsBarDatumGroupIndex(chart!, series), `series ${series}`).toBe(false);
+                }
             }
         );
+
+        it('the focus box of a datum on aggregated data is the segment of its own row, with the insets of that row', async () => {
+            // Rows 0 to 9 have no top segment, so there the middle segment is the top of the stack. Several rows share
+            // each bucket, and the focus steps through the buckets' rows, in both parts of the data.
+            const rows = aggregatedRows('full', 'none');
+            for (let i = 0; i < 10; i++) rows[i].c = null;
+            const options = optionsForRows(rows, 8);
+            (options.axes as any).x.min = new Date(T0 - 60000);
+            (options.axes as any).x.max = new Date(T0 + 40 * 60000);
+            await open(options);
+            expect(aggregating()).toBe(true);
+            expect(getBarSeriesContextNodeData(chart!, 1).nodeData.length).toBeLessThan(20);
+
+            const xScale = deproxy(chart!).axes[0].scale;
+            const yScale = deproxy(chart!).axes[1].scale;
+            /** The expected [top, bottom] of a segment: each edge with a neighbour in its row is pulled in by 4px. */
+            const span = (row: Row, series: number): [number, number] => {
+                const below = KEYS.slice(0, series).reduce((sum, _, i) => sum + value(row, i), 0);
+                const above = KEYS.slice(series + 1).some((_, i) => value(row, series + 1 + i) > 0);
+                return [
+                    yScale.convert(below + value(row, series)) + (above ? 4 : 0),
+                    yScale.convert(below) - (series > 0 ? 4 : 0),
+                ];
+            };
+
+            const checked = new Set<string>();
+            await tabIntoChart(chart!);
+            for (let stop = 0; stop < 8; stop++) {
+                if (stop > 0) await pressKey(chart!, 'ArrowRight');
+                for (const series of [0, 1]) {
+                    if (series === 1) await pressKey(chart!, 'ArrowDown');
+                    const focus = getSeriesAreaFocus(chart!);
+                    expect(focus.seriesIndex).toBe(series);
+                    const row = rows[focus.datumIndex];
+                    const cross = xScale.convert(row.t) + 1;
+                    expectFocusSpan(
+                        'vertical',
+                        cross,
+                        span(row, series),
+                        `datum ${focus.datumIndex}, series ${series}`
+                    );
+                    checked.add(`${series}:${row.c == null ? 'no top' : 'top'}`);
+                }
+                await pressKey(chart!, 'ArrowUp');
+            }
+            // The middle segment was checked as the top of the stack and under a segment.
+            expect([...checked].sort((a, b) => a.localeCompare(b))).toEqual(['0:no top', '0:top', '1:no top', '1:top']);
+        });
 
         it('keeps one pick box per bucket across updates and quadtree rebuilds', async () => {
             const pickBoxes = () => getBarSeriesContextNodeData(chart!, 1).nodeData.map((d) => d.pickBBox);
@@ -1271,13 +1348,9 @@ describe('bar series gap', () => {
             expect(gappedTop.map((d) => d.clipBBox!.y)).toEqual(tops);
         });
 
-        it.each([
-            ['nullTop', 0],
-            ['zeroTop', 0],
-            ['negTop', 2],
-        ] as const)(
-            '%s: the baseline of the bottom segment moves by %s px in the run, where the top one is on the other side of the axis, and nowhere else',
-            async (shape, insetInRun) => {
+        it.each(['nullTop', 'zeroTop', 'negTop'] as const)(
+            '%s: the baseline of the bottom segment does not move in any bucket',
+            async (shape) => {
                 const baselines = () =>
                     getBarSeriesContextNodeData(chart!, 0).nodeData.map((d) => ({
                         datumIndex: d.datumIndex,
@@ -1285,24 +1358,9 @@ describe('bar series gap', () => {
                     }));
                 await open(aggregatedOptions(shape, 0));
                 const base = baselines();
+                expect(base.length).toBeGreaterThan(0);
                 await update(aggregatedOptions(shape, 4));
-                const gapped = baselines();
-
-                expect(gapped.map((d) => d.datumIndex)).toEqual(base.map((d) => d.datumIndex));
-                let inside = 0;
-                for (const [i, { datumIndex, edge }] of base.entries()) {
-                    // A bucket on the edge of the run can hold rows from either side of it.
-                    const nearEdge = [RUN_START, RUN_END, SKEW_START, SKEW_END].some(
-                        (boundary) => Math.abs(datumIndex - boundary) < 20
-                    );
-                    if (nearEdge) continue;
-                    const inRun =
-                        (datumIndex >= RUN_START && datumIndex < RUN_END) ||
-                        (datumIndex >= SKEW_START && datumIndex < SKEW_END);
-                    if (inRun) inside++;
-                    expect(gapped[i].edge, `datum ${datumIndex}`).toBe(edge - (inRun ? insetInRun : 0));
-                }
-                expect(inside).toBeGreaterThan(0);
+                expect(baselines()).toEqual(base);
             }
         );
     });
