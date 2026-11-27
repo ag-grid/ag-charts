@@ -3,6 +3,7 @@ import {
     type DynamicContext,
     type NormalisedUnitTimeAxisOptions,
     type WithoutCrossLineOptions,
+    cartesianAxisLabelFitThemeTemplate,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -36,13 +37,13 @@ export const UnitTimeAxisModule: AxisModuleDefinition<
             groupPaddingInner: 0.1,
             maxThicknessRatio: 0.3,
             spacing: 15,
-            label: { autoRotate: false },
             gridLine: { enabled: false },
             parentLevel: { enabled: true },
             interval: { placement: 'between' },
         },
         titleAxisThemeTemplate,
         parentLevelAxisThemeTemplate,
+        cartesianAxisLabelFitThemeTemplate,
         commonAxisThemeTemplate
     ),
 

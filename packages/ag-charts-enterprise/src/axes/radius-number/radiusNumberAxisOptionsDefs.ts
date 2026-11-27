@@ -24,6 +24,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<Ag
     title: commonAxisCaptionOptionsDefs,
     label: {
         ...commonAxisLabelOptionsDefs,
+        rotation: number,
         format: numberFormatValidator,
     },
 };

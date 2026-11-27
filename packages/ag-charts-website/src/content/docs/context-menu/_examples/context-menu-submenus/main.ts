@@ -104,7 +104,7 @@ const options: AgCartesianChartOptions<DataType> = {
         y: { type: 'number', title: { text: 'GDP (Trillions USD)' } },
         x: {
             type: 'category',
-            label: { autoRotate: false },
+            label: { rotation: 0 },
             crossLines: [
                 {
                     type: 'line',

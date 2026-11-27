@@ -6,8 +6,8 @@ const options: AgCartesianChartOptions = {
     height: 220,
     zoom: { enabled: true, autoScaling: { enabled: false } },
     axes: {
-        y: { position: 'left', nice: true, label: { autoRotate: false } },
-        x: { position: 'bottom', label: { autoRotate: false } },
+        y: { position: 'left', nice: true },
+        x: { position: 'bottom', label: { rotation: 0 } },
     },
     legend: { enabled: false },
     series: [

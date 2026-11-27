@@ -3,6 +3,7 @@ import {
     BandScale,
     DiscreteTimeScale,
     EllipsisChar,
+    type FontOptions,
     type ITextMeasurer,
     type LabelFit,
     type NormalisedTextOrSegments,
@@ -19,6 +20,7 @@ import {
     cachedTextMeasurer,
     compareDates,
     createIdsGenerator,
+    drawnLineHeight,
     dropFirstWhile,
     dropLastWhile,
     fitLabelTextAutoSize,
@@ -40,7 +42,6 @@ import {
     isTextTruncated,
     measureLabelText,
     normalizeAngle360FromDegrees,
-    toDegrees,
     toPlainText,
     toRadians,
     toTextString,
@@ -50,7 +51,7 @@ import {
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextWrap, VerticalAlign } from 'ag-charts-types';
 
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
-import { expandLabelPadding } from '../label';
+import { expandLabelBoxExtent } from '../label';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 
@@ -84,6 +85,8 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     sizeLimit?: number;
     /** Room across the axis for labels, net of ticks and scrollbars; set only when fitting. */
     labelRoom?: number;
+    /** The chart's extent along the axis, which fitted labels are kept within. */
+    alongBounds?: [number, number];
     /** Label options with the `itemStyler` overrides for one label; set only when fitting, so a label is fitted as it renders. */
     labelStyle?: (tick: unknown, formattedValue: NormalisedTextOrSegments) => ChartAxisLabel;
     isVertical?: boolean;
@@ -95,6 +98,10 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
      * where they will actually render.
      */
     labelBaseline?: VerticalAlign;
+    /** A configured `label.textAlign`, which fitting and collision checks measure labels at, as they render. */
+    labelTextAlign?: ResolvedTextAlign;
+    /** How far along the axis a configured alignment moves each label's anchor from its tick, to the band edge. */
+    labelAnchorOffset?: number;
     /**
      * Per-label displacement, outward along the label offset, that `CartesianAxis.alignLabelBands` will apply once
      * the ticks are laid out (a configured `label.verticalAlign` flush, or a rotated label's box
@@ -217,6 +224,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     }
 ): TickDatum[] {
     const { scale, label, tickFormatter, inRange, isVertical, sizeLimit = Infinity } = options;
+    const rotations = axisLabelRotations(label.rotation);
+    const firstRotation = rotations[0];
     const isContinuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
     const measurer = cachedTextMeasurer(label);
     const idGenerator = createIdsGenerator();
@@ -239,8 +248,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
         let maxWidth = isVertical ? sizeLimit : maxBandwidth;
         let maxHeight = isVertical ? maxBandwidth : sizeLimit;
 
-        if (label.rotation != null && label.rotation !== 0) {
-            const innerRect = getMaxInnerRectSize(label.rotation, maxWidth, maxHeight);
+        if (firstRotation !== 0) {
+            const innerRect = getMaxInnerRectSize(firstRotation, maxWidth, maxHeight);
             maxWidth = innerRect.width;
             maxHeight = innerRect.height;
         }
@@ -250,20 +259,25 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             maxWidth,
             maxHeight,
             lineHeight: label.lineHeight,
-            overflow: label.truncate ? 'ellipsis' : 'hide',
+            overflow: 'hide',
             textWrap: label.wrapping ?? 'never',
         };
 
         const room = options.labelRoom ?? sizeLimit;
         const fitBounds = (fitLabel: ChartAxisLabel) => {
-            const rotation = fitLabel.rotation ?? 0;
             const wrapping = fitLabel.wrapping ?? 'never';
             return {
-                banded: axisLabelFit(fitLabel, isVertical, room, maxBandwidth, rotation, wrapping),
-                unbanded: axisLabelFit(fitLabel, isVertical, room, Infinity, rotation, wrapping),
+                banded: axisLabelFit(fitLabel, isVertical, room, maxBandwidth, firstRotation, wrapping),
+                unbanded: axisLabelFit(fitLabel, isVertical, room, Infinity, firstRotation, wrapping),
             };
         };
         const fitOptions = isLabelFitEnabled(label) ? fitBounds(label) : undefined;
+        // Wrapped labels too big for the room are fitted to it instead, truncating if need be.
+        const roomFit =
+            fitOptions == null && label.truncate === true && Number.isFinite(room)
+                ? axisLabelFit(label, isVertical, room, Infinity, firstRotation, label.wrapping ?? 'never')
+                : undefined;
+        const exceedsRoom = roomFit == null ? undefined : roomExceeded(label, isVertical, room, firstRotation);
 
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
@@ -283,19 +297,19 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 const bounds = labelStyle == null ? fitOptions : fitBounds(labelStyle);
                 let fitted = fitLabelTextAutoSize(inputText, bounds.banded, fitLabel);
                 // Labels overflowing their band even at `minimumFontSize` stay full width, so they still drive
-                // rotation and thinning; truncating within the band is only preferred with `truncate: true`.
+                // rotation and thinning; truncation only ever fits a label to the room.
                 const fitsBand =
-                    maxBandwidth === Infinity ||
-                    (label.avoidCollisions &&
-                        hasRealChars(fitted.text) &&
-                        (label.truncate === true || !isLabelTruncated(fitted.text)));
+                    maxBandwidth === Infinity || (hasRealChars(fitted.text) && !isLabelTruncated(fitted.text));
                 if (!fitsBand) fitted = fitLabelTextAutoSize(inputText, bounds.unbanded, fitLabel);
                 ({ text: wrappedLabel, fontSize } = fitted);
-            } else if (label.avoidCollisions) {
+            } else {
                 const wrapped = wrapTextOrSegments(inputText, wrapOptions);
-                wrappedLabel = wrapped === '' ? null : wrapped;
-                if (wrappedLabel === EllipsisChar) {
-                    wrappedLabel = null;
+                wrappedLabel = isEmptyWrap(wrapped) || wrapped === EllipsisChar ? null : wrapped;
+                if (
+                    roomFit != null &&
+                    exceedsRoom?.(measureFittedLabel(wrappedLabel ?? inputText, label, undefined, measurer))
+                ) {
+                    ({ text: wrappedLabel, fontSize } = fitLabelTextAutoSize(inputText, roomFit, label));
                 }
             }
 
@@ -319,7 +333,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                fitSource: fitOptions != null && tickLabel !== inputText ? inputText : undefined,
+                fitSource: tickLabel === inputText ? undefined : inputText,
                 fontSize,
                 labelStyle,
                 textMetrics:
@@ -336,6 +350,55 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
 export function isLabelFitEnabled(label: { maxWidth?: number; maxHeight?: number; minimumFontSize?: number }) {
     return label.maxWidth != null || label.maxHeight != null || label.minimumFontSize != null;
+}
+
+/** Truncating a label to fewer characters than this leaves it unreadable. */
+export const MIN_TRUNCATED_CHARS = 3;
+
+/** The characters a label keeps, ignoring the ellipsis and whitespace. */
+export function keptChars(text: NormalisedTextOrSegments | undefined) {
+    return toPlainText(text).replaceAll(EllipsisChar, '').replaceAll(/\s/g, '').length;
+}
+
+/** Whether wrapping gave up on a label: plain text comes back empty, rich text with no segments. */
+export function isEmptyWrap(wrapped: NormalisedTextOrSegments) {
+    return isArray(wrapped) ? wrapped.length === 0 : wrapped === '';
+}
+
+/** Whether labels are fitted to the room and caps at each rotation, rather than drawn as formatted. */
+export function labelFitsRoom(label: {
+    maxWidth?: number;
+    maxHeight?: number;
+    minimumFontSize?: number;
+    truncate?: boolean;
+}) {
+    return isLabelFitEnabled(label) || label.truncate === true;
+}
+
+/** A cheap check, before fitting, for a label whose padded box at `rotation` degrees may not fit across the room. */
+function roomExceeded(label: ChartAxisLabel, isVertical: boolean | undefined, room: number, rotation: number) {
+    const { left, right, top, bottom } = expandLabelBoxExtent(label);
+    const limit = room - (left + right + top + bottom);
+    const angle = toRadians(rotation);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    return ({ width, height }: { width: number; height: number }) =>
+        (isVertical ? width * cos + height * sin : width * sin + height * cos) > limit;
+}
+
+/** Characters truncation dropped from the labels, counting a hidden label as every character dropped. */
+export function droppedLabelChars(ticks: TickDatum[]): number {
+    let dropped = 0;
+    for (const { tickLabel, fitSource, textUntruncated } of ticks) {
+        if (fitSource == null) continue;
+        const text = toPlainText(tickLabel);
+        if (text === '') {
+            dropped += toPlainText(fitSource).length;
+        } else if (textUntruncated != null) {
+            dropped += Math.max(1, textUntruncated.length - text.length + 1);
+        }
+    }
+    return dropped;
 }
 
 /** The label engine's fit policy for an axis label bounded to `maxWidth` by `maxHeight`. */
@@ -357,12 +420,13 @@ function labelFitPolicy(
 }
 
 /** Fit options an axis label carries, at its axis or at one depth of a grouped axis. */
-type AxisLabelFitOptions = Parameters<typeof expandLabelPadding>[0] & {
-    maxWidth?: number;
-    maxHeight?: number;
-    minimumFontSize?: number;
-    truncate?: boolean;
-};
+type AxisLabelFitOptions = Parameters<typeof expandLabelBoxExtent>[0] &
+    FontOptions & {
+        maxWidth?: number;
+        maxHeight?: number;
+        minimumFontSize?: number;
+        truncate?: boolean;
+    };
 
 /**
  * The fit policy for a label turned by `rotation` degrees whose padded box, once turned, has `across` the
@@ -376,13 +440,19 @@ export function axisLabelFit(
     rotation: number,
     wrapping: TextWrap | undefined
 ): LabelFit {
-    const { left, right, top, bottom } = expandLabelPadding(label);
+    const { left, right, top, bottom } = expandLabelBoxExtent(label);
     const angle = toRadians(rotation);
     const sin = Math.abs(Math.sin(angle));
     const cos = Math.abs(Math.cos(angle));
+    // Wrapping and truncation cannot take a label below one line, so the room across never falls short of it.
+    const lineHeight = drawnLineHeight(fontWithSize(label, label.minimumFontSize));
+    const oneLine = isVertical
+        ? lineHeight * sin + (left + right) * cos + (top + bottom) * sin
+        : lineHeight * cos + (left + right) * sin + (top + bottom) * cos;
+    const room = Math.max(across, oneLine);
     // Padding turns with the text, so its turned extent comes off each side of the room.
-    const width = Math.max(0, (isVertical ? across : along) - (left + right) * cos - (top + bottom) * sin);
-    const height = Math.max(0, (isVertical ? along : across) - (left + right) * sin - (top + bottom) * cos);
+    const width = Math.max(0, (isVertical ? room : along) - (left + right) * cos - (top + bottom) * sin);
+    const height = Math.max(0, (isVertical ? along : room) - (left + right) * sin - (top + bottom) * cos);
     const maxWidth = label.maxWidth ?? Infinity;
     const maxHeight = label.maxHeight ?? Infinity;
     if (rotation === 0) return labelFitPolicy(label, Math.min(width, maxWidth), Math.min(height, maxHeight), wrapping);
@@ -408,40 +478,63 @@ function labelFitOverflow(label: { truncate?: boolean }): OverflowStrategy {
     return label.truncate === false ? 'hide' : 'ellipsis';
 }
 
+/** The rotations a label tries in order, in degrees; a single rotation is a list of one. */
+export function axisLabelRotations(rotation: number | number[] | undefined): number[] {
+    if (rotation == null) return [0];
+    return isArray(rotation) ? rotation : [rotation];
+}
+
 /**
- * Fits every label again from its formatted text, for drawing turned by `autoRotation` radians, so the
+ * Fits every label again from its formatted text to the room and caps, for drawing at `rotation` degrees, so the
  * collision check sees each label exactly as it will be drawn.
  */
 export function fitTicksAtRotation<S extends Scale<D, number, TickInterval<S>>, D>(
     options: GenerateTicksOptions<S, D>,
     ticks: TickDatum[],
-    autoRotation: number
+    rotation: number
 ): TickDatum[] {
-    const { isVertical, label: axisLabel } = options;
-    const room = options.labelRoom ?? options.sizeLimit ?? Infinity;
-    const rotation = toDegrees(autoRotation);
-    const fitFor = (label: ChartAxisLabel) =>
-        axisLabelFit(label, isVertical, room, Infinity, rotation, label.wrapping ?? 'never');
-    const axisFit = fitFor(axisLabel);
-
+    const axisFit = axisLabelFitAt(options, options.label, rotation, Infinity);
     return ticks.map((tick) => {
         if (tick.isPrimary || tick.tickLabel == null) return tick;
-        const label = tick.labelStyle ?? axisLabel;
-        const source = tick.fitSource ?? tick.tickLabel;
-        const { text, fontSize } = fitLabelTextAutoSize(
-            source,
-            tick.labelStyle == null ? axisFit : fitFor(label),
-            label
-        );
-        return {
-            ...tick,
-            tickLabel: text,
-            fitSource: source,
-            fontSize,
-            textUntruncated: isLabelTruncated(text) ? toPlainText(source) : undefined,
-            textMetrics: measureFittedLabel(text, label, fontSize),
-        };
+        return fitTickAtRotation(options, tick, rotation, Infinity, tick.labelStyle == null ? axisFit : undefined);
     });
+}
+
+function axisLabelFitAt<S extends Scale<D, number, TickInterval<S>>, D>(
+    options: GenerateTicksOptions<S, D>,
+    label: ChartAxisLabel,
+    rotation: number,
+    along: number
+) {
+    const room = options.labelRoom ?? options.sizeLimit ?? Infinity;
+    return axisLabelFit(label, options.isVertical, room, along, rotation, label.wrapping ?? 'never');
+}
+
+/** Fits one label again from its formatted text, at `rotation` degrees, to the room, `along` the axis and `maxWidth`. */
+export function fitTickAtRotation<S extends Scale<D, number, TickInterval<S>>, D>(
+    options: GenerateTicksOptions<S, D>,
+    tick: TickDatum,
+    rotation: number,
+    along: number,
+    fit?: LabelFit,
+    maxWidth = Infinity
+): TickDatum {
+    const label = tick.labelStyle ?? options.label;
+    const source = tick.fitSource ?? tick.tickLabel!;
+    const capped = maxWidth < (label.maxWidth ?? Infinity) ? { ...label, maxWidth } : label;
+    const { text, fontSize } = fitLabelTextAutoSize(
+        source,
+        fit ?? axisLabelFitAt(options, capped, rotation, along),
+        label
+    );
+    return {
+        ...tick,
+        tickLabel: text,
+        fitSource: source,
+        fontSize,
+        textUntruncated: isLabelTruncated(text) ? toPlainText(source) : undefined,
+        textMetrics: measureFittedLabel(text, label, fontSize),
+    };
 }
 
 export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>, D>(
@@ -680,7 +773,7 @@ export function timeIntervalMaxLabelSize(
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
-        const padding = expandLabelPadding(label);
+        const padding = expandLabelBoxExtent(label);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         let l0: Date;
@@ -701,7 +794,7 @@ export function timeIntervalMaxLabelSize(
     }
 
     if (primaryLabelFormatter != null && hierarchyRange != null) {
-        const padding = expandLabelPadding(primaryLabel);
+        const padding = expandLabelBoxExtent(primaryLabel);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         // The estimate uses the axis label's font, at the parent level's line height.

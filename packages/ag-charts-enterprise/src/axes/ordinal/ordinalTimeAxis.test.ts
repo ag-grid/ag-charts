@@ -13,6 +13,7 @@ import {
     getAxisLabelNodes,
     getAxisLabelTexts,
     getLabelText,
+    getResolvedAxisLabelOptions,
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
@@ -726,6 +727,21 @@ describe('Ordinal Time Axis Examples', () => {
         expect(node.getBBox().width).toBeLessThanOrEqual(40);
     });
 
+    it('resolves the label fit and collision threshold defaults', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA.slice(0, 3),
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+        });
+
+        expect(getResolvedAxisLabelOptions(chart, 'ordinal-time')).toMatchObject({
+            rotation: 0,
+            wrapping: 'never',
+            truncate: false,
+            collision: { alwaysShow: false },
+        });
+    });
+
     it('accepts label.maxWidth and truncates a long formatted label', async () => {
         chart = await createEnterpriseChart({
             data: DATA.slice(0, 3),
@@ -737,6 +753,7 @@ describe('Ordinal Time Axis Examples', () => {
                     label: {
                         maxWidth: 60,
                         wrapping: 'never',
+                        truncate: true,
                         formatter: () => 'A formatted ordinal time label that is far too long',
                     },
                 },

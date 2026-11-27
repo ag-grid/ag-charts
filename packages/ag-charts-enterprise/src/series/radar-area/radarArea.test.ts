@@ -148,7 +148,7 @@ describe('RadarAreaSeries', () => {
                 gradeB: 2 * (((i + 3) % 5) + 1),
             })),
             axes: {
-                angle: { type: 'angle-category', label: { avoidCollisions: true, minSpacing: 2 } },
+                angle: { type: 'angle-category', label: { collision: { alwaysShow: false, threshold: 2 } } },
                 radius: { type: 'radius-number' },
             },
         };

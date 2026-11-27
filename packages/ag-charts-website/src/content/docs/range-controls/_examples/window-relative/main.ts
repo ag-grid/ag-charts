@@ -34,9 +34,6 @@ const options: AgChartOptions = {
     axes: {
         x: {
             type: 'unit-time',
-            label: {
-                autoRotate: false,
-            },
         },
         y: {
             type: 'number',

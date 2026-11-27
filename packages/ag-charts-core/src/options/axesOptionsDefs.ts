@@ -4,6 +4,7 @@ import type {
     AgAxisCrossLineListeners,
     AgAxisDiscreteTimeIntervalOptions,
     AgAxisGridStyle,
+    AgAxisLabelCollisionOptions,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisLabelStyleOptions,
@@ -187,13 +188,18 @@ export type WithoutCrossLineOptions<T extends { listeners?: object }> = Omit<T, 
         ? unknown
         : { listeners?: CrossLineFreeListeners<T['listeners']> });
 
+const axisLabelCollisionOptionsDefs: OptionsDefs<AgAxisLabelCollisionOptions> = {
+    threshold: number,
+    alwaysShow: boolean,
+};
+
+export const axisLabelRotationList = or(number, and(arrayLength(1), arrayOf(number)));
+
 export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
-    rotation: number,
     textAlign,
     verticalAlign,
-    avoidCollisions: boolean,
-    minSpacing: positiveNumber,
+    collision: axisLabelCollisionOptionsDefs,
     spacing: positiveNumber,
     formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
@@ -208,8 +214,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
 type AxisLabelFitKeys = 'maxWidth' | 'maxHeight' | 'minimumFontSize';
 
 const cartesianAxisLabelBaseDefs: OptionsDefs<Omit<AgBaseCartesianAxisLabelOptions, AxisLabelFitKeys>> = {
-    autoRotate: boolean,
-    autoRotateAngle: number,
+    rotation: axisLabelRotationList,
     wrapping: textWrap,
     truncate: boolean,
     ...commonAxisLabelOptionsDefs,
@@ -486,10 +491,10 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions
         {
             label: {
                 enabled: boolean,
-                avoidCollisions: boolean,
+                collision: axisLabelCollisionOptionsDefs,
                 wrapping: union('never', 'always', 'hyphenate', 'on-space'),
                 truncate: boolean,
-                rotation: number,
+                rotation: axisLabelRotationList,
                 spacing: number,
                 ...axisLabelFitDefs,
                 ...fontOptionsDef,

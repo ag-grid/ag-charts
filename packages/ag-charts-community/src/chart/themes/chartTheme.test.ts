@@ -21,6 +21,7 @@ import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
 import { PieSeries } from '../series/polar/pieSeries';
+import { getResolvedAxisLabelOptions } from '../test/axisAccessors';
 import { getLegendItemNodes, getSeriesOptions } from '../test/seriesAccessors';
 import type { ChartOrProxy } from '../test/utils';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
@@ -997,7 +998,7 @@ describe('ChartTheme', () => {
             expect(axisY.options?.label?.fontFamily).toBe('Tahoma');
             expect(axisY.options?.label?.fontWeight).toBe(400);
             expect(axisY.options?.label?.padding).toBe(5);
-            expect(axisY.options?.label?.rotation).toBe(undefined);
+            expect(axisY.options?.label?.rotation).toBe(0);
 
             const axisX = chart.axes.x;
             expect(axisX.type).toBe('category');
@@ -1016,6 +1017,43 @@ describe('ChartTheme', () => {
             // Since config is provided, the `enabled` should be auto-set to `true`,
             // even though theme's default is `false`.
             expect(axisX.options.title?.enabled).toBe(true);
+        });
+    });
+
+    describe('axis label fit defaults', () => {
+        const fitData = data.map(({ label, v1 }, i) => ({
+            label,
+            group: ['Mobile', label],
+            value: i + 1,
+            date: new Date(2024, 0, i + 1),
+            v1,
+        }));
+        const wholeLabels = { rotation: 0, wrapping: 'never', truncate: false };
+        const fittedLabels = { wrapping: 'on-space', truncate: true };
+
+        it.each([
+            ['category', 'bar', 'label', { ...fittedLabels, rotation: [0, 335] }],
+            ['grouped-category', 'bar', 'group', { ...fittedLabels, rotation: 270 }, 0],
+            ['number', 'line', 'value', wholeLabels],
+            ['log', 'line', 'value', wholeLabels],
+            ['time', 'line', 'date', wholeLabels],
+            ['unit-time', 'bar', 'date', wholeLabels],
+        ])('resolves the %s axis label fit defaults', async (type, seriesType, xKey, expected, threshold?: number) => {
+            chart = deproxy(
+                AgCharts.create({
+                    data: fitData,
+                    axes: {
+                        x: { type, position: 'bottom', ...(type === 'unit-time' ? { unit: 'day' } : {}) },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: seriesType, xKey, yKey: 'v1' }],
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+
+            const label = getResolvedAxisLabelOptions(chart, type);
+            expect(label).toMatchObject({ ...expected, collision: { alwaysShow: false } });
+            expect(label.collision.threshold).toBe(threshold);
         });
     });
 

@@ -85,7 +85,7 @@ const options: AgChartOptions<DataType> = {
                 text: 'Age (years)',
             },
             label: {
-                minSpacing: 30,
+                collision: { threshold: 30 },
             },
         },
         y: {

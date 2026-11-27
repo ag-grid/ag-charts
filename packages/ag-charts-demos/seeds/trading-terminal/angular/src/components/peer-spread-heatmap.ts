@@ -129,7 +129,7 @@ export class PeerSpreadHeatmap implements OnInit, AfterViewInit {
                     type: 'category',
                     position: 'bottom',
                     line: { enabled: false },
-                    label: { autoRotate: false },
+                    label: { rotation: 0 },
                 },
                 y: { type: 'category', position: 'left', line: { enabled: false } },
             },

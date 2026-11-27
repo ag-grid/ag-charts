@@ -4,6 +4,7 @@ import {
     LinearScale,
     type NormalisedNumberAxisOptions,
     type WithoutCrossLineOptions,
+    cartesianAxisLabelFitThemeTemplate,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -38,6 +39,7 @@ export const NumberAxisModule: AxisModuleDefinition<
             line: { enabled: false },
         },
         titleAxisThemeTemplate,
+        cartesianAxisLabelFitThemeTemplate,
         commonAxisThemeTemplate
     ),
 

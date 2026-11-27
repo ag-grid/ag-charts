@@ -8,6 +8,8 @@ import {
     clickAction,
     compareImageSnapshot,
     contextMenuAction,
+    getAxisLabelNodes,
+    getLabelText,
     hoverAction,
     mixinDerivedCases,
     repeat,
@@ -15,7 +17,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Point } from 'ag-charts-core';
+import { Point, Transformable } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisType,
@@ -86,6 +88,73 @@ describe('Grouped Category', () => {
         chart?.destroy();
     });
 
+    it.each([
+        { name: 'one edge', labelWidth: 4, start: 0.02, end: 0.32, count: 6 },
+        { name: 'both edges', labelWidth: 50, start: 0.025, end: 0.075, count: 2 },
+    ])(
+        'keeps labels shifted inward from the chart edge clear of their neighbours, $name',
+        async ({ labelWidth, start, end, count }) => {
+            const leaves = Array.from(
+                { length: 20 },
+                (_, i) => `Category Label ${String(i).padStart(labelWidth, '0')}`
+            );
+            chart = await createEnterpriseChart({
+                data: leaves.map((leaf, i) => ({ grouping: ['Group', leaf], value: i + 1 })),
+                series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', depthOptions: [{ label: { rotation: 0 } }, {}] },
+                    y: { type: 'number', position: 'right' },
+                },
+                zoom: { enabled: true },
+                initialState: { zoom: { ratioX: { start, end } } },
+            });
+
+            const boxes = getAxisLabelNodes(chart, 'bottom')
+                .filter((node) => getLabelText(node) !== 'Group')
+                .map((node) => Transformable.toCanvas(node))
+                .sort((a, b) => a.x - b.x);
+            expect(boxes).toHaveLength(count);
+            expect(boxes[0].x).toBeGreaterThanOrEqual(0);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        }
+    );
+
+    it('keeps a label box shifted inward from the chart edge, border included, within the chart', async () => {
+        const strokeWidth = 6;
+        const leaves = Array.from({ length: 20 }, (_, i) => `Category Label ${i}`);
+        chart = await createEnterpriseChart({
+            data: leaves.map((leaf, i) => ({ grouping: ['Group', leaf], value: i + 1 })),
+            series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
+            axes: {
+                x: {
+                    type: 'grouped-category',
+                    position: 'bottom',
+                    label: { fill: 'pink', padding: 4, border: { strokeWidth, stroke: 'red' } },
+                    depthOptions: [{ label: { rotation: 0 } }, {}],
+                },
+                y: { type: 'number', position: 'right' },
+            },
+            zoom: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.02, end: 0.32 } } },
+        });
+
+        const boxes = getAxisLabelNodes(chart, 'bottom')
+            .filter((node) => getLabelText(node) !== 'Group')
+            .map((node) =>
+                Transformable.toCanvas(node)
+                    .clone()
+                    .grow(strokeWidth / 2)
+            )
+            .sort((a, b) => a.x - b.x);
+        expect(boxes.length).toBeGreaterThan(1);
+        expect(boxes[0].x).toBeGreaterThanOrEqual(0);
+        for (let i = 1; i < boxes.length; i++) {
+            expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+        }
+    });
+
     describe('AG-18185 callback standardisation', () => {
         let formatter: ReturnType<typeof vi.fn>;
         let itemStyler: ReturnType<typeof vi.fn>;
@@ -105,6 +174,8 @@ describe('Grouped Category', () => {
             }),
         ];
         const rawValue = (value: unknown[]) => [{ value }];
+        const byIndex = (calls: unknown[][]) =>
+            calls.toSorted(([a], [b]) => (a as { index: number }).index - (b as { index: number }).index);
 
         function measureBandCentres(count: number): number[] {
             const elem = document.querySelector('.ag-charts-series-area-bounds');
@@ -222,41 +293,31 @@ describe('Grouped Category', () => {
                 // absent key rather than an `undefined` one, because `objectContaining` treats a key it was
                 // given as one that has to be present.
                 expect(formatter.mock.calls.every(([p]) => !('formattedValue' in p))).toBe(true);
-                expect(formatter.mock.calls).toMatchObject([
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
-                ]);
+                // Fitted depths lay out leaf-first, so calls are matched by index rather than call order.
+                expect(byIndex(formatter.mock.calls)).toMatchObject(
+                    [
+                        params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
+                        params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
+                        params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                        params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                        params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
+                        params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                        params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                        params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
+                        params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
+                        params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                        params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                        params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
+                        params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
+                    ].flatMap((call) => [call, call])
+                );
             });
 
             test('itemStyler (init)', () => {
                 // itemStyler consumes the formatted text, so unlike the formatter it receives
                 // formattedValue. Its `value` must be the same raw ancestor array the formatter gets, not
                 // the child-index number.
-                expect(itemStyler.mock.calls).toMatchObject([
+                expect(byIndex(itemStyler.mock.calls)).toMatchObject([
                     params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Food' }),
                     params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Meat' }),
                     params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),

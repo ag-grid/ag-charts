@@ -105,7 +105,7 @@ export class AngleNumberAxis extends AngleAxis<AgNumericValue, LinearAngleScale,
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        hideCollidingRadialNumberLabels(labelData, this.options.label.minSpacing);
+        hideCollidingRadialNumberLabels(labelData, this.options.label.collision.threshold);
     }
 
     override tickFormatParams(

@@ -53,7 +53,7 @@ export function applyRotationWithoutCollisionAvoidance<T extends AgCartesianChar
         ...opts,
         axes: mapValues(opts.axes ?? {}, (axis) => ({
             ...axis,
-            label: { ...axis.label, rotation, avoidCollisions: false },
+            label: { ...axis.label, rotation, collision: { alwaysShow: true } },
         })),
     };
 }

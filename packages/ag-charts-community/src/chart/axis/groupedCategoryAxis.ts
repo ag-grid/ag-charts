@@ -27,20 +27,31 @@ import {
     lineHeightAtSize,
     normalizeAngle360FromDegrees,
     sortBasedOnArray,
+    tickLabelSpacing,
     toArray,
     toPlainText,
+    toRadians,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
+import { labelBorderInset } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
-import { axisLabelFit, isLabelFitEnabled } from './generateTicksUtils';
+import {
+    MIN_TRUNCATED_CHARS,
+    axisLabelFit,
+    axisLabelRotations,
+    isEmptyWrap,
+    isLabelFitEnabled,
+    keptChars,
+    labelFitsRoom,
+} from './generateTicksUtils';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
 
 export const MIN_CATEGORY_SPACING = 5;
@@ -116,12 +127,13 @@ export class GroupedCategoryAxis extends CategoryAxis<
                           wrapping: depthLabel?.wrapping ?? label?.wrapping,
                           truncate: depthLabel?.truncate ?? label?.truncate,
                           rotation: depthLabel?.rotation ?? (i === 0 ? label?.rotation : defaultNonLeafRotation), // Default top-level label rotation only applies to label leaves
-                          avoidCollisions: depthLabel?.avoidCollisions ?? label?.avoidCollisions ?? true,
+                          alwaysShow: depthLabel?.collision?.alwaysShow ?? label?.collision.alwaysShow ?? false,
+                          threshold: depthLabel?.collision?.threshold ?? label?.collision.threshold ?? 0,
                           maxWidth: depthLabel?.maxWidth ?? label?.maxWidth,
                           maxHeight: depthLabel?.maxHeight ?? label?.maxHeight,
                           minimumFontSize: depthLabel?.minimumFontSize ?? label?.minimumFontSize,
                       }
-                    : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
+                    : { enabled: false, spacing: 0, rotation: 0, alwaysShow: true, threshold: 0 }
             );
         }
         return optionsMap;
@@ -175,7 +187,6 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const { range, horizontal } = this;
         const depthOptions = this.options.depthOptions ?? [];
         const line = this.options.line;
-        const label = this.options.label;
         const title = this.options.title;
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
@@ -205,6 +216,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
+        const withBorder = (bbox: BBox) => {
+            const inset = labelBorderInset(tempText.getBoxingProperties());
+            return inset === 0 ? bbox : bbox.clone().grow(inset);
+        };
 
         const optionsMap = this.getDepthOptionsMap(maxDepth);
         const labelSpacing = sideFlag * (optionsMap[0].spacing + scrollbarThickness + tickSpacing);
@@ -212,9 +227,9 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const tickFormatter = this.tickFormatter(this.scale.domain, this.scale.domain, false);
 
         // Fitted depths share the room across the axis, so they are laid out leaf-first to know what is left.
-        const fitEnabled = optionsMap.some((options) => isLabelFitEnabled(options));
-        const labelRoom = fitEnabled ? this.getGroupedLabelRoom(scrollbar, scrollbarThickness, tickSpacing) : 0;
-        const labelOrder = fitEnabled
+        const fitsRoom = optionsMap.some((options) => options.enabled && labelFitsRoom(options));
+        const labelRoom = fitsRoom ? this.getGroupedLabelRoom(scrollbar, scrollbarThickness, tickSpacing) : 0;
+        const labelOrder = fitsRoom
             ? Array.from(treeLabels.keys()).sort((a, b) => treeLabels[b].depth - treeLabels[a].depth)
             : treeLabels.keys();
         // Every depth adds its spacing to the axis, so all of it is set aside before fitting any label.
@@ -228,9 +243,19 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
         // First pass: measure labels and cache computed text/styles
         type LabelCacheEntry = { text: any; styles: any; truncatedText: string | undefined };
+        type LabelCandidate = { index: number; datum: TreeNode; depth: number; value: any; inputText: any };
+        type FittedLabel = LabelCacheEntry & {
+            bbox: BBox;
+            exceedsBand: boolean;
+            across: number;
+            alongSize: number;
+            dropped: number;
+        };
         const labelDataCache = new Map<number, LabelCacheEntry>();
         const depthLabelMaxSize: Record<number, number> = {};
         const pickIdentities: (Omit<AxisPickDatum, 'cross'> & { depth: number })[] = [];
+        const candidates: LabelCandidate[] = [];
+        const candidatesAtDepth: LabelCandidate[][] = optionsMap.map(() => []);
         for (const index of labelOrder) {
             const datum = treeLabels[index];
             const depth = maxDepth - datum.depth;
@@ -252,84 +277,214 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
             const isLeaf = datum.children.length === 0;
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
+            const bandSize = (datum.leafCount === 0 ? 1 : datum.leafCount) * step;
+            if (bandSize < MIN_CATEGORY_SPACING) continue;
 
-            let maxWidth = (datum.leafCount === 0 ? 1 : datum.leafCount) * step;
-            if (maxWidth < MIN_CATEGORY_SPACING) continue;
+            const candidate = { index, datum, depth, value, inputText };
+            candidates.push(candidate);
+            candidatesAtDepth[depth].push(candidate);
+        }
 
-            let text = inputText;
-            let labelStyles = this.getLabelStyles(
-                { value, formattedValue: text, depth, index: tickIndex },
+        // The size along the axis a label keeps within, leaving the collision threshold to its neighbours.
+        const bandRoomAt = (depth: number, bandSize: number, rotation: number) =>
+            Math.max(0, bandSize - tickLabelSpacing(optionsMap[depth].threshold, rotation));
+
+        // Truncation fits a label to the room, and to its band only when `toBand` is set. A `centred` label stays
+        // centred on its anchor rather than shifting inward from the chart edge.
+        const fitLabel = (
+            { index, datum, depth, value, inputText }: LabelCandidate,
+            rotation: number,
+            toBand = false,
+            centred = false
+        ): FittedLabel | undefined => {
+            const depthOptionsAt = optionsMap[depth];
+            const bandSize = (datum.leafCount === 0 ? 1 : datum.leafCount) * step;
+            const bandRoom = bandRoomAt(depth, bandSize, normalizeAngle360FromDegrees(rotation));
+            const room = labelRoom - usedRoomAtDepth(depth);
+            const baseStyles = this.getLabelStyles(
+                { value, formattedValue: inputText, depth, index: index - 1 },
                 depthOptions[depth]?.label
             );
-
-            const depthOptionsAt = optionsMap[depth];
-            if (isLabelFitEnabled(depthOptionsAt)) {
-                const along = depthOptionsAt.avoidCollisions ? maxWidth : Infinity;
-                const fitted = fitLabelTextAutoSize(
-                    text,
+            const fitToRoom = (along: number) =>
+                fitLabelTextAutoSize(
+                    inputText,
                     axisLabelFit(
-                        { ...labelStyles, ...depthOptionsAt },
+                        { ...baseStyles, ...depthOptionsAt },
                         !horizontal,
-                        labelRoom - usedRoomAtDepth(depth),
+                        room,
                         along,
-                        depthOptionsAt.rotation ?? 0,
+                        rotation,
                         depthOptionsAt.wrapping
                     ),
-                    labelStyles
+                    baseStyles
                 );
-                if (!hasRealChars(fitted.text)) continue;
-                text = fitted.text;
-                if (fitted.fontSize != null) {
-                    labelStyles = {
-                        ...labelStyles,
-                        fontSize: fitted.fontSize,
-                        lineHeight: lineHeightAtSize(labelStyles, fitted.fontSize),
-                    };
-                }
-            } else if (label?.avoidCollisions ?? true) {
-                const rotation = optionsMap[depth].rotation;
-                let maxHeight = this.options.thickness;
-                if (rotation != null) {
-                    const innerRect = getMaxInnerRectSize(rotation, maxWidth, maxHeight);
-                    maxWidth = innerRect.width;
-                    maxHeight = innerRect.height;
-                }
+            const measure = (text: any, styles: typeof baseStyles) => {
+                tempText.x = horizontal ? datum.screen : labelSpacing;
+                tempText.y = horizontal ? labelSpacing : datum.screen;
+                tempText.rotation = 0;
+                tempText.fill = styles.color;
+                tempText.text = text;
+                tempText.textAlign = 'center';
+                tempText.textBaseline = this.parallel ? 'top' : 'bottom';
+                tempText.setFont(styles);
+                tempText.setBoxing(styles);
+                const bbox = withBorder(tempText.getBBox());
+                if (bbox == null) return;
+                tempText.rotation = normalizeAngle360FromDegrees(rotation);
+                const turned = withBorder(tempText.getBBox());
+                const across = horizontal ? turned.height : turned.width;
+                const alongSize = horizontal ? turned.width : turned.height;
+                return { text, styles, bbox, across, alongSize, exceedsBand: labelExceedsBand(alongSize, bandRoom) };
+            };
+
+            const measureFitted = (fitted: { text: any; fontSize?: number }) => {
+                if (!hasRealChars(fitted.text)) return;
+                const styles =
+                    fitted.fontSize == null
+                        ? baseStyles
+                        : {
+                              ...baseStyles,
+                              fontSize: fitted.fontSize,
+                              lineHeight: lineHeightAtSize(baseStyles, fitted.fontSize),
+                          };
+                return measure(fitted.text, styles);
+            };
+
+            // Labels are only wrapped to their band when they must keep within it.
+            const wrapBand = depthOptionsAt.alwaysShow ? Infinity : bandRoom;
+            let measured: ReturnType<typeof measure>;
+            if (isLabelFitEnabled(depthOptionsAt)) {
+                let fitted = fitToRoom(wrapBand);
+                if (!hasRealChars(fitted.text) || isTruncated(fitted.text)) fitted = fitToRoom(Infinity);
+                measured = measureFitted(fitted);
+            } else {
+                const { width: maxWidth, height: maxHeight } = getMaxInnerRectSize(
+                    rotation,
+                    wrapBand,
+                    this.options.thickness
+                );
                 const wrapOptions: WrapOptions = {
-                    font: labelStyles,
-                    lineHeight: labelStyles.lineHeight,
-                    textWrap: optionsMap[depth].wrapping,
-                    overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
+                    font: baseStyles,
+                    lineHeight: baseStyles.lineHeight,
+                    textWrap: depthOptionsAt.wrapping,
+                    overflow: 'hide',
                     maxWidth,
                     maxHeight,
                 };
-                const wrapped = wrapTextOrSegments(text, wrapOptions);
-                text = wrapped === '' ? text : wrapped;
+                const wrapped = wrapTextOrSegments(inputText, wrapOptions);
+                measured = measure(isEmptyWrap(wrapped) ? inputText : wrapped, baseStyles);
+                if (measured != null && depthOptionsAt.truncate === true && measured.across > room) {
+                    measured = measureFitted(fitToRoom(Infinity));
+                }
             }
 
-            const truncatedText = text !== inputText && isTruncated(text) ? toPlainText(inputText) : undefined;
-
-            tempText.x = horizontal ? datum.screen : labelSpacing;
-            tempText.y = horizontal ? labelSpacing : datum.screen;
-            tempText.rotation = 0;
-            tempText.fill = labelStyles.color;
-            tempText.text = text;
-            tempText.textAlign = 'center';
-            tempText.textBaseline = this.parallel ? 'top' : 'bottom';
-            tempText.setFont(labelStyles);
-            tempText.setBoxing(labelStyles);
-
-            if (tempText.getBBox() == null) continue;
-
-            labelDataCache.set(index, { text, styles: labelStyles, truncatedText });
-            labelBBoxes.set(index, tempText.getBBox());
-            tempText.rotation = normalizeAngle360FromDegrees(optionsMap[depth]?.rotation);
-
-            const { width, height } = tempText.getBBox();
-            const labelSize = horizontal ? height : width;
-
-            if (depthLabelMaxSize[depth] < labelSize) {
-                depthLabelMaxSize[depth] = labelSize;
+            // Labels running along the axis shift inward to stay within the chart; turned ones are centred on
+            // their group, so each may reach as far either side as its nearer chart edge.
+            const alongBounds = this.chartLayout?.alongBounds;
+            const truncates = depthOptionsAt.truncate === true;
+            let along = Infinity;
+            if (alongBounds != null && truncates) {
+                along =
+                    labelSlides(rotation, horizontal) && !centred
+                        ? alongBounds[1] - alongBounds[0]
+                        : 2 * Math.min(datum.screen - alongBounds[0], alongBounds[1] - datum.screen);
+                along = Math.max(0, along);
             }
+            if (measured != null && measured.alongSize > along) measured = measureFitted(fitToRoom(along));
+            if (toBand && truncates && measured?.exceedsBand) {
+                const minChars = Math.min(MIN_TRUNCATED_CHARS, keptChars(inputText));
+                measured = measureFitted(fitToRoom(Math.min(along, bandRoom)));
+                if (measured != null && keptChars(measured.text) < minChars) return;
+            }
+            if (measured == null) return;
+
+            const { text } = measured;
+            const truncated = text !== inputText && isTruncated(text);
+            const plainText = toPlainText(inputText);
+            const dropped = truncated ? Math.max(1, plainText.length - toPlainText(text).length + 1) : 0;
+            return { ...measured, truncatedText: truncated ? plainText : undefined, dropped };
+        };
+
+        // Each depth takes the first rotation whose labels all fit whole within their bands, else the one
+        // truncating the fewest characters, else the one with the fewest labels overflowing their bands.
+        const depthRotation: number[] = [];
+        const depthFits: Map<LabelCandidate, FittedLabel | undefined>[] = [];
+        const fitDepth = (depth: number) => {
+            const rotations = axisLabelRotations(optionsMap[depth].rotation);
+            let best: { rotation: number; fits: Map<LabelCandidate, FittedLabel | undefined> } | undefined;
+            let bestScore: [number, number] = [Infinity, Infinity];
+            for (const rotation of rotations) {
+                const fits = new Map<LabelCandidate, FittedLabel | undefined>();
+                let overflowing = 0;
+                let dropped = 0;
+                for (const candidate of candidatesAtDepth[depth]) {
+                    const fitted = fitLabel(candidate, rotation);
+                    fits.set(candidate, fitted);
+                    if (fitted == null) {
+                        dropped += toPlainText(candidate.inputText).length;
+                    } else {
+                        dropped += fitted.dropped;
+                        if (fitted.exceedsBand) overflowing++;
+                    }
+                }
+                if (overflowing < bestScore[0] || (overflowing === bestScore[0] && dropped < bestScore[1])) {
+                    best = { rotation, fits };
+                    bestScore = [overflowing, dropped];
+                }
+                if (overflowing === 0 && dropped === 0) break;
+            }
+            depthRotation[depth] = best?.rotation ?? rotations[0];
+            depthFits[depth] = best?.fits ?? new Map();
+        };
+
+        // A label's extent along the axis once shifted inward to keep it within the chart. A refitted label
+        // only shrinks about its anchor or the chart edge, so this also bounds it after refitting.
+        const shiftedExtent = (screen: number, alongSize: number, [lower, upper]: [number, number]) => {
+            const min = screen - alongSize / 2;
+            const max = screen + alongSize / 2;
+            const shift = Math.max(0, lower - min) - Math.max(0, max - upper);
+            return { min: min + shift, max: max + shift, shifted: shift !== 0 };
+        };
+
+        // Whether shifting a label inward leaves it clear of the other labels at its depth, wherever they end up.
+        const shiftClears = ({ datum, depth }: LabelCandidate, { alongSize }: FittedLabel) => {
+            const alongBounds = this.chartLayout?.alongBounds;
+            if (alongBounds == null) return true;
+            const { min, max, shifted } = shiftedExtent(datum.screen, alongSize, alongBounds);
+            if (!shifted) return true;
+            const spacing = tickLabelSpacing(optionsMap[depth].threshold, toRadians(depthRotation[depth]));
+            return candidatesAtDepth[depth].every((other) => {
+                const otherFit = depthFits[depth].get(other);
+                if (other.datum === datum || otherFit == null) return true;
+                const otherExtent = shiftedExtent(other.datum.screen, otherFit.alongSize, alongBounds);
+                return otherExtent.min >= max + spacing || otherExtent.max <= min - spacing;
+            });
+        };
+
+        for (const candidate of candidates) {
+            const { depth } = candidate;
+            if (depthFits[depth] == null) fitDepth(depth);
+            let fitted = depthFits[depth].get(candidate);
+            const { alwaysShow, truncate } = optionsMap[depth];
+            const exceedsBand = fitted?.exceedsBand === true && !alwaysShow;
+            // Labels overflowing their group at the chosen rotation truncate to it before being hidden, and edge
+            // labels that cannot shift inward clear of their neighbours are fitted centred on their anchor instead.
+            if (
+                fitted != null &&
+                !alwaysShow &&
+                truncate === true &&
+                labelSlides(depthRotation[depth], horizontal) &&
+                !shiftClears(candidate, fitted)
+            ) {
+                fitted = fitLabel(candidate, depthRotation[depth], exceedsBand, true);
+            } else if (exceedsBand) {
+                fitted = fitLabel(candidate, depthRotation[depth], true);
+            }
+            if (fitted == null) continue;
+            const { text, styles, truncatedText, bbox, across } = fitted;
+            if (depthLabelMaxSize[candidate.depth] < across) depthLabelMaxSize[candidate.depth] = across;
+            labelDataCache.set(candidate.index, { text, styles, truncatedText });
+            labelBBoxes.set(candidate.index, bbox);
         }
 
         // Precompute cumulative depth sizes
@@ -370,7 +525,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
 
-            const labelRotation = normalizeAngle360FromDegrees(optionsMap[depth].rotation);
+            const labelRotation = normalizeAngle360FromDegrees(depthRotation[depth]);
             const labelBBox = labelBBoxes.get(index);
             if (!labelBBox) continue;
             const { width: w, height: h } = labelBBox;
@@ -404,13 +559,31 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 tempText.rotationCenterY = datum.screen;
             }
 
-            if (optionsMap[depth].avoidCollisions) {
-                const { width, height } = tempText.getBBox();
+            if (!optionsMap[depth].alwaysShow) {
+                const { width, height } = withBorder(tempText.getBBox());
                 const labelSize = horizontal ? width : height;
                 const availableRange = isLeaf ? step : datum.leafCount * step;
-                if (labelExceedsBand(labelSize, availableRange)) {
+                if (labelExceedsBand(labelSize, bandRoomAt(depth, availableRange, labelRotation))) {
                     labelBBoxes.delete(index);
                     continue;
+                }
+            }
+
+            const alongBounds = this.chartLayout?.alongBounds;
+            if (
+                alongBounds != null &&
+                optionsMap[depth].truncate === true &&
+                labelSlides(depthRotation[depth], horizontal)
+            ) {
+                const bbox = withBorder(tempText.getBBox());
+                const [min, max] = horizontal ? [bbox.x, bbox.x + bbox.width] : [bbox.y, bbox.y + bbox.height];
+                const shift = Math.max(0, alongBounds[0] - min) - Math.max(0, max - alongBounds[1]);
+                if (horizontal) {
+                    tempText.x += shift;
+                    tempText.rotationCenterX += shift;
+                } else {
+                    tempText.y += shift;
+                    tempText.rotationCenterY += shift;
                 }
             }
 
@@ -441,7 +614,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 x: tempText.x,
                 y: tempText.y,
             });
-            labelBBoxes.set(index, Transformable.toCanvas(tempText));
+            labelBBoxes.set(index, withBorder(Transformable.toCanvas(tempText)));
         }
 
         const maxTickSize = tickSizeAtDepth[maxDepth - 1] ?? 0;
@@ -902,4 +1075,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
 function convertIntegratedCategoryValue(datum: unknown): GroupedCategoryKey {
     // Handle integrated charts data when provided as an object
     return toArray(isObject(datum) && 'value' in datum ? datum.value : datum);
+}
+
+/** Whether a label turned by `rotation` degrees runs along the axis, so it can shift along it clear of its neighbours. */
+function labelSlides(rotation: number, horizontal: boolean) {
+    const angle = toRadians(rotation);
+    return Math.abs(horizontal ? Math.cos(angle) : Math.sin(angle)) > 1 - 1e-6;
 }

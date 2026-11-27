@@ -76,9 +76,6 @@ const options: AgCartesianChartOptions = {
                 minSpacing: 50,
                 maxSpacing: 200,
             },
-            label: {
-                autoRotate: false,
-            },
             crosshair: {
                 enabled: true,
                 label: {

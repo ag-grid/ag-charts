@@ -14,7 +14,7 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'category',
-            label: { autoRotate: false, wrapping: 'on-space', maxWidth: 100, maxHeight: 60 },
+            label: { rotation: 0, wrapping: 'on-space', maxWidth: 100, maxHeight: 60 },
         },
         y: { type: 'number' },
     },

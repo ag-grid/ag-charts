@@ -48,9 +48,6 @@ const options: AgCartesianChartOptions = {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
-            label: {
-                autoRotate: false,
-            },
         },
     },
     data: getData(),

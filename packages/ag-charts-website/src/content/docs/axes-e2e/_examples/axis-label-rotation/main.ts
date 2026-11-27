@@ -40,11 +40,9 @@ function reset() {
     element.style.height = '100%';
 
     delete categoryAxis.label!.rotation;
-    delete categoryAxis.label!.autoRotate;
-    delete categoryAxis.label!.avoidCollisions;
+    delete categoryAxis.label!.collision;
     delete categoryAxis.label!.rotation;
-    delete categoryAxis.label!.autoRotate;
-    delete categoryAxis.label!.avoidCollisions;
+    delete categoryAxis.label!.collision;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     chart.update(options);
@@ -54,10 +52,8 @@ function disableRotation() {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    delete categoryAxis.label!.rotation;
-    delete numberAxis.label!.rotation;
-    categoryAxis.label!.autoRotate = false;
-    numberAxis.label!.autoRotate = false;
+    categoryAxis.label!.rotation = 0;
+    numberAxis.label!.rotation = 0;
 
     chart.update(options);
 }
@@ -68,8 +64,6 @@ function fixedRotation() {
 
     categoryAxis.label!.rotation = 45;
     numberAxis.label!.rotation = 45;
-    categoryAxis.label!.autoRotate = false;
-    numberAxis.label!.autoRotate = false;
 
     chart.update(options);
 }
@@ -78,10 +72,8 @@ function autoRotation() {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    delete categoryAxis.label!.rotation;
-    delete numberAxis.label!.rotation;
-    categoryAxis.label!.autoRotate = true;
-    numberAxis.label!.autoRotate = true;
+    categoryAxis.label!.rotation = [0, 335];
+    numberAxis.label!.rotation = [0, 335];
 
     chart.update(options);
 }
@@ -100,8 +92,8 @@ function noCollisionDetection() {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    categoryAxis.label!.avoidCollisions = false;
-    numberAxis.label!.avoidCollisions = false;
+    categoryAxis.label!.collision = { alwaysShow: true };
+    numberAxis.label!.collision = { alwaysShow: true };
 
     chart.update(options);
 }
@@ -110,8 +102,8 @@ function autoCollisionDetection() {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    categoryAxis.label!.avoidCollisions = true;
-    numberAxis.label!.avoidCollisions = true;
+    delete categoryAxis.label!.collision;
+    delete numberAxis.label!.collision;
 
     chart.update(options);
 }

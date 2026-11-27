@@ -82,7 +82,7 @@ const barOptions: AgCartesianChartOptions = {
         x: {
             type: 'category',
             label: {
-                autoRotate: false,
+                rotation: 0,
             },
         },
     },
@@ -125,9 +125,6 @@ const lineOptions: AgCartesianChartOptions = {
         x: {
             type: 'number',
             nice: false,
-            label: {
-                autoRotate: false,
-            },
         },
     },
 };
@@ -174,9 +171,6 @@ const areaOptions: AgCartesianChartOptions = {
         x: {
             type: 'number',
             nice: false,
-            label: {
-                autoRotate: false,
-            },
         },
     },
 };

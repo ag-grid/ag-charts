@@ -541,7 +541,7 @@ export const GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: AgCartesianChartO
         x: {
             type: 'grouped-category',
             position: 'bottom',
-            ...mergeDefaults({ label: { avoidCollisions: false } }, extremeAxisConfig),
+            ...mergeDefaults({ label: { collision: { alwaysShow: true } } }, extremeAxisConfig),
         },
         y: {
             type: 'number',

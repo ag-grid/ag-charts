@@ -90,7 +90,7 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
                     type: 'category',
                     position: 'bottom',
                     line: { enabled: false },
-                    label: { autoRotate: false },
+                    label: { rotation: 0 },
                 },
                 y: { type: 'category', position: 'left', line: { enabled: false } },
             },

@@ -32,7 +32,7 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<
             positionAngle: 0,
             line: { enabled: false },
             shape: { $findFirstSiblingNotOperation: ['polygon'] },
-            label: { minSpacing: 5 },
+            label: { collision: { threshold: 5 } },
             title: { spacing: 10 },
         },
         titleAxisThemeTemplate,

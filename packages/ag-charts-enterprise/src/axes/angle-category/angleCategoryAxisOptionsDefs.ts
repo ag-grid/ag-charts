@@ -21,6 +21,7 @@ export const angleCategoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<A
     groupPaddingInner: ratio,
     label: {
         ...commonAxisLabelOptionsDefs,
+        rotation: number,
         orientation: union('fixed', 'parallel', 'perpendicular'),
     },
     // Integrated sets this from the formatting panel, but it isn't relevant.

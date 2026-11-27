@@ -218,6 +218,7 @@ export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology
 const ATOMIC_LIST_OPTION_KEYS = new Set<string>([
     'placement',
     'orientation',
+    'rotation',
     'consoleOn',
     'showOverlayOn',
     'throwOn',

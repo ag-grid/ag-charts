@@ -37,12 +37,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         },
       },
       "label": {
-        "autoRotate": false,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#3f7cbf",
         "cornerRadius": 4,
@@ -53,6 +54,8 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "padding": 5,
         "rotation": -30,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -65,11 +68,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "parentLevel": {
         "enabled": true,
         "label": {
-          "avoidCollisions": true,
           "border": {
             "enabled": false,
             "stroke": "rgba(24, 29, 31, 0.08)",
             "strokeWidth": 1,
+          },
+          "collision": {
+            "alwaysShow": false,
           },
           "color": "#3f7cbf",
           "cornerRadius": 4,
@@ -78,7 +83,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "fontSize": 14,
           "fontWeight": "bold",
           "padding": 5,
+          "rotation": 0,
           "spacing": 11,
+          "truncate": false,
+          "wrapping": "never",
         },
         "tick": {
           "enabled": true,
@@ -123,11 +131,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#3f7cbf",
         "cornerRadius": 4,
@@ -136,7 +146,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 14,
         "fontWeight": "bold",
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -809,11 +822,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -823,7 +838,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -873,12 +891,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -887,7 +906,12 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -934,11 +958,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -948,7 +974,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -1612,12 +1641,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -1628,6 +1658,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "padding": 5,
         "rotation": -30,
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -1674,11 +1705,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -1688,7 +1721,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -2927,12 +2963,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -2941,7 +2978,12 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -2988,11 +3030,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -3002,7 +3046,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -4338,11 +4385,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -4351,7 +4400,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -4397,11 +4449,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -4410,7 +4464,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -4787,11 +4844,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -4801,7 +4860,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontWeight": 400,
         "format": "%d/%m",
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -4814,11 +4876,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "parentLevel": {
         "enabled": false,
         "label": {
-          "avoidCollisions": true,
           "border": {
             "enabled": false,
             "stroke": "rgba(24, 29, 31, 0.08)",
             "strokeWidth": 1,
+          },
+          "collision": {
+            "alwaysShow": false,
           },
           "color": "#181d1f",
           "cornerRadius": 4,
@@ -4827,7 +4891,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "fontSize": 12,
           "fontWeight": "bold",
           "padding": 5,
+          "rotation": 0,
           "spacing": 11,
+          "truncate": false,
+          "wrapping": "never",
         },
         "tick": {
           "enabled": false,
@@ -4872,11 +4939,13 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -4885,7 +4954,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -5697,12 +5769,13 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -5711,7 +5784,12 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -5758,11 +5836,13 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -5771,7 +5851,10 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -6774,11 +6857,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -6787,7 +6872,10 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -6837,12 +6925,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -6851,7 +6940,12 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -7235,11 +7329,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -7248,7 +7344,10 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -7298,12 +7397,13 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -7312,7 +7412,12 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -7707,12 +7812,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -7721,7 +7827,12 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 5,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -7767,12 +7878,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -7781,7 +7893,12 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 5,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -8161,11 +8278,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -8174,7 +8293,10 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -8223,11 +8345,13 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -8236,7 +8360,10 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -8622,12 +8749,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -8636,7 +8764,12 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -8683,11 +8816,13 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -8696,7 +8831,10 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -9210,11 +9348,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -9223,7 +9363,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -9273,12 +9416,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -9287,7 +9431,12 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -9812,12 +9961,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -9826,7 +9976,12 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -9873,11 +10028,13 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -9887,7 +10044,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -11091,12 +11251,13 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -11106,7 +11267,12 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -11153,11 +11319,13 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -11166,7 +11334,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -13673,11 +13844,13 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -13686,7 +13859,10 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "fontSize": 10,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -13733,11 +13909,13 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -13747,7 +13925,10 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "fontWeight": 400,
         "format": ",.0f",
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -14138,12 +14319,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -14152,7 +14334,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -14199,11 +14386,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -14213,7 +14402,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontWeight": 400,
         "format": "#{.0f}%",
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -15574,11 +15766,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -15588,7 +15782,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontWeight": 400,
         "format": ".0%",
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -15638,12 +15835,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -15654,6 +15852,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "padding": 5,
         "rotation": -30,
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -16317,12 +16516,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -16331,7 +16531,12 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -16378,11 +16583,13 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -16392,7 +16599,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontWeight": 400,
         "format": "#{.0f}%",
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -17464,12 +17674,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         },
       },
       "label": {
-        "autoRotate": false,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -17478,7 +17689,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -17491,11 +17705,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "parentLevel": {
         "enabled": true,
         "label": {
-          "avoidCollisions": true,
           "border": {
             "enabled": false,
             "stroke": "rgba(24, 29, 31, 0.08)",
             "strokeWidth": 1,
+          },
+          "collision": {
+            "alwaysShow": false,
           },
           "color": "#181d1f",
           "cornerRadius": 4,
@@ -17504,7 +17720,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "fontSize": 12,
           "fontWeight": "bold",
           "padding": 5,
+          "rotation": 0,
           "spacing": 11,
+          "truncate": false,
+          "wrapping": "never",
         },
         "tick": {
           "enabled": false,
@@ -17549,11 +17768,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -17563,7 +17784,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -18415,12 +18639,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -18429,7 +18654,12 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -18476,11 +18706,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -18490,7 +18722,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -19353,12 +19588,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         },
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -19367,7 +19603,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -19380,11 +19622,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "parentLevel": {
         "enabled": true,
         "label": {
-          "avoidCollisions": true,
           "border": {
             "enabled": false,
             "stroke": "rgba(24, 29, 31, 0.08)",
             "strokeWidth": 1,
+          },
+          "collision": {
+            "alwaysShow": false,
           },
           "color": "#181d1f",
           "cornerRadius": 4,
@@ -19393,7 +19637,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "fontSize": 12,
           "fontWeight": "bold",
           "padding": 5,
+          "rotation": 0,
           "spacing": 11,
+          "truncate": false,
+          "wrapping": "never",
         },
         "tick": {
           "enabled": false,
@@ -19438,12 +19685,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "width": 1,
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -19452,7 +19700,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -20416,11 +20670,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -20429,7 +20685,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -20475,11 +20734,13 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -20488,7 +20749,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -20863,12 +21127,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "step": "month",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -20878,7 +21143,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontWeight": 400,
         "format": "%b",
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -20891,11 +21162,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "parentLevel": {
         "enabled": true,
         "label": {
-          "avoidCollisions": true,
           "border": {
             "enabled": false,
             "stroke": "rgba(24, 29, 31, 0.08)",
             "strokeWidth": 1,
+          },
+          "collision": {
+            "alwaysShow": false,
           },
           "color": "#181d1f",
           "cornerRadius": 4,
@@ -20904,7 +21177,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "fontSize": 12,
           "fontWeight": "bold",
           "padding": 5,
+          "rotation": 0,
           "spacing": 11,
+          "truncate": false,
+          "wrapping": "never",
         },
         "tick": {
           "enabled": false,
@@ -20949,11 +21225,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -20963,7 +21241,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -22153,11 +22434,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -22166,7 +22449,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -22217,12 +22503,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -22231,7 +22518,12 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -23028,12 +23320,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -23044,6 +23337,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "padding": 5,
         "rotation": 30,
         "spacing": 11,
+        "truncate": true,
         "wrapping": "never",
       },
       "line": {
@@ -23090,11 +23384,13 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "width": 1,
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -23104,7 +23400,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontWeight": 400,
         "formatter": [Function],
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -24036,12 +24335,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -24050,7 +24350,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -24102,11 +24407,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -24115,7 +24422,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -24541,12 +24851,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -24555,7 +24866,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -24607,11 +24923,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -24620,7 +24938,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -25045,11 +25366,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -25058,7 +25381,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -25111,12 +25437,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -25125,7 +25452,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -25549,12 +25881,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -25563,7 +25896,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -25615,11 +25953,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -25628,7 +25968,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -26056,12 +26399,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -26070,7 +26414,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -26122,11 +26471,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -26135,7 +26486,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -26562,12 +26916,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -26576,7 +26931,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -26628,11 +26988,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -26641,7 +27003,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -27068,12 +27433,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "placement": "between",
       },
       "label": {
-        "autoRotate": true,
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -27082,7 +27448,12 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": [
+          0,
+          335,
+        ],
         "spacing": 11,
+        "truncate": true,
         "wrapping": "on-space",
       },
       "line": {
@@ -27134,11 +27505,13 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         ],
       },
       "label": {
-        "avoidCollisions": true,
         "border": {
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": false,
         },
         "color": "#181d1f",
         "cornerRadius": 4,
@@ -27147,7 +27520,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 5,
+        "rotation": 0,
         "spacing": 11,
+        "truncate": false,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,

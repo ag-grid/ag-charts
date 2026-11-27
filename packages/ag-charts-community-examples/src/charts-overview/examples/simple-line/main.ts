@@ -65,7 +65,7 @@ const options: AgChartOptions = {
                 text: 'Date',
             },
             label: {
-                autoRotate: true,
+                rotation: [0, 335],
             },
         },
         y: {
@@ -75,7 +75,7 @@ const options: AgChartOptions = {
                 text: 'Price in pence',
             },
             label: {
-                autoRotate: true,
+                rotation: [0, 335],
             },
         },
     },

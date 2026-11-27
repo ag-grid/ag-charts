@@ -41,12 +41,10 @@ function reset() {
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
-    delete categoryAxis.label!.autoRotate;
-    delete categoryAxis.label!.avoidCollisions;
+    delete categoryAxis.label!.collision;
     delete categoryAxis.label!.truncate;
     delete numberAxis.label!.rotation;
-    delete numberAxis.label!.autoRotate;
-    delete numberAxis.label!.avoidCollisions;
+    delete numberAxis.label!.collision;
     delete numberAxis.label!.truncate;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
@@ -57,25 +55,20 @@ function rotationChange(e: Event) {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    delete categoryAxis.label!.rotation;
-    delete numberAxis.label!.rotation;
-
     const value = (e.target as HTMLInputElement).value;
 
     switch (value) {
         case 'auto':
-            categoryAxis.label!.autoRotate = true;
-            numberAxis.label!.autoRotate = true;
+            categoryAxis.label!.rotation = [0, 335];
+            numberAxis.label!.rotation = [0, 335];
             break;
         case 'fixed':
             categoryAxis.label!.rotation = 45;
             numberAxis.label!.rotation = 45;
-            categoryAxis.label!.autoRotate = false;
-            numberAxis.label!.autoRotate = false;
             break;
         case 'disabled':
-            categoryAxis.label!.autoRotate = false;
-            numberAxis.label!.autoRotate = false;
+            categoryAxis.label!.rotation = 0;
+            numberAxis.label!.rotation = 0;
             break;
     }
     chart.update(options);
@@ -91,9 +84,6 @@ function truncationChange(e: Event) {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    delete categoryAxis.label!.rotation;
-    delete numberAxis.label!.rotation;
-
     const value = (e.target as HTMLInputElement).value;
     const enabled = value === 'enabled';
 
@@ -106,14 +96,11 @@ function avoidanceChange(e: Event) {
     const categoryAxis = options.axes!.x! as AgCategoryAxisOptions;
     const numberAxis = options.axes!.y! as AgNumberAxisOptions;
 
-    delete categoryAxis.label!.rotation;
-    delete numberAxis.label!.rotation;
-
     const value = (e.target as HTMLInputElement).value;
     const enabled = value === 'enabled';
 
-    categoryAxis.label!.avoidCollisions = enabled;
-    numberAxis.label!.avoidCollisions = enabled;
+    categoryAxis.label!.collision = { alwaysShow: !enabled };
+    numberAxis.label!.collision = { alwaysShow: !enabled };
     chart.update(options);
 }
 

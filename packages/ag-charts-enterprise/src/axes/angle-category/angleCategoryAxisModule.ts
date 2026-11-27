@@ -31,7 +31,7 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<
             startAngle: 0,
             groupPaddingInner: 0,
             paddingInner: 0,
-            label: { spacing: 5 },
+            label: { spacing: 5, collision: { threshold: 0 } },
             gridLine: { enabled: false },
             shape: { $findFirstSiblingNotOperation: ['polygon'] },
         },

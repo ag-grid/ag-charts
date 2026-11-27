@@ -114,9 +114,6 @@ const options: Options<unknown, unknown> = {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
-            label: {
-                autoRotate: false,
-            },
         },
     },
     selection: undefined,

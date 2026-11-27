@@ -254,14 +254,17 @@ describe('AxisInteraction keyboard navigation', () => {
             .acquireAxisWidget('x' as any)
             .getBounds();
         for (const button of buttons) {
-            const node = nodes.find((n) => getLabelText(n) === button.getElement().textContent);
+            // An edge label may be truncated to stay within the chart; its button keeps the full text.
+            const node = nodes.find(
+                (n) => (n.datum.textUntruncated ?? getLabelText(n)) === button.getElement().textContent
+            );
             expect(isSlanted(node!)).toBe(true);
             expectCornersCloseTo(buttonCanvasCorners(axisBounds, button), labelCanvasCorners(node!));
         }
     });
 
     test.each([
-        { name: 'rotation: 0', options: monthsOptions({ label: { rotation: 0, avoidCollisions: false } }) },
+        { name: 'rotation: 0', options: monthsOptions({ label: { rotation: 0, collision: { alwaysShow: true } } }) },
         { name: 'rotation: 90', options: monthsOptions({ label: { rotation: 90 } }) },
         {
             name: 'grouped-category',
@@ -431,15 +434,20 @@ describe('AxisInteraction keyboard navigation after an animated layout change', 
 
     test('follows the tick labels when their rotation changes', async () => {
         const data = Array.from({ length: 36 }, (_, i) => ({ category: `Category ${i + 1}`, value: i }));
-        const options = (avoidCollisions: boolean): AgCartesianChartOptions => ({
+        const options = (alwaysShow: boolean): AgCartesianChartOptions => ({
             data,
             series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             axes: {
-                x: { type: 'category', position: 'bottom', label: { avoidCollisions }, listeners: { click: () => {} } },
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    label: { collision: { alwaysShow } },
+                    listeners: { click: () => {} },
+                },
                 y: { type: 'number', position: 'left', listeners: { click: () => {} } },
             },
         });
-        await createAndUpdate(options(true), options(false));
+        await createAndUpdate(options(false), options(true));
 
         expectProxiesMatchSettledLayout('x');
         expectProxiesMatchSettledLayout('y');

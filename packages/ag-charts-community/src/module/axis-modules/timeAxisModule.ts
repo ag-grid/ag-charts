@@ -3,6 +3,7 @@ import {
     type DynamicContext,
     type NormalisedTimeAxisOptions,
     type WithoutCrossLineOptions,
+    cartesianAxisLabelFitThemeTemplate,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -39,6 +40,7 @@ export const TimeAxisModule: AxisModuleDefinition<
         },
         titleAxisThemeTemplate,
         parentLevelAxisThemeTemplate,
+        cartesianAxisLabelFitThemeTemplate,
         commonAxisThemeTemplate
     ),
 

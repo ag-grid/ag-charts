@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Transformable, axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
+import { Transformable, axisLabelsOverlap, getDocument, rotatePoint, toRadians } from 'ag-charts-core';
 import type {
     AgBaseChartThemeOptions,
     AgCartesianAxisCrossAt,
@@ -8,6 +8,7 @@ import type {
     AgCategoryAxisOptions,
     AgChartInstance,
     AgGroupedCategoryDepthOptions,
+    AgNumberAxisOptions,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-types';
@@ -19,6 +20,7 @@ import {
     getAxisBandExtent,
     getAxisBandwidth,
     getAxisLabelNodes,
+    getAxisLabelTexts,
     getAxisLinePosition,
     getAxisSizeLimit,
     getAxisTitleRotation,
@@ -1383,8 +1385,8 @@ describe('CartesianAxis', () => {
                 expect(getAxisLabelNodes(chart, 'left').some((n) => getLabelText(n) === 'A')).toBe(true);
             });
 
-            it('still truncates when avoidCollisions is false', async () => {
-                await renderChart(leftCategoryOptions({ maxWidth: 80, avoidCollisions: false }, labels));
+            it('still truncates when alwaysShow is true', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 80, collision: { alwaysShow: true } }, labels));
 
                 const node = findLongNode('left', 'test');
                 expect(getLabelText(node).endsWith('…')).toBe(true);
@@ -1427,18 +1429,19 @@ describe('CartesianAxis', () => {
             });
 
             it('re-fits labels wrapped to two lines onto one line using the full room once rotated', async () => {
-                const mixed = ['Logistics Operations', 'Freight Forwarding', 'Supercalifragilisticexpialidocious'];
+                const mixed = [
+                    'Ops',
+                    'Logistics Operations',
+                    'Freight Forwarding',
+                    'Supercalifragilisticexpialidocious',
+                ];
                 const options = bottomCategoryOptions({ maxWidth: 200, wrapping: 'on-space' }, mixed);
                 options.height = 160;
-                await renderChart(options, 260);
+                await renderChart(options, 340);
 
                 const nodes = getAxisLabelNodes(chart, 'bottom');
-                expect(nodes.length).toBeGreaterThan(0);
-                for (const node of nodes) {
-                    expect(node.datum.rotation).not.toBe(0);
-                    expect(getLabelText(node)).not.toContain('\n');
-                    expect(getLabelText(node).replace('…', '').length).toBeGreaterThan(15);
-                }
+                expect(nodes.map(getLabelText)).toEqual(mixed);
+                for (const node of nodes) expect(node.datum.rotation).not.toBe(0);
             });
         });
 
@@ -1478,6 +1481,27 @@ describe('CartesianAxis', () => {
             // Unfitted long leaves on a bottom axis fill the axis cap and leave no room for the group depth.
             const SHORT_LEAVES = ['A', 'B', 'C'];
             const leafNode = (position: string, prefix: string) => findLongNode(position, prefix);
+
+            it.each([
+                ['bottom', 0],
+                ['left', 270],
+            ] as const)('draws the %s axis group row at %s degrees and its leaves at 270', async (position, angle) => {
+                await renderChart(groupedOptions(position, {}, undefined, SHORT_LEAVES));
+
+                expect(leafNode(position, 'A').datum.rotation).toBeCloseTo(toRadians(270));
+                expect(leafNode(position, 'North').datum.rotation).toBeCloseTo(toRadians(angle));
+            });
+
+            it('truncates a group label to its group rather than hiding it', async () => {
+                const depthOptions = [{}, { label: { wrapping: 'never' } }] as AgGroupedCategoryDepthOptions[];
+                await renderChart(groupedOptions('bottom', {}, depthOptions, SHORT_LEAVES), 300);
+
+                const node = leafNode('bottom', 'South');
+                const text = getLabelText(node);
+                expect(text.endsWith('…')).toBe(true);
+                expect('Southern Hemisphere Region'.startsWith(text.slice(0, -1))).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(getSeriesRect(chart).width / 3);
+            });
 
             it('truncates leaf labels to maxWidth on a vertical axis', async () => {
                 await renderChart(groupedOptions('left', { maxWidth: 80, wrapping: 'never' }));
@@ -1551,12 +1575,12 @@ describe('CartesianAxis', () => {
                 expect(getAxisThickness('left')).toBeLessThanOrEqual(70);
             });
 
-            it('lets labels overflow their band when avoidCollisions is false', async () => {
+            it('lets labels overflow their band when alwaysShow is true', async () => {
                 const leaves = ['Freight Hub', 'Cargo Depot', 'Supply Yard'];
                 const label = {
                     maxWidth: 120,
                     wrapping: 'never',
-                    avoidCollisions: false,
+                    collision: { alwaysShow: true },
                     truncate: false,
                     rotation: 0,
                 };
@@ -1787,6 +1811,335 @@ describe('CartesianAxis', () => {
             await compareImageSnapshot(chart, ctx, {
                 ...IMAGE_SNAPSHOT_DEFAULTS,
                 customSnapshotIdentifier: 'cartesian-axis-label-auto-rotation-narrow',
+            });
+        });
+    });
+
+    describe('label rotation list', () => {
+        // No spaces, so wrapping cannot fit it to its band.
+        const longLabel = 'InternationalBusinessMachinesCorporationHoldingsAndSubsidiariesWorldwideLimited';
+        const categories = [longLabel, 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta'];
+
+        it('truncates a single long label to the chart rather than removing labels', async () => {
+            chart = await createChart({
+                data: categories.map((category, i) => ({ category, value: i + 1 })),
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            for (const node of nodes) expect(node.datum.rotation).toBe(0);
+            const [first, ...rest] = nodes.map(getLabelText);
+            expect(first.endsWith('…')).toBe(true);
+            expect(longLabel.startsWith(first.slice(0, -1))).toBe(true);
+            expect(rest).toEqual(categories.slice(1));
+            expect(Transformable.toCanvas(nodes[0]).x).toBeGreaterThanOrEqual(0);
+
+            await compare('cartesian-axis-label-truncates-long-first-label');
+        });
+
+        it('keeps a long edge label within the chart at its configured alignment', async () => {
+            chart = await createChart({
+                data: categories.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { textAlign: 'right' } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const [first] = getAxisLabelNodes(chart, 'bottom');
+            expect(getLabelText(first).endsWith('…')).toBe(true);
+            expect(Transformable.toCanvas(first).x).toBeGreaterThanOrEqual(0);
+        });
+
+        it('keeps labels clear of each other at their configured alignment', async () => {
+            // Clear when centred, but right-aligned the long labels reach back over the short ones.
+            const labels = Array.from({ length: 7 }, (_, i) => (i % 2 === 1 ? `Long${i}abcdefghijklmnopq` : `S${i}`));
+            chart = await createChart({
+                data: labels.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { textAlign: 'right', rotation: [0] } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const boxes = getAxisLabelNodes(chart, 'bottom').map((node) => Transformable.toCanvas(node));
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        });
+
+        it('shifts an edge label inward rather than truncating it when it stays clear of its neighbour', async () => {
+            const platforms = ['Windows Server', 'macOS', 'Linux'];
+            chart = await createChart({
+                data: platforms.map((platform, i) => ({ platform, value: i + 1 })),
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'right' } },
+                series: [{ type: 'area', xKey: 'platform', yKey: 'value' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            expect(nodes.map(getLabelText)).toEqual(platforms);
+            const [first] = nodes;
+            expect(first.datum.rotation).toBe(0);
+            expect(Transformable.toCanvas(first).x).toBeGreaterThanOrEqual(0);
+            const band = getAxisBandExtent(chart, 'bottom', platforms[0]);
+            expect(first.datum.x).toBeGreaterThan((band.start + band.end) / 2);
+
+            await compare('cartesian-axis-label-shifts-edge-label');
+        });
+
+        it('shifts the last label inward rather than hiding both end labels when it stays clear of its neighbour', async () => {
+            chart = await createChart({
+                data: [0, 100].map((x) => ({ x, y: x })),
+                axes: {
+                    x: { type: 'number', position: 'bottom', interval: { step: 25 }, label: { fontSize: 30 } },
+                    y: { type: 'number', position: 'right' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            expect(nodes.map(getLabelText)).toEqual(['0', '25', '50', '75', '100']);
+            const last = Transformable.toCanvas(nodes.at(-1)!);
+            const seriesRect = deproxy(chart).seriesRect!;
+            expect(last.x + last.width / 2).toBeLessThan(seriesRect.x + seriesRect.width);
+        });
+
+        it('slides an end label only while it stays clear of the nearest visible label', async () => {
+            chart = await createChart({
+                data: [0, 100].map((x) => ({ x, y: x })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        interval: { step: 25 },
+                        label: { fontSize: 30, formatter: ({ value }) => `Value ${value} units total` },
+                    },
+                    y: { type: 'number', position: 'right' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const boxes = getAxisLabelNodes(chart, 'bottom')
+                .map((node) => Transformable.toCanvas(node))
+                .sort((a, b) => a.x - b.x);
+            expect(boxes.length).toBeGreaterThan(0);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        });
+
+        it('measures turned end labels as drawn before hiding them', async () => {
+            const first = 'Opening balance';
+            chart = await createChart({
+                data: [0, 100].map((x) => ({ x, y: x })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        interval: { step: 25 },
+                        label: { rotation: 90, formatter: ({ value }) => (value === 0 ? first : String(value)) },
+                    },
+                    y: { type: 'number', position: 'right' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(getAxisLabelNodes(chart, 'bottom').map(getLabelText)).toEqual([first, '25', '50', '75', '100']);
+        });
+
+        it('keeps a centred first label within the chart', async () => {
+            chart = await createChart({
+                data: [26, 24, 29, 31, 22].map((price, i) => ({ date: new Date(2024, 0, 1 + i), price })),
+                axes: { x: { type: 'time', position: 'bottom' }, y: { type: 'number', position: 'right' } },
+                series: [{ type: 'bar', xKey: 'date', yKey: 'price' }],
+            });
+
+            const { width } = deproxy(chart).ctx.scene;
+            const boxes = getAxisLabelNodes(chart, 'bottom').map((node) => Transformable.toCanvas(node));
+            expect(boxes.length).toBeGreaterThan(0);
+            for (const box of boxes) {
+                expect(box.x).toBeGreaterThanOrEqual(0);
+                expect(box.x + box.width).toBeLessThanOrEqual(width);
+            }
+        });
+
+        it('keeps the whole label box, border included, within the chart', async () => {
+            const strokeWidth = 4;
+            chart = await createChart({
+                data: [1, 2, 3, 4, 5, 6, 10, 11, 12].map((month, value) => ({
+                    date: new Date(2024, month - 1, 1),
+                    value,
+                })),
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        label: { border: { strokeWidth, stroke: 'red' }, fill: 'pink', padding: 8 },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+            });
+
+            const { width } = deproxy(chart).ctx.scene;
+            for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                const box = Transformable.toCanvas(node);
+                expect(box.x - strokeWidth / 2).toBeGreaterThanOrEqual(0);
+                expect(box.x + box.width + strokeWidth / 2).toBeLessThanOrEqual(width);
+            }
+        });
+
+        it('truncates colliding labels at the last rotation before removing any', async () => {
+            const departments = Array.from({ length: 12 }, (_, i) => `Department ${i + 1}`);
+            chart = await createChart({
+                data: departments.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { rotation: [0] } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            const texts = nodes.map(getLabelText);
+            expect(texts).toHaveLength(departments.length);
+            for (const [i, text] of texts.entries()) {
+                expect(text.endsWith('…')).toBe(true);
+                expect(departments[i].startsWith(text.slice(0, -1))).toBe(true);
+            }
+            const boxes = nodes.map(getLocalBox);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+
+            await compare('cartesian-axis-label-truncates-before-removing');
+        });
+
+        it('truncates only the labels that collide when clearing their neighbours', async () => {
+            const labels = [
+                'A',
+                'B',
+                'Accountancy',
+                'Administration',
+                'C',
+                'D',
+                'Engineering',
+                'E',
+                'F',
+                'G',
+                'H',
+                'I',
+            ];
+            chart = await createChart({
+                data: labels.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { rotation: [0] } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            const texts = nodes.map(getLabelText);
+            expect(texts.map((text) => text.endsWith('…'))).toEqual(labels.map((_, i) => i === 2 || i === 3));
+            expect(texts.filter((_, i) => i !== 2 && i !== 3)).toEqual(labels.filter((_, i) => i !== 2 && i !== 3));
+            const boxes = nodes.map(getLocalBox);
+            for (let i = 1; i < boxes.length; i++) {
+                expect(boxes[i - 1].x + boxes[i - 1].width).toBeLessThanOrEqual(boxes[i].x);
+            }
+        });
+
+        it('still turns to a later rotation when labels are always shown', async () => {
+            const departments = Array.from({ length: 12 }, (_, i) => `Department ${i + 1}`);
+            chart = await createChart({
+                data: departments.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { collision: { alwaysShow: true } } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const nodes = getAxisLabelNodes(chart, 'bottom');
+            expect(nodes.map(getLabelText)).toEqual(departments);
+            for (const node of nodes) expect(node.datum.rotation).toBeCloseTo(toRadians(335));
+        });
+
+        it('keeps unrotated labels the collision threshold apart, turning them rather than removing any', async () => {
+            const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+            const options = (threshold?: number): AgCartesianChartOptions => ({
+                data: quarters.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: { type: 'category', position: 'bottom', label: { collision: { threshold } } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            chart = await createChart(options());
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(quarters);
+            for (const node of getAxisLabelNodes(chart, 'bottom')) expect(node.datum.rotation).toBe(0);
+            chart.destroy();
+
+            chart = await createChart(options(300));
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(quarters);
+            for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                expect(node.datum.rotation).toBeCloseTo(toRadians(335));
+            }
+        });
+
+        it('applies the collision threshold to labels turned back to horizontal', async () => {
+            // Tall and narrow, so only unrotated labels clear each other, and then not by the threshold.
+            const tallLabels = Array.from({ length: 8 }, (_, i) => Array.from({ length: 8 }, () => i).join('\n'));
+            chart = await createChart({
+                data: tallLabels.map((category, i) => ({ category, value: i + 1 })),
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { rotation: [90, 0], collision: { threshold: 300 } },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(tallLabels.filter((_, i) => i % 2 === 0));
+            for (const node of getAxisLabelNodes(chart, 'bottom')) expect(node.datum.rotation).toBeCloseTo(Math.PI / 2);
+        });
+
+        describe('with ticks fixed by the interval', () => {
+            const options = (label: AgNumberAxisOptions['label']): AgCartesianChartOptions => ({
+                data: NUMERIC_DATA,
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 20, interval: { step: 1 }, label },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+            const allValues = Array.from({ length: 21 }, (_, i) => String(i));
+
+            it('labels every tick whose labels do not overlap, whatever the collision threshold', async () => {
+                chart = await createChart(options({ collision: { threshold: 30 } }));
+                expect(getAxisLabelTexts(chart, 'left')).toEqual(allValues);
+            });
+
+            it('labels every nth tick that clears overlapping labels, keeping every tick', async () => {
+                chart = await createChart(options({ fontSize: 30 }));
+                const values = getAxisLabelTexts(chart, 'left').map(Number);
+                const stride = values[1] - values[0];
+                expect(values[0]).toBe(0);
+                expect(stride).toBeGreaterThan(1);
+                expect(values).toEqual(Array.from(values, (_, i) => i * stride));
+                expect(getAxisTickLayout(chart, 'left').gridLines).toHaveLength(allValues.length);
+            });
+
+            it('labels every tick when labels are always shown', async () => {
+                chart = await createChart(options({ fontSize: 30, collision: { alwaysShow: true } }));
+                expect(getAxisLabelTexts(chart, 'left')).toEqual(allValues);
             });
         });
     });
@@ -2430,7 +2783,7 @@ describe('CartesianAxis', () => {
         textAlign?: TextAlign;
         verticalAlign?: VerticalAlign;
         wrapping?: 'always' | 'never' | 'on-space';
-        avoidCollisions?: boolean;
+        collision?: { alwaysShow?: boolean };
         formatter?: NonNullable<AgCategoryAxisOptions['label']>['formatter'];
     };
 
@@ -3457,7 +3810,7 @@ describe('CartesianAxis', () => {
                             position: 'bottom',
                             label: {
                                 rotation: 45,
-                                avoidCollisions,
+                                collision: { alwaysShow: !avoidCollisions },
                                 ...(verticalAlign == null ? {} : { verticalAlign }),
                             },
                         },
@@ -3529,7 +3882,7 @@ describe('CartesianAxis', () => {
                 const categoryAxis: any = {
                     type: 'category',
                     position,
-                    label: { rotation, avoidCollisions: false, ...labelVariants[variant], ...alignment },
+                    label: { rotation, collision: { alwaysShow: true }, ...labelVariants[variant], ...alignment },
                 };
                 const valueAxis: any = { type: 'number', position: horizontal ? 'left' : 'bottom' };
                 return {
@@ -3625,7 +3978,7 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'category',
                             position: 'left',
-                            label: { rotation, avoidCollisions, formatter: multiline },
+                            label: { rotation, collision: { alwaysShow: !avoidCollisions }, formatter: multiline },
                         },
                     },
                     series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
@@ -3667,8 +4020,9 @@ describe('CartesianAxis', () => {
                         type: 'category',
                         position: 'bottom',
                         label: {
-                            avoidCollisions: true,
-                            autoRotate: false,
+                            collision: { alwaysShow: false },
+                            rotation: 0,
+                            truncate: false,
                             ...(verticalAlign == null ? {} : { verticalAlign }),
                         },
                     },
@@ -3725,7 +4079,7 @@ describe('CartesianAxis', () => {
                         position: 'bottom',
                         label: {
                             rotation: 45,
-                            avoidCollisions,
+                            collision: { alwaysShow: !avoidCollisions },
                             ...(verticalAlign == null ? {} : { verticalAlign }),
                         },
                     },
@@ -3782,7 +4136,7 @@ describe('CartesianAxis', () => {
                         type: 'number',
                         position: 'left',
                         label: {
-                            avoidCollisions,
+                            collision: { alwaysShow: !avoidCollisions },
                             ...(verticalAlign == null ? {} : { verticalAlign }),
                             formatter: ({ value, index }: { value: unknown; index: number }) => [
                                 { text: String(value), fontSize: index === 0 ? 100 : 10 },
@@ -3910,7 +4264,7 @@ describe('CartesianAxis', () => {
                 await renderChart(autoRotateOptions({ verticalAlign: 'top' }), 300);
                 const topNodes = getAxisLabelNodes(chart, 'bottom');
                 for (const node of topNodes) {
-                    // Anti-vacuous: `autoRotate` must have fired, or this is the unrotated case again.
+                    // Anti-vacuous: the rotation fallback must have fired, or this is the unrotated case again.
                     expect(node.datum.rotation).not.toBe(0);
                     expect(node.datum).toMatchObject(naturalAnchors.get(getLabelText(node))!);
                 }
@@ -4624,7 +4978,7 @@ describe('CartesianAxis', () => {
             it.each([
                 { name: 'alone', data: stable },
                 { name: 'with a data update', data: moved },
-            ])('hides the edge label that the padding no longer fits ($name)', async ({ data }) => {
+            ])('moves the edge label that the padding no longer fits ($name)', async ({ data }) => {
                 const axes = {
                     ...numberAxes,
                     x: { ...numberAxes.x, label: { fontSize: 40 } },
@@ -4632,14 +4986,14 @@ describe('CartesianAxis', () => {
                 const roomOnRight = { left: 0, right: 80, top: 20, bottom: 20 };
                 const roomOnLeft = { left: 80, right: 0, top: 20, bottom: 20 };
                 chart = await create({ axes, data: stable, padding: roomOnRight });
-                const labelled = () =>
-                    getAxisTickLayout(chart, 'bottom').labels.filter((label) => label.text !== '').length;
-                const before = labelled();
+                const lastLabel = () =>
+                    getAxisTickLayout(chart, 'bottom').labels.findLast((label) => label.text !== '');
+                const before = lastLabel();
 
                 await update({ padding: roomOnLeft, data });
 
                 await expectMatchesFresh({ axes, data, padding: roomOnLeft });
-                expect(labelled()).toBeLessThan(before);
+                expect(lastLabel()).not.toEqual(before);
             });
         });
     });

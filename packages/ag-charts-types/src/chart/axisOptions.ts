@@ -7,7 +7,6 @@ import type {
     AnyFormatterSource,
     ContextDefault,
     CssColor,
-    Degree,
     FontFamilyFull,
     FontSize,
     FontStyle,
@@ -266,11 +265,25 @@ export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBa
     readonly context?: TContext;
 }
 
+/** Configuration controlling when neighbouring axis labels collide, and whether colliding labels are removed. */
+export interface AgAxisLabelCollisionOptions {
+    /**
+     * The gap in pixels below which neighbouring labels are treated as colliding. A negative value lets labels overlap by up to that amount before they collide. Applies to unrotated cartesian labels; rotated labels are packed edge to edge.
+     *
+     * Default: `5` on radius axes and `0` on angle and grouped-category axes. On other cartesian axes, `10`.
+     */
+    threshold?: PixelSize;
+    /**
+     * Whether to keep every label when labels still collide after every fitting step. When `false`, colliding labels are removed at even intervals, or on a `grouped-category` axis, each label that does not fit its group is removed.
+     *
+     * Default: `false`
+     */
+    alwaysShow?: boolean;
+}
+
 export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
-    /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
-    rotation?: Degree;
     /**
      * The horizontal alignment of the axis labels. If unset, the alignment is derived from the axis position and the label rotation.
      *
@@ -293,10 +306,8 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
      * Default: `undefined`
      */
     verticalAlign?: VerticalAlign;
-    /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
-    avoidCollisions?: boolean;
-    /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
-    minSpacing?: PixelSize;
+    /** Configuration controlling when neighbouring axis labels collide, and whether colliding labels are removed. */
+    collision?: AgAxisLabelCollisionOptions;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
     formatter?: RichFormatter<AgAxisLabelFormatterParams<TContext>>;
     /** Function used to style axis labels. */

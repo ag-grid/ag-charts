@@ -56,7 +56,10 @@ export const parentLevelAxisThemeTemplate = {
             color: { $path: '../../label/color' },
             cornerRadius: { $path: '../../label/cornerRadius' },
             padding: { $path: '../../label/padding' },
-            avoidCollisions: { $path: '../../label/avoidCollisions' },
+            collision: { $path: '../../label/collision' },
+            rotation: 0,
+            wrapping: 'never',
+            truncate: false,
         },
         tick: {
             enabled: { $path: '../../tick/enabled' },
@@ -65,6 +68,11 @@ export const parentLevelAxisThemeTemplate = {
             stroke: { $path: '../../tick/stroke' },
         },
     },
+};
+
+/** Label fit defaults for cartesian axes other than `category` and `grouped-category`. */
+export const cartesianAxisLabelFitThemeTemplate = {
+    label: { rotation: 0, wrapping: 'never', truncate: false },
 };
 
 /**
@@ -85,7 +93,7 @@ export const commonAxisThemeTemplate = {
         fontWeight: { $ref: 'axisLabelFontWeight' },
         spacing: 11,
         color: { $ref: 'axisLabelColor' },
-        avoidCollisions: true,
+        collision: { alwaysShow: false },
         cornerRadius: 4,
         border: {
             enabled: false,

@@ -79,37 +79,27 @@ describe('AxisInteraction', () => {
             });
         });
 
-        // Check that label formatter's indices match the DFS ordering of the x-grouping.
-        // Note: axes[].label.formatter is called twice on start up.
+        // Check that label formatter's indices match the DFS ordering of the x-grouping. It runs twice on
+        // start-up, leaf-first, so calls are matched by index rather than call order.
         test('formatter - value/index match', () => {
-            expect(formatter.mock.calls).toMatchObject([
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 0, depth: 2 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 1, depth: 1 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 2, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Chicken'], index: 3, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 4, depth: 1 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 5, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Apple'], index: 6, depth: 0 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 7, depth: 2 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 8, depth: 1 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 9, depth: 0 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Pepsi'], index: 10, depth: 0 })],
-                [expect.objectContaining({ value: ['Drink', 'Tea', 'Green'], index: 11, depth: 1 })],
-                [expect.objectContaining({ value: ['Drink', 'Tea', 'Green'], index: 12, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 0, depth: 2 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 1, depth: 1 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 2, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Meat', 'Chicken'], index: 3, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 4, depth: 1 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 5, depth: 0 })],
-                [expect.objectContaining({ value: ['Food', 'Fruit', 'Apple'], index: 6, depth: 0 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 7, depth: 2 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 8, depth: 1 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 9, depth: 0 })],
-                [expect.objectContaining({ value: ['Drink', 'Soda', 'Pepsi'], index: 10, depth: 0 })],
-                [expect.objectContaining({ value: ['Drink', 'Tea', 'Green'], index: 11, depth: 1 })],
-                [expect.objectContaining({ value: ['Drink', 'Tea', 'Green'], index: 12, depth: 0 })],
-            ]);
+            const calls = formatter.mock.calls.toSorted(([a], [b]) => a.index - b.index);
+            expect(calls).toMatchObject(
+                [
+                    [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 0, depth: 2 })],
+                    [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 1, depth: 1 })],
+                    [expect.objectContaining({ value: ['Food', 'Meat', 'Fish'], index: 2, depth: 0 })],
+                    [expect.objectContaining({ value: ['Food', 'Meat', 'Chicken'], index: 3, depth: 0 })],
+                    [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 4, depth: 1 })],
+                    [expect.objectContaining({ value: ['Food', 'Fruit', 'Banana'], index: 5, depth: 0 })],
+                    [expect.objectContaining({ value: ['Food', 'Fruit', 'Apple'], index: 6, depth: 0 })],
+                    [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 7, depth: 2 })],
+                    [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 8, depth: 1 })],
+                    [expect.objectContaining({ value: ['Drink', 'Soda', 'Coke'], index: 9, depth: 0 })],
+                    [expect.objectContaining({ value: ['Drink', 'Soda', 'Pepsi'], index: 10, depth: 0 })],
+                    [expect.objectContaining({ value: ['Drink', 'Tea', 'Green'], index: 11, depth: 1 })],
+                    [expect.objectContaining({ value: ['Drink', 'Tea', 'Green'], index: 12, depth: 0 })],
+                ].flatMap((call) => [call, call])
+            );
         });
 
         // Check that click's indices match the DFS ordering of the x-grouping.
@@ -500,7 +490,11 @@ describe('AxisInteraction', () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
                 axes: {
-                    x: { type: 'category', label: { rotation: 0, avoidCollisions: false }, listeners: { click } },
+                    x: {
+                        type: 'category',
+                        label: { rotation: 0, collision: { alwaysShow: true } },
+                        listeners: { click },
+                    },
                     y: { type: 'number' },
                 },
                 zoom: { enabled: true },
@@ -533,7 +527,7 @@ describe('AxisInteraction', () => {
                 axes: {
                     x: {
                         type: 'number',
-                        label: { rotation: 0, avoidCollisions: false, format: '#{0.9f}' },
+                        label: { rotation: 0, collision: { alwaysShow: true }, format: '#{0.9f}' },
                         listeners: { click },
                     },
                     y: { type: 'number' },
@@ -588,7 +582,7 @@ describe('AxisInteraction', () => {
                 axes: {
                     x: {
                         type: 'number',
-                        label: { rotation: 0, avoidCollisions: false },
+                        label: { rotation: 0, collision: { alwaysShow: true } },
                         listeners: { click },
                     },
                     y: { type: 'number' },
@@ -649,7 +643,7 @@ describe('AxisInteraction', () => {
                         interval: { step: 'day' },
                         // A full ISO-8601 timestamp is long enough to reproduce the padding the `number`
                         // variant gets from '#{0.9f}'.
-                        label: { rotation: 0, avoidCollisions: false, format: '%Y-%m-%dT%H:%M:%S.%L' },
+                        label: { rotation: 0, collision: { alwaysShow: true }, format: '%Y-%m-%dT%H:%M:%S.%L' },
                         listeners: { click },
                     },
                     y: { type: 'number' },
@@ -841,7 +835,7 @@ describe('AxisInteraction', () => {
 
         test('clicks outside min/max domain are clamped', async () => {
             await clickAction(35, 572)(chart);
-            await clickAction(799, 572)(chart);
+            await clickAction(790, 572)(chart);
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([

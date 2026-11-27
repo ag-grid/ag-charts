@@ -35,7 +35,7 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<
             paddingOuter: 0,
             shape: 'circle',
             line: { enabled: false },
-            label: { minSpacing: 5 },
+            label: { collision: { threshold: 5 } },
             title: { spacing: 10 },
         },
         titleAxisThemeTemplate,

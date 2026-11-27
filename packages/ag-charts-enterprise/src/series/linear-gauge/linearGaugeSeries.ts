@@ -585,12 +585,12 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scale.domain = [scaleOptions.min, scaleOptions.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
-        const scaleLabel = mergeDefaults(scaleOptions.label, defaultScale.label);
+        const { avoidCollisions, minSpacing, ...scaleLabel } = mergeDefaults(scaleOptions.label, defaultScale.label);
         const {
             tickData: { ticks: tickData },
         } = generateTicks({
             scale,
-            label: scaleLabel,
+            label: { ...scaleLabel, collision: { alwaysShow: !avoidCollisions, threshold: minSpacing } },
             parallel: horizontal,
             interval: { values: scaleOptions.interval?.values, step: toNumberOrUndefined(scaleOptions.interval?.step) },
             tickFormatter: (domain: AgNumericValue[], ticks: AgNumericValue[]) => this.tickFormatter(domain, ticks),

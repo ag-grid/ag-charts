@@ -89,7 +89,7 @@ const barOptions: AgCartesianChartOptions<DataType> = {
             type: 'category',
             label: {
                 wrapping: 'on-space',
-                autoRotate: false,
+                rotation: 0,
             },
         },
         y: {
@@ -146,7 +146,7 @@ const lineOptions: AgCartesianChartOptions<DataType> = {
             type: 'category',
             label: {
                 wrapping: 'on-space',
-                autoRotate: false,
+                rotation: 0,
             },
         },
         y: {
@@ -208,7 +208,7 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
             type: 'category',
             label: {
                 wrapping: 'on-space',
-                autoRotate: false,
+                rotation: 0,
             },
         },
         y: {

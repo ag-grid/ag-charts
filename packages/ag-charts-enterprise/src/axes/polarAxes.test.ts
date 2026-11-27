@@ -1,4 +1,4 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type {
     AgChartInstance,
@@ -6,7 +6,12 @@ import type {
     AgRadarAreaSeriesOptions,
     AgRadarLineSeriesOptions,
 } from 'ag-charts-community';
-import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import {
+    compareImageSnapshot,
+    getResolvedAxisLabelOptions,
+    setupMockCanvas,
+    setupMockConsole,
+} from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../test/utils';
 
@@ -72,6 +77,21 @@ describe('Polar Axes', () => {
     const compare = async () => {
         await compareImageSnapshot(chart, ctx);
     };
+
+    it.each([
+        ['radar', RADAR_LINE_SERIES, { 'angle-category': 0, 'radius-number': 5 }],
+        [
+            'radial bar',
+            [{ type: 'radial-bar', angleKey: 'Bob', radiusKey: 'skill' }],
+            { 'angle-number': 0, 'radius-category': 5 },
+        ],
+    ] as const)('resolves the %s axes collision thresholds', async (_, series, thresholds) => {
+        chart = await createEnterpriseChart({ ...EXAMPLE_OPTIONS, series } as AgChartOptions);
+
+        for (const [type, threshold] of Object.entries(thresholds)) {
+            expect(getResolvedAxisLabelOptions(chart, type).collision).toEqual({ alwaysShow: false, threshold });
+        }
+    });
 
     it(`should render polar axes as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS, series: RADAR_AREA_SERIES };

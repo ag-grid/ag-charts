@@ -8,7 +8,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Degree, Opacity, PixelSize } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseHighlightStyleOptions,
@@ -34,6 +34,8 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = Cont
 export interface AgConeFunnelSeriesStageLabelOptions<
     TContext = ContextDefault,
 > extends AgNumericAxisFormattableLabelOptions<TContext> {
+    /** The rotation of the labels in degrees. */
+    rotation?: Degree;
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
