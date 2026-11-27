@@ -568,8 +568,8 @@ describe.each(SERIES)('itemStyler shadow and glow ($name)', (testCase) => {
         });
 
         describe('with a series shadow fill', () => {
-            // A `fill` makes the theme set `_fillOpacitySet`, which the styler params must not carry back to it.
-            const FILLED_SHADOW: AgDropShadowOptions = { enabled: true, fill: 'red', blur: 3 };
+            // A `fillOpacity` makes the theme set `_fillOpacitySet`, which the styler params must not carry back to it.
+            const FILLED_SHADOW: AgDropShadowOptions = { enabled: true, fill: 'red', fillOpacity: 0.5, blur: 3 };
 
             it('gives the styler a shadow that it can spread into the shadow it returns, with no warning of its own', async () => {
                 const { inPlace } = await create({
