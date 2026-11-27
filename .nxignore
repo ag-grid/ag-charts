@@ -11,6 +11,8 @@ packages/ag-charts-website/src/content/docs/map-shapes/_examples/labels/topology
 packages/ag-charts-website/src/content/docs/map-shapes/_examples/multiple-series/topology.ts
 packages/ag-charts-website/src/content/docs/map-shapes/_examples/gap/topology.ts
 packages/ag-charts-website/src/content/docs/zoom-e2e/_examples/map-keyboard-pan/topology.ts
+packages/ag-charts-website/src/content/docs/benchmarks/_examples/map-shape-gap/usStatesTopology.ts
+packages/ag-charts-website/src/content/docs/benchmarks/_examples/map-shape-gap/worldTopology.ts
 packages/ag-charts-website/src/content/docs/benchmarks/_examples/shadow-root/data.ts
 packages/ag-charts-website/src/content/docs/benchmarks/_examples/shadow-root/shadowRootCases.ts
 packages/ag-charts-website/src/content/docs/benchmarks/_examples/shadow-root-glow-gap/data.ts

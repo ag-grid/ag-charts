@@ -381,6 +381,44 @@ export async function performDatumHighlight(
 }
 
 /**
+ * Perform pan benchmark by dragging across the series area, first one way then back, so the chart ends where it
+ * started. Each drag is a mousedown, a few mousemoves and a mouseup, followed by the chart update it triggers.
+ * The chart must already be zoomed in, since an unzoomed chart has nothing to pan.
+ *
+ * @param chart - Chart instance
+ * @param container - Chart container element
+ * @param count - Number of drags to perform (half in each direction)
+ * @param distance - Distance in pixels of each drag
+ * @returns Elapsed time in milliseconds
+ */
+export async function performPan(
+    chart: AgChartInstance,
+    container: HTMLElement,
+    count: number,
+    distance: number = 60
+): Promise<number> {
+    const seriesArea = getSeriesAreaElement(container);
+    const rect = seriesArea.getBoundingClientRect();
+    const x = rect.width / 2;
+    const y = rect.height / 2;
+    const moves = 4;
+
+    const start = performance.now();
+    for (let i = 0; i < count; i++) {
+        const direction = i < count / 2 ? 1 : -1;
+        seriesArea.dispatchEvent(makeMouseEvent('mousedown', x, y, rect, false));
+        for (let move = 1; move <= moves; move++) {
+            seriesArea.dispatchEvent(
+                makeMouseEvent('mousemove', x + (direction * distance * move) / moves, y, rect, false)
+            );
+        }
+        seriesArea.dispatchEvent(makeMouseEvent('mouseup', x + direction * distance, y, rect, true));
+        await waitForAsyncEventTriggeredUpdate(chart);
+    }
+    return performance.now() - start;
+}
+
+/**
  * Perform data append benchmark using applyTransaction.
  *
  * @param chart - Chart instance
