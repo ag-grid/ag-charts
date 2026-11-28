@@ -380,12 +380,54 @@ export async function performDatumHighlight(
     return performance.now() - start;
 }
 
+// Older releases handle a drag from mouse events and newer ones from pointer events, and each ignores the other kind,
+// so both are sent for a benchmark to drive either.
+export function dispatchPress(
+    seriesArea: Element,
+    type: 'down' | 'move' | 'up',
+    x: number,
+    y: number,
+    buttons: number
+): void {
+    const { left, top } = seriesArea.getBoundingClientRect();
+    const init = {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons,
+        clientX: left + x,
+        clientY: top + y,
+        view: window,
+    };
+    seriesArea.dispatchEvent(
+        new PointerEvent(`pointer${type}`, { ...init, pointerId: 1, pointerType: 'mouse', isPrimary: true })
+    );
+    seriesArea.dispatchEvent(new MouseEvent(`mouse${type}`, init));
+}
+
+/**
+ * Drag horizontally across the series area, which pans a zoomed chart.
+ *
+ * @param seriesArea - The series area element
+ * @param fromX - Start x, relative to the series area
+ * @param toX - End x, relative to the series area
+ * @param y - y, relative to the series area
+ * @param steps - Number of moves between the press and the release
+ */
+export function dragPan(seriesArea: Element, fromX: number, toX: number, y: number, steps: number = 12): void {
+    dispatchPress(seriesArea, 'down', fromX, y, 1);
+    for (let step = 1; step <= steps; step++) {
+        dispatchPress(seriesArea, 'move', fromX + ((toX - fromX) * step) / steps, y, 1);
+    }
+    dispatchPress(seriesArea, 'up', toX, y, 0);
+}
+
 /**
  * Perform pan benchmark by dragging across the series area, first one way then back, so the chart ends where it
- * started. Each drag is a mousedown, a few mousemoves and a mouseup, followed by the chart update it triggers.
- * The chart must already be zoomed in, since an unzoomed chart has nothing to pan.
+ * started. The chart must already be zoomed in, since an unzoomed chart has nothing to pan, and the first drag must
+ * move the zoom window: an example that can't pan throws instead of timing a drag that does nothing.
  *
- * @param chart - Chart instance
+ * @param chart - Chart instance, with zoom enabled
  * @param container - Chart container element
  * @param count - Number of drags to perform (half in each direction)
  * @param distance - Distance in pixels of each drag
@@ -398,24 +440,24 @@ export async function performPan(
     distance: number = 60
 ): Promise<number> {
     const seriesArea = getSeriesAreaElement(container);
-    const rect = seriesArea.getBoundingClientRect();
-    const x = rect.width / 2;
-    const y = rect.height / 2;
-    const moves = 4;
+    const { width, height } = seriesArea.getBoundingClientRect();
+    const windowStart = () => chart.getState().zoom?.ratioX?.start;
+    const startBefore = windowStart();
 
-    const start = performance.now();
+    let elapsed = 0;
     for (let i = 0; i < count; i++) {
         const direction = i < count / 2 ? 1 : -1;
-        seriesArea.dispatchEvent(makeMouseEvent('mousedown', x, y, rect, false));
-        for (let move = 1; move <= moves; move++) {
-            seriesArea.dispatchEvent(
-                makeMouseEvent('mousemove', x + (direction * distance * move) / moves, y, rect, false)
-            );
-        }
-        seriesArea.dispatchEvent(makeMouseEvent('mouseup', x + direction * distance, y, rect, true));
+        const from = width / 2 - (direction * distance) / 2;
+        const start = performance.now();
+        dragPan(seriesArea, from, from + direction * distance, height / 2);
         await waitForAsyncEventTriggeredUpdate(chart);
+        elapsed += performance.now() - start;
+
+        if (i === 0 && windowStart() === startBefore) {
+            throw new Error('The first pan drag did not move the zoom window, so there is nothing to time');
+        }
     }
-    return performance.now() - start;
+    return elapsed;
 }
 
 /**

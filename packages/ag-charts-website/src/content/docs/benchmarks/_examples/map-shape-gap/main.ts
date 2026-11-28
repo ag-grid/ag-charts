@@ -26,6 +26,8 @@ ModuleRegistry.registerModules([LegendModule, MapShapeSeriesModule, ZoomModule])
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     animation: { enabled: false },
+    // Zoom is off by default, and without it neither the zoom state nor a drag moves the map.
+    zoom: { enabled: true, buttons: { enabled: false } },
 };
 /* @ag-options-end */
 
@@ -70,7 +72,7 @@ function getScenarios(): Scenario[] {
             id: 'world',
             name: 'World',
             regions: worldTopology.features.length,
-            focus: { x: 0.55, y: 0.3 },
+            focus: { x: 0.55, y: 0.6 },
             build: (gap) => ({
                 ...options,
                 topology: worldTopology,
@@ -168,6 +170,13 @@ async function setZoom(scenario: Scenario, share: number): Promise<void> {
     const chart = chartRef.current!;
     await chart.setState({ ...chart.getState(), zoom: zoomState(scenario, share) });
     await chart.waitForUpdate();
+
+    // A state that doesn't take effect leaves the chart unzoomed, and the zoom and pan cases would time nothing.
+    const applied = chart.getState().zoom?.ratioX;
+    const width = applied == null ? 1 : (applied.end ?? 1) - (applied.start ?? 0);
+    if (Math.abs(width - share) > 0.01) {
+        throw new Error(`Zoom to ${share} of the map did not apply (the chart reports ${width})`);
+    }
 }
 
 // The options the chart in `chartRef` was last built with.

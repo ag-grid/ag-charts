@@ -11,7 +11,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, hover, performInitialLoad, scroll } from './benchmarkUtils';
+import { ChartRef, dispatchPress, dragPan, hover, performInitialLoad, scroll } from './benchmarkUtils';
 import { type OrgDatum, generateOrg } from './data';
 
 ModuleRegistry.registerModules([OrganizationSeriesModule, ZoomModule]);
@@ -158,36 +158,6 @@ async function performZoomInOut(nodes: number): Promise<number> {
     return zoomIn + (await zoomSteps(stepDelta(fit / floor), fit));
 }
 
-// Older releases handle a drag from mouse events and newer ones from pointer events, and each ignores the other kind,
-// so both are sent for the example to drive either.
-/** inScope */
-function dispatchPress(seriesArea: Element, type: 'down' | 'move' | 'up', x: number, y: number, buttons: number): void {
-    const { left, top } = seriesArea.getBoundingClientRect();
-    const init = {
-        bubbles: true,
-        cancelable: true,
-        button: 0,
-        buttons,
-        clientX: left + x,
-        clientY: top + y,
-        view: window,
-    };
-    seriesArea.dispatchEvent(
-        new PointerEvent(`pointer${type}`, { ...init, pointerId: 1, pointerType: 'mouse', isPrimary: true })
-    );
-    seriesArea.dispatchEvent(new MouseEvent(`mouse${type}`, init));
-}
-
-/** inScope */
-function dragPan(seriesArea: Element, fromX: number, toX: number, y: number): void {
-    dispatchPress(seriesArea, 'down', fromX, y, 1);
-    for (let step = 1; step <= PAN_DRAG_STEPS; step++) {
-        const x = fromX + ((toX - fromX) * step) / PAN_DRAG_STEPS;
-        dispatchPress(seriesArea, 'move', x, y, 1);
-    }
-    dispatchPress(seriesArea, 'up', toX, y, 0);
-}
-
 /** inScope */
 async function performPan(nodes: number): Promise<number> {
     await ensureChart(nodes);
@@ -207,7 +177,7 @@ async function performPan(nodes: number): Promise<number> {
     for (let i = 0; i < PAN_REPS; i++) {
         const from = i % 2 === 0 ? width / 2 + distance / 2 : width / 2 - distance / 2;
         const to = i % 2 === 0 ? from - distance : from + distance;
-        dragPan(seriesArea, from, to, height / 2);
+        dragPan(seriesArea, from, to, height / 2, PAN_DRAG_STEPS);
         await new Promise((resolve) => setTimeout(resolve, 0));
         await chart.waitForUpdate();
     }
