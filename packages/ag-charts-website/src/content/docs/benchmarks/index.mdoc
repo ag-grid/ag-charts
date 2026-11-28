@@ -213,7 +213,7 @@ Exercises pie and donut sector labels at 50 and 500 sectors: initial load and a 
 
 ## Map Shape Gap
 
-Exercises the `gap` option of the map-shape series on a world map of 256 regions, a map of the US states in four series, and a synthetic 150x150 grid of 22,500 regions sharing about 45,000 edges. Each map runs with the default gap and with `gap: 4`: initial load, programmatic zoom in and back out, drag panning once zoomed in, and hovering across the map. The grid zooms and pans in fewer steps, as each one costs far more there. A library without the option runs the `gap: 4` rows without it.
+Exercises the `gap` option of the map-shape series on a world map of 256 regions, a map of the US states in four series, and a synthetic 150x150 grid of 22,500 regions sharing about 45,000 edges. Each map runs with the default gap and with `gap: 4`: initial load, programmatic zoom in and back out, drag panning once zoomed in, and hovering across the map. The grid takes fewer zoom steps, pan drags and hover positions, as each one costs far more there. A library without the option runs the `gap: 4` rows without it.
 
 {% chartExampleRunner title="Map Shape Gap" name="map-shape-gap" type="generated" initialLoadDeferred=true /%}
 

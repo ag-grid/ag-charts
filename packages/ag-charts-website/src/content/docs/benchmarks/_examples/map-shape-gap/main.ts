@@ -12,7 +12,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performDatumHighlight, performInitialLoad, performPan } from './benchmarkUtils';
+import { ChartRef, hover, performInitialLoad, performPan } from './benchmarkUtils';
 import { GRID_SIZE, central, eastern, getGridData, getGridTopology, mountain, pacific } from './data';
 import { topology } from './usStatesTopology';
 import { worldTopology } from './worldTopology';
@@ -33,7 +33,6 @@ const options: AgChartOptions = {
 
 const GAP = 4;
 const worldData = worldTopology.features.map((feature: any) => ({ name: feature.properties.name }));
-const HOVER_POSITIONS = 20;
 // The share of the map left in view when zoomed in, and where the zoom centres (as ratios of the full map).
 const ZOOMED_IN = 0.1;
 const PANNED_AT = 0.25;
@@ -44,9 +43,10 @@ interface Scenario {
     regions: number;
     /** Where on the full map the programmatic zoom and the pan are centred, as ratios. */
     focus: { x: number; y: number };
-    /** The programmatic zoom steps (in and back out, so even) and the pan drags one timed run makes. */
+    /** The programmatic zoom steps (in and back out, so even), pan drags and hover positions one timed run makes. */
     zoomSteps: number;
     panDrags: number;
+    hoverPositions: number;
     build(gap: number): AgChartOptions;
 }
 
@@ -76,6 +76,7 @@ function getScenarios(): Scenario[] {
             focus: { x: 0.55, y: 0.6 },
             zoomSteps: 10,
             panDrags: 20,
+            hoverPositions: 20,
             build: (gap) => ({
                 ...options,
                 topology: worldTopology,
@@ -89,6 +90,7 @@ function getScenarios(): Scenario[] {
             focus: { x: 0.5, y: 0.5 },
             zoomSteps: 10,
             panDrags: 20,
+            hoverPositions: 20,
             build: (gap) => ({
                 ...options,
                 topology,
@@ -107,10 +109,12 @@ function getScenarios(): Scenario[] {
             name: `Grid ${GRID_SIZE}x${GRID_SIZE}`,
             regions: gridData.length,
             focus: { x: 0.5, y: 0.5 },
-            // A grid zoom step or drag redraws ~45k shared edges and costs ten times or more what one does on the other maps, so the
-            // grid runs fewer of them to keep one run of the whole example well inside the benchmark timeouts.
+            // A grid zoom step, drag or hover redraws ~45k shared edges and costs ten times or more what one does on the
+            // other maps, so the grid makes fewer of them to keep one run of the whole example well inside the
+            // benchmark timeouts.
             zoomSteps: 6,
             panDrags: 6,
+            hoverPositions: 10,
             build: (gap) => ({
                 ...options,
                 topology: gridTopology,
@@ -233,6 +237,30 @@ async function performZoomSteps(scenario: Scenario, count: number): Promise<numb
     return performance.now() - start;
 }
 
+// Hovers across the middle of the map and times how long the highlights take. The shared `performDatumHighlight`
+// only waits for the update after a hover, but the chart handles a hover on the next animation frame, so hovers
+// could merge and the closing `mouseleave` could clear a highlight that hadn't run. Each hover waits for its frame here.
+/** inScope */
+async function performHighlights(count: number): Promise<number> {
+    const chart = chartRef.current!;
+    const seriesArea = container.querySelector('.ag-charts-series-area') as HTMLElement;
+    const { width, height } = seriesArea.getBoundingClientRect();
+
+    const start = performance.now();
+    for (let i = 0; i < count; i++) {
+        hover(container, width * 0.1 + width * 0.8 * (i / count), height * 0.5);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await chart.waitForUpdate();
+    }
+    const elapsed = performance.now() - start;
+
+    // Clear the highlight, and let that finish so the next variant starts from a settled chart.
+    seriesArea.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await chart.waitForUpdate();
+    return elapsed;
+}
+
 /** inScope */
 function getVariants() {
     return getScenarios().flatMap((scenario) =>
@@ -284,11 +312,8 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'hover',
                 label: 'Datum Highlight',
                 variants: variants.map(({ scenario, chartOptions, params }) => ({
-                    params: { ...params, Positions: `${HOVER_POSITIONS}x` },
-                    run: () =>
-                        onChart(scenario, chartOptions, 1, () =>
-                            performDatumHighlight(chartRef.current!, container, HOVER_POSITIONS)
-                        ),
+                    params: { ...params, Positions: `${scenario.hoverPositions}x` },
+                    run: () => onChart(scenario, chartOptions, 1, () => performHighlights(scenario.hoverPositions)),
                 })),
             },
         ],
