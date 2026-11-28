@@ -39,7 +39,7 @@
         "live-update-line": 158,
         "live-update-radar": 50,
         "live-update-rect": 157,
-        "map-shape-gap": 300,
+        "map-shape-gap": 1080,
         "multi-series": 112,
         "pie-donut-labels": 70,
         "resize": 44,

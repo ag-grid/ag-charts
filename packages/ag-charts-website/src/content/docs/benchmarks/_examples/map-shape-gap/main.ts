@@ -33,8 +33,6 @@ const options: AgChartOptions = {
 
 const GAP = 4;
 const worldData = worldTopology.features.map((feature: any) => ({ name: feature.properties.name }));
-const ZOOM_STEPS = 10;
-const PAN_STEPS = 20;
 const HOVER_POSITIONS = 20;
 // The share of the map left in view when zoomed in, and where the zoom centres (as ratios of the full map).
 const ZOOMED_IN = 0.1;
@@ -46,6 +44,9 @@ interface Scenario {
     regions: number;
     /** Where on the full map the programmatic zoom and the pan are centred, as ratios. */
     focus: { x: number; y: number };
+    /** The programmatic zoom steps (in and back out, so even) and the pan drags one timed run makes. */
+    zoomSteps: number;
+    panDrags: number;
     build(gap: number): AgChartOptions;
 }
 
@@ -73,6 +74,8 @@ function getScenarios(): Scenario[] {
             name: 'World',
             regions: worldTopology.features.length,
             focus: { x: 0.55, y: 0.6 },
+            zoomSteps: 10,
+            panDrags: 20,
             build: (gap) => ({
                 ...options,
                 topology: worldTopology,
@@ -84,6 +87,8 @@ function getScenarios(): Scenario[] {
             name: 'US states',
             regions: timezones.reduce((sum, { data }) => sum + data.length, 0),
             focus: { x: 0.5, y: 0.5 },
+            zoomSteps: 10,
+            panDrags: 20,
             build: (gap) => ({
                 ...options,
                 topology,
@@ -102,6 +107,10 @@ function getScenarios(): Scenario[] {
             name: `Grid ${GRID_SIZE}x${GRID_SIZE}`,
             regions: gridData.length,
             focus: { x: 0.5, y: 0.5 },
+            // A grid zoom step or drag redraws ~45k shared edges and costs ten times or more what one does on the other maps, so the
+            // grid runs fewer of them to keep one run of the whole example well inside the benchmark timeouts.
+            zoomSteps: 6,
+            panDrags: 6,
             build: (gap) => ({
                 ...options,
                 topology: gridTopology,
@@ -256,18 +265,18 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'zoom',
                 label: 'Zoom',
                 variants: variants.map(({ scenario, chartOptions, params }) => ({
-                    params: { ...params, Steps: `${ZOOM_STEPS}x` },
-                    run: () => onChart(scenario, chartOptions, 1, () => performZoomSteps(scenario, ZOOM_STEPS)),
+                    params: { ...params, Steps: `${scenario.zoomSteps}x` },
+                    run: () => onChart(scenario, chartOptions, 1, () => performZoomSteps(scenario, scenario.zoomSteps)),
                 })),
             },
             {
                 id: 'pan',
                 label: 'Pan',
                 variants: variants.map(({ scenario, chartOptions, params }) => ({
-                    params: { ...params, Drags: `${PAN_STEPS}x` },
+                    params: { ...params, Drags: `${scenario.panDrags}x` },
                     run: () =>
                         onChart(scenario, chartOptions, PANNED_AT, () =>
-                            performPan(chartRef.current!, container, PAN_STEPS)
+                            performPan(chartRef.current!, container, scenario.panDrags)
                         ),
                 })),
             },
