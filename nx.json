@@ -94,6 +94,27 @@
         "production": {}
       }
     },
+    "build:css": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "dependsOn": ["^build:css"],
+      "inputs": [
+        "{projectRoot}/src/**/*.css",
+        "{projectRoot}/src/version.ts",
+        "{workspaceRoot}/packages/ag-charts-community/src/**/*.css",
+        "{workspaceRoot}/packages/ag-charts-community/src/version.ts",
+        "{workspaceRoot}/tools/esbuild/build-css.js",
+        "{workspaceRoot}/esbuild.config.css.cjs",
+        "sharedGlobals",
+        {
+          "externalDependencies": ["npm:esbuild"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist/css"],
+      "options": {
+        "command": "node tools/esbuild/build-css.js {projectRoot}"
+      }
+    },
     "build:test": {
       "executor": "nx:run-commands",
       "cache": true,

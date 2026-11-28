@@ -30,8 +30,9 @@ function collectExportTargets(exports, targets, subpath = '.', isTypes = false) 
 }
 
 // `dist/package/main.cjs.js` -> `dist/package/main.cjs.min.js`. Only the esbuild output under `dist/` is minified.
+// A stylesheet is built minified, and a `.min.css` twin would match `./css/*.css` and want its own twin.
 function minifiedTwin(file) {
-    if (!file.startsWith('dist/')) return undefined;
+    if (!file.startsWith('dist/') || file.endsWith('.css')) return undefined;
     const ext = path.extname(file);
     return `${file.slice(0, -ext.length)}.min${ext}`;
 }

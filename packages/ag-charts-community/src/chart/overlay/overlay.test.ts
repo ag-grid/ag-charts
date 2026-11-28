@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, describe, expect } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
@@ -551,13 +553,8 @@ HTMLCollection [
         });
     });
 
-    // The spinner injects a <style> element for its keyframes, so it needs the same nonce as every
-    // other style AG Charts adds — otherwise a nonce-only `style-src` blocks the animation.
     describe('#loading', () => {
-        const spinnerStyleElement = () =>
-            chart.ctx.agDocument.body.querySelector<HTMLStyleElement>('.ag-charts-overlay--loading style');
-
-        it('carries the configured style nonce on the spinner keyframes', async () => {
+        it('has no <style> element, as its keyframes live in the stylesheet', async () => {
             chart = deproxy(
                 await createChart({
                     loading: true,
@@ -567,10 +564,13 @@ HTMLCollection [
                 })
             );
 
-            expect(spinnerStyleElement()?.getAttribute('nonce')).toBe('416d1177');
+            const spinner = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay--loading');
+            expect(spinner).not.toBeNull();
+            expect(spinner!.querySelector('style')).toBeNull();
         });
 
-        it('omits the nonce attribute when none is configured', async () => {
+        // A renamed keyframe on either side would silently stop the animation.
+        it('names only animations that the community stylesheet defines', async () => {
             chart = deproxy(
                 await createChart({
                     loading: true,
@@ -579,9 +579,19 @@ HTMLCollection [
                 })
             );
 
-            const styleElement = spinnerStyleElement();
-            expect(styleElement).not.toBeNull();
-            expect(styleElement!.hasAttribute('nonce')).toBe(false);
+            const spinner = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay--loading')!;
+            const inlineStyles = [spinner, ...Array.from(spinner.querySelectorAll('*'))]
+                .map((el) => el.getAttribute('style') ?? '')
+                .join(';');
+            const animationNames = Array.from(inlineStyles.matchAll(/animation:\s*(ag-charts-[\w-]+)/g), (m) => m[1]);
+            expect(animationNames).toEqual(['ag-charts-loading', 'ag-charts-loading-matrix']);
+
+            const here = (file: string) => readFileSync(join(__dirname, file), 'utf8');
+            const spinnerCss = here('loadingSpinner.css');
+            for (const name of animationNames) {
+                expect(spinnerCss).toMatch(new RegExp(`@keyframes ${name}\\s*\\{`));
+            }
+            expect(here('../../styles.css')).toContain('@import url(./chart/overlay/loadingSpinner.css);');
         });
     });
 });

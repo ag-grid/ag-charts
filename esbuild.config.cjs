@@ -5,6 +5,7 @@ const fsSync = require('fs');
 const path = require('path');
 const htmlMinifier = require('html-minifier-terser');
 
+const { bundleCss } = require('./esbuild.config.css.cjs');
 const { annotatePureToplevel } = require('./esbuild.config.pure-toplevel.cjs');
 
 const exportedNames = {
@@ -22,20 +23,7 @@ const cssPlugin = {
     name: 'css',
     setup(build) {
         build.onLoad({ filter: /\.css$/ }, async (args) => {
-            const result = await esbuild.build({
-                entryPoints: [args.path],
-                bundle: true,
-                minify: true,
-                sourcemap: false,
-                outdir: 'null',
-                write: false,
-            });
-            if (result.outputFiles.length !== 1) {
-                throw new Error('Invalid CSS bundle');
-            }
-
-            const css = result.outputFiles[0].text;
-            return { contents: css, loader: 'text' };
+            return { contents: await bundleCss(args.path), loader: 'text' };
         });
     },
 };

@@ -1,14 +1,9 @@
-import { AgDocument, createStyleElement } from 'ag-charts-core';
+import type { AgDocument } from 'ag-charts-core';
 
 import { PHASE_METADATA } from '../../motion/animation';
 import { DEFAULT_OVERLAY_CLASS } from './overlay';
 
-export function getLoadingSpinner(
-    agDocument: AgDocument,
-    text: string,
-    defaultDuration: number,
-    styleNonce: string | undefined
-) {
+export function getLoadingSpinner(agDocument: AgDocument, text: string, defaultDuration: number) {
     const { animationDuration } = PHASE_METADATA['add'];
     const duration = animationDuration * defaultDuration;
 
@@ -47,16 +42,7 @@ export function getLoadingSpinner(
         zIndex: '-1',
     });
 
-    const animationStyles = createStyleElement(styleNonce, agDocument);
-    animationStyles.innerText = [
-        '@keyframes ag-charts-loading { from { opacity: 0 } to { opacity: 1 } }',
-        '@keyframes ag-charts-loading-matrix {',
-        '0% { background-position: 0% 0%, 50% 0%, 100% 0%; }',
-        '100% { background-position: 0% 100%, 50% 100%, 100% 100%; }',
-        '}',
-    ].join(' ');
-
-    container.replaceChildren(animationStyles, matrix, label, background);
+    container.replaceChildren(matrix, label, background);
 
     return container;
 }

@@ -11,7 +11,8 @@
       "require": "./dist/package/main.cjs.js",
       "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
-    }
+    },
+    "./css/*.css": "./dist/css/*.css"
   },
   "sideEffects": [
     "*.css",
