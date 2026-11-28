@@ -4,7 +4,14 @@
   "root": "tools/package",
   "targets": {
     "test": {
-      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/tools/release/validateDistArtefacts.js"],
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/tools/release/validateDistArtefacts.js",
+        "{workspaceRoot}/packages/ag-charts-community/package.json",
+        "{workspaceRoot}/packages/ag-charts-enterprise/package.json",
+        "{workspaceRoot}/package.json"
+      ],
       "executor": "nx:run-commands",
       "options": {
         "command": "node --test tools/package/*.test.js"
