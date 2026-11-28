@@ -109,9 +109,7 @@ function getScenarios(): Scenario[] {
             name: `Grid ${GRID_SIZE}x${GRID_SIZE}`,
             regions: gridData.length,
             focus: { x: 0.5, y: 0.5 },
-            // A grid zoom step, drag or hover redraws ~45k shared edges and costs ten times or more what one does on the
-            // other maps, so the grid makes fewer of them to keep one run of the whole example well inside the
-            // benchmark timeouts.
+            // Each grid step costs ten times or more what one does on the other maps, so the grid makes fewer of them.
             zoomSteps: 6,
             panDrags: 6,
             hoverPositions: 10,
@@ -237,9 +235,8 @@ async function performZoomSteps(scenario: Scenario, count: number): Promise<numb
     return performance.now() - start;
 }
 
-// Hovers across the middle of the map and times how long the highlights take. The shared `performDatumHighlight`
-// only waits for the update after a hover, but the chart handles a hover on the next animation frame, so hovers
-// could merge and the closing `mouseleave` could clear a highlight that hadn't run. Each hover waits for its frame here.
+// Unlike the shared `performDatumHighlight`, each hover waits for its animation frame, so hovers can't merge and the
+// closing `mouseleave` can't clear a highlight that hasn't run.
 /** inScope */
 async function performHighlights(count: number): Promise<number> {
     const chart = chartRef.current!;
